@@ -1,7 +1,7 @@
 import React from "react";
-
+import Login from "./components/Login";
 const App = () => {
-  return <div>Skytron Tracking</div>;
+  return <Login />;
 };
 
 export default App;
