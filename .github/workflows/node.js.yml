@@ -31,9 +31,9 @@ jobs:
     - name: Install forever
       run: npm install -g forever      
     - name: Change directory
-      run: cd /var/www/html/actions-runner/_work/skytronfrontend/skytronfrontend
+      run: cd /var/www/html/actions-runner/_work/skytronfrontend/skytronfrontend/src
     - name: Restart NodeJS Service
       run: |
         # Assuming "forever" is installed globally
         forever stopall
-        forever start npm start &
+        forever start App.js &
