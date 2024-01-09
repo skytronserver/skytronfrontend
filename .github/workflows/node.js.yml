@@ -28,6 +28,8 @@ jobs:
     runs-on: self-hosted
     needs: build
     steps:
+    - name: Install forever
+      run: npm install -g forever
     - name: Restart NodeJS Service
       run: |
         # Assuming "forever" is installed globally
