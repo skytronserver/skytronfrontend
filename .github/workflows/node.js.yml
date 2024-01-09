@@ -29,3 +29,22 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm start &
+
+# Deploy job
+deploy:
+  type: deploy
+  # Attach Deploy job to Deploy stage
+  stage: deploy
+  # Config to use our Runner with Executor Shell
+  tags:
+    - self-hosted
+  script:
+    # Only copy changed files to project folder
+    #- cp -r -u * $PROJECT_DIR
+    #- cd $PROJECT_DIR
+    - npm install
+    # Restart NodeJS service
+    - forever stop index.js || true
+    - forever start index.js
+  only:
+    - develop
