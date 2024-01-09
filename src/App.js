@@ -1,7 +1,7 @@
 import React from "react";
-import Otp from "./components/Otp";
+import Login from "./components/Login";
 const App = () => {
-  return <Otp />;
+  return <Login />;
 };
 
 export default App;
