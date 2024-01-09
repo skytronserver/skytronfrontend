@@ -22,7 +22,7 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run build --if-present
-    - run: npm start
+    - run: npm start &
 
   deploy:
     runs-on: self-hosted
@@ -32,4 +32,4 @@ jobs:
       run: |
         # Assuming "forever" is installed globally
         forever stopall
-        forever start npm start
+        forever start npm start &
