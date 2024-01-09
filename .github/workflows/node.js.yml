@@ -37,7 +37,11 @@ jobs:
         PID=$(ps aux | grep 'npm start' | awk '{print $2}')
         if [ -n "$PID" ]; then
           echo "Stopping npm start process with PID $PID"
-          kill $PID
+          if kill $PID ; then # try
+            echo "tried and was successful"
+          else # catch
+            echo "command_call did not complete successfully"
+          fi
         else
           echo "No npm start process found"
         fi
