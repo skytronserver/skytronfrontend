@@ -29,7 +29,9 @@ jobs:
     needs: build
     steps:
     - name: Install forever
-      run: npm install -g forever
+      run: npm install -g forever      
+    - name: Change directory
+      run: cd /var/www/html/actions-runner/_work/skytronfrontend/skytronfrontend
     - name: Restart NodeJS Service
       run: |
         # Assuming "forever" is installed globally
