@@ -32,8 +32,17 @@ jobs:
       run: npm install -g forever      
     - name: Change directory
       run: cd /var/www/html/actions-runner/_work/skytronfrontend/skytronfrontend/src
+    - name: Stop NodeJS Service
+      run: |
+        PID=$(ps aux | grep 'npm start' | awk '{print $2}')
+        if [ -n "$PID" ]; then
+          echo "Stopping npm start process with PID $PID"
+          kill $PID
+        else
+          echo "No npm start process found"
+        fi
     - name: Restart NodeJS Service
       run: |
         # Assuming "forever" is installed globally
         forever stopall
-        forever start App.js &
+        npm start &
