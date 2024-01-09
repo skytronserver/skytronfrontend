@@ -47,6 +47,4 @@ jobs:
         fi
     - name: Restart NodeJS Service
       run: |
-        # Assuming "forever" is installed globally
-        forever stopall
-        npm start &
+          npm start 
