@@ -1,30 +1,31 @@
-import React from "react";
-import Home from "./pages/home/Home";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/login/Login";
-import List from "./pages/list/List";
-import Single from "./pages/single/Single";
-import New from "./pages/new/New";
+import { useSelector } from "react-redux";
+
+import { ThemeProvider } from "@mui/material/styles";
+import { CssBaseline, StyledEngineProvider } from "@mui/material";
+
+// routing
+import Routes from "./routes";
+
+// defaultTheme
+import themes from "./themes";
+
+// project imports
+import NavigationScroll from "./layout/NavigationScroll";
+
+// ==============================|| APP ||============================== //
+
 const App = () => {
+  const customization = useSelector((state) => state.customization);
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/">
-          <Route index element={<Home />} />
-          <Route path="login" element={<Login />} />
-          <Route path="users">
-            <Route index element={<List />} />
-            <Route path=":userid" element={<Single />} />
-            <Route path="new" element={<New />} />
-          </Route>
-          <Route path="devices">
-            <Route index element={<List />} />
-            <Route path=":deviceid" element={<Single />} />
-            <Route path="new" element={<New />} />
-          </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={themes(customization)}>
+        <CssBaseline />
+        <NavigationScroll>
+          <Routes />
+        </NavigationScroll>
+      </ThemeProvider>
+    </StyledEngineProvider>
   );
 };
 
