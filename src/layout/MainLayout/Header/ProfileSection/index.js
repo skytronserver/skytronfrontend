@@ -8,22 +8,16 @@ import { useTheme } from '@mui/material/styles';
 import {
   Avatar,
   Box,
-  Card,
-  CardContent,
   Chip,
   ClickAwayListener,
   Divider,
-  Grid,
-  InputAdornment,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  OutlinedInput,
   Paper,
   Popper,
   Stack,
-  Switch,
   Typography
 } from '@mui/material';
 
@@ -36,7 +30,7 @@ import Transitions from '../../../../ui-component/extended/Transitions';
 import User1 from '../../../../assets/images/users/user-round.svg';
 
 // assets
-import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons';
+import { IconLogout, IconSettings } from '@tabler/icons';
 
 // ==============================|| PROFILE MENU ||============================== //
 
@@ -44,10 +38,6 @@ const ProfileSection = () => {
   const theme = useTheme();
   const customization = useSelector((state) => state.customization);
   const navigate = useNavigate();
-
-  const [sdm, setSdm] = useState(true);
-  const [value, setValue] = useState('');
-  const [notification, setNotification] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   /**

@@ -1,14 +1,15 @@
 // material-ui
-import { Typography, Grid } from "@mui/material";
-// project imports
+import { useState } from "react";
+import Typography from '@mui/material/Typography';
+import {Grid,TextField} from '@mui/material';
+import Button from "@mui/material/Button"
 import MainCard from "../../ui-component/cards/MainCard";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
-
-import { Formik, Form, Field } from "formik";
-import { TextField, Button } from "@mui/material";
-import FileUpload from "../../utils/FileUpload";
+import * as Yup from "yup";
+import { Formik, Form, useFormik } from "formik";
 const NewUser = () => {
+  const [selectedFileName, setSelectedFileName] = useState('');
   const initialValues = {
     name: "",
     mobile: "",
@@ -16,12 +17,42 @@ const NewUser = () => {
     companyName: "",
     gstNo: "",
     idProofNo: "",
+    idProof: null,
   };
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setSelectedFileName(selectedFile.name);
+    }
+  };
+  const validationSchema = Yup.object({
+    name: Yup.string().required("Name is required"),
+    email: Yup.string()
+      .email("Invalid email address")
+      .required("Email is required"),
+      mobile: Yup.string()
+      .matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number')
+      .required('Mobile Number is required'),
+    companyName: Yup.string().required("Company Name is required"),
+    gstNo: Yup.string().required("GTS No is required"),
+    idProofNo: Yup.string().required("ID Proof Number is required"),
+    idProof: Yup.mixed().required("ID Proof is required"),
+  });
+  const handleSubmit = (values, { setSubmitting }) => {
+    // Your form submission logic goes here
+    console.log("Form values:", values);
 
-  const handleSubmit = (values) => {
-    // Handle form submission logic here
-    console.log(values);
+    // Simulate an asynchronous operation (e.g., API call)
+    setTimeout(() => {
+      alert("Form submitted successfully!");
+      setSubmitting(false);
+    }, 1000);
   };
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    onSubmit: handleSubmit,
+  });
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -31,66 +62,131 @@ const NewUser = () => {
         <Grid container spacing={gridSpacing}>
           <Grid item lg={6} md={6} sm={6} xs={12}>
             <MainCard title="New User">
-              <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+              <Formik
+                initialValues={formik.initialValues}
+                onSubmit={formik.handleSubmit}
+              >
                 <Form>
-                  <Grid container spacing={2}>
+                  <Grid container spacing={0}>
                     <Grid item xs={12}>
-                      <Field
-                        name="name"
-                        as={TextField}
+                      <TextField
                         label="Name"
+                        variant="outlined"
                         fullWidth
-                        required
+                        margin="normal"
+                        {...formik.getFieldProps("name")}
+                        error={
+                          formik.touched.name && Boolean(formik.errors.name)
+                        }
+                        helperText={formik.touched.name && formik.errors.name}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sx={{ pt: 0 }}>
+                      <TextField
+                        label="Mobile Number"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        {...formik.getFieldProps("mobile")}
+                        error={
+                          formik.touched.mobile && Boolean(formik.errors.mobile)
+                        }
+                        helperText={
+                          formik.touched.mobile && formik.errors.mobile
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <Field
-                        name="mobile"
-                        as={TextField}
-                        label="Mobile No"
+                      <TextField
+                        label="Email"
+                        variant="outlined"
                         fullWidth
-                        required
+                        margin="normal"
+                        {...formik.getFieldProps("email")}
+                        error={
+                          formik.touched.email && Boolean(formik.errors.email)
+                        }
+                        helperText={formik.touched.email && formik.errors.email}
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <Field
-                        name="email"
-                        as={TextField}
-                        label="Email Address"
-                        type="email"
-                        fullWidth
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Field
-                        name="companyName"
-                        as={TextField}
+                      <TextField
                         label="Company Name"
+                        variant="outlined"
                         fullWidth
-                        required
+                        margin="normal"
+                        {...formik.getFieldProps("companyName")}
+                        error={
+                          formik.touched.companyName &&
+                          Boolean(formik.errors.companyName)
+                        }
+                        helperText={
+                          formik.touched.companyName &&
+                          formik.errors.companyName
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <Field
-                        name="gstNo"
-                        as={TextField}
-                        label="GST No"
+                      <TextField
+                        label="GST No."
+                        variant="outlined"
                         fullWidth
-                        required
+                        margin="normal"
+                        {...formik.getFieldProps("gstNo")}
+                        error={
+                          formik.touched.gstNo && Boolean(formik.errors.gstNo)
+                        }
+                        helperText={formik.touched.gstNo && formik.errors.gstNo}
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <Field
-                        name="idProofNo"
-                        as={TextField}
-                        label="Id Proof Number"
+                      <TextField
+                        label="ID Proof Number"
+                        variant="outlined"
                         fullWidth
-                        required
+                        margin="normal"
+                        {...formik.getFieldProps("idProofNo")}
+                        error={
+                          formik.touched.idProofNo &&
+                          Boolean(formik.errors.idProofNo)
+                        }
+                        helperText={
+                          formik.touched.idProofNo && formik.errors.idProofNo
+                        }
                       />
                     </Grid>
-                    <Grid item xs={12}>
-                      <FileUpload placeholder="ID PROOF" />
+                    <Grid item xs={12} sx={{
+                      pt:2,
+                      pb:2
+                    }}> 
+                      <input
+                        id="idProof"
+                        name="idProof"
+                        type="file"
+                        onChange={(event) =>{
+                          handleFileChange(event);
+                          formik.setFieldValue(
+                            "idProof",
+                            event.currentTarget.files[0]
+                          )
+                        }
+                        }
+                        onBlur={() => formik.setFieldTouched("idProof", true)}
+                        style={{ display: "none" }}
+                      />
+                      <label htmlFor="idProof">
+                        <Button variant="outlined" component="span">
+                          Select ID Proof
+                        </Button> <span style={{
+                          color:"#2196f3",
+                          fontStyle:"italic"
+                        }}>{selectedFileName}</span>
+                      </label>
+                      {formik.touched.idProof && formik.errors.idProof && (
+                        <div style={{ color: "red", marginTop: "8px" }}>
+                          {formik.errors.idProof}
+                        </div>
+                      )}
                     </Grid>
                     <Grid item xs={12}>
                       <Button type="submit" variant="contained" color="primary">

@@ -4,10 +4,6 @@ import { lazy } from "react";
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
 
-
-const AuthRegister3 = Loadable(
-  lazy(() => import("../views/pages/authentication/authentication3/Register3"))
-);
 const NewUser=Loadable(
   lazy(() => import("../views/user/new"))
 )
@@ -21,11 +17,7 @@ const UserRoutes = {
     {
       path: "/user/new",
       element: <NewUser />,
-    },
-    {
-      path: "/pages/register/register3",
-      element: <AuthRegister3 />,
-    },
+    }
   ],
 };
 
