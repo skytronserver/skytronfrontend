@@ -1,5 +1,5 @@
 // material-ui
-import { useState } from "react";
+import { useState,useEffect} from "react";
 import Typography from '@mui/material/Typography';
 import {Grid,TextField} from '@mui/material';
 import Button from "@mui/material/Button"
@@ -8,7 +8,23 @@ import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import * as Yup from "yup";
 import { Formik, Form, useFormik } from "formik";
+import {useSelector,useDispatch} from 'react-redux'
+import { fetchUserData } from '../../actions/dataActions';
+import Datatable from '../../datatables/Datatable';
+import {userColumns} from '../../datatables/rowsColumn';
+import DummyServices from 'services/DummyServices';
 const NewUser = () => {
+  const [load,setLoad]=useState(false)
+  const dispatch=useDispatch();
+  useEffect(()=>{
+    const retrievePosts = async () => {
+      const retriveData=await DummyServices.getUsers();
+      dispatch(fetchUserData(retriveData.data)) ;
+      setLoad(true)
+    };
+    retrievePosts();
+  },[dispatch])
+  const registeredData=useSelector((state)=>state.userData.userData);
   const [selectedFileName, setSelectedFileName] = useState('');
   const initialValues = {
     name: "",
@@ -200,7 +216,7 @@ const NewUser = () => {
           </Grid>
           <Grid item lg={6} md={6} sm={6} xs={12}>
             <MainCard title="Users">
-              <Typography variant="body2">......</Typography>
+            {load && <Datatable userRows={registeredData} userColumns={userColumns}/>}
             </MainCard>
           </Grid>
         </Grid>

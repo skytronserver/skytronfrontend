@@ -24,6 +24,13 @@ const user = {
           breadcrumbs: false
         },
         {
+          id: 'list-user',
+          title: 'List User',
+          type: 'item',
+          url: '/user/list',
+          breadcrumbs: false
+        },
+        {
           id: 'new-sub-user',
           title: 'Sub User',
           type: 'item',

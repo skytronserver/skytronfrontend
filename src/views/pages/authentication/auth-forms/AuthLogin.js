@@ -11,13 +11,10 @@ import {
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
 import AnimateButton from "../../../../ui-component/extended/AnimateButton";
-import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { loginUser } from "../../../../actions/loginActions";
 const FirebaseLogin = ({ ...others }) => {
   const dispatch = useDispatch();
-  const loading = useSelector((state) => state.login.loading);
-  const error = useSelector((state) => state.login.error);
   const initialValues = {
     email: "",
     password: "",
