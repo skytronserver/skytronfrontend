@@ -4,15 +4,12 @@ import {
     ADD_DATA,
     UPDATE_DATA,
     DELETE_DATA,
+    FETCH_USER_DATA
   } from '../actions/dataActions';
   
   const initialState = {
-    data: [{
-        id:'123',
-        name:'Raju',
-        type:'Admin',
-        mobile:'8876042616'
-    }],
+    data: [],
+    userData:[]
   };
   
   const dataReducer = (state = initialState, action) => {
@@ -21,6 +18,11 @@ import {
         return {
           ...state,
           data: action.payload,
+        };
+      case FETCH_USER_DATA:
+        return {
+          ...state,
+          userData:action.payload
         };
       case ADD_DATA:
         return {
