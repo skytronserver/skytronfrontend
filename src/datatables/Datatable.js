@@ -36,7 +36,7 @@ const Datatable = ({ userColumns, userRows }) => {
     },
   ];
   const options = {
-    filterType: "checkbox",
+    selectableRows: false,
     viewColumns: false,
   };
   return (

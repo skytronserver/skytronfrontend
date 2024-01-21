@@ -2,7 +2,9 @@
 import {useSelector,useDispatch} from 'react-redux'
 import React from 'react';
 // project imports
-import MainCard from '../../ui-component/cards/MainCard';
+import { Grid } from "@mui/material";
+import PageHeader from "../../ui-component/cards/PageHeader";
+import { gridSpacing } from "../../store/constant";
 import DummyServices from 'services/DummyServices';
 import { useEffect,useState } from 'react';
 import { fetchDataSuccess } from '../../actions/dataActions';
@@ -23,9 +25,14 @@ const [load,setLoad]=useState(false)
  
   const userData=useSelector((state)=>state.userData.data);
   return (
-  <MainCard title="Sample List Data">
-    {load && <Datatable userRows={userData} userColumns={columns}/>}
-  </MainCard>
+    <Grid container spacing={gridSpacing}>
+        <Grid item xs={12}>
+          <PageHeader title="State Users" />
+        </Grid>
+        <Grid item xs={12}>
+        {load && <Datatable userRows={userData} userColumns={columns}/>}
+        </Grid>
+    </Grid>
 );
   }
 export default ListPage;
