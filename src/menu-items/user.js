@@ -12,36 +12,43 @@ const user = {
   children: [
     {
       id: 'icons',
-      title: 'Users',
+      title: 'Create New',
       type: 'collapse',
       icon: icons.IconUser,
       children: [
         {
-          id: 'new-user',
-          title: 'State User',
+          id: 'state-admin',
+          title: 'State Admin',
           type: 'item',
-          url: '/user/new',
+          url: '/user/newStateAdmin',
           breadcrumbs: false
         },
         {
-          id: 'list-user',
-          title: 'List User',
+          id: 'esim-user',
+          title: 'eSIM User',
           type: 'item',
-          url: '/user/list',
+          url: '/user/newEsimUser',
           breadcrumbs: false
         },
         {
-          id: 'new-sub-user',
-          title: 'Sub User',
+          id: 'manufacturer-user',
+          title: 'Manufacturer',
           type: 'item',
-          url: '',
+          url: '/user/newManufacturer',
           breadcrumbs: false
         },
         {
-          id: 'unlock-user',
-          title: 'Unlock User',
+          id: 'dealer-user',
+          title: 'Dealer',
           type: 'item',
-          url: '',
+          url: '/user/newDealer',
+          breadcrumbs: false
+        },
+        {
+          id: 'vehicle-owner',
+          title: 'Vehicle Owner',
+          type: 'item',
+          url: '/new/vehicleOwner',
           breadcrumbs: false
         },
         {
@@ -114,7 +121,7 @@ const user = {
           id: 'new-sim',
           title: 'New',
           type: 'item',
-          url: '',
+          url: '/esim/newUser',
           breadcrumbs: false
         },
         {

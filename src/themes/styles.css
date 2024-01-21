@@ -1,0 +1,14 @@
+.form-controller>.MuiGrid-item{
+    padding-top: 0px !important;
+}
+.custom-fieldset{
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  width: 100%;
+  border-radius: 10px;
+  padding: 0px 10px;
+  color: #697586;
+  background-color: #f8fafc;
+}
+.custom-fieldset-error{
+    border:1px solid #f44336 !important
+}
