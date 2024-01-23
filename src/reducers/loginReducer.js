@@ -1,7 +1,11 @@
 // userReducer.js
 import { SET_USER, SET_LOADING, SET_ERROR } from '../store/constant';
 const initialState = {
-  user: null,
+  user: {
+    isAuthenticated:false,
+    token:null,
+    email:null
+  },
   loading: false,
   error: null,
 };

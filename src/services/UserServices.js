@@ -6,9 +6,13 @@ const getAll = () => {
 const getUsers=()=>{
     return http.get("/users")
 }
-const DummyServices = {
+const getRegisteredUsers=()=>{
+    return http.get("/api/get_list/")
+}
+const UserServices = {
     getAll,
-    getUsers
+    getUsers,
+    getRegisteredUsers
   };
   
-  export default DummyServices;
+  export default UserServices;

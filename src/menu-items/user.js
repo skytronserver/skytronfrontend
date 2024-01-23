@@ -52,10 +52,10 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'deactivate-user',
-          title: 'Deactivate User',
+          id: 'Other-user',
+          title: 'Other Users',
           type: 'item',
-          url: '',
+          url: '/new/otherUser',
           breadcrumbs: false
         }
       ]

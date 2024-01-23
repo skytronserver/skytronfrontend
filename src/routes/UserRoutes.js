@@ -1,5 +1,5 @@
 import { lazy } from "react";
-
+import { Navigate } from 'react-router-dom';
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
@@ -8,7 +8,22 @@ import {deviceMakeInitialValues,deviceMakeFormField} from "../formjson/deviceMak
 import {dealerInitialValues,dealerFormField} from "../formjson/dealer";
 import {stateAdminInitialValues,stateAdminField} from "../formjson/stateAdmin";
 import {vehicleOwnerInitialValues,vehicleOwnerField} from "../formjson/vehicleOwner";
+import {otherUserInitialValues,otherUserFormField} from "../formjson/otherUser";
 import DynamicForm from "../views/forms/DynamicForm";
+import UsersList from "../views/reports/UsersList";
+import { useSelector } from "react-redux";
+const PrivateRoute = ({ element }) => {
+  const isAuthenticated = true; /*useSelector(
+    (state) => state.login.user.isAuthenticated
+  );*/
+  return isAuthenticated ? element : <Navigate to="/login" replace />;
+};
+
+const applyPrivateRoute = (route) => ({
+  ...route,
+  element: <PrivateRoute element={route.element} />,
+});
+
 const NewUser=Loadable(
   lazy(() => import("../views/user/new"))
 )
@@ -66,8 +81,16 @@ const UserRoutes = {
     {
       path: "/new/vehicleOwner",
       element: <DynamicForm fieldConfig={vehicleOwnerField} initialData={vehicleOwnerInitialValues} formTitle="Vehicle Owner"/>,
+    },
+    {
+      path: "/new/otherUser",
+      element: <DynamicForm fieldConfig={otherUserFormField} initialData={otherUserInitialValues} formTitle="Other Users"/>,
+    },
+    {
+      path: "/user/registeredUser",
+      element: <UsersList/>,
     }
-  ],
+  ].map((route) => applyPrivateRoute(route)),
 };
 
 export default UserRoutes;

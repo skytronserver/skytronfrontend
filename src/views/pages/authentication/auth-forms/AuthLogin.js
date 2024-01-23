@@ -11,7 +11,7 @@ import {
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
 import AnimateButton from "../../../../ui-component/extended/AnimateButton";
-import { useDispatch } from 'react-redux';
+import { useDispatch} from 'react-redux';
 import { loginUser } from "../../../../actions/loginActions";
 const FirebaseLogin = ({ ...others }) => {
   const dispatch = useDispatch();
@@ -26,23 +26,17 @@ const FirebaseLogin = ({ ...others }) => {
     password: Yup.string().required("Password is required"),
   });
   const handleSubmit = (values, { setSubmitting }) => {
-    console.log("Form values:", values);
-    // Simulate an asynchronous operation (e.g., API call)
     dispatch(loginUser(values.email, values.password));
-    // setTimeout(() => {
-    //   alert("Form submitted successfully!");
-    //   setSubmitting(false);
-    // }, 1000);
   };
-  const formik = useFormik({
+   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: handleSubmit,
   });
   return (
-    <>
-      <Grid container direction="column" justifyContent="center" spacing={2}>
-        <Grid
+      <>
+      <Grid container direction="column" justifyContent="center" spacing={2}>  
+      <Grid
           item
           xs={12}
           container

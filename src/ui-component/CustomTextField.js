@@ -94,6 +94,22 @@ const FormField = ({ fieldConfig, formik, handleFileChange }) => {
           )}
         </FormControl>
       );
+      case "date":
+        return (
+          <TextField
+            label={label}
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="date"
+            {...formik.getFieldProps(fieldConfig.name)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            error={formik.touched[fieldConfig.name] && Boolean(formik.errors[fieldConfig.name])}
+            helperText={formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]}
+          />
+        );
     default:
       return null;
   }
