@@ -1,4 +1,5 @@
 import * as Yup from "yup"; 
+import { indianStates } from "./indianState";
 export const stateAdminInitialValues = {
     name: "",
     mobile: "",
@@ -6,9 +7,9 @@ export const stateAdminInitialValues = {
     companyName: "",
     gstNo: "",
     state:"",
-    idProofNo: "",
-    idProof: null,
-    authorizationLetter:null,
+    kycdocnumber: "",
+    kycfile: null,
+    panfile:null,
   };
   export const stateAdminField = {
     name: {
@@ -46,26 +47,22 @@ export const stateAdminInitialValues = {
         type: "select",
         label: "State Name",
         validation: Yup.string().required("State Name is required"),
-        options: [
-            { value: "0", label: "Assam" },
-            { value: "1", label: "West Bengal" },
-            { value: "2", label: "Nagaland" },
-          ],
+        options: indianStates,
       },
-    idProofNo: {
-      name:"idProofNo",
+    kycdocnumber: {
+      name:"kycdocnumber",
       type: "text",
       label: "ID Proof Number",
       validation: Yup.string().required("ID Proof Number is required"),
     },
-    idProof: {
-      name:"idProof",
+    kycfile: {
+      name:"kycfile",
       type: "file",
       label: "ID Proof",
       validation: Yup.mixed().required("ID Proof is required"),
     },
-    authorizationLetter: {
-        name:"authorizationLetter",
+    panfile: {
+        name:"panfile",
         type: "file",
         label: "Authorization Letter",
         validation: Yup.mixed().required("Authorization Letter is required"),

@@ -6,7 +6,7 @@ const getAll = () => {
 const getUsers=()=>{
     return http.get("/users")
 }
-  const DummyServices = {
+const DummyServices = {
     getAll,
     getUsers
   };

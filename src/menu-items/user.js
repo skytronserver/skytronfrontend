@@ -11,7 +11,7 @@ const user = {
   type: 'group',
   children: [
     {
-      id: 'icons',
+      id: 'new-icons',
       title: 'Create New',
       type: 'collapse',
       icon: icons.IconUser,
@@ -52,10 +52,10 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'deactivate-user',
-          title: 'Deactivate User',
+          id: 'Other-user',
+          title: 'Other Users',
           type: 'item',
-          url: '',
+          url: '/new/otherUser',
           breadcrumbs: false
         }
       ]
@@ -69,7 +69,7 @@ const user = {
       breadcrumbs: false
     },
     {
-      id: 'icons',
+      id: 'device-icons',
       title: 'Device',
       type: 'collapse',
       icon: icons.IconDeviceSim,
@@ -112,7 +112,7 @@ const user = {
       ]
     },
     {
-      id: 'icons',
+      id: 'icons-esim',
       title: 'E Sim',
       type: 'collapse',
       icon: icons.IconDeviceSim1,
@@ -135,7 +135,7 @@ const user = {
       ]
     },
     {
-      id: 'icons',
+      id: 'icons-report',
       title: 'Reports',
       type: 'collapse',
       icon: icons.IconReport,

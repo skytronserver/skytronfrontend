@@ -19,12 +19,16 @@ export const setError = (error) => ({
 export const loginUser = (username, password) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
-    // Make a request to your authentication API endpoint
-    const response = await axios.post('http://216.10.244.243:2000/api/user_login', {
+    const response = await axios.post('http://216.10.244.243:2000/api/user_login/', {
       username,
       password,
     });
-    dispatch(setUser(response.data));
+    const responseData={
+      isAuthenticated:true,
+      token:"Token "+response.data.token,
+      email:username
+    }
+    dispatch(setUser(responseData));
   } catch (error) {
     dispatch(setError(error.message));
   } finally {

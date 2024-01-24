@@ -1,0 +1,39 @@
+import {useSelector,useDispatch} from 'react-redux'
+import React from 'react';
+// project imports
+import { Grid } from "@mui/material";
+import PageHeader from "../../ui-component/cards/PageHeader";
+import { gridSpacing } from "../../store/constant";
+import UserServices from 'services/UserServices';
+import { useEffect,useState } from 'react';
+import { fetchUserDataSuccess } from '../../actions/userDataActions';
+import Datatable from '../../datatables/Datatable';
+import {registeredUserColumns} from '../../datatables/rowsColumn';
+
+const UsersList = () => {
+  const [load,setLoad]=useState(false)
+  const dispatch=useDispatch();
+  useEffect(()=>{
+    const retrievePosts = async () => {
+      const retriveData=await UserServices.getRegisteredUsers();
+      dispatch(fetchUserDataSuccess(retriveData.data)) ;
+      setLoad(true)
+    };
+    retrievePosts();
+  },[dispatch])
+ 
+  const users=useSelector((state)=>state.users.registeredUser);
+  console.log(users)
+  return (
+    <Grid container spacing={gridSpacing}>
+        <Grid item xs={12}>
+          <PageHeader title="State Users" />
+        </Grid>
+        <Grid item xs={12}>
+        {load && <Datatable userRows={users} userColumns={registeredUserColumns}/>}
+        </Grid>
+    </Grid>
+);
+}
+
+export default UsersList
