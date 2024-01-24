@@ -9,10 +9,18 @@ const getUsers=()=>{
 const getRegisteredUsers=()=>{
     return http.get("/api/get_list/")
 }
+const getSingleUser=(userId)=>{
+    return http.get(`/api/get_details/${userId}`)
+}
+const registerUser=(userData)=>{
+    return http.post(`/api/create_user/`,userData)
+}
 const UserServices = {
     getAll,
     getUsers,
-    getRegisteredUsers
+    getRegisteredUsers,
+    getSingleUser,
+    registerUser
   };
   
   export default UserServices;

@@ -5,6 +5,7 @@ const Datatable = ({ userColumns, userRows }) => {
   const [data, setData] = useState(userRows);
 
   const handleDelete = (id) => {
+    console.log(id)
     setData(data.filter((item) => item.id !== id));
   };
 
@@ -18,7 +19,7 @@ const Datatable = ({ userColumns, userRows }) => {
           return (
             <div className="cellAction">
               <Link
-                to={`/users/test/${tableMeta.rowData[0]}`}
+                to={`/user/view/${tableMeta.rowData[0]}`}
                 style={{ textDecoration: "none" }}
               >
                 <div className="viewButton">View</div>
@@ -36,7 +37,7 @@ const Datatable = ({ userColumns, userRows }) => {
     },
   ];
   const options = {
-    selectableRows: false,
+    selectableRows: "none",
     viewColumns: false,
   };
   return (

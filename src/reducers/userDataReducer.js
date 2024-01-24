@@ -3,11 +3,13 @@ import {
   FETCH_USER_DATA_SUCCESS,
   ADD_USER,
   UPDATE_USER,
-  DELETE_USER
+  DELETE_USER,
+  FETCH_SINGLE_USER
 } from "../actions/userDataActions";
 
 const initialState = {
   registeredUser: [],
+  singleUser:{},
 };
 
 const userDataReducer = (state = initialState, action) => {
@@ -17,6 +19,11 @@ const userDataReducer = (state = initialState, action) => {
         ...state,
         registeredUser: action.payload,
       };
+    case FETCH_SINGLE_USER:
+        return {
+            ...state,
+            singleUser:action.payload
+        }
     case ADD_USER:
       return {
         ...state,

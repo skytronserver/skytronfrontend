@@ -3,12 +3,16 @@ export const FETCH_USER_DATA_SUCCESS = 'FETCH_USER_DATA_SUCCESS';
 export const ADD_USER = 'ADD_USER';
 export const UPDATE_USER = 'UPDATE_USER';
 export const DELETE_USER = 'DELETE_USER';
+export const FETCH_SINGLE_USER='FETCH_SINGLE_USER';
 
 export const fetchUserDataSuccess = (data) => ({
   type: FETCH_USER_DATA_SUCCESS,
   payload: data,
 });
-
+export const fetchSingleUser = (data) => ({
+    type: FETCH_SINGLE_USER,
+    payload: data,
+  });
 export const addUser = (newData) => ({
   type: ADD_USER,
   payload: newData,

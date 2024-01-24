@@ -10,6 +10,7 @@ import {stateAdminInitialValues,stateAdminField} from "../formjson/stateAdmin";
 import {vehicleOwnerInitialValues,vehicleOwnerField} from "../formjson/vehicleOwner";
 import {otherUserInitialValues,otherUserFormField} from "../formjson/otherUser";
 import DynamicForm from "../views/forms/DynamicForm";
+import UpdateForm from "../views/forms/UpdateForm";
 import UsersList from "../views/reports/UsersList";
 import { useSelector } from "react-redux";
 const PrivateRoute = ({ element }) => {
@@ -89,6 +90,11 @@ const UserRoutes = {
     {
       path: "/user/registeredUser",
       element: <UsersList/>,
+    }
+    ,
+    {
+      path: "/user/view/:userId",
+      element: <UpdateForm/>,
     }
   ].map((route) => applyPrivateRoute(route)),
 };
