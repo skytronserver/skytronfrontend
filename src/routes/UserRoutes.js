@@ -94,7 +94,7 @@ const UserRoutes = {
     ,
     {
       path: "/user/view/:userId",
-      element: <UpdateForm/>,
+      element: <UpdateForm fieldConfig={stateAdminField} initialData={stateAdminInitialValues} formTitle="State Admin"/>,
     }
   ].map((route) => applyPrivateRoute(route)),
 };

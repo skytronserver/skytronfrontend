@@ -12,3 +12,13 @@
 .custom-fieldset-error{
     border:1px solid #f44336 !important
 }
+.error-list{
+  list-style: none;
+  padding: 10px 0px 0px 0px;
+  color: red;
+  text-transform: capitalize;
+}
+.error-list>li{
+  padding: 4px 0px;
+  font-style: italic;
+}

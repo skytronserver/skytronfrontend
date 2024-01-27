@@ -36,6 +36,14 @@ export const registeredUserColumns = [
     },
   },
   {
+    name: "role",
+    label: "Role",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
     name: "name",
     label: "Name",
     options: {
@@ -54,6 +62,81 @@ export const registeredUserColumns = [
   {
     name: "mobile",
     label: "Mobile No",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "address",
+    label: "Address",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "companyName",
+    label: "Company Name",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "stateid",
+    label: "State Code",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "createdby",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+];
+export const manufacturerColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "company_name",
+    label: "Company Name",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "email",
+    label: "Email",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "mobile",
+    label: "<b>Mobile No</b>",
     options: {
       filter: false,
       sort: false,

@@ -141,6 +141,13 @@ const user = {
       icon: icons.IconReport,
       children: [
         {
+          id: 'user-list',
+          title: 'Users',
+          type: 'item',
+          url: '/user/registeredUser',
+          breadcrumbs: false
+        },
+        {
           id: 'manufacturer-list',
           title: 'Manufacturer',
           type: 'item',

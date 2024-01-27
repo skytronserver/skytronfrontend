@@ -15,12 +15,16 @@ const getSingleUser=(userId)=>{
 const registerUser=(userData)=>{
     return http.post(`/api/create_user/`,userData)
 }
+const updateUser=(id,userData)=>{
+    return http.put(`/api/update_user/${id}/`,userData)
+}
 const UserServices = {
     getAll,
     getUsers,
     getRegisteredUsers,
     getSingleUser,
-    registerUser
+    registerUser,
+    updateUser
   };
   
   export default UserServices;
