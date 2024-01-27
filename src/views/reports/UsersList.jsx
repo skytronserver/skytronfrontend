@@ -30,7 +30,7 @@ const UsersList = () => {
           <PageHeader title="State Users" />
         </Grid>
         <Grid item xs={12}>
-        {load && <Datatable userRows={users} userColumns={registeredUserColumns}/>}
+        {load && <Datatable tableTitle="All User List" userRows={users} userColumns={registeredUserColumns}/>}
         </Grid>
     </Grid>
 );

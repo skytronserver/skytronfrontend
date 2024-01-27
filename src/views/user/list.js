@@ -27,10 +27,10 @@ const [load,setLoad]=useState(false)
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <PageHeader title="State Users" />
+          <PageHeader title="Users" />
         </Grid>
         <Grid item xs={12}>
-        {load && <Datatable userRows={userData} userColumns={columns}/>}
+        {load && <Datatable tableTitle="All User list" userRows={userData} userColumns={columns}/>}
         </Grid>
     </Grid>
 );

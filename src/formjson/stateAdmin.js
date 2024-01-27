@@ -5,8 +5,8 @@ export const stateAdminInitialValues = {
     mobile: "",
     email: "",
     companyName: "",
-    gstNo: "",
-    state:"",
+    gstnnumber: "",
+    stateid:"",
     kycdocnumber: "",
     kycfile: null,
     panfile:null,
@@ -36,14 +36,14 @@ export const stateAdminInitialValues = {
       label: "Company Name",
       validation: Yup.string().required("Company Name is required"),
     },
-    gstNo: {
-      name:"gstNo",
+    gstnnumber: {
+      name:"gstnnumber",
       type: "text",
       label: "GTS No",
       validation: Yup.string().required("GTS No is required"),
     },
-    state: {
-        name:"state",
+    stateid: {
+        name:"stateid",
         type: "select",
         label: "State Name",
         validation: Yup.string().required("State Name is required"),
