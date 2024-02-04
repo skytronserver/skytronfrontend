@@ -3,11 +3,12 @@ export const vehicleOwnerInitialValues = {
   name: "",
   mobile: "",
   email: "",
+  dob:"",
   address: "",
   vehicleRegNo: "",
   vehicleMake: "",
   vehicleModel: "",
-  engineerNo: "",
+  engineNo: "",
   vehicleCategory: "",
   chessisNo: "",
   addressProof: null,
@@ -37,6 +38,12 @@ export const vehicleOwnerField = {
       .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
       .required("Mobile Number is required"),
   },
+  dob: {
+    name:"dob",
+    type: "date",
+    label: "Date of Birth",
+    validation: Yup.date().required("Date of Birth is required"),
+  },
   address: {
     name: "address",
     type: "text",
@@ -61,13 +68,11 @@ export const vehicleOwnerField = {
     label: "Vehicle Model",
     validation: Yup.string().required("Vehicle Model is required"),
   },
-  engineerNo: {
-    name: "engineerNo",
+  engineNo: {
+    name: "engineNo",
     type: "text",
-    label: "Engineer No",
-    validation: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Engineer Number is required"),
+    label: "Engine No",
+    validation: Yup.string().required("Engine number is required"),
   },
   vehicleCategory: {
     name: "vehicleCategory",

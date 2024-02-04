@@ -25,7 +25,7 @@ const user = {
         },
         {
           id: 'esim-user',
-          title: 'eSIM User',
+          title: 'eSIM Service Provider',
           type: 'item',
           url: '/user/newEsimUser',
           breadcrumbs: false
@@ -78,14 +78,28 @@ const user = {
           id: 'new-device',
           title: 'Add',
           type: 'item',
-          url: '',
+          url: '/device/new',
+          breadcrumbs: false
+        },
+        {
+          id: 'new-device-model',
+          title: 'Add Device Model',
+          type: 'item',
+          url: '/deviceModel/new',
+          breadcrumbs: false
+        },
+        {
+          id: 'device-model-extension',
+          title: 'Device Model Extension',
+          type: 'item',
+          url: '/deviceModel/extension',
           breadcrumbs: false
         },
         {
           id: 'view-device',
           title: 'Device List',
           type: 'item',
-          url: '',
+          url: '/device/list',
           breadcrumbs: false
         },
         {

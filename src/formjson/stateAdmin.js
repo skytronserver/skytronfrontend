@@ -1,11 +1,14 @@
 import * as Yup from "yup"; 
 import { indianStates } from "./indianState";
+const currentDate = new Date();
+currentDate.setFullYear(currentDate.getFullYear() + 2);
+const formattedDate = currentDate.toISOString().split('T')[0];
 export const stateAdminInitialValues = {
     name: "",
     mobile: "",
     email: "",
-    companyName: "",
-    gstnnumber: "",
+    dob:"",
+    expiryDate: formattedDate,
     stateid:"",
     kycdocnumber: "",
     kycfile: null,
@@ -30,17 +33,17 @@ export const stateAdminInitialValues = {
       label: "Mobile",
       validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
     },
-    companyName: {
-      name:"companyName",
-      type: "text",
-      label: "Company Name",
-      validation: Yup.string().required("Company Name is required"),
+    dob: {
+      name:"dob",
+      type: "date",
+      label: "Date of Birth",
+      validation: Yup.date().required("Date of Birth is required"),
     },
-    gstnnumber: {
-      name:"gstnnumber",
-      type: "text",
-      label: "GTS No",
-      validation: Yup.string().required("GTS No is required"),
+    expiryDate: {
+      name:"expiryDate",
+      type: "date",
+      label: "Expiry Date",
+      validation: Yup.date().required("Expiry Date is required"),
     },
     stateid: {
         name:"stateid",
