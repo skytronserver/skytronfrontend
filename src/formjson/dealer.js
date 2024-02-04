@@ -1,16 +1,18 @@
 import * as Yup from "yup"; 
+const currentDate = new Date();
+currentDate.setFullYear(currentDate.getFullYear() + 2);
+const formattedDate = currentDate.toISOString().split('T')[0];
 export const dealerInitialValues = {
     name: "",
     mobile: "",
     email: "",
+    dob:"",
     companyName: "",
     gstNo: "",
-    deviceMake:"",
-    deviceModel: "",
     state:"",
     district:"",
     userIdProofNo:"",
-    expiryDate:"",
+    expiryDate:formattedDate,
     authorizationLetter: null,
     companyRegistrationCertificate: null,
     gstCertificate: null,
@@ -39,6 +41,12 @@ export const dealerFormField = {
     type: "text",
     label: "Mobile",
     validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
+  },
+  dob: {
+    name:"dob",
+    type: "date",
+    label: "Date of Birth",
+    validation: Yup.date().required("Date of Birth is required"),
   },
   companyName: {
     name:"companyName",
@@ -70,28 +78,6 @@ export const dealerFormField = {
     label: "User ID Proof Number",
     validation: Yup.string().required("User ID Proof Number is required"),
   },
-  deviceMake: {
-    name:"deviceMake",
-    type: "select",
-    label: "Device Make",
-    validation: Yup.string().required("Device Make is required"),
-    options: [
-      { value: "0", label: "One" },
-      { value: "1", label: "Two" },
-      { value: "2", label: "Three" },
-    ],
-  },
-  deviceModel: {
-    name:"deviceModel",
-    type: "select",
-    label: "Device Model",
-    validation: Yup.string().required("Device Model is required"),
-    options: [
-      { value: "0", label: "One" },
-      { value: "1", label: "Two" },
-      { value: "2", label: "Three" },
-    ],
-  },
   expiryDate: {
     name:"expiryDate",
     type: "date",
@@ -107,8 +93,8 @@ export const dealerFormField = {
   companyRegistrationCertificate:{
     name:"companyRegistrationCertificate",
     type: "file",
-    label: "Company Registration Certificate",
-    validation: Yup.mixed().required("Company Registration Certificate is required"),
+    label: "Company/Shop Registration/Establishment Certificate",
+    validation: Yup.mixed().required("Company/Shop Registration/Establishment Certificate is required"),
   },
   gstCertificate:{
     name:"gstCertificate",

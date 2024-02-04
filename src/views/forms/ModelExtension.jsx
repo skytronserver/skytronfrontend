@@ -10,7 +10,7 @@ import DialogComponent from "../../ui-component/DialogComponent";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
-const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
+const ModelExtension = ({ fieldConfig, initialData, formTitle }) => {
   const [open, setOpen] = useState(false);
   const [alert,setAlert]=useState({
     error:false,
@@ -44,41 +44,37 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
   );
   const handleCreateUser = async (userData) => {
     try {
-      // const response = await UserServices.registerUser(userData);
-      // console.log("User created successfully:", response.data);
-      // return { code: "200", message: response.data };
-      console.log(userData)
+      const response = await UserServices.registerUser(userData);
+      console.log("User created successfully:", response.data);
+      return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
       return { code: "400", message: error.message,errors:error.response.data };
     }
   };
-
-  
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
-    const valuesWithRole = {
+    const updatedValues = {
       ...values,
-      role: "stateadmin",
-      status: "deactive",
-      createdby:'admin'
+      approval: "approved/not-approved",
+      approvedBy:"",
+      createdBy:'31'
     };
-    delete valuesWithRole.kycfile;
-    delete valuesWithRole.panfile;
-    console.log(valuesWithRole);
-    const response = await handleCreateUser(valuesWithRole);
-    if (response.code === "200") {
-      setAlert((prevAlert)=>({...prevAlert,error:false,errorList:[]}))
-      handleAlert("Form Submitted Successfully");
-      setSubmitting(false);
-      setLoading(false);
-      resetForm(initialData);
-    } else {
-      setAlert((prevAlert)=>({...prevAlert,error:true,errorList:convertErrorObjectToArray(response.errors)}));
-      handleAlert("Form Not Submitted");
-      setLoading(false);
-    }
+
+    console.log(updatedValues);
+    // const response = await handleCreateUser(valuesWithRole);
+    // if (response.code === "200") {
+    //   setAlert((prevAlert)=>({...prevAlert,error:false,errorList:[]}))
+    //   handleAlert("Form Submitted Successfully");
+    //   setSubmitting(false);
+    //   setLoading(false);
+    //   resetForm(initialData);
+    // } else {
+    //   setAlert((prevAlert)=>({...prevAlert,error:true,errorList:convertErrorObjectToArray(response.errors)}));
+    //   handleAlert("Form Not Submitted");
+    //   setLoading(false);
+    // }
   };
 
   return (
@@ -86,16 +82,14 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
     <DialogComponent open={open} handleClose={handleClose} message={alert.message} errorList={alert.errorList}/>
     
     <Grid container spacing={gridSpacing} >
-      <Grid item xs={12}>
-        <PageHeader title={formTitle} />
-      </Grid>
+     
       {loading && (
         <div style={{ top: 0, left: 0, width: "100%", height: "100%", zIndex: 9999, background: "rgba(255, 255, 255, 0.8)" }}>
           <CircularProgress style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} size={50} />
         </div>
       )}
       <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out"}}>
-        <MainCard title="Registration Form">
+        <MainCard title="Device Model Extension">
           <Formik
             initialValues={initialData}
             validationSchema={validationSchema}
@@ -117,7 +111,7 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
                   ))}
                   <Grid item xs={12} style={{ marginTop: "20px" }}>
                     <Button type="submit" variant="contained" color="primary"  disabled={loading}>
-                      Submit
+                      Submit For Approval
                     </Button>
                   </Grid>
                 </Grid>
@@ -131,4 +125,4 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
   );
 };
 
-export default DynamicForm;
+export default ModelExtension;

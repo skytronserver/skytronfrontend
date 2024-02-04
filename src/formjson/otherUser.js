@@ -3,6 +3,7 @@ export const otherUserInitialValues = {
   name: "",
   mobile: "",
   email: "",
+  dob:"",
   dtoCode: "",
   userIdNo: "",
   userIdProof: null,
@@ -31,6 +32,12 @@ export const otherUserFormField = {
     validation: Yup.string()
       .email("Invalid email address")
       .required("Email is required"),
+  },
+  dob: {
+    name:"dob",
+    type: "date",
+    label: "Date of Birth",
+    validation: Yup.date().required("Date of Birth is required"),
   },
   dtoCode: {
     name: "dtoCode",

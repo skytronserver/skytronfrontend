@@ -1,8 +1,13 @@
 import * as Yup from "yup"; 
+const currentDate = new Date();
+currentDate.setFullYear(currentDate.getFullYear() + 2);
+const formattedDate = currentDate.toISOString().split('T')[0];
 export const deviceMakeInitialValues = {
     name: "",
     mobile: "",
     email: "",
+    dob:"",
+    expiryDate:formattedDate,
     companyName: "",
     gstNo: "",
     deviceModel: "",
@@ -41,10 +46,22 @@ export const deviceMakeFormField = {
     label: "Company Name",
     validation: Yup.string().required("Company Name is required"),
   },
+  dob: {
+    name:"dob",
+    type: "date",
+    label: "Date of Birth",
+    validation: Yup.date().required("Date of Birth is required"),
+  },
+  expiryDate: {
+    name:"expiryDate",
+    type: "date",
+    label: "Expiry Date",
+    validation: Yup.date().required("Expiry Date is required"),
+  },
   gstNo: {
     name:"gstNo",
     type: "text",
-    label: "GTS No",
+    label: "GST No",
     validation: Yup.string().required("GTS No is required"),
   },
   userIdProofNo: {

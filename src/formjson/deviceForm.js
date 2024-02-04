@@ -1,0 +1,133 @@
+import * as Yup from "yup";
+export const deviceInitials = {
+    imei:"",
+    model:"",
+    testAgency:"",
+    tacNo:"",
+    tacValidity:"",
+    copNo:"",
+    copValidity:"",
+    deviceESN:"",
+    iccid:"",
+    telecomProvider1:"",
+    telecomProvider2:"",
+    msisdn1:"",
+    msisdn2:"",
+    imsi1:"",
+    imsi2:"",
+    eSimValidity:"",
+    eSimProvider:"",
+    remarks:"",
+};
+export const deviceFormField = {
+  imei: {
+    name: "imei",
+    type: "text",
+    label: "ID/IMEI No.",
+    validation: Yup.string().required("ID/IMEI No. is required"),
+  },
+  model: {
+    name: "model",
+    type: "text",
+    label: "Model",
+    validation: Yup.string().required("Model is required"),
+  },
+  testAgency: {
+    name: "testAgency",
+    type: "text",
+    label: "Test Agency Name",
+    validation: Yup.string().required("Test Agency is required"),
+  },
+  deviceESN: {
+    name: "deviceESN",
+    type: "text",
+    label: "Device ESN",
+    validation: Yup.string().required("Device ESN cannot be blank"),
+  },
+  eSimValidity: {
+    name:"eSimValidity",
+    type: "date",
+    label: "eSIM Validity",
+    validation: Yup.date().required("eSIM Validity is required"),
+  },
+  eSimProvider: {
+    name:"eSimProvider",
+    type: "text",
+    label: "eSIM Provider",
+    validation: Yup.string().required("eSIM Provider is required"),
+  },
+  tacNo: {
+    name: "tacNo",
+    type: "text",
+    label: "Tac No",
+    validation: Yup.string().required("TAC No. is required"),
+  },
+  tacValidity: {
+    name:"tacValidity",
+    type: "date",
+    label: "TAC Validity",
+    validation: Yup.date().required("TAC Validity is required"),
+  },
+  copNo: {
+    name: "copNo",
+    type: "text",
+    label: "COP No",
+    validation: Yup.string().required("COP No. is required"),
+  },
+  copValidity: {
+    name:"copValidity",
+    type: "date",
+    label: "COP Validity",
+    validation: Yup.date().required("COP Validity is required"),
+  },
+  
+  iccid: {
+    name: "iccid",
+    type: "text",
+    label: "eSIM No (ICCID)",
+    validation: Yup.string().required("eSIM No (ICCID) is required field"),
+  },
+  telecomProvider1: {
+    name: "telecomProvider1",
+    type: "text",
+    label: "eSIM Telecom Service Provider 1",
+    validation: Yup.string().required("eSIM Telecom Service Provider 1 is required field"),
+  },
+  telecomProvider2: {
+    name: "telecomProvider2",
+    type: "text",
+    label: "eSIM Telecom Service Provider 2",
+    validation:"",
+  },
+  msisdn1: {
+    name: "msisdn1",
+    type: "text",
+    label: "eSIM Mobile No. MSISDN 1",
+    validation: Yup.string().required("eSIM Mobile No. MSISDN 1 is required field"),
+  },
+  msisdn2: {
+    name: "msisdn2",
+    type: "text",
+    label: "eSIM Mobile No. MSISDN 2",
+    validation:"",
+  },
+  imsi1: {
+    name: "imsi1",
+    type: "text",
+    label: "eSIM IMSI 1",
+    validation: Yup.string().required("eSIM IMSI 1 is required field"),
+  },
+  imsi2: {
+    name: "imsi2",
+    type: "text",
+    label: "eSIM IMSI 2",
+    validation:"",
+  },
+  
+  remarks: {
+    name:"remarks",
+    type: "text",
+    label: "Remarks",
+    validation: "",
+  },
+};

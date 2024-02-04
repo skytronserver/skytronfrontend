@@ -1,17 +1,19 @@
 import * as Yup from "yup"; 
+const currentDate = new Date();
+currentDate.setFullYear(currentDate.getFullYear() + 2);
+const formattedDate = currentDate.toISOString().split('T')[0];
 export const eSIMInitialValues = {
     name: "",
     mobile: "",
     email: "",
     companyName: "",
+    dob: "",
+    expiryDate:formattedDate,
     gstNo: "",
-    deviceMake: "",
     state: "",
     authorizationLetter: null,
     companyRegistrationCertificate: null,
     gstCertificate: null,
-    typeApprovalCertificate: null,
-    deviceManufacturerLetter: null,
 };
 
 export const eSIMFormField = {
@@ -33,6 +35,18 @@ export const eSIMFormField = {
     label: "Mobile",
     validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
   },
+  dob: {
+    name:"dob",
+    type: "date",
+    label: "Date of Birth",
+    validation: Yup.date().required("Date of Birth is required"),
+  },
+  expiryDate: {
+    name:"expiryDate",
+    type: "date",
+    label: "Expiry Date",
+    validation: Yup.date().required("Expiry Date is required"),
+  },
   companyName: {
     name:"companyName",
     type: "text",
@@ -42,14 +56,8 @@ export const eSIMFormField = {
   gstNo: {
     name:"gstNo",
     type: "text",
-    label: "GTS No",
+    label: "GST No",
     validation: Yup.string().required("GTS No is required"),
-  },
-  deviceMake: {
-    name:"deviceMake",
-    type: "text",
-    label: "Device Make",
-    validation: Yup.string().required("Device Make is required"),
   },
   state: {
     name:"state",
@@ -75,16 +83,4 @@ export const eSIMFormField = {
     label: "GST Certificate",
     validation: Yup.mixed().required("GST Certificate is required"),
   },
-  typeApprovalCertificate:{
-    name:"typeApprovalCertificate",
-    type: "file",
-    label: "Type Approval Certificate",
-    validation: Yup.mixed().required("Type Approval Certificate is required"),
-  },
-  deviceManufacturerLetter:{
-    name:"deviceManufacturerLetter",
-    type: "file",
-    label: "Device Manufacturer Letter",
-    validation: Yup.mixed().required("Device Manufacturer Letter is required"),
-  }
 };
