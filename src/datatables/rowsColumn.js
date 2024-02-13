@@ -195,3 +195,129 @@ export const userColumns = [
     },
   },
 ];
+export const deviceModelColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "model_name",
+    label: "Model",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "test_agency",
+    label: "Test Agency",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "vendor_id",
+    label: "Vendor",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "tac_no",
+    label: "Tac No",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "tac_validity",
+    label: "TAC Validity",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "hardware_version",
+    label: "Hardware Version",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "tac_doc_path",
+    label: "TAC File",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "created_by",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+];
+export const deviceCOPModelColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "cop_no",
+    label: "COP No",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "cop_file",
+    label: "COP File",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "created_by",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "device_model",
+    label: "Device Model",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  }
+];

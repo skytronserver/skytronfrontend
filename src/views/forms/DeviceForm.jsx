@@ -9,6 +9,8 @@ import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DeviceModelServices from "../../services/DeviceModelServices";
+import StockServices from "../../services/StockServices";
 import { convertErrorObjectToArray } from "../../helper";
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
@@ -44,44 +46,50 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
       return acc;
     }, {})
   );
-  const handleCreateUser = async (userData) => {
-    try {
-      const response = await UserServices.registerUser(userData);
-      console.log("User created successfully:", response.data);
-      return { code: "200", message: response.data };
-    } catch (error) {
-      console.error("Error creating user:", error.message);
-      return { code: "400", message: error.message,errors:error.response.data };
-    }
-  };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
     const valuesWithRole = {
       ...values,
-      status: "free/fitted",
-      tag:"tagged/untagged/re-tagged",
-      stock:"available/in-transit/returned",
-      health:"active/not-active",
       created:formattedCurrentDate,
       createdby:'31'
     };
 
     console.log(valuesWithRole);
-    // const response = await handleCreateUser(valuesWithRole);
-    // if (response.code === "200") {
-    //   setAlert((prevAlert)=>({...prevAlert,error:false,errorList:[]}))
-    //   handleAlert("Form Submitted Successfully");
-    //   setSubmitting(false);
-    //   setLoading(false);
-    //   resetForm(initialData);
-    // } else {
-    //   setAlert((prevAlert)=>({...prevAlert,error:true,errorList:convertErrorObjectToArray(response.errors)}));
-    //   handleAlert("Form Not Submitted");
-    //   setLoading(false);
-    // }
+    try {
+      const response = await StockServices.createStock(values);
+      console.log(response)
+      setLoading(false);
+      resetForm(initialData);
+    } catch (error) {
+      console.error("Error :", error.message);
+    }
   };
+  const handleModelChange = (event, formik) => {
+    const fieldName = event.target.name;
+    if (fieldName == "model") {
+      console.log(event.target.value);
+      (async () => {
+        const getDetailsOf = {
+          device_model_id: event.target.value,
+        };
+        try {
+          const retrieveData = await DeviceModelServices.getModel(getDetailsOf);
+          console.log(retrieveData.data);
 
+          formik.setFieldValue("test_agency", retrieveData.data.test_agency);
+          formik.setFieldValue("tac_no", retrieveData.data.tac_no);
+          formik.setFieldValue("tac_validity", retrieveData.data.tac_validity);
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            console.log("Data not found");
+          } else {
+            console.log("An error occurred while fetching data");
+          }
+        }
+      })();
+    }
+  };
   return (
     <>
     <DialogComponent open={open} handleClose={handleClose} message={alert.message} errorList={alert.errorList}/>
@@ -110,7 +118,7 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
                         fieldConfig={fieldConfig[field]}
                         formik={formik}
                         handleFileChange={handleFileChange}
-                       
+                        handleOptionChange={handleModelChange}
                       />
                     </Grid>
                   ))}

@@ -10,7 +10,7 @@ import DialogComponent from "../../ui-component/DialogComponent";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
-const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
+const DynamicForm = ({ fieldConfig, initialData, formTitle,userRole }) => {
   const [open, setOpen] = useState(false);
   const [alert,setAlert]=useState({
     error:false,
@@ -44,10 +44,9 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
   );
   const handleCreateUser = async (userData) => {
     try {
-      // const response = await UserServices.registerUser(userData);
-      // console.log("User created successfully:", response.data);
-      // return { code: "200", message: response.data };
-      console.log(userData)
+      const response = await UserServices.registerUser(userData);
+      console.log("User created successfully:", response.data);
+      return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
       return { code: "400", message: error.message,errors:error.response.data };
@@ -58,12 +57,22 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle }) => {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
-    const valuesWithRole = {
-      ...values,
-      role: "stateadmin",
-      status: "deactive",
-      createdby:'admin'
-    };
+    let valuesWithRole={};
+    if (values.hasOwnProperty("role")) {
+      valuesWithRole = {
+        ...values,
+        status: "deactive",
+        createdby:'admin'
+      };
+    } else {
+      valuesWithRole = {
+        ...values,
+        role: userRole,
+        status: "deactive",
+        createdby:'admin'
+      };
+    }
+    
     delete valuesWithRole.kycfile;
     delete valuesWithRole.panfile;
     console.log(valuesWithRole);

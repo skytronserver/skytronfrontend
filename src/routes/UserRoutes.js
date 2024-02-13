@@ -13,6 +13,7 @@ import DynamicForm from "../views/forms/DynamicForm";
 import UpdateForm from "../views/forms/UpdateForm";
 import UsersList from "../views/reports/UsersList";
 import { useSelector } from "react-redux";
+import FileUploadTest from "../views/forms/FileUploadTest";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -46,7 +47,7 @@ const UserRoutes = {
   children: [
     {
       path: "/user/newStateAdmin",
-      element: <DynamicForm fieldConfig={stateAdminField} initialData={stateAdminInitialValues} formTitle="State Admin"/>,
+      element: <DynamicForm fieldConfig={stateAdminField} initialData={stateAdminInitialValues} formTitle="State Admin" userRole="stateadmin"/>,
     },
     {
       path: "/user/list",
@@ -71,21 +72,21 @@ const UserRoutes = {
     ,
     {
       path: "/user/newManufacturer",
-      element: <DynamicForm fieldConfig={deviceMakeFormField} initialData={deviceMakeInitialValues} formTitle="Device Manufacturer"/>,
+      element: <DynamicForm fieldConfig={deviceMakeFormField} initialData={deviceMakeInitialValues} formTitle="Device Manufacturer" userRole="devicemanufacture"/>,
     }
     ,
     {
       path: "/user/newDealer",
-      element: <DynamicForm fieldConfig={dealerFormField} initialData={dealerInitialValues} formTitle="Dealer"/>,
+      element: <DynamicForm fieldConfig={dealerFormField} initialData={dealerInitialValues} formTitle="Dealer" userRole="dealer"/>,
     }
     ,
     {
       path: "/new/vehicleOwner",
-      element: <DynamicForm fieldConfig={vehicleOwnerField} initialData={vehicleOwnerInitialValues} formTitle="Vehicle Owner"/>,
+      element: <DynamicForm fieldConfig={vehicleOwnerField} initialData={vehicleOwnerInitialValues} formTitle="Vehicle Owner" userRole="owner"/>,
     },
     {
       path: "/new/otherUser",
-      element: <DynamicForm fieldConfig={otherUserFormField} initialData={otherUserInitialValues} formTitle="Other Users"/>,
+      element: <DynamicForm fieldConfig={otherUserFormField} initialData={otherUserInitialValues} formTitle="Other Users" userRole="others"/>,
     },
     {
       path: "/user/registeredUser",
@@ -95,6 +96,11 @@ const UserRoutes = {
     {
       path: "/user/view/:userId",
       element: <UpdateForm fieldConfig={stateAdminField} initialData={stateAdminInitialValues} formTitle="State Admin"/>,
+    }
+    ,
+    {
+      path: "/file",
+      element: <FileUploadTest/>,
     }
   ].map((route) => applyPrivateRoute(route)),
 };

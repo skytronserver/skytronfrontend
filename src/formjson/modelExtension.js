@@ -1,57 +1,75 @@
 import * as Yup from "yup";
+import DeviceModelServices from "../services/DeviceModelServices";
+const retriveModelList = async () => {
+  try {
+    const response = await DeviceModelServices.getAllModels();
+    const list=response.data.map(device => ({
+      value: device.id,
+      label: device.model_name,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+  }
+};
+const modelList=await retriveModelList();
 export const modelExtensionInitials = {
-    model:"",
+    device_model:"",
     testAgency:"",
     tacNo:"",
     tacValidity:"",
-    copNo:"",
-    copValidity:"",
-    copFile:null,
+    cop_no:"",
+    cop_validity:"",
+    cop_file:null,
 };
 export const modelExtensionFormField = {
-  model: {
-    name: "model",
+  device_model: {
+    name: "device_model",
     type: "select",
     label: "Model",
     validation: Yup.string().required("Model is required"),
-    options: [
-        { value: "xyz", label: "XYZ" },
-        { value: "abc", label: "ABC" }
-      ],
+    options: modelList,
   },
   testAgency: {
     name: "testAgency",
     type: "text",
+    disabled:true,
     label: "Test Agency Name",
     validation: Yup.string().required("Test Agency is required"),
   },
   tacNo: {
     name: "tacNo",
     type: "text",
+    disabled:true,
     label: "Tac No",
     validation: Yup.string().required("TAC No. is required"),
   },
   tacValidity: {
     name:"tacValidity",
     type: "date",
+    disabled:true,
     label: "TAC Validity",
     validation: Yup.date().required("TAC Validity is required"),
   },
-  copNo: {
-    name: "copNo",
+  cop_no: {
+    name: "cop_no",
     type: "text",
     label: "COP No",
     validation: Yup.string().required("COP No. is required"),
   },
-  copValidity: {
-    name:"copValidity",
+  cop_validity: {
+    name:"cop_validity",
     type: "date",
     label: "COP Validity",
     validation: Yup.date().required("COP Validity is required"),
   },
-  copFile: {
-    name:"copFile",
-    type: "text",
+  cop_file: {
+    name:"cop_file",
+    type: "file",
     label: "Upload COP",
     validation: Yup.mixed().required("TAC is required"),
   },

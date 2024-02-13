@@ -1,31 +1,55 @@
-import { Grid, Button,CircularProgress  } from "@mui/material";
+import { Grid, Button, CircularProgress, Typography } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
-import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
-import UserServices from "../../services/UserServices";
+import DeviceModelServices from "../../services/DeviceModelServices";
+import OtpServices from "../../services/OtpServices";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
+import { MuiOtpInput } from "mui-one-time-password-input";
 const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
   const [open, setOpen] = useState(false);
-  const [alert,setAlert]=useState({
-    error:false,
-    message:'',
-    errorList:[]
-  })
-  const [loading,setLoading]=useState(false);
+  const [showOTP, setShowOTP] = useState(false);
+  const [deviceId,setDeviceId]=useState("");
+  const [alert, setAlert] = useState({
+    error: false,
+    message: "",
+    errorList: [],
+  });
+  console.log(showOTP);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [otp, setOtp] = useState("");
+  const handleChange = (newValue) => {
+    setOtp(newValue);
+  };
+  const handleOTPSubmit = async() => {
+    const OTPData={
+      otp:otp,
+      device_model_id:deviceId
+    }
+    const response = await handleOTPValidation(OTPData);
+    
+    if (response.code === "200") {
+      console.log(response);
+      setShowOTP(false);
+    }
+    else{
+      console.log(response.error)
+    }
+  };
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
+    // !alert.error && navigate("/user/registeredUser");
     setOpen(false);
+    setShowOTP(true);
   };
 
   const handleAlert = (message) => {
-    setAlert((prevAlert)=>({...prevAlert,message:message}))
+    setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
   const handleFileChange = (event, formik) => {
@@ -42,14 +66,32 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
       return acc;
     }, {})
   );
-  const handleCreateUser = async (userData) => {
+  const handleOTPValidation = async (modelOtpData) => {
     try {
-      const response = await UserServices.registerUser(userData);
-      console.log("User created successfully:", response.data);
+      const response = await OtpServices.deviceAddOtp(modelOtpData);
+      console.log("Device Model is OTP Verified", response.data);
       return { code: "200", message: response.data };
     } catch (error) {
-      console.error("Error creating user:", error.message);
-      return { code: "400", message: error.message,errors:error.response.data };
+      console.error("Error while submitting data", error.message);
+      return {
+        code: "400",
+        message: error.message,
+        errors: error.response.data,
+      };
+    }
+  };
+  const handleDeviceModelCreate = async (deviceModelData) => {
+    try {
+      const response = await DeviceModelServices.createModel(deviceModelData);
+      console.log("Device Model is submitted for approval", response.data);
+      return { code: "200", message: response.data };
+    } catch (error) {
+      console.error("Error while submitting data", error.message);
+      return {
+        code: "400",
+        message: error.message,
+        errors: error.response.data,
+      };
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -57,70 +99,134 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
     setLoading(true);
     const updatedValues = {
       ...values,
-      approval: "approved/not-approved",
-      approvedBy:"",
-      createdBy:'31'
+      approval: "0",
+      approved_by: "",
+      vendor_id: "32",
+      created_by: "31",
     };
 
     console.log(updatedValues);
-    // const response = await handleCreateUser(valuesWithRole);
-    // if (response.code === "200") {
-    //   setAlert((prevAlert)=>({...prevAlert,error:false,errorList:[]}))
-    //   handleAlert("Form Submitted Successfully");
-    //   setSubmitting(false);
-    //   setLoading(false);
-    //   resetForm(initialData);
-    // } else {
-    //   setAlert((prevAlert)=>({...prevAlert,error:true,errorList:convertErrorObjectToArray(response.errors)}));
-    //   handleAlert("Form Not Submitted");
-    //   setLoading(false);
-    // }
+    const response = await handleDeviceModelCreate(updatedValues);
+    console.log(response);
+    if (response.code === "200") {
+      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+      handleAlert("Form Submitted Successfully");
+      setSubmitting(false);
+      setLoading(false);
+      resetForm(initialData);
+      setDeviceId(response.message.id);
+    } else {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: true,
+        errorList: convertErrorObjectToArray(response.errors),
+      }));
+      handleAlert("Form Not Submitted");
+      setLoading(false);
+    }
   };
 
   return (
     <>
-    <DialogComponent open={open} handleClose={handleClose} message={alert.message} errorList={alert.errorList}/>
-    
-    <Grid container spacing={gridSpacing} >
-     
-      {loading && (
-        <div style={{ top: 0, left: 0, width: "100%", height: "100%", zIndex: 9999, background: "rgba(255, 255, 255, 0.8)" }}>
-          <CircularProgress style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} size={50} />
-        </div>
-      )}
-      <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out"}}>
-        <MainCard title="Device Model Entry">
-          <Formik
-            initialValues={initialData}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-            enableReinitialize
+      <DialogComponent
+        open={open}
+        handleClose={handleClose}
+        message={alert.message}
+        errorList={alert.errorList}
+      />
+
+      <Grid container spacing={gridSpacing}>
+        {loading && (
+          <div
+            style={{
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: 9999,
+              background: "rgba(255, 255, 255, 0.8)",
+            }}
           >
-            {(formik) => (
-              <form onSubmit={formik.handleSubmit} >
-                <Grid container spacing={2} className="form-controller">
-                  {Object.keys(fieldConfig).map((field) => (
-                    <Grid key={field} item md={6} sm={12} xs={12}>
-                      <FormField
-                        fieldConfig={fieldConfig[field]}
-                        formik={formik}
-                        handleFileChange={handleFileChange}
-                       
-                      />
+            <CircularProgress
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+              size={50}
+            />
+          </div>
+        )}
+        <Grid
+          item
+          xs={12}
+          style={{
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
+          }}
+        >
+          <MainCard title="Device Model Entry">
+            {!showOTP ? (
+            <Formik
+              initialValues={initialData}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+              enableReinitialize
+            >
+              {(formik) => (
+                <form onSubmit={formik.handleSubmit}>
+                  <Grid container spacing={2} className="form-controller">
+                    {Object.keys(fieldConfig).map((field) => (
+                      <Grid key={field} item md={6} sm={12} xs={12}>
+                        <FormField
+                          fieldConfig={fieldConfig[field]}
+                          formik={formik}
+                          handleFileChange={handleFileChange}
+                        />
+                      </Grid>
+                    ))}
+                    <Grid item xs={12} style={{ marginTop: "20px" }}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={loading}
+                      >
+                        Submit For Approval
+                      </Button>
                     </Grid>
-                  ))}
-                  <Grid item xs={12} style={{ marginTop: "20px" }}>
-                    <Button type="submit" variant="contained" color="primary"  disabled={loading}>
-                      Submit For Approval
-                    </Button>
                   </Grid>
+                </form>
+              )}
+            </Formik>
+            ):(
+            <Grid
+                container
+                spacing={2}
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Grid item xs={12} md="5">
+                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                  <br />
+                  <Typography align="center">
+                    <Button
+                      color="primary"
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      onClick={handleOTPSubmit}
+                    >
+                      Verify OTP
+                    </Button>
+                  </Typography>
                 </Grid>
-              </form>
+            </Grid>
             )}
-          </Formik>
-        </MainCard>
+          </MainCard>
+        </Grid>
       </Grid>
-    </Grid>
     </>
   );
 };
