@@ -7,7 +7,12 @@ import {modelExtensionInitials,modelExtensionFormField} from "../formjson/modelE
 import DeviceForm from "../views/forms/DeviceForm";
 import DeviceModelForm from "../views/forms/DeviceModelForm";
 import ModelExtension from "../views/forms/ModelExtension";
+import DeviceModelList from "../views/reports/DeviceModelList";
+import StateAdminDeviceModelView from '../views/detailsview/StateAdminDeviceModelView';
 import { useSelector } from "react-redux";
+import UnapproveCopList from '../views/reports/UnapproveCopList';
+import StateAdminCOPModelView from '../views/detailsview/StateAdminCOPModelView';
+import BulkUpload from "../views/forms/BulkUpload"
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -38,8 +43,24 @@ const DeviceRoutes = {
     },
     {
       path: "/device/list",
-      element: <DeviceForm fieldConfig={deviceFormField} initialData={deviceInitials} formTitle="State Admin"/>,
+      element: <DeviceModelList/>,
     },
+    {
+      path: "/deviceCOP/list",
+      element: <UnapproveCopList/>,
+    },
+    {
+      path: "/deviceModel/view/:deviceId",
+      element: <StateAdminDeviceModelView/>,
+    },
+    {
+      path: "/deviceCOPModel/view/:deviceId",
+      element: <StateAdminCOPModelView/>,
+    },
+    {
+      path: "/device/bulkupload",
+      element: <BulkUpload/>,
+    }
   ].map((route) => applyPrivateRoute(route)),
 };
 

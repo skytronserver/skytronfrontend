@@ -103,10 +103,17 @@ const user = {
           breadcrumbs: false
         },
         {
+          id: 'view-device-cop',
+          title: 'Awaiting COP Device List',
+          type: 'item',
+          url: '/deviceCOP/list',
+          breadcrumbs: false
+        },
+        {
           id: 'upload-device',
           title: 'Upload',
           type: 'item',
-          url: '',
+          url: '/device/bulkupload',
           breadcrumbs: false
         },
         {
