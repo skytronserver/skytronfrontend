@@ -66,7 +66,7 @@ const BulkUpload = () => {
           }
     }
   return (
-  <MainCard title="Sample List Data">
+  <MainCard title="Bulk Upload Stocks">
     <Formik
             initialValues={bulkInitials}
             validationSchema={validationSchema}
