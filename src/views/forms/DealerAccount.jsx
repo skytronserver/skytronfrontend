@@ -47,7 +47,7 @@ function DealerAccount({ fieldConfig, initialData, formTitle,userRole  }) {
   );
   const handleCreateUser = async (userData) => {
     try {
-      const response = await UserServices.registerUser(userData);
+      const response = await UserServices.dealerUser(userData);
       console.log("User created successfully:", response.data);
       return { code: "200", message: response.data };
     } catch (error) {
