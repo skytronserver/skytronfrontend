@@ -45,6 +45,13 @@ const user = {
           breadcrumbs: false
         },
         {
+          id: 'dealer-account',
+          title: 'DealerAccount',
+          type: 'item',
+          url: '/user/newDealerAccount',
+          breadcrumbs: false
+        },
+        {
           id: 'vehicle-owner',
           title: 'Vehicle Owner',
           type: 'item',
