@@ -1,14 +1,22 @@
+
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import DeleteIcon from '@mui/icons-material/Delete';
-const Datatable = ({ userColumns, userRows,tableTitle }) => {
-  const [data, setData] = useState(userRows);
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+const Datatable = ({ userColumns, userRows, tableTitle }) => {
+  const [data, setData] = useState([]);
+
+
+  useEffect(() => {
+    console.log(userRows);
+    setData(Array.isArray(userRows) ? userRows : []);
+  }, [userRows]);
 
   const handleDelete = (id) => {
-    console.log(id)
-    // setData(data.filter((item) => item.id !== id));
+    console.log(id);
+    setData(data.filter((item) => item.id !== id));
   };
 
   const actionColumn = [
@@ -19,19 +27,21 @@ const Datatable = ({ userColumns, userRows,tableTitle }) => {
         filter: false,
         customBodyRender: (value, tableMeta) => {
           return (
-            <div className="cellAction" style={{display:'flex'}}>
+            <div className="cellAction" style={{ display: "flex" }}>
               <Link
-                to={`/user/view/${tableMeta.rowData[1]}`}
+                to={`/user/view/${tableMeta.rowData[0]}`}
                 style={{ textDecoration: "none" }}
               >
-                <div className="viewButton"><VisibilityIcon/></div>
+                <div className="viewButton">
+                  <VisibilityIcon />
+                </div>
               </Link>
               <div
                 className="deleteButton"
-                onClick={() => handleDelete(tableMeta.rowData[1])}
-                style={{cursor:"pointer"}}
+                onClick={() => handleDelete(tableMeta.rowData[0])}
+                style={{ cursor: "pointer" }}
               >
-                <DeleteIcon/>
+                <DeleteIcon />
               </div>
             </div>
           );
@@ -39,18 +49,17 @@ const Datatable = ({ userColumns, userRows,tableTitle }) => {
       },
     },
   ];
+
   const options = {
     selectableRows: "none",
     viewColumns: false,
-  
- 
   };
 
   return (
     <div className="datatable">
       <MUIDataTable
         title={tableTitle}
-        data={userRows}
+        data={data.map((row) => Object.values(row))}
         columns={actionColumn.concat(userColumns)}
         options={options}
       />

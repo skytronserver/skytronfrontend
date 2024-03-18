@@ -41,9 +41,13 @@ const Dynamic=Loadable(
 const CreateManufacturer=Loadable( lazy(()=>import("../views/pages/device/CreateNew")))
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
+
+
+
 const UserRoutes = {
   path: "/",
   element: <MainLayout />,
+
   children: [
     {
       path: "/user/newStateAdmin",
@@ -103,6 +107,9 @@ const UserRoutes = {
       element: <FileUploadTest/>,
     }
   ].map((route) => applyPrivateRoute(route)),
+
 };
 
 export default UserRoutes;
+
+
