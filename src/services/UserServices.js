@@ -16,6 +16,9 @@ const getUsers=()=>{
 const getSingleUser=(userId)=>{
     return http.get(`/api/get_details/${userId}`)
 }
+const dealerUser=(userData)=>{
+    return http.post(`api/dealer/create_dealer/`,userData)
+}
 const registerUser=(userData)=>{
     return http.post(`/api/create_user/`,userData)
 }
@@ -29,7 +32,8 @@ const UserServices = {
     getUsers,
     getSingleUser,
     registerUser,
-    updateUser
+    updateUser,
+    dealerUser
   };
   
   export default UserServices;
