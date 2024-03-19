@@ -12,7 +12,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "role",
+    name: "device_esn",
     label: "Device ESN",
     options: {
       filter: true,
@@ -20,7 +20,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "name",
+    name: "iccid",
     label: "ICCID",
     options: {
       filter: false,
@@ -28,7 +28,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "email",
+    name: "imei",
     label: "IMEI",
     options: {
       filter: false,
@@ -36,7 +36,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "mobile",
+    name: "telecom_provider1",
     label: "Telecom Provider1",
     options: {
       filter: false,
@@ -44,7 +44,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "address",
+    name: "telecom_provider2",
     label: "Telecom Provider2",
     options: {
       filter: false,
@@ -52,7 +52,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "companyName",
+    name: "msisdn1",
     label: "MSISDN1",
     options: {
       filter: false,
@@ -60,7 +60,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "stateid",
+    name: "msisdn2",
     label: "MSISDN2",
     options: {
       filter: false,
@@ -68,7 +68,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "imsi1",
     label: "IMSI1",
     options: {
       filter: false,
@@ -76,7 +76,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "imsi2",
     label: "IMSI2",
     options: {
       filter: false,
@@ -84,7 +84,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "esim_validity",
     label: "ESIM Validity",
     options: {
       filter: false,
@@ -92,7 +92,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "esim_provider",
     label: "ESIM Provider",
     options: {
       filter: false,
@@ -100,7 +100,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "remarks",
     label: "Remarks",
     options: {
       filter: false,
@@ -108,7 +108,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "created",
     label: "Created",
     options: {
       filter: false,
@@ -116,7 +116,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "created_by",
     label: "Created By",
     options: {
       filter: false,
@@ -124,7 +124,7 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "status",
+    name: "model",
     label: "Model",
     options: {
       filter: false,

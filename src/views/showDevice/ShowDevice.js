@@ -7,38 +7,25 @@ import { gridSpacing } from "../../store/constant";
 import UserServices from 'services/UserServices';
 import { useEffect,useState } from 'react';
 import { fetchUserDataSuccess } from '../../actions/userDataActions';
-import Datatable from '../../datatables/Datatable';
+import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {showDeviceColumns} from '../../datatables/rowsColumn';
 
 const ShowDevice = () => {
   const [load,setLoad]=useState(true)
 
 
-  const [deviceData,setDeviceData]=useState(true)   // here
+  const [deviceData,setDeviceData]=useState("")   // here
 
   const dispatch=useDispatch();
  
   useEffect(()=>{
     const retrievePosts = async () => {
       const retriveData = await UserServices.getRegisteredData();
-
-     
-      console.log(retriveData.data.data);
-      setDeviceData(retriveData.data.data);
-
-     
-      dispatch(fetchUserDataSuccess(retriveData.data)) ;
-     
+      setDeviceData(retriveData.data.data);     
       setLoad(true)
     }; 
     retrievePosts();
   },[dispatch])
-
-  const users = useSelector((state)=>state.users.registeredUser);
-
-  //console.log(users)
-
-
 
   return (
     <Grid container spacing={gridSpacing}>
@@ -46,7 +33,7 @@ const ShowDevice = () => {
           <PageHeader title="Show Device" />
         </Grid>
         <Grid item xs={12}>
-        {load && <Datatable tableTitle="All Device List" userRows={deviceData} userColumns={showDeviceColumns}/>}
+        {load && deviceData.length>1 && <DynamicDatatables tableTitle="All Device List" rows={deviceData} columns={showDeviceColumns}/>}
         </Grid>
     </Grid>
 );

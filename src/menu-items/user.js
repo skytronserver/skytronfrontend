@@ -76,17 +76,6 @@ const user = {
       breadcrumbs: false
     },
     {
-
-      id: 'Show-Device',
-      title: 'Show Device',
-      type: 'item',
-      url: '/show-device',
-      // icon: icons.IconMap,
-      breadcrumbs: false
-
-    },
-
-    {
       id: 'device-icons',
       title: 'Device',
       type: 'collapse',
@@ -146,6 +135,13 @@ const user = {
           title: 'Inactive Device',
           type: 'item',
           url: '',
+          breadcrumbs: false
+        },
+        {
+          id: 'all-device',
+          title: 'Show All Device',
+          type: 'item',
+          url: '/device/show-device',
           breadcrumbs: false
         }
       ]
