@@ -14,6 +14,8 @@ import UpdateForm from "../views/forms/UpdateForm";
 import UsersList from "../views/reports/UsersList";
 import { useSelector } from "react-redux";
 import FileUploadTest from "../views/forms/FileUploadTest";
+import DealerAccount from "views/forms/DealerAccount";
+import { dealerAccountFormField, dealerAccountInitialValues } from "formjson/dealerAccount";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -41,9 +43,13 @@ const Dynamic=Loadable(
 const CreateManufacturer=Loadable( lazy(()=>import("../views/pages/device/CreateNew")))
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
+
+
+
 const UserRoutes = {
   path: "/",
   element: <MainLayout />,
+
   children: [
     {
       path: "/user/newStateAdmin",
@@ -78,6 +84,10 @@ const UserRoutes = {
     {
       path: "/user/newDealer",
       element: <DynamicForm fieldConfig={dealerFormField} initialData={dealerInitialValues} formTitle="Dealer" userRole="dealer"/>,
+    },
+    {
+      path: "/user/newDealerAccount",
+      element:<DealerAccount fieldConfig={dealerAccountFormField} initialData={dealerAccountInitialValues} formTitle="Dealer Account" userRole="dealer"/>,
     }
     ,
     {
@@ -103,6 +113,9 @@ const UserRoutes = {
       element: <FileUploadTest/>,
     }
   ].map((route) => applyPrivateRoute(route)),
+
 };
 
 export default UserRoutes;
+
+

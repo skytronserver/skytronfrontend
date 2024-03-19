@@ -6,7 +6,6 @@ const Datatable = ({ columns, rows,tableTitle }) => {
     selectableRows: "none",
     viewColumns: false,
   };
-  console.log(tableTitle)
   return (
     <div className="datatable">
       <MUIDataTable

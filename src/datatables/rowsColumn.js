@@ -1,3 +1,141 @@
+
+// ShowDeviceColumn 
+
+export const showDeviceColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "device_esn",
+    label: "Device ESN",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "iccid",
+    label: "ICCID",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "imei",
+    label: "IMEI",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "telecom_provider1",
+    label: "Telecom Provider1",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "telecom_provider2",
+    label: "Telecom Provider2",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "msisdn1",
+    label: "MSISDN1",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "msisdn2",
+    label: "MSISDN2",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "imsi1",
+    label: "IMSI1",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "imsi2",
+    label: "IMSI2",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "esim_validity",
+    label: "ESIM Validity",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "esim_provider",
+    label: "ESIM Provider",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "remarks",
+    label: "Remarks",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "created",
+    label: "Created",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "created_by",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "model",
+    label: "Model",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+
+];
+
+// new 
+
 export const columns = [
   {
     name: "id",
@@ -25,6 +163,7 @@ export const columns = [
     },
   },
 ];
+
 export const registeredUserColumns = [
   {
     name: "id",
@@ -108,6 +247,9 @@ export const registeredUserColumns = [
     },
   },
 ];
+
+
+
 export const manufacturerColumns = [
   {
     name: "id",

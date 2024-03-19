@@ -13,9 +13,14 @@ import {registeredUserColumns} from '../../datatables/rowsColumn';
 const UsersList = () => {
   const [load,setLoad]=useState(false)
   const dispatch=useDispatch();
+
   useEffect(()=>{
     const retrievePosts = async () => {
       const retriveData=await UserServices.getRegisteredUsers();
+
+      console.log(typeof  retriveData);
+      console.log("Hello");
+
       dispatch(fetchUserDataSuccess(retriveData.data)) ;
       setLoad(true)
     };
@@ -30,7 +35,7 @@ const UsersList = () => {
           <PageHeader title="State Users" />
         </Grid>
         <Grid item xs={12}>
-        {load && <Datatable tableTitle="All User List" userRows={users} userColumns={registeredUserColumns}/>}
+        {load && <Datatable tableTitle="All User List test" userRows={users} userColumns={registeredUserColumns}/>}
         </Grid>
     </Grid>
 );

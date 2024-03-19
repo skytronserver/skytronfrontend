@@ -45,6 +45,13 @@ const user = {
           breadcrumbs: false
         },
         {
+          id: 'dealer-account',
+          title: 'DealerAccount',
+          type: 'item',
+          url: '/user/newDealerAccount',
+          breadcrumbs: false
+        },
+        {
           id: 'vehicle-owner',
           title: 'Vehicle Owner',
           type: 'item',
@@ -128,6 +135,13 @@ const user = {
           title: 'Inactive Device',
           type: 'item',
           url: '',
+          breadcrumbs: false
+        },
+        {
+          id: 'all-device',
+          title: 'Show All Device',
+          type: 'item',
+          url: '/device/show-device',
           breadcrumbs: false
         }
       ]
