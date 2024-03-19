@@ -1,3 +1,141 @@
+
+// ShowDeviceColumn 
+
+export const showDeviceColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "role",
+    label: "Device ESN",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "name",
+    label: "ICCID",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "email",
+    label: "IMEI",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "mobile",
+    label: "Telecom Provider1",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "address",
+    label: "Telecom Provider2",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "companyName",
+    label: "MSISDN1",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "stateid",
+    label: "MSISDN2",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "IMSI1",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "IMSI2",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "ESIM Validity",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "ESIM Provider",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Remarks",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Created",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Model",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+
+];
+
+// new 
+
 export const columns = [
   {
     name: "id",
@@ -25,6 +163,7 @@ export const columns = [
     },
   },
 ];
+
 export const registeredUserColumns = [
   {
     name: "id",
@@ -108,6 +247,9 @@ export const registeredUserColumns = [
     },
   },
 ];
+
+
+
 export const manufacturerColumns = [
   {
     name: "id",
