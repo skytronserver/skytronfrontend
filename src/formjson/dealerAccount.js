@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { indianStates } from "./indianState";
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split("T")[0];
@@ -7,18 +8,16 @@ export const dealerAccountInitialValues = {
   mobile: "",
   email: "",
   dob: "",
-  companyName: "",
-  password: "",
-  gstNo: "",
-  state: "",
-  district: "",
-  userIdProofNo: "",
+  company_name: "",
+  gstnnumber: "",
+  address_State: "AS",
+  address: "",
+  idProofno: "",
   expiryDate: formattedDate,
-  authorizationLetter: null,
-  companyRegistrationCertificate: null,
-  gstCertificate: null,
-  deviceManufacturerLetter: null,
-  userIdProof: null,
+  file_authLetter: null,
+  file_companRegCertificate: null,
+  file_GSTCertificate: null,
+  file_idProof: null,
 };
 
 export const dealerAccountFormField = {
@@ -50,38 +49,33 @@ export const dealerAccountFormField = {
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
   },
-  companyName: {
-    name: "companyName",
+  company_name: {
+    name: "company_name",
     type: "text",
     label: "Company Name",
     validation: Yup.string().required("Company Name is required"),
   },
-  password: {
-    name: "password",
+  gstnnumber: {
+    name: "gstnnumber",
     type: "text",
-    label: "password",
-    validation: Yup.string().required("Password is required"),
-  },
-  gstNo: {
-    name: "gstNo",
-    type: "text",
-    label: "GTS No",
+    label: "GST No",
     validation: Yup.string().required("GTS No is required"),
   },
-  state: {
-    name: "state",
-    type: "text",
+  address_State: {
+    name: "address_State",
+    type: "select",
     label: "State Name",
     validation: Yup.string().required("State Name is required"),
+    options: indianStates,
   },
-  district: {
-    name: "district",
+  address: {
+    name: "address",
     type: "text",
     label: "District Name",
     validation: Yup.string().required("District Name is required"),
   },
-  userIdProofNo: {
-    name: "userIdProofNo",
+  idProofno: {
+    name: "idProofno",
     type: "text",
     label: "User ID Proof Number",
     validation: Yup.string().required("User ID Proof Number is required"),
@@ -92,34 +86,28 @@ export const dealerAccountFormField = {
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),
   },
-  authorizationLetter: {
-    name: "authorizationLetter",
+  file_authLetter: {
+    name: "file_authLetter",
     type: "file",
     label: "Authorization Letter",
     validation: Yup.mixed().required("Authorization Letter is required"),
   },
-  companyRegistrationCertificate: {
-    name: "companyRegistrationCertificate",
+  file_companRegCertificate: {
+    name: "file_companRegCertificate",
     type: "file",
     label: "Company/Shop Registration/Establishment Certificate",
     validation: Yup.mixed().required(
       "Company/Shop Registration/Establishment Certificate is required"
     ),
   },
-  gstCertificate: {
-    name: "gstCertificate",
+  file_GSTCertificate: {
+    name: "file_GSTCertificate",
     type: "file",
     label: "GST Certificate",
     validation: Yup.mixed().required("GST Certificate is required"),
   },
-  deviceManufacturerLetter: {
-    name: "deviceManufacturerLetter",
-    type: "file",
-    label: "Device Manufacturer Letter",
-    validation: Yup.mixed().required("Device Manufacturer Letter is required"),
-  },
-  userIdProof: {
-    name: "userIdProof",
+  file_idProof: {
+    name: "file_idProof",
     type: "file",
     label: "User ID Proof",
     validation: Yup.mixed().required("User ID Proof is required"),
