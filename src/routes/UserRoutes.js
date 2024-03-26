@@ -9,13 +9,15 @@ import {dealerInitialValues,dealerFormField} from "../formjson/dealer";
 import {stateAdminInitialValues,stateAdminField} from "../formjson/stateAdmin";
 import {vehicleOwnerInitialValues,vehicleOwnerField} from "../formjson/vehicleOwner";
 import {otherUserInitialValues,otherUserFormField} from "../formjson/otherUser";
+import { dealerAccountFormField, dealerAccountInitialValues } from "../formjson/dealerAccount";
+import { retailerFormInitials, retailerFormField } from "../formjson/retailerForm";
 import DynamicForm from "../views/forms/DynamicForm";
 import UpdateForm from "../views/forms/UpdateForm";
 import UsersList from "../views/reports/UsersList";
 import { useSelector } from "react-redux";
 import FileUploadTest from "../views/forms/FileUploadTest";
-import DealerAccount from "views/forms/DealerAccount";
-import { dealerAccountFormField, dealerAccountInitialValues } from "formjson/dealerAccount";
+import DealerAccount from "../views/forms/DealerAccount";
+import RetailerForm from "../views/forms/RetailerForm";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -88,6 +90,10 @@ const UserRoutes = {
     {
       path: "/user/newDealerAccount",
       element:<DealerAccount fieldConfig={dealerAccountFormField} initialData={dealerAccountInitialValues} formTitle="Dealer Account" userRole="dealer"/>,
+    },
+    {
+      path: "/user/newRetailerAccount",
+      element:<RetailerForm fieldConfig={retailerFormField} initialData={retailerFormInitials} formTitle="Retailer Account" />,
     }
     ,
     {

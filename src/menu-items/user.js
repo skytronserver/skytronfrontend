@@ -46,9 +46,16 @@ const user = {
         },
         {
           id: 'dealer-account',
-          title: 'DealerAccount',
+          title: 'Dealer Account',
           type: 'item',
           url: '/user/newDealerAccount',
+          breadcrumbs: false
+        },
+        {
+          id: 'retailer-account',
+          title: 'Retailer Account',
+          type: 'item',
+          url: '/user/newRetailerAccount',
           breadcrumbs: false
         },
         {

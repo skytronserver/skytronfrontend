@@ -3,7 +3,7 @@ import { Formik } from "formik";
 import React, { useState } from "react";
 import { gridSpacing } from "../../store/constant";
 import { useNavigate } from "react-router-dom";
-import DealerServices from "services/DealerServices";
+import RetailerServices from "services/RetailerServices";
 import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
@@ -12,7 +12,7 @@ import PageHeader from "ui-component/cards/PageHeader";
 import { convertErrorObjectToArray } from "helper";
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split("T")[0];
-function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
+function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -45,7 +45,7 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
   );
   const handleCreateUser = async (userData) => {
     try {
-      const response = await DealerServices.dealerUser(userData);
+      const response = await RetailerServices.createRetailer(userData);
       console.log("User created successfully:", response.data);
       return { code: "200", message: response.data };
     } catch (error) {
@@ -136,7 +136,7 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Registration Form">
+          <MainCard>
             <Formik
               initialValues={initialData}
               validationSchema={validationSchema}
@@ -176,4 +176,4 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
   );
 }
 
-export default DealerAccount;
+export default RetailerForm;
