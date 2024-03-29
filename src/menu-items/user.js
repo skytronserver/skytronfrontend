@@ -150,6 +150,13 @@ const user = {
           type: 'item',
           url: '/device/show-device',
           breadcrumbs: false
+        },
+        {
+          id: 'assign-device',
+          title: 'Assign Device to Retailer',
+          type: 'item',
+          url: '/device/assign-device',
+          breadcrumbs: false
         }
       ]
     },
@@ -214,7 +221,7 @@ const user = {
           id: 'dealer-list',
           title: 'Dealers',
           type: 'item',
-          url: '',
+          url: '/user/dealerList',
           breadcrumbs: false
         },
         {

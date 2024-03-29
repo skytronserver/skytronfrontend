@@ -1,19 +1,17 @@
 import * as Yup from "yup";
+const currentDate = new Date();
+currentDate.setFullYear(currentDate.getFullYear() + 2);
+const formattedDate = currentDate.toISOString().split('T')[0];
 export const vehicleOwnerInitialValues = {
   name: "",
   mobile: "",
   email: "",
   dob:"",
   address: "",
-  vehicleRegNo: "",
-  vehicleMake: "",
-  vehicleModel: "",
-  engineNo: "",
-  vehicleCategory: "",
-  chessisNo: "",
-  addressProof: null,
-  vehicleRc: null,
-  deviceInvoice: null,
+  expiryDate: formattedDate,
+  idProofno: "",
+  file_idProof: null,
+
 };
 export const vehicleOwnerField = {
   name: {
@@ -50,58 +48,22 @@ export const vehicleOwnerField = {
     label: "Full Address",
     validation: Yup.string().required("Full Address is required"),
   },
-  vehicleRegNo: {
-    name: "vehicleRegNo",
-    type: "text",
-    label: "Vehicle Registration No.",
-    validation: Yup.string().required("Vehicle Registration No. is required"),
+  expiryDate: {
+    name:"expiryDate",
+    type: "date",
+    label: "Expiry Date",
+    validation: Yup.date().required("Expiry Date is required"),
   },
-  vehicleMake: {
-    name: "vehicleMake",
+  idProofno: {
+    name: "idProofno",
     type: "text",
-    label: "Vehicle Make",
-    validation: Yup.string().required("Vehicle Make is required"),
+    label: "User ID Proof Number",
+    validation: Yup.string().required("User ID Proof Number is required"),
   },
-  vehicleModel: {
-    name: "vehicleModel",
-    type: "text",
-    label: "Vehicle Model",
-    validation: Yup.string().required("Vehicle Model is required"),
-  },
-  engineNo: {
-    name: "engineNo",
-    type: "text",
-    label: "Engine No",
-    validation: Yup.string().required("Engine number is required"),
-  },
-  vehicleCategory: {
-    name: "vehicleCategory",
-    type: "text",
-    label: "Vehicle Category",
-    validation: Yup.string().required("Vehicle Category is required"),
-  },
-  chessisNo: {
-    name: "chessisNo",
-    type: "text",
-    label: "Chessis No",
-    validation: Yup.string().required("Chessis No is required"),
-  },
-  vehicleRc: {
-    name: "vehicleRc",
+  file_idProof: {
+    name: "file_idProof",
     type: "file",
-    label: "Vehicle RC",
-    validation: Yup.mixed().required("Vehicle RC is required"),
-  },
-  addressProof: {
-    name: "addressProof",
-    type: "file",
-    label: "Address Proof",
-    validation: Yup.mixed().required("Address Proof is required"),
-  },
-  deviceInvoice: {
-    name: "deviceInvoice",
-    type: "file",
-    label: "Device Purchase Invoice",
-    validation: Yup.mixed().required("Device Purchase Invoice is required"),
-  },
+    label: "ID Proof",
+    validation: Yup.mixed().required("ID Proof is required"),
+  }
 };

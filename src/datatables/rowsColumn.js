@@ -121,6 +121,11 @@ export const showDeviceColumns = [
     options: {
       filter: false,
       sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.name}</p>
+        );
+      }
     },
   },
   {
@@ -129,12 +134,38 @@ export const showDeviceColumns = [
     options: {
       filter: false,
       sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.model_name}</p>
+        );
+      }
     },
+    
   },
 
 ];
 
 // new 
+
+export const dealerListColumn = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "company_name",
+    label: "Company Name",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  }
+];
 
 export const columns = [
   {
