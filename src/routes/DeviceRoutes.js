@@ -15,6 +15,8 @@ import UnapproveCopList from '../views/reports/UnapproveCopList';
 import StateAdminCOPModelView from '../views/detailsview/StateAdminCOPModelView';
 import BulkUpload from "../views/forms/BulkUpload"
 import Loadable from "../ui-component/Loadable";
+import AssignDevice from '../views/forms/AssignDevice';
+import {assignDeviceFormFields,assignDeviceInitials} from  "../formjson/assignDevice";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -68,8 +70,14 @@ const DeviceRoutes = {
     {
       path: "/device/show-device",
       element: <ShowDevice/>,
+    },
+    {
+      path: "/device/assign-device",
+      element: <AssignDevice fieldConfig={assignDeviceFormFields} initialData={assignDeviceInitials} formTitle="Device Assign"/>,
     }
   ].map((route) => applyPrivateRoute(route)),
 };
 
 export default DeviceRoutes;
+
+

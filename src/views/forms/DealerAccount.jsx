@@ -57,6 +57,14 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
       };
     }
   };
+  (async()=>{
+    try{
+      const res=await DealerServices.dealerList();
+      console.log(res);
+    }catch(error){
+      console.log(error)
+    }
+  })()
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);

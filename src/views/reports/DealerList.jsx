@@ -4,23 +4,24 @@ import React from 'react';
 import { Grid } from "@mui/material";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
-import UserServices from 'services/UserServices';
+import DealerServices from 'services/DealerServices';
 import { useEffect,useState } from 'react';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
-import {showDeviceColumns} from '../../datatables/rowsColumn';
+import {dealerListColumn} from '../../datatables/rowsColumn';
 
-const ShowDevice = () => {
+const DealerList = () => {
   const [load,setLoad]=useState(false)
 
 
-  const [deviceData,setDeviceData]=useState("")   // here
+  const [dealerData,setDealerData]=useState("")   // here
 
   const dispatch=useDispatch();
  
   useEffect(()=>{
     const retrievePosts = async () => {
-      const retriveData = await UserServices.getRegisteredData();
-      setDeviceData(retriveData.data.data);     
+      const retriveData = await DealerServices.dealerList();
+    //   console.log(retriveData.data)
+      setDealerData(retriveData.data);     
       setLoad(true)
     }; 
     retrievePosts();
@@ -29,14 +30,14 @@ const ShowDevice = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <PageHeader title="Show Device" />
+          <PageHeader title="Show Dealer" />
         </Grid>
         <Grid item xs={12}>
-        {load && deviceData.length>1 && <DynamicDatatables tableTitle="All Device List" rows={deviceData} columns={showDeviceColumns}/>}
+        {load && dealerData.length>1 && <DynamicDatatables tableTitle="All Device List" rows={dealerData} columns={dealerListColumn}/>}
         </Grid>
     </Grid>
 );
 }
 
-export default ShowDevice;
+export default DealerList;
 

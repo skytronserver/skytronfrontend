@@ -22,6 +22,13 @@ const registerUser=(userData)=>{
 const updateUser=(id,userData)=>{
     return http.put(`/api/update_user/${id}/`,userData)
 }
+const createVehicleOwner=(ownerData)=>{
+    return http.post(`/api/VehicleOwner/create_VehicleOwner/`,ownerData,{
+        headers: {
+          'Content-type': 'multipart/form-data',
+        }
+      })
+}
 const UserServices = {
     getRegisteredData,
     getRegisteredUsers,
@@ -29,7 +36,8 @@ const UserServices = {
     getUsers,
     getSingleUser,
     registerUser,
-    updateUser
+    updateUser,
+    createVehicleOwner
   };
   
   export default UserServices;

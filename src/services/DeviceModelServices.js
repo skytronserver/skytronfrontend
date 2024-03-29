@@ -27,6 +27,9 @@ const updateModel = (id, updatedData) => {
 const deleteModel = (id) => {
   return http.delete(`/api/delete_device_model/${id}`);
 };
+const getDeviceList=()=>{          // show device
+  return http.post("/api/devicestock/deviceStockFilter/")            
+}
 const DeviceModelServices = {
 getAllModels,
 getAdminAwaitingModels,
@@ -35,7 +38,8 @@ getModel,
 createModel,
 updateModel,
 copUpload,
-deleteModel
+deleteModel,
+getDeviceList
 };
 
 export default DeviceModelServices;
