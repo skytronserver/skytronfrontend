@@ -15,83 +15,93 @@ const UserStatistics = () => {
   }, []);
 
   // State for collapse
-  const [activeStatesCollapse, setActiveStatesCollapse] = useState(false);
-  const [totalStatesCollapse, setTotalStatesCollapse] = useState(true); 
-  const [totalInactiveCollapse, setTotalInactiveCollapse] = useState(true); 
-  const [totalActiveCollapse, setTotalActiveCollapse] = useState(true); 
+  const [totalUsersCollapse, setTotalUsersCollapse] = useState(true); 
+  const [totalStateAdminsCollapse, setTotalStateAdminsCollapse] = useState(true); 
+  const [alertsTodayCollapse, setAlertsTodayCollapse] = useState(true); 
+  const [totalManufacturersCollapse, setTotalManufacturersCollapse] = useState(true); 
+  const [totalDealersCollapse, setTotalDealersCollapse] = useState(true); 
+  const [totalVehicleOwnersCollapse, setTotalVehicleOwnersCollapse] = useState(true); 
 
-  
   const handleWidgetClick = (widgetType) => {
-    if (widgetType === "Active States") {
-      setActiveStatesCollapse(!activeStatesCollapse);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total States") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(!totalStatesCollapse);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total Inactive") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(!totalInactiveCollapse);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total Active") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(!totalActiveCollapse);
+    switch (widgetType) {
+      case "Total Users":
+        setTotalUsersCollapse(!totalUsersCollapse);
+        break;
+      case "Total State Admins":
+        setTotalStateAdminsCollapse(!totalStateAdminsCollapse);
+        break;
+      case "Alerts Today":
+        setAlertsTodayCollapse(!alertsTodayCollapse);
+        break;
+      case "Total Manufacturers":
+        setTotalManufacturersCollapse(!totalManufacturersCollapse);
+        break;
+      case "Total Dealers":
+        setTotalDealersCollapse(!totalDealersCollapse);
+        break;
+      case "Total Vehicle Owners":
+        setTotalVehicleOwnersCollapse(!totalVehicleOwnersCollapse);
+        break;
+      default:
+        break;
     }
   };
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={10} style={{ marginTop: "20px" }}>
-    
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Users"
           onClick={() => handleWidgetClick("Total Users")}
-          isCollapsed={activeStatesCollapse}
+          isCollapsed={totalUsersCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
           label="Total State Admins"
           onClick={() => handleWidgetClick("Total State Admins")}
-          isCollapsed={totalStatesCollapse}
+          isCollapsed={totalStateAdminsCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
           label="Alerts Today"
           onClick={() => handleWidgetClick("Alerts Today")}
-          isCollapsed={totalInactiveCollapse}
+          isCollapsed={alertsTodayCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Manufacturers"
           onClick={() => handleWidgetClick("Total Manufacturers")}
-          isCollapsed={totalActiveCollapse}
+          isCollapsed={totalManufacturersCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Dealers"
           onClick={() => handleWidgetClick("Total Dealers")}
-          isCollapsed={totalActiveCollapse}
+          isCollapsed={totalDealersCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Vehicle Owners"
           onClick={() => handleWidgetClick("Total Vehicle Owners")}
-          isCollapsed={totalActiveCollapse}
+          isCollapsed={totalVehicleOwnersCollapse}
         />
-        
       </Grid>
     </Grid>
   );

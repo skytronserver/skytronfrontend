@@ -15,75 +15,67 @@ const OverSpeeding = () => {
   }, []);
 
   // State for collapse
-  const [activeStatesCollapse, setActiveStatesCollapse] = useState(false);
-  const [totalStatesCollapse, setTotalStatesCollapse] = useState(true); 
-  const [totalInactiveCollapse, setTotalInactiveCollapse] = useState(true); 
-  const [totalActiveCollapse, setTotalActiveCollapse] = useState(true); 
+  const [totalAlertsCollapse, setTotalAlertsCollapse] = useState(true); 
+  const [alertsThisMonthCollapse, setAlertsThisMonthCollapse] = useState(true); 
+  const [alertsTodayCollapse, setAlertsTodayCollapse] = useState(true); 
+  const [maxSpeedCollapse, setMaxSpeedCollapse] = useState(true); 
 
- 
   const handleWidgetClick = (widgetType) => {
-    if (widgetType === "Active States") {
-      setActiveStatesCollapse(!activeStatesCollapse);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total States") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(!totalStatesCollapse);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total Inactive") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(!totalInactiveCollapse);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total Active") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(!totalActiveCollapse);
+    switch (widgetType) {
+      case "Total Alerts":
+        setTotalAlertsCollapse(!totalAlertsCollapse);
+        break;
+      case "Alerts This Month":
+        setAlertsThisMonthCollapse(!alertsThisMonthCollapse);
+        break;
+      case "Alerts Today":
+        setAlertsTodayCollapse(!alertsTodayCollapse);
+        break;
+      case "Max Speed":
+        setMaxSpeedCollapse(!maxSpeedCollapse);
+        break;
+      default:
+        break;
     }
   };
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={10} style={{ marginTop: "20px" }}>
-       
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Alerts"
           onClick={() => handleWidgetClick("Total Alerts")}
-          isCollapsed={activeStatesCollapse}
+          isCollapsed={totalAlertsCollapse}
         />
-
-       
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
           label="Alerts This Month"
           onClick={() => handleWidgetClick("Alerts This Month")}
-          isCollapsed={totalStatesCollapse}
+          isCollapsed={alertsThisMonthCollapse}
         />
-
-        
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
           label="Alerts Today"
           onClick={() => handleWidgetClick("Alerts Today")}
-          isCollapsed={totalInactiveCollapse}
+          isCollapsed={alertsTodayCollapse}
         />
-
-        
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Max Speed"
           onClick={() => handleWidgetClick("Max Speed")}
-          isCollapsed={totalActiveCollapse}
+          isCollapsed={maxSpeedCollapse}
         />
-        
       </Grid>
     </Grid>
   );
