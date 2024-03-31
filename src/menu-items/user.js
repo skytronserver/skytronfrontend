@@ -78,7 +78,19 @@ const user = {
       breadcrumbs: false
 
     },
+//new
+// {
 
+//   id: 'Active-Card',
+//   title: 'Active Card',
+//   type: 'item',
+//   url: '/active-card',
+//   // icon: icons.IconMap,
+//   breadcrumbs: false
+
+// },
+
+//new
     {
       id: 'device-icons',
       title: 'Device',

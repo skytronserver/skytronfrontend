@@ -22,7 +22,7 @@ const MainCard = forwardRef(
       contentClass = '',
       contentSX = {},
       darkTitle,
-      secondary,
+      secondary, 
       shadow,
       sx = {},
       title,
