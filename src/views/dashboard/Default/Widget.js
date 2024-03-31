@@ -1,19 +1,46 @@
+
+//new
+// Widget.js
+// import React from 'react';
+
+// const Widget = ({ isLoading, cardColor, onClick, label }) => {
+//   return (
+//     <div
+//       style={{
+//         backgroundColor: cardColor,
+//         padding: '20px',
+//         borderRadius: '8px',
+//         marginBottom: '20px',
+//         textAlign: 'center',
+//         color: '#fff', // Text color
+//       }}
+//       onClick={onClick}
+//     >
+//       {label} {/* Display the label */}
+//     </div>
+//   );
+// };
+
+// export default Widget;
+
+
+// Widget.js
+
+
+//new
 import PropTypes from 'prop-types';
-// material-ui
 import { useTheme, styled } from '@mui/material/styles';
 import { Avatar, Box, Grid, Typography } from '@mui/material';
-// project imports
 import MainCard from '../../../ui-component/cards/MainCard';
 import SkeletonTotalOrderCard from '../../../ui-component/cards/Skeleton/Widget';
-// assets
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 
-const CardWrapper = styled(MainCard)(({ theme,data }) => ({
+const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   backgroundColor: data,
   color: '#fff',
   overflow: 'hidden',
   position: 'relative',
-  '&>div': {
+  '& > div': {
     position: 'relative',
     zIndex: 5
   },
@@ -50,16 +77,14 @@ const CardWrapper = styled(MainCard)(({ theme,data }) => ({
   }
 }));
 
-// ==============================|| DASHBOARD - TOTAL ORDER LINE CHART CARD ||============================== //
-
-const Widget = ({ isLoading,cardColor }) => {
+const Widget = ({ isLoading, cardColor, label, onClick }) => {
   const theme = useTheme();
   return (
     <>
       {isLoading ? (
         <SkeletonTotalOrderCard />
       ) : (
-        <CardWrapper border={false} content={false} data={cardColor}>
+        <CardWrapper border={false} content={false} data={cardColor} onClick={onClick}>
           <Box sx={{ p: 2.25 }}>
             <Grid container direction="column">
               <Grid item>
@@ -78,18 +103,15 @@ const Widget = ({ isLoading,cardColor }) => {
                       <LocalMallOutlinedIcon fontSize="inherit" />
                     </Avatar>
                   </Grid>
-
                 </Grid>
               </Grid>
               <Grid item>
                 <Grid container alignItems="center">
                   <Grid item xs={6}>
-                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>500</Typography>
+                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>{label}</Typography>
                   </Grid>
-                  <Grid item xs={6} style={{"float":"right"}}>
-                    <Typography sx={{ fontSize: '1rem',
-                            fontWeight: 500,
-                            color: theme.palette.primary[200] }}>Total Registered</Typography>
+                  <Grid item xs={6} style={{ float: 'right' }}>
+                    <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.primary[200] }}>{label}</Typography>
                   </Grid>
                 </Grid>
               </Grid>
@@ -102,7 +124,11 @@ const Widget = ({ isLoading,cardColor }) => {
 };
 
 Widget.propTypes = {
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  cardColor: PropTypes.string,
+  label: PropTypes.string.isRequired,
+  onClick: PropTypes.func.isRequired // New onClick prop
 };
 
 export default Widget;
+
