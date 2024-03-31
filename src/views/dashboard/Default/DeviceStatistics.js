@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import Widget from './Widget';
 import { gridSpacing } from '../../../store/constant';
- 
+
 const DeviceStatistics = () => {
   const [isLoading, setLoading] = useState(true);
 
@@ -15,90 +15,93 @@ const DeviceStatistics = () => {
   }, []);
 
   // State for collapse
-  const [activeStatesCollapse, setActiveStatesCollapse] = useState(false);
-  const [totalStatesCollapse, setTotalStatesCollapse] = useState(true); 
-  const [totalInactiveCollapse, setTotalInactiveCollapse] = useState(true);
-  const [totalActiveCollapse, setTotalActiveCollapse] = useState(true); 
+  const [totalDeviceMakerCollapse, setTotalDeviceMakerCollapse] = useState(true);
+  const [totalDeviceModelsCollapse, setTotalDeviceModelsCollapse] = useState(true); 
+  const [totalDeviceCountCollapse, setTotalDeviceCountCollapse] = useState(true);
+  const [totalDeviceTaggedCollapse, setTotalDeviceTaggedCollapse] = useState(true); 
+  const [onlineDevicesCollapse, setOnlineDevicesCollapse] = useState(true);
+  const [offlineDevicesCollapse, setOfflineDevicesCollapse] = useState(true);
 
   
   const handleWidgetClick = (widgetType) => {
-    if (widgetType === 'Active States') {
-      setActiveStatesCollapse(!activeStatesCollapse);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === 'Total States') {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(!totalStatesCollapse);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === 'Total Inactive') {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(!totalInactiveCollapse);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === 'Total Active') {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(!totalActiveCollapse);
+    switch (widgetType) {
+      case 'Total Device Maker':
+        setTotalDeviceMakerCollapse(!totalDeviceMakerCollapse);
+        break;
+      case 'Total Device Models':
+        setTotalDeviceModelsCollapse(!totalDeviceModelsCollapse);
+        break;
+      case 'Total Device Count':
+        setTotalDeviceCountCollapse(!totalDeviceCountCollapse);
+        break;
+      case 'Total Device Tagged':
+        setTotalDeviceTaggedCollapse(!totalDeviceTaggedCollapse);
+        break;
+      case 'Online Devices':
+        setOnlineDevicesCollapse(!onlineDevicesCollapse);
+        break;
+      case 'Offline Devices':
+        setOfflineDevicesCollapse(!offlineDevicesCollapse);
+        break;
+      default:
+        break;
     }
   };
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={10} style={{ marginTop: '20px' }}>
-       
+      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Device Maker"
           onClick={() => handleWidgetClick('Total Device Maker')}
-          isCollapsed={activeStatesCollapse}
+          isCollapsed={totalDeviceMakerCollapse}
         />
-
-       
+      </Grid>
+      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
           label="Total Device Models"
           onClick={() => handleWidgetClick('Total Device Models')}
-          isCollapsed={totalStatesCollapse}
+          isCollapsed={totalDeviceModelsCollapse}
         />
-
-        
+      </Grid>
+      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
           label="Total Device Count"
           onClick={() => handleWidgetClick('Total Device Count')}
-          isCollapsed={totalInactiveCollapse}
+          isCollapsed={totalDeviceCountCollapse}
         />
-
-       
+      </Grid>
+      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Device Tagged"
           onClick={() => handleWidgetClick('Total Device Tagged')}
-          isCollapsed={totalActiveCollapse}
+          isCollapsed={totalDeviceTaggedCollapse}
         />
-
+      </Grid>
+      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Online Devices"
           onClick={() => handleWidgetClick('Online Devices')}
-          isCollapsed={totalActiveCollapse}
+          isCollapsed={onlineDevicesCollapse}
         />
-
-
+      </Grid>
+      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Offline Devices"
           onClick={() => handleWidgetClick('Offline Devices')}
-          isCollapsed={totalActiveCollapse}
+          isCollapsed={offlineDevicesCollapse}
         />
       </Grid>
     </Grid>

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import Widget from './Widget';
 import { gridSpacing } from '../../../store/constant';
- 
+
 const ActiveState = () => {
   const [isLoading, setLoading] = useState(true);
 
@@ -21,35 +21,16 @@ const ActiveState = () => {
   const [totalInactiveCollapse, setTotalInactiveCollapse] = useState(true); 
   const [totalActiveCollapse, setTotalActiveCollapse] = useState(true); 
 
- 
   const handleWidgetClick = (widgetType) => {
-    if (widgetType === 'Active States') {
-      setActiveStatesCollapse(!activeStatesCollapse);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === 'Total States') {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(!totalStatesCollapse);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === 'Total Inactive') {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(!totalInactiveCollapse);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === 'Total Active') {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(!totalActiveCollapse);
-    }
+    setActiveStatesCollapse(widgetType === 'Active States' ? !activeStatesCollapse : true);
+    setTotalStatesCollapse(widgetType === 'Total States');
+    setTotalInactiveCollapse(widgetType === 'Total Inactive');
+    setTotalActiveCollapse(widgetType === 'Total Active');
   };
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={10} style={{ marginTop: '20px' }}>
-        
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -57,6 +38,8 @@ const ActiveState = () => {
           onClick={() => handleWidgetClick('Active States')}
           isCollapsed={activeStatesCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
@@ -64,6 +47,8 @@ const ActiveState = () => {
           onClick={() => handleWidgetClick('Total States')}
           isCollapsed={totalStatesCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
@@ -71,6 +56,8 @@ const ActiveState = () => {
           onClick={() => handleWidgetClick('Total Inactive')}
           isCollapsed={totalInactiveCollapse}
         />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -84,13 +71,3 @@ const ActiveState = () => {
 };
 
 export default ActiveState;
-
-
-
-
-
-
-
-
-
-

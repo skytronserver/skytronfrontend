@@ -15,73 +15,78 @@ const VehicleStatistics = () => {
   }, []);
 
   // State for collapse
-  const [activeStatesCollapse, setActiveStatesCollapse] = useState(false);
-  const [totalStatesCollapse, setTotalStatesCollapse] = useState(true); 
-  const [totalInactiveCollapse, setTotalInactiveCollapse] = useState(true); 
-  const [totalActiveCollapse, setTotalActiveCollapse] = useState(true); 
+  const [totalDeviceMakerCollapse, setTotalDeviceMakerCollapse] = useState(true); 
+  const [totalVehicleCollapse, setTotalVehicleCollapse] = useState(true); 
+  const [activeDevicesCollapse, setActiveDevicesCollapse] = useState(true); 
+  const [idleDevicesCollapse, setIdleDevicesCollapse] = useState(true); 
 
-  
   const handleWidgetClick = (widgetType) => {
-    if (widgetType === "Active States") {
-      setActiveStatesCollapse(!activeStatesCollapse);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total States") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(!totalStatesCollapse);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total Inactive") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(!totalInactiveCollapse);
-      setTotalActiveCollapse(true);
-    } else if (widgetType === "Total Active") {
-      setActiveStatesCollapse(true);
-      setTotalStatesCollapse(true);
-      setTotalInactiveCollapse(true);
-      setTotalActiveCollapse(!totalActiveCollapse);
+    switch (widgetType) {
+      case "Total Device Maker":
+        setTotalDeviceMakerCollapse(!totalDeviceMakerCollapse);
+        setTotalVehicleCollapse(true);
+        setActiveDevicesCollapse(true);
+        setIdleDevicesCollapse(true);
+        break;
+      case "Total Vehicle":
+        setTotalVehicleCollapse(!totalVehicleCollapse);
+        setTotalDeviceMakerCollapse(true);
+        setActiveDevicesCollapse(true);
+        setIdleDevicesCollapse(true);
+        break;
+      case "Active Devices":
+        setActiveDevicesCollapse(!activeDevicesCollapse);
+        setTotalDeviceMakerCollapse(true);
+        setTotalVehicleCollapse(true);
+        setIdleDevicesCollapse(true);
+        break;
+      case "Idle Devices":
+        setIdleDevicesCollapse(!idleDevicesCollapse);
+        setTotalDeviceMakerCollapse(true);
+        setTotalVehicleCollapse(true);
+        setActiveDevicesCollapse(true);
+        break;
+      default:
+        break;
     }
   };
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={10} style={{ marginTop: "20px" }}>
-       
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
           label="Total Device Maker"
           onClick={() => handleWidgetClick("Total Device Maker")}
-          isCollapsed={activeStatesCollapse}
+          isCollapsed={totalDeviceMakerCollapse}
         />
-
-        
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
           label="Total Vehicle"
           onClick={() => handleWidgetClick("Total Vehicle")}
-          isCollapsed={totalStatesCollapse}
+          isCollapsed={totalVehicleCollapse}
         />
-
-        
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
           label="Active Devices"
           onClick={() => handleWidgetClick("Active Devices")}
-          isCollapsed={totalInactiveCollapse}
+          isCollapsed={activeDevicesCollapse}
         />
-
-      
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
-          label="idle Devices"
-          onClick={() => handleWidgetClick("idle Devices")}
-          isCollapsed={totalActiveCollapse}
+          label="Idle Devices"
+          onClick={() => handleWidgetClick("Idle Devices")}
+          isCollapsed={idleDevicesCollapse}
         />
       </Grid>
     </Grid>
