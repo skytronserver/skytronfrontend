@@ -41,7 +41,7 @@ const EmeregencyAlert = () => {
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -50,7 +50,7 @@ const EmeregencyAlert = () => {
           isCollapsed={totalAlertsCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
@@ -59,7 +59,7 @@ const EmeregencyAlert = () => {
           isCollapsed={alertsThisMonthCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
@@ -68,7 +68,7 @@ const EmeregencyAlert = () => {
           isCollapsed={alertsTodayCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"

@@ -50,7 +50,7 @@ const DeviceStatistics = () => {
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -59,7 +59,7 @@ const DeviceStatistics = () => {
           isCollapsed={totalDeviceMakerCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
@@ -68,7 +68,7 @@ const DeviceStatistics = () => {
           isCollapsed={totalDeviceModelsCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
@@ -77,7 +77,7 @@ const DeviceStatistics = () => {
           isCollapsed={totalDeviceCountCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -86,7 +86,7 @@ const DeviceStatistics = () => {
           isCollapsed={totalDeviceTaggedCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -95,7 +95,7 @@ const DeviceStatistics = () => {
           isCollapsed={onlineDevicesCollapse}
         />
       </Grid>
-      <Grid item xs={12} md={6} lg={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"

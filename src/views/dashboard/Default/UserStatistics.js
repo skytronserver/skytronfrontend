@@ -49,7 +49,7 @@ const UserStatistics = () => {
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -58,7 +58,7 @@ const UserStatistics = () => {
           isCollapsed={totalUsersCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
@@ -67,7 +67,7 @@ const UserStatistics = () => {
           isCollapsed={totalStateAdminsCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
@@ -76,7 +76,7 @@ const UserStatistics = () => {
           isCollapsed={alertsTodayCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -85,7 +85,7 @@ const UserStatistics = () => {
           isCollapsed={totalManufacturersCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -94,7 +94,7 @@ const UserStatistics = () => {
           isCollapsed={totalDealersCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
