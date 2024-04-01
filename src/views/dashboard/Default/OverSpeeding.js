@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Grid } from "@mui/material";
 import Widget from "./Widget";
@@ -41,7 +42,7 @@ const OverSpeeding = () => {
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -50,7 +51,7 @@ const OverSpeeding = () => {
           isCollapsed={totalAlertsCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
@@ -59,7 +60,7 @@ const OverSpeeding = () => {
           isCollapsed={alertsThisMonthCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
@@ -68,7 +69,7 @@ const OverSpeeding = () => {
           isCollapsed={alertsTodayCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: "20px" }}>
+      <Grid item lg={3} md={6} sm={6} xs={12}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"

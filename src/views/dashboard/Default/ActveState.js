@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import Widget from './Widget';
@@ -17,9 +16,9 @@ const ActiveState = () => {
 
   // State for collapse
   const [activeStatesCollapse, setActiveStatesCollapse] = useState(false);
-  const [totalStatesCollapse, setTotalStatesCollapse] = useState(true); 
-  const [totalInactiveCollapse, setTotalInactiveCollapse] = useState(true); 
-  const [totalActiveCollapse, setTotalActiveCollapse] = useState(true); 
+  const [totalStatesCollapse, setTotalStatesCollapse] = useState(true);
+  const [totalInactiveCollapse, setTotalInactiveCollapse] = useState(true);
+  const [totalActiveCollapse, setTotalActiveCollapse] = useState(true);
 
   const handleWidgetClick = (widgetType) => {
     setActiveStatesCollapse(widgetType === 'Active States' ? !activeStatesCollapse : true);
@@ -30,7 +29,7 @@ const ActiveState = () => {
 
   return (
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
@@ -39,7 +38,7 @@ const ActiveState = () => {
           isCollapsed={activeStatesCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#5e35b1"
@@ -48,7 +47,7 @@ const ActiveState = () => {
           isCollapsed={totalStatesCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#e53935"
@@ -57,7 +56,7 @@ const ActiveState = () => {
           isCollapsed={totalInactiveCollapse}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} style={{ marginTop: '20px' }}>
+      <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
           cardColor="#1e88e5"
