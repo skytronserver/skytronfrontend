@@ -89,7 +89,7 @@ const DeviceStatistics = () => {
       <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: '20px' }}>
         <Widget
           isLoading={isLoading}
-          cardColor="#1e88e5"
+          cardColor="#e53935"
           label="Online Devices"
           onClick={() => handleWidgetClick('Online Devices')}
           isCollapsed={onlineDevicesCollapse}

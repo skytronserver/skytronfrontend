@@ -97,7 +97,7 @@ const UserStatistics = () => {
       <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
         <Widget
           isLoading={isLoading}
-          cardColor="#1e88e5"
+          cardColor="#e53935"
           label="Total Vehicle Owners"
           onClick={() => handleWidgetClick("Total Vehicle Owners")}
           isCollapsed={totalVehicleOwnersCollapse}
