@@ -9,20 +9,9 @@ import VehicleStatistics from './VehicleStatistics';
 import OverSpeeding from './OverSpeeding';
 import EmeregencyAlert from './EmeregencyAlert';
 import UserStatistics from './UserStatistics';
-
+// import { Widgets } from '@mui/icons-material';
 
 const Dashboard = () => {
-  const [isLoading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulating loading state with a timeout
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-
-    // Cleanup function to clear the timeout
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
 
@@ -49,12 +38,14 @@ const Dashboard = () => {
         <Widget isLoading={isLoading} cardColor="#e53935"/>
       </Grid> */}
     </Grid>
+    {/* <Widgets/> */}
     <ActiveState/>
     <DeviceStatistics/>
     <VehicleStatistics/>
     <OverSpeeding/>
     <EmeregencyAlert/>
     <UserStatistics/>
+
     </>
   
   );
