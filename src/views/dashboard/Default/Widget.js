@@ -37,6 +37,9 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   color: "#fff",
   overflow: "hidden",
   position: "relative",
+  borderRadius: "8px", // Add border radius
+  height: "250px", // Set a fixed height
+  width: "250",
   "& > div": {
     position: "relative",
     zIndex: 5,
@@ -44,24 +47,24 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   "&:after": {
     content: '""',
     position: "absolute",
-    width: 210,
-    height: 210,
+    width: 250,
+    height: 250,
     background: theme.palette.primary[800],
     borderRadius: "50%",
     zIndex: 1,
-    top: -85,
-    right: -95,
+    top: -125,
+    right: -125,
     [theme.breakpoints.down("sm")]: {
-      top: -105,
-      right: -140,
+      top: -155,
+      right: 70,
     },
   },
   "&:before": {
     content: '""',
     position: "absolute",
     zIndex: 1,
-    width: 210,
-    height: 210,
+    width: 250,
+    height: 250,
     background: theme.palette.primary[800],
     borderRadius: "50%",
     top: -125,
@@ -78,7 +81,19 @@ const Widget = ({ isLoading, cardColor, label, onClick }) => {
   const theme = useTheme();
 
   return (
-    <>
+    <Grid
+      item
+      xs={12}
+      sm={6}
+      md={6}
+      lg={10}
+      style={{
+        marginTop: "50px",
+        marginLeft: "30px",
+        marginRight: "20px",
+        marginBottom: "40px",
+      }}
+    >
       {isLoading ? (
         <SkeletonTotalOrderCard />
       ) : (
@@ -90,8 +105,8 @@ const Widget = ({ isLoading, cardColor, label, onClick }) => {
         >
           <Box sx={{ p: 2.25 }}>
             <Grid container alignItems="center">
-              <Grid item style={{ marginRight: '30px'}}>
-                <Avatar 
+              <Grid item style={{ marginRight: "30px" }}>
+                <Avatar
                   variant="rounded"
                   sx={{
                     ...theme.typography.commonAvatar,
@@ -110,7 +125,6 @@ const Widget = ({ isLoading, cardColor, label, onClick }) => {
                     <Typography
                       key={index}
                       sx={{
-                        //fontSize: "2.125rem",
                         fontWeight: 500,
                         mr: 1,
                         mt: index === 0 ? 1.75 : 0.75,
@@ -126,7 +140,7 @@ const Widget = ({ isLoading, cardColor, label, onClick }) => {
           </Box>
         </CardWrapper>
       )}
-    </>
+    </Grid>
   );
 };
 
@@ -134,10 +148,7 @@ Widget.propTypes = {
   isLoading: PropTypes.bool,
   cardColor: PropTypes.string,
   label: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired, 
+  onClick: PropTypes.func.isRequired,
 };
 
 export default Widget;
-
-
-
