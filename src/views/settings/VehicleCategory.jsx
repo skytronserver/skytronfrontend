@@ -1,22 +1,42 @@
 import { Button, CircularProgress, Grid } from "@mui/material";
 import { Formik } from "formik";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { gridSpacing } from "../../store/constant";
-import DealerServices from "services/DealerServices";
+import SettingService from "../../services/SettingService";
 import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
-import PageHeader from "ui-component/cards/PageHeader";
 import { convertErrorObjectToArray } from "helper";
-function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
+
+//Datatables
+import {useSelector,useDispatch} from 'react-redux'
+import { fetchVehicleCategory } from '../../actions/settingAction';
+import DynamicDatatables from '../../datatables/DynamicDatatables';
+import {vehicleColumns} from '../../datatables/settingColumns';
+function VehicleCategory({ fieldConfig, initialData }) {
   const [open, setOpen] = useState(false);
+  const [load,setLoad]=useState(false)
   const [alert, setAlert] = useState({
     error: false,
     message: "",
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+
+  //Datatables data using redux
+  const dispatch=useDispatch();
+  const vehicleCategoryList=useSelector((state)=>state.setting.vehicleCategoryList);
+
+  useEffect(()=>{
+    const retriveVehicleList = async () => {
+      const response=await SettingService.filter_settings_VehicleCategory();
+      dispatch(fetchVehicleCategory(response.data)) ;
+      setLoad(true)
+    };
+    retriveVehicleList();
+  },[dispatch])
+
   const handleClose = () => {
     setOpen(false);
   };
@@ -25,27 +45,19 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
-  const handleFileChange = (event, formik) => {
-    const selectedFile = event.target.files[0];
-    const fieldName = event.target.name;
-    if (selectedFile) {
-      formik.setFieldValue(fieldName, selectedFile);
-    }
-  };
-
   const validationSchema = Yup.object(
     Object.keys(fieldConfig).reduce((acc, field) => {
       acc[field] = fieldConfig[field].validation;
       return acc;
     }, {})
   );
-  const handleCreateUser = async (userData) => {
+  const createVehicleCategory = async (formData) => {
     try {
-      const response = await DealerServices.dealerUser(userData);
-      console.log("User created successfully:", response.data);
+      const response = await SettingService.create_settings_VehicleCategory(formData);
+      console.log("Vehicle Category Added Successfully", response.data);
       return { code: "200", message: response.data };
     } catch (error) {
-      console.error("Error creating user:", error.message);
+      console.error("Error in API Service:", error.message);
       return {
         code: "400",
         message: error.message,
@@ -53,34 +65,10 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
       };
     }
   };
-  (async () => {
-    try {
-      const res = await DealerServices.dealerList();
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-    }
-  })();
-
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
-    let valuesWithRole = {};
-    if (values.hasOwnProperty("role")) {
-      valuesWithRole = {
-        ...values,
-        status: "deactive",
-        createdby: "admin",
-      };
-    } else {
-      valuesWithRole = {
-        ...values,
-        role: userRole,
-        status: "deactive",
-        createdby: "admin",
-      };
-    }
-    const response = await handleCreateUser(valuesWithRole);
+    const response = await createVehicleCategory(values);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
@@ -107,9 +95,6 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
       />
 
       <Grid container spacing={gridSpacing}>
-        <Grid item xs={12}>
-          <PageHeader title={formTitle} />
-        </Grid>
         {loading && (
           <div
             style={{
@@ -140,7 +125,7 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Registration Form">
+          <MainCard title="Add New Category">
             <Formik
               initialValues={initialData}
               validationSchema={validationSchema}
@@ -155,7 +140,6 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
                         <FormField
                           fieldConfig={fieldConfig[field]}
                           formik={formik}
-                          handleFileChange={handleFileChange}
                         />
                       </Grid>
                     ))}
@@ -166,7 +150,7 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
                         color="primary"
                         disabled={loading}
                       >
-                        Submit
+                        Add Vehicle Category
                       </Button>
                     </Grid>
                   </Grid>
@@ -176,8 +160,19 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
           </MainCard>
         </Grid>
       </Grid>
+      <br/>
+      <Grid container spacing={gridSpacing}>
+        <Grid item xs={12} style={{
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
+          }}>
+          <MainCard title="Vehicle Category List">
+        {load && <DynamicDatatables tableTitle="" rows={vehicleCategoryList} columns={vehicleColumns}/>}
+        </MainCard>
+        </Grid>
+    </Grid>
     </>
   );
 }
 
-export default DealerAccount;
+export default VehicleCategory;

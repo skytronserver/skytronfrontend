@@ -14,7 +14,7 @@ import { MuiOtpInput } from "mui-one-time-password-input";
 const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
   const [open, setOpen] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
-  const [deviceId,setDeviceId]=useState("");
+  const [deviceId, setDeviceId] = useState("");
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -27,19 +27,18 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
-  const handleOTPSubmit = async() => {
-    const OTPData={
-      otp:otp,
-      device_model_id:deviceId
-    }
+  const handleOTPSubmit = async () => {
+    const OTPData = {
+      otp: otp,
+      device_model_id: deviceId,
+    };
     const response = await handleOTPValidation(OTPData);
-    
+
     if (response.code === "200") {
       console.log(response);
       setShowOTP(false);
-    }
-    else{
-      console.log(response.error)
+    } else {
+      console.log(response.error);
     }
   };
   const handleClose = () => {
@@ -168,40 +167,40 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
         >
           <MainCard title="Device Model Entry">
             {!showOTP ? (
-            <Formik
-              initialValues={initialData}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
-              enableReinitialize
-            >
-              {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(fieldConfig).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={fieldConfig[field]}
-                          formik={formik}
-                          handleFileChange={handleFileChange}
-                        />
+              <Formik
+                initialValues={initialData}
+                validationSchema={validationSchema}
+                onSubmit={handleSubmit}
+                enableReinitialize
+              >
+                {(formik) => (
+                  <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={2} className="form-controller">
+                      {Object.keys(fieldConfig).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={fieldConfig[field]}
+                            formik={formik}
+                            handleFileChange={handleFileChange}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={loading}
+                        >
+                          Submit For Approval
+                        </Button>
                       </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={loading}
-                      >
-                        Submit For Approval
-                      </Button>
                     </Grid>
-                  </Grid>
-                </form>
-              )}
-            </Formik>
-            ):(
-            <Grid
+                  </form>
+                )}
+              </Formik>
+            ) : (
+              <Grid
                 container
                 spacing={2}
                 justifyContent="center"
@@ -222,7 +221,7 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
                     </Button>
                   </Typography>
                 </Grid>
-            </Grid>
+              </Grid>
             )}
           </MainCard>
         </Grid>

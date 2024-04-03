@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { TextField, Button, Typography, Container, Grid } from '@mui/material';
+import React, { useState } from "react";
+import { TextField, Button, Typography, Container, Grid } from "@mui/material";
 import FileUpload from "../../services/FileUpload";
 
 const FileUploadTest = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [file, setFile] = useState(null);
 
   const handleEmailChange = (event) => {
@@ -18,8 +18,8 @@ const FileUploadTest = () => {
   const handleSubmit = async () => {
     try {
       const formData = new FormData();
-      formData.append('email', email);
-      formData.append('file', file);
+      formData.append("email", email);
+      formData.append("file", file);
 
       // Make API request with formData using fetch or Axios
       // Example using fetch:
@@ -29,10 +29,10 @@ const FileUploadTest = () => {
       console.log(response);
 
       // Reset the form
-      setEmail('');
+      setEmail("");
       setFile(null);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error("Error submitting form:", error);
     }
   };
 
@@ -59,7 +59,7 @@ const FileUploadTest = () => {
             type="file"
             accept=".pdf, .png, .jpg, .jpeg"
             onChange={handlePhotoChange}
-            style={{ marginBottom: '16px' }}
+            style={{ marginBottom: "16px" }}
           />
         </Grid>
         <Grid item xs={12}>
