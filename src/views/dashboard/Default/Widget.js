@@ -1,4 +1,3 @@
-
 //new
 // Widget.js
 // import React from 'react';
@@ -23,103 +22,125 @@
 
 // export default Widget;
 
-
 // Widget.js
 
-
-//new
-import PropTypes from 'prop-types';
-import { useTheme, styled } from '@mui/material/styles';
-import { Avatar, Box, Grid, Typography } from '@mui/material';
-import MainCard from '../../../ui-component/cards/MainCard';
-import SkeletonTotalOrderCard from '../../../ui-component/cards/Skeleton/Widget';
-import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
+import React from "react";
+import PropTypes from "prop-types";
+import { useTheme, styled } from "@mui/material/styles";
+import { Avatar, Box, Grid, Typography } from "@mui/material";
+import MainCard from "../../../ui-component/cards/MainCard";
+import SkeletonTotalOrderCard from "../../../ui-component/cards/Skeleton/Widget";
+import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 
 const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   backgroundColor: data,
-  color: '#fff',
-  overflow: 'hidden',
-  position: 'relative',
-  '& > div': {
-    position: 'relative',
-    zIndex: 5
+  color: "#fff",
+  overflow: "hidden",
+  position: "relative",
+  borderRadius: "8px", // Add border radius
+  height: "250px", // Set a fixed height
+  width: "250",
+  "& > div": {
+    position: "relative",
+    zIndex: 5,
   },
-  '&:after': {
+  "&:after": {
     content: '""',
-    position: 'absolute',
-    width: 210,
-    height: 210,
+    position: "absolute",
+    width: 250,
+    height: 250,
     background: theme.palette.primary[800],
-    borderRadius: '50%',
+    borderRadius: "50%",
     zIndex: 1,
-    top: -85,
-    right: -95,
-    [theme.breakpoints.down('sm')]: {
-      top: -105,
-      right: -140
-    }
+    top: -125,
+    right: -125,
+    [theme.breakpoints.down("sm")]: {
+      top: -155,
+      right: 70,
+    },
   },
-  '&:before': {
+  "&:before": {
     content: '""',
-    position: 'absolute',
+    position: "absolute",
     zIndex: 1,
-    width: 210,
-    height: 210,
+    width: 250,
+    height: 250,
     background: theme.palette.primary[800],
-    borderRadius: '50%',
+    borderRadius: "50%",
     top: -125,
     right: -15,
     opacity: 0.5,
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down("sm")]: {
       top: -155,
-      right: -70
-    }
-  }
+      right: -70,
+    },
+  },
 }));
 
 const Widget = ({ isLoading, cardColor, label, onClick }) => {
   const theme = useTheme();
+
   return (
-    <>
+    <Grid
+      item
+      xs={12}
+      sm={6}
+      md={6}
+      lg={10}
+      style={{
+        marginTop: "50px",
+        marginLeft: "30px",
+        marginRight: "20px",
+        marginBottom: "40px",
+      }}
+    >
       {isLoading ? (
         <SkeletonTotalOrderCard />
       ) : (
-        <CardWrapper border={false} content={false} data={cardColor} onClick={onClick}>
+        <CardWrapper
+          border={false}
+          content={false}
+          data={cardColor}
+          onClick={onClick}
+        >
           <Box sx={{ p: 2.25 }}>
-            <Grid container direction="column">
-              <Grid item>
-                <Grid container justifyContent="space-between">
-                  <Grid item>
-                    <Avatar
-                      variant="rounded"
+            <Grid container alignItems="center">
+              <Grid item style={{ marginRight: "30px" }}>
+                <Avatar
+                  variant="rounded"
+                  sx={{
+                    ...theme.typography.commonAvatar,
+                    ...theme.typography.largeAvatar,
+                    backgroundColor: theme.palette.primary[800],
+                    color: "#fff",
+                    mt: 1,
+                  }}
+                >
+                  <LocalMallOutlinedIcon fontSize="inherit" />
+                </Avatar>
+              </Grid>
+              <Grid item xs>
+                <Grid container direction="column" alignItems="flex-start">
+                  {label.split(",").map((item, index) => (
+                    <Typography
+                      key={index}
                       sx={{
-                        ...theme.typography.commonAvatar,
-                        ...theme.typography.largeAvatar,
-                        backgroundColor: theme.palette.primary[800],
-                        color: '#fff',
-                        mt: 1
+                        fontWeight: 500,
+                        mr: 1,
+                        mt: index === 0 ? 1.75 : 0.75,
+                        mb: 0.75,
                       }}
                     >
-                      <LocalMallOutlinedIcon fontSize="inherit" />
-                    </Avatar>
-                  </Grid>
-                </Grid>
-              </Grid>
-              <Grid item>
-                <Grid container alignItems="center">
-                  <Grid item xs={6}>
-                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>{label}</Typography>
-                  </Grid>
-                  <Grid item xs={6} style={{ float: 'right' }}>
-                    <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.primary[200] }}>{label}</Typography>
-                  </Grid>
+                      {item.trim()}
+                    </Typography>
+                  ))}
                 </Grid>
               </Grid>
             </Grid>
           </Box>
         </CardWrapper>
       )}
-    </>
+    </Grid>
   );
 };
 
@@ -127,8 +148,7 @@ Widget.propTypes = {
   isLoading: PropTypes.bool,
   cardColor: PropTypes.string,
   label: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired // New onClick prop
+  onClick: PropTypes.func.isRequired,
 };
 
 export default Widget;
-
