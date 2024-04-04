@@ -8,18 +8,24 @@ import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
 import { convertErrorObjectToArray } from "helper";
+import {
+  hpFrequencyFields,
+  firmwareFields,
+  hpFrequencyInitials,
+  firmwareInitials,
+} from "../../formjson/hpFrequencyFirmware";
 
-//Datatables
 import { useSelector, useDispatch } from "react-redux";
-import { fetchStateList, fetchDistrictList } from "../../actions/settingAction";
+import {
+  fetchFirmwareList,
+  fetchFrequencyList,
+} from "../../actions/settingAction";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
-import { stateColumns, districtColumns } from "../../datatables/settingColumns";
-function StateDistrict({
-  fieldConfig,
-  initialData,
-  districtConfig,
-  districtInitials,
-}) {
+import {
+  frequencyColumns,
+  firmwareColumns,
+} from "../../datatables/settingColumns";
+function FrequencyFirmware() {
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState(false);
   const [alert, setAlert] = useState({
@@ -29,22 +35,22 @@ function StateDistrict({
   });
   const [loading, setLoading] = useState(false);
 
-  //Datatables data using redux
+  //Fetching Data from store
   const dispatch = useDispatch();
-  const stateList = useSelector((state) => state.setting.stateList);
-  const districtList = useSelector((state) => state.setting.districtList);
+  const frequencyList = useSelector((state) => state.setting.frequencyList);
+  const firmwareList = useSelector((state) => state.setting.firmwareList);
   useEffect(() => {
-    const retriveStateList = async () => {
-      const response = await SettingService.filter_settings_State();
-      dispatch(fetchStateList(response.data));
+    const retriveFrequency = async () => {
+      const response = await SettingService.filter_settings_hp_freq();
+      dispatch(fetchFrequencyList(response.data));
     };
-    const retriveDistrictList = async () => {
-      const res = await SettingService.filter_settings_District();
-      dispatch(fetchDistrictList(res.data));
+    const retriveFirmware = async () => {
+      const res = await SettingService.filter_settings_firmware();
+      dispatch(fetchFirmwareList(res.data));
       setLoad(true);
     };
-    retriveStateList();
-    retriveDistrictList();
+    retriveFrequency();
+    retriveFirmware();
   }, [dispatch]);
 
   const handleClose = () => {
@@ -55,22 +61,23 @@ function StateDistrict({
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
-  const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
+
+  const validationFrequencySchema = Yup.object(
+    Object.keys(hpFrequencyFields).reduce((acc, field) => {
+      acc[field] = hpFrequencyFields[field].validation;
       return acc;
     }, {})
   );
-  const districtValidationSchema = Yup.object(
-    Object.keys(districtConfig).reduce((acc, field) => {
-      acc[field] = districtConfig[field].validation;
+  const validationFirmwareSchema = Yup.object(
+    Object.keys(firmwareFields).reduce((acc, field) => {
+      acc[field] = firmwareFields[field].validation;
       return acc;
     }, {})
   );
-  const createStateName = async (formData) => {
+  const createFrequency = async (formData) => {
     try {
-      const response = await SettingService.create_settings_State(formData);
-      console.log("State Added Successfully", response.data);
+      const response = await SettingService.create_settings_hp_freq(formData);
+      console.log("HP Frequency added successfully", response.data);
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);
@@ -81,10 +88,10 @@ function StateDistrict({
       };
     }
   };
-  const createDistrictName = async (formData) => {
+  const createFirmware = async (formData) => {
     try {
-      const resp = await SettingService.create_settings_District(formData);
-      console.log("District Added Successfully", resp.data);
+      const resp = await SettingService.create_settings_firmware(formData);
+      console.log("Firmware added successfully", resp.data);
       return { code: "200", message: resp.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);
@@ -95,16 +102,23 @@ function StateDistrict({
       };
     }
   };
-  const handleDistrictSubmit = async (values, { setSubmitting, resetForm }) => {
+  const handleFrequencySubmit = async (
+    values,
+    { setSubmitting, resetForm }
+  ) => {
     setSubmitting(true);
     setLoading(true);
-    const resp = await createDistrictName(values);
+    const resp = await createFrequency(values);
     if (resp.code === "200") {
-      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: false,
+        errorList: [],
+      }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(districtInitials);
+      resetForm(hpFrequencyInitials);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -115,16 +129,20 @@ function StateDistrict({
       setLoading(false);
     }
   };
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+  const handleFirmwareSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
-    const response = await createStateName(values);
+    const response = await createFirmware(values);
     if (response.code === "200") {
-      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: false,
+        errorList: [],
+      }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(initialData);
+      resetForm(firmwareInitials);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -135,6 +153,7 @@ function StateDistrict({
       setLoading(false);
     }
   };
+
   return (
     <>
       <DialogComponent
@@ -143,7 +162,6 @@ function StateDistrict({
         message={alert.message}
         errorList={alert.errorList}
       />
-
       <Grid container spacing={gridSpacing}>
         {loading && (
           <div
@@ -175,20 +193,20 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Add State Name">
+          <MainCard title="HP Frequency">
             <Formik
-              initialValues={initialData}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
+              initialValues={hpFrequencyInitials}
+              validationSchema={validationFrequencySchema}
+              onSubmit={handleFrequencySubmit}
               enableReinitialize
             >
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(fieldConfig).map((field) => (
+                    {Object.keys(hpFrequencyFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={fieldConfig[field]}
+                          fieldConfig={hpFrequencyFields[field]}
                           formik={formik}
                         />
                       </Grid>
@@ -200,7 +218,7 @@ function StateDistrict({
                         color="primary"
                         disabled={loading}
                       >
-                        Add State
+                        Submit
                       </Button>
                     </Grid>
                   </Grid>
@@ -217,20 +235,20 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Add District Name">
+          <MainCard title="Firmware Version">
             <Formik
-              initialValues={districtInitials}
-              validationSchema={districtValidationSchema}
-              onSubmit={handleDistrictSubmit}
+              initialValues={firmwareInitials}
+              validationSchema={validationFirmwareSchema}
+              onSubmit={handleFirmwareSubmit}
               enableReinitialize
             >
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(districtConfig).map((field) => (
+                    {Object.keys(firmwareFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={districtConfig[field]}
+                          fieldConfig={firmwareFields[field]}
                           formik={formik}
                         />
                       </Grid>
@@ -242,7 +260,7 @@ function StateDistrict({
                         color="primary"
                         disabled={loading}
                       >
-                        Add State
+                        Submit
                       </Button>
                     </Grid>
                   </Grid>
@@ -262,12 +280,12 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="State List">
+          <MainCard title="Frequency List">
             {load && (
               <DynamicDatatables
                 tableTitle=""
-                rows={stateList}
-                columns={stateColumns}
+                rows={frequencyList}
+                columns={frequencyColumns}
               />
             )}
           </MainCard>
@@ -280,12 +298,12 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="District List">
+          <MainCard title="Firmware Version List">
             {load && (
               <DynamicDatatables
                 tableTitle=""
-                rows={districtList}
-                columns={districtColumns}
+                rows={firmwareList}
+                columns={firmwareColumns}
               />
             )}
           </MainCard>
@@ -294,5 +312,4 @@ function StateDistrict({
     </>
   );
 }
-
-export default StateDistrict;
+export default FrequencyFirmware;

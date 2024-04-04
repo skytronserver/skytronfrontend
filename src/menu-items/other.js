@@ -29,6 +29,20 @@ const other = {
           type: 'item',
           url: '/setting/state-district',
           breadcrumbs: false
+        },
+        {
+          id: 'firmware-frequency',
+          title: 'HP Frequency & Firmware',
+          type: 'item',
+          url: '/setting/frequency-firmware',
+          breadcrumbs: false
+        },
+        {
+          id: 'ip-settings',
+          title: 'IP Settings',
+          type: 'item',
+          url: '/setting/ip-settings',
+          breadcrumbs: false
         }
         
       ]

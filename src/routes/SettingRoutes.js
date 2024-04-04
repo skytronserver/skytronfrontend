@@ -7,6 +7,8 @@ import {
 import {stateInitials,stateFields,districtFields,districtInitials} from "../formjson/stateDistrict"
 import VehicleCategory from "../views/settings/VehicleCategory";
 import StateDistrict from "../views/settings/StateDistrict";
+import FrequencyFirmware from "../views/settings/FrequencyFirmware";
+import IPSetting from "../views/settings/IPSetting";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -43,6 +45,18 @@ const SettingRoutes = {
           districtConfig={districtFields}
           districtInitials={districtInitials}
         />
+      ),
+    },
+    {
+      path: "/setting/frequency-firmware",
+      element: (
+        <FrequencyFirmware/>
+      ),
+    },
+    {
+      path: "/setting/ip-settings",
+      element: (
+        <IPSetting/>
       ),
     },
   ].map((route) => applyPrivateRoute(route)),
