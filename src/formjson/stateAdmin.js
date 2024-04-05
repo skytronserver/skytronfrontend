@@ -1,5 +1,22 @@
 import * as Yup from "yup"; 
-import { indianStates } from "./indianState";
+import SettingService from "../services/SettingService";
+const retriveStateList = async () => {
+  try {
+    const response = await SettingService.filter_settings_State();
+    const list=response.data.map(device => ({
+      value: device.id,
+      label: device.state,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+  }
+};
+const stateList=await retriveStateList();
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
@@ -8,11 +25,10 @@ export const stateAdminInitialValues = {
     mobile: "",
     email: "",
     dob:"",
-    expiryDate: formattedDate,
-    stateid:"",
-    kycdocnumber: "",
-    kycfile: null,
-    panfile:null,
+    expirydate: formattedDate,
+    state:"",
+    idProofno: "",
+    file_idProof: null,
   };
   export const stateAdminField = {
     name: {
@@ -39,35 +55,29 @@ export const stateAdminInitialValues = {
       label: "Date of Birth",
       validation: Yup.date().required("Date of Birth is required"),
     },
-    expiryDate: {
-      name:"expiryDate",
+    expirydate: {
+      name:"expirydate",
       type: "date",
       label: "Expiry Date",
       validation: Yup.date().required("Expiry Date is required"),
     },
-    stateid: {
-        name:"stateid",
+    state: {
+        name:"state",
         type: "select",
         label: "State Name",
         validation: Yup.string().required("State Name is required"),
-        options: indianStates,
+        options: stateList,
       },
-    kycdocnumber: {
-      name:"kycdocnumber",
+    idProofno: {
+      name:"idProofno",
       type: "text",
       label: "ID Proof Number",
       validation: Yup.string().required("ID Proof Number is required"),
     },
-    kycfile: {
-      name:"kycfile",
+    file_idProof: {
+      name:"file_idProof",
       type: "file",
       label: "ID Proof",
       validation: Yup.mixed().required("ID Proof is required"),
-    },
-    panfile: {
-        name:"panfile",
-        type: "file",
-        label: "Authorization Letter",
-        validation: Yup.mixed().required("Authorization Letter is required"),
-      },
+    }
   };

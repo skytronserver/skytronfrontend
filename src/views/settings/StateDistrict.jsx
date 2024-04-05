@@ -242,7 +242,7 @@ function StateDistrict({
                         color="primary"
                         disabled={loading}
                       >
-                        Add State
+                        Add District
                       </Button>
                     </Grid>
                   </Grid>

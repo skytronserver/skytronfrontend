@@ -1,16 +1,16 @@
-import { Button, CircularProgress, Grid } from "@mui/material";
-import { Formik } from "formik";
-import React, { useState } from "react";
+import { Grid, Button, CircularProgress } from "@mui/material";
+import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
-import DealerServices from "services/DealerServices";
-import * as Yup from "yup";
+import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
-import MainCard from "ui-component/cards/MainCard";
-import DialogComponent from "ui-component/DialogComponent";
-import PageHeader from "ui-component/cards/PageHeader";
-import { convertErrorObjectToArray } from "helper";
-import { dealerAccountFormField, dealerAccountInitialValues } from "../../formjson/dealerAccount"
-function DealerAccount() {
+import * as Yup from "yup";
+import UserServices from "../../services/UserServices";
+import DialogComponent from "../../ui-component/DialogComponent";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { convertErrorObjectToArray } from "../../helper";
+import {dtoInitialsValues,dtoFormFields} from "../../formjson/dtoUserform"
+const DtoRto = () => {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -18,7 +18,9 @@ function DealerAccount() {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const handleClose = () => {
+    !alert.error && navigate("/user/registeredUser");
     setOpen(false);
   };
 
@@ -35,14 +37,14 @@ function DealerAccount() {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(dealerAccountFormField).reduce((acc, field) => {
-      acc[field] = dealerAccountFormField[field].validation;
+    Object.keys(dtoFormFields).reduce((acc, field) => {
+      acc[field] = dtoFormFields[field].validation;
       return acc;
     }, {})
   );
   const handleCreateUser = async (userData) => {
     try {
-      const response = await DealerServices.dealerUser(userData);
+      const response = await UserServices.createDTO(userData);
       console.log("User created successfully:", response.data);
       return { code: "200", message: response.data };
     } catch (error) {
@@ -54,41 +56,33 @@ function DealerAccount() {
       };
     }
   };
-  (async () => {
-    try {
-      const res = await DealerServices.dealerList();
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-    }
-  })();
-
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
-      ...values,
-      role: "devicemanufacturer",
-      createdby: 37,
-    };
+        ...values,
+        role: "dto",
+        createdby: 37,
+      };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(dealerAccountInitialValues);
+      resetForm(dtoInitialsValues);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
         error: true,
-        errorList: convertErrorObjectToArray(response.errors),
+        errorList: response,
       }));
       handleAlert("Form Not Submitted");
       setLoading(false);
     }
   };
+
   return (
     <>
       <DialogComponent
@@ -129,9 +123,9 @@ function DealerAccount() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Create Dealer Account">
+          <MainCard title="Create DTO/RTO">
             <Formik
-              initialValues={dealerAccountInitialValues}
+              initialValues={dtoInitialsValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
               enableReinitialize
@@ -139,10 +133,10 @@ function DealerAccount() {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(dealerAccountFormField).map((field) => (
+                    {Object.keys(dtoFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={dealerAccountFormField[field]}
+                          fieldConfig={dtoFormFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -167,6 +161,6 @@ function DealerAccount() {
       </Grid>
     </>
   );
-}
+};
 
-export default DealerAccount;
+export default DtoRto;

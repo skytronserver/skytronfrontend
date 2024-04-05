@@ -38,10 +38,10 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'dealer-user',
-          title: 'Dealer',
+          id: 'dto-user',
+          title: 'DTO',
           type: 'item',
-          url: '/user/newDealer',
+          url: '/user/newDto',
           breadcrumbs: false
         },
         {
@@ -52,13 +52,6 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'retailer-account',
-          title: 'Retailer Account',
-          type: 'item',
-          url: '/user/newRetailerAccount',
-          breadcrumbs: false
-        },
-        {
           id: 'vehicle-owner',
           title: 'Vehicle Owner',
           type: 'item',
@@ -66,10 +59,17 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'Other-user',
-          title: 'Other Users',
+          id: 'sos-admin',
+          title: 'SOS Admin',
           type: 'item',
-          url: '/new/otherUser',
+          url: '/new/sos-admin',
+          breadcrumbs: false
+        },
+        {
+          id: 'sos-user',
+          title: 'SOS User',
+          type: 'item',
+          url: '/new/sos-user',
           breadcrumbs: false
         }
       ]
@@ -170,7 +170,7 @@ const user = {
           id: 'new-sim',
           title: 'New',
           type: 'item',
-          url: '/esim/newUser',
+          url: '',
           breadcrumbs: false
         },
         {
