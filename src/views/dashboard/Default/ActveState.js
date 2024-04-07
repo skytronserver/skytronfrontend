@@ -19,55 +19,86 @@
 // export default ActiveState;
 
 //new 1/3
+import { useEffect, useState } from "react";
 import React from "react";
 import { Grid } from "@mui/material";
 import Widget from "./Widget";
 import { gridSpacing } from "../../../store/constant";
+import UserServices from "services/UserServices";
 
 const ActiveState = () => {
+  const [activeStateData, setActiveStateData] = useState({});
+  const [totalStateData, setTotalStateData] = useState({});
+  const [totalDeviceStateData, setTotalDeviceData] = useState({});
+  const [deviceStateData, setDeviceStateData] = useState({});
+  // const [activeStateData, setData] = useState({});
+  // const [activeStateData, setData] = useState({});
+
+  useEffect(() => {
+    const retrievePosts = async () => {
+      const activeState = await UserServices.getActiveState();
+      const totalState = await UserServices.getTotalState();
+      const totalDeviceState = await UserServices.getTotalDeviceState();
+      const deviceState = await UserServices.getDeviceState();
+      //  const activeState = await UserServices.getActiveState();
+      //  const activeState = await UserServices.getActiveState();
+
+      setActiveStateData(activeState.data);
+      setTotalStateData(totalState.data);
+      setTotalDeviceData(totalDeviceState.data);
+      setDeviceStateData(deviceState.data);
+      // setActiveStateData(activeState.data);
+      // setActiveStateData(activeState.data);
+    };
+    retrievePosts();
+  }, []);
+
+  //console.log(typeof (data));
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12} sm={4}>
         <Widget
           cardColor="#F7418F"
-          label="Active States,Total States,Total Inactive"
+          label="Total States,Active States,Inactive State"
+          device={activeStateData}
         />
       </Grid>
+
       <Grid item xs={12} sm={4}>
         <Widget
           cardColor="#FC819E"
-          // label="Total Device Maker,Total Device Model,Total Device Count,Total Device Tagged,Online Devices,Offline Devices"
-          label="Total Device Model,Total Device Count,Total Device Tagged,Online Devices,Offline Devices"
-
+          label="Total Alerts,Alerts This Month,Alert Today"
+          device={totalStateData}
         />
       </Grid>
       <Grid item xs={12} sm={4}>
         <Widget
           cardColor="#FEC7B4"
-          // label="Total Alerts, Alerts This Month,Alerts Today,Average Call Time"
-          label="Total Alerts, Alerts This Month,Alerts Today"
-
+          label="Total Device, Active Device, Idle Device"
+          device={totalDeviceStateData}
         />
       </Grid>
       <Grid item xs={12} sm={4}>
         <Widget
           cardColor="#5356FF"
-          // label="Total Alerts,Alerts This Month,Alerts Today,Max Speed"
-          label="Alerts This Month,Alerts Today,Max Speed"
-
+          label="Tagged Device, Online Device, Offline Device"
+          device={deviceStateData}
         />
-
       </Grid>
+
       <Grid item xs={12} sm={4}>
         <Widget
           cardColor="#378CE7"
-          label="Total Users,Total State Admins,Alerts Today,Total Manufacturers,Total Dealers,Total Vehicle Owners"
+          label="Total Users,State Admin,Total Manufacturers"
+          device={activeStateData}
         />
       </Grid>
       <Grid item xs={12} sm={4}>
         <Widget
           cardColor="#67C6E3"
-          label="Total Device Maker,Total Vehicle,Active Devices,Idle Devices"
+          label="Total Dealers,Device Makers,Vehicle Owners"
+          device={activeStateData}
         />
       </Grid>
     </Grid>
@@ -75,6 +106,3 @@ const ActiveState = () => {
 };
 
 export default ActiveState;
-//new 1/3
-
-
