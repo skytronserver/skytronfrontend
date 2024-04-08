@@ -1,0 +1,315 @@
+import { Button, CircularProgress, Grid } from "@mui/material";
+import { Formik } from "formik";
+import React, { useState, useEffect } from "react";
+import { gridSpacing } from "../../store/constant";
+import SettingService from "../../services/SettingService";
+import * as Yup from "yup";
+import FormField from "../../ui-component/CustomTextField";
+import MainCard from "ui-component/cards/MainCard";
+import DialogComponent from "ui-component/DialogComponent";
+import { convertErrorObjectToArray } from "helper";
+import {
+  hpFrequencyFields,
+  firmwareFields,
+  hpFrequencyInitials,
+  firmwareInitials,
+} from "../../formjson/hpFrequencyFirmware";
+
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchFirmwareList,
+  fetchFrequencyList,
+} from "../../actions/settingAction";
+import DynamicDatatables from "../../datatables/DynamicDatatables";
+import {
+  frequencyColumns,
+  firmwareColumns,
+} from "../../datatables/settingColumns";
+function FrequencyFirmware() {
+  const [open, setOpen] = useState(false);
+  const [load, setLoad] = useState(false);
+  const [alert, setAlert] = useState({
+    error: false,
+    message: "",
+    errorList: [],
+  });
+  const [loading, setLoading] = useState(false);
+
+  //Fetching Data from store
+  const dispatch = useDispatch();
+  const frequencyList = useSelector((state) => state.setting.frequencyList);
+  const firmwareList = useSelector((state) => state.setting.firmwareList);
+  useEffect(() => {
+    const retriveFrequency = async () => {
+      const response = await SettingService.filter_settings_hp_freq();
+      dispatch(fetchFrequencyList(response.data));
+    };
+    const retriveFirmware = async () => {
+      const res = await SettingService.filter_settings_firmware();
+      dispatch(fetchFirmwareList(res.data));
+      setLoad(true);
+    };
+    retriveFrequency();
+    retriveFirmware();
+  }, [dispatch]);
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleAlert = (message) => {
+    setAlert((prevAlert) => ({ ...prevAlert, message: message }));
+    setOpen(true);
+  };
+
+  const validationFrequencySchema = Yup.object(
+    Object.keys(hpFrequencyFields).reduce((acc, field) => {
+      acc[field] = hpFrequencyFields[field].validation;
+      return acc;
+    }, {})
+  );
+  const validationFirmwareSchema = Yup.object(
+    Object.keys(firmwareFields).reduce((acc, field) => {
+      acc[field] = firmwareFields[field].validation;
+      return acc;
+    }, {})
+  );
+  const createFrequency = async (formData) => {
+    try {
+      const response = await SettingService.create_settings_hp_freq(formData);
+      console.log("HP Frequency added successfully", response.data);
+      return { code: "200", message: response.data };
+    } catch (error) {
+      console.error("Error in API Service:", error.message);
+      return {
+        code: "400",
+        message: error.message,
+        errors: error.response.data,
+      };
+    }
+  };
+  const createFirmware = async (formData) => {
+    try {
+      const resp = await SettingService.create_settings_firmware(formData);
+      console.log("Firmware added successfully", resp.data);
+      return { code: "200", message: resp.data };
+    } catch (error) {
+      console.error("Error in API Service:", error.message);
+      return {
+        code: "400",
+        message: error.message,
+        errors: error.resp.data,
+      };
+    }
+  };
+  const handleFrequencySubmit = async (
+    values,
+    { setSubmitting, resetForm }
+  ) => {
+    setSubmitting(true);
+    setLoading(true);
+    const resp = await createFrequency(values);
+    if (resp.code === "200") {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: false,
+        errorList: [],
+      }));
+      handleAlert("Form Submitted Successfully");
+      setSubmitting(false);
+      setLoading(false);
+      resetForm(hpFrequencyInitials);
+    } else {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: true,
+        errorList: convertErrorObjectToArray(resp.errors),
+      }));
+      handleAlert("Form Not Submitted");
+      setLoading(false);
+    }
+  };
+  const handleFirmwareSubmit = async (values, { setSubmitting, resetForm }) => {
+    setSubmitting(true);
+    setLoading(true);
+    const response = await createFirmware(values);
+    if (response.code === "200") {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: false,
+        errorList: [],
+      }));
+      handleAlert("Form Submitted Successfully");
+      setSubmitting(false);
+      setLoading(false);
+      resetForm(firmwareInitials);
+    } else {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: true,
+        errorList: convertErrorObjectToArray(response.errors),
+      }));
+      handleAlert("Form Not Submitted");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <DialogComponent
+        open={open}
+        handleClose={handleClose}
+        message={alert.message}
+        errorList={alert.errorList}
+      />
+      <Grid container spacing={gridSpacing}>
+        {loading && (
+          <div
+            style={{
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: 9999,
+              background: "rgba(255, 255, 255, 0.8)",
+            }}
+          >
+            <CircularProgress
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+              size={50}
+            />
+          </div>
+        )}
+        <Grid
+          item
+          xs={6}
+          style={{
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
+          }}
+        >
+          <MainCard title="HP Frequency">
+            <Formik
+              initialValues={hpFrequencyInitials}
+              validationSchema={validationFrequencySchema}
+              onSubmit={handleFrequencySubmit}
+              enableReinitialize
+            >
+              {(formik) => (
+                <form onSubmit={formik.handleSubmit}>
+                  <Grid container spacing={2} className="form-controller">
+                    {Object.keys(hpFrequencyFields).map((field) => (
+                      <Grid key={field} item md={6} sm={12} xs={12}>
+                        <FormField
+                          fieldConfig={hpFrequencyFields[field]}
+                          formik={formik}
+                        />
+                      </Grid>
+                    ))}
+                    <Grid item xs={12} style={{ marginTop: "20px" }}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={loading}
+                      >
+                        Submit
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </form>
+              )}
+            </Formik>
+          </MainCard>
+        </Grid>
+        <Grid
+          item
+          xs={6}
+          style={{
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
+          }}
+        >
+          <MainCard title="Firmware Version">
+            <Formik
+              initialValues={firmwareInitials}
+              validationSchema={validationFirmwareSchema}
+              onSubmit={handleFirmwareSubmit}
+              enableReinitialize
+            >
+              {(formik) => (
+                <form onSubmit={formik.handleSubmit}>
+                  <Grid container spacing={2} className="form-controller">
+                    {Object.keys(firmwareFields).map((field) => (
+                      <Grid key={field} item md={6} sm={12} xs={12}>
+                        <FormField
+                          fieldConfig={firmwareFields[field]}
+                          formik={formik}
+                        />
+                      </Grid>
+                    ))}
+                    <Grid item xs={12} style={{ marginTop: "20px" }}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={loading}
+                      >
+                        Submit
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </form>
+              )}
+            </Formik>
+          </MainCard>
+        </Grid>
+      </Grid>
+      <br />
+      <Grid container spacing={gridSpacing}>
+        <Grid
+          item
+          xs={6}
+          style={{
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
+          }}
+        >
+          <MainCard title="Frequency List">
+            {load && (
+              <DynamicDatatables
+                tableTitle=""
+                rows={frequencyList}
+                columns={frequencyColumns}
+              />
+            )}
+          </MainCard>
+        </Grid>
+        <Grid
+          item
+          xs={6}
+          style={{
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
+          }}
+        >
+          <MainCard title="Firmware Version List">
+            {load && (
+              <DynamicDatatables
+                tableTitle=""
+                rows={firmwareList}
+                columns={firmwareColumns}
+              />
+            )}
+          </MainCard>
+        </Grid>
+      </Grid>
+    </>
+  );
+}
+export default FrequencyFirmware;

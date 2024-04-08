@@ -38,10 +38,10 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'dealer-user',
-          title: 'Dealer',
+          id: 'dto-user',
+          title: 'DTO',
           type: 'item',
-          url: '/user/newDealer',
+          url: '/user/newDto',
           breadcrumbs: false
         },
         {
@@ -52,13 +52,6 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'retailer-account',
-          title: 'Retailer Account',
-          type: 'item',
-          url: '/user/newRetailerAccount',
-          breadcrumbs: false
-        },
-        {
           id: 'vehicle-owner',
           title: 'Vehicle Owner',
           type: 'item',
@@ -66,10 +59,17 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'Other-user',
-          title: 'Other Users',
+          id: 'sos-admin',
+          title: 'SOS Admin',
           type: 'item',
-          url: '/new/otherUser',
+          url: '/new/sos-admin',
+          breadcrumbs: false
+        },
+        {
+          id: 'sos-user',
+          title: 'SOS User',
+          type: 'item',
+          url: '/new/sos-user',
           breadcrumbs: false
         }
       ]
@@ -89,29 +89,22 @@ const user = {
       icon: icons.IconDeviceSim,
       children: [
         {
-          id: 'new-device',
-          title: 'Add',
-          type: 'item',
-          url: '/device/new',
-          breadcrumbs: false
-        },
-        {
           id: 'new-device-model',
-          title: 'Add Device Model',
+          title: 'Model',
           type: 'item',
           url: '/deviceModel/new',
           breadcrumbs: false
         },
         {
           id: 'device-model-extension',
-          title: 'Device Model Extension',
+          title: 'Model Extension',
           type: 'item',
           url: '/deviceModel/extension',
           breadcrumbs: false
         },
         {
           id: 'view-device',
-          title: 'Device List',
+          title: 'Model Awaiting Approval',
           type: 'item',
           url: '/device/list',
           breadcrumbs: false
@@ -124,8 +117,15 @@ const user = {
           breadcrumbs: false
         },
         {
+          id: 'new-device',
+          title: 'New Device Stock',
+          type: 'item',
+          url: '/device/new',
+          breadcrumbs: false
+        },
+        {
           id: 'upload-device',
-          title: 'Upload',
+          title: 'Upload Device Stock',
           type: 'item',
           url: '/device/bulkupload',
           breadcrumbs: false
@@ -170,7 +170,7 @@ const user = {
           id: 'new-sim',
           title: 'New',
           type: 'item',
-          url: '/esim/newUser',
+          url: '',
           breadcrumbs: false
         },
         {
@@ -207,7 +207,7 @@ const user = {
           id: 'view-device',
           title: 'Device List',
           type: 'item',
-          url: '',
+          url: '/device/show-available-device',
           breadcrumbs: false
         },
         {

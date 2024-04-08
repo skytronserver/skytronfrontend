@@ -52,6 +52,7 @@ export const vehicleOwnerField = {
     name:"expiryDate",
     type: "date",
     label: "Expiry Date",
+    disabled:true,
     validation: Yup.date().required("Expiry Date is required"),
   },
   idProofno: {

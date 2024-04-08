@@ -2,7 +2,6 @@ import { Button, CircularProgress, Grid } from "@mui/material";
 import { Formik } from "formik";
 import React, { useState } from "react";
 import { gridSpacing } from "../../store/constant";
-import { useNavigate } from "react-router-dom";
 import DealerServices from "services/DealerServices";
 import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
@@ -10,9 +9,8 @@ import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
 import PageHeader from "ui-component/cards/PageHeader";
 import { convertErrorObjectToArray } from "helper";
-const currentDate = new Date();
-const formattedCurrentDate = currentDate.toISOString().split("T")[0];
-function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
+import { dealerAccountFormField, dealerAccountInitialValues } from "../../formjson/dealerAccount"
+function DealerAccount() {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -20,7 +18,6 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const handleClose = () => {
     setOpen(false);
   };
@@ -38,8 +35,8 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
+    Object.keys(dealerAccountFormField).reduce((acc, field) => {
+      acc[field] = dealerAccountFormField[field].validation;
       return acc;
     }, {})
   );
@@ -57,40 +54,31 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
       };
     }
   };
-  (async()=>{
-    try{
-      const res=await DealerServices.dealerList();
+  (async () => {
+    try {
+      const res = await DealerServices.dealerList();
       console.log(res);
-    }catch(error){
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
-  })()
+  })();
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
-    if (values.hasOwnProperty("role")) {
-      valuesWithRole = {
-        ...values,
-        status: "deactive",
-        createdby: "admin",
-      };
-    } else {
-      valuesWithRole = {
-        ...values,
-        role: userRole,
-        status: "deactive",
-        createdby: "admin",
-      };
-    }
+    valuesWithRole = {
+      ...values,
+      role: "devicemanufacturer",
+      createdby: 37,
+    };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(initialData);
+      resetForm(dealerAccountInitialValues);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -111,9 +99,6 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
       />
 
       <Grid container spacing={gridSpacing}>
-        <Grid item xs={12}>
-          <PageHeader title={formTitle} />
-        </Grid>
         {loading && (
           <div
             style={{
@@ -144,9 +129,9 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Registration Form">
+          <MainCard title="Create Dealer Account">
             <Formik
-              initialValues={initialData}
+              initialValues={dealerAccountInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
               enableReinitialize
@@ -154,10 +139,10 @@ function DealerAccount({ fieldConfig, initialData, formTitle, userRole }) {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(fieldConfig).map((field) => (
+                    {Object.keys(dealerAccountFormField).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={fieldConfig[field]}
+                          fieldConfig={dealerAccountFormField[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />

@@ -7,16 +7,45 @@ const icons = { IconBrandChrome, IconHelp,IconSettings };
 // ==============================|| SAMPLE PAGE & DOCUMENTATION MENU ITEMS ||============================== //
 
 const other = {
-  id: 'sample-docs-roadmap',
+  id: 'setting-all-routes',
   type: 'group',
   children: [
     {
-      id: 'sample-page',
+      id: 'setting-all',
       title: 'Setting',
-      type: 'item',
-      url: '/sample-page',
-      icon: icons.IconSettings,
-      breadcrumbs: false
+      type: 'collapse',
+      icon:icons.IconSettings,
+      children: [
+        {
+          id: 'vehicle-category',
+          title: 'Vehicle Category',
+          type: 'item',
+          url: '/setting/vehicle-category',
+          breadcrumbs: false
+        },
+        {
+          id: 'state-district',
+          title: 'State & District',
+          type: 'item',
+          url: '/setting/state-district',
+          breadcrumbs: false
+        },
+        {
+          id: 'firmware-frequency',
+          title: 'HP Frequency & Firmware',
+          type: 'item',
+          url: '/setting/frequency-firmware',
+          breadcrumbs: false
+        },
+        {
+          id: 'ip-settings',
+          title: 'IP Settings',
+          type: 'item',
+          url: '/setting/ip-settings',
+          breadcrumbs: false
+        }
+        
+      ]
     },
   ]
 };

@@ -16,7 +16,8 @@ import StateAdminCOPModelView from '../views/detailsview/StateAdminCOPModelView'
 import BulkUpload from "../views/forms/BulkUpload"
 import Loadable from "../ui-component/Loadable";
 import AssignDevice from '../views/forms/AssignDevice';
-import {assignDeviceFormFields,assignDeviceInitials} from  "../formjson/assignDevice";
+import ShowDevice from '../views/showDevice/ShowDevice';
+import AvailableForSale from '../views/showDevice/AvailableForSale';
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -28,9 +29,6 @@ const applyPrivateRoute = (route) => ({
   ...route,
   element: <PrivateRoute element={route.element} />,
 });
-const ShowDevice = Loadable(
-  lazy(() => import("../views/showDevice/ShowDevice"))
-)
 const DeviceRoutes = {
   path: "/",
   element: <MainLayout />,
@@ -73,7 +71,11 @@ const DeviceRoutes = {
     },
     {
       path: "/device/assign-device",
-      element: <AssignDevice fieldConfig={assignDeviceFormFields} initialData={assignDeviceInitials} formTitle="Device Assign"/>,
+      element: <AssignDevice />,
+    },
+    {
+      path: "/device/show-available-device",
+      element: <AvailableForSale />,
     }
   ].map((route) => applyPrivateRoute(route)),
 };

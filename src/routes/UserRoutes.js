@@ -3,23 +3,22 @@ import { Navigate } from 'react-router-dom';
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
-import {eSIMInitialValues,eSIMFormField} from "../formjson/eSIMUser";
-import {deviceMakeInitialValues,deviceMakeFormField} from "../formjson/deviceMake";
-import {dealerInitialValues,dealerFormField} from "../formjson/dealer";
 import {stateAdminInitialValues,stateAdminField} from "../formjson/stateAdmin";
-import {vehicleOwnerInitialValues,vehicleOwnerField} from "../formjson/vehicleOwner";
 import {otherUserInitialValues,otherUserFormField} from "../formjson/otherUser";
-import { dealerAccountFormField, dealerAccountInitialValues } from "../formjson/dealerAccount";
-import { retailerFormInitials, retailerFormField } from "../formjson/retailerForm";
 import DynamicForm from "../views/forms/DynamicForm";
+import StateAdmin from "../views/forms/StateAdmin";
 import UpdateForm from "../views/forms/UpdateForm";
 import UsersList from "../views/reports/UsersList";
 import { useSelector } from "react-redux";
 import FileUploadTest from "../views/forms/FileUploadTest";
 import DealerAccount from "../views/forms/DealerAccount";
-import RetailerForm from "../views/forms/RetailerForm";
 import VehicleOwner from "../views/forms/VehicleOwner";
 import DealerList from "../views/reports/DealerList";
+import DtoRto from "../views/forms/DtoRto";
+import Manufacturer from "../views/forms/Manufacturer";
+import EsimUser from "../views/forms/EsimUser";
+import SOSAdmin from "../views/forms/SOSAdmin";
+import SOSUser from "../views/forms/SOSUser";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -57,7 +56,7 @@ const UserRoutes = {
   children: [
     {
       path: "/user/newStateAdmin",
-      element: <DynamicForm fieldConfig={stateAdminField} initialData={stateAdminInitialValues} formTitle="State Admin" userRole="stateadmin"/>,
+      element: <StateAdmin/>,
     },
     {
       path: "/user/list",
@@ -77,34 +76,37 @@ const UserRoutes = {
     },
     {
       path: "/user/newEsimUser",
-      element: <DynamicForm fieldConfig={eSIMFormField} initialData={eSIMInitialValues} formTitle="e SIM Provider"/>,
+      element: <EsimUser/>,
     }
     ,
     {
       path: "/user/newManufacturer",
-      element: <DynamicForm fieldConfig={deviceMakeFormField} initialData={deviceMakeInitialValues} formTitle="Device Manufacturer" userRole="devicemanufacture"/>,
+      element: <Manufacturer/>,
     }
     ,
     {
-      path: "/user/newDealer",
-      element: <DynamicForm fieldConfig={dealerFormField} initialData={dealerInitialValues} formTitle="Dealer" userRole="dealer"/>,
+      path: "/user/newDto",
+      element: <DtoRto/>,
     },
     {
       path: "/user/newDealerAccount",
-      element:<DealerAccount fieldConfig={dealerAccountFormField} initialData={dealerAccountInitialValues} formTitle="Dealer Account" userRole="dealer"/>,
+      element:<DealerAccount/>,
     },
     {
-      path: "/user/newRetailerAccount",
-      element:<RetailerForm fieldConfig={retailerFormField} initialData={retailerFormInitials} formTitle="Retailer Account" />,
-    }
-    ,
-    {
       path: "/new/vehicleOwner",
-      element: <VehicleOwner fieldConfig={vehicleOwnerField} initialData={vehicleOwnerInitialValues} formTitle="Vehicle Owner" userRole="owner"/>,
+      element: <VehicleOwner />,
     },
     {
       path: "/new/otherUser",
       element: <DynamicForm fieldConfig={otherUserFormField} initialData={otherUserInitialValues} formTitle="Other Users" userRole="others"/>,
+    },
+    {
+      path: "/new/sos-admin",
+      element: <SOSAdmin/>,
+    },
+    {
+      path: "/new/sos-user",
+      element: <SOSUser/>,
     },
     {
       path: "/user/registeredUser",

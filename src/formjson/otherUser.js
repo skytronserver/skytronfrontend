@@ -5,10 +5,8 @@ export const otherUserInitialValues = {
   email: "",
   dob:"",
   dtoCode: "",
-  userIdNo: "",
-  userIdProof: null,
-  appointmentLetter: null,
-  role:"",
+  idProofno: "",
+  file_idProof: null,
 };
 export const otherUserFormField = {
   name: {
@@ -45,34 +43,16 @@ export const otherUserFormField = {
     label: "DTO/RTO Code",
     validation: Yup.string().required("DTO/RTO Code cannot be blank"),
   },
-  userIdNo: {
-    name: "userIdNo",
+  idProofno: {
+    name: "idProofno",
     type: "text",
     label: "User ID Number",
     validation: Yup.string().required("User ID No is required field"),
   },
-  role: {
-    name:"role",
-    type: "select",
-    label: "User Type(Role)",
-    validation: Yup.string().required("Role is required"),
-    options: [
-      { value: "filment", label: "Fitment Verifier" },
-      { value: "sosadmin", label: "SOS Admin" },
-      { value: "teamleader", label: "Team Leader" },
-      {value:"sosexecutive",label:"SOS Executive"}
-    ],
-  },
-  userIdProof: {
-    name: "userIdProof",
+  file_idProof: {
+    name: "file_idProof",
     type: "file",
     label: "User ID Proof",
     validation: Yup.mixed().required("User ID Document is required"),
-  },
-  appointmentLetter: {
-    name: "appointmentLetter",
-    type: "file",
-    label: "Appointment Letter",
-    validation: Yup.mixed().required("Appointment Letter is required"),
-  },
+  }
 };

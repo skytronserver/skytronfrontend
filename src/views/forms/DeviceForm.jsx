@@ -1,16 +1,13 @@
 import { Grid, Button,CircularProgress  } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
-import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import StockServices from "../../services/StockServices";
-import { convertErrorObjectToArray } from "../../helper";
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
 const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
@@ -21,16 +18,10 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
     errorList:[]
   })
   const [loading,setLoading]=useState(false);
-  const navigate = useNavigate();
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
     setOpen(false);
   };
 
-  const handleAlert = (message) => {
-    setAlert((prevAlert)=>({...prevAlert,message:message}))
-    setOpen(true);
-  };
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -54,6 +45,7 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
       createdby:'31'
     };
 
+
     console.log(valuesWithRole);
     try {
       const response = await StockServices.createStock(values);
@@ -66,7 +58,7 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
   };
   const handleModelChange = (event, formik) => {
     const fieldName = event.target.name;
-    if (fieldName == "model") {
+    if (fieldName === "model") {
       console.log(event.target.value);
       (async () => {
         const getDetailsOf = {

@@ -1,18 +1,16 @@
-import { Button, CircularProgress, Grid } from "@mui/material";
-import { Formik } from "formik";
-import React, { useState } from "react";
+import { Grid, Button, CircularProgress } from "@mui/material";
+import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
-import { useNavigate } from "react-router-dom";
-import RetailerServices from "services/RetailerServices";
-import * as Yup from "yup";
+import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
-import MainCard from "ui-component/cards/MainCard";
-import DialogComponent from "ui-component/DialogComponent";
-import PageHeader from "ui-component/cards/PageHeader";
-import { convertErrorObjectToArray } from "helper";
-const currentDate = new Date();
-const formattedCurrentDate = currentDate.toISOString().split("T")[0];
-function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
+import * as Yup from "yup";
+import UserServices from "../../services/UserServices";
+import DialogComponent from "../../ui-component/DialogComponent";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { convertErrorObjectToArray } from "../../helper";
+import {eSIMInitialValues,eSIMFormField} from "../../formjson/eSIMUser";
+const EsimUser = () => {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -22,6 +20,7 @@ function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const handleClose = () => {
+    !alert.error && navigate("/user/registeredUser");
     setOpen(false);
   };
 
@@ -38,14 +37,14 @@ function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
+    Object.keys(eSIMFormField).reduce((acc, field) => {
+      acc[field] = eSIMFormField[field].validation;
       return acc;
     }, {})
   );
   const handleCreateUser = async (userData) => {
     try {
-      const response = await RetailerServices.createRetailer(userData);
+      const response = await UserServices.createEsimUser(userData);
       console.log("User created successfully:", response.data);
       return { code: "200", message: response.data };
     } catch (error) {
@@ -57,42 +56,33 @@ function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
       };
     }
   };
-
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
-    if (values.hasOwnProperty("role")) {
-      valuesWithRole = {
+    valuesWithRole = {
         ...values,
-        status: "deactive",
-        createdby: "admin",
+        role: "esimprovider",
+        createdby: 37,
       };
-    } else {
-      valuesWithRole = {
-        ...values,
-        role: userRole,
-        status: "deactive",
-        createdby: "admin",
-      };
-    }
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(initialData);
+      resetForm(eSIMInitialValues);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
         error: true,
-        errorList: convertErrorObjectToArray(response.errors),
+        errorList: response,
       }));
       handleAlert("Form Not Submitted");
       setLoading(false);
     }
   };
+
   return (
     <>
       <DialogComponent
@@ -103,9 +93,6 @@ function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
       />
 
       <Grid container spacing={gridSpacing}>
-        <Grid item xs={12}>
-          <PageHeader title={formTitle} />
-        </Grid>
         {loading && (
           <div
             style={{
@@ -136,9 +123,9 @@ function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard>
+          <MainCard title="Create e SIM Provider">
             <Formik
-              initialValues={initialData}
+              initialValues={eSIMInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
               enableReinitialize
@@ -146,10 +133,10 @@ function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(fieldConfig).map((field) => (
+                    {Object.keys(eSIMFormField).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={fieldConfig[field]}
+                          fieldConfig={eSIMFormField[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -174,6 +161,6 @@ function RetailerForm({ fieldConfig, initialData, formTitle, userRole }) {
       </Grid>
     </>
   );
-}
+};
 
-export default RetailerForm;
+export default EsimUser;

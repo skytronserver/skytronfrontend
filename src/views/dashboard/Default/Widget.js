@@ -1,108 +1,119 @@
-import PropTypes from 'prop-types';
-// material-ui
-import { useTheme, styled } from '@mui/material/styles';
-import { Avatar, Box, Grid, Typography } from '@mui/material';
-// project imports
-import MainCard from '../../../ui-component/cards/MainCard';
-import SkeletonTotalOrderCard from '../../../ui-component/cards/Skeleton/Widget';
-// assets
-import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
+import React from "react";
+import PropTypes from "prop-types";
+import { useTheme, styled } from "@mui/material/styles";
+import { Avatar, Box, Grid, Typography } from "@mui/material";
+import MainCard from "../../../ui-component/cards/MainCard";
+import SkeletonTotalOrderCard from "../../../ui-component/cards/Skeleton/Widget";
+import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 
-const CardWrapper = styled(MainCard)(({ theme,data }) => ({
+const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   backgroundColor: data,
-  color: '#fff',
-  overflow: 'hidden',
-  position: 'relative',
-  '&>div': {
-    position: 'relative',
-    zIndex: 5
+  color: "#fff",
+  overflow: "hidden",
+  position: "relative",
+  borderRadius: "8px",
+  width: "100%",
+  height: "100",
+
+  "& > div": {
+    position: "relative",
+    zIndex: 5,
   },
-  '&:after': {
+  "&:after, &:before": {
     content: '""',
-    position: 'absolute',
-    width: 210,
-    height: 210,
-    background: theme.palette.primary[800],
-    borderRadius: '50%',
+    position: "absolute",
+    width: "100%", // width to  cover the entire component
+    height: "100%", // height to cover the entire component
+    //  background: theme.palette.primary[800],
+    borderRadius: "50%",
     zIndex: 1,
-    top: -85,
-    right: -95,
-    [theme.breakpoints.down('sm')]: {
-      top: -105,
-      right: -140
-    }
-  },
-  '&:before': {
-    content: '""',
-    position: 'absolute',
-    zIndex: 1,
-    width: 210,
-    height: 210,
-    background: theme.palette.primary[800],
-    borderRadius: '50%',
-    top: -125,
-    right: -15,
+    top: 0,
+    left: 0,
     opacity: 0.5,
-    [theme.breakpoints.down('sm')]: {
-      top: -155,
-      right: -70
-    }
-  }
+  },
 }));
 
-// ==============================|| DASHBOARD - TOTAL ORDER LINE CHART CARD ||============================== //
-
-const Widget = ({ isLoading,cardColor }) => {
+const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
   const theme = useTheme();
+//work on that
+  const labelNew = label.split(",");
+  const arr = Object.values(device);
+  //work on that
+
   return (
-    <>
+    <Grid
+      item
+      xs={12}
+      sm={6}
+      md={6}
+      lg={10}
+      style={{
+        marginTop: "40px",
+        marginLeft: "30px",
+        marginRight: "10px",
+        marginBottom: "0.2px",
+      }}
+    >
       {isLoading ? (
         <SkeletonTotalOrderCard />
       ) : (
-        <CardWrapper border={false} content={false} data={cardColor}>
+        <CardWrapper
+          border={false}
+          content={false}
+          data={cardColor}
+          onClick={onClick}
+        >
           <Box sx={{ p: 2.25 }}>
-            <Grid container direction="column">
-              <Grid item>
-                <Grid container justifyContent="space-between">
-                  <Grid item>
-                    <Avatar
-                      variant="rounded"
+            <Grid container alignItems="center">
+              <Grid item style={{ marginRight: "30px" }}>
+                <Avatar
+                  variant="rounded"
+                  sx={{
+                    ...theme.typography.commonAvatar,
+                    ...theme.typography.largeAvatar,
+                    backgroundColor: theme.palette.primary[800],
+                    color: "#fff",
+                    mt: 1,
+                  }}
+                >
+                  <LocalMallOutlinedIcon fontSize="inherit" />
+                </Avatar>
+              </Grid>
+              <Grid item xs>
+                <Grid container direction="row" alignItems="center">
+                  {/* new */}
+
+                  {labelNew.map((item, index) => (
+                    <Typography
+                      key={index}
                       sx={{
-                        ...theme.typography.commonAvatar,
-                        ...theme.typography.largeAvatar,
-                        backgroundColor: theme.palette.primary[800],
-                        color: '#fff',
-                        mt: 1
+                        fontWeight: 500,
+                        mr: 1,
+                        mt: index === 0 ? 1.75 : 0.75,
+                        mb: 0.75,
                       }}
                     >
-                      <LocalMallOutlinedIcon fontSize="inherit" />
-                    </Avatar>
-                  </Grid>
+                      {item} {arr[index]}
+                    </Typography>
+                  ))}
 
-                </Grid>
-              </Grid>
-              <Grid item>
-                <Grid container alignItems="center">
-                  <Grid item xs={6}>
-                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>500</Typography>
-                  </Grid>
-                  <Grid item xs={6} style={{"float":"right"}}>
-                    <Typography sx={{ fontSize: '1rem',
-                            fontWeight: 500,
-                            color: theme.palette.primary[200] }}>Total Registered</Typography>
-                  </Grid>
+                  {/* new */}
                 </Grid>
               </Grid>
             </Grid>
           </Box>
         </CardWrapper>
       )}
-    </>
+    </Grid>
   );
 };
 
 Widget.propTypes = {
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  cardColor: PropTypes.string,
+  label: PropTypes.string.isRequired,
+  onClick: PropTypes.func, 
+  device: PropTypes.any, 
 };
 
 export default Widget;

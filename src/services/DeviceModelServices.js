@@ -12,7 +12,11 @@ const getModel = (id) => {
   return http.post(`api/devicemodel/devicemodelDetails/`,id);
 };
 const createModel = (data) => {
-  return http.post("/api/create_device_model/", data);
+  return http.post("/api/devicemodel/devicemodelCreate/", data,{
+    headers: {
+      'Content-type': 'multipart/form-data',
+    }
+  });
 };
 const copUpload=(data)=>{
   return http.post("/api/devicemodel/COPUpload/",data,{

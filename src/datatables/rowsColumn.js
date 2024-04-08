@@ -1,5 +1,11 @@
-
-// ShowDeviceColumn 
+ 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
 
 export const showDeviceColumns = [
   {
@@ -12,8 +18,22 @@ export const showDeviceColumns = [
     },
   },
   {
+    name: "model",
+    label: "Model",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.model_name}</p>
+        );
+      }
+    },
+    
+  },
+  {
     name: "device_esn",
-    label: "Device ESN",
+    label: "ESN",
     options: {
       filter: true,
       sort: false,
@@ -37,7 +57,7 @@ export const showDeviceColumns = [
   },
   {
     name: "telecom_provider1",
-    label: "Telecom Provider1",
+    label: "Telecom 1",
     options: {
       filter: false,
       sort: false,
@@ -45,7 +65,7 @@ export const showDeviceColumns = [
   },
   {
     name: "telecom_provider2",
-    label: "Telecom Provider2",
+    label: "Telecom 2",
     options: {
       filter: false,
       sort: false,
@@ -53,7 +73,7 @@ export const showDeviceColumns = [
   },
   {
     name: "msisdn1",
-    label: "MSISDN1",
+    label: "MSISDN 1",
     options: {
       filter: false,
       sort: false,
@@ -61,7 +81,7 @@ export const showDeviceColumns = [
   },
   {
     name: "msisdn2",
-    label: "MSISDN2",
+    label: "MSISDN 2",
     options: {
       filter: false,
       sort: false,
@@ -69,7 +89,7 @@ export const showDeviceColumns = [
   },
   {
     name: "imsi1",
-    label: "IMSI1",
+    label: "IMSI 1",
     options: {
       filter: false,
       sort: false,
@@ -77,7 +97,7 @@ export const showDeviceColumns = [
   },
   {
     name: "imsi2",
-    label: "IMSI2",
+    label: "IMSI 2",
     options: {
       filter: false,
       sort: false,
@@ -89,6 +109,11 @@ export const showDeviceColumns = [
     options: {
       filter: false,
       sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{formatDate(value)}</p>
+        );
+      }
     },
   },
   {
@@ -113,6 +138,11 @@ export const showDeviceColumns = [
     options: {
       filter: false,
       sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{formatDate(value)}</p>
+        );
+      }
     },
   },
   {
@@ -128,24 +158,7 @@ export const showDeviceColumns = [
       }
     },
   },
-  {
-    name: "model",
-    label: "Model",
-    options: {
-      filter: false,
-      sort: false,
-      customBodyRender: (value, tableMeta, updateValue) => {
-        return (
-          <p>{value.model_name}</p>
-        );
-      }
-    },
-    
-  },
-
 ];
-
-// new 
 
 export const dealerListColumn = [
   {

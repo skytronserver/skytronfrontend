@@ -6,14 +6,15 @@ export const eSIMInitialValues = {
     name: "",
     mobile: "",
     email: "",
-    companyName: "",
+    company_name: "",
     dob: "",
     expiryDate:formattedDate,
-    gstNo: "",
-    state: "",
-    authorizationLetter: null,
-    companyRegistrationCertificate: null,
-    gstCertificate: null,
+    gstnnumber: "",
+    idProofno:"",
+    file_authLetter: null,
+    file_companRegCertificate: null,
+    file_GSTCertificate: null,
+    file_idProof:null,
 };
 
 export const eSIMFormField = {
@@ -45,42 +46,49 @@ export const eSIMFormField = {
     name:"expiryDate",
     type: "date",
     label: "Expiry Date",
+    disabled:true,
     validation: Yup.date().required("Expiry Date is required"),
   },
-  companyName: {
-    name:"companyName",
+  company_name: {
+    name:"company_name",
     type: "text",
     label: "Company Name",
     validation: Yup.string().required("Company Name is required"),
   },
-  gstNo: {
-    name:"gstNo",
+  gstnnumber: {
+    name:"gstnnumber",
     type: "text",
     label: "GST No",
     validation: Yup.string().required("GTS No is required"),
   },
-  state: {
-    name:"state",
+  idProofno: {
+    name:"idProofno",
     type: "text",
-    label: "State",
-    validation: Yup.string().required("State Name is required"),
+    label: "User ID Proof No.",
+    validation: Yup.string().required("Name is required"),
   },
-  authorizationLetter:{
-    name:"authorizationLetter",
+  file_authLetter:{
+    name:"file_authLetter",
     type: "file",
     label: "Authorization Letter",
     validation: Yup.mixed().required("Authorization Letter is required"),
   },
-  companyRegistrationCertificate:{
-    name:"companyRegistrationCertificate",
+  file_companRegCertificate:{
+    name:"file_companRegCertificate",
     type: "file",
     label: "Company Registration Certificate",
     validation: Yup.mixed().required("Company Registration Certificate is required"),
   },
-  gstCertificate:{
-    name:"gstCertificate",
+  file_GSTCertificate:{
+    name:"file_GSTCertificate",
     type: "file",
     label: "GST Certificate",
+    validation: Yup.mixed().required("GST Certificate is required"),
+  },
+  file_idProof:{
+    name:"file_idProof",
+    type: "file",
+    label: "ID Proof Certificate",
     validation: Yup.mixed().required("GST Certificate is required"),
   },
 };
