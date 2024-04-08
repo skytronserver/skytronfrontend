@@ -1,5 +1,9 @@
 // material-ui
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from "@mui/material/styles";
+
+import logoDark from 'assets/images/logo-dark.svg';
+import skytronlogo from 'assets/images/skytronlogo.svg';
+//import logo from 'assets/images/logo.svg';
 
 /**
  * if you want to use image instead of <svg> uncomment following.
@@ -21,8 +25,12 @@ const Logo = () => {
      * <img src={logo} alt="Berry" width="100" />
      *
      */
-  <h3>SKYTRACK</h3>
-    
+    <div>
+    <img src={skytronlogo} alt="Berry" width="30" />
+
+    <h3>SkyTron</h3>
+
+    </div>
   );
 };
 
