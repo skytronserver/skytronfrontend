@@ -96,6 +96,9 @@ const createSOSUser=(formData)=>{
         }
       })
 }
+const fetchVehicleOwner=(formData)=>{
+    return http.post("/api/VehicleOwner/filter_VehicleOwner/",formData);
+}
 const UserServices = {
     getActiveState,
     getTotalState,
@@ -114,7 +117,8 @@ const UserServices = {
     createManufacturer,
     createEsimUser,
     createSOSAdmin,
-    createSOSUser
+    createSOSUser,
+    fetchVehicleOwner
   };
   
   export default UserServices;

@@ -1,0 +1,125 @@
+import * as Yup from "yup";
+import StockServices from "../services/StockServices";
+import UserServices from "../services/UserServices";
+import SettingService from "../services/SettingService";
+const fetchDeviceListForSale = async () => {
+  try {
+    const response = await StockServices.getAvailableDeviceList();
+    const list=response.data.data.map(device => ({
+      value: device.device.id,
+      label: device.device.device_esn,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+  }
+};
+const retriveVehicleOwner = async () => {
+  try {
+    const response = await UserServices.fetchVehicleOwner();
+    const list = response.data.map((owner) => ({
+      value: owner.id,
+      label: owner.users.name,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
+    }
+  }
+};
+const fetchVehicleCategory=async()=>{
+    try {
+        const resp=await SettingService.filter_settings_VehicleCategory();
+        const list =resp.data.map((category)=>({
+            value:category.id,
+            label:category.category
+        }));
+        return list;
+    } catch (error) {
+        if (error.response && error.response.status === 404) {
+            console.log("No Data Found");
+          } else {
+            console.log("No Data Found");
+          }
+    }
+}
+const deviceList = await fetchDeviceListForSale();
+const ownerList=await retriveVehicleOwner();
+const categoryList=await fetchVehicleCategory();
+export const taggingInitials = {
+    device:"",
+    vehicle_owner:"",
+    vehicle_reg_no:"",
+    engine_no:"",
+    chassis_no:"",
+    vehicle_make:"",
+    vehicle_model:"",
+    category:"",
+    rcFile:null
+};
+export const taggingFields = {
+    device: {
+        name: "device",
+        type: "select",
+        label: "Device",
+        validation: Yup.string().required("Device is required"),
+        options: deviceList,
+      },
+  vehicle_owner: {
+    name: "vehicle_owner",
+    type: "select",
+    label: "Vehicle Owner",
+    validation: Yup.string().required("Vehicle Owner is required"),
+    options: ownerList,
+  },
+  vehicle_reg_no: {
+    name: "vehicle_reg_no",
+    type: "text",
+    label: "Vehicle Registration No.",
+    validation: Yup.string().required("Vehicle Registration No. is required"),
+  },
+  engine_no: {
+    name: "engine_no",
+    type: "text",
+    label: "Engine No",
+    validation: Yup.string().required("Engine No. is required"),
+  },
+  chassis_no: {
+    name: "chassis_no",
+    type: "text",
+    label: "Chassis No.",
+    validation: Yup.string().required("Chassis No. is required"),
+  },
+  vehicle_make: {
+    name: "vehicle_make",
+    type: "text",
+    label: "Vehicle Make",
+    validation: Yup.string().required("Vehicle Make is required"),
+  },
+  vehicle_model: {
+    name: "vehicle_model",
+    type: "text",
+    label: "Vehicle Model",
+    validation: Yup.string().required("Vehicle Model is required"),
+  },
+  category: {
+    name: "category",
+    type: "select",
+    label: "Vehicle Category",
+    validation: Yup.string().required("Vehicle Category is required"),
+    options:categoryList,
+  },
+  rcFile: {
+    name: "rcFile",
+    type: "file",
+    label: "Registration Certificate",
+    validation: Yup.mixed().required("Registration Certificate is required"),
+  }
+};

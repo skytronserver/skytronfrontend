@@ -1,8 +1,8 @@
 // assets
-import { IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1 } from '@tabler/icons';
+import { IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag } from '@tabler/icons';
 
 // constant
-const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1};
+const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag};
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
 
@@ -176,6 +176,29 @@ const user = {
         {
           id: 'view-sim',
           title: 'List',
+          type: 'item',
+          url: '',
+          breadcrumbs: false
+        }
+        
+      ]
+    },,
+    {
+      id: 'icons-tag',
+      title: 'Tagging',
+      type: 'collapse',
+      icon: icons.IconTag,
+      children: [
+        {
+          id: 'new-tagging',
+          title: 'Tag Device to Vehicle',
+          type: 'item',
+          url: '/tag/device-vehicle',
+          breadcrumbs: false
+        },
+        {
+          id: 'view-pending',
+          title: 'Pending for Owner Approval',
           type: 'item',
           url: '',
           breadcrumbs: false

@@ -4,9 +4,9 @@ import SettingService from "../services/SettingService";
 const retriveStateList = async () => {
   try {
     const response = await SettingService.filter_settings_State();
-    const list=response.data.map(device => ({
-      value: device.id,
-      label: device.state,
+    const list=response.data.map(state => ({
+      value: state.id,
+      label: state.state,
     })); 
     return list;
   } catch (error) {
@@ -20,9 +20,9 @@ const retriveStateList = async () => {
 const retriveModelList = async () => {
   try {
     const response = await DeviceModelServices.getAllModels();
-    const list = response.data.map((device) => ({
-      value: device.id,
-      label: device.model_name,
+    const list = response.data.map((model) => ({
+      value: model.id,
+      label: model.model_name,
     }));
     return list;
   } catch (error) {
