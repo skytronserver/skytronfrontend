@@ -5,7 +5,8 @@ export const deviceModelInitials = {
     tac_no:"",
     tac_validity:"",
     hardware_version:"",
-    tacFile:null,
+    vendor_id:"",
+    tac_doc_path:null,
 };
 export const deviceModelFormField = {
   model_name: {
@@ -38,8 +39,14 @@ export const deviceModelFormField = {
     label: "Hardware Version",
     validation: Yup.string().required("Hardware Version is required"),
   },
-  tacFile: {
-    name:"tacFile",
+  vendor_id: {
+    name: "vendor_id",
+    type: "text",
+    label: "Vendor",
+    validation: Yup.string().required("Vendor Name is required"),
+  },
+  tac_doc_path: {
+    name:"tac_doc_path",
     type: "file",
     label: "Upload TAC",
     validation: Yup.mixed().required("TAC is required"),

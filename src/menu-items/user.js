@@ -89,29 +89,22 @@ const user = {
       icon: icons.IconDeviceSim,
       children: [
         {
-          id: 'new-device',
-          title: 'Add',
-          type: 'item',
-          url: '/device/new',
-          breadcrumbs: false
-        },
-        {
           id: 'new-device-model',
-          title: 'Add Device Model',
+          title: 'Model',
           type: 'item',
           url: '/deviceModel/new',
           breadcrumbs: false
         },
         {
           id: 'device-model-extension',
-          title: 'Device Model Extension',
+          title: 'Model Extension',
           type: 'item',
           url: '/deviceModel/extension',
           breadcrumbs: false
         },
         {
           id: 'view-device',
-          title: 'Device List',
+          title: 'Model Awaiting Approval',
           type: 'item',
           url: '/device/list',
           breadcrumbs: false
@@ -124,8 +117,15 @@ const user = {
           breadcrumbs: false
         },
         {
+          id: 'new-device',
+          title: 'New Device Stock',
+          type: 'item',
+          url: '/device/new',
+          breadcrumbs: false
+        },
+        {
           id: 'upload-device',
-          title: 'Upload',
+          title: 'Upload Device Stock',
           type: 'item',
           url: '/device/bulkupload',
           breadcrumbs: false
@@ -207,7 +207,7 @@ const user = {
           id: 'view-device',
           title: 'Device List',
           type: 'item',
-          url: '',
+          url: '/device/show-available-device',
           breadcrumbs: false
         },
         {

@@ -10,7 +10,8 @@ import { useNavigate } from "react-router-dom";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import DealerServices from "../../services/DealerServices";
 import CustomLoader from "../../ui-component/CustomLoader";
-const AssignDevice = ({ fieldConfig, initialData, formTitle }) => {
+import {assignDeviceFormFields,assignDeviceInitials} from  "../../formjson/assignDevice";
+const AssignDevice = () => {
   const [open, setOpen] = useState(false);
   const [deviceId, setDeviceId] = useState("");
   const [alert, setAlert] = useState({
@@ -34,8 +35,8 @@ const AssignDevice = ({ fieldConfig, initialData, formTitle }) => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
+    Object.keys(assignDeviceFormFields).reduce((acc, field) => {
+      acc[field] = assignDeviceFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -47,7 +48,7 @@ const AssignDevice = ({ fieldConfig, initialData, formTitle }) => {
       const response = await DealerServices.assignDeviceToDealer(values);
       setDeviceId(response.data.id);
       setLoading(false);
-      resetForm(initialData);
+      resetForm(assignDeviceInitials);
     } catch (error) {
       console.error("Error :", error.message);
     }
@@ -74,7 +75,7 @@ const AssignDevice = ({ fieldConfig, initialData, formTitle }) => {
         >
           <MainCard title="Device Model Extension">
               <Formik
-                initialValues={initialData}
+                initialValues={assignDeviceInitials}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
                 enableReinitialize
@@ -82,10 +83,10 @@ const AssignDevice = ({ fieldConfig, initialData, formTitle }) => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(fieldConfig).map((field) => (
+                      {Object.keys(assignDeviceFormFields).map((field) => (
                         <Grid key={field} item md={6} sm={12} xs={12}>
                           <FormField
-                            fieldConfig={fieldConfig[field]}
+                            fieldConfig={assignDeviceFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
                           />

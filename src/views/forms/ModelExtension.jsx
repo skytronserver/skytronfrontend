@@ -101,8 +101,15 @@ const ModelExtension = ({ fieldConfig, initialData, formTitle }) => {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
+    const updatedValues = {
+      ...values,
+      approval: "0",
+      approved_by: "",
+      vendor_id: "32",
+      created_by: "31",
+    };
     try {
-      const response = await DeviceModelServices.copUpload(values);
+      const response = await DeviceModelServices.copUpload(updatedValues);
       setDeviceId(response.data.id);
       setLoading(false);
       setShowOTP(true);

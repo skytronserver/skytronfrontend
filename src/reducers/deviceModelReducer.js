@@ -1,4 +1,3 @@
-// src/reducers/dataReducer.js
 import {
     FETCH_DEVICE_MODEL,
     FETCH_COP_DEVICE_MODEL,
