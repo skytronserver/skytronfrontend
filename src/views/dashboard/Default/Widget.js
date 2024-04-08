@@ -1,29 +1,3 @@
-//new
-// Widget.js
-// import React from 'react';
-
-// const Widget = ({ isLoading, cardColor, onClick, label }) => {
-//   return (
-//     <div
-//       style={{
-//         backgroundColor: cardColor,
-//         padding: '20px',
-//         borderRadius: '8px',
-//         marginBottom: '20px',
-//         textAlign: 'center',
-//         color: '#fff', // Text color
-//       }}
-//       onClick={onClick}
-//     >
-//       {label} {/* Display the label */}
-//     </div>
-//   );
-// };
-
-// export default Widget;
-
-// Widget.js
-
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme, styled } from "@mui/material/styles";
@@ -37,48 +11,34 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   color: "#fff",
   overflow: "hidden",
   position: "relative",
-  borderRadius: "8px", // Add border radius
-  height: "250px", // Set a fixed height
-  width: "250",
+  borderRadius: "8px",
+  width: "100%",
+  height: "100",
+
   "& > div": {
     position: "relative",
     zIndex: 5,
   },
-  "&:after": {
+  "&:after, &:before": {
     content: '""',
     position: "absolute",
-    width: 250,
-    height: 250,
-    background: theme.palette.primary[800],
+    width: "100%", // width to  cover the entire component
+    height: "100%", // height to cover the entire component
+    //  background: theme.palette.primary[800],
     borderRadius: "50%",
     zIndex: 1,
-    top: -125,
-    right: -125,
-    [theme.breakpoints.down("sm")]: {
-      top: -155,
-      right: 70,
-    },
-  },
-  "&:before": {
-    content: '""',
-    position: "absolute",
-    zIndex: 1,
-    width: 250,
-    height: 250,
-    background: theme.palette.primary[800],
-    borderRadius: "50%",
-    top: -125,
-    right: -15,
+    top: 0,
+    left: 0,
     opacity: 0.5,
-    [theme.breakpoints.down("sm")]: {
-      top: -155,
-      right: -70,
-    },
   },
 }));
 
-const Widget = ({ isLoading, cardColor, label, onClick }) => {
+const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
   const theme = useTheme();
+//work on that
+  const labelNew = label.split(",");
+  const arr = Object.values(device);
+  //work on that
 
   return (
     <Grid
@@ -88,10 +48,10 @@ const Widget = ({ isLoading, cardColor, label, onClick }) => {
       md={6}
       lg={10}
       style={{
-        marginTop: "50px",
+        marginTop: "40px",
         marginLeft: "30px",
-        marginRight: "20px",
-        marginBottom: "40px",
+        marginRight: "10px",
+        marginBottom: "0.2px",
       }}
     >
       {isLoading ? (
@@ -120,8 +80,10 @@ const Widget = ({ isLoading, cardColor, label, onClick }) => {
                 </Avatar>
               </Grid>
               <Grid item xs>
-                <Grid container direction="column" alignItems="flex-start">
-                  {label.split(",").map((item, index) => (
+                <Grid container direction="row" alignItems="center">
+                  {/* new */}
+
+                  {labelNew.map((item, index) => (
                     <Typography
                       key={index}
                       sx={{
@@ -131,9 +93,11 @@ const Widget = ({ isLoading, cardColor, label, onClick }) => {
                         mb: 0.75,
                       }}
                     >
-                      {item.trim()}
+                      {item} {arr[index]}
                     </Typography>
                   ))}
+
+                  {/* new */}
                 </Grid>
               </Grid>
             </Grid>
@@ -148,7 +112,8 @@ Widget.propTypes = {
   isLoading: PropTypes.bool,
   cardColor: PropTypes.string,
   label: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
+  onClick: PropTypes.func, 
+  device: PropTypes.any, 
 };
 
 export default Widget;

@@ -1,12 +1,32 @@
 import axios from "axios";
 
+
+//old
+
+// const instance = axios.create({
+//   baseURL: "https://skytrack.tech:2000/",
+//   headers: {
+//     "Content-type": "application/json",
+//     "Authorization": "Token 31353e8296e9b40f88cdda7a080b5e286fa88c2f",
+//   },
+// });
+
+//old
+
+//new 
 const instance = axios.create({
   baseURL: "https://skytrack.tech:2000/",
   headers: {
     "Content-type": "application/json",
-    "Authorization": "Token 31353e8296e9b40f88cdda7a080b5e286fa88c2f",
+    "Authorization": "Token 5ede4fbff56d0f118498a23d1ea199ab804dc31b",
   },
 });
+
+//new 
+
+
+
+
 
 // Add an interceptor to handle FormData for file uploads
 instance.interceptors.request.use((config) => {
