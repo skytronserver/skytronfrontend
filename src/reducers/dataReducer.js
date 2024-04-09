@@ -6,10 +6,14 @@ import {
     DELETE_DATA,
     FETCH_USER_DATA
   } from '../actions/dataActions';
+  import {
+    GET_AWAITING_VEHICLE_TAG
+  } from "../actions/commonDataActions";
   
   const initialState = {
     data: [],
-    userData:[]
+    userData:[],
+    awaitApprovalOwnerList:[],
   };
   
   const dataReducer = (state = initialState, action) => {
@@ -19,6 +23,11 @@ import {
           ...state,
           data: action.payload,
         };
+      case GET_AWAITING_VEHICLE_TAG:
+        return{
+          ...state,
+          awaitApprovalOwnerList:action.payload
+        }
       case FETCH_USER_DATA:
         return {
           ...state,

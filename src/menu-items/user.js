@@ -1,8 +1,8 @@
 // assets
-import { IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag } from '@tabler/icons';
+import { IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag,IconUrgent } from '@tabler/icons';
 
 // constant
-const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag};
+const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag,IconUrgent};
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
 
@@ -78,8 +78,16 @@ const user = {
       id: 'live-tracking',
       title: 'Live Tracking',
       type: 'item',
-      url: '',
+      url: '/live-tracking',
       icon: icons.IconMap,
+      breadcrumbs: false
+    },
+    {
+      id: 'sos-tracking',
+      title: 'SOS',
+      type: 'item',
+      url: '/sos-alert',
+      icon: icons.IconUrgent,
       breadcrumbs: false
     },
     {
@@ -200,7 +208,7 @@ const user = {
           id: 'view-pending',
           title: 'Pending for Owner Approval',
           type: 'item',
-          url: '',
+          url: '/tag/unapproved-vehicle',
           breadcrumbs: false
         }
         

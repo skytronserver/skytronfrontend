@@ -21,7 +21,13 @@ function TagDeviceToVehicle() {
   const handleClose = () => {
     setOpen(false);
   };
-
+  const handleFileChange = (event, formik) => {
+    const selectedFile = event.target.files[0];
+    const fieldName = event.target.name;
+    if (selectedFile) {
+      formik.setFieldValue(fieldName, selectedFile);
+    }
+  };
   const handleAlert = (message) => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
@@ -128,6 +134,7 @@ function TagDeviceToVehicle() {
                         <FormField
                           fieldConfig={taggingFields[field]}
                           formik={formik}
+                          handleFileChange={handleFileChange}
                         />
                       </Grid>
                     ))}

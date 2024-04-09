@@ -507,3 +507,112 @@ export const deviceCOPModelColumns = [
     },
   }
 ];
+
+export const awaitingOwnerApproval = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "vehicle_reg_no",
+    label: "Vehicle Registration No",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "engine_no",
+    label: "Engine No",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "chassis_no",
+    label: "Chassis No",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "vehicle_make",
+    label: "Vehicle Make",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "vehicle_model",
+    label: "Vehicle Model",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "category",
+    label: "Category",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "rc_file",
+    label: "RC File",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "tagged_by",
+    label: "Tagged By",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "tagged",
+    label: "Tagged Date",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "device",
+    label: "Device",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "vehicle_owner",
+    label: "Vehicle Owner",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  }
+];
+

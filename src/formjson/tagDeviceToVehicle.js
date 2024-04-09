@@ -23,7 +23,7 @@ const retriveVehicleOwner = async () => {
     const response = await UserServices.fetchVehicleOwner();
     const list = response.data.map((owner) => ({
       value: owner.id,
-      label: owner.users.name,
+      label: owner.users[0].name,
     }));
     return list;
   } catch (error) {

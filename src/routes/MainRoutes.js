@@ -5,6 +5,9 @@ import { useSelector } from "react-redux";
 // project imports
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
+import LiveTracking from "../views/direct/LiveTracking";
+import { element } from "prop-types";
+import SOSAlert from "../views/direct/SOSAlert";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -32,6 +35,14 @@ const MainRoutes = {
     {
       path: "/",
       element: <DashboardDefault />,
+    },
+    {
+      path:"/live-tracking",
+      element:<LiveTracking />
+    },
+    {
+      path:"/sos-alert",
+      element:<SOSAlert />
     },
     {
       path: "sample-page",
