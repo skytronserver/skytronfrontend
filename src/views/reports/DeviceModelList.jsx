@@ -56,7 +56,7 @@ const DeviceModelList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Device Model List" rows={deviceModelList} columns={actionColumn.concat(deviceModelColumns)}/>}
+        {load && <DynamicDatatables tableTitle="Awaiting For Approval" rows={deviceModelList} columns={actionColumn.concat(deviceModelColumns)}/>}
         </Grid>
     </Grid>
 );
