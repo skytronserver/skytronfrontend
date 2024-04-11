@@ -3,13 +3,25 @@ import http from "./http-common";
 const getLiveTracking = () => {
   return http.get("/api/gps-data-map/");
 };
-const getSOSData = () => {
-  return http.get(`/api/emergency-call-listener/`);
+const getSOSDataAdmin = () => {
+  return http.get("/api/emergency-call-listener-admin/");
 };
-
+const getSOSDataTeamLead=()=>{
+  return http.get("/api/emergency-call-listener-team-lead/");
+}
+const getSOSDataExe=()=>{
+  return http.get("/api/emergency-call-listener-deskexecutive/");
+}
+const getHistoryPlayback=()=>{
+  return http.get("/api/gps_history_map/");
+}
 const HomePageService = {
     getLiveTracking,
-    getSOSData,
+    getSOSDataAdmin,
+    getHistoryPlayback,
+    getSOSDataTeamLead,
+getSOSDataExe
+
 };
 
 export default HomePageService;

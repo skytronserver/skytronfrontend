@@ -83,10 +83,34 @@ const user = {
       breadcrumbs: false
     },
     {
+      id: 'history-playback',
+      title: 'History Playback',
+      type: 'item',
+      url: '/history-playback',
+      icon: icons.IconMap,
+      breadcrumbs: false
+    },
+    {
       id: 'sos-tracking',
-      title: 'SOS',
+      title: 'SOS Admin',
       type: 'item',
       url: '/sos-alert',
+      icon: icons.IconUrgent,
+      breadcrumbs: false
+    },
+    {
+      id: 'sos-lead',
+      title: 'SOS Lead',
+      type: 'item',
+      url: '/sos-lead-exp',
+      icon: icons.IconUrgent,
+      breadcrumbs: false
+    },
+    {
+      id: 'sos-user',
+      title: 'SOS Executive',
+      type: 'item',
+      url: '/sos-exe',
       icon: icons.IconUrgent,
       breadcrumbs: false
     },

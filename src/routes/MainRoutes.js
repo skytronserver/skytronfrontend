@@ -8,6 +8,9 @@ import Loadable from "../ui-component/Loadable";
 import LiveTracking from "../views/direct/LiveTracking";
 import { element } from "prop-types";
 import SOSAlert from "../views/direct/SOSAlert";
+import HistoryPlayback from "../views/direct/HistoryPlayback";
+import SOSUserExp from "../views/direct/SOSUserExp";
+import SOSExe from "../views/direct/SOSExe";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -43,6 +46,18 @@ const MainRoutes = {
     {
       path:"/sos-alert",
       element:<SOSAlert />
+    },
+    {
+      path:"/sos-lead-exp",
+      element:<SOSUserExp />
+    },
+    {
+      path:"/sos-exe",
+      element:<SOSExe />
+    },
+    {
+      path:"/history-playback",
+      element:<HistoryPlayback />
     },
     {
       path: "sample-page",
