@@ -28,4 +28,18 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
+// Add an interceptor to handle 404 errors globally
+instance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 404) {
+      // Handle 404 error here
+      console.error("404 Error: Page not found");
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default instance;

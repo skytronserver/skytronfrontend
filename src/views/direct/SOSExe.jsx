@@ -6,31 +6,29 @@ import HomePageService from "../../services/HomePage"
 import { useEffect,useState } from 'react';
 // ==============================|| SAMPLE PAGE ||============================== //
 
-const LiveTracking = () => { 
+const SOSExe = () => { 
     const [load,setLoad]=useState(false)
     const [htmlContent, setHtmlContent] = useState('');
-  useEffect(()=>{
-    const retriveMapData = async () => {
-      try{
-     const retriveData = await HomePageService.getLiveTracking();
-     setHtmlContent(retriveData.data)  
-     setLoad(true)
-    }catch(error) {
-      console.log(error)
-    }
-    }; 
-    retriveMapData();
-  })
+    useEffect(()=>{
+        const retriveSOSData = async () => {
+          try{
+         const retriveData = await HomePageService.getSOSDataExe();
+         setHtmlContent(retriveData.data)  
+         setLoad(true)
+        }catch(error) {
+          console.log(error)
+        }
+        }; 
+        retriveSOSData();
+      })
   return (
   <MainCard>
-    <p>Live Tracking</p>
-    <iframe
+   <iframe
         title="HTML Content"
         srcDoc={htmlContent} // Set the HTML content as srcDoc
         style={{ width: '100%', height: '500px', border: '1px solid #ccc' }}
       />
-    
   </MainCard>
 );
   }
-export default LiveTracking;
+export default SOSExe;

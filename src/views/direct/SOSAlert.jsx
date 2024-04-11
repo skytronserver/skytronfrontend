@@ -11,9 +11,13 @@ const SOSAlert = () => {
     const [htmlContent, setHtmlContent] = useState('');
     useEffect(()=>{
         const retriveSOSData = async () => {
-         const retriveData = await HomePageService.getSOSData();
+          try{
+         const retriveData = await HomePageService.getSOSDataAdmin();
          setHtmlContent(retriveData.data)  
          setLoad(true)
+        }catch(error) {
+          console.log(error)
+        }
         }; 
         retriveSOSData();
       })

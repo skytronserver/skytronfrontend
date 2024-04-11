@@ -6,13 +6,13 @@ import HomePageService from "../../services/HomePage"
 import { useEffect,useState } from 'react';
 // ==============================|| SAMPLE PAGE ||============================== //
 
-const LiveTracking = () => { 
+const HistoryPlayback = () => { 
     const [load,setLoad]=useState(false)
     const [htmlContent, setHtmlContent] = useState('');
   useEffect(()=>{
     const retriveMapData = async () => {
       try{
-     const retriveData = await HomePageService.getLiveTracking();
+     const retriveData = await HomePageService.getHistoryPlayback();
      setHtmlContent(retriveData.data)  
      setLoad(true)
     }catch(error) {
@@ -23,7 +23,7 @@ const LiveTracking = () => {
   })
   return (
   <MainCard>
-    <p>Live Tracking</p>
+    <p>History Playback</p>
     <iframe
         title="HTML Content"
         srcDoc={htmlContent} // Set the HTML content as srcDoc
@@ -33,4 +33,4 @@ const LiveTracking = () => {
   </MainCard>
 );
   }
-export default LiveTracking;
+export default HistoryPlayback;
