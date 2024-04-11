@@ -14,13 +14,13 @@ const LiveTracking = () => {
       try{
      const retriveData = await HomePageService.getLiveTracking();
      setHtmlContent(retriveData.data)  
-     setLoad(true)
+     setLoad(true);
     }catch(error) {
       console.log(error)
     }
     }; 
     retriveMapData();
-  })
+  },[])
   return (
   <MainCard>
     <p>Live Tracking</p>

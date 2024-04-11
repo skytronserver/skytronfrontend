@@ -20,7 +20,7 @@ const SOSExe = () => {
         }
         }; 
         retriveSOSData();
-      })
+      },[])
   return (
   <MainCard>
    <iframe

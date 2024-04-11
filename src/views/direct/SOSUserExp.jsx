@@ -21,7 +21,7 @@ const SOSUserExp = () => {
         }
         }; 
         retriveSOSData();
-      })
+      },[])
   return (
   <MainCard>
    <iframe

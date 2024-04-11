@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Grid } from "@mui/material";
+import { Button, CircularProgress, Grid ,Typography} from "@mui/material";
 import { Formik } from "formik";
 import React, { useState, useEffect } from "react";
 import { gridSpacing } from "../../store/constant";
@@ -9,9 +9,13 @@ import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
 import { convertErrorObjectToArray } from "helper";
 import { taggingFields,taggingInitials } from "../../formjson/tagDeviceToVehicle";
+import { MuiOtpInput } from "mui-one-time-password-input";
 function TagDeviceToVehicle() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showOTP, setShowOTP] = useState(false);
+  const [deviceId, setDeviceId] = useState("");
+  const [otp, setOtp] = useState("");
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -20,7 +24,43 @@ function TagDeviceToVehicle() {
   
   const handleClose = () => {
     setOpen(false);
+    setShowOTP(true);
   };
+  const handleChange = (newValue) => {
+    setOtp(newValue);
+  };
+  const handleOTPSubmit = async () => {
+    const OTPData = {
+      otp: "123456",
+      device_tag_id: "1",
+    };
+    const response = await handleOTPValidation(OTPData);
+
+    if (response.code === "200") {
+      console.log(response);
+      setShowOTP(false);
+    } else {
+      console.log(response.error);
+    }
+  };
+  const handleOTPValidation = async (modelOtpData) => {
+    try {
+      const response = await TaggingService.tagVerifyDealerOtp(modelOtpData);
+      console.log("Device Model is OTP Verified", response.data);
+      return { code: "200", message: response.data };
+    } catch (error) {
+      console.error("Error while submitting data", error.message);
+      return {
+        code: "400",
+        message: error.message,
+        errors: error.response.data,
+      };
+    }
+  };
+  useEffect(()=>{
+    console.log('OTP Validation')
+    handleOTPSubmit();
+  },[])
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -70,6 +110,7 @@ function TagDeviceToVehicle() {
       setSubmitting(false);
       setLoading(false);
       resetForm(taggingInitials);
+      setDeviceId(resp.message.id);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -120,6 +161,7 @@ function TagDeviceToVehicle() {
           }}
         >
           <MainCard title="Tag Device to Vehicle">
+          {!showOTP ? (
             <Formik
               initialValues={taggingInitials}
               validationSchema={validationTagging}
@@ -152,6 +194,30 @@ function TagDeviceToVehicle() {
                 </form>
               )}
             </Formik>
+             ) : (
+              <Grid
+                container
+                spacing={2}
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Grid item xs={12} md="5">
+                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                  <br />
+                  <Typography align="center">
+                    <Button
+                      color="primary"
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      onClick={handleOTPSubmit}
+                    >
+                      Verify OTP
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
           </MainCard>
         </Grid>
       </Grid>
