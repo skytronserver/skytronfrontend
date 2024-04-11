@@ -20,7 +20,7 @@ const SOSAlert = () => {
         }
         }; 
         retriveSOSData();
-      })
+      },[])
   return (
   <MainCard>
    <iframe

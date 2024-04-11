@@ -20,7 +20,7 @@ const HistoryPlayback = () => {
     }
     }; 
     retriveMapData();
-  })
+  },[])
   return (
   <MainCard>
     <p>History Playback</p>
