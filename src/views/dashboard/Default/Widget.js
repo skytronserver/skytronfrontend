@@ -1,3 +1,6 @@
+
+//new imp
+
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme, styled } from "@mui/material/styles";
@@ -5,6 +8,7 @@ import { Avatar, Box, Grid, Typography } from "@mui/material";
 import MainCard from "../../../ui-component/cards/MainCard";
 import SkeletonTotalOrderCard from "../../../ui-component/cards/Skeleton/Widget";
 import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
+import { useMediaQuery } from "@mui/material";
 
 const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   backgroundColor: data,
@@ -35,10 +39,10 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
 
 const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
   const theme = useTheme();
-//work on that
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const labelNew = label.split(",");
   const arr = Object.values(device);
-  //work on that
 
   return (
     <Grid
@@ -80,24 +84,19 @@ const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
                 </Avatar>
               </Grid>
               <Grid item xs>
-                <Grid container direction="row" alignItems="center">
-                  {/* new */}
-
+                <Grid container direction="column" alignItems="flex-start">
                   {labelNew.map((item, index) => (
                     <Typography
                       key={index}
                       sx={{
                         fontWeight: 500,
-                        mr: 1,
-                        mt: index === 0 ? 1.75 : 0.75,
+                        mt: 0.75,
                         mb: 0.75,
                       }}
                     >
-                      {item} {arr[index]}
+                      {isMobile ? `${item}: ` : `${item}: ${arr[index]}`}
                     </Typography>
                   ))}
-
-                  {/* new */}
                 </Grid>
               </Grid>
             </Grid>
@@ -112,8 +111,8 @@ Widget.propTypes = {
   isLoading: PropTypes.bool,
   cardColor: PropTypes.string,
   label: PropTypes.string.isRequired,
-  onClick: PropTypes.func, 
-  device: PropTypes.any, 
+  onClick: PropTypes.func,
+  device: PropTypes.any,
 };
 
 export default Widget;
