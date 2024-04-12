@@ -2,8 +2,8 @@
 import { useTheme } from "@mui/material/styles";
 import { IconLine } from "@tabler/icons";
 
-import logoDark from "assets/images/logo-dark.svg";
-import skytronlogo from "assets/images/skytronlogo.svg";
+import logoDark from "../assets/images/logo-dark.svg";
+import skytronlogo from "../assets/images/skytronlogo.svg";
 //import logo from 'assets/images/logo.svg';
 
 /**
