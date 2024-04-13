@@ -1,4 +1,3 @@
-
 //new imp
 
 import React from "react";
@@ -11,13 +10,14 @@ import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import { useMediaQuery } from "@mui/material";
 
 const CardWrapper = styled(MainCard)(({ theme, data }) => ({
-  backgroundColor: data,
+  
+  background: data,
   color: "#fff",
   overflow: "hidden",
   position: "relative",
   borderRadius: "8px",
   width: "100%",
-  height: "100",
+  height: "150px",
 
   "& > div": {
     position: "relative",
@@ -37,7 +37,7 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   },
 }));
 
-const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
+const Widget = ({ isLoading, cardColor, label, onClick, device, address }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -69,22 +69,14 @@ const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
         >
           <Box sx={{ p: 2.25 }}>
             <Grid container alignItems="center">
-              <Grid item style={{ marginRight: "30px" }}>
-                <Avatar
-                  variant="rounded"
-                  sx={{
-                    ...theme.typography.commonAvatar,
-                    ...theme.typography.largeAvatar,
-                    backgroundColor: theme.palette.primary[800],
-                    color: "#fff",
-                    mt: 1,
-                  }}
-                >
-                  <LocalMallOutlinedIcon fontSize="inherit" />
-                </Avatar>
-              </Grid>
               <Grid item xs>
-                <Grid container direction="column" alignItems="flex-start">
+                <Grid
+                  container
+                  direction="column"
+                  alignItems="flex-start"
+                  sx={{ pt: 3 }}
+                >
+                   
                   {labelNew.map((item, index) => (
                     <Typography
                       key={index}
@@ -99,6 +91,24 @@ const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
                   ))}
                 </Grid>
               </Grid>
+              <Grid item style={{ marginLeft: "30px" }}>
+                {/* <Avatar
+                  variant="rounded"
+                  sx={{
+                    ...theme.typography.commonAvatar,
+                    ...theme.typography.largeAvatar,
+                    backgroundColor: theme.palette.primary[800],
+                    color: "#fff",
+                    mt: 1,
+                  }}
+                >
+                  <LocalMallOutlinedIcon fontSize="inherit" />
+                </Avatar> */}
+
+
+                <img src={address} alt="Berry" width="50" style={{marginLeft:'50px' }} />
+
+              </Grid>
             </Grid>
           </Box>
         </CardWrapper>
@@ -109,7 +119,7 @@ const Widget = ({ isLoading, cardColor, label, onClick, device }) => {
 
 Widget.propTypes = {
   isLoading: PropTypes.bool,
-  cardColor: PropTypes.string,
+  cardColor: PropTypes.any,
   label: PropTypes.string.isRequired,
   onClick: PropTypes.func,
   device: PropTypes.any,
