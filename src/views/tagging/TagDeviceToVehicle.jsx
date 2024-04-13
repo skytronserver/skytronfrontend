@@ -31,8 +31,8 @@ function TagDeviceToVehicle() {
   };
   const handleOTPSubmit = async () => {
     const OTPData = {
-      otp: "123456",
-      device_tag_id: "1",
+      otp: otp,
+      device_tag_id: deviceId,
     };
     const response = await handleOTPValidation(OTPData);
 
@@ -57,10 +57,7 @@ function TagDeviceToVehicle() {
       };
     }
   };
-  useEffect(()=>{
-    console.log('OTP Validation')
-    handleOTPSubmit();
-  },[])
+ 
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -110,7 +107,7 @@ function TagDeviceToVehicle() {
       setSubmitting(false);
       setLoading(false);
       resetForm(taggingInitials);
-      setDeviceId(resp.message.id);
+      setDeviceId(resp.message.data.id);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -201,7 +198,7 @@ function TagDeviceToVehicle() {
                 justifyContent="center"
                 alignItems="center"
               >
-                <Grid item xs={12} md="5">
+                <Grid item xs={12} md={5}>
                   <MuiOtpInput value={otp} onChange={handleChange} length={6} />
                   <br />
                   <Typography align="center">
