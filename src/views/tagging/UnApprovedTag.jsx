@@ -22,7 +22,7 @@ const UnApprovedTag = () => {
   },[dispatch])
  
   const unApprovedList=useSelector((state)=>state.userData.awaitApprovalOwnerList);
-  console.log(unApprovedList);
+ 
   
   const handleDelete = (id) => {
     console.log(id)

@@ -12,15 +12,25 @@ const getSOSDataTeamLead=()=>{
 const getSOSDataExe=()=>{
   return http.get("/api/emergency-call-listener-deskexecutive/");
 }
-const getHistoryPlayback=()=>{
-  return http.get("/api/gps_history_map/");
+const getHistoryPlayback=(data)=>{
+  return http.get("/api/gps_history_map/",{
+    params:{
+      start_datetime: data.fromDate,
+      end_datetime: data.toDate,
+      vehicle_registration_number: data.vehicleNo,
+    }
+  });
+}
+const getVehicleList=(data)=>{
+  return http.post("/api/get_live_vehicle_no/",data);
 }
 const HomePageService = {
     getLiveTracking,
     getSOSDataAdmin,
     getHistoryPlayback,
     getSOSDataTeamLead,
-getSOSDataExe
+getSOSDataExe,
+getVehicleList
 
 };
 
