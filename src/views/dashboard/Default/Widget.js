@@ -10,7 +10,6 @@ import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import { useMediaQuery } from "@mui/material";
 
 const CardWrapper = styled(MainCard)(({ theme, data }) => ({
-  
   background: data,
   color: "#fff",
   overflow: "hidden",
@@ -37,88 +36,15 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   },
 }));
 
-// const Widget = ({ isLoading, cardColor, label, onClick, device, address,heading }) => {
-//   const theme = useTheme();
-//   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-//   const labelNew = label.split(",");
-//   const arr = Object.values(device);
-
-//   return (
-//     <Grid
-//       item
-//       xs={12}
-//       sm={6}
-//       md={6}
-//       lg={10}
-//       style={{
-//         marginTop: "40px",
-//         marginLeft: "30px",
-//         marginRight: "10px",
-//         marginBottom: "0.2px",
-//       }}
-//     >
-//       {isLoading ? (
-//         <SkeletonTotalOrderCard />
-//       ) : (
-//         <CardWrapper
-//           border={false}
-//           content={false}
-//           data={cardColor}
-//           onClick={onClick}
-//         >
-//           <Box sx={{ p: 2.25 }}>
-//             <Grid container alignItems="center">
-//               <Grid item xs>
-//                 <Grid
-//                   container
-//                   direction="column"
-//                   alignItems="flex-start"
-//                   sx={{ pt: 3 }}
-//                 >
-                
-//                 <h3>{heading}</h3>
-//                   {labelNew.map((item, index) => (
-//                     <Typography
-//                       key={index}
-//                       sx={{
-//                         fontWeight: 500,
-//                         mt: 0.75,
-//                         mb: 0.75,
-//                       }}
-//                     >
-//                       {isMobile ? `${item}: ` : `${item}: ${arr[index]}`}
-//                     </Typography>
-//                   ))}
-//                 </Grid>
-//               </Grid>
-//               <Grid item style={{ marginLeft: "30px" }}>
-//                 {/* <Avatar
-//                   variant="rounded"
-//                   sx={{
-//                     ...theme.typography.commonAvatar,
-//                     ...theme.typography.largeAvatar,
-//                     backgroundColor: theme.palette.primary[800],
-//                     color: "#fff",
-//                     mt: 1,
-//                   }}
-//                 >
-//                   <LocalMallOutlinedIcon fontSize="inherit" />
-//                 </Avatar> */}
-
-
-//                 <img src={address} alt="Berry" width="50" style={{marginLeft:'50px' }} />
-
-//               </Grid>
-//             </Grid>
-//           </Box>
-//         </CardWrapper>
-//       )}
-//     </Grid>
-//   );
-// };
-
-const Widget = ({ isLoading, cardColor, label, onClick, device, address, heading }) => {
+const Widget = ({
+  isLoading,
+  cardColor,
+  label,
+  onClick,
+  device,
+  address,
+  heading,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -151,7 +77,13 @@ const Widget = ({ isLoading, cardColor, label, onClick, device, address, heading
           <Box sx={{ p: 2.25 }}>
             <Grid container alignItems="center">
               <Grid item xs>
-              <Typography variant="h4" gutterBottom sx={{ color: '#fff', fontWeight: 'bold' }}>{heading}</Typography>
+                <Typography
+                  variant="h4"
+                  gutterBottom
+                  sx={{ color: "#fff", fontWeight: "bold" }}
+                >
+                  {heading}
+                </Typography>
                 <Box>
                   {labelNew.map((item, index) => (
                     <Typography
@@ -168,7 +100,12 @@ const Widget = ({ isLoading, cardColor, label, onClick, device, address, heading
                 </Box>
               </Grid>
               <Grid item>
-                <img src={address} alt="Berry" width="50" style={{ marginLeft: '50px' }} />
+                <img
+                  src={address}
+                  alt="Berry"
+                  width="50"
+                  style={{ marginLeft: "50px" }}
+                />
               </Grid>
             </Grid>
           </Box>
@@ -178,15 +115,13 @@ const Widget = ({ isLoading, cardColor, label, onClick, device, address, heading
   );
 };
 
-
-
 Widget.propTypes = {
   isLoading: PropTypes.bool,
   cardColor: PropTypes.any,
   label: PropTypes.string.isRequired,
   onClick: PropTypes.func,
   device: PropTypes.any,
-  heading:PropTypes.any
+  heading: PropTypes.any,
 };
 
 export default Widget;
