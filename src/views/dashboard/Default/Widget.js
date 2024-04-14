@@ -27,7 +27,6 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
     position: "absolute",
     width: "100%", // width to  cover the entire component
     height: "100%", // height to cover the entire component
-    //  background: theme.palette.primary[800],
     borderRadius: "50%",
     zIndex: 1,
     top: 0,

@@ -55,7 +55,7 @@ const ActiveState = () => {
       setTotalDeviceData(totalDeviceState.data);
       setDeviceStateData(deviceState.data);
       // setActiveStateData(activeState.data);
-      // setActiveStateData(activeState.data); 
+      // setActiveStateData(activeState.data);
     };
     retrievePosts();
   }, []);
@@ -81,7 +81,6 @@ const ActiveState = () => {
           device={totalStateData}
           address={Mobile}
           heading="Device Statistics"
-
         />
       </Grid>
       <Grid item xs={12} sm={4}>
