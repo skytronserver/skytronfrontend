@@ -70,6 +70,7 @@ const ActiveState = () => {
           label="State,Active,Inactive"
           device={activeStateData}
           address={Location}
+          heading="Active States"
         />
       </Grid>
 
@@ -79,6 +80,7 @@ const ActiveState = () => {
           label="Total Makers,Device Model,Device Count"
           device={totalStateData}
           address={Mobile}
+          heading="Device Statistics"
         />
       </Grid>
       <Grid item xs={12} sm={4}>
@@ -87,6 +89,7 @@ const ActiveState = () => {
           label=" Tagged Total, Online Device, Device Offline"
           device={totalDeviceStateData}
           address={Wifi}
+          heading="Tagging Statistics"
         />
       </Grid>
       <Grid item xs={12} sm={4}>
@@ -95,6 +98,7 @@ const ActiveState = () => {
           label="Total Vehicle,Active,Idle"
           device={deviceStateData}
           address={Car}
+          heading="Vehicle Statistics"
         />
       </Grid>
 
@@ -104,6 +108,7 @@ const ActiveState = () => {
           label="Total Alert,This Month,Today"
           device={activeStateData}
           address={Aeroplane}
+          heading="Over Speeding"
         />
       </Grid>
       <Grid item xs={12} sm={4}>
@@ -112,6 +117,7 @@ const ActiveState = () => {
           label="Total Alert,This Month,Today"
           device={activeStateData}
           address={Bell}
+          heading="Emeregency Alert"
         />
       </Grid>
     </Grid>
