@@ -9,12 +9,14 @@ const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDev
 const user = {
   id: 'utilities',
   type: 'group',
+  
   children: [
     {
       id: 'new-icons',
       title: 'Create New',
       type: 'collapse',
       icon: icons.IconUser,
+      
       children: [
         {
           id: 'state-admin',
