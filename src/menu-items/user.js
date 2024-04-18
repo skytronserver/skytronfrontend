@@ -75,6 +75,14 @@ const user = {
       ]
     },
     {
+      id: 'route-fixing',
+      title: 'Route Fixing',
+      type: 'item',
+      url: '/route-fixing',
+      icon: icons.IconMap,
+      breadcrumbs: false
+    },
+    {
       id: 'live-tracking',
       title: 'Live Tracking',
       type: 'item',

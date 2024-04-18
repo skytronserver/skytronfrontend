@@ -24,13 +24,21 @@ const getHistoryPlayback=(data)=>{
 const getVehicleList=(data)=>{
   return http.post("/api/get_live_vehicle_no/",data);
 }
+const getRouteFixing=(device_id)=>{
+  return http.get("/api/setRout/",{
+    params:{
+      device:device_id
+    }
+  })
+}
 const HomePageService = {
     getLiveTracking,
     getSOSDataAdmin,
     getHistoryPlayback,
     getSOSDataTeamLead,
 getSOSDataExe,
-getVehicleList
+getVehicleList,
+getRouteFixing
 
 };
 
