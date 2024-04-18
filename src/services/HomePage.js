@@ -12,6 +12,7 @@ const getSOSDataTeamLead=()=>{
 const getSOSDataExe=()=>{
   return http.get("/api/emergency-call-listener-deskexecutive/");
 }
+
 const getHistoryPlayback=(data)=>{
   return http.get("/api/gps_history_map/",{
     params:{
@@ -31,6 +32,18 @@ const getRouteFixing=(device_id)=>{
     }
   })
 }
+const getAllSOSCall=()=>{
+  return http.get("/api/get-all-call/");
+}
+const getCallDetails=(id)=>{
+  return http.get(`/api/emergency-call-details/${id}/`)
+}
+const broadCastHelp=(data)=>{
+  return http.post("/api/broadcast-help/",data);
+}
+const updateSOSCall=(data)=>{
+  return http.post("/api/submit_status/",data);
+}
 const HomePageService = {
     getLiveTracking,
     getSOSDataAdmin,
@@ -38,7 +51,11 @@ const HomePageService = {
     getSOSDataTeamLead,
 getSOSDataExe,
 getVehicleList,
-getRouteFixing
+getRouteFixing,
+getAllSOSCall,
+getCallDetails,
+broadCastHelp,
+updateSOSCall
 
 };
 
