@@ -6,6 +6,7 @@ export const DELETE_DATA = "DELETE_DATA";
 export const GET_DATA = "GET_DATA";
 export const GET_AWAITING_VEHICLE_TAG = "GET_AWAITING_VEHICLE_TAG";
 export const GET_LIVE_VEHICLE = "GET_LIVE_VEHICLE";
+export const GET_ALL_SOS_CALL="GET_ALL_SOS_CALL";
 export const fetchData = (data) => ({
   type: FETCH_DATA,
   payload: data,
@@ -37,3 +38,7 @@ export const fetchLiveVehicle = (data) => ({
   type: GET_LIVE_VEHICLE,
   payload: data,
 });
+export const getAllSOSCall=(data)=>({
+  type:GET_ALL_SOS_CALL,
+  payload:data,
+})

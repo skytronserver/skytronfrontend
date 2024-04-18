@@ -12,6 +12,8 @@ import HistoryPlayback from "../views/direct/HistoryPlayback";
 import SOSUserExp from "../views/direct/SOSUserExp";
 import SOSExe from "../views/direct/SOSExe";
 import RouteFixing from "../views/direct/RouteFixing";
+import GetAllCall from "../views/direct/GetAllCall";
+import CallDetails from "../views/direct/CallDetails";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -60,10 +62,17 @@ const MainRoutes = {
       path:"/history-playback",
       element:<HistoryPlayback />
     },
-    ,
     {
       path:"/route-fixing",
       element:<RouteFixing />
+    },
+    {
+      path:"/sos-call-list",
+      element:<GetAllCall />
+    },
+    {
+      path: "/sos-call-details/:call_id",
+      element: <CallDetails/>,
     },
     {
       path: "sample-page",

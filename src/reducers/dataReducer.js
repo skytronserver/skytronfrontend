@@ -9,6 +9,7 @@ import {
 import {
   GET_AWAITING_VEHICLE_TAG,
   GET_LIVE_VEHICLE,
+  GET_ALL_SOS_CALL,
 } from "../actions/commonDataActions";
 
 const initialState = {
@@ -16,6 +17,7 @@ const initialState = {
   userData: [],
   awaitApprovalOwnerList: [],
   liveVehicleList: [],
+  callList:[],
 };
 
 const dataReducer = (state = initialState, action) => {
@@ -30,6 +32,11 @@ const dataReducer = (state = initialState, action) => {
         ...state,
         awaitApprovalOwnerList: action.payload,
       };
+      case GET_ALL_SOS_CALL:
+        return {
+          ...state,
+          callList: action.payload,
+        };
     case GET_LIVE_VEHICLE:
       return {
         ...state,

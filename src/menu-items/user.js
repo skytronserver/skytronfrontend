@@ -73,8 +73,18 @@ const user = {
           type: 'item',
           url: '/new/sos-user',
           breadcrumbs: false
-        }
+        },
+       
       ]
+    },
+
+    {
+      id: 'sos-call-list',
+      title: 'SOS Call List',
+      type: 'item',
+      url: '/sos-call-list',
+      icon: icons.IconUrgent,
+      breadcrumbs: false
     },
     {
       id: 'route-fixing',
