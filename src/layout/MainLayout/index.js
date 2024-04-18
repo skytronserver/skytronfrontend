@@ -13,8 +13,10 @@ import navigation from '../../menu-items';
 import { drawerWidth } from '../../store/constant';
 import { SET_MENU } from '../../store/actions';
 
+
 // assets
 import { IconChevronRight } from '@tabler/icons';
+import AuthFooter from 'ui-component/cards/AuthFooter';
 
 // styles
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
@@ -63,7 +65,7 @@ const MainLayout = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex' }} >
       <CssBaseline />
       {/* header */}
       <AppBar
@@ -82,8 +84,10 @@ const MainLayout = () => {
           borderBottom: 0,
         }}>
           <Header handleLeftDrawerToggle={handleLeftDrawerToggle}/>
+        
         </Toolbar>
       </AppBar>
+      
 
       {/* drawer */}
       <Sidebar drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
@@ -92,7 +96,18 @@ const MainLayout = () => {
       <Main theme={theme} open={leftDrawerOpened}>
         {/* breadcrumb */}
         <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
+        
         <Outlet />
+        <div style={{ paddingTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <AuthFooter/>
+  <div style={{ marginTop: '0px' }}>&copy;All Right Reserved</div>
+</div>
+
+
+
+      
+
+        
       </Main>
     </Box>
   );
