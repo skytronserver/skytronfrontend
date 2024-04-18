@@ -17,10 +17,13 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   borderRadius: "8px",
   width: "100%",
   height: "150px",
+  
+  
 
   "& > div": {
     position: "relative",
     zIndex: 5,
+  
   },
   "&:after, &:before": {
     content: '""',
@@ -61,7 +64,9 @@ const Widget = ({
         marginTop: "40px",
         marginLeft: "30px",
         marginRight: "10px",
-        marginBottom: "0.2px",
+        marginBottom: "0px",
+        
+        
       }}
     >
       {isLoading ? (
@@ -73,13 +78,14 @@ const Widget = ({
           data={cardColor}
           onClick={onClick}
         >
-          <Box sx={{ p: 2.25 }}>
-            <Grid container alignItems="center">
+          <Box sx={{ p: 2.25 }} >
+            <Grid container alignItems="center" >
               <Grid item xs>
                 <Typography
                   variant="h4"
                   gutterBottom
                   sx={{ color: "#fff", fontWeight: "bold" }}
+                  
                 >
                   {heading}
                 </Typography>

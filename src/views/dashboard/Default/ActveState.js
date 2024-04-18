@@ -62,8 +62,10 @@ const ActiveState = () => {
 
   //console.log(typeof (data));
   // const colors = ["#F7418F", "#3DA5E0", "#FF9800"];
+  const mar = "100px";
+ 
   return (
-    <Grid container spacing={gridSpacing}>
+    <Grid container spacing={gridSpacing} marginBottom={mar}>
       <Grid item xs={12} sm={4}>
         <Widget
           cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
@@ -120,6 +122,9 @@ const ActiveState = () => {
           heading="Emeregency Alert"
         />
       </Grid>
+    
+      
+      
     </Grid>
   );
 };

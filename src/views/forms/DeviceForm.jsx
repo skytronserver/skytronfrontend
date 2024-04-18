@@ -120,7 +120,9 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
                   </Grid>
                 </Grid>
               </form>
+              
             )}
+            
           </Formik>
         </MainCard>
       </Grid>
