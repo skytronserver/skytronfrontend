@@ -32,7 +32,7 @@ function TagDeviceToVehicle() {
   const handleOTPSubmit = async () => {
     const OTPData = {
       otp: otp,
-      device_tag_id: deviceId,
+      device_id: deviceId,
     };
     const response = await handleOTPValidation(OTPData);
 
