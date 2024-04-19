@@ -42,24 +42,29 @@ const Logo = () => {
         height={isMobile ? "40" : "40"}
         style={{ marginLeft: isMobile ? "40px" : "50px" }}
       />
-      <h3
-        style={{
-          padding: isMobile ? "30px 30px 30px 5px" : "30px 30px 30px 0",
-          marginLeft: isMobile ? "0px" : "5px",
-          color: "white",
-          backgroundColor: "#86469C",
-          fontfamily: "Quantico",
-          fontSize: "20px",
-          //padding: "30px 30px 30px 0",
-          height: "40px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          //marginLeft: "5px",
-        }}
-      >
-        SKYTRON
-      </h3>
+
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <h3
+          style={{
+            padding: isMobile ? "30px 3px 30px 5px" : "30px 3px 30px 0",
+            marginLeft: isMobile ? "0px" : "5px",
+            color: "white",
+            backgroundColor: "#86469C",
+            fontfamily: "Quantico",
+            fontSize: "20px",
+            //padding: "30px 30px 30px 0",
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          
+          }}
+        >
+          SKYTRON
+        </h3>
+
+        <h5 style={{ marginBottom:"15px",paddingRight:"30px",fontfamily: "Quantico", fontSize: "10px", marginRight: "100px", textAlign: "left",color: "white"}}>TM</h5>
+      </div>
     </div>
   );
 };
