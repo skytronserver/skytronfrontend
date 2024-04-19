@@ -100,7 +100,7 @@ const MainLayout = () => {
         <Outlet />
         <div style={{ paddingTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <AuthFooter/>
-  <div style={{ marginTop: '0px' }}>&copy;All Right Reserved</div>
+  <div style={{ marginTop: '0px' }}>&copy; All Rights Reserved</div>
 </div>
 
 
