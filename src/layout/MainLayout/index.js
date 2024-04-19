@@ -1,62 +1,69 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { Outlet } from 'react-router-dom';
+import { useDispatch, useSelector } from "react-redux";
+import { Outlet } from "react-router-dom";
 
 // material-ui
-import { styled, useTheme } from '@mui/material/styles';
-import { AppBar, Box, CssBaseline, Toolbar, useMediaQuery } from '@mui/material';
+import { styled, useTheme } from "@mui/material/styles";
+import {
+  AppBar,
+  Box,
+  CssBaseline,
+  Toolbar,
+  useMediaQuery,
+} from "@mui/material";
 
 // project imports
-import Breadcrumbs from '../../ui-component/extended/Breadcrumbs';
-import Header from './Header';
-import Sidebar from './Sidebar';
-import navigation from '../../menu-items';
-import { drawerWidth } from '../../store/constant';
-import { SET_MENU } from '../../store/actions';
-
+import Breadcrumbs from "../../ui-component/extended/Breadcrumbs";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
+import navigation from "../../menu-items";
+import { drawerWidth } from "../../store/constant";
+import { SET_MENU } from "../../store/actions";
 
 // assets
-import { IconChevronRight } from '@tabler/icons';
-import AuthFooter from 'ui-component/cards/AuthFooter';
+import { IconChevronRight } from "@tabler/icons";
+import AuthFooter from "ui-component/cards/AuthFooter";
 
 // styles
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
-  ...theme.typography.mainContent,
-  borderBottomLeftRadius: 0,
-  borderBottomRightRadius: 0,
-  transition: theme.transitions.create(
-    'margin',
-    open
-      ? {
-          easing: theme.transitions.easing.easeOut,
-          duration: theme.transitions.duration.enteringScreen
-        }
-      : {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen
-        }
-  ),
-  [theme.breakpoints.up('md')]: {
-    marginLeft: open ? 0 : -(drawerWidth - 20),
-    width: `calc(100% - ${drawerWidth}px)`
-  },
-  [theme.breakpoints.down('md')]: {
-    marginLeft: '20px',
-    width: `calc(100% - ${drawerWidth}px)`,
-    padding: '16px'
-  },
-  [theme.breakpoints.down('sm')]: {
-    marginLeft: '10px',
-    width: `calc(100% - ${drawerWidth}px)`,
-    padding: '16px',
-    marginRight: '10px'
-  }
-}));
+const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
+  ({ theme, open }) => ({
+    ...theme.typography.mainContent,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    transition: theme.transitions.create(
+      "margin",
+      open
+        ? {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+          }
+        : {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }
+    ),
+    [theme.breakpoints.up("md")]: {
+      marginLeft: open ? 0 : -(drawerWidth - 20),
+      width: `calc(100% - ${drawerWidth}px)`,
+    },
+    [theme.breakpoints.down("md")]: {
+      marginLeft: "20px",
+      width: `calc(100% - ${drawerWidth}px)`,
+      padding: "16px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      marginLeft: "10px",
+      width: `calc(100% - ${drawerWidth}px)`,
+      padding: "16px",
+      marginRight: "10px",
+    },
+  })
+);
 
 // ==============================|| MAIN LAYOUT ||============================== //
 
 const MainLayout = () => {
   const theme = useTheme();
-  const matchDownMd = useMediaQuery(theme.breakpoints.down('md'));
+  const matchDownMd = useMediaQuery(theme.breakpoints.down("md"));
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
   const dispatch = useDispatch();
@@ -65,7 +72,9 @@ const MainLayout = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }} >
+    // <h1>Helloo</h1>
+   
+    <Box sx={{ display: "flex" }}>
       <CssBaseline />
       {/* header */}
       <AppBar
@@ -75,39 +84,51 @@ const MainLayout = () => {
         elevation={0}
         sx={{
           bgcolor: theme.palette.background.default,
-          transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
+          transition: leftDrawerOpened
+            ? theme.transitions.create("width") 
+            : "none",
         }}
       >
-        <Toolbar  sx={{
-          paddingbottom: 0,
-          marginbottom: 0,
-          borderBottom: 0,
-        }}>
-          <Header handleLeftDrawerToggle={handleLeftDrawerToggle}/>
-        
+        <Toolbar
+          sx={{
+            paddingbottom: 0,
+            marginbottom: 0,
+            borderBottom: 0,
+          }}
+        >
+          <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
         </Toolbar>
       </AppBar>
-      
 
       {/* drawer */}
-      <Sidebar drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
+      <Sidebar
+        drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened}
+        drawerToggle={handleLeftDrawerToggle}
+      />
 
       {/* main content */}
       <Main theme={theme} open={leftDrawerOpened}>
         {/* breadcrumb */}
-        <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
-        
+        <Breadcrumbs
+          separator={IconChevronRight}
+          navigation={navigation}
+          icon
+          title
+          rightAlign
+        />
+
         <Outlet />
-        <div style={{ paddingTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <AuthFooter/>
-  <div style={{ marginTop: '0px' }}>&copy; All Rights Reserved</div>
-</div>
-
-
-
-      
-
-        
+        <div
+          style={{
+            paddingTop: "20px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <AuthFooter />
+          <div style={{ marginTop: "0px" }}>&copy; All Rights Reserved</div>
+        </div>
       </Main>
     </Box>
   );
