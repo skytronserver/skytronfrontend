@@ -83,7 +83,7 @@ const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
         <TextField
           fullWidth
           label="From Date"
-          type="date"
+          type="datetime-local"
           value={fromDate}
           onChange={handleFromDateChange}
           inputProps={{ max: yesterday }}
@@ -93,7 +93,7 @@ const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
         <TextField
           fullWidth
           label="To Date"
-          type="date"
+          type="datetime-local"
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
