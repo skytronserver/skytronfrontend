@@ -1,36 +1,95 @@
 // material-ui
-import React from 'react';
+import React from "react";
 // project imports
-import MainCard from '../../ui-component/cards/MainCard';
-import HomePageService from "../../services/HomePage"
-import { useEffect,useState } from 'react';
+import MainCard from "../../ui-component/cards/MainCard";
+import HomePageService from "../../services/HomePage";
+import { useEffect, useState } from "react";
+import DeviceModelServices from "services/DeviceModelServices";
 // ==============================|| SAMPLE PAGE ||============================== //
+import {  MenuItem, Button,Grid,TextField } from '@mui/material';
+const RouteFixing = () => {
+  const [load, setLoad] = useState(false);
+  const [routeContent, setRouteContent] = useState("");
+  const [deviceList, setDeviceList] = useState([]);
+  const [deviceId, setDeviceId] = useState("");
+  useEffect(() => {
+    const post_data = {
+      is_tagged: "True",
+    };
+    const fetchVehicleList = async () => {
+      const retriveData = await DeviceModelServices.getDeviceList(post_data);
+      console.log(retriveData.data.data);
+      setDeviceList(retriveData.data.data);
+    };
+    fetchVehicleList();
+  }, []);
+  const handleDeviceChange = (e) => {
+    setDeviceId(e.target.value);
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    retriveRouteData(deviceId);
+  };
 
-const RouteFixing = () => { 
-    const [load,setLoad]=useState(false)
-    const [routeContent, setRouteContent] = useState('');
-  useEffect(()=>{
-    const retriveRouteData = async () => {
-      try{
-     const retriveData = await HomePageService.getRouteFixing("1");
-     setRouteContent(retriveData.data)  
-     setLoad(true);
-    }catch(error) {
-      console.log(error)
+  const retriveRouteData = async (id) => {
+    try {
+      const retriveData = await HomePageService.getRouteFixing(id);
+      setRouteContent(retriveData.data);
+      setLoad(true);
+    } catch (error) {
+      console.log(error);
     }
-    }; 
-    retriveRouteData();
-  },[])
+  };
+
   return (
-  <MainCard>
-    <p>Route Fixing</p>
-    <iframe
-        title="Route Content"
-        srcDoc={routeContent} // Set the HTML content as srcDoc
-        style={{ width: '100%', height: '500px', border: '1px solid #ccc' }}
-      />
-    
-  </MainCard>
-);
-  }
+    <MainCard>
+      <p>Route Fixing</p>
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={2} className="form-controller">
+          <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
+            {/* <FormControl fullWidth> */}
+            <TextField
+          select
+          label="Select Device ESN"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+value={deviceId}
+          onChange={handleDeviceChange}
+        >
+          <MenuItem value="">Select</MenuItem>
+                {deviceList.length > 0 && (
+                  deviceList.map((item) => {
+                    return (
+                      <MenuItem value={item.id} key={item.id}>
+                        {item.device_esn}
+                      </MenuItem>
+                    );
+                  })
+                )}
+        </TextField>
+          </Grid>
+
+          <Grid item md={2} sm={12} xs={12} style={{ marginTop: "38px" }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              style={{ height: "48px" }}
+            >
+              Submit
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+      {load && (
+        <iframe
+          title="Route Content"
+          srcDoc={routeContent} // Set the HTML content as srcDoc
+          style={{ width: "100%", height: "500px", border: "1px solid #ccc" }}
+        />
+      )}
+    </MainCard>
+  );
+};
 export default RouteFixing;

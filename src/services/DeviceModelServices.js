@@ -31,8 +31,8 @@ const updateModel = (id, updatedData) => {
 const deleteModel = (id) => {
   return http.delete(`/api/delete_device_model/${id}`);
 };
-const getDeviceList=()=>{          // show device
-  return http.post("/api/devicestock/deviceStockFilter/")            
+const getDeviceList=(data)=>{          // show device
+  return http.post("/api/devicestock/deviceStockFilter/",data)            
 }
 const DeviceModelServices = {
 getAllModels,
