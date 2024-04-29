@@ -1,145 +1,6 @@
-// import { useDispatch, useSelector } from "react-redux";
-// import { Outlet } from "react-router-dom";
-
-// // material-ui
-// import { styled, useTheme } from "@mui/material/styles";
-// import {
-//   AppBar,
-//   Box,
-//   CssBaseline,
-//   Toolbar,
-//   useMediaQuery,
-// } from "@mui/material";
-
-// // project imports
-// import Breadcrumbs from "../../ui-component/extended/Breadcrumbs";
-// import Header from "./Header";
-// import Sidebar from "./Sidebar";
-// import navigation from "../../menu-items";
-// import { drawerWidth } from "../../store/constant";
-// import { SET_MENU } from "../../store/actions";
-
-// // assets
-// import { IconChevronRight } from "@tabler/icons";
-// import AuthFooter from "ui-component/cards/AuthFooter";
-
-// // styles
-// const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
-//   ({ theme, open }) => ({
-//     ...theme.typography.mainContent,
-//     borderBottomLeftRadius: 0,
-//     borderBottomRightRadius: 0,
-//     transition: theme.transitions.create(
-//       "margin",
-//       open
-//         ? {
-//             easing: theme.transitions.easing.easeOut,
-//             duration: theme.transitions.duration.enteringScreen,
-//           }
-//         : {
-//             easing: theme.transitions.easing.sharp,
-//             duration: theme.transitions.duration.leavingScreen,
-//           }
-//     ),
-//     [theme.breakpoints.up("md")]: {
-//       marginLeft: open ? 0 : -(drawerWidth - 20),
-//       width: `calc(100% - ${drawerWidth}px)`,
-//     },
-//     [theme.breakpoints.down("md")]: {
-//       marginLeft: "20px",
-//       width: `calc(100% - ${drawerWidth}px)`,
-//       padding: "16px",
-//     },
-//     [theme.breakpoints.down("sm")]: {
-//       marginLeft: "10px",
-//       width: `calc(100% - ${drawerWidth}px)`,
-//       padding: "16px",
-//       marginRight: "10px",
-//     },
-//   })
-// );
-
-// // ==============================|| MAIN LAYOUT ||============================== //
-
-// const MainLayout = () => {
-//   const theme = useTheme();
-//   const matchDownMd = useMediaQuery(theme.breakpoints.down("md"));
-//   // Handle left drawer
-//   const leftDrawerOpened = useSelector((state) => state.customization.opened);
-//   const dispatch = useDispatch();
-//   const handleLeftDrawerToggle = () => {
-//     dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
-//   };
-
-//   return (
-
-//     <Box sx={{ display: "flex" }}>
-//       <CssBaseline />
-//       {/* header */}
-//       <AppBar
-//         enableColorOnDark
-//         position="fixed"
-//         color="inherit"
-//         elevation={0}
-//         sx={{
-//           bgcolor: theme.palette.background.default,
-//           transition: leftDrawerOpened
-//             ? theme.transitions.create("width")
-//             : "none",
-//         }}
-//       >
-//         <Toolbar
-//           sx={{
-//             paddingbottom: 0,
-//             marginbottom: 0,
-//             borderBottom: 0,
-//           }}
-//         >
-//           <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
-//         </Toolbar>
-//       </AppBar>
-
-//       {/* drawer */}
-//       <Sidebar
-//         drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened}
-//         drawerToggle={handleLeftDrawerToggle}
-//       />
-
-//       {/* main content */}
-//       <Main theme={theme} open={leftDrawerOpened}>
-//         {/* breadcrumb */}
-//         <Breadcrumbs
-//           separator={IconChevronRight}
-//           navigation={navigation}
-//           icon
-//           title
-//           rightAlign
-//         />
-
-//         <Outlet />
-//         <div
-//           style={{
-//             paddingTop: "20px",
-//             display: "flex",
-//             flexDirection: "column",
-//             alignItems: "center",
-//           }}
-//         >
-//           <AuthFooter />
-//           <div style={{ marginTop: "0px" }}>&copy; All Rights Reserved</div>
-//         </div>
-//       </Main>
-//     </Box>
-//   );
-// };
-
-// export default MainLayout;
-
-//new Home page
-
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Outlet } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 
 // material-ui
 import { styled, useTheme } from "@mui/material/styles";
@@ -157,14 +18,26 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import navigation from "../../menu-items";
 import { drawerWidth } from "../../store/constant";
+
 import { SET_MENU } from "../../store/actions";
+import amtronlogo from "assets/images/Amtron.svg";
 
 // assets
 import { IconChevronRight } from "@tabler/icons";
 import AuthFooter from "ui-component/cards/AuthFooter";
 //new
 import backgroundImage from "../../assets/images/GPSImagee.jpg";
+import ashokstambhImage from "../../assets/images/ashokstambh.jpg";
+import HomeIcon from "@mui/icons-material/Home";
+
+import WebFont from "webfontloader";
 // styles
+WebFont.load({
+  google: {
+    families: ["Pacifico", "sans-serif", "Lobster", "Caveat"],
+  },
+});
+
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
   ({ theme, open }) => ({
     ...theme.typography.mainContent,
@@ -198,8 +71,12 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
       marginRight: "10px",
     },
     //new
+
     backgroundImage: `url(${backgroundImage})`,
-    backgroundSize: "100% 100%",
+    backgroundSize: "cover",
+    position: "relative",
+    // backgroundPosition: "center 100px", to shift the image below
+    backgroundPosition: "center 5px",
   })
 );
 
@@ -214,6 +91,12 @@ const MainLayout = () => {
   const handleLeftDrawerToggle = () => {
     dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
   };
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  // Get the current location
+  const location = useLocation();
+
+  // Check if the current path is '/home'
+  const isHome = location.pathname === "/home";
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -223,9 +106,66 @@ const MainLayout = () => {
     };
   }, []);
 
+  // Basic Login Form Component
+  const LoginForm = () => {
+    return (
+      <div
+        style={{
+          display: "grid",
+          placeItems: "center",
+          height: "100vh",
+          paddingLeft: "900px",
+          paddingBottom: "200px",
+        }}
+      >
+        <form
+          style={{
+            width: "300px",
+            padding: "20px",
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+          }}
+        >
+          <input
+            style={{
+              marginBottom: "10px",
+              width: "100%",
+              padding: "8px",
+              boxSizing: "border-box",
+            }}
+            type="text"
+            placeholder="Username"
+          />
+          <input
+            style={{
+              marginBottom: "10px",
+              width: "100%",
+              padding: "8px",
+              boxSizing: "border-box",
+            }}
+            type="password"
+            placeholder="Password"
+          />
+          <button
+            style={{
+              width: "100%",
+              padding: "8px",
+              backgroundColor: "purple",
+              color: "#fff",
+              border: "none",
+              borderRadius: "3px",
+            }}
+            type="submit"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    );
+  };
+
   return (
     <div style={{ width: "1626px" }}>
-      {/* <CssBaseline /> */}
       <Main
         open={leftDrawerOpened}
         style={{
@@ -238,29 +178,209 @@ const MainLayout = () => {
           paddingLeft: "0px",
         }}
       >
-        <h3 style={{ textAlign: "center", color: "white", paddingTop: "10px" }}>
-          TRANSPORT DEPARTMENT, GOVERNMENT OF ASSAM
-        </h3>
+        <div
+          style={{
+            display: "flex",
+
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            color: "white",
+            paddingTop: "10px",
+            backgroundColor: "purple",
+            fontFamily: "bold",
+            //  marginLeft:"20px",
+          }}
+        >
+          <img
+            src={ashokstambhImage}
+            alt="Ashok Stambh"
+            style={{
+              width: "50px",
+              height: "56px",
+              marginRight: "1290px",
+            }}
+          />
+          <div style={{}}>
+            {/* <h2 */}
+            {/* style={{
+                margin: "0 auto",
+                fontSize: "20px", // Adjust font size as needed
+              }} */}
+            {/* > */}
+            {/* DEPARTMENT */}
+            {/* GOVERNMENT OF ASSAM */}
+            {/* </h2> */}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            marginRight: "0px",
+            marginTop: "0px",
+            paddingLeft: "1000px",
+            height: "15px", //header purple height
+            backgroundColor: "purple",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            {/* Use Link component for navigation */}
+            <Link to="/home" style={{ textDecoration: "none" }}>
+              <h3
+                style={{
+                  color: "white",
+                  paddingRight: "10px",
+                  paddingLeft: "90px",
+                  paddingBottom: "25px",
+                }}
+              >
+                <HomeIcon />
+              </h3>
+            </Link>
+          </div>
+          <div>
+            {/* Use Link component for navigation */}
+            <Link to="/contact-us" style={{ textDecoration: "none" }}>
+              <h3
+                style={{
+                  color: "white",
+                  paddingRight: "10px",
+                  paddingBottom: "25px",
+                }}
+              >
+                ContactUs
+              </h3>
+            </Link>
+          </div>
+          <div>
+            <a href="/whats-new" style={{ textDecoration: "none" }}>
+              <h3
+                style={{
+                  color: "white",
+                  paddingRight: "10px",
+                  paddingBottom: "25px",
+                }}
+              >
+                What's New
+              </h3>
+            </a>
+          </div>
+        </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <a href="/whats-new" style={{ textDecoration: "none" }}>
-            <h3 style={{ color: "white", paddingRight: "10px" }}>Home</h3>
-          </a>
-          <a href="/contact-us" style={{ textDecoration: "none" }}>
-            <h3 style={{ color: "white", paddingRight: "10px" }}>Contact Us</h3>
-          </a>
-          <a href="/whats-new" style={{ textDecoration: "none" }}>
-            <h3 style={{ color: "white", paddingRight: "10px" }}>What's New</h3>
-          </a>
-
-          <a href="/login" style={{ textDecoration: "none" }}>
-            <h3 style={{ color: "white", paddingRight: "10px" }}>Login</h3>
-          </a>
+          {/* Navigation links */}
+          {/* ... */}
         </div>
-        {/* <Toolbar /> */}
-        {/* <Breadcrumbs /> */}
-        {/* <Outlet /> */}
-        {/* <AuthFooter /> */}
+
+        {/* Render homepage content conditionally */}
+        {isHome ? (
+          <div>
+            <h1>Welcome to the Homepage!</h1>
+            {/* Homepage content */}
+          </div>
+        ) : (
+          <LoginForm />
+        )}
+
+        {/* Toolbar, Breadcrumbs, Outlet, AuthFooter */}
+        {/* ... */}
+
+        {/* Adding ashokstambh image */}
+        {/* <img
+          src={ashokstambhImage}
+          alt="Ashok Stambh"
+          style={{
+            position: "absolute",
+            left: "10px",
+            bottom: "20px",
+            width: "60px",
+            height: "90px",
+            marginBottom: "485px", //ashokstambh bottom adjustment
+            paddingBottom: "30px",
+          }}
+        /> */}
+        <h4
+          style={{
+            color: "white",
+            position: "absolute",
+            height: "43px",
+            left: "2px",
+            right: "0px",
+            bottom: "595px", //skytron vltd backend bottom adjustment
+            paddingLeft: "0px",
+            // paddingRight: "10px",
+            marginbottom: "10px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "15px",
+              color: "#FFC94A",
+              paddingLeft: "110px",
+              marginLeft: "80px",
+              height: "10px",
+              fontFamily: "bold",
+            }}
+          >
+            <h5>TM</h5>
+          </div>
+          <div
+            style={{ color: "#FFC94A", marginLeft: "100px", fontSize: "13px" }}
+          >
+            <h1>SkyTron</h1>
+          </div>
+
+          <div
+            style={{
+              marginLeft: "95px",
+              fontSize: "18px",
+              fontFamily: "Caveat",
+              color: "#F6F5F2",
+              paddingTop: "5px",
+            }}
+          >
+            VLTD BackEnd, ASSAM
+          </div>
+        </h4>
+
+        <div
+          style={{
+            position: "absolute",
+            bottom: "30px",
+            left: "350px",
+            color: "white",
+          }}
+        >
+          <div style={{ left: "400px", paddingLeft: "160px", height: "1px" }}>
+            <img
+              src={amtronlogo}
+              alt="Berry"
+              width={isMobile ? "40" : "38"}
+              height={isMobile ? "40" : "38"}
+              style={{ marginLeft: isMobile ? "150px" : "150px" }}
+            />
+          </div>
+
+          <div
+            style={{ marginTop: "0px", position: "relative", padding: "50px" }}
+          >
+            <h2 style={{ color: "#6C0345", left: "100px", align: "center" }}>
+              Implemented by Assam Electronics Development Corporation Ltd
+            </h2>
+            <h3
+              style={{
+                position: "absolute",
+                left: "250px",
+                color: "#6C0345",
+                marginBottom: "150px",
+              }}
+            >
+              &copy; All Rights Reserved
+            </h3>
+          </div>
+        </div>
       </Main>
     </div>
   );
