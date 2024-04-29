@@ -73,10 +73,18 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
     //new
 
     backgroundImage: `url(${backgroundImage})`,
-    backgroundSize: "cover",
+    // backgroundSize: "cover",
     position: "relative",
     // backgroundPosition: "center 100px", to shift the image below
+    backgroundSize: open ? "cover" : "contain",
     backgroundPosition: "center 5px",
+
+    // // Adjust background size for mobile view
+    // [theme.breakpoints.down("sm")]: {
+    //   backgroundSize: "70%",  // Change this to your desired size
+    //   backgroundRepeat: "no-repeat",
+    //   backgroundPosition: "center 5px",
+    // },
   })
 );
 
@@ -84,6 +92,7 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
 
 const MainLayout = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const matchDownMd = useMediaQuery(theme.breakpoints.down("md"));
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
@@ -91,12 +100,12 @@ const MainLayout = () => {
   const handleLeftDrawerToggle = () => {
     dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
   };
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  // Get the current location
-  const location = useLocation();
 
-  // Check if the current path is '/home'
-  const isHome = location.pathname === "/home";
+  // new code start
+
+  const location = useLocation(); // Get the current location
+
+  const isHome = location.pathname === "/home"; // Check if the current path is '/home'
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -114,7 +123,9 @@ const MainLayout = () => {
           display: "grid",
           placeItems: "center",
           height: "100vh",
-          paddingLeft: "900px",
+          //paddingLeft: "900px",    // previous
+          paddingLeft: isMobile ? "0px" : "900px",
+          marginRight: isMobile ? "900px" : "0px", //new
           paddingBottom: "200px",
         }}
       >
@@ -163,6 +174,8 @@ const MainLayout = () => {
       </div>
     );
   };
+
+  // new code end
 
   return (
     <div style={{ width: "1626px" }}>
@@ -214,12 +227,21 @@ const MainLayout = () => {
           </div>
         </div>
 
+
+
+
         <div
           style={{
+    
             display: "flex",
             marginRight: "0px",
             marginTop: "0px",
-            paddingLeft: "1000px",
+            //paddingLeft: "1000px",
+            //paddingLeft: "170px",
+
+            paddingLeft: isMobile ? "200px" : "1000px",   // new whatever new changes made find 'isMobile'
+
+
             height: "15px", //header purple height
             backgroundColor: "purple",
             alignItems: "center",
@@ -236,10 +258,12 @@ const MainLayout = () => {
                   paddingBottom: "25px",
                 }}
               >
-                <HomeIcon />
+                <HomeIcon style={{ fontSize: isMobile ? "20px" : "27px" }} />
               </h3>
             </Link>
           </div>
+
+
           <div>
             {/* Use Link component for navigation */}
             <Link to="/contact-us" style={{ textDecoration: "none" }}>
@@ -248,12 +272,16 @@ const MainLayout = () => {
                   color: "white",
                   paddingRight: "10px",
                   paddingBottom: "25px",
+                  fontSize: isMobile ? "14px" : "18px"
                 }}
               >
                 ContactUs
               </h3>
             </Link>
           </div>
+
+
+
           <div>
             <a href="/whats-new" style={{ textDecoration: "none" }}>
               <h3
@@ -261,6 +289,7 @@ const MainLayout = () => {
                   color: "white",
                   paddingRight: "10px",
                   paddingBottom: "25px",
+                  fontSize: isMobile ? "14px" : "18px"
                 }}
               >
                 What's New
@@ -316,10 +345,11 @@ const MainLayout = () => {
         >
           <div
             style={{
-              fontSize: "15px",
+              //fontSize: "15px",
+              fontSize: isMobile ? "10px" : "15px",
               color: "#FFC94A",
               paddingLeft: "110px",
-              marginLeft: "80px",
+              marginLeft: isMobile ? "65px" :"85px",
               height: "10px",
               fontFamily: "bold",
             }}
@@ -327,7 +357,12 @@ const MainLayout = () => {
             <h5>TM</h5>
           </div>
           <div
-            style={{ color: "#FFC94A", marginLeft: "100px", fontSize: "13px" }}
+            style={{
+              color: "#FFC94A",
+              marginLeft: "100px",
+              //fontSize: "13px",
+              fontSize: isMobile ? "10px" : "13px",
+            }}
           >
             <h1>SkyTron</h1>
           </div>
@@ -335,7 +370,9 @@ const MainLayout = () => {
           <div
             style={{
               marginLeft: "95px",
-              fontSize: "18px",
+              // fontSize: "18px",
+              fontSize: isMobile ? "12px" : "18px",
+
               fontFamily: "Caveat",
               color: "#F6F5F2",
               paddingTop: "5px",
@@ -348,33 +385,54 @@ const MainLayout = () => {
         <div
           style={{
             position: "absolute",
-            bottom: "30px",
-            left: "350px",
+            bottom: "0px",
+            //left: "350px",
+            left: isMobile ? "0px" : "350px",
             color: "white",
+            paddingLeft: isMobile ? "0px" : "0px",
+            paddingRight: isMobile ? "850px" : "0px",
+            margingLeft: isMobile ? "0px" : "0px",
+            margingRight: isMobile ? "1800px" : "0px",
           }}
         >
           <div style={{ left: "400px", paddingLeft: "160px", height: "1px" }}>
             <img
               src={amtronlogo}
               alt="Berry"
-              width={isMobile ? "40" : "38"}
-              height={isMobile ? "40" : "38"}
-              style={{ marginLeft: isMobile ? "150px" : "150px" }}
+              width={isMobile ? "30" : "38"}
+              height={isMobile ? "30" : "38"}
+              style={{
+                marginLeft: isMobile ? "60px" : "155px",
+                marginTop: isMobile ? "17px" : "10px",
+              }}
             />
           </div>
 
           <div
             style={{ marginTop: "0px", position: "relative", padding: "50px" }}
           >
-            <h2 style={{ color: "#6C0345", left: "100px", align: "center" }}>
+            <h2
+              style={{
+                color: "#6C0345",
+                left: "100px",
+                align: "center",
+                //fontSize: "20px",
+                fontSize: isMobile ? "12px" : "20px",
+              }}
+            >
               Implemented by Assam Electronics Development Corporation Ltd
             </h2>
             <h3
               style={{
                 position: "absolute",
-                left: "250px",
+                // positionLeft: isMobile ? "170px" : "250px",
+                // left: "250px",
+                left: isMobile ? "170px" : "250px",
+
                 color: "#6C0345",
                 marginBottom: "150px",
+                //fontSize: "17px",
+                fontSize: isMobile ? "11px" : "17px",
               }}
             >
               &copy; All Rights Reserved
