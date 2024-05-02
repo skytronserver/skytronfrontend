@@ -650,3 +650,39 @@ export const awaitingOwnerApproval = [
   }
 ];
 
+export const alertListColumn=[
+  {
+    name: "call_id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "Vehicle",
+    label: "Vehicle No",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "device_imei",
+    label: "Device IMEI",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+]
+

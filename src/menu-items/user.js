@@ -342,10 +342,10 @@ const user = {
           breadcrumbs: false
         },
         {
-          id: 'geo-fence-alert',
-          title: 'Geo Fence Alert',
+          id: 'alert-list',
+          title: 'Alert',
           type: 'item',
-          url: '',
+          url: '/alert-list',
           breadcrumbs: false
         },
         {

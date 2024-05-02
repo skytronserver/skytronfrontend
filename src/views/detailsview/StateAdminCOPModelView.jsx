@@ -3,7 +3,13 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Grid, Button,Typography} from "@mui/material";
+import { Grid, Button,Typography, Table,
+  TableContainer,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 
@@ -51,6 +57,7 @@ const StateAdminCOPModelView = () => {
     if (response.code === "200") {
       console.log(response);
       setShowOTP(false);
+      navigate("/deviceCOP/list");
     } else {
       console.log(response.error);
     }
@@ -63,7 +70,7 @@ const StateAdminCOPModelView = () => {
     const response = await handleSendOTPValidation(deviceOTPData);
     if (response.code === "200") {
       console.log(response);
-      setShowOTP(false);
+      setShowOTP(true);
     } else {
       console.log(response.error);
     }
@@ -119,24 +126,44 @@ const StateAdminCOPModelView = () => {
           {loading && (
             <MainCard title={`Model Name : ${deviceDetails.device_model}`}>
               <Grid container>
-                <Grid item xs={12} md={8} lg={6}>
-                  <Typography>
-                    <strong>Model Name:</strong> {deviceDetails.cop_no}
-                  </Typography>
+                {!showOTP && (
+                <Grid item xs={12} md={6} lg={6}>
+                 
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell style={{ width: "50%" }}>
+                            <strong>Model Name:</strong>
+                          </TableCell>
+                          <TableCell style={{ width: "50%" }}>
+                          {deviceDetails.cop_no}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <strong>Validity</strong>
+                          </TableCell>
+                          <TableCell>{deviceDetails.cop_validity}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <strong>COP File:</strong>
+                          </TableCell>
+                          <TableCell> {deviceDetails.cop_file}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <strong>Created By:</strong>
+                          </TableCell>
+                          <TableCell>{deviceDetails.created_by}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
 
-                  <Typography variant="body1">
-                    <strong>Test Agency:</strong> {deviceDetails.cop_validity}
-                  </Typography>
-
-                  <Typography variant="body1">
-                    <strong>Vendor ID:</strong> {deviceDetails.cop_file}
-                  </Typography>
-
-                  <Typography variant="body1">
-                    <strong>TAC No:</strong> {deviceDetails.created_by}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  <br/>
+              <Typography align="center">
               <Button
                 color="primary"
                 size="large"
@@ -144,14 +171,20 @@ const StateAdminCOPModelView = () => {
                 variant="contained"
                 onClick={handleSendOTP}
               >
-                Verify
+                Verify & Send OTP
               </Button>
+              </Typography>
+                </Grid>
+                )}
+              </Grid>
+              
               <Grid
                 container
                 spacing={2}
                 justifyContent="center"
                 alignItems="center"
               >
+                 {showOTP && (
                 <Grid item xs={12} md={5}>
                   <MuiOtpInput value={otp} onChange={handleChange} length={6} />
                   <br />
@@ -167,6 +200,7 @@ const StateAdminCOPModelView = () => {
                     </Button>
                   </Typography>
                 </Grid>
+                 )}
               </Grid>
             </MainCard>
           )}

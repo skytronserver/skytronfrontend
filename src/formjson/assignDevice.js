@@ -6,7 +6,7 @@ const retriveModelList = async () => {
     const response = await DeviceModelServices.getDeviceList();
     const list=response.data.data.map(device => ({
       value: device.id,
-      label: device.device_esn,
+      label: device.imei,
     })); 
     return list;
   } catch (error) {
