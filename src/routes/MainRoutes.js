@@ -14,6 +14,7 @@ import SOSExe from "../views/direct/SOSExe";
 import RouteFixing from "../views/direct/RouteFixing";
 import GetAllCall from "../views/direct/GetAllCall";
 import CallDetails from "../views/direct/CallDetails";
+import AlertList from "../views/reports/AlertList";
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -77,6 +78,10 @@ const MainRoutes = {
     {
       path: "sample-page",
       element: <SamplePage />,
+    },
+    {
+      path: "alert-list",
+      element: <AlertList />,
     },
   ].map((route) => applyPrivateRoute(route)),
 };

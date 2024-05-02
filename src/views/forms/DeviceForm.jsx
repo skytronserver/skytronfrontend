@@ -8,9 +8,11 @@ import DialogComponent from "../../ui-component/DialogComponent";
 import { useState } from "react";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import StockServices from "../../services/StockServices";
+import { useNavigate } from "react-router-dom";
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
 const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [alert,setAlert]=useState({
     error:false,
@@ -52,6 +54,7 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
       console.log(response)
       setLoading(false);
       resetForm(initialData);
+      navigate("/device/show-device");
     } catch (error) {
       console.error("Error :", error.message);
     }
