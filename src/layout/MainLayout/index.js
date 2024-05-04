@@ -334,7 +334,8 @@ const MainLayout = () => {
             >
               <h2
                 style={{
-                  color: "#A3FFD6",
+                  // color: "#A3FFD6",
+                  color: isMobile ?"#747264":"#39FF14",
                   fontSize: isMobile ? "12px" : "20px",
                 }}
               >
@@ -342,7 +343,8 @@ const MainLayout = () => {
               </h2>
               <h3
                 style={{
-                  color: "#A3FFD6",
+                  // color: "#A3FFD6",
+                  color: isMobile ?"#747264":"#39FF14",
                   fontSize: isMobile ? "11px" : "17px",
                 }}
               >
