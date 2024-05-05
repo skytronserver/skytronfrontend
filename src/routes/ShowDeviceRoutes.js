@@ -20,11 +20,11 @@ const ShowDevice = Loadable(
 )
 
 const ShowDeviceRoutes = {
-  path: "/show-device",
+  path: "/",
   element: <MainLayout />,
   children: [
     {
-      path: '',
+      path: 'show-device',
       element: <ShowDevice />,
     },
   ],

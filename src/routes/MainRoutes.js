@@ -26,11 +26,11 @@ const SamplePage = Loadable(lazy(() => import("../views/sample-page")));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: "/",
+ path: "/",
  element: <MainLayout />,
   children: [
     {
-      path: "/",
+      path: "dashboard",
       element: <DashboardDefault />,
     },
     {
