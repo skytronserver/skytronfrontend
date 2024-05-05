@@ -29,8 +29,8 @@ const AuthFooter = () => {
             // width="20"
             // , height: isMobile ? '63px' : '40px'
 
-            width={isMobile ? "40" : "40"}
-            height={isMobile ? "40" : "40"}
+            width={isMobile ? "40" : "38"}
+            height={isMobile ? "40" : "38"}
             style={{ marginLeft: isMobile ? "150px" : "150px" }}
           />
 

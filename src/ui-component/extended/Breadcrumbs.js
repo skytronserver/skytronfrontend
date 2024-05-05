@@ -22,7 +22,8 @@ const linkSX = {
   color: 'grey.900',
   textDecoration: 'none',
   alignContent: 'center',
-  alignItems: 'center'
+  alignItems: 'center',
+  
 };
 
 // ==============================|| BREADCRUMBS ||============================== //

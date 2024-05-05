@@ -30,9 +30,8 @@ import Car from "../../../assets/images/Car.svg";
 import Location from "../../../assets/images/Location.svg";
 import Wifi from "../../../assets/images/Wifi.svg";
 import Mobile from "../../../assets/images/Mobile.svg";
-import Aeroplane from "../../../assets/images/Aeroplane.svg";
 import Bell from "../../../assets/images/Bell.svg";
-
+import Overspeed from "../../../assets/images/Overspeed.svg";
 const ActiveState = () => {
   const [activeStateData, setActiveStateData] = useState({});
   const [totalStateData, setTotalStateData] = useState({});
@@ -109,7 +108,7 @@ const ActiveState = () => {
           cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
           label="Total Alert,This Month,Today"
           device={activeStateData}
-          address={Aeroplane}
+          address={Overspeed}
           heading="Over Speeding"
         />
       </Grid>
