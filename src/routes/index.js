@@ -7,6 +7,8 @@ import UserRoutes from './UserRoutes';
 import DeviceRoutes from './DeviceRoutes';
 import TaggingRoutes from './TaggingRoutes';
 import SettingRoutes from './SettingRoutes';
+import HomeRoutes from './HomeRoutes';
+// import Home from 'layout/MainLayout/Header/Home';
 export default function ThemeRoutes() {
-  return useRoutes([MainRoutes, AuthenticationRoutes,UserRoutes,DeviceRoutes,SettingRoutes,TaggingRoutes]);
+  return useRoutes([HomeRoutes,MainRoutes, AuthenticationRoutes,UserRoutes,DeviceRoutes,SettingRoutes,TaggingRoutes]);
 }
