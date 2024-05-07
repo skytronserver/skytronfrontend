@@ -19,21 +19,28 @@ import Manufacturer from "../views/forms/Manufacturer";
 import EsimUser from "../views/forms/EsimUser";
 import SOSAdmin from "../views/forms/SOSAdmin";
 import SOSUser from "../views/forms/SOSUser";
-const PrivateRoute = ({ element }) => {
+const PrivateRoute = ({ element,roles }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
   );*/
-  return isAuthenticated ? element : <Navigate to="/login" replace />;
+  const userRoles='admin'; // Get the user role after login from redux store
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
+    // User does not have any of the required roles
+    return <Navigate to="/" replace />;
+  }
+  return element;
 };
 
 const applyPrivateRoute = (route) => ({
   ...route,
-  element: <PrivateRoute element={route.element} />,
+  element: <PrivateRoute element={route.element} roles={route.roles}/>,
 });
 
-const NewUser=Loadable(
-  lazy(() => import("../views/user/new"))
-)
+
 const ListUser=Loadable(
   lazy(()=>import("../views/user/list"))
 )
@@ -57,6 +64,7 @@ const UserRoutes = {
     {
       path: "/user/newStateAdmin",
       element: <StateAdmin/>,
+      roles: ['admin', 'stateadmin','user']
     },
     {
       path: "/user/list",
