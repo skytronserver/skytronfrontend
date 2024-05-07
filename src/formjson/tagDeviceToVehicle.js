@@ -7,9 +7,11 @@ const fetchDeviceListForSale = async () => {
     const response = await StockServices.getAvailableDeviceList();
     const list=response.data.data.map(device => ({
       value: device.device.id,
-      label: device.device.device_esn,
+      label: device.device.imei,
     })); 
-    return list;
+    const uniqueList=[...new Map(list.map(item =>
+      [item['value'], item])).values()];
+    return uniqueList;
   } catch (error) {
     if (error.response && error.response.status === 404) {
      console.log('No Data Found')

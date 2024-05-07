@@ -107,7 +107,7 @@ function TagDeviceToVehicle() {
       setSubmitting(false);
       setLoading(false);
       resetForm(taggingInitials);
-      setDeviceId(resp.message.data.id);
+      setDeviceId(resp.message.data.device);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
