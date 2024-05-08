@@ -47,7 +47,9 @@ function Home() {
         src={skytronlogo}
         alt="logo"
         style={{ height: 'auto', width: '36px' }}
-      /><br/> SKYTRON
+      /><br/>
+      <span style={{color: "#430A5D", fontfamily:"Quantico",fontWeight:"900px",fontSize:"15px",textshadow: "2px 2px 4px"}}>SKYTRON</span>
+
             </Typography>
             <form noValidate autoComplete="off">
               <TextField
