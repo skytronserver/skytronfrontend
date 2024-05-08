@@ -1,4 +1,3 @@
-//new imp
 
 import React from "react";
 import PropTypes from "prop-types";
@@ -69,53 +68,49 @@ const Widget = ({
         
       }}
     >
-      {isLoading ? (
-        <SkeletonTotalOrderCard />
-      ) : (
-        <CardWrapper
-          border={false}
-          content={false}
-          data={cardColor}
-          onClick={onClick}
-        >
-          <Box sx={{ p: 2.25 }} >
-            <Grid container alignItems="center" >
-              <Grid item xs>
-                <Typography
-                  variant="h4"
-                  gutterBottom
-                  sx={{ color: "#fff", fontWeight: "bold" }}
-                  
-                >
-                  {heading}
-                </Typography>
-                <Box>
-                  {labelNew.map((item, index) => (
-                    <Typography
-                      key={index}
-                      sx={{
-                        fontWeight: 500,
-                        mt: 0.75,
-                        mb: 0.75,
-                      }}
-                    >
-                      {isMobile ? `${item}: ` : `${item}: ${arr[index]}`}
-                    </Typography>
-                  ))}
-                </Box>
-              </Grid>
-              <Grid item>
-                <img
-                  src={address}
-                  alt="Berry"
-                  width="50"
-                  style={{ marginLeft: "50px" }}
-                />
-              </Grid>
+      <CardWrapper
+        border={false}
+        content={false}
+        data={cardColor}
+        onClick={onClick}
+      >
+        <Box sx={{ p: 2.25 }} >
+          <Grid container alignItems="center" >
+            <Grid item xs>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{ color: "#fff", fontWeight: "bold" }}
+                
+              >
+                {heading}
+              </Typography>
+              <Box>
+                {labelNew.map((item, index) => (
+                  <Typography
+                    key={index}
+                    sx={{
+                      fontWeight: 500,
+                      mt: 0.75,
+                      mb: 0.75,
+                    }}
+                  >
+                    {`${item}: ${arr[index]}`}
+                  </Typography>
+                ))}
+              </Box>
             </Grid>
-          </Box>
-        </CardWrapper>
-      )}
+            <Grid item>
+              <img
+                src={address}
+                alt="Berry"
+                width="50"
+                style={{ marginLeft: "50px" }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+      </CardWrapper>
     </Grid>
   );
 };
