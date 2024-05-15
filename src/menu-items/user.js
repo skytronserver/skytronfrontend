@@ -209,6 +209,13 @@ const user = {
           type: 'item',
           url: '/device/assign-device',
           breadcrumbs: false
+        },
+        {
+          id: 'fit-device',
+          title: 'Configure Device',
+          type: 'item',
+          url: '/device/fit-device',
+          breadcrumbs: false
         }
       ]
     },
