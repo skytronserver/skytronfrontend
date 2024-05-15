@@ -4,10 +4,14 @@ import UserServices from "../services/UserServices";
 import SettingService from "../services/SettingService";
 const fetchDeviceListForSale = async () => {
   try {
-    const response = await StockServices.getAvailableDeviceList();
+    const filter={
+      "is_tagged":false
+    }
+    const response = await StockServices.stockFilter(filter);
+    console.log(response)
     const list=response.data.data.map(device => ({
-      value: device.device.id,
-      label: device.device.imei,
+      value: device.id,
+      label: device.imei, 
     })); 
     const uniqueList=[...new Map(list.map(item =>
       [item['value'], item])).values()];

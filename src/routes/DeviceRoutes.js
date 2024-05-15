@@ -18,6 +18,7 @@ import Loadable from "../ui-component/Loadable";
 import AssignDevice from '../views/forms/AssignDevice';
 import ShowDevice from '../views/showDevice/ShowDevice';
 import AvailableForSale from '../views/showDevice/AvailableForSale';
+import ConfigureDevice from 'views/tagging/ConfigureDevice';
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated
@@ -76,6 +77,10 @@ const DeviceRoutes = {
     {
       path: "/device/show-available-device",
       element: <AvailableForSale />,
+    },
+    {
+      path: "/device/fit-device",
+      element: <ConfigureDevice status='Available_for_fitting'/>,
     }
   ].map((route) => applyPrivateRoute(route)),
 };

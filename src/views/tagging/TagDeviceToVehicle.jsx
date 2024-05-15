@@ -16,6 +16,7 @@ function TagDeviceToVehicle() {
   const [showOTP, setShowOTP] = useState(false);
   const [deviceId, setDeviceId] = useState("");
   const [otp, setOtp] = useState("");
+  const [error,setError]=useState(false)
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -23,8 +24,15 @@ function TagDeviceToVehicle() {
   });
   
   const handleClose = () => {
-    setOpen(false);
-    setShowOTP(true);
+    if(error){
+      setOpen(false);
+      setShowOTP(false);
+      setError(false);
+    }else{
+      setOpen(false);
+      setShowOTP(true);
+    }
+   
   };
   const handleChange = (newValue) => {
     setOtp(newValue);
@@ -116,6 +124,7 @@ function TagDeviceToVehicle() {
       }));
       handleAlert("Form Not Submitted");
       setLoading(false);
+      setError(true)
     }
   };
   return (

@@ -38,8 +38,12 @@ instance.interceptors.response.use(
       // Handle 404 error here
       console.error("404 Error: Page not found");
     }
+    if(error.response && error.response.status === 500){
+      console.error("500 Error");
+    }
     return Promise.reject(error);
   }
 );
+
 
 export default instance;
