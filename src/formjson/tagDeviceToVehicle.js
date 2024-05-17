@@ -4,23 +4,24 @@ import UserServices from "../services/UserServices";
 import SettingService from "../services/SettingService";
 const fetchDeviceListForSale = async () => {
   try {
-    const filter={
-      "is_tagged":false
-    }
+    const filter = {
+      is_tagged: false,
+    };
     const response = await StockServices.stockFilter(filter);
-    console.log(response)
-    const list=response.data.data.map(device => ({
+    console.log(response);
+    const list = response.data.data.map((device) => ({
       value: device.id,
-      label: device.imei, 
-    })); 
-    const uniqueList=[...new Map(list.map(item =>
-      [item['value'], item])).values()];
+      label: device.imei,
+    }));
+    const uniqueList = [
+      ...new Map(list.map((item) => [item["value"], item])).values(),
+    ];
     return uniqueList;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log("No Data Found");
     } else {
-      console.log('No Data Found')
+      console.log("No Data Found");
     }
   }
 };
@@ -40,44 +41,49 @@ const retriveVehicleOwner = async () => {
     }
   }
 };
-const fetchVehicleCategory=async()=>{
-    try {
-        const resp=await SettingService.filter_settings_VehicleCategory();
-        const list =resp.data.map((category)=>({
-            value:category.id,
-            label:category.category
-        }));
-        return list;
-    } catch (error) {
-        if (error.response && error.response.status === 404) {
-            console.log("No Data Found");
-          } else {
-            console.log("No Data Found");
-          }
+const fetchVehicleCategory = async () => {
+  try {
+    const resp = await SettingService.filter_settings_VehicleCategory();
+    const list = resp.data.map((category) => ({
+      value: category.id,
+      label: category.category,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
     }
+  }
+};
+let deviceList = [];
+let ownerList = [];
+let categoryList = [];
+if (localStorage.getItem("oAuthToken") && sessionStorage.getItem("sessionID")) {
+  deviceList = await fetchDeviceListForSale();
+  ownerList = await retriveVehicleOwner();
+  categoryList = await fetchVehicleCategory();
 }
-const deviceList = await fetchDeviceListForSale();
-const ownerList=await retriveVehicleOwner();
-const categoryList=await fetchVehicleCategory();
 export const taggingInitials = {
-    device:"",
-    vehicle_owner:"",
-    vehicle_reg_no:"",
-    engine_no:"",
-    chassis_no:"",
-    vehicle_make:"",
-    vehicle_model:"",
-    category:"",
-    rcFile:null
+  device: "",
+  vehicle_owner: "",
+  vehicle_reg_no: "",
+  engine_no: "",
+  chassis_no: "",
+  vehicle_make: "",
+  vehicle_model: "",
+  category: "",
+  rcFile: null,
 };
 export const taggingFields = {
-    device: {
-        name: "device",
-        type: "select",
-        label: "Device",
-        validation: Yup.string().required("Device is required"),
-        options: deviceList,
-      },
+  device: {
+    name: "device",
+    type: "select",
+    label: "Device",
+    validation: Yup.string().required("Device is required"),
+    options: deviceList,
+  },
   vehicle_owner: {
     name: "vehicle_owner",
     type: "select",
@@ -120,12 +126,12 @@ export const taggingFields = {
     type: "select",
     label: "Vehicle Category",
     validation: Yup.string().required("Vehicle Category is required"),
-    options:categoryList,
+    options: categoryList,
   },
   rcFile: {
     name: "rcFile",
     type: "file",
     label: "Registration Certificate",
     validation: Yup.mixed().required("Registration Certificate is required"),
-  }
+  },
 };

@@ -16,8 +16,10 @@ const retriveModelList = async () => {
     }
   }
 };
-
-const modelList = await retriveModelList();
+let modelList=[];
+  if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
+    modelList = await retriveModelList();
+  }
 export const hpFrequencyInitials = {
   devicemodel: "",
   freq: "",

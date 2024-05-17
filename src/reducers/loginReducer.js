@@ -1,13 +1,17 @@
 // userReducer.js
-import { SET_USER, SET_LOADING, SET_ERROR } from '../store/constant';
+import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP } from '../store/constant';
 const initialState = {
   user: {
     isAuthenticated:false,
     token:null,
-    email:null
+    email:null,
+    otpToken:null,
   },
   loading: false,
-  error: null,
+  error: {
+    message:null,
+    code:null
+  },
 };
 const loginReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -16,6 +20,12 @@ const loginReducer = (state = initialState, action) => {
         ...state,
         user: action.payload,
       };
+    case VERIFY_OTP:{
+      return {
+        ...state,
+        user: action.payload,
+      };
+    }
     case SET_LOADING:
       return {
         ...state,

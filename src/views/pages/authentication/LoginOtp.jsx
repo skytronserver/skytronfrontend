@@ -1,33 +1,37 @@
 import { Link } from "react-router-dom";
-
+import {useState} from 'react';
 // material-ui
 import { useTheme } from "@mui/material/styles";
-import { Divider, Grid, Stack, Typography, useMediaQuery } from "@mui/material";
-import { useSelector } from "react-redux";
+import { Divider, Grid, Stack, Typography, useMediaQuery,Button } from "@mui/material";
+import { useSelector,useDispatch } from "react-redux";
 import { Navigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 // project imports
-import AuthWrapper1 from "../AuthWrapper1";
-import AuthCardWrapper from "../AuthCardWrapper";
-import AuthLogin from "../auth-forms/AuthLogin";
-import Logo from "../../../../ui-component/Logo";
-import AuthFooter from "../../../../ui-component/cards/AuthFooter";
-
-// assets
-
-// ================================|| AUTH3 - LOGIN ||================================ //
-
-const Login = () => {
+import AuthWrapper1 from "./AuthWrapper1";
+import AuthCardWrapper from "./AuthCardWrapper";
+import AuthFooter from "../../../ui-component/cards/AuthFooter";
+import { MuiOtpInput } from "mui-one-time-password-input";
+import { verifyOtp } from "../../../actions/loginActions";
+const LoginOtp = () => {
+  const dispatch = useDispatch();
+  const [otp, setOtp] = useState("");
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
-  const isAuthenticated = useSelector(
-    (state) => state.login.user.isAuthenticated
-  );
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated);
+  const userEmail=useSelector((state) => state.login.user.email);
+  const otpToken=useSelector((state) => state.login.user.otpToken);
   const loading = useSelector((state) => state.login.loading);
   const error = useSelector((state) => state.login.error);
+  console.log(error)
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
+  const handleChange = (newValue) => {
+    setOtp(newValue);
+  };
+  const handleOTPSubmit = async () => {
+    dispatch(verifyOtp(otpToken,otp,userEmail));
+  };
   return (
     <AuthWrapper1>
       <Grid
@@ -62,7 +66,7 @@ const Login = () => {
                   </Grid>
                 </Grid>
               )}
-              {!isAuthenticated && !loading && (
+              {(
                 <AuthCardWrapper>
                   <Grid
                     container
@@ -70,11 +74,12 @@ const Login = () => {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Grid item sx={{ mb: 3 }}>
+                    {/* Logo Section */}
+                    {/* <Grid item sx={{ mb: 3 }}>
                       <Link to="#">
                         <Logo />
                       </Link>
-                    </Grid>
+                    </Grid> */}
                     <Grid item xs={12}>
                       <Grid
                         container
@@ -93,24 +98,38 @@ const Login = () => {
                               gutterBottom
                               variant={matchDownSM ? "h3" : "h2"}
                             >
-                              Hi, Welcome Back
+                             SKYTRON
                             </Typography>
                             <Typography
                               variant="caption"
                               fontSize="16px"
                               textAlign={matchDownSM ? "center" : "inherit"}
                             >
-                              Enter your credentials to continue
+                              Enter your OTP sent to your Mobile No 
                             </Typography>
                           </Stack>
                         </Grid>
                       </Grid>
                     </Grid>
                     <Grid item xs={12}>
-                      <AuthLogin />
+                    <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                    <br/>
+                    <Typography align="center">
+                    <Button
+                      color="primary"
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      onClick={handleOTPSubmit}
+                    >
+                      Verify OTP
+                    </Button>
+                  </Typography>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid item xs={12} alignItems="center"
+                        justifyContent="center">
                       <Divider />
+                      {error.message!=null && <Typography style={{color:"red",textAlign:'center'}}>Invalid OTP</Typography>}
                     </Grid>
                   </Grid>
                 </AuthCardWrapper>
@@ -126,4 +145,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginOtp;

@@ -33,9 +33,13 @@ const retriveModelList = async () => {
     }
   }
 };
+let stateList=[];
+let modelList=[];
+if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
+   modelList = await retriveModelList();
+   stateList=await retriveStateList();
+}
 
-const modelList = await retriveModelList();
-const stateList=await retriveStateList();
 export const ipSettingInitials = {
     state:"",
     devicemodel:"",
