@@ -32,8 +32,12 @@ const retriveDistrictList = async () => {
       }
     }
   };
-const stateList=await retriveStateList();
-const districtList=await retriveDistrictList();
+  let stateList=[];
+  let districtList=[];
+  if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
+    stateList=await retriveStateList();
+    districtList=await retriveDistrictList();
+  }
 export const sosUserInitialValues = {
   name: "",
   mobile: "",

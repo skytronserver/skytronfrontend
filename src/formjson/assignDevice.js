@@ -33,8 +33,13 @@ const retriveDealerList=async()=>{
            }
     }
 }
-const modelList=await retriveModelList();
-const dealerList=await retriveDealerList();
+let modelList=[];
+let dealerList=[];
+if(localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')){
+  modelList=await retriveModelList();
+  dealerList=await retriveDealerList();
+}
+
 export const assignDeviceInitials = {
     dealer:"",
     device:[],

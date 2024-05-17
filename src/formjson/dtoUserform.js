@@ -1,5 +1,6 @@
 import * as Yup from "yup"; 
 import SettingService from "../services/SettingService";
+
 const retriveStateList = async () => {
   try {
     const response = await SettingService.filter_settings_State();
@@ -32,8 +33,12 @@ const retriveDistrictList = async () => {
       }
     }
   };
-const stateList=await retriveStateList();
-const districtList=await retriveDistrictList();
+  let stateList=[];
+  let districtList=[];
+  if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
+    stateList=await retriveStateList();
+    districtList=await retriveDistrictList();
+  }
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
