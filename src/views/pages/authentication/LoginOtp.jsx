@@ -12,6 +12,7 @@ import AuthCardWrapper from "./AuthCardWrapper";
 import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { verifyOtp } from "../../../actions/loginActions";
+import { createAxiosInstance } from '../../../services/axiosInstance';
 const LoginOtp = () => {
   const dispatch = useDispatch();
   const [otp, setOtp] = useState("");
@@ -20,10 +21,11 @@ const LoginOtp = () => {
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated);
   const userEmail=useSelector((state) => state.login.user.email);
   const otpToken=useSelector((state) => state.login.user.otpToken);
+  const token=useSelector((state) => state.login.user.token);
   const loading = useSelector((state) => state.login.loading);
   const error = useSelector((state) => state.login.error);
-  console.log(error)
   if (isAuthenticated) {
+    createAxiosInstance(token);
     return <Navigate to="/dashboard" replace />;
   }
   const handleChange = (newValue) => {

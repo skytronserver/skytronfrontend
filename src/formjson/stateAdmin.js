@@ -18,9 +18,13 @@ const retriveStateList = async () => {
 };
 
 let stateList=[];
-  if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
-    stateList=await retriveStateList();
-  }
+
+export const updateStateListAndConfigurations = async () => {
+    if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
+      const newList = await retriveStateList();
+      stateList = newList;
+    }
+};
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];

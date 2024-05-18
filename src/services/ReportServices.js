@@ -1,6 +1,6 @@
-import http from './http-common';
-
+import { getAxiosInstance } from './axiosInstance'; 
 const alertList = (data) => {
+  const http = getAxiosInstance();
   return http.post("/api/list-alerts/",data);
 };
 ;

@@ -1,6 +1,7 @@
-import http from "./http-common";
+import { getAxiosInstance } from './axiosInstance';
 
 const homePage = (homePage) => {
+  const http = getAxiosInstance(); 
     return http.post(
       "https://skytrack.tech:2000/api/homepageandstat/homepage/",
       homePage
