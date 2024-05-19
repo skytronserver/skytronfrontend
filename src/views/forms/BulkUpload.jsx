@@ -5,12 +5,29 @@ import { Grid, Button } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
+import {retriveModelList} from "../../helper";
 import { bulkInitials, bulkFormField } from "../../formjson/bulkUpload";
 import StockServices from "../../services/StockServices";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 
 const BulkUpload = () => {
   const [loading, setLoading] = useState(false);
+  const [updatedFormFields,setUpdatedFormField]=useState(bulkFormField);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  useEffect(()=>{
+    (async()=>{
+    const modelList=await retriveModelList();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      model_id: {
+        ...prevConfig.model_id,
+        options: modelList,
+      },
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[])
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -20,8 +37,8 @@ const BulkUpload = () => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(bulkFormField).reduce((acc, field) => {
-      acc[field] = bulkFormField[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -63,7 +80,7 @@ const BulkUpload = () => {
   };
   return (
     <MainCard title="Bulk Upload Stocks">
-      <Formik
+      {isFormLoaded && <Formik
         initialValues={bulkInitials}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
@@ -72,10 +89,10 @@ const BulkUpload = () => {
         {(formik) => (
           <form onSubmit={formik.handleSubmit}>
             <Grid container spacing={2} className="form-controller">
-              {Object.keys(bulkFormField).map((field) => (
+              {Object.keys(updatedFormFields).map((field) => (
                 <Grid key={field} item md={4} sm={12} xs={12}>
                   <FormField
-                    fieldConfig={bulkFormField[field]}
+                    fieldConfig={updatedFormFields[field]}
                     formik={formik}
                     handleFileChange={handleFileChange}
                   />
@@ -106,6 +123,7 @@ const BulkUpload = () => {
           </form>
         )}
       </Formik>
+      }
     </MainCard>
   );
 };

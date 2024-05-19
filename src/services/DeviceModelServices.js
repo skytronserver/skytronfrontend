@@ -1,17 +1,22 @@
-import http from "./http-common";
+import { getAxiosInstance } from './axiosInstance';
 const getAllModels = () => {
+  const http = getAxiosInstance(); 
   return http.get("/api/devicemodel/devicemodelList/");
 };
 const getAdminAwaitingModels = () => {
+  const http = getAxiosInstance(); 
   return http.get("/api/devicemodel/devicemodelAwaitingStateApproval/");
 };
 const getAdminAwaitingCOPModels = () => {
+  const http = getAxiosInstance(); 
   return http.get("/api/devicemodel/COPAwaitingStateApproval/");
 };
 const getModel = (id) => {
+  const http = getAxiosInstance(); 
   return http.post(`api/devicemodel/devicemodelDetails/`,id);
 };
 const createModel = (data) => {
+  const http = getAxiosInstance(); 
   return http.post("/api/devicemodel/devicemodelCreate/", data,{
     headers: {
       'Content-type': 'multipart/form-data',
@@ -19,6 +24,7 @@ const createModel = (data) => {
   });
 };
 const copUpload=(data)=>{
+  const http = getAxiosInstance(); 
   return http.post("/api/devicemodel/COPUpload/",data,{
     headers: {
       'Content-type': 'multipart/form-data',
@@ -26,12 +32,15 @@ const copUpload=(data)=>{
   })
 }
 const updateModel = (id, updatedData) => {
+  const http = getAxiosInstance(); 
   return http.put(`/api/update_device_model/${id}`, updatedData);
 };
 const deleteModel = (id) => {
+  const http = getAxiosInstance(); 
   return http.delete(`/api/delete_device_model/${id}`);
 };
-const getDeviceList=(data)=>{          // show device
+const getDeviceList=(data)=>{  
+  const http = getAxiosInstance();         // show device
   return http.post("/api/devicestock/deviceStockFilter/",data)            
 }
 const DeviceModelServices = {

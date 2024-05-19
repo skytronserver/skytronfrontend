@@ -6,9 +6,13 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray } from "../../helper";
+import {
+  convertErrorObjectToArray,
+  retriveDistrictList,
+  retriveStateList,
+} from "../../helper";
 import {sosUserFormField,sosUserInitialValues} from "../../formjson/sosUser"
 const SOSUser = () => {
   const [open, setOpen] = useState(false);
@@ -18,6 +22,27 @@ const SOSUser = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [updatedFormFields, setUpdatedFormField] = useState(sosUserFormField);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  useEffect(() => {
+    console.log("This");
+    (async () => {
+      const stateList = await retriveStateList();
+      const districtList = await retriveDistrictList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        state: {
+          ...prevConfig.state,
+          options: stateList,
+        },
+        district: {
+          ...prevConfig.district,
+          options: districtList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/user/registeredUser");
@@ -37,8 +62,8 @@ const SOSUser = () => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(sosUserFormField).reduce((acc, field) => {
-      acc[field] = sosUserFormField[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -124,7 +149,7 @@ const SOSUser = () => {
           }}
         >
           <MainCard title="Create SOS User">
-            <Formik
+           {isFormLoaded && <Formik
               initialValues={sosUserInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
@@ -133,10 +158,10 @@ const SOSUser = () => {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(sosUserFormField).map((field) => (
+                    {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={sosUserFormField[field]}
+                          fieldConfig={updatedFormFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -156,6 +181,7 @@ const SOSUser = () => {
                 </form>
               )}
             </Formik>
+          }
           </MainCard>
         </Grid>
       </Grid>

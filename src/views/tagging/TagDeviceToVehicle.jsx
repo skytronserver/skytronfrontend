@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Grid ,Typography} from "@mui/material";
+import { Button, CircularProgress, Grid, Typography } from "@mui/material";
 import { Formik } from "formik";
 import React, { useState, useEffect } from "react";
 import { gridSpacing } from "../../store/constant";
@@ -7,8 +7,16 @@ import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
-import { convertErrorObjectToArray } from "helper";
-import { taggingFields,taggingInitials } from "../../formjson/tagDeviceToVehicle";
+import {
+  convertErrorObjectToArray,
+  retriveVehicleOwner,
+  fetchDeviceListForSale,
+  fetchVehicleCategory,
+} from "helper";
+import {
+  taggingFields,
+  taggingInitials,
+} from "../../formjson/tagDeviceToVehicle";
 import { MuiOtpInput } from "mui-one-time-password-input";
 function TagDeviceToVehicle() {
   const [open, setOpen] = useState(false);
@@ -16,24 +24,50 @@ function TagDeviceToVehicle() {
   const [showOTP, setShowOTP] = useState(false);
   const [deviceId, setDeviceId] = useState("");
   const [otp, setOtp] = useState("");
-  const [error,setError]=useState(false)
+  const [error, setError] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
     message: "",
     errorList: [],
   });
-  
+
   const handleClose = () => {
-    if(error){
+    if (error) {
       setOpen(false);
       setShowOTP(false);
       setError(false);
-    }else{
+    } else {
       setOpen(false);
       setShowOTP(true);
     }
-   
   };
+  const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  useEffect(() => {
+    console.log("This");
+    (async () => {
+      const deviceList = await fetchDeviceListForSale();
+      const ownerList = await retriveVehicleOwner();
+      const categoryList = await fetchVehicleCategory();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+
+        device: {
+          ...prevConfig.device,
+          options: deviceList,
+        },
+        vehicle_owner: {
+          ...prevConfig.vehicle_owner,
+          options: ownerList,
+        },
+        category: {
+          ...prevConfig.category,
+          options: categoryList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
@@ -65,7 +99,7 @@ function TagDeviceToVehicle() {
       };
     }
   };
- 
+
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -79,8 +113,8 @@ function TagDeviceToVehicle() {
   };
 
   const validationTagging = Yup.object(
-    Object.keys(taggingFields).reduce((acc, field) => {
-      acc[field] = taggingFields[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -98,10 +132,7 @@ function TagDeviceToVehicle() {
       };
     }
   };
-  const handleTagging = async (
-    values,
-    { setSubmitting, resetForm }
-  ) => {
+  const handleTagging = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
     const resp = await tagDevice(values);
@@ -124,7 +155,7 @@ function TagDeviceToVehicle() {
       }));
       handleAlert("Form Not Submitted");
       setLoading(false);
-      setError(true)
+      setError(true);
     }
   };
   return (
@@ -167,40 +198,42 @@ function TagDeviceToVehicle() {
           }}
         >
           <MainCard title="Tag Device to Vehicle">
-          {!showOTP ? (
-            <Formik
-              initialValues={taggingInitials}
-              validationSchema={validationTagging}
-              onSubmit={handleTagging}
-              enableReinitialize
-            >
-              {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(taggingFields).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={taggingFields[field]}
-                          formik={formik}
-                          handleFileChange={handleFileChange}
-                        />
+            {!showOTP ? (
+              isFormLoaded && (
+                <Formik
+                  initialValues={taggingInitials}
+                  validationSchema={validationTagging}
+                  onSubmit={handleTagging}
+                  enableReinitialize
+                >
+                  {(formik) => (
+                    <form onSubmit={formik.handleSubmit}>
+                      <Grid container spacing={2} className="form-controller">
+                        {Object.keys(updatedFormFields).map((field) => (
+                          <Grid key={field} item md={6} sm={12} xs={12}>
+                            <FormField
+                              fieldConfig={updatedFormFields[field]}
+                              formik={formik}
+                              handleFileChange={handleFileChange}
+                            />
+                          </Grid>
+                        ))}
+                        <Grid item xs={12} style={{ marginTop: "20px" }}>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            disabled={loading}
+                          >
+                            Submit
+                          </Button>
+                        </Grid>
                       </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={loading}
-                      >
-                        Submit
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </form>
-              )}
-            </Formik>
-             ) : (
+                    </form>
+                  )}
+                </Formik>
+              )
+            ) : (
               <Grid
                 container
                 spacing={2}

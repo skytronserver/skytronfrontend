@@ -1,44 +1,8 @@
 import * as Yup from "yup"; 
-import SettingService from "../services/SettingService";
 
-const retriveStateList = async () => {
-  try {
-    const response = await SettingService.filter_settings_State();
-    const list=response.data.map(device => ({
-      value: device.id,
-      label: device.state,
-    })); 
-    return list;
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
-    } else {
-      console.log('No Data Found')
-    }
-  }
-};
-const retriveDistrictList = async () => {
-    try {
-      const response = await SettingService.filter_settings_District();
-      const list=response.data.map(device => ({
-        value: device.id,
-        label: device.district,
-      })); 
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-       console.log('No Data Found')
-      } else {
-        console.log('No Data Found')
-      }
-    }
-  };
   let stateList=[];
   let districtList=[];
-  if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
-    stateList=await retriveStateList();
-    districtList=await retriveDistrictList();
-  }
+
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];

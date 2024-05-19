@@ -5,18 +5,53 @@ import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
+import SettingService from "../../services/SettingService";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
 import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
 const StateAdmin = () => {
+  const [updatedFormFields,setUpdatedFormField]=useState(stateAdminField);
+  const [isFormLoaded,setIsFormLoaded]=useState(false)
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
     message: "",
     errorList: [],
   });
+  //Changes from here
+  const retriveStateList = async () => {
+    try {
+      const response = await SettingService.filter_settings_State();
+      const list=response.data.map(device => ({
+        value: device.id,
+        label: device.state,
+      })); 
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+       console.log('No Data Found')
+      } else {
+        console.log('No Data Found')
+      }
+    }
+  };
+  useEffect(()=>{
+    (async()=>{
+    const stateList=await retriveStateList();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      state: {
+        ...prevConfig.state,
+        options: stateList,
+      },
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[])
+//Changes till here
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const handleClose = () => {
@@ -35,10 +70,10 @@ const StateAdmin = () => {
       formik.setFieldValue(fieldName, selectedFile);
     }
   };
-
+//Validation Scheme needs formmik need
   const validationSchema = Yup.object(
-    Object.keys(stateAdminField).reduce((acc, field) => {
-      acc[field] = stateAdminField[field].validation;
+    Object.keys(setUpdatedFormField).reduce((acc, field) => {
+      acc[field] = setUpdatedFormField[field].validation;
       return acc;
     }, {})
   );
@@ -125,7 +160,7 @@ const StateAdmin = () => {
           }}
         >
           <MainCard title="Create State Admin">
-            <Formik
+            {isFormLoaded && <Formik
               initialValues={stateAdminInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
@@ -134,10 +169,10 @@ const StateAdmin = () => {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(stateAdminField).map((field) => (
+                    {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={stateAdminField[field]}
+                          fieldConfig={updatedFormFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -157,6 +192,7 @@ const StateAdmin = () => {
                 </form>
               )}
             </Formik>
+            }
           </MainCard>
         </Grid>
       </Grid>

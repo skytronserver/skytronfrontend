@@ -2,7 +2,7 @@
 import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP } from '../store/constant';
 const initialState = {
   user: {
-    isAuthenticated:false,
+    isAuthenticated:true,
     token:null,
     email:null,
     otpToken:null,
@@ -21,6 +21,12 @@ const loginReducer = (state = initialState, action) => {
         user: action.payload,
       };
     case VERIFY_OTP:{
+      return {
+        ...state,
+        user: action.payload,
+      };
+    }
+    case "LOGOUT_USER":{
       return {
         ...state,
         user: action.payload,

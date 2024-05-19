@@ -12,11 +12,11 @@ import {
   ipSettingInitials,
   ipSettingFormFields,
 } from "../../formjson/ipSetting";
-import {useSelector,useDispatch} from 'react-redux'
-import { fetchIPSettingList } from '../../actions/settingAction';
-import DynamicDatatables from '../../datatables/DynamicDatatables';
-import {ipSettingColumns} from '../../datatables/settingColumns';
-
+import { useSelector, useDispatch } from "react-redux";
+import { fetchIPSettingList } from "../../actions/settingAction";
+import DynamicDatatables from "../../datatables/DynamicDatatables";
+import { ipSettingColumns } from "../../datatables/settingColumns";
+import { retriveModelList, retriveStateList } from "../../helper";
 function IPSetting() {
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState(false);
@@ -27,17 +27,37 @@ function IPSetting() {
   });
   const [loading, setLoading] = useState(false);
 
-  const dispatch=useDispatch();
-  const ipSettingList=useSelector((state)=>state.setting.ipSettingList);
-
-  useEffect(()=>{
+  const dispatch = useDispatch();
+  const ipSettingList = useSelector((state) => state.setting.ipSettingList);
+  const [updatedFormFields, setUpdatedFormField] =
+    useState(ipSettingFormFields);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const modelList = await retriveModelList();
+      const stateList = await retriveStateList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        state: {
+          ...prevConfig.state,
+          options: stateList,
+        },
+        devicemodel: {
+          ...prevConfig.devicemodel,
+          options: modelList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
+  useEffect(() => {
     const retriveIpSetting = async () => {
-      const response=await SettingService.filter_settings_ip();
-      dispatch(fetchIPSettingList(response.data)) ;
-      setLoad(true)
+      const response = await SettingService.filter_settings_ip();
+      dispatch(fetchIPSettingList(response.data));
+      setLoad(true);
     };
     retriveIpSetting();
-  },[dispatch])
+  }, [dispatch]);
   const handleClose = () => {
     setOpen(false);
   };
@@ -48,8 +68,8 @@ function IPSetting() {
   };
 
   const validationIPSettingSchema = Yup.object(
-    Object.keys(ipSettingFormFields).reduce((acc, field) => {
-      acc[field] = ipSettingFormFields[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -134,51 +154,63 @@ function IPSetting() {
           }}
         >
           <MainCard title="IP Setting">
-            <Formik
-              initialValues={ipSettingInitials}
-              validationSchema={validationIPSettingSchema}
-              onSubmit={handleIPSettingSubmit}
-              enableReinitialize
-            >
-              {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(ipSettingFormFields).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={ipSettingFormFields[field]}
-                          formik={formik}
-                        />
+            {isFormLoaded && (
+              <Formik
+                initialValues={ipSettingInitials}
+                validationSchema={validationIPSettingSchema}
+                onSubmit={handleIPSettingSubmit}
+                enableReinitialize
+              >
+                {(formik) => (
+                  <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={2} className="form-controller">
+                      {Object.keys(updatedFormFields).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={updatedFormFields[field]}
+                            formik={formik}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={loading}
+                        >
+                          Submit
+                        </Button>
                       </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={loading}
-                      >
-                        Submit
-                      </Button>
                     </Grid>
-                  </Grid>
-                </form>
-              )}
-            </Formik>
+                  </form>
+                )}
+              </Formik>
+            )}
           </MainCard>
         </Grid>
       </Grid>
-      <br/>
+      <br />
       <Grid container spacing={gridSpacing}>
-        <Grid item xs={12} style={{
+        <Grid
+          item
+          xs={12}
+          style={{
             opacity: loading ? 0.5 : 1,
             transition: "opacity 0.3s ease-in-out",
-          }}>
+          }}
+        >
           <MainCard title="IP Setting Report List">
-        {load && <DynamicDatatables tableTitle="" rows={ipSettingList} columns={ipSettingColumns}/>}
-        </MainCard>
+            {load && (
+              <DynamicDatatables
+                tableTitle=""
+                rows={ipSettingList}
+                columns={ipSettingColumns}
+              />
+            )}
+          </MainCard>
         </Grid>
-    </Grid>
+      </Grid>
     </>
   );
 }

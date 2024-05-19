@@ -1,4 +1,7 @@
 import DeviceModelServices from "../services/DeviceModelServices";
+import SettingService from "../services/SettingService";
+import StockServices from "../services/StockServices";
+import UserServices from "../services/UserServices";
 export const retriveModelList = async () => {
   try {
     const response = await DeviceModelServices.getAllModels();
@@ -15,6 +18,94 @@ export const retriveModelList = async () => {
     }
   }
 };
+
+export const retriveStateList = async () => {
+  try {
+    const response = await SettingService.filter_settings_State();
+    const list=response.data.map(device => ({
+      value: device.id,
+      label: device.state,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+  }
+};
+export const retriveDistrictList = async () => {
+    try {
+      const response = await SettingService.filter_settings_District();
+      const list=response.data.map(device => ({
+        value: device.id,
+        label: device.district,
+      })); 
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+       console.log('No Data Found')
+      } else {
+        console.log('No Data Found')
+      }
+    }
+  };
+export const fetchDeviceListForSale = async () => {
+    try {
+      const filter = {
+        is_tagged: false,
+      };
+      const response = await StockServices.stockFilter(filter);
+      console.log(response);
+      const list = response.data.data.map((device) => ({
+        value: device.id,
+        label: device.imei,
+      }));
+      const uniqueList = [
+        ...new Map(list.map((item) => [item["value"], item])).values(),
+      ];
+      return uniqueList;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
+export const retriveVehicleOwner = async () => {
+    try {
+      const response = await UserServices.fetchVehicleOwner();
+      const list = response.data.map((owner) => ({
+        value: owner.id,
+        label: owner.users[0].name,
+      }));
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
+export const fetchVehicleCategory = async () => {
+    try {
+      const resp = await SettingService.filter_settings_VehicleCategory();
+      const list = resp.data.map((category) => ({
+        value: category.id,
+        label: category.category,
+      }));
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
 export const updateObjectValues = (targetObject, sourceObject, excludeKeys = []) => {
     for (const key in targetObject) {
       if (sourceObject.hasOwnProperty(key) && !excludeKeys.includes(key)) {

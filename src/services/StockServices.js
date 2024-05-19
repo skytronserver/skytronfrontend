@@ -1,19 +1,24 @@
-import http from "./http-common";
+import { getAxiosInstance } from './axiosInstance'; 
 const getBulkStocks = () => {
+  const http = getAxiosInstance();
   return http.get("/api/devicestock/deviceStockBulkSample/", {
     responseType: "arraybuffer",
   });
 };
 const stockFilter = (data) => {
+  const http = getAxiosInstance();
   return http.post("/api/devicestock/deviceStockFilter/", data);
 };
 const stockAssignToRetailer = (data) => {
+  const http = getAxiosInstance();
   return http.post("/api/devicestock/StockAssignToRetailer/", data);
 };
 const createStock = (data) => {
+  const http = getAxiosInstance();
   return http.post("api/devicestock/deviceStockCreate/", data);
 };
 const createBulkStock = (data) => {
+  const http = getAxiosInstance();
   return http.post("/api/devicestock/deviceStockCreateBulk/", data, {
     headers: {
       "Content-type": "multipart/form-data",
@@ -21,9 +26,11 @@ const createBulkStock = (data) => {
   });
 };
 const getAvailableDeviceList = (data) => {
+  const http = getAxiosInstance();
   return http.get("/api/sell/SellListAvailableDeviceStock/",data);
 };
 const devicePatch = (id,action)=>{
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
@@ -40,12 +47,14 @@ const devicePatch = (id,action)=>{
   }
 }
 const markAsDefective = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
   return http.patch("/api/sell/mark_device_defective/", device);
 };
 const returnToManufacturer = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
@@ -53,12 +62,14 @@ const returnToManufacturer = (id) => {
 };
 
 const sellFitDevice = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
   return http.patch("/api/sell/SellFitDevice/", device);
 };
 const configureSMSGateway = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
@@ -66,6 +77,7 @@ const configureSMSGateway = (id) => {
 };
 
 const configureSOSGateway = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
@@ -73,18 +85,21 @@ const configureSOSGateway = (id) => {
 };
 
 const configureIPPort = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
   return http.patch("/api/sell/configure_ip_port/", device);
 };
 const configureESimAct = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
   return http.patch("/api/sell/confirm_esim_activation/", device);
 };
 const activateEsimReq = (id) => {
+  const http = getAxiosInstance();
   const device = {
     device_id: id,
   };

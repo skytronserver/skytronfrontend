@@ -6,9 +6,9 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray } from "../../helper";
+import { convertErrorObjectToArray,retriveStateList,retriveDistrictList } from "../../helper";
 import {dtoInitialsValues,dtoFormFields} from "../../formjson/dtoUserform"
 const DtoRto = () => {
   const [open, setOpen] = useState(false);
@@ -18,6 +18,28 @@ const DtoRto = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [updatedFormFields,setUpdatedFormField]=useState(dtoFormFields);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  useEffect(()=>{
+    console.log('This');
+    (async()=>{
+    const stateList=await retriveStateList();
+    const districtList=await retriveDistrictList();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      state: {
+        ...prevConfig.state,
+        options: stateList,
+      },
+      district: {
+        ...prevConfig.district,
+        options: districtList,
+      },
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[])
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/user/registeredUser");
@@ -37,8 +59,8 @@ const DtoRto = () => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(dtoFormFields).reduce((acc, field) => {
-      acc[field] = dtoFormFields[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -124,7 +146,7 @@ const DtoRto = () => {
           }}
         >
           <MainCard title="Create DTO/RTO">
-            <Formik
+            {isFormLoaded && <Formik
               initialValues={dtoInitialsValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
@@ -133,10 +155,10 @@ const DtoRto = () => {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(dtoFormFields).map((field) => (
+                    {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={dtoFormFields[field]}
+                          fieldConfig={updatedFormFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -156,6 +178,7 @@ const DtoRto = () => {
                 </form>
               )}
             </Formik>
+            }
           </MainCard>
         </Grid>
       </Grid>

@@ -4,6 +4,7 @@ import { lazy } from "react";
 import Loadable from "../ui-component/Loadable";
 import MinimalLayout from "../layout/MinimalLayout";
 import LoginOtp from "../views/pages/authentication/LoginOtp";
+import ResetPassword from "../views/pages/authentication/ResetPassword";
 
 // login option 3 routing
 const AuthLogin3 = Loadable(
@@ -22,6 +23,10 @@ const AuthenticationRoutes = {
     {
       path: "/otp-login",
       element: <LoginOtp />,
+    },
+    {
+      path:"/new/:reset_token",
+      element:<ResetPassword/>
     }
   ],
 };

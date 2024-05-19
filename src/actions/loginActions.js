@@ -19,6 +19,10 @@ export const setOtp=(user)=>({
   type:VERIFY_OTP,
   payload:user,
 })
+export const logoutUser=(user)=>({
+  type:"LOGOUT_USER",
+  payload:user,
+})
 export const loginUser = (username, password) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
@@ -57,12 +61,13 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     });
     const responseData={
       isAuthenticated:true,
-      token:"Token "+response.data.token,
+      token:response.data.token,
       email:username,
       otpToken:null
     }
+    sessionStorage.setItem('isAuthenticated',true);
     sessionStorage.setItem('sessionID', Date.now());
-    localStorage.setItem('oAuthToken', "Token "+response.data.token);
+    localStorage.setItem('oAuthToken', response.data.token);
     const errorData={
       message:null,
       status:null,
@@ -77,5 +82,32 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     dispatch(setError(errorData));
   }finally{
     dispatch(setLoading(false));
+  }
+}
+export const logout=()=>async(dispatch)=>{
+  const setData={
+    isAuthenticated:false,
+    token:null,
+    email:null,
+    otpToken:null
+  }
+  const header = {
+    "Content-type": "application/json",
+    "Authorization": "Token "+localStorage.getItem('oAuthToken'),
+  };
+  try{
+    await axios.post('https://skytrack.tech:2000/api/user_logout/',{
+      "token":localStorage.getItem('oAuthToken')
+    },{
+      headers:header
+    });
+    dispatch(setUser(setData));
+  }catch(error){
+    dispatch(setUser(setData));
+  }finally{
+    sessionStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('sessionID');
+    localStorage.removeItem('oAuthToken');
+    dispatch(setUser(setData));
   }
 }
