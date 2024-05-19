@@ -6,10 +6,14 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray } from "../../helper";
-import {sosUserFormField,sosUserInitialValues} from "../../formjson/sosUser"
+import {
+  convertErrorObjectToArray,
+  retriveDistrictList,
+  retriveStateList,
+} from "../../helper";
+import { sosUserFormField, sosUserInitialValues } from "../../formjson/sosUser";
 const SOSAdmin = () => {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
@@ -18,6 +22,26 @@ const SOSAdmin = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [updatedFormFields, setUpdatedFormField] = useState(sosUserFormField);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const stateList = await retriveStateList();
+      const districtList = await retriveDistrictList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        state: {
+          ...prevConfig.state,
+          options: stateList,
+        },
+        district: {
+          ...prevConfig.district,
+          options: districtList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/user/registeredUser");
@@ -37,8 +61,8 @@ const SOSAdmin = () => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(sosUserFormField).reduce((acc, field) => {
-      acc[field] = sosUserFormField[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -61,10 +85,10 @@ const SOSAdmin = () => {
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
-        ...values,
-        role: "sosadmin",
-        createdby: 37,
-      };
+      ...values,
+      role: "sosadmin",
+      createdby: 37,
+    };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
@@ -124,38 +148,40 @@ const SOSAdmin = () => {
           }}
         >
           <MainCard title="Create SOS Admin">
-            <Formik
-              initialValues={sosUserInitialValues}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
-              enableReinitialize
-            >
-              {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(sosUserFormField).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={sosUserFormField[field]}
-                          formik={formik}
-                          handleFileChange={handleFileChange}
-                        />
+            {isFormLoaded && (
+              <Formik
+                initialValues={sosUserInitialValues}
+                validationSchema={validationSchema}
+                onSubmit={handleSubmit}
+                enableReinitialize
+              >
+                {(formik) => (
+                  <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={2} className="form-controller">
+                      {Object.keys(updatedFormFields).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={updatedFormFields[field]}
+                            formik={formik}
+                            handleFileChange={handleFileChange}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={loading}
+                        >
+                          Submit
+                        </Button>
                       </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={loading}
-                      >
-                        Submit
-                      </Button>
                     </Grid>
-                  </Grid>
-                </form>
-              )}
-            </Formik>
+                  </form>
+                )}
+              </Formik>
+            )}
           </MainCard>
         </Grid>
       </Grid>

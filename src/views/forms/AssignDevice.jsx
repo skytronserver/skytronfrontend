@@ -5,13 +5,15 @@ import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import DealerServices from "../../services/DealerServices";
 import CustomLoader from "../../ui-component/CustomLoader";
 import {assignDeviceFormFields,assignDeviceInitials} from  "../../formjson/assignDevice";
 const AssignDevice = () => {
+  const [updatedFormFields,setUpdatedFormField]=useState(assignDeviceFormFields);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
   const [open, setOpen] = useState(false);
   const [deviceId, setDeviceId] = useState("");
   const [alert, setAlert] = useState({
@@ -26,6 +28,60 @@ const AssignDevice = () => {
     setOpen(false);
   };
 
+  //Changes from here
+  const retriveModelList = async () => {
+    try {
+      const response = await DeviceModelServices.getDeviceList();
+      const list=response.data.data.map(device => ({
+        value: device.id,
+        label: device.imei,
+      })); 
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+       console.log('No Data Found')
+      } else {
+        console.log('No Data Found')
+      }
+    }
+  };
+  const retriveDealerList=async()=>{
+      try{
+          const res=await DealerServices.dealerList();
+          const arrayList=res.data.map(dealer=>({
+              value:dealer.id,
+              label:dealer.company_name,
+          }));
+          return arrayList;
+      }catch(error){
+          if (error.response && error.response.status === 404) {
+              console.log('No Data Found')
+             } else {
+               console.log('No Data Found other status')
+             }
+      }
+  }
+  useEffect(()=>{
+    (async()=>{
+     const modelList=await retriveModelList();
+     const dealerList=await retriveDealerList();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      dealer:{
+        ...prevConfig.dealer,
+        options: dealerList,
+      },
+      device:{
+        ...prevConfig.device,
+        options: modelList,
+      }
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[])
+//Changes till here
+
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -35,8 +91,8 @@ const AssignDevice = () => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(assignDeviceFormFields).reduce((acc, field) => {
-      acc[field] = assignDeviceFormFields[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -74,7 +130,7 @@ const AssignDevice = () => {
           }}
         >
           <MainCard title="Device Model Extension">
-              <Formik
+              { isFormLoaded && <Formik
                 initialValues={assignDeviceInitials}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
@@ -83,10 +139,10 @@ const AssignDevice = () => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(assignDeviceFormFields).map((field) => (
+                      {Object.keys(updatedFormFields).map((field) => (
                         <Grid key={field} item md={6} sm={12} xs={12}>
                           <FormField
-                            fieldConfig={assignDeviceFormFields[field]}
+                            fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
                           />
@@ -106,7 +162,7 @@ const AssignDevice = () => {
                   </form>
                 )}
               </Formik>
-
+              }
           </MainCard>
         </Grid>
       </Grid>

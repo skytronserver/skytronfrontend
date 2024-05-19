@@ -12,7 +12,7 @@ import Sidebar from './Sidebar';
 import navigation from '../../menu-items';
 import { drawerWidth } from '../../store/constant';
 import { SET_MENU } from '../../store/actions';
-
+import { createAxiosInstance } from '../../services/axiosInstance';
 
 // assets
 import { IconChevronRight } from '@tabler/icons';
@@ -63,9 +63,10 @@ const MainLayout = () => {
   const handleLeftDrawerToggle = () => {
     dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
   };
-
+  localStorage.getItem('oAuthToken') && createAxiosInstance(localStorage.getItem('oAuthToken'));
   return (
     <Box sx={{ display: 'flex' }} >
+    
       <CssBaseline />
       {/* header */}
       <AppBar

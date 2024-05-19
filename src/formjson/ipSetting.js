@@ -1,45 +1,6 @@
 import * as Yup from "yup";
-import DeviceModelServices from "../services/DeviceModelServices";
-import SettingService from "../services/SettingService";
-const retriveStateList = async () => {
-  try {
-    const response = await SettingService.filter_settings_State();
-    const list=response.data.map(state => ({
-      value: state.id,
-      label: state.state,
-    })); 
-    return list;
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
-    } else {
-      console.log('No Data Found')
-    }
-  }
-};
-const retriveModelList = async () => {
-  try {
-    const response = await DeviceModelServices.getAllModels();
-    const list = response.data.map((model) => ({
-      value: model.id,
-      label: model.model_name,
-    }));
-    return list;
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-      console.log("No Data Found");
-    } else {
-      console.log("No Data Found");
-    }
-  }
-};
 let stateList=[];
 let modelList=[];
-if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
-   modelList = await retriveModelList();
-   stateList=await retriveStateList();
-}
-
 export const ipSettingInitials = {
     state:"",
     devicemodel:"",

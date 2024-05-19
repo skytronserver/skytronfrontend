@@ -1,25 +1,5 @@
 import * as Yup from "yup";
-import DeviceModelServices from "../services/DeviceModelServices";
-const retriveModelList = async () => {
-  try {
-    const response = await DeviceModelServices.getAllModels();
-    const list = response.data.map((device) => ({
-      value: device.id,
-      label: device.model_name,
-    }));
-    return list;
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-      console.log("No Data Found");
-    } else {
-      console.log("No Data Found");
-    }
-  }
-};
 let modelList=[];
-  if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
-    modelList = await retriveModelList();
-  }
 export const hpFrequencyInitials = {
   devicemodel: "",
   freq: "",

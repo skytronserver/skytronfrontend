@@ -8,6 +8,7 @@ import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
 import { convertErrorObjectToArray } from "helper";
+import {retriveModelList} from "../../helper";
 import {
   hpFrequencyFields,
   firmwareFields,
@@ -34,7 +35,30 @@ function FrequencyFirmware() {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-
+  const [firmwareFormFields,setFirmwareFormFields]=useState(firmwareFields);
+  const [frequencyForm,setFrequencyForm]=useState(hpFrequencyFields);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  useEffect(()=>{
+    (async()=>{
+    const modelList=await retriveModelList();
+    setFirmwareFormFields(prevConfig =>({
+      ...prevConfig,
+      devicemodel: {
+        ...prevConfig.devicemodel,
+        options: modelList,
+      },
+    }))
+    setFrequencyForm(prevConfig =>({
+      ...prevConfig,
+      devicemodel: {
+        ...prevConfig.devicemodel,
+        options: modelList,
+      },
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[])
   //Fetching Data from store
   const dispatch = useDispatch();
   const frequencyList = useSelector((state) => state.setting.frequencyList);
@@ -63,14 +87,14 @@ function FrequencyFirmware() {
   };
 
   const validationFrequencySchema = Yup.object(
-    Object.keys(hpFrequencyFields).reduce((acc, field) => {
-      acc[field] = hpFrequencyFields[field].validation;
+    Object.keys(frequencyForm).reduce((acc, field) => {
+      acc[field] = frequencyForm[field].validation;
       return acc;
     }, {})
   );
   const validationFirmwareSchema = Yup.object(
-    Object.keys(firmwareFields).reduce((acc, field) => {
-      acc[field] = firmwareFields[field].validation;
+    Object.keys(firmwareFormFields).reduce((acc, field) => {
+      acc[field] = firmwareFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -194,7 +218,7 @@ function FrequencyFirmware() {
           }}
         >
           <MainCard title="HP Frequency">
-            <Formik
+            {isFormLoaded && <Formik
               initialValues={hpFrequencyInitials}
               validationSchema={validationFrequencySchema}
               onSubmit={handleFrequencySubmit}
@@ -203,10 +227,10 @@ function FrequencyFirmware() {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(hpFrequencyFields).map((field) => (
+                    {Object.keys(frequencyForm).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={hpFrequencyFields[field]}
+                          fieldConfig={frequencyForm[field]}
                           formik={formik}
                         />
                       </Grid>
@@ -225,6 +249,7 @@ function FrequencyFirmware() {
                 </form>
               )}
             </Formik>
+}
           </MainCard>
         </Grid>
         <Grid
@@ -236,7 +261,7 @@ function FrequencyFirmware() {
           }}
         >
           <MainCard title="Firmware Version">
-            <Formik
+           {isFormLoaded &&  <Formik
               initialValues={firmwareInitials}
               validationSchema={validationFirmwareSchema}
               onSubmit={handleFirmwareSubmit}
@@ -245,10 +270,10 @@ function FrequencyFirmware() {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(firmwareFields).map((field) => (
+                    {Object.keys(firmwareFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={firmwareFields[field]}
+                          fieldConfig={firmwareFormFields[field]}
                           formik={formik}
                         />
                       </Grid>
@@ -267,6 +292,7 @@ function FrequencyFirmware() {
                 </form>
               )}
             </Formik>
+}
           </MainCard>
         </Grid>
       </Grid>

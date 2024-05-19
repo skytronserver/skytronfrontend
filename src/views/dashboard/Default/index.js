@@ -10,14 +10,12 @@ import OverSpeeding from './OverSpeeding';
 import EmeregencyAlert from './EmeregencyAlert';
 import UserStatistics from './UserStatistics';
 import { useSelector } from "react-redux";
-import {updateStateListAndConfigurations} from "../../../formjson/stateAdmin"
 // import { Widgets } from '@mui/icons-material';
 import { createAxiosInstance } from '../../../services/axiosInstance';
 const Dashboard = () => {
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated);
   if (isAuthenticated) {
-    updateStateListAndConfigurations();
-    createAxiosInstance("facf758ad3e2ff20349a9a8387c48a0340cd66b1");
+    createAxiosInstance(localStorage.getItem('oAuthToken'));
   }
   return (
 

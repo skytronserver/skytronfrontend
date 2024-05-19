@@ -25,7 +25,7 @@ const LoginOtp = () => {
   const loading = useSelector((state) => state.login.loading);
   const error = useSelector((state) => state.login.error);
   if (isAuthenticated) {
-    createAxiosInstance(token);
+    createAxiosInstance(localStorage.getItem('oAuthToken'));
     return <Navigate to="/dashboard" replace />;
   }
   const handleChange = (newValue) => {

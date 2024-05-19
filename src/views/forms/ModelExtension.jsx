@@ -6,14 +6,33 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import DialogComponent from "../../ui-component/DialogComponent";
 import OTPComponent from "../../ui-component/OTPComponent";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import CustomLoader from "../../ui-component/CustomLoader";
-const ModelExtension = ({ fieldConfig, initialData, formTitle }) => {
+import {modelExtensionInitials,modelExtensionFormField} from "../../formjson/modelExtension";
+import {retriveModelList} from "../../helper";
+const ModelExtension = ( {formTitle }) => {
   const [open, setOpen] = useState(false);
   const [deviceId, setDeviceId] = useState("");
+  const [updatedFormFields,setUpdatedFormField]=useState(modelExtensionFormField);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  useEffect(()=>{
+    console.log('This');
+    (async()=>{
+    const modelList=await retriveModelList();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      device_model: {
+        ...prevConfig.device_model,
+        options: modelList,
+      },
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[])
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -92,8 +111,8 @@ const ModelExtension = ({ fieldConfig, initialData, formTitle }) => {
     }
   };
   const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -139,8 +158,8 @@ const ModelExtension = ({ fieldConfig, initialData, formTitle }) => {
         >
           <MainCard title="Device Model Extension">
             {!showOTP ? (
-              <Formik
-                initialValues={initialData}
+             isFormLoaded && <Formik
+                initialValues={modelExtensionInitials}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
                 enableReinitialize
@@ -148,10 +167,10 @@ const ModelExtension = ({ fieldConfig, initialData, formTitle }) => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(fieldConfig).map((field) => (
+                      {Object.keys(updatedFormFields).map((field) => (
                         <Grid key={field} item md={6} sm={12} xs={12}>
                           <FormField
-                            fieldConfig={fieldConfig[field]}
+                            fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
                             handleOptionChange={handleModelChange}
@@ -172,6 +191,7 @@ const ModelExtension = ({ fieldConfig, initialData, formTitle }) => {
                   </form>
                 )}
               </Formik>
+              
             ) : (
               <OTPComponent
                 otp={otp}

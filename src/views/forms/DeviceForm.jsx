@@ -5,15 +5,34 @@ import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import StockServices from "../../services/StockServices";
 import { useNavigate } from "react-router-dom";
+import {deviceInitials,deviceFormField} from "../../formjson/deviceForm";
+import {retriveModelList} from "../../helper";
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
-const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
+const DeviceForm = ({formTitle }) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [updatedFormFields,setUpdatedFormField]=useState(deviceFormField);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  useEffect(()=>{
+    console.log('This');
+    (async()=>{
+    const modelList=await retriveModelList();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      model: {
+        ...prevConfig.model,
+        options: modelList,
+      },
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[])
   const [alert,setAlert]=useState({
     error:false,
     message:'',
@@ -33,8 +52,8 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -53,7 +72,7 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
       const response = await StockServices.createStock(values);
       console.log(response)
       setLoading(false);
-      resetForm(initialData);
+      resetForm(deviceInitials);
       navigate("/device/show-device");
     } catch (error) {
       console.error("Error :", error.message);
@@ -97,8 +116,8 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
       )}
       <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out"}}>
         <MainCard title="Device Details">
-          <Formik
-            initialValues={initialData}
+          {isFormLoaded && <Formik
+            initialValues={deviceInitials}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
             enableReinitialize
@@ -106,10 +125,10 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
             {(formik) => (
               <form onSubmit={formik.handleSubmit} >
                 <Grid container spacing={2} className="form-controller">
-                  {Object.keys(fieldConfig).map((field) => (
+                  {Object.keys(updatedFormFields).map((field) => (
                     <Grid key={field} item md={4} sm={12} xs={12}>
                       <FormField
-                        fieldConfig={fieldConfig[field]}
+                        fieldConfig={updatedFormFields[field]}
                         formik={formik}
                         handleFileChange={handleFileChange}
                         handleOptionChange={handleModelChange}
@@ -127,6 +146,7 @@ const DeviceForm = ({ fieldConfig, initialData, formTitle }) => {
             )}
             
           </Formik>
+          }
         </MainCard>
       </Grid>
     </Grid>

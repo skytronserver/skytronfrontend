@@ -1,70 +1,7 @@
 import * as Yup from "yup";
-import StockServices from "../services/StockServices";
-import UserServices from "../services/UserServices";
-import SettingService from "../services/SettingService";
-const fetchDeviceListForSale = async () => {
-  try {
-    const filter = {
-      is_tagged: false,
-    };
-    const response = await StockServices.stockFilter(filter);
-    console.log(response);
-    const list = response.data.data.map((device) => ({
-      value: device.id,
-      label: device.imei,
-    }));
-    const uniqueList = [
-      ...new Map(list.map((item) => [item["value"], item])).values(),
-    ];
-    return uniqueList;
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-      console.log("No Data Found");
-    } else {
-      console.log("No Data Found");
-    }
-  }
-};
-const retriveVehicleOwner = async () => {
-  try {
-    const response = await UserServices.fetchVehicleOwner();
-    const list = response.data.map((owner) => ({
-      value: owner.id,
-      label: owner.users[0].name,
-    }));
-    return list;
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-      console.log("No Data Found");
-    } else {
-      console.log("No Data Found");
-    }
-  }
-};
-const fetchVehicleCategory = async () => {
-  try {
-    const resp = await SettingService.filter_settings_VehicleCategory();
-    const list = resp.data.map((category) => ({
-      value: category.id,
-      label: category.category,
-    }));
-    return list;
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-      console.log("No Data Found");
-    } else {
-      console.log("No Data Found");
-    }
-  }
-};
 let deviceList = [];
 let ownerList = [];
 let categoryList = [];
-if (localStorage.getItem("oAuthToken") && sessionStorage.getItem("sessionID")) {
-  deviceList = await fetchDeviceListForSale();
-  ownerList = await retriveVehicleOwner();
-  categoryList = await fetchVehicleCategory();
-}
 export const taggingInitials = {
   device: "",
   vehicle_owner: "",

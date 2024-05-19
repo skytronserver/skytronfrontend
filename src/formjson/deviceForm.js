@@ -1,6 +1,5 @@
 import * as Yup from "yup";
-import {retriveModelList} from "../helper"
-const modelList=await retriveModelList();
+let modelList=[];
 export const deviceInitials = {
     imei:"",
     model:"",
