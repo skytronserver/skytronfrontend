@@ -2,7 +2,7 @@
 import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP } from '../store/constant';
 const initialState = {
   user: {
-    isAuthenticated:true,
+    isAuthenticated:false,
     token:null,
     email:null,
     otpToken:null,

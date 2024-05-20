@@ -1,5 +1,5 @@
 import axios from "axios";
-const token="Token "+localStorage.getItem('oAuthToken'); 
+const token="Token "+sessionStorage.getItem('oAuthToken'); 
 console.log(token);
 const instance = axios.create({
   baseURL: "https://skytrack.tech:2000/",

@@ -18,14 +18,14 @@ const LoginOtp = () => {
   const [otp, setOtp] = useState("");
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
-  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated);
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
   const userEmail=useSelector((state) => state.login.user.email);
   const otpToken=useSelector((state) => state.login.user.otpToken);
   const token=useSelector((state) => state.login.user.token);
   const loading = useSelector((state) => state.login.loading);
   const error = useSelector((state) => state.login.error);
   if (isAuthenticated) {
-    createAxiosInstance(localStorage.getItem('oAuthToken'));
+    createAxiosInstance(sessionStorage.getItem('oAuthToken'));
     return <Navigate to="/dashboard" replace />;
   }
   const handleChange = (newValue) => {

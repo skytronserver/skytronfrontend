@@ -13,9 +13,9 @@ import { useSelector } from "react-redux";
 // import { Widgets } from '@mui/icons-material';
 import { createAxiosInstance } from '../../../services/axiosInstance';
 const Dashboard = () => {
-  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated);
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
   if (isAuthenticated) {
-    createAxiosInstance(localStorage.getItem('oAuthToken'));
+    createAxiosInstance(sessionStorage.getItem('oAuthToken'));
   }
   return (
 

@@ -17,7 +17,7 @@ const retriveStateList = async () => {
   }
 };
 let stateList=[];
-  if (localStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
+  if (sessionStorage.getItem('oAuthToken') && sessionStorage.getItem('sessionID')) {
     stateList=await retriveStateList();
   }
 export const stateInitials = {
