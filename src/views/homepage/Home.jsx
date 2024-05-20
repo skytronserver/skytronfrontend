@@ -18,17 +18,17 @@ import { Navigate } from "react-router-dom";
 function Home() {
   const dispatch = useDispatch();
   const initialValues = {
-    email: "",
+    mobile: "",
     password: "",
   };
   const validationSchema = Yup.object({
-    email: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+    mobile: Yup.string()
+      .matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number')
+      .required("Mobile number is required"),
     password: Yup.string().required("Password is required"),
   });
   const handleSubmit = (values, { setSubmitting }) => {
-    dispatch(loginUser(values.email, values.password));
+    dispatch(loginUser(values.mobile, values.password));
   };
    const formik = useFormik({
     initialValues,
@@ -92,16 +92,16 @@ function Home() {
       >
         <Form>
               <TextField
-                id="email"
-                label="Email"
-                name="email"
+                id="mobile"
+                label="Mobile"
+                name="mobile"
                 variant="outlined"
                 fullWidth
                 margin="normal"
                 sx={{ backgroundColor: "none" }}
-                {...formik.getFieldProps("email")}
-                error={formik.touched.email && Boolean(formik.errors.email)}
-                helperText={formik.touched.email && formik.errors.email}
+                {...formik.getFieldProps("mobile")}
+                error={formik.touched.mobile && Boolean(formik.errors.mobile)}
+                helperText={formik.touched.mobile && formik.errors.mobile}
               />
               <TextField
                 id="password"

@@ -17,7 +17,8 @@ const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [arePasswordsMatch, setArePasswordsMatch] = useState(false);
-
+  const [mobileNumber, setMobileNumber] = useState(""); 
+  const [isValidMobile, setIsValidMobile] = useState(true);
   const handlePasswordChange = (value) => {
     setPassword(value); 
   };
@@ -27,12 +28,22 @@ const ResetPassword = () => {
   };
   useEffect(()=>{
     setArePasswordsMatch(password === confirmPassword);
-  },[password,confirmPassword])
+  },[password,confirmPassword]);
+  const handleMobileNumberChange = (event) => {
+    const value = event.target.value.replace(/\D/g, ''); 
+    setMobileNumber(value);
+    if (value.length!== 10) {
+      setIsValidMobile(false);
+    } else {
+      setIsValidMobile(true);
+      setMobileNumber(value);
+    }
+  };
   const handleResetPassword = async () => {
     if(password!=''){
         setLoading(true)
         try {
-            await axios.post('https://skytrack.tech:2000/api/password_reset', { reset_token, new_password: password },{
+            await axios.post('https://skytrack.tech:2000/api/password_reset/', {mobile:mobileNumber, new_password: password },{
                 headers:{
                     "Content-type": "application/json",
                     "Authorization": "Token "+reset_token,
@@ -127,6 +138,16 @@ const ResetPassword = () => {
                     </Grid>
                     <Grid item xs={12}>
                       <Typography align="center">
+                      <TextField
+                          label="Mobile Number"
+                          type="tel"
+                          value={mobileNumber}
+                          onChange={handleMobileNumberChange}
+                          fullWidth
+                          error={!isValidMobile}
+                          helperText={!isValidMobile? "Invalid mobile number" : ""}
+                        />
+                        <br/><br/>
                         <TextField
                           label="New Password"
                           type="password"

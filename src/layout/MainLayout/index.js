@@ -13,7 +13,7 @@ import navigation from '../../menu-items';
 import { drawerWidth } from '../../store/constant';
 import { SET_MENU } from '../../store/actions';
 import { createAxiosInstance } from '../../services/axiosInstance';
-
+import { Navigate } from "react-router-dom";
 // assets
 import { IconChevronRight } from '@tabler/icons';
 import AuthFooter from 'ui-component/cards/AuthFooter';
@@ -63,7 +63,12 @@ const MainLayout = () => {
   const handleLeftDrawerToggle = () => {
     dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
   };
-  localStorage.getItem('oAuthToken') && createAxiosInstance(localStorage.getItem('oAuthToken'));
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
+  if(!isAuthenticated){
+    return <Navigate to="/" replace />;
+  }
+  sessionStorage.getItem('oAuthToken') && createAxiosInstance(sessionStorage.getItem('oAuthToken'));
+  
   return (
     <Box sx={{ display: 'flex' }} >
     
