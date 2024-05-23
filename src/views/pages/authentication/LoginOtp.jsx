@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import {useState} from 'react';
+import {useState,useEffect} from 'react';
 // material-ui
 import { useTheme } from "@mui/material/styles";
 import { Divider, Grid, Stack, Typography, useMediaQuery,Button } from "@mui/material";
@@ -11,7 +11,7 @@ import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
 import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { MuiOtpInput } from "mui-one-time-password-input";
-import { verifyOtp } from "../../../actions/loginActions";
+import { verifyOtp,resendOtp } from "../../../actions/loginActions";
 import { createAxiosInstance } from '../../../services/axiosInstance';
 const LoginOtp = () => {
   const dispatch = useDispatch();
@@ -24,6 +24,24 @@ const LoginOtp = () => {
   const token=useSelector((state) => state.login.user.token);
   const loading = useSelector((state) => state.login.loading);
   const error = useSelector((state) => state.login.error);
+  const [remainingTime, setRemainingTime] = useState(180);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (remainingTime > 0) {
+        setRemainingTime(remainingTime - 1);
+      } else {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer); // Cleanup function to stop timer on unmount
+  }, [remainingTime]);
+  const handleClick = () => {
+    if (remainingTime === 0) {
+      dispatch(resendOtp(userEmail,otpToken));
+      setRemainingTime(180); // Reset timer after resend
+    }
+  };
   if (isAuthenticated) {
     createAxiosInstance(sessionStorage.getItem('oAuthToken'));
     return <Navigate to="/dashboard" replace />;
@@ -68,7 +86,7 @@ const LoginOtp = () => {
                   </Grid>
                 </Grid>
               )}
-              {(
+              {
                 <AuthCardWrapper>
                   <Grid
                     container
@@ -100,42 +118,69 @@ const LoginOtp = () => {
                               gutterBottom
                               variant={matchDownSM ? "h3" : "h2"}
                             >
-                             SKYTRON
+                              SKYTRON
                             </Typography>
                             <Typography
                               variant="caption"
                               fontSize="16px"
                               textAlign={matchDownSM ? "center" : "inherit"}
                             >
-                              Enter your OTP sent to your Mobile No 
+                              Enter your OTP sent to your Mobile No
                             </Typography>
                           </Stack>
                         </Grid>
                       </Grid>
                     </Grid>
                     <Grid item xs={12}>
-                    <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                    <br/>
-                    <Typography align="center">
-                    <Button
-                      color="primary"
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      onClick={handleOTPSubmit}
-                    >
-                      Verify OTP
-                    </Button>
-                  </Typography>
+                      <MuiOtpInput
+                        value={otp}
+                        onChange={handleChange}
+                        length={6}
+                      />
+                      <br />
+                      <Typography align="center">
+                        <Button
+                          color="primary"
+                          size="large"
+                          type="submit"
+                          variant="contained"
+                          onClick={handleOTPSubmit}
+                        >
+                          Verify OTP
+                        </Button>
+                      </Typography>
                     </Grid>
-                    <Grid item xs={12} alignItems="center"
-                        justifyContent="center">
+                    <Grid
+                      item
+                      xs={12}
+                      alignItems="center"
+                      justifyContent="center"
+                    >
                       <Divider />
-                      {error.message!=null && <Typography style={{color:"red",textAlign:'center'}}>Invalid OTP</Typography>}
+                      <br/>
+                      <Typography className="otp-timer" style={{textAlign:"center"}}>
+                        <span>Resend OTP in {remainingTime} seconds.  &nbsp;</span>
+                        <Button
+                        color="success"
+                        size="small"
+                        variant="contained"
+                          disabled={remainingTime > 0}
+                          onClick={handleClick}
+                        >
+                          Resend
+                        </Button>
+                      </Typography>
+                      {error.message != null && (
+                        <Typography
+                          style={{ color: "red", textAlign: "center" }}
+                        >
+                          {error.message}
+                        </Typography>
+                      )}
                     </Grid>
                   </Grid>
                 </AuthCardWrapper>
-              )}
+              }
             </Grid>
           </Grid>
         </Grid>
