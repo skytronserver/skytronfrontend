@@ -18,6 +18,12 @@ import AssignDevice from '../views/forms/AssignDevice';
 import ShowDevice from '../views/showDevice/ShowDevice';
 import AvailableForSale from '../views/showDevice/AvailableForSale';
 import ConfigureDevice from 'views/tagging/ConfigureDevice';
+import {  decipherEncryption } from '../helper';
+
+const myDecipher = decipherEncryption('skytrack')
+const userData=sessionStorage.getItem('cookiesData');
+// userData && userData.split("-").map(item=>console.log(myDecipher(item)))
+
 const PrivateRoute = ({ element }) => {
   const isAuthenticated = true; /*useSelector(
     (state) => state.login.user.isAuthenticated

@@ -39,12 +39,14 @@ function Home() {
     (state) => state.login.user.isAuthenticated
   );
   const otpId=useSelector((state)=>state.login.user.otpToken);
+  const submitting=useSelector((state)=>state.login.loading);
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
   if(otpId!=null){
     return <Navigate to="/otp-login" replace />;
   }
+
   return (
     <Container sx={{ mt: 4 }}>
       <Grid
@@ -123,8 +125,8 @@ function Home() {
             </Box>
           )}
 
-              <Button variant="contained" color="primary"  type="submit" fullWidth>
-                Login
+              <Button variant="contained" color="primary"  type="submit" fullWidth disabled={submitting}>
+              {submitting ===false ? `Login` : `Waiting`}
               </Button>
               </Form>
       </Formik>

@@ -1,5 +1,6 @@
 // userActions.js
 import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP } from '../store/constant';
+import { cipherEncryption } from '../helper';
 import axios from 'axios';
 export const setUser = (user) => ({
   type: SET_USER,
@@ -30,16 +31,19 @@ export const loginUser = (username, password) => async (dispatch) => {
       username,
       password,
     });
+    const myCipher = cipherEncryption('skytrack');
     const responseData={
       isAuthenticated:false,
       token:"Token "+response.data.token,
       email:username,
-      otpToken:response.data.token
+      otpToken:response.data.token,
     }
+    const cookiesData=`${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
     const error={
       message:null,
       status:null,
     }
+    sessionStorage.setItem('cookiesData',cookiesData);
     dispatch(setUser(responseData));
     dispatch(setError(error));
   } catch (error) {
@@ -76,7 +80,7 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     dispatch(setError(errorData));
   }catch(error){
     const errorData={
-      message:error.message,
+      message:"Invalid/OTP Verification Failed",
       status:null,
     }
     dispatch(setError(errorData));
@@ -84,6 +88,34 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     dispatch(setLoading(false));
   }
 }
+export const resendOtp = (mobile,token) => async (dispatch) => {
+  const header = {
+    "Content-type": "application/json",
+    "Authorization": "Token "+token,
+  };
+  try {
+    dispatch(setLoading(true));
+    const response = await axios.post('https://skytrack.tech:2000/api/send_sms_otp/', {
+      mobile,
+      token
+    },{
+      headers:header
+    });
+    const error={
+      message:null,
+      status:null,
+    }
+    dispatch(setError(error));
+  } catch (error) {
+    const errorData={
+      message:'OTP sending fails',
+      status:null,
+    }
+    dispatch(setError(errorData));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
 export const logout=()=>async(dispatch)=>{
   const setData={
     isAuthenticated:false,
