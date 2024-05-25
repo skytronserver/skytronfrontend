@@ -59,7 +59,6 @@ const ActiveState = () => {
     retrievePosts();
   }, []);
 
-  //console.log(typeof (data));
   // const colors = ["#F7418F", "#3DA5E0", "#FF9800"];
   const mar = "100px";
  

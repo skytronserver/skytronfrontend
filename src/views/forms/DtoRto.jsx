@@ -21,7 +21,6 @@ const DtoRto = () => {
   const [updatedFormFields,setUpdatedFormField]=useState(dtoFormFields);
   const [isFormLoaded,setIsFormLoaded]=useState(false);
   useEffect(()=>{
-    console.log('This');
     (async()=>{
     const stateList=await retriveStateList();
     const districtList=await retriveDistrictList();
@@ -39,10 +38,10 @@ const DtoRto = () => {
     setIsFormLoaded(true)
     }
   )()
-  },[])
+  },[]);
   const navigate = useNavigate();
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
+    !alert.error && navigate("/user/newDto");
     setOpen(false);
   };
 
@@ -67,7 +66,7 @@ const DtoRto = () => {
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.createDTO(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -79,13 +78,16 @@ const DtoRto = () => {
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const userData=sessionStorage.getItem('cookiesData');
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
         ...values,
         role: "dto",
-        createdby: 37,
+        createdby: userId,
       };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {

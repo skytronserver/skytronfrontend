@@ -45,7 +45,7 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle, userRole }) => {
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.registerUser(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -78,7 +78,6 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle, userRole }) => {
 
     delete valuesWithRole.kycfile;
     delete valuesWithRole.panfile;
-    console.log(valuesWithRole);
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));

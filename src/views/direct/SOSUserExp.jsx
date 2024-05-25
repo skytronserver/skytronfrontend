@@ -13,7 +13,6 @@ const SOSUserExp = () => {
         const retriveSOSData = async () => {
         try {
          const retriveData = await HomePageService.getSOSDataTeamLead();
-         console.log(retriveData)
          setHtmlContent(retriveData.data)  
          setLoad(true)
         }catch(error) {

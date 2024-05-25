@@ -8,10 +8,12 @@ import menuItem from '../../../../menu-items';
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
+  const role=menuItem.role;
   const navItems = menuItem.items.map((item) => {
     switch (item.type) {
       case 'group':
-        return <NavGroup key={item.id} item={item} />;
+        const group=item?.roles ? ( item.roles.includes(role) ? <NavGroup key={item.id} item={item} role={role}/> : ''): <NavGroup key={item.id} item={item} role={role}/>
+        return group;
       default:
         return (
           <Typography key={item.id} variant="h6" color="error" align="center">

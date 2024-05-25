@@ -15,17 +15,31 @@ import RouteFixing from "../views/direct/RouteFixing";
 import GetAllCall from "../views/direct/GetAllCall";
 import CallDetails from "../views/direct/CallDetails";
 import AlertList from "../views/reports/AlertList";
-const PrivateRoute = ({ element }) => {
-  const isAuthenticated = true; /*useSelector(
-    (state) => state.login.user.isAuthenticated
-  );*/
-  return isAuthenticated ? element : <Navigate to="/login" replace />;
-};
+import { decipherEncryption } from '../helper';
+import NotAuthorized from '../views/pages/NotAuthorized';
 
-const applyPrivateRoute = (route) => ({
-  ...route,
-  element: <PrivateRoute element={route.element} />,
-});
+const PrivateRoute = ({ element,roles }) => {
+  const myDecipher = decipherEncryption('skytrack')
+  const userData=sessionStorage.getItem('cookiesData');
+  const data=userData && userData.split("-").map(item=>myDecipher(item))
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
+  const userRoles=userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+    if (!isAuthenticated) {
+      return <Navigate to="/" replace />;
+    }
+    if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
+      // User does not have any of the required roles
+      return <NotAuthorized />;
+    }
+    return element;
+  };
+  
+  const applyPrivateRoute = (route) => ({
+    ...route,
+    element: <PrivateRoute element={route.element} roles={route.roles}/>,
+  });
+  
+  
 // dashboard routing
 const DashboardDefault = Loadable(
   lazy(() => import("../views/dashboard/Default"))
@@ -45,43 +59,53 @@ const MainRoutes = {
     },
     {
       path:"/live-tracking",
-      element:<LiveTracking />
+      element:<LiveTracking />,
+      roles:['superadmin','stateadmin','owner','dto'],
     },
     {
       path:"/sos-alert",
-      element:<SOSAlert />
+      element:<SOSAlert />,
+      roles: ['superadmin','sosadmin'],
     },
     {
       path:"/sos-lead-exp",
-      element:<SOSUserExp />
+      element:<SOSUserExp />,
+      roles: ['superadmin','sosadmin','teamleader'],
     },
     {
       path:"/sos-exe",
-      element:<SOSExe />
+      element:<SOSExe />,
+      roles: ['superadmin','sosadmin','teamleader','sosuser'],
     },
     {
       path:"/history-playback",
-      element:<HistoryPlayback />
+      element:<HistoryPlayback />,
+      roles:['superadmin','stateadmin','owner','dto'],
     },
     {
       path:"/route-fixing",
-      element:<RouteFixing />
+      element:<RouteFixing />,
+      roles:['superadmin','stateadmin','owner','dto'],
     },
     {
       path:"/sos-call-list",
-      element:<GetAllCall />
+      element:<GetAllCall />,
+      roles: ['superadmin','sosadmin','sosuser','teamleader'],
     },
     {
       path: "/sos-call-details/:call_id",
       element: <CallDetails/>,
+      roles: ['superadmin','sosadmin','sosuser','teamleader'],
     },
     {
       path: "sample-page",
       element: <SamplePage />,
+      roles:['superadmin'],
     },
     {
       path: "alert-list",
       element: <AlertList />,
+      roles: ['superadmin','sosadmin','sosuser','teamleader'],
     },
   ].map((route) => applyPrivateRoute(route)),
 };

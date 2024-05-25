@@ -57,7 +57,6 @@ const StateAdminDeviceModelView = () => {
     };
     const response = await handleOTPValidation(OTPData);
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(false);
       navigate("/device/list");
     } else {
@@ -71,7 +70,6 @@ const StateAdminDeviceModelView = () => {
     };
     const response = await handleSendOTPValidation(deviceOTPData);
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(true);
     } else {
       console.log(response.error);
@@ -81,7 +79,7 @@ const StateAdminDeviceModelView = () => {
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.AdminDeviceVerifyOtp(modelOtpData);
-      console.log("Device Model is OTP Verified", response.data);
+      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -96,7 +94,7 @@ const StateAdminDeviceModelView = () => {
   const handleSendOTPValidation = async (OtpData) => {
     try {
       const response = await OtpServices.AdminDeviceSendOtp(OtpData);
-      console.log("Device Model is OTP Verified", response.data);
+      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -130,7 +128,6 @@ const StateAdminDeviceModelView = () => {
   }, [dispatch, deviceId]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
-  console.log(deviceDetails);
 
   return (
     <>

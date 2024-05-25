@@ -2,7 +2,6 @@ import {useSelector,useDispatch} from 'react-redux'
 import React from 'react';
 // project imports
 import { Grid } from "@mui/material";
-import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from 'services/DeviceModelServices';
 import { useEffect,useState } from 'react';
@@ -11,7 +10,6 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {deviceModelColumns} from '../../datatables/rowsColumn';
 import { Link } from "react-router-dom";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import DeleteIcon from '@mui/icons-material/Delete';
 const DeviceModelList = () => {
   const [load,setLoad]=useState(false)
   const dispatch=useDispatch();
@@ -24,14 +22,7 @@ const DeviceModelList = () => {
     retriveDeviceModel();
   },[dispatch])
  
-  const deviceModelList=useSelector((state)=>state.deviceModel.deviceModelList);
-  console.log(deviceModelList);
-  
-  const handleDelete = (id) => {
-    console.log(id)
-    // setData(data.filter((item) => item.id !== id));
-  };
-
+  const deviceModelList=useSelector((state)=>state.deviceModel.deviceModelList);  
   const actionColumn = [
     {
       name: "Action",

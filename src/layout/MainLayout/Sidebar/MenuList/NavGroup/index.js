@@ -10,16 +10,21 @@ import NavCollapse from '../NavCollapse';
 
 // ==============================|| SIDEBAR MENU LIST GROUP ||============================== //
 
-const NavGroup = ({ item }) => {
+const NavGroup = ({ item,role }) => {
   const theme = useTheme();
 
   // menu list collapse & items
   const items = item.children?.map((menu) => {
+  
     switch (menu.type) {
       case 'collapse':
-        return <NavCollapse key={menu.id} menu={menu} level={1} />;
+        
+        const collapse=menu.roles ? ( menu.roles.includes(role) ? <NavCollapse key={menu.id} menu={menu} level={1} role={role}/> : ''): <NavCollapse key={menu.id} menu={menu} level={1} role={role}/>
+        return collapse;
       case 'item':
-        return <NavItem key={menu.id} item={menu} level={1} />;
+       
+        const navItem=menu.roles ? ( menu.roles.includes(role) ? <NavItem key={menu.id} item={menu} level={1} /> : ''): <NavItem key={menu.id} item={menu} level={1} />
+        return navItem;//<NavItem key={menu.id} item={menu} level={1} />;
       default:
         return (
           <Typography key={menu.id} variant="h6" color="error" align="center">

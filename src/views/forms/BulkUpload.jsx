@@ -5,29 +5,28 @@ import { Grid, Button } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
-import {retriveModelList} from "../../helper";
+import { retriveModelList } from "../../helper";
 import { bulkInitials, bulkFormField } from "../../formjson/bulkUpload";
 import StockServices from "../../services/StockServices";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const BulkUpload = () => {
   const [loading, setLoading] = useState(false);
-  const [updatedFormFields,setUpdatedFormField]=useState(bulkFormField);
-  const [isFormLoaded,setIsFormLoaded]=useState(false);
-  useEffect(()=>{
-    (async()=>{
-    const modelList=await retriveModelList();
-    setUpdatedFormField(prevConfig =>({
-      ...prevConfig,
-      model_id: {
-        ...prevConfig.model_id,
-        options: modelList,
-      },
-    }))
-    setIsFormLoaded(true)
-    }
-  )()
-  },[])
+  const [updatedFormFields, setUpdatedFormField] = useState(bulkFormField);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const modelList = await retriveModelList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        model_id: {
+          ...prevConfig.model_id,
+          options: modelList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -47,7 +46,6 @@ const BulkUpload = () => {
     setLoading(true);
     try {
       const response = await StockServices.createBulkStock(values);
-      console.log(response);
       setLoading(false);
       resetForm(bulkInitials);
     } catch (error) {
@@ -80,50 +78,51 @@ const BulkUpload = () => {
   };
   return (
     <MainCard title="Bulk Upload Stocks">
-      {isFormLoaded && <Formik
-        initialValues={bulkInitials}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
-        enableReinitialize
-      >
-        {(formik) => (
-          <form onSubmit={formik.handleSubmit}>
-            <Grid container spacing={2} className="form-controller">
-              {Object.keys(updatedFormFields).map((field) => (
-                <Grid key={field} item md={4} sm={12} xs={12}>
-                  <FormField
-                    fieldConfig={updatedFormFields[field]}
-                    formik={formik}
-                    handleFileChange={handleFileChange}
-                  />
+      {isFormLoaded && (
+        <Formik
+          initialValues={bulkInitials}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+          enableReinitialize
+        >
+          {(formik) => (
+            <form onSubmit={formik.handleSubmit}>
+              <Grid container spacing={2} className="form-controller">
+                {Object.keys(updatedFormFields).map((field) => (
+                  <Grid key={field} item md={4} sm={12} xs={12}>
+                    <FormField
+                      fieldConfig={updatedFormFields[field]}
+                      formik={formik}
+                      handleFileChange={handleFileChange}
+                    />
+                  </Grid>
+                ))}
+                <Grid item md={4} sm={12} xs={12} style={{ marginTop: "16px" }}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    style={{ padding: "10px" }}
+                    size="medium"
+                    onClick={downloadSample}
+                  >
+                    Download Sample
+                  </Button>
                 </Grid>
-              ))}
-              <Grid item md={4} sm={12} xs={12} style={{ marginTop: "16px" }}>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  style={{ padding: "10px" }}
-                  size="medium"
-                  onClick={downloadSample}
-                >
-                  Download Sample
-                </Button>
+                <Grid item xs={12} style={{ marginTop: "20px" }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={loading}
+                  >
+                    Submit
+                  </Button>
+                </Grid>
               </Grid>
-              <Grid item xs={12} style={{ marginTop: "20px" }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={loading}
-                >
-                  Submit
-                </Button>
-              </Grid>
-            </Grid>
-          </form>
-        )}
-      </Formik>
-      }
+            </form>
+          )}
+        </Formik>
+      )}
     </MainCard>
   );
 };

@@ -73,7 +73,7 @@ const UpdateForm = ({ fieldConfig, initialData, formTitle }) => {
   const handleUpdateUser = async (userData) => {
     try {
       const response = await UserServices.updateUser(userId, userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -103,7 +103,6 @@ const UpdateForm = ({ fieldConfig, initialData, formTitle }) => {
   };
 
   const users = useSelector((state) => state.users.singleUser);
-  loading && console.log(users);
   const excludedKeys = ["kycfile", "panfile"];
   useEffect(() => {
     const data = fieldValue;

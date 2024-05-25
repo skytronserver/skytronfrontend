@@ -2,6 +2,7 @@ import DeviceModelServices from "../services/DeviceModelServices";
 import SettingService from "../services/SettingService";
 import StockServices from "../services/StockServices";
 import UserServices from "../services/UserServices";
+import ManufacturerServices from "../services/ManufacturerServices";
 export const retriveModelList = async () => {
   try {
     const response = await DeviceModelServices.getAllModels();
@@ -51,13 +52,28 @@ export const retriveDistrictList = async () => {
       }
     }
   };
+  export const retriveManufacturerList = async () => {
+    try {
+      const response = await ManufacturerServices.findManufacturer();
+      const list=response.data.map(manufacturer => ({
+        value: manufacturer.id,
+        label: manufacturer.company_name,
+      })); 
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+       console.log('No Data Found')
+      } else {
+        console.log('No Data Found')
+      }
+    }
+  };
 export const fetchDeviceListForSale = async () => {
     try {
       const filter = {
         is_tagged: false,
       };
       const response = await StockServices.stockFilter(filter);
-      console.log(response);
       const list = response.data.data.map((device) => ({
         value: device.id,
         label: device.imei,

@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useEffect} from "react";
 import {
   Typography,
   Container,
@@ -21,6 +21,12 @@ function Home() {
     mobile: "",
     password: "",
   };
+  useEffect(()=>{
+    sessionStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('sessionID');
+    sessionStorage.removeItem('oAuthToken');
+    sessionStorage.removeItem('cookiesData');
+  },[])
   const validationSchema = Yup.object({
     mobile: Yup.string()
       .matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number')
@@ -46,7 +52,6 @@ function Home() {
   if(otpId!=null){
     return <Navigate to="/otp-login" replace />;
   }
-
   return (
     <Container sx={{ mt: 4 }}>
       <Grid

@@ -12,7 +12,6 @@ const FileUploadTest = () => {
 
   const handlePhotoChange = (event) => {
     setFile(event.target.files[0]);
-    console.log(event.target.files[0]);
   };
 
   const handleSubmit = async () => {
@@ -26,7 +25,7 @@ const FileUploadTest = () => {
       const response = await FileUpload.copUpload(formData);
 
       // Handle the response as needed
-      console.log(response);
+
 
       // Reset the form
       setEmail("");

@@ -88,7 +88,7 @@ const AuthFooter = () => {
             style={{ marginLeft: isMobile ? "150px" : "150px" }}
           />
 
-          <h4 style={{width: isMobile? "365px":"365px"}}>Implemented by Assam Electronics Development Corporation Ltd</h4>
+          <span style={{width: isMobile? "365px":"365px",display:'block'}}>Implemented by Assam Electronics Development Corporation Ltd</span>
         </Typography>
 
         <Typography

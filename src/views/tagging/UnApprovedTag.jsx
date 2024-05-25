@@ -41,7 +41,6 @@ const UnApprovedTag = () => {
     };
     const response = await handleSendOTPValidation(otpData);
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(true);
     } else {
       console.log(response.error);
@@ -51,7 +50,7 @@ const UnApprovedTag = () => {
   const handleSendOTPValidation = async (OtpData) => {
     try {
       const response = await TaggingService.tagSendOwnerOtp(OtpData);
-      console.log("OTP Verified", response.data);
+      console.log("OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -70,7 +69,6 @@ const UnApprovedTag = () => {
     };
     const response = await handleOTPValidation(OTPData);
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(false);
       setOtp("");
       navigate("/tag/unapproved-vehicle");
@@ -81,7 +79,7 @@ const UnApprovedTag = () => {
   const handleOTPValidation = async (otpData) => {
     try {
       const response = await TaggingService.tagVerifyOwnerOtp(otpData);
-      console.log("OTP Verified", response.data);
+      console.log("OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);

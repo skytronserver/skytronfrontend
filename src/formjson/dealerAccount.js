@@ -4,13 +4,14 @@ const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split("T")[0];
 export const dealerAccountInitialValues = {
+  manufacturer:"",
   name: "",
   mobile: "",
   email: "",
   dob: "",
   company_name: "",
   gstnnumber: "",
-  address_State: "AS",
+  address_State: "",
   address: "",
   idProofno: "",
   expiryDate: formattedDate,
@@ -21,6 +22,13 @@ export const dealerAccountInitialValues = {
 };
 
 export const dealerAccountFormField = {
+  manufacturer: {
+    name: "manufacturer",
+    type: "select",
+    label: "Manufacturer",
+    validation: Yup.string().required("Manufacturer is required"),
+    options: [],
+  },
   name: {
     name: "name",
     type: "text",
@@ -66,13 +74,14 @@ export const dealerAccountFormField = {
     type: "select",
     label: "State Name",
     validation: Yup.string().required("State Name is required"),
-    options: indianStates,
+    options: [],
   },
   address: {
     name: "address",
-    type: "text",
+    type: "select",
     label: "District Name",
     validation: Yup.string().required("District Name is required"),
+    options: [],
   },
   idProofno: {
     name: "idProofno",

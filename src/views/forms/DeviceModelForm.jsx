@@ -20,7 +20,6 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
     message: "",
     errorList: [],
   });
-  console.log(showOTP);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
@@ -35,7 +34,6 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
     const response = await handleOTPValidation(OTPData);
 
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(false);
     } else {
       console.log(response.error);
@@ -68,7 +66,7 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.deviceAddOtp(modelOtpData);
-      console.log("Device Model is OTP Verified", response.data);
+      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -82,7 +80,7 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
   const handleDeviceModelCreate = async (deviceModelData) => {
     try {
       const response = await DeviceModelServices.createModel(deviceModelData);
-      console.log("Device Model is submitted for approval", response.data);
+      console.log("Device Model is submitted for approval");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -104,9 +102,7 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
       created_by: "31",
     };
 
-    console.log(updatedValues);
     const response = await handleDeviceModelCreate(updatedValues);
-    console.log(response);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");

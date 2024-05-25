@@ -18,7 +18,6 @@ import { MuiOtpInput } from "mui-one-time-password-input";
 import { getCOPDeviceModel } from "../../actions/deviceModelActions";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
-import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 
 const StateAdminCOPModelView = () => {
@@ -33,14 +32,9 @@ const StateAdminCOPModelView = () => {
 
     const [showOTP, setShowOTP] = useState(false);
     const [otp, setOtp] = useState("");
-    const [alert, setAlert] = useState({
-      error: false,
-      message: "",
-      errorList: [],
-    });
+
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [open, setOpen] = useState(false);
+
 
 /* custom helper functionality */
  
@@ -55,7 +49,6 @@ const StateAdminCOPModelView = () => {
     };
     const response = await handleOTPValidation(OTPData);
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(false);
       navigate("/deviceCOP/list");
     } else {
@@ -69,7 +62,6 @@ const StateAdminCOPModelView = () => {
     };
     const response = await handleSendOTPValidation(deviceOTPData);
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(true);
     } else {
       console.log(response.error);
@@ -79,7 +71,7 @@ const StateAdminCOPModelView = () => {
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.AdminCOPDeviceVerifyOtp(modelOtpData);
-      console.log("Device Model is OTP Verified", response.data);
+      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -94,7 +86,7 @@ const StateAdminCOPModelView = () => {
   const handleSendOTPValidation = async (OtpData) => {
     try {
       const response = await OtpServices.AdminCOPDeviceSendOtp(OtpData);
-      console.log("Device Model is OTP Verified", response.data);
+      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -117,8 +109,6 @@ const StateAdminCOPModelView = () => {
   }, [dispatch, deviceId]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
-  console.log(deviceDetails);
-
   return (
     <>
       <Grid container spacing={gridSpacing}>

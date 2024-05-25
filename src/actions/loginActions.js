@@ -43,7 +43,7 @@ export const loginUser = (username, password) => async (dispatch) => {
       message:null,
       status:null,
     }
-    sessionStorage.setItem('cookiesData',cookiesData);
+    sessionStorage.setItem('cookiesData',cookiesData+'-'+response.data?.user?.id);
     dispatch(setUser(responseData));
     dispatch(setError(error));
   } catch (error) {
@@ -140,6 +140,7 @@ export const logout=()=>async(dispatch)=>{
     sessionStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('sessionID');
     sessionStorage.removeItem('oAuthToken');
+    sessionStorage.removeItem('cookiesData');
     dispatch(setUser(setData));
   }
 }

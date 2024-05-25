@@ -16,7 +16,7 @@ import { IconChevronDown, IconChevronUp } from '@tabler/icons';
 
 // ==============================|| SIDEBAR MENU LIST COLLAPSE ITEMS ||============================== //
 
-const NavCollapse = ({ menu, level }) => {
+const NavCollapse = ({ menu, level ,role}) => {
   const theme = useTheme();
   const customization = useSelector((state) => state.customization);
    const navigate = useNavigate();
@@ -63,11 +63,16 @@ const NavCollapse = ({ menu, level }) => {
 
   // menu collapse & item
   const menus = menu.children?.map((item) => {
+    
     switch (item.type) {
       case 'collapse':
-        return <NavCollapse key={item.id} menu={item} level={level + 1} />;
+        const collapse=item.roles ? ( item.roles.includes(role) ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/> : ''): <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/>
+        return collapse;
       case 'item':
-        return <NavItem key={item.id} item={item} level={level + 1} />;
+        
+        const navItem=item.roles ? ( item.roles.includes(role) ? <NavItem key={item.id} item={item} level={level + 1} /> : ''): <NavItem key={item.id} item={item} level={level + 1} />
+        return navItem;
+        // return <NavItem key={item.id} item={item} level={level + 1} />;
       default:
         return (
           <Typography key={item.id} variant="h6" color="error" align="center">

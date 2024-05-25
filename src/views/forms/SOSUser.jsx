@@ -25,7 +25,6 @@ const SOSUser = () => {
   const [updatedFormFields, setUpdatedFormField] = useState(sosUserFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
-    console.log("This");
     (async () => {
       const stateList = await retriveStateList();
       const districtList = await retriveDistrictList();
@@ -45,7 +44,7 @@ const SOSUser = () => {
   }, []);
   const navigate = useNavigate();
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
+    !alert.error && navigate("/new/sos-user");
     setOpen(false);
   };
 
@@ -70,7 +69,7 @@ const SOSUser = () => {
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.createSOSAdmin(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -82,13 +81,16 @@ const SOSUser = () => {
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const userData=sessionStorage.getItem('cookiesData');
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
         ...values,
         role: "sosuser",
-        createdby: 37,
+        createdby: userId,
       };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {

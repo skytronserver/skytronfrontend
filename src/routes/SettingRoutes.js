@@ -9,16 +9,29 @@ import VehicleCategory from "../views/settings/VehicleCategory";
 import StateDistrict from "../views/settings/StateDistrict";
 import FrequencyFirmware from "../views/settings/FrequencyFirmware";
 import IPSetting from "../views/settings/IPSetting";
-const PrivateRoute = ({ element }) => {
-  const isAuthenticated = true; /*useSelector(
-    (state) => state.login.user.isAuthenticated
-  );*/
-  return isAuthenticated ? element : <Navigate to="/login" replace />;
+import { decipherEncryption } from '../helper';
+import { useSelector } from "react-redux";
+import NotAuthorized from "../views/pages/NotAuthorized";
+const PrivateRoute = ({ element,roles }) => {
+  const myDecipher = decipherEncryption('skytrack')
+  const userData=sessionStorage.getItem('cookiesData');
+  const data=userData && userData.split("-").map(item=>myDecipher(item))
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
+  const userRoles=data.length > 2 && data[1];
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
+    // User does not have any of the required roles
+    return <NotAuthorized />;
+  }
+  return element;
 };
 
 const applyPrivateRoute = (route) => ({
   ...route,
-  element: <PrivateRoute element={route.element} />,
+  element: <PrivateRoute element={route.element} roles={route.roles}/>,
 });
 
 const SettingRoutes = {
@@ -34,6 +47,7 @@ const SettingRoutes = {
           formTitle="Vehicle Category"
         />
       ),
+      roles: ['superadmin']
     },
     {
       path: "/setting/state-district",
@@ -46,18 +60,21 @@ const SettingRoutes = {
           districtInitials={districtInitials}
         />
       ),
+      roles: ['superadmin']
     },
     {
       path: "/setting/frequency-firmware",
       element: (
         <FrequencyFirmware/>
       ),
+      roles: ['superadmin','stateadmin']
     },
     {
       path: "/setting/ip-settings",
       element: (
         <IPSetting/>
       ),
+      roles: ['superadmin','dealer']
     },
   ].map((route) => applyPrivateRoute(route)),
 };
