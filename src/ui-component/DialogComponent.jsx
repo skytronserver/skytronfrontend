@@ -7,7 +7,6 @@ import {
     Button
   } from "@mui/material";
 const DialogComponent = ({open,handleClose,message,errorList}) => {
-  console.log(errorList);
   return (
     <Dialog open={open} onClose={handleClose} style={{ padding: "30px" }}>
         <DialogContent>

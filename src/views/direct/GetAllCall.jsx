@@ -23,7 +23,6 @@ const GetAllCall = () => {
  
 const callList=useSelector((state)=>state.userData.callList);
   const handleDelete = (id) => {
-    console.log(id)
     // setData(data.filter((item) => item.id !== id));
   };
   const actionColumn = [

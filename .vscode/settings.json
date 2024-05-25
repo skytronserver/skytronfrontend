@@ -1,15 +1,18 @@
 {
     "liveServer.settings.port": 5501,
     "cSpell.words": [
+        "createdby",
         "Datatable",
         "datatables",
         "deactive",
+        "devicemanufacture",
         "Esim",
         "Formik",
         "formjson",
         "kycfile",
         "panfile",
         "retrive",
+        "skytrack",
         "stateadmin",
         "tabler"
     ]

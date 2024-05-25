@@ -1,11 +1,12 @@
 // assets
 import { IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag,IconUrgent } from '@tabler/icons';
-
+import { cipherEncryption } from '../helper';
 // constant
 const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag,IconUrgent};
 
+const myCipher = cipherEncryption('skytrack');
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
-
+// console.log(`${myCipher('Raju Saha')}-${myCipher('superadmin')}-${myCipher('8876042616')}`)
 const user = {
   id: 'utilities',
   type: 'group',
@@ -15,64 +16,71 @@ const user = {
       id: 'new-icons',
       title: 'Create New',
       type: 'collapse',
-      icon: icons.IconUser,
-      
+      icon: icons.IconUser,      
       children: [
         {
           id: 'state-admin',
           title: 'State Admin',
           type: 'item',
           url: '/user/newStateAdmin',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin']
         },
         {
           id: 'esim-user',
           title: 'eSIM Service Provider',
           type: 'item',
           url: '/user/newEsimUser',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles: ['superadmin']
         },
         {
           id: 'manufacturer-user',
           title: 'Manufacturer',
           type: 'item',
           url: '/user/newManufacturer',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles: ['superadmin']
         },
         {
           id: 'dto-user',
           title: 'DTO',
           type: 'item',
           url: '/user/newDto',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles: ['superadmin','stateadmin']
         },
         {
           id: 'dealer-account',
           title: 'Dealer Account',
           type: 'item',
           url: '/user/newDealerAccount',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles: ['superadmin','stateadmin']
         },
         {
           id: 'vehicle-owner',
           title: 'Vehicle Owner',
           type: 'item',
           url: '/new/vehicleOwner',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles: ['superadmin','dealer']
         },
         {
           id: 'sos-admin',
           title: 'SOS Admin',
           type: 'item',
           url: '/new/sos-admin',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles: ['superadmin']
         },
         {
           id: 'sos-user',
           title: 'SOS User',
           type: 'item',
           url: '/new/sos-user',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles: ['superadmin','sosadmin'],
         },
        
       ]
@@ -84,7 +92,8 @@ const user = {
       type: 'item',
       url: '/sos-call-list',
       icon: icons.IconUrgent,
-      breadcrumbs: false
+      breadcrumbs: false,
+      roles: ['superadmin','sosadmin','sosuser','teamleader'],
     },
     {
       id: 'route-fixing',
@@ -92,7 +101,8 @@ const user = {
       type: 'item',
       url: '/route-fixing',
       icon: icons.IconMap,
-      breadcrumbs: false
+      breadcrumbs: false,
+      roles:['superadmin','stateadmin','owner','dto'],
     },
     {
       id: 'live-tracking',
@@ -100,7 +110,8 @@ const user = {
       type: 'item',
       url: '/live-tracking',
       icon: icons.IconMap,
-      breadcrumbs: false
+      breadcrumbs: false,
+      roles:['superadmin','stateadmin','owner','dto'],
     },
     {
       id: 'history-playback',
@@ -108,7 +119,8 @@ const user = {
       type: 'item',
       url: '/history-playback',
       icon: icons.IconMap,
-      breadcrumbs: false
+      breadcrumbs: false,
+      roles:['superadmin','stateadmin','owner','dto'],
     },
     {
       id: 'sos-tracking',
@@ -116,7 +128,8 @@ const user = {
       type: 'item',
       url: '/sos-alert',
       icon: icons.IconUrgent,
-      breadcrumbs: false
+      breadcrumbs: false,
+      roles: ['superadmin','sosadmin'],
     },
     {
       id: 'sos-lead',
@@ -124,7 +137,8 @@ const user = {
       type: 'item',
       url: '/sos-lead-exp',
       icon: icons.IconUrgent,
-      breadcrumbs: false
+      breadcrumbs: false,
+      roles: ['superadmin','sosadmin','teamleader'],
     },
     {
       id: 'sos-user',
@@ -132,7 +146,8 @@ const user = {
       type: 'item',
       url: '/sos-exe',
       icon: icons.IconUrgent,
-      breadcrumbs: false
+      breadcrumbs: false,
+      roles: ['superadmin','sosadmin','teamleader','sosuser'],
     },
     {
       id: 'device-icons',
@@ -145,122 +160,136 @@ const user = {
           title: 'Model',
           type: 'item',
           url: '/deviceModel/new',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'device-model-extension',
           title: 'Model Extension',
           type: 'item',
           url: '/deviceModel/extension',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'view-device',
           title: 'Model Awaiting Approval',
           type: 'item',
           url: '/device/list',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'view-device-cop',
           title: 'Awaiting COP Device List',
           type: 'item',
           url: '/deviceCOP/list',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'new-device',
           title: 'New Device Stock',
           type: 'item',
           url: '/device/new',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'upload-device',
           title: 'Upload Device Stock',
           type: 'item',
           url: '/device/bulkupload',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'upload-firmware',
           title: 'Upload Firmware',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'inactive-device',
           title: 'Inactive Device',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'all-device',
           title: 'Show All Device',
           type: 'item',
           url: '/device/show-device',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'assign-device',
           title: 'Assign Device to Retailer',
           type: 'item',
           url: '/device/assign-device',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'fit-device',
-          title: 'Configure Device',
+          title: 'Configure Device/Sell Api',
           type: 'item',
           url: '/device/fit-device',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         }
       ]
     },
-    {
-      id: 'icons-esim',
-      title: 'E Sim',
-      type: 'collapse',
-      icon: icons.IconDeviceSim1,
-      children: [
-        {
-          id: 'new-sim',
-          title: 'New',
-          type: 'item',
-          url: '',
-          breadcrumbs: false
-        },
-        {
-          id: 'view-sim',
-          title: 'List',
-          type: 'item',
-          url: '',
-          breadcrumbs: false
-        }
+    // {
+    //   id: 'icons-esim',
+    //   title: 'E Sim',
+    //   type: 'collapse',
+    //   icon: icons.IconDeviceSim1,
+    //   children: [
+    //     {
+    //       id: 'new-sim',
+    //       title: 'New',
+    //       type: 'item',
+    //       url: '',
+    //       breadcrumbs: false
+    //     },
+    //     {
+    //       id: 'view-sim',
+    //       title: 'List',
+    //       type: 'item',
+    //       url: '',
+    //       breadcrumbs: false
+    //     }
         
-      ]
-    },,
+    //   ]
+    // },
     {
       id: 'icons-tag',
       title: 'Tagging',
       type: 'collapse',
       icon: icons.IconTag,
+      roles:['dealer','superadmin'],
       children: [
         {
           id: 'new-tagging',
           title: 'Tag Device to Vehicle',
           type: 'item',
           url: '/tag/device-vehicle',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['dealer','superadmin'],
         },
         {
           id: 'view-pending',
           title: 'Pending for Owner Approval',
           type: 'item',
           url: '/tag/unapproved-vehicle',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['dealer','superadmin'],
         }
         
       ]
@@ -276,104 +305,119 @@ const user = {
           title: 'Users',
           type: 'item',
           url: '/user/registeredUser',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'manufacturer-list',
           title: 'Manufacturer',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'view-device',
           title: 'Device List',
           type: 'item',
           url: '/device/show-available-device',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'tagged-device',
           title: 'Tagged Device',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'dealer-list',
           title: 'Dealers',
           type: 'item',
           url: '/user/dealerList',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','stateadmin'],
         },
         {
           id: 'vehicle-owner',
           title: 'Vehicle Owner',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'emergency-list',
           title: 'Emergency',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'route-deviation',
           title: 'Route Deviation Alert',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'untagged-list',
           title: 'Untagged',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'fitment-receipt',
           title: 'Fitment Receipt',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'geo-fence',
           title: 'Geo Fence',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'alert-list',
           title: 'Alert',
           type: 'item',
           url: '/alert-list',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'performance-list',
           title: 'Performance List',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },{
           id: 'route-fix-report',
           title: 'Route Fix',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
         {
           id: 'vehicle-category-list',
           title: 'Vehicle Category',
           type: 'item',
           url: '',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin'],
         },
       ]
     },

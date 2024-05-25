@@ -101,7 +101,7 @@ function FrequencyFirmware() {
   const createFrequency = async (formData) => {
     try {
       const response = await SettingService.create_settings_hp_freq(formData);
-      console.log("HP Frequency added successfully", response.data);
+      console.log("HP Frequency added successfully");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);
@@ -115,7 +115,7 @@ function FrequencyFirmware() {
   const createFirmware = async (formData) => {
     try {
       const resp = await SettingService.create_settings_firmware(formData);
-      console.log("Firmware added successfully", resp.data);
+      console.log("Firmware added successfully");
       return { code: "200", message: resp.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);

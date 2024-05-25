@@ -17,10 +17,6 @@ const UsersList = () => {
   useEffect(()=>{
     const retrievePosts = async () => {
       const retriveData=await UserServices.getRegisteredUsers();
-
-      console.log(typeof  retriveData);
-      console.log("Hello");
-
       dispatch(fetchUserDataSuccess(retriveData.data)) ;
       setLoad(true)
     };
@@ -28,7 +24,6 @@ const UsersList = () => {
   },[dispatch])
  
   const users=useSelector((state)=>state.users.registeredUser);
-  console.log(users)
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>

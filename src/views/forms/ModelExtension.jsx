@@ -19,7 +19,6 @@ const ModelExtension = ( {formTitle }) => {
   const [updatedFormFields,setUpdatedFormField]=useState(modelExtensionFormField);
   const [isFormLoaded,setIsFormLoaded]=useState(false);
   useEffect(()=>{
-    console.log('This');
     (async()=>{
     const modelList=await retriveModelList();
     setUpdatedFormField(prevConfig =>({
@@ -51,7 +50,6 @@ const ModelExtension = ( {formTitle }) => {
     const response = await handleOTPValidation(OTPData);
 
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(false);
     } else {
       console.log(response.error);
@@ -60,7 +58,7 @@ const ModelExtension = ( {formTitle }) => {
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.sendCopOTP(modelOtpData);
-      console.log("Device Model is OTP Verified", response.data);
+      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -88,14 +86,13 @@ const ModelExtension = ( {formTitle }) => {
   const handleModelChange = (event, formik) => {
     const fieldName = event.target.name;
     if (fieldName == "device_model") {
-      console.log(event.target.value);
+
       (async () => {
         const getDetailsOf = {
           device_model_id: event.target.value,
         };
         try {
           const retrieveData = await DeviceModelServices.getModel(getDetailsOf);
-          console.log(retrieveData.data);
 
           formik.setFieldValue("testAgency", retrieveData.data.test_agency);
           formik.setFieldValue("tacNo", retrieveData.data.tac_no);

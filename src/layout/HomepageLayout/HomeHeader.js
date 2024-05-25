@@ -31,11 +31,13 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             <MenuIcon />
           </IconButton>
           {/* Navigation buttons */}
+
           <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
             <Button color="inherit" startIcon={<HomeIcon />} component={Link} href="#home" sx={{ mr: 2 }}>Home</Button>
             <Button color="inherit" component={Link} href="#contact" sx={{ mr: 2 }}>Contact Us</Button>
             <Button color="inherit" component={Link} href="#about">About Us</Button>
           </Grid>
+          
         </Toolbar>
       </AppBar>
       {/* Drawer */}

@@ -31,7 +31,6 @@ const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
  
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Submitted:', { vehicleNo, fromDate, toDate });
     const params={
     vehicleNo: vehicleNo,
     fromDate: fromDate,

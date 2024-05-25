@@ -9,6 +9,7 @@ const icons = { IconBrandChrome, IconHelp,IconSettings };
 const other = {
   id: 'setting-all-routes',
   type: 'group',
+  roles:['superadmin','stateadmin'],
   children: [
     {
       id: 'setting-all',
@@ -21,28 +22,32 @@ const other = {
           title: 'Vehicle Category',
           type: 'item',
           url: '/setting/vehicle-category',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','stateadmin']
         },
         {
           id: 'state-district',
           title: 'State & District',
           type: 'item',
           url: '/setting/state-district',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','stateadmin']
         },
         {
           id: 'firmware-frequency',
           title: 'HP Frequency & Firmware',
           type: 'item',
           url: '/setting/frequency-firmware',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','stateadmin']
         },
         {
           id: 'ip-settings',
           title: 'IP Settings',
           type: 'item',
           url: '/setting/ip-settings',
-          breadcrumbs: false
+          breadcrumbs: false,
+          roles:['superadmin','stateadmin']
         }
         
       ]

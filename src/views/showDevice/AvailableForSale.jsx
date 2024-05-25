@@ -28,14 +28,14 @@ const AvailableForSale = () => {
     e.preventDefault();
     const confirmed = window.confirm('Are you sure you want to Mark as Defective?');
     if (confirmed) {
-     console.log(id)
+     console.log('true')
     }
   }
   const handleReturnManufacturer=(e,id)=>{
     e.preventDefault();
     const confirmed = window.confirm('Are you sure you want to return to manufacturer?');
     if (confirmed) {
-      console.log(id)
+      console.log('true')
     }
   }
   const actionColumn = [

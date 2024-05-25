@@ -13,14 +13,16 @@ import { convertErrorObjectToArray } from "../../helper";
 import {vehicleOwnerInitialValues,vehicleOwnerField} from "../../formjson/vehicleOwner";
 const VehicleOwner = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  
   const [alert,setAlert]=useState({
     error:false,
     message:'',
     errorList:[]
   })
   const [loading,setLoading]=useState(false);
-  const navigate = useNavigate();
   const handleClose = () => {
+    !alert.error && navigate("/new/vehicleOwner");
     setOpen(false);
   };
 
@@ -45,7 +47,7 @@ const VehicleOwner = () => {
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.createVehicleOwner(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -55,16 +57,18 @@ const VehicleOwner = () => {
 
   
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const userData=sessionStorage.getItem('cookiesData');
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole={};
     valuesWithRole = {
       ...values,
-      role: "vehicleowner",
-      createdby: 37,
+      role: "owner",
+      createdby: userId,
     };
     
-    console.log(valuesWithRole);
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
       setAlert((prevAlert)=>({...prevAlert,error:false,errorList:[]}))

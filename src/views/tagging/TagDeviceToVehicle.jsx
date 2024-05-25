@@ -44,7 +44,6 @@ function TagDeviceToVehicle() {
   const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
-    console.log("This");
     (async () => {
       const deviceList = await fetchDeviceListForSale();
       const ownerList = await retriveVehicleOwner();
@@ -79,7 +78,6 @@ function TagDeviceToVehicle() {
     const response = await handleOTPValidation(OTPData);
 
     if (response.code === "200") {
-      console.log(response);
       setShowOTP(false);
     } else {
       console.log(response.error);
@@ -121,7 +119,7 @@ function TagDeviceToVehicle() {
   const tagDevice = async (formData) => {
     try {
       const response = await TaggingService.tagDeviceToVehicle(formData);
-      console.log("Tagged successfully", response.data);
+      console.log("Tagged successfully");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);

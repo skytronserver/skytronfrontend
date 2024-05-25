@@ -19,7 +19,6 @@ const DeviceForm = ({formTitle }) => {
   const [updatedFormFields,setUpdatedFormField]=useState(deviceFormField);
   const [isFormLoaded,setIsFormLoaded]=useState(false);
   useEffect(()=>{
-    console.log('This');
     (async()=>{
     const modelList=await retriveModelList();
     setUpdatedFormField(prevConfig =>({
@@ -66,11 +65,8 @@ const DeviceForm = ({formTitle }) => {
       createdby:'31'
     };
 
-
-    console.log(valuesWithRole);
     try {
       const response = await StockServices.createStock(values);
-      console.log(response)
       setLoading(false);
       resetForm(deviceInitials);
       navigate("/device/show-device");
@@ -81,15 +77,12 @@ const DeviceForm = ({formTitle }) => {
   const handleModelChange = (event, formik) => {
     const fieldName = event.target.name;
     if (fieldName === "model") {
-      console.log(event.target.value);
       (async () => {
         const getDetailsOf = {
           device_model_id: event.target.value,
         };
         try {
           const retrieveData = await DeviceModelServices.getModel(getDetailsOf);
-          console.log(retrieveData.data);
-
           formik.setFieldValue("test_agency", retrieveData.data.test_agency);
           formik.setFieldValue("tac_no", retrieveData.data.tac_no);
           formik.setFieldValue("tac_validity", retrieveData.data.tac_validity);

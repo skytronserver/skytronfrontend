@@ -48,7 +48,6 @@ const CallDetails = () => {
     setSubmitting(true);
     try {
       const response = await HomePageService.updateSOSCall(values);
-      console.log(response);
       resetForm(statusInitials);
     } catch (error) {
       console.error("Error :", error.message);
@@ -73,7 +72,6 @@ const CallDetails = () => {
     };
     try {
       const response = await HomePageService.broadCastHelp(data);
-      console.log(response);
     } catch (error) {
       console.error("Error :", error.message);
     }

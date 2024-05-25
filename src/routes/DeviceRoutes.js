@@ -19,22 +19,30 @@ import ShowDevice from '../views/showDevice/ShowDevice';
 import AvailableForSale from '../views/showDevice/AvailableForSale';
 import ConfigureDevice from 'views/tagging/ConfigureDevice';
 import {  decipherEncryption } from '../helper';
+import NotAuthorized from '../views/pages/NotAuthorized';
 
-const myDecipher = decipherEncryption('skytrack')
-const userData=sessionStorage.getItem('cookiesData');
-// userData && userData.split("-").map(item=>console.log(myDecipher(item)))
-
-const PrivateRoute = ({ element }) => {
-  const isAuthenticated = true; /*useSelector(
-    (state) => state.login.user.isAuthenticated
-  );*/
-  return isAuthenticated ? element : <Navigate to="/login" replace />;
-};
-
-const applyPrivateRoute = (route) => ({
-  ...route,
-  element: <PrivateRoute element={route.element} />,
-});
+const PrivateRoute = ({ element,roles }) => {
+  const myDecipher = decipherEncryption('skytrack')
+  const userData=sessionStorage.getItem('cookiesData');
+  const data=userData && userData.split("-").map(item=>myDecipher(item))
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
+  const userRoles=userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+    if (!isAuthenticated) {
+      return <Navigate to="/" replace />;
+    }
+    if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
+      // User does not have any of the required roles
+      return <NotAuthorized />;
+    }
+    return element;
+  };
+  
+  const applyPrivateRoute = (route) => ({
+    ...route,
+    element: <PrivateRoute element={route.element} roles={route.roles}/>,
+  });
+  
+  
 const DeviceRoutes = {
   path: "/",
   element: <MainLayout />,
@@ -42,50 +50,63 @@ const DeviceRoutes = {
     {
       path: "/device/new",
       element: <DeviceForm  formTitle="New Device Form"/>,
+      roles:['superadmin','devicemanufacture'],
     },
     {
         path: "/deviceModel/new",
         element: <DeviceModelForm fieldConfig={deviceModelFormField} initialData={deviceModelInitials} formTitle="New Device Model Form"/>,
+        roles:['superadmin'],
     },
     {
         path: "/deviceModel/extension",
         element: <ModelExtension  formTitle="Model Extension"/>,
+        roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/device/list",
       element: <DeviceModelList/>,
+      roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/deviceCOP/list",
       element: <UnapproveCopList/>,
+      roles:['superadmin','devicemanufacture'],
+      
     },
     {
       path: "/deviceModel/view/:deviceId",
       element: <StateAdminDeviceModelView/>,
+      roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/deviceCOPModel/view/:deviceId",
       element: <StateAdminCOPModelView/>,
+      roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/device/bulkupload",
       element: <BulkUpload/>,
+      roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/device/show-device",
       element: <ShowDevice/>,
+      roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/device/assign-device",
       element: <AssignDevice />,
+      roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/device/show-available-device",
       element: <AvailableForSale />,
+      roles:['superadmin','devicemanufacture'],
     },
     {
       path: "/device/fit-device",
       element: <ConfigureDevice status='Available_for_fitting'/>,
+      roles:['superadmin','devicemanufacture'],
     }
   ].map((route) => applyPrivateRoute(route)),
 };

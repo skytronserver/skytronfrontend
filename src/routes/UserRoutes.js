@@ -19,18 +19,20 @@ import Manufacturer from "../views/forms/Manufacturer";
 import EsimUser from "../views/forms/EsimUser";
 import SOSAdmin from "../views/forms/SOSAdmin";
 import SOSUser from "../views/forms/SOSUser";
+import { decipherEncryption } from '../helper';
+import NotAuthorized from "../views/pages/NotAuthorized";
 const PrivateRoute = ({ element,roles }) => {
-  const isAuthenticated = true; /*useSelector(
-    (state) => state.login.user.isAuthenticated
-  );*/
-  const userRoles='admin'; // Get the user role after login from redux store
-
+const myDecipher = decipherEncryption('skytrack')
+const userData=sessionStorage.getItem('cookiesData');
+const data=userData && userData.split("-").map(item=>myDecipher(item))
+const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
+const userRoles=data.length > 2 && data[1]; // Get the user role after login from redux store
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
   if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
     // User does not have any of the required roles
-    return <Navigate to="/" replace />;
+    return <NotAuthorized />;
   }
   return element;
 };
@@ -53,85 +55,97 @@ const Dynamic=Loadable(
 const CreateManufacturer=Loadable( lazy(()=>import("../views/pages/device/CreateNew")))
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
-
-
-
 const UserRoutes = {
   path: "/",
   element: <MainLayout />,
-
   children: [
     {
       path: "/user/newStateAdmin",
       element: <StateAdmin/>,
-      roles: ['admin', 'stateadmin','user']
+      roles: ['superadmin']
     },
     {
       path: "/user/list",
       element: <ListUser />,
+      roles: ['superadmin']
     },
     {
       path: "/manufacturer/new",
       element: <CreateManufacturer />,
+      roles: ['superadmin']
     },
     {
       path: "/user/dummy",
       element: <Dummy />,
+      roles: ['superadmin']
     },
     {
       path: "/user/dynamic",
       element: <Dynamic/>,
+      roles: ['superadmin']
     },
     {
       path: "/user/newEsimUser",
       element: <EsimUser/>,
+      roles: ['superadmin']
     }
     ,
     {
       path: "/user/newManufacturer",
       element: <Manufacturer/>,
+      roles: ['superadmin']
     }
     ,
     {
       path: "/user/newDto",
       element: <DtoRto/>,
+      roles: ['superadmin','stateadmin']
     },
     {
       path: "/user/newDealerAccount",
       element:<DealerAccount/>,
+      roles: ['superadmin','stateadmin']
     },
     {
       path: "/new/vehicleOwner",
       element: <VehicleOwner />,
+      roles: ['superadmin','dealer']
     },
     {
       path: "/new/otherUser",
       element: <DynamicForm fieldConfig={otherUserFormField} initialData={otherUserInitialValues} formTitle="Other Users" userRole="others"/>,
+      roles: ['superadmin']
     },
     {
       path: "/new/sos-admin",
       element: <SOSAdmin/>,
+      roles: ['superadmin']
     },
     {
       path: "/new/sos-user",
       element: <SOSUser/>,
+      roles: ['superadmin','sosadmin']
     },
     {
       path: "/user/registeredUser",
       element: <UsersList/>,
+      roles: ['superadmin']
     },
     {
       path: "/user/dealerList",
       element: <DealerList/>,
+      roles: ['superadmin','stateadmin']
     },
     {
       path: "/user/view/:userId",
       element: <UpdateForm fieldConfig={stateAdminField} initialData={stateAdminInitialValues} formTitle="State Admin"/>,
+      roles: ['superadmin']
     }
     ,
     {
       path: "/file",
       element: <FileUploadTest/>,
+      roles: ['superadmin']
     }
   ].map((route) => applyPrivateRoute(route)),
 

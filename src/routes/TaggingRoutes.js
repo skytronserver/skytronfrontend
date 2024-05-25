@@ -2,17 +2,31 @@ import { Navigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import TagDeviceToVehicle from "../views/tagging/TagDeviceToVehicle";
 import UnApprovedTag from "../views/tagging/UnApprovedTag";
-const PrivateRoute = ({ element }) => {
-  const isAuthenticated = true; /*useSelector(
-    (state) => state.login.user.isAuthenticated
-  );*/
-  return isAuthenticated ? element : <Navigate to="/login" replace />;
-};
-
-const applyPrivateRoute = (route) => ({
-  ...route,
-  element: <PrivateRoute element={route.element} />,
-});
+import { decipherEncryption } from '../helper';
+import { useSelector } from "react-redux";
+import NotAuthorized from "../views/pages/NotAuthorized";
+const PrivateRoute = ({ element,roles }) => {
+  const myDecipher = decipherEncryption('skytrack')
+  const userData=sessionStorage.getItem('cookiesData');
+  const data=userData && userData.split("-").map(item=>myDecipher(item))
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
+  const userRoles=userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+    if (!isAuthenticated) {
+      return <Navigate to="/" replace />;
+    }
+    if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
+      // User does not have any of the required roles
+      return <NotAuthorized />;
+    }
+    return element;
+  };
+  
+  const applyPrivateRoute = (route) => ({
+    ...route,
+    element: <PrivateRoute element={route.element} roles={route.roles}/>,
+  });
+  
+  
 
 const TaggingRoutes = {
   path: "/",
@@ -23,12 +37,14 @@ const TaggingRoutes = {
       element: (
         <TagDeviceToVehicle/>
       ),
+      roles:['dealer','superadmin']
     },
     {
       path: "/tag/unapproved-vehicle",
       element: (
         <UnApprovedTag/>
       ),
+      roles:['dealer','superadmin']
     }
   ].map((route) => applyPrivateRoute(route)),
 };

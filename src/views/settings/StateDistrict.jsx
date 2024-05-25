@@ -7,7 +7,7 @@ import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
-import { convertErrorObjectToArray } from "helper";
+import { convertErrorObjectToArray, retriveStateList, } from "helper";
 
 //Datatables
 import { useSelector, useDispatch } from "react-redux";
@@ -28,7 +28,21 @@ function StateDistrict({
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-
+  const [updatedFormFields, setUpdatedFormField] = useState(districtConfig);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const stateList = await retriveStateList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        state: {
+          ...prevConfig.state,
+          options: stateList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
   //Datatables data using redux
   const dispatch = useDispatch();
   const stateList = useSelector((state) => state.setting.stateList);
@@ -62,15 +76,15 @@ function StateDistrict({
     }, {})
   );
   const districtValidationSchema = Yup.object(
-    Object.keys(districtConfig).reduce((acc, field) => {
-      acc[field] = districtConfig[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
   const createStateName = async (formData) => {
     try {
       const response = await SettingService.create_settings_State(formData);
-      console.log("State Added Successfully", response.data);
+      console.log("State Added Successfully");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);
@@ -84,7 +98,7 @@ function StateDistrict({
   const createDistrictName = async (formData) => {
     try {
       const resp = await SettingService.create_settings_District(formData);
-      console.log("District Added Successfully", resp.data);
+      console.log("District Added Successfully");
       return { code: "200", message: resp.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);
@@ -218,7 +232,7 @@ function StateDistrict({
           }}
         >
           <MainCard title="Add District Name">
-            <Formik
+            {isFormLoaded && <Formik
               initialValues={districtInitials}
               validationSchema={districtValidationSchema}
               onSubmit={handleDistrictSubmit}
@@ -227,10 +241,10 @@ function StateDistrict({
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(districtConfig).map((field) => (
+                    {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={districtConfig[field]}
+                          fieldConfig={updatedFormFields[field]}
                           formik={formik}
                         />
                       </Grid>
@@ -249,6 +263,7 @@ function StateDistrict({
                 </form>
               )}
             </Formik>
+            }
           </MainCard>
         </Grid>
       </Grid>

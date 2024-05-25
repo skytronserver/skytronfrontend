@@ -46,7 +46,7 @@ const ConfigureDevice = ({ status }) => {
     const fetchAvailableDevice = async () => {
       const retriveData = await StockServices.getAvailableDeviceList(filter);
       retriveData.data.data.map((item) =>
-        console.log(item.device.id, item.device.imei)
+        console.log('dummies')
       );
       const arrUniq = [
         ...new Map(
@@ -64,8 +64,6 @@ const ConfigureDevice = ({ status }) => {
     e.preventDefault();
     if (deviceId != "") {
       const response = await StockServices.devicePatch(deviceId, 'fitment');
-      console.log(response.status);
-      console.log(response.data?.message);
       setShowAction((prev)=>({...prev,'fitment':{'status':true}}))
       setSubmitDis(true)
     }

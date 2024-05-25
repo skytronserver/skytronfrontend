@@ -20,7 +20,7 @@ const Manufacturer = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
+    !alert.error && navigate("/user/newManufacturer");
     setOpen(false);
   };
 
@@ -45,7 +45,7 @@ const Manufacturer = () => {
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.createManufacturer(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -57,13 +57,16 @@ const Manufacturer = () => {
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const userData=sessionStorage.getItem('cookiesData');
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
         ...values,
-        role: "devicemanufacturer",
-        createdby: 37,
+        role: "devicemanufacture",
+        createdby:userId,
       };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {

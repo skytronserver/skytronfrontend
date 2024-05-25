@@ -55,10 +55,6 @@ const NewUser = () => {
     idProof: Yup.mixed().required("ID Proof is required"),
   });
   const handleSubmit = (values, { setSubmitting }) => {
-    // Your form submission logic goes here
-    console.log("Form values:", values);
-
-    // Simulate an asynchronous operation (e.g., API call)
     setTimeout(() => {
       alert("Form submitted successfully!");
       setSubmitting(false);

@@ -1,6 +1,6 @@
 import { Button, CircularProgress, Grid } from "@mui/material";
 import { Formik } from "formik";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { gridSpacing } from "../../store/constant";
 import DealerServices from "services/DealerServices";
 import * as Yup from "yup";
@@ -8,17 +8,46 @@ import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
 import PageHeader from "ui-component/cards/PageHeader";
-import { convertErrorObjectToArray } from "helper";
+import { useNavigate } from "react-router-dom";
+import { convertErrorObjectToArray,retriveStateList,retriveDistrictList,retriveManufacturerList } from "helper";
 import { dealerAccountFormField, dealerAccountInitialValues } from "../../formjson/dealerAccount"
 function DealerAccount() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const [alert, setAlert] = useState({
     error: false,
     message: "",
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [updatedFormFields,setUpdatedFormField]=useState(dealerAccountFormField);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  useEffect(()=>{
+    (async()=>{
+    const manufacturerList=await retriveManufacturerList();
+    const stateList=await retriveStateList();
+    const districtList=await retriveDistrictList();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      manufacturer: {
+        ...prevConfig.manufacturer,
+        options: manufacturerList,
+      },
+      address_State: {
+        ...prevConfig.address_State,
+        options: stateList,
+      },
+      address: {
+        ...prevConfig.address,
+        options: districtList,
+      },
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[]);
   const handleClose = () => {
+    !alert.error && navigate("/user/newDealerAccount");
     setOpen(false);
   };
 
@@ -35,15 +64,15 @@ function DealerAccount() {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(dealerAccountFormField).reduce((acc, field) => {
-      acc[field] = dealerAccountFormField[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
   const handleCreateUser = async (userData) => {
     try {
       const response = await DealerServices.dealerUser(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -57,20 +86,22 @@ function DealerAccount() {
   (async () => {
     try {
       const res = await DealerServices.dealerList();
-      console.log(res);
     } catch (error) {
       console.log(error);
     }
   })();
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const userData=sessionStorage.getItem('cookiesData');
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
       ...values,
       role: "devicemanufacturer",
-      createdby: 37,
+      createdby: userId,
     };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
@@ -130,7 +161,7 @@ function DealerAccount() {
           }}
         >
           <MainCard title="Create Dealer Account">
-            <Formik
+            {isFormLoaded && <Formik
               initialValues={dealerAccountInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
@@ -139,10 +170,10 @@ function DealerAccount() {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(dealerAccountFormField).map((field) => (
+                    {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={dealerAccountFormField[field]}
+                          fieldConfig={updatedFormFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -162,6 +193,7 @@ function DealerAccount() {
                 </form>
               )}
             </Formik>
+            }
           </MainCard>
         </Grid>
       </Grid>

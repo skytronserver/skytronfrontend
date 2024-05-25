@@ -10,12 +10,10 @@ const Datatable = ({ userColumns, userRows, tableTitle }) => {
 
 
   useEffect(() => {
-    console.log(userRows);
     setData(Array.isArray(userRows) ? userRows : []);
   }, [userRows]);
 
   const handleDelete = (id) => {
-    console.log(id);
     setData(data.filter((item) => item.id !== id));
   };
 

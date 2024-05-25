@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
 import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
+
+
 const StateAdmin = () => {
   const [updatedFormFields,setUpdatedFormField]=useState(stateAdminField);
   const [isFormLoaded,setIsFormLoaded]=useState(false)
@@ -20,6 +22,7 @@ const StateAdmin = () => {
     message: "",
     errorList: [],
   });
+  const userData=sessionStorage.getItem('cookiesData');
   //Changes from here
   const retriveStateList = async () => {
     try {
@@ -70,7 +73,7 @@ const StateAdmin = () => {
       formik.setFieldValue(fieldName, selectedFile);
     }
   };
-//Validation Scheme needs formmik need
+//Validation Scheme needs formik need
   const validationSchema = Yup.object(
     Object.keys(setUpdatedFormField).reduce((acc, field) => {
       acc[field] = setUpdatedFormField[field].validation;
@@ -80,7 +83,7 @@ const StateAdmin = () => {
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.createStateAdmin(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -94,11 +97,13 @@ const StateAdmin = () => {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     let valuesWithRole = {};
     valuesWithRole = {
         ...values,
         role: "stateadmin",
-        createdby: 37,
+        createdby: userId,
       };
 
     const response = await handleCreateUser(valuesWithRole);

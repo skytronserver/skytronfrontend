@@ -18,7 +18,6 @@ const RouteFixing = () => {
     };
     const fetchVehicleList = async () => {
       const retriveData = await DeviceModelServices.getDeviceList(post_data);
-      console.log(retriveData.data.data);
       setDeviceList(retriveData.data.data);
     };
     fetchVehicleList();

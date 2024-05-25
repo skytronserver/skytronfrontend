@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+
 import {useState,useEffect} from 'react';
 // material-ui
 import { useTheme } from "@mui/material/styles";
@@ -94,12 +94,6 @@ const LoginOtp = () => {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    {/* Logo Section */}
-                    {/* <Grid item sx={{ mb: 3 }}>
-                      <Link to="#">
-                        <Logo />
-                      </Link>
-                    </Grid> */}
                     <Grid item xs={12}>
                       <Grid
                         container

@@ -31,7 +31,6 @@ const CreateNew = () => {
     tacValidity: Yup.string().required("TAC Validity is required"),
   });
   const handleSubmit = (values, { setSubmitting }) => {
-    console.log("Form values:", values);
     setTimeout(() => {
       alert("Form submitted successfully!");
       setSubmitting(false);

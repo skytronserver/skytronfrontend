@@ -76,7 +76,7 @@ function IPSetting() {
   const createIPSetting = async (formData) => {
     try {
       const response = await SettingService.create_settings_ip(formData);
-      console.log("Created successfully", response.data);
+      console.log("Created successfully");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);

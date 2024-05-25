@@ -44,7 +44,7 @@ const SOSAdmin = () => {
   }, []);
   const navigate = useNavigate();
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
+    !alert.error && navigate("/new/sos-admin");
     setOpen(false);
   };
 
@@ -69,7 +69,7 @@ const SOSAdmin = () => {
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.createSOSAdmin(userData);
-      console.log("User created successfully:", response.data);
+      console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -81,13 +81,16 @@ const SOSAdmin = () => {
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const userData=sessionStorage.getItem('cookiesData');
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
       ...values,
       role: "sosadmin",
-      createdby: 37,
+      createdby: userId,
     };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
