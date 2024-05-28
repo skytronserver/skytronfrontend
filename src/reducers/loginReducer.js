@@ -7,6 +7,7 @@ const initialState = {
     email:null,
     otpToken:null,
   },
+  cookiesData:null,
   loading: false,
   error: {
     message:null,
@@ -36,6 +37,11 @@ const loginReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: action.payload,
+      };
+    case 'SET_LOGIN_INFO':
+      return {
+        ...state,
+        cookiesData:action.payload,
       };
     case SET_ERROR:
       return {

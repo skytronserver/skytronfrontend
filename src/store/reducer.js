@@ -8,6 +8,7 @@ import userDataReducer from '../reducers/userDataReducer';
 import deviceModelReducer from '../reducers/deviceModelReducer';
 import stockReducer from "../reducers/stockReducer";
 import settingReducer from 'reducers/settingReducer';
+import dealerReducer from '../reducers/dealerReducer';
 // ==============================|| COMBINE REDUCER ||============================== //
 
 const reducer = combineReducers({
@@ -17,7 +18,8 @@ const reducer = combineReducers({
   users:userDataReducer,
   deviceModel:deviceModelReducer,
   stock:stockReducer,
-  setting:settingReducer
+  setting:settingReducer,
+  dealer:dealerReducer,
 });
 
 export default reducer;

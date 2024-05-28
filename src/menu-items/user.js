@@ -185,7 +185,7 @@ const user = {
           type: 'item',
           url: '/deviceCOP/list',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['superadmin','devicemanufacture','stateadmin'],
         },
         {
           id: 'new-device',

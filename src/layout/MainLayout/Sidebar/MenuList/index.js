@@ -4,11 +4,16 @@ import { Typography } from '@mui/material';
 // project imports
 import NavGroup from './NavGroup';
 import menuItem from '../../../../menu-items';
-
+import { useSelector } from 'react-redux';
+import { decipherEncryption } from '../../../../helper';
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
-  const role=menuItem.role;
+  const myDecipher = decipherEncryption('skytrack')
+  const userData=useSelector((state) => state.login.cookiesData) || sessionStorage.getItem('cookiesData');
+  const data=userData && userData.split("-").map(item=>myDecipher(item))
+  const userRoles=userData && data.length > 2 && data[1];
+  const role=menuItem.role || userRoles;
   const navItems = menuItem.items.map((item) => {
     switch (item.type) {
       case 'group':

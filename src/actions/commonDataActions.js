@@ -42,3 +42,8 @@ export const getAllSOSCall=(data)=>({
   type:GET_ALL_SOS_CALL,
   payload:data,
 })
+
+export const dealerList=(data)=>({
+  type:"GET_ALL_DEALER",
+  payload:data
+})
