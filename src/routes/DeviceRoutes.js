@@ -70,18 +70,18 @@ const DeviceRoutes = {
     {
       path: "/deviceCOP/list",
       element: <UnapproveCopList/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['superadmin','devicemanufacture','stateadmin'],
       
     },
     {
       path: "/deviceModel/view/:deviceId",
       element: <StateAdminDeviceModelView/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['superadmin','devicemanufacture','stateadmin'],
     },
     {
       path: "/deviceCOPModel/view/:deviceId",
       element: <StateAdminCOPModelView/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['superadmin','devicemanufacture','stateadmin'],
     },
     {
       path: "/device/bulkupload",

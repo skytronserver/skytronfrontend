@@ -9,7 +9,7 @@ const icons = { IconBrandChrome, IconHelp,IconSettings };
 const other = {
   id: 'setting-all-routes',
   type: 'group',
-  roles:['superadmin','stateadmin'],
+  roles:['superadmin','dealer'],
   children: [
     {
       id: 'setting-all',
@@ -23,7 +23,7 @@ const other = {
           type: 'item',
           url: '/setting/vehicle-category',
           breadcrumbs: false,
-          roles:['superadmin','stateadmin']
+          roles:['superadmin']
         },
         {
           id: 'state-district',
@@ -31,7 +31,7 @@ const other = {
           type: 'item',
           url: '/setting/state-district',
           breadcrumbs: false,
-          roles:['superadmin','stateadmin']
+          roles:['superadmin']
         },
         {
           id: 'firmware-frequency',
@@ -39,7 +39,7 @@ const other = {
           type: 'item',
           url: '/setting/frequency-firmware',
           breadcrumbs: false,
-          roles:['superadmin','stateadmin']
+          roles:['superadmin']
         },
         {
           id: 'ip-settings',
@@ -47,7 +47,7 @@ const other = {
           type: 'item',
           url: '/setting/ip-settings',
           breadcrumbs: false,
-          roles:['superadmin','stateadmin']
+          roles:['superadmin','dealer']
         }
         
       ]

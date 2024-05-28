@@ -11,7 +11,10 @@ export const setLoading = (loading) => ({
   type: SET_LOADING,
   payload: loading,
 });
-
+export const setLoginInfo=(data)=>({
+  type: 'SET_LOGIN_INFO',
+  payload: data,
+})
 export const setError = (error) => ({
   type: SET_ERROR,
   payload: error,
@@ -44,6 +47,7 @@ export const loginUser = (username, password) => async (dispatch) => {
       status:null,
     }
     sessionStorage.setItem('cookiesData',cookiesData+'-'+response.data?.user?.id);
+    dispatch(setLoginInfo(cookiesData));
     dispatch(setUser(responseData));
     dispatch(setError(error));
   } catch (error) {
@@ -67,7 +71,7 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
       isAuthenticated:true,
       token:response.data.token,
       email:username,
-      otpToken:null
+      otpToken:null,
     }
     sessionStorage.setItem('isAuthenticated',true);
     sessionStorage.setItem('sessionID', Date.now());

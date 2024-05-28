@@ -67,7 +67,7 @@ const SettingRoutes = {
       element: (
         <FrequencyFirmware/>
       ),
-      roles: ['superadmin','stateadmin']
+      roles: ['superadmin']
     },
     {
       path: "/setting/ip-settings",
