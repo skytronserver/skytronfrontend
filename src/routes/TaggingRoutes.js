@@ -5,6 +5,7 @@ import UnApprovedTag from "../views/tagging/UnApprovedTag";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
+import UploadReceipt from "../views/tagging/UploadReceipt";
 const PrivateRoute = ({ element,roles }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData=sessionStorage.getItem('cookiesData');
@@ -43,6 +44,13 @@ const TaggingRoutes = {
       path: "/tag/unapproved-vehicle",
       element: (
         <UnApprovedTag/>
+      ),
+      roles:['dealer','superadmin']
+    },
+    {
+      path: "/tag/upload-receipt",
+      element: (
+        <UploadReceipt/>
       ),
       roles:['dealer','superadmin']
     }

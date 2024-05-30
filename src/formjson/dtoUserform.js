@@ -12,6 +12,7 @@ export const dtoInitialsValues = {
     email: "",
     state:"",
     district:"",
+    district_code:"",
     idProofno:"",
     expiryDate:formattedDate,
     dto_rto:"",
@@ -50,6 +51,12 @@ export const dtoFormFields = {
     label: "District Name",
     validation: Yup.string().required("District Name is required"),
     options:districtList,
+  },
+  district_code: {
+    name:"district_code",
+    type: "text",
+    label: "District Code",
+    validation: Yup.string().required("District Code is required")
   },
   idProofno: {
     name:"idProofno",
