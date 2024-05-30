@@ -6,7 +6,7 @@ const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDev
 
 const myCipher = cipherEncryption('skytrack');
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
-// console.log(`${myCipher('Raju Saha')}-${myCipher('superadmin')}-${myCipher('8876042616')}`)
+console.log(`${myCipher('Raju Saha')}-${myCipher('superadmin')}-${myCipher('8876042616')}`)
 const user = {
   id: 'utilities',
   type: 'group',
@@ -288,6 +288,15 @@ const user = {
           title: 'Pending for Owner Approval',
           type: 'item',
           url: '/tag/unapproved-vehicle',
+          breadcrumbs: false,
+          roles:['dealer','superadmin'],
+        }
+        ,
+        {
+          id: 'upload-tagging-receipt',
+          title: 'Upload Receipt',
+          type: 'item',
+          url: '/tag/upload-receipt',
           breadcrumbs: false,
           roles:['dealer','superadmin'],
         }

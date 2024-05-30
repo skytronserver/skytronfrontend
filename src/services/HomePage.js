@@ -1,7 +1,12 @@
 import { getAxiosInstance } from './axiosInstance'; 
-const getLiveTracking = () => {
+const getLiveTracking = (data) => {
   const http = getAxiosInstance(); 
-  return http.get("/api/gps-data-map/");
+  return http.get("/api/gps-data-map/",{
+    params:{
+      imei:data.imei,
+      regno:data.regno
+    }
+  });
 };
 const getSOSDataAdmin = () => {
   const http = getAxiosInstance(); 
