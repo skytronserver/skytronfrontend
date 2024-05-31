@@ -122,6 +122,30 @@ export const fetchVehicleCategory = async () => {
       }
     }
   };
+
+  export const fetchTaggedList = async () => {
+    try {
+      const filter = {
+        is_tagged: false,
+      };
+      const response = await DeviceModelServices.getDeviceList(filter);
+      const list = response.data.data.map((device) => ({
+        value: device.id,
+        label: device.imei,
+      }));
+      const uniqueList = [
+        ...new Map(list.map((item) => [item["value"], item])).values(),
+      ];
+      return uniqueList;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
+
 export const updateObjectValues = (targetObject, sourceObject, excludeKeys = []) => {
     for (const key in targetObject) {
       if (sourceObject.hasOwnProperty(key) && !excludeKeys.includes(key)) {

@@ -8,22 +8,23 @@ import FormField from "../../ui-component/CustomTextField";
 import {uploadReceiptInitials,uploadReceiptFormFields} from "../../formjson/uploadReceipt";
 import { useState, useEffect } from "react";
 import TaggingService from "../../services/TaggingService";
+import {fetchTaggedList} from "../../helper";
 const UploadReceipt = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(uploadReceiptFormFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
-  const tagged_list=[{value:'1',label:'XXXXXXX'},{value:'2',label:'YYYYYYY'}]
   useEffect(() => {
     (async () => {
-      setUpdatedFormField((prevConfig) => ({
-        ...prevConfig,
-        tag_id: {
-          ...prevConfig.tag_id,
-          options: tagged_list,
-        },
-      }));
-      setIsFormLoaded(true);
-    })();
+        const tagged_list = await fetchTaggedList();
+        setUpdatedFormField((prevConfig) => ({
+            ...prevConfig,
+            tag_id: {
+              ...prevConfig.tag_id,
+              options: tagged_list,
+            },
+          }));
+          setIsFormLoaded(true);
+      })();
   }, []);
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];

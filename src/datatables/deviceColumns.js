@@ -77,4 +77,54 @@ const formatDate = (dateString) => {
         },
       }
   ];
+
+
+  export const taggedColumn = [
+    {
+      name: "id",
+      label: "ID",
+      options: {
+        filter: false,
+        sort: false,
+        display: false,
+      },
+    },
+    {
+      name: "device_esn",
+      label: "ESN",
+      options: {
+        filter: true,
+        sort: false,
+      },
+    },
+    {
+      name: "imei",
+      label: "IMEI",
+      options: {
+        filter: false,
+        sort: false,
+      },
+    },
+    {
+      name: "esim_provider",
+      label: "ESIM Provider",
+      options: {
+        filter: false,
+        sort: false,
+      },
+    },
+    {
+      name: "esim_validity",
+      label: "ESIM Validity",
+      options: {
+        filter: false,
+        sort: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <p>{formatDate(value)}</p>
+          );
+        }
+      },
+    },
+  ];
     
