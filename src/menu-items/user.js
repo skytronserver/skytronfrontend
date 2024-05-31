@@ -321,7 +321,7 @@ const user = {
           id: 'manufacturer-list',
           title: 'Manufacturer',
           type: 'item',
-          url: '/dashboard',
+          url: '/user/manufacturer-list',
           breadcrumbs: false,
           roles:['superadmin'],
         },

@@ -29,6 +29,10 @@ const getAvailableDeviceList = (data) => {
   const http = getAxiosInstance();
   return http.get("/api/sell/SellListAvailableDeviceStock/",data);
 };
+const getProviderList = () => {
+  const http = getAxiosInstance();
+  return http.get("/api/devicestock/esim_provider_list/");
+};
 const devicePatch = (id,action)=>{
   const http = getAxiosInstance();
   const device = {
@@ -120,7 +124,8 @@ const StockServices = {
   configureIPPort,
   configureESimAct,
   activateEsimReq,
-  devicePatch
+  devicePatch,
+  getProviderList
 };
 
 export default StockServices;

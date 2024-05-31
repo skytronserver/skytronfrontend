@@ -21,6 +21,7 @@ import SOSAdmin from "../views/forms/SOSAdmin";
 import SOSUser from "../views/forms/SOSUser";
 import { decipherEncryption } from '../helper';
 import NotAuthorized from "../views/pages/NotAuthorized";
+import ManufacturerList from "views/reports/ManufacturerList";
 const PrivateRoute = ({ element,roles }) => {
 const myDecipher = decipherEncryption('skytrack')
 const userData=sessionStorage.getItem('cookiesData');
@@ -93,6 +94,11 @@ const UserRoutes = {
     {
       path: "/user/newManufacturer",
       element: <Manufacturer/>,
+      roles: ['superadmin']
+    },
+    {
+      path: "/user/manufacturer-list",
+      element: <ManufacturerList/>,
       roles: ['superadmin']
     }
     ,

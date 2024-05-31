@@ -90,6 +90,22 @@ export const fetchDeviceListForSale = async () => {
       }
     }
   };
+  export const fetchEsimProvider = async () => {
+    try {
+      const response = await StockServices.getProviderList();
+      const provider = response.data;
+      const list = Object.keys(provider)
+        .filter((key) => provider[key] === "active")
+        .map((key) => ({ value: key, label: key }));
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
 export const retriveVehicleOwner = async () => {
     try {
       const response = await UserServices.fetchVehicleOwner();
