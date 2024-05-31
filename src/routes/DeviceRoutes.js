@@ -20,6 +20,7 @@ import AvailableForSale from '../views/showDevice/AvailableForSale';
 import ConfigureDevice from 'views/tagging/ConfigureDevice';
 import {  decipherEncryption } from '../helper';
 import NotAuthorized from '../views/pages/NotAuthorized';
+import TaggedList from '../views/reports/TaggedList';
 
 const PrivateRoute = ({ element,roles }) => {
   const myDecipher = decipherEncryption('skytrack')
@@ -102,6 +103,11 @@ const DeviceRoutes = {
       path: "/device/show-available-device",
       element: <AvailableForSale />,
       roles:['superadmin','devicemanufacture'],
+    },
+    {
+      path: "/device/show-tagged-device",
+      element: <TaggedList />,
+      roles:['superadmin','devicemanufacture','dealer'],
     },
     {
       path: "/device/fit-device",
