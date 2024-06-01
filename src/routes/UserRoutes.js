@@ -22,6 +22,7 @@ import SOSUser from "../views/forms/SOSUser";
 import { decipherEncryption } from '../helper';
 import NotAuthorized from "../views/pages/NotAuthorized";
 import ManufacturerList from "views/reports/ManufacturerList";
+import VehicleOwnerList from "views/reports/VehicleOwnerList";
 const PrivateRoute = ({ element,roles }) => {
 const myDecipher = decipherEncryption('skytrack')
 const userData=sessionStorage.getItem('cookiesData');
@@ -115,6 +116,11 @@ const UserRoutes = {
     {
       path: "/new/vehicleOwner",
       element: <VehicleOwner />,
+      roles: ['superadmin','dealer']
+    },
+    {
+      path: "/user/vehicle-owner-list",
+      element: <VehicleOwnerList />,
       roles: ['superadmin','dealer']
     },
     {

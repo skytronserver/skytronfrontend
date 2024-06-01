@@ -2,20 +2,20 @@ import React from 'react';
 // project imports
 import { Grid,Button } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
-import ManufacturerServices from 'services/ManufacturerServices';
+import UserServices from 'services/UserServices';
 import { useEffect,useState } from 'react';
 //Datatables
 import DynamicDatatables from '../../datatables/DynamicDatatables';
-import {manufacturerColumns} from '../../datatables/rowsColumn';
+import {vehicleOwnerCols} from '../../datatables/rowsColumn';
 
-const ManufacturerList = () => {
+const VehicleOwnerList = () => {
   const [load,setLoad]=useState(false)
-  const [manufacturer,setManufacturer]=useState([]);
+  const [ownerList,setOwnerList]=useState([]);
   useEffect(()=>{
-    const fetchManufacturerList = async () => {
+    const fetchOwner = async () => {
       try {
-        const response = await ManufacturerServices.findManufacturer();
-        setManufacturer(response.data) 
+        const response = await UserServices.fetchVehicleOwner();
+        setOwnerList(response.data) 
         setLoad(true)
       } catch (error) {
         if (error.response && error.response.status === 404) {
@@ -25,17 +25,17 @@ const ManufacturerList = () => {
         }
       }
     };
-    fetchManufacturerList();
+    fetchOwner();
   },[])
   //For actions refer AvailableForSale Component
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Manufacturer" rows={manufacturer} columns={manufacturerColumns}/>}
+        {load && <DynamicDatatables tableTitle="Manufacturer" rows={ownerList} columns={vehicleOwnerCols}/>}
         </Grid>
     </Grid>
 );
 }
 
-export default ManufacturerList;
+export default VehicleOwnerList;
 

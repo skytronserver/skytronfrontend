@@ -700,5 +700,94 @@ export const alertListColumn=[
     },
   },
 ];
+export const vehicleOwnerCols = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].name}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Email Id",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].email}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Mobile",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].mobile}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "DOB",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].dob}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Status",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].status}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Created On",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{formatDate(value[0].created)}</p>
+        );
+      }
+    },
+  },
+];
 
 

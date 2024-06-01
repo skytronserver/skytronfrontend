@@ -353,9 +353,9 @@ const user = {
           id: 'vehicle-owner',
           title: 'Vehicle Owner',
           type: 'item',
-          url: '/dashboard',
+          url: '/user/vehicle-owner-list',
           breadcrumbs: false,
-          roles:['superadmin'],
+          roles:['superadmin','stateadmin','dealer'],
         },
         {
           id: 'emergency-list',
