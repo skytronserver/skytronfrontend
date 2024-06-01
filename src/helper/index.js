@@ -36,9 +36,9 @@ export const retriveStateList = async () => {
     }
   }
 };
-export const retriveDistrictList = async () => {
+export const retriveDistrictList = async (filter) => {
     try {
-      const response = await SettingService.filter_settings_District();
+      const response = await SettingService.filter_settings_District(filter);
       const list=response.data.map(device => ({
         value: device.id,
         label: device.district,

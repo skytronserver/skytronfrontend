@@ -2,6 +2,7 @@ import * as Yup from "yup";
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
+const stateList=[{'value':'','label':''}];
 export const eSIMInitialValues = {
     name: "",
     mobile: "",
@@ -11,6 +12,7 @@ export const eSIMInitialValues = {
     expiryDate:formattedDate,
     gstnnumber: "",
     idProofno:"",
+    stateId:'',
     file_authLetter: null,
     file_companRegCertificate: null,
     file_GSTCertificate: null,
@@ -66,6 +68,13 @@ export const eSIMFormField = {
     type: "text",
     label: "User ID Proof No.",
     validation: Yup.string().required("Name is required"),
+  },
+  stateId: {
+    name:"stateId",
+    type: "select",
+    label: "State",
+    validation: Yup.string().required("State is required"),
+    options:stateList,
   },
   file_authLetter:{
     name:"file_authLetter",

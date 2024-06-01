@@ -412,21 +412,6 @@ const user = {
           url: '/dashboard',
           breadcrumbs: false,
           roles:['superadmin'],
-        },{
-          id: 'route-fix-report',
-          title: 'Route Fix',
-          type: 'item',
-          url: '/dashboard',
-          breadcrumbs: false,
-          roles:['superadmin'],
-        },
-        {
-          id: 'vehicle-category-list',
-          title: 'Vehicle Category',
-          type: 'item',
-          url: '/dashboard',
-          breadcrumbs: false,
-          roles:['superadmin'],
         },
       ]
     },
