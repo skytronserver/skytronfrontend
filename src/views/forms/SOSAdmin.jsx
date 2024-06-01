@@ -33,15 +33,31 @@ const SOSAdmin = () => {
         state: {
           ...prevConfig.state,
           options: stateList,
-        },
-        district: {
-          ...prevConfig.district,
-          options: districtList,
-        },
+        }
       }));
       setIsFormLoaded(true);
     })();
   }, []);
+  const handleStateChange = async(event, formik) => {
+    const fieldName = event.target.name;
+    if (fieldName == "state") {
+      (async () => {
+        const filter = {
+          state: event.target.value,
+        };
+        console.log(filter)
+        const districtList = await retriveDistrictList(filter);
+        setUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          district: {
+            ...prevConfig.district,
+            options: districtList,
+          },
+        }));
+      })();
+      
+    }
+  }
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/new/sos-admin");
@@ -167,6 +183,7 @@ const SOSAdmin = () => {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
+                            handleOptionChange={handleStateChange}
                           />
                         </Grid>
                       ))}

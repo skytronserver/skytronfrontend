@@ -313,37 +313,52 @@ export const manufacturerColumns = [
     },
   },
   {
-    name: "email",
-    label: "Email",
+    name: "users",
+    label: "Email Id",
     options: {
       filter: false,
       sort: false,
-    },
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].email}</p>
+        );
+      }
+    },  
   },
   {
-    name: "mobile",
-    label: "<b>Mobile No</b>",
+    name: "users",
+    label: "Mobile",
     options: {
       filter: false,
       sort: false,
-    },
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].mobile}</p>
+        );
+      }
+    },  
   },
   {
-    name: "role",
-    label: "Role",
+    name: "users",
+    label: "Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].name}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "gstnnumber",
+    label: "GSTN No.",
     options: {
       filter: true,
       sort: false,
     },
-  },
-  {
-    name: "address",
-    label: "Address",
-    options: {
-      filter: false,
-      sort: false,
-    },
-  },
+  }
 ];
 
 export const userColumns = [
@@ -684,5 +699,95 @@ export const alertListColumn=[
       sort: false,
     },
   },
-]
+];
+export const vehicleOwnerCols = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].name}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Email Id",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].email}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Mobile",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].mobile}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "DOB",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].dob}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Status",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].status}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Created On",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{formatDate(value[0].created)}</p>
+        );
+      }
+    },
+  },
+];
+
 

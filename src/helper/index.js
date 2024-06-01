@@ -36,9 +36,9 @@ export const retriveStateList = async () => {
     }
   }
 };
-export const retriveDistrictList = async () => {
+export const retriveDistrictList = async (filter) => {
     try {
-      const response = await SettingService.filter_settings_District();
+      const response = await SettingService.filter_settings_District(filter);
       const list=response.data.map(device => ({
         value: device.id,
         label: device.district,
@@ -82,6 +82,22 @@ export const fetchDeviceListForSale = async () => {
         ...new Map(list.map((item) => [item["value"], item])).values(),
       ];
       return uniqueList;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
+  export const fetchEsimProvider = async () => {
+    try {
+      const response = await StockServices.getProviderList();
+      const provider = response.data;
+      const list = Object.keys(provider)
+        .filter((key) => provider[key] === "active")
+        .map((key) => ({ value: key, label: key }));
+      return list;
     } catch (error) {
       if (error.response && error.response.status === 404) {
         console.log("No Data Found");

@@ -1,6 +1,6 @@
 import * as Yup from "yup";
   let stateList=[];
-  let districtList=[];
+  let districtList=[{'value':'','label':'Select District'}];
 export const sosUserInitialValues = {
   name: "",
   mobile: "",

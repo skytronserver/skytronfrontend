@@ -6,9 +6,9 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray } from "../../helper";
+import { convertErrorObjectToArray,fetchEsimProvider } from "../../helper";
 import {manufacturerInitialValues,manufacturerFormField} from "../../formjson/manufacturer"
 const Manufacturer = () => {
   const [open, setOpen] = useState(false);
@@ -18,6 +18,21 @@ const Manufacturer = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [updatedFormFields, setUpdatedFormField] = useState(manufacturerFormField);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  useEffect(() => {
+    (async () => {
+        const eSimProvider = await fetchEsimProvider();
+        setUpdatedFormField((prevConfig) => ({
+            ...prevConfig,
+            esimProvider: {
+              ...prevConfig.esimProvider,
+              options: eSimProvider,
+            },
+          }));
+          setIsFormLoaded(true);
+      })();
+  }, []);
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/user/newManufacturer");
@@ -37,8 +52,8 @@ const Manufacturer = () => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(manufacturerFormField).reduce((acc, field) => {
-      acc[field] = manufacturerFormField[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -127,7 +142,7 @@ const Manufacturer = () => {
           }}
         >
           <MainCard title="Create Manufacturer">
-            <Formik
+            {isFormLoaded && <Formik
               initialValues={manufacturerInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
@@ -136,10 +151,10 @@ const Manufacturer = () => {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(manufacturerFormField).map((field) => (
+                    {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={manufacturerFormField[field]}
+                          fieldConfig={updatedFormFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -159,6 +174,7 @@ const Manufacturer = () => {
                 </form>
               )}
             </Formik>
+            }
           </MainCard>
         </Grid>
       </Grid>

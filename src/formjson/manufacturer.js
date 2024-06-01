@@ -2,7 +2,9 @@ import * as Yup from "yup";
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
+let providerList=[{value:'',label:'Select'}];
 export const manufacturerInitialValues = {
+    esimProvider:"",
     name: "",
     mobile: "",
     email: "",
@@ -18,6 +20,13 @@ export const manufacturerInitialValues = {
 };
 
 export const manufacturerFormField = {
+  esimProvider: {
+    name:"esimProvider",
+    type: "select",
+    label: "eSim Provider",
+    validation: Yup.string().required("eSim Provider is required"),
+    options: providerList
+  },
   name: {
     name:"name",
     type: "text",
