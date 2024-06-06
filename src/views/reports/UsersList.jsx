@@ -13,17 +13,18 @@ import {registeredUserColumns} from '../../datatables/rowsColumn';
 const UsersList = () => {
   const [load,setLoad]=useState(false)
   const dispatch=useDispatch();
-
+  const [users,setUsers]=useState([]);
   useEffect(()=>{
     const retrievePosts = async () => {
       const retriveData=await UserServices.getRegisteredUsers();
-      dispatch(fetchUserDataSuccess(retriveData.data)) ;
+      // dispatch(fetchUserDataSuccess(retriveData.data)) ;
+      setUsers(retriveData.data);
       setLoad(true)
     };
     retrievePosts();
   },[dispatch])
  
-  const users=useSelector((state)=>state.users.registeredUser);
+  // const users=useSelector((state)=>state.users.registeredUser);
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>

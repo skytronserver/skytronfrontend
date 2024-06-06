@@ -5,6 +5,7 @@ const Datatable = ({ columns, rows,tableTitle }) => {
   const options = {
     selectableRows: "none",
     viewColumns: false,
+    responsive: 'standard',
   };
   return (
     <div className="datatable">

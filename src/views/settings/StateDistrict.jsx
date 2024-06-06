@@ -105,7 +105,7 @@ function StateDistrict({
       return {
         code: "400",
         message: error.message,
-        errors: error.resp.data,
+        errors: error?.response?.data || error?.resp?.data,
       };
     }
   };
@@ -120,6 +120,7 @@ function StateDistrict({
       setLoading(false);
       resetForm(districtInitials);
     } else {
+      console.log('District')
       setAlert((prevAlert) => ({
         ...prevAlert,
         error: true,

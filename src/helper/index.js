@@ -171,10 +171,15 @@ export const updateObjectValues = (targetObject, sourceObject, excludeKeys = [])
   };
 
 export const convertErrorObjectToArray = (errorObject) => {
-    return Object.entries(errorObject).map(([key, value]) => ({
-      field: key,
-      message: value[0] // Assuming there's only one error message per field
-    }));
+    if(errorObject?.error){
+      return errorObject?.error
+    }else{
+      return Object.entries(errorObject).map(([key, value]) => ({
+        field: key,
+        message: value[0] // Assuming there's only one error message per field
+      }));
+    }
+    
   };
 
 export const cipherEncryption = (salt) => {
