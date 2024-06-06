@@ -106,22 +106,22 @@ const UserRoutes = {
     {
       path: "/user/newDto",
       element: <DtoRto/>,
-      roles: ['superadmin','stateadmin']
+      roles: ['stateadmin']
     },
     {
       path: "/user/newDealerAccount",
       element:<DealerAccount/>,
-      roles: ['superadmin','stateadmin']
+      roles: ['stateadmin']
     },
     {
       path: "/new/vehicleOwner",
       element: <VehicleOwner />,
-      roles: ['superadmin','dealer']
+      roles: ['dealer']
     },
     {
       path: "/user/vehicle-owner-list",
       element: <VehicleOwnerList />,
-      roles: ['superadmin','dealer']
+      roles: ['dealer']
     },
     {
       path: "/new/otherUser",
@@ -136,7 +136,7 @@ const UserRoutes = {
     {
       path: "/new/sos-user",
       element: <SOSUser/>,
-      roles: ['superadmin','sosadmin']
+      roles: ['sosadmin']
     },
     {
       path: "/user/registeredUser",

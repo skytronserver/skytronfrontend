@@ -75,8 +75,8 @@ const StateAdmin = () => {
   };
 //Validation Scheme needs formik need
   const validationSchema = Yup.object(
-    Object.keys(setUpdatedFormField).reduce((acc, field) => {
-      acc[field] = setUpdatedFormField[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );

@@ -251,24 +251,8 @@ export const registeredUserColumns = [
     },
   },
   {
-    name: "address",
-    label: "Address",
-    options: {
-      filter: false,
-      sort: false,
-    },
-  },
-  {
     name: "companyName",
     label: "Company Name",
-    options: {
-      filter: false,
-      sort: false,
-    },
-  },
-  {
-    name: "stateid",
-    label: "State Code",
     options: {
       filter: false,
       sort: false,
@@ -281,15 +265,7 @@ export const registeredUserColumns = [
       filter: false,
       sort: false,
     },
-  },
-  {
-    name: "createdby",
-    label: "Created By",
-    options: {
-      filter: false,
-      sort: false,
-    },
-  },
+  }
 ];
 
 

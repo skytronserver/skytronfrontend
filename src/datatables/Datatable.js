@@ -13,9 +13,9 @@ const Datatable = ({ userColumns, userRows, tableTitle }) => {
     setData(Array.isArray(userRows) ? userRows : []);
   }, [userRows]);
 
-  const handleDelete = (id) => {
-    setData(data.filter((item) => item.id !== id));
-  };
+  // const handleDelete = (id) => {
+  //   setData(data.filter((item) => item.id !== id));
+  // };
 
   const actionColumn = [
     {
@@ -34,13 +34,13 @@ const Datatable = ({ userColumns, userRows, tableTitle }) => {
                   <VisibilityIcon />
                 </div>
               </Link>
-              <div
+              {/* <div
                 className="deleteButton"
                 onClick={() => handleDelete(tableMeta.rowData[0])}
                 style={{ cursor: "pointer" }}
               >
                 <DeleteIcon />
-              </div>
+              </div> */}
             </div>
           );
         },
@@ -51,13 +51,14 @@ const Datatable = ({ userColumns, userRows, tableTitle }) => {
   const options = {
     selectableRows: "none",
     viewColumns: false,
+    responsive: 'standard',
   };
 
   return (
     <div className="datatable">
       <MUIDataTable
         title={tableTitle}
-        data={data.map((row) => Object.values(row))}
+        data={userRows}
         columns={actionColumn.concat(userColumns)}
         options={options}
       />

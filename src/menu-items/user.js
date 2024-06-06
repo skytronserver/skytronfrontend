@@ -48,7 +48,7 @@ const user = {
           type: 'item',
           url: '/user/newDto',
           breadcrumbs: false,
-          roles: ['superadmin','stateadmin']
+          roles: ['stateadmin']
         },
         {
           id: 'dealer-account',
@@ -56,7 +56,7 @@ const user = {
           type: 'item',
           url: '/user/newDealerAccount',
           breadcrumbs: false,
-          roles: ['superadmin','stateadmin']
+          roles: ['stateadmin']
         },
         {
           id: 'vehicle-owner',
@@ -64,7 +64,7 @@ const user = {
           type: 'item',
           url: '/new/vehicleOwner',
           breadcrumbs: false,
-          roles: ['superadmin','dealer']
+          roles: ['dealer']
         },
         {
           id: 'sos-admin',
@@ -80,7 +80,7 @@ const user = {
           type: 'item',
           url: '/new/sos-user',
           breadcrumbs: false,
-          roles: ['superadmin','sosadmin'],
+          roles: ['sosadmin'],
         },
        
       ]
