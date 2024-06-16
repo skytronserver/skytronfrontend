@@ -16,7 +16,11 @@ const user = {
       id: 'new-icons',
       title: 'Create New',
       type: 'collapse',
-      icon: icons.IconUser,      
+      icon: icons.IconUser, 
+      roles:['superadmin',
+      'stateadmin',
+      'dealer',
+      'sosadmin'],     
       children: [
         {
           id: 'state-admin',
@@ -161,7 +165,7 @@ const user = {
           type: 'item',
           url: '/deviceModel/new',
           breadcrumbs: false,
-          roles:['superadmin'],
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'device-model-extension',
@@ -204,18 +208,10 @@ const user = {
           roles:['superadmin','devicemanufacture'],
         },
         {
-          id: 'upload-firmware',
-          title: 'Upload Firmware',
-          type: 'item',
-          url: '',
-          breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
-        },
-        {
           id: 'inactive-device',
           title: 'Inactive Device',
           type: 'item',
-          url: '',
+          url: '/dashboard',
           breadcrumbs: false,
           roles:['superadmin','devicemanufacture'],
         },
@@ -225,7 +221,7 @@ const user = {
           type: 'item',
           url: '/device/show-device',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['superadmin','devicemanufacture','dealer'],
         },
         {
           id: 'assign-device',
@@ -347,7 +343,7 @@ const user = {
           type: 'item',
           url: '/user/dealerList',
           breadcrumbs: false,
-          roles:['superadmin','stateadmin'],
+          roles:['superadmin','stateadmin','devicemanufacture'],
         },
         {
           id: 'vehicle-owner',

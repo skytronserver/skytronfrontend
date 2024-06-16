@@ -9,7 +9,7 @@ const icons = { IconBrandChrome, IconHelp,IconSettings };
 const other = {
   id: 'setting-all-routes',
   type: 'group',
-  roles:['superadmin','dealer'],
+  roles:['superadmin','dealer','devicemanufacture'],
   children: [
     {
       id: 'setting-all',
@@ -39,7 +39,7 @@ const other = {
           type: 'item',
           url: '/setting/frequency-firmware',
           breadcrumbs: false,
-          roles:['superadmin']
+          roles:['superadmin','devicemanufacture'],
         },
         {
           id: 'ip-settings',

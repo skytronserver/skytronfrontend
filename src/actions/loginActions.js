@@ -51,8 +51,14 @@ export const loginUser = (username, password) => async (dispatch) => {
     dispatch(setUser(responseData));
     dispatch(setError(error));
   } catch (error) {
+    let message="";
+    if(error?.code=="ERR_BAD_REQUEST"){
+      message="Internal Server Error"
+    }else{
+      message=error.message
+    }
     const errorData={
-      message:error.message,
+      message:message,
       status:null,
     }
     dispatch(setError(errorData));
@@ -137,6 +143,10 @@ export const logout=()=>async(dispatch)=>{
     },{
       headers:header
     });
+    sessionStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('sessionID');
+    sessionStorage.removeItem('oAuthToken');
+    sessionStorage.removeItem('cookiesData');
     dispatch(setUser(setData));
   }catch(error){
     dispatch(setUser(setData));

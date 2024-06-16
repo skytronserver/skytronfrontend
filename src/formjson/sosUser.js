@@ -1,6 +1,5 @@
 import * as Yup from "yup";
   let stateList=[];
-  let districtList=[{'value':'','label':'Select District'}];
 export const sosUserInitialValues = {
   name: "",
   mobile: "",
@@ -8,7 +7,6 @@ export const sosUserInitialValues = {
   dob:"",
   dtoCode: "",
   state:'',
-  district:'',
   idProofno: "",
   file_idProof: null,
 };
@@ -53,13 +51,6 @@ export const sosUserFormField = {
     label: "State Name",
     validation: Yup.string().required("State Name is required"),
     options:stateList,
-  },
-  district: {
-    name:"district",
-    type: "select",
-    label: "District Name",
-    validation: Yup.string().required("District Name is required"),
-    options:districtList,
   },
   idProofno: {
     name: "idProofno",
