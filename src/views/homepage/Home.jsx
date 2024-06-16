@@ -8,6 +8,7 @@ import {
   Button,
   Box,
   FormHelperText,
+  Link
 } from "@mui/material";
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
@@ -164,6 +165,11 @@ function Home() {
               
               </Form>
             </Formik>
+            <Box sx={{ mt: 1, textAlign: 'right' }}>
+                  <Link href="/mis/forgot-password" variant="body2">
+                    Forgot password?
+                  </Link>
+                </Box>
           </Paper>
         </Grid>
       </Grid>
