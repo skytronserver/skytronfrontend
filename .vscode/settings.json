@@ -11,9 +11,11 @@
         "formjson",
         "kycfile",
         "panfile",
+        "Proofno",
         "retrive",
         "skytrack",
         "stateadmin",
+        "superadmin",
         "tabler"
     ]
 }

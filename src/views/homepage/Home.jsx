@@ -61,7 +61,7 @@ function Home() {
   );
   const otpId = useSelector((state) => state.login.user.otpToken);
   const submitting = useSelector((state) => state.login.loading);
-
+  const errorMessage=useSelector((state)=>state.login.error.message);
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -158,6 +158,10 @@ function Home() {
                 <Button variant="contained" color="primary" type="submit" fullWidth disabled={submitting}>
                   {submitting === false ? `Login` : `Waiting`}
                 </Button>
+                <Box sx={{ mt: 3 }} style={{textAlign:'center'}}>
+                {(errorMessage !=''|| errorMessage!=null) && <span style={{color:'red'}}> {errorMessage}</span>}
+                </Box>
+              
               </Form>
             </Formik>
           </Paper>

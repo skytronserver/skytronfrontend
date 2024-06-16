@@ -48,15 +48,16 @@ const ProfileSection = () => {
    * anchorRef is used on different componets and specifying one type leads to other components throwing an error
    * */
   const anchorRef = useRef(null);
-  const handleLogout = async () => {
+  const handleLogout =() => {
     dispatch(logout());
     setLogout((prev)=>prev+1);
   };
   useEffect(()=>{
     if (!isAuthenticated) {
-      navigate('/');
+      window.location.href = '/mis';
     }
   })
+  
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;

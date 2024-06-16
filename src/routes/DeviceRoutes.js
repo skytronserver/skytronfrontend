@@ -56,7 +56,7 @@ const DeviceRoutes = {
     {
         path: "/deviceModel/new",
         element: <DeviceModelForm fieldConfig={deviceModelFormField} initialData={deviceModelInitials} formTitle="New Device Model Form"/>,
-        roles:['superadmin'],
+        roles:['superadmin','devicemanufacture'],
     },
     {
         path: "/deviceModel/extension",
@@ -92,7 +92,7 @@ const DeviceRoutes = {
     {
       path: "/device/show-device",
       element: <ShowDevice/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['superadmin','devicemanufacture','dealer'],
     },
     {
       path: "/device/assign-device",

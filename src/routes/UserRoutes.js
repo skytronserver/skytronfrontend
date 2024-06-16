@@ -146,7 +146,7 @@ const UserRoutes = {
     {
       path: "/user/dealerList",
       element: <DealerList/>,
-      roles: ['superadmin','stateadmin']
+      roles: ['superadmin','stateadmin','devicemanufacture']
     },
     {
       path: "/user/view/:userId",

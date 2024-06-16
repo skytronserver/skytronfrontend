@@ -13,6 +13,7 @@ export const manufacturerInitialValues = {
     company_name: "",
     gstnnumber: "",
     idProofno:"",
+    state:"",
     file_authLetter: null,
     file_companRegCertificate: null,
     file_GSTCertificate: null,
@@ -68,6 +69,13 @@ export const manufacturerFormField = {
     type: "text",
     label: "GST No",
     validation: Yup.string().required("GTS No is required"),
+  },
+  state: {
+    name:"state",
+    type: "select",
+    label: "Select State",
+    validation: Yup.string().required("State is required"),
+    options:[{'label':'Select','value':''}]
   },
   idProofno: {
     name:"idProofno",
