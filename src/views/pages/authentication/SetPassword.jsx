@@ -8,7 +8,7 @@ import AuthCardWrapper from "./AuthCardWrapper";
 import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { useParams } from "react-router-dom";
 import axios from 'axios';
-const ResetPassword = () => {
+const SetPassword = () => {
   const { reset_token } = useParams();
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
@@ -61,7 +61,7 @@ const ResetPassword = () => {
       setMobileNumber(value);
     }
   };
-  const handleResetPassword = async () => {
+  const handleSetPassword = async () => {
     if(password!=''){
         setLoading(true)
         try {
@@ -155,7 +155,7 @@ const ResetPassword = () => {
                               fontSize="16px"
                               textAlign={matchDownSM? "center" : "inherit"}
                             >
-                              Set Password
+                              Reset Password
                             </Typography>
                           </Stack>
                         </Grid>
@@ -219,10 +219,10 @@ const ResetPassword = () => {
                           size="large"
                           type="button"
                           variant="contained"
-                          onClick={handleResetPassword}
+                          onClick={handleSetPassword}
                           disabled={!arePasswordsMatch} // Disable button if passwords don't match
                         >
-                          Set Password
+                          Reset Password
                         </Button>
                       </Typography>
                     </Grid>
@@ -241,4 +241,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword;
+export default SetPassword;

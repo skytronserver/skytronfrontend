@@ -8,19 +8,15 @@ import AuthCardWrapper from "./AuthCardWrapper";
 import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { useParams } from "react-router-dom";
 import axios from 'axios';
-const ResetPassword = () => {
-  const { reset_token } = useParams();
+const ForgotPassword = () => {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [arePasswordsMatch, setArePasswordsMatch] = useState(false);
-  const [mobileNumber, setMobileNumber] = useState(""); 
-  const [isValidMobile, setIsValidMobile] = useState(true);
   const [idNo, setIdNo] = useState("");
   const [dob, setDob] = useState("");
+  const [mobileNumber, setMobileNumber] = useState(""); 
+  const [isValidMobile, setIsValidMobile] = useState(true);
   const [isNotEmpty, setIsNotEmpty] = useState({
     idNo:true,
     dob:true
@@ -41,16 +37,7 @@ const ResetPassword = () => {
         setIsNotEmpty((prev)=>({...prev,dob:false}));
     }
   };
-  const handlePasswordChange = (value) => {
-    setPassword(value); 
-  };
 
-  const handleConfirmPasswordChange = (value) => {
-    setConfirmPassword(value);
-  };
-  useEffect(()=>{
-    setArePasswordsMatch(password === confirmPassword);
-  },[password,confirmPassword]);
   const handleMobileNumberChange = (event) => {
     const value = event.target.value.replace(/\D/g, ''); 
     setMobileNumber(value);
@@ -61,20 +48,19 @@ const ResetPassword = () => {
       setMobileNumber(value);
     }
   };
-  const handleResetPassword = async () => {
-    if(password!=''){
+  const handleForgotPassword = async () => {
+    if(isValidMobile && dob!=='' && idNo!==''){
         setLoading(true)
         try {
-            await axios.post('https://skytrack.tech:2000/api/password_reset/', {mobile:mobileNumber, new_password: password,id_no:idNo,dob:dob },{
+            await axios.post('https://skytrack.tech:2000/api/password_reset/', {mobile:mobileNumber, id_no: idNo,dob:dob },{
                 headers:{
-                    "Content-type": "application/json",
-                    "Authorization": "Token "+reset_token,
+                    "Content-type": "application/json"
                   }
             });
             window.location.href="https://www.skytrack.tech/mis"
           } catch (err) {
             console.error(err);
-            setError('Failed to reset password');
+            setError('Failed to send reset link');
           }finally{
             setLoading(false)
           }
@@ -82,7 +68,7 @@ const ResetPassword = () => {
         mobileNumber==='' && setIsValidMobile(false);
         dob==='' &&  setIsNotEmpty((prev)=>({...prev,dob:false}));
         idNo==='' &&   setIsNotEmpty((prev)=>({...prev,idNo:false}));
-        setError('Failed to reset password or password field is empty');
+        setError('Failed');
     }
     
   };
@@ -155,7 +141,7 @@ const ResetPassword = () => {
                               fontSize="16px"
                               textAlign={matchDownSM? "center" : "inherit"}
                             >
-                              Set Password
+                              Forgot Password
                             </Typography>
                           </Stack>
                         </Grid>
@@ -171,6 +157,7 @@ const ResetPassword = () => {
                           fullWidth
                           error={!isValidMobile}
                           helperText={!isValidMobile? "Invalid mobile number" : ""}
+                          required
                         />
                         <br/><br/>
                         <TextField
@@ -196,33 +183,16 @@ const ResetPassword = () => {
                           helperText={!isNotEmpty.dob? "This is required field" : ""}
                         />
                         <br/><br/>
-                        <TextField
-                          label="New Password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => handlePasswordChange(e.target.value)}
-                          fullWidth
-                        />
-                        <br/><br/>
-                        <TextField
-                          label="Confirm New Password"
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-                          fullWidth
-                          error={!arePasswordsMatch} // Set error state based on password match
-                          helperText={!arePasswordsMatch? "Passwords do not match" : ""} // Show error message if passwords do not match
-                        />
-                        <br/><br/>
+                        
                         <Button
                           color="primary"
                           size="large"
                           type="button"
                           variant="contained"
-                          onClick={handleResetPassword}
-                          disabled={!arePasswordsMatch} // Disable button if passwords don't match
+                          onClick={handleForgotPassword}
+// Disable button if passwords don't match
                         >
-                          Set Password
+                          Send Link
                         </Button>
                       </Typography>
                     </Grid>
@@ -241,4 +211,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword;
+export default ForgotPassword;
