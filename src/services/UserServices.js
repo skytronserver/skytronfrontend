@@ -117,6 +117,10 @@ const fetchVehicleOwner=(formData)=>{
     const http = getAxiosInstance();
     return http.post("/api/VehicleOwner/filter_VehicleOwner/",formData);
 }
+const fetchSimProvider=(formData)=>{
+    const http = getAxiosInstance();
+    return http.post("/api/eSimProvider/filter_eSimProvider/",formData);
+}
 const UserServices = {
     getActiveState,
     getTotalState,
@@ -136,7 +140,8 @@ const UserServices = {
     createEsimUser,
     createSOSAdmin,
     createSOSUser,
-    fetchVehicleOwner
+    fetchVehicleOwner,
+    fetchSimProvider
   };
   
   export default UserServices;

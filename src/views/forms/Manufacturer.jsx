@@ -8,7 +8,7 @@ import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray,fetchEsimProvider,retriveStateList } from "../../helper";
+import { convertErrorObjectToArray,fetchEsimProvider,retriveStateList,retriveCreatedSimProvider } from "../../helper";
 import {manufacturerInitialValues,manufacturerFormField} from "../../formjson/manufacturer"
 const Manufacturer = () => {
   const [open, setOpen] = useState(false);
@@ -22,7 +22,7 @@ const Manufacturer = () => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
     (async () => {
-        const eSimProvider = await fetchEsimProvider();
+        const eSimProvider = await retriveCreatedSimProvider();
         const stateList = await retriveStateList();
         setUpdatedFormField((prevConfig) => ({
             ...prevConfig,

@@ -28,6 +28,7 @@ function StateDistrict({
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [loadAgain,setLoadAgain]=useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(districtConfig);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
@@ -59,7 +60,7 @@ function StateDistrict({
     };
     retriveStateList();
     retriveDistrictList();
-  }, [dispatch]);
+  }, [dispatch,loadAgain]);
 
   const handleClose = () => {
     setOpen(false);
@@ -85,6 +86,7 @@ function StateDistrict({
     try {
       const response = await SettingService.create_settings_State(formData);
       console.log("State Added Successfully");
+      setLoadAgain(!loadAgain);
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);
@@ -99,6 +101,7 @@ function StateDistrict({
     try {
       const resp = await SettingService.create_settings_District(formData);
       console.log("District Added Successfully");
+      setLoadAgain(!loadAgain);
       return { code: "200", message: resp.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);

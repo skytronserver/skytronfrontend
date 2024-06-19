@@ -122,6 +122,22 @@ export const retriveVehicleOwner = async () => {
       }
     }
   };
+export const retriveCreatedSimProvider = async () => {
+    try {
+      const response = await UserServices.fetchSimProvider();
+      const list = response.data.map((simProvider) => ({
+        value: simProvider.id,
+        label: simProvider.users[0].name,
+      }));
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
 export const fetchVehicleCategory = async () => {
     try {
       const resp = await SettingService.filter_settings_VehicleCategory();
