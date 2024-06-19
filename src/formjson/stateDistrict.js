@@ -42,8 +42,7 @@ export const stateFields = {
     label: "Status",
     validation: Yup.string().required("Status is required"),
     options: [
-        { value: "active", label: "Active" },
-        { value: "deactive", label: "Deactive" }
+        { value: "active", label: "Active" }
       ],
   },
 };

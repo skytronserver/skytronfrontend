@@ -39,12 +39,6 @@ export const sosUserFormField = {
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
   },
-  dtoCode: {
-    name: "dtoCode",
-    type: "text",
-    label: "DTO/RTO Code",
-    validation: Yup.string().required("DTO/RTO Code cannot be blank"),
-  },
   state: {
     name:"state",
     type: "select",
