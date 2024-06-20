@@ -139,6 +139,7 @@ const LoginOtp = () => {
                           type="submit"
                           variant="contained"
                           onClick={handleOTPSubmit}
+                          disabled={remainingTime <= 0}
                         >
                           Verify OTP
                         </Button>

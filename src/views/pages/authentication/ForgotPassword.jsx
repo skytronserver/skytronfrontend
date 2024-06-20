@@ -15,11 +15,13 @@ const ForgotPassword = () => {
   const [error, setError] = useState(null);
   const [idNo, setIdNo] = useState("");
   const [dob, setDob] = useState("");
+  const [email, setEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState(""); 
   const [isValidMobile, setIsValidMobile] = useState(true);
   const [isNotEmpty, setIsNotEmpty] = useState({
     idNo:true,
-    dob:true
+    dob:true,
+    email:true,
   });
   const handleIdNo = (event) => {
     setIdNo(event.target.value);
@@ -37,6 +39,14 @@ const ForgotPassword = () => {
         setIsNotEmpty((prev)=>({...prev,dob:false}));
     }
   };
+  const handleEmail = (event) => {
+    setEmail(event.target.value);
+    if (event.target.value!== "") {
+        setIsNotEmpty((prev)=>({...prev,email:true}));
+      } else {
+        setIsNotEmpty((prev)=>({...prev,email:false}));
+    }
+  };
 
   const handleMobileNumberChange = (event) => {
     const value = event.target.value.replace(/\D/g, ''); 
@@ -49,15 +59,15 @@ const ForgotPassword = () => {
     }
   };
   const handleForgotPassword = async () => {
-    if(isValidMobile && dob!=='' && idNo!==''){
+    if(isValidMobile && email!==''){
         setLoading(true)
         try {
-            await axios.post('https://skytrack.tech:2000/api/password_reset/', {mobile:mobileNumber, id_no: idNo,dob:dob },{
+            await axios.post('https://skytrack.tech:2000/api/reset_password_request/', {mobile:mobileNumber, email: email},{
                 headers:{
                     "Content-type": "application/json"
                   }
             });
-            window.location.href="https://www.skytrack.tech/mis"
+            window.location.href="/mis"
           } catch (err) {
             console.error(err);
             setError('Failed to send reset link');
@@ -66,8 +76,8 @@ const ForgotPassword = () => {
           }
     }else{
         mobileNumber==='' && setIsValidMobile(false);
-        dob==='' &&  setIsNotEmpty((prev)=>({...prev,dob:false}));
-        idNo==='' &&   setIsNotEmpty((prev)=>({...prev,idNo:false}));
+        email==='' &&  setIsNotEmpty((prev)=>({...prev,email:false}));
+        // idNo==='' &&   setIsNotEmpty((prev)=>({...prev,idNo:false}));
         setError('Failed');
     }
     
@@ -160,7 +170,7 @@ const ForgotPassword = () => {
                           required
                         />
                         <br/><br/>
-                        <TextField
+                        {/* <TextField
                           label="Last 4 Digit of your id proof"
                           type="text"
                           value={idNo}
@@ -169,9 +179,19 @@ const ForgotPassword = () => {
                           required
                           error={!isNotEmpty.idNo}
                           helperText={!isNotEmpty.idNo? "This is required field" : ""}
-                        />
+                        /> */}
+                        <TextField
+                        label="Email Id"
+                        type="email"
+                        value={email}
+                        onChange={handleEmail}
+                        fullWidth
+                        required
+                        error={!isNotEmpty.email}
+                        helperText={!isNotEmpty.email? "This is required field" : ""}
+                      />
                         <br/><br/>
-                        <label htmlFor="dob" style={{textAlign:"left",display:"block"}}>Date of Birth</label>
+                        {/* <label htmlFor="dob" style={{textAlign:"left",display:"block"}}>Date of Birth</label>
                         <TextField
                           type="date"
                           value={dob}
@@ -182,7 +202,7 @@ const ForgotPassword = () => {
                           error={!isNotEmpty.dob}
                           helperText={!isNotEmpty.dob? "This is required field" : ""}
                         />
-                        <br/><br/>
+                        <br/><br/> */}
                         
                         <Button
                           color="primary"

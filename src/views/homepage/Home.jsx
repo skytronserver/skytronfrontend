@@ -8,23 +8,28 @@ import {
   Button,
   Box,
   FormHelperText,
-  Link
+  Link,
+  CircularProgress,
 } from "@mui/material";
+import ReplayIcon from '@mui/icons-material/Replay';
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from "../../actions/loginActions";
 import skytronlogo from '../../assets/images/skytron-logo.png';
 import { Navigate } from "react-router-dom";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
-
+import CaptchaServices from "../../services/CaptchaServices";
 function Home() {
+  const [captcha,setCaptcha]=useState({
+    isLoaded:false,
+    src:"",
+    captcha_key:"",
+  });
   const dispatch = useDispatch();
-  const [hcaptchaToken, setHcaptchaToken] = useState("");
-
   const initialValues = {
     mobile: "",
     password: "",
+    captcha_reply:"",
   };
 
   useEffect(() => {
@@ -39,18 +44,26 @@ function Home() {
       .matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number')
       .required("Mobile number is required"),
     password: Yup.string().required("Password is required"),
+    captcha_reply: Yup.string().required("Required Field"),
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
-    if (!hcaptchaToken) {
-      formik.setFieldError("hcaptcha", "Please complete the hCaptcha.");
-      setSubmitting(false);
-      return;
-    }
-    dispatch(loginUser(values.mobile, values.password, hcaptchaToken));
+    dispatch(loginUser(values.mobile, values.password,captcha.captcha_key,values.captcha_reply));
     setSubmitting(false);
   };
-
+  const getCaptcha=async ()=>{
+    setCaptcha((prev)=>({...prev,isLoaded:false}))
+    const data = await CaptchaServices.generateCaptcha();
+    if(data?.error){
+      setCaptcha((prev)=>({...prev,isLoaded:true}))
+    }else{
+      setCaptcha((prev)=>({...prev,captcha_key:data.key,src:'data:image/png;base64,' + data.captcha,isLoaded:true}))
+    }
+    
+  }
+  useEffect(()=>{
+    getCaptcha();
+  },[])
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -106,10 +119,20 @@ function Home() {
               <img
                 src={skytronlogo}
                 alt="logo"
-                style={{ height: 'auto', width: '36px' }}
-              /><br />
-              <span style={{ color: "#430A5D", fontfamily: "Quantico", fontWeight: "900px", fontSize: "15px", textshadow: "2px 2px 4px" }}>SKYTRON</span>
-
+                style={{ height: "auto", width: "36px" }}
+              />
+              <br />
+              <span
+                style={{
+                  color: "#430A5D",
+                  fontfamily: "Quantico",
+                  fontWeight: "900px",
+                  fontSize: "15px",
+                  textshadow: "2px 2px 4px",
+                }}
+              >
+                SKYTRON
+              </span>
             </Typography>
             <Formik
               initialValues={formik.initialValues}
@@ -143,33 +166,66 @@ function Home() {
                   }
                   helperText={formik.touched.password && formik.errors.password}
                 />
-                <HCaptcha
-                  sitekey="156ecd3a-9f4e-4549-a7d2-b8274bb9ed59"
-                  onVerify={setHcaptchaToken}
+                <section style={{ textAlign: "center",display:"flex",justifyContent:"space-around" }}>
+                  {captcha.isLoaded ? (
+                    <section>
+                      <img
+                        id="captcha-image"
+                        src={captcha.src}
+                        alt="Captcha Image"
+                      />
+                      <input
+                        type="hidden"
+                        id="captcha-key"
+                        value={captcha.captcha_key}
+                      />
+                    </section>
+                  ) : (
+                    <CircularProgress />
+                  )}
+                  <button style={{padding:"4px 4px 1px 4px"}} disabled={!captcha.isLoaded} onClick={()=>getCaptcha()}>
+                    <ReplayIcon />
+                  </button>
+                </section>
+                <TextField
+                  id="captcha_reply"
+                  label="Enter the result"
+                  variant="outlined"
+                  type="text"
+                  fullWidth
+                  disabled={!captcha.isLoaded}
+                  name="captcha_reply"
+                  margin="normal"
+                  {...formik.getFieldProps("captcha_reply")}
+                  error={
+                    formik.touched.captcha_reply &&
+                    Boolean(formik.errors.captcha_reply)
+                  }
+                  helperText={
+                    formik.touched.captcha_reply && formik.errors.captcha_reply
+                  }
                 />
-                {formik.errors.hcaptcha && (
-                  <FormHelperText error>{formik.errors.hcaptcha}</FormHelperText>
-                )}
-                {formik.errors.submit && (
-                  <Box sx={{ mt: 3 }}>
-                    <FormHelperText error>{formik.errors.submit}</FormHelperText>
-                  </Box>
-                )}
-
-                <Button variant="contained" color="primary" type="submit" fullWidth disabled={submitting}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  fullWidth
+                  disabled={submitting || !captcha.isLoaded}
+                >
                   {submitting === false ? `Login` : `Waiting`}
                 </Button>
-                <Box sx={{ mt: 3 }} style={{textAlign:'center'}}>
-                {(errorMessage !=''|| errorMessage!=null) && <span style={{color:'red'}}> {errorMessage}</span>}
+                <Box sx={{ mt: 3 }} style={{ textAlign: "center" }}>
+                  {(errorMessage != "" || errorMessage != null) && (
+                    <span style={{ color: "red" }}> {errorMessage}</span>
+                  )}
                 </Box>
-              
               </Form>
             </Formik>
-            <Box sx={{ mt: 1, textAlign: 'right' }}>
-                  <Link href="/mis/forgot-password" variant="body2">
-                    Forgot password?
-                  </Link>
-                </Box>
+            <Box sx={{ mt: 1, textAlign: "right" }}>
+              <Link href="/mis/forgot-password" variant="body2">
+                Forgot password?
+              </Link>
+            </Box>
           </Paper>
         </Grid>
       </Grid>

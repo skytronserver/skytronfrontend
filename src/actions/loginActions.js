@@ -27,12 +27,14 @@ export const logoutUser=(user)=>({
   type:"LOGOUT_USER",
   payload:user,
 })
-export const loginUser = (username, password) => async (dispatch) => {
+export const loginUser = (username, password,captcha_key,captcha_reply) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
     const response = await axios.post('https://skytrack.tech:2000/api/user_login/', {
       username,
       password,
+      captcha_key,
+      captcha_reply
     });
     const myCipher = cipherEncryption('skytrack');
     const responseData={
@@ -90,7 +92,7 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     dispatch(setError(errorData));
   }catch(error){
     const errorData={
-      message:"Invalid/OTP Verification Failed",
+      message:"OTP Verification Failed",
       status:null,
     }
     dispatch(setError(errorData));
