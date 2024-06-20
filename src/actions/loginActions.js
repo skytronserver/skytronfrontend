@@ -55,7 +55,12 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
   } catch (error) {
     let message="";
     if(error?.code=="ERR_BAD_REQUEST"){
-      message="Internal Server Error"
+      if(error?.response?.data){
+        message=error?.response?.data?.error
+      }else{
+        message="Internal Server Error"
+      }
+    
     }else{
       message=error.message
     }
