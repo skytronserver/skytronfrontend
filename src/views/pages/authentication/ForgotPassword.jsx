@@ -1,57 +1,68 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
-import { Divider, Grid, Stack, Typography, useMediaQuery, Button, TextField } from "@mui/material";
-import { Navigate } from "react-router-dom";
+import {
+  Grid,
+  Typography,
+  useMediaQuery,
+  Button,
+  TextField,
+} from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
 import AuthFooter from "../../../ui-component/cards/AuthFooter";
-import { useParams } from "react-router-dom";
-import axios from 'axios';
+import axios from "axios";
+import DialogAlert from "../../../ui-component/DialogAlert";
+import AlertBox from "../../../ui-component/AlertBox";
+import SendIcon from "@mui/icons-material/Send";
+import HomeIcon from "@mui/icons-material/Home";
+import Stack from "@mui/material/Stack";
 const ForgotPassword = () => {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [loading, setLoading] = useState(false);
+  const [dialog, setDialog] = useState(false);
   const [error, setError] = useState(null);
   const [idNo, setIdNo] = useState("");
   const [dob, setDob] = useState("");
   const [email, setEmail] = useState("");
-  const [mobileNumber, setMobileNumber] = useState(""); 
+  const [mobileNumber, setMobileNumber] = useState("");
   const [isValidMobile, setIsValidMobile] = useState(true);
+  const [isOpen,setIsOpen]=useState(false);
   const [isNotEmpty, setIsNotEmpty] = useState({
-    idNo:true,
-    dob:true,
-    email:true,
+    idNo: true,
+    dob: true,
+    email: true,
   });
   const handleIdNo = (event) => {
     setIdNo(event.target.value);
-    if (event.target.value!== "") {
-        setIsNotEmpty((prev)=>({...prev,idNo:true}));
-      } else {
-        setIsNotEmpty((prev)=>({...prev,idNo:false}));
+    if (event.target.value !== "") {
+      setIsNotEmpty((prev) => ({ ...prev, idNo: true }));
+    } else {
+      setIsNotEmpty((prev) => ({ ...prev, idNo: false }));
     }
   };
   const handleDob = (event) => {
     setDob(event.target.value);
-    if (event.target.value!== "") {
-        setIsNotEmpty((prev)=>({...prev,dob:true}));
-      } else {
-        setIsNotEmpty((prev)=>({...prev,dob:false}));
+    if (event.target.value !== "") {
+      setIsNotEmpty((prev) => ({ ...prev, dob: true }));
+    } else {
+      setIsNotEmpty((prev) => ({ ...prev, dob: false }));
     }
   };
   const handleEmail = (event) => {
     setEmail(event.target.value);
-    if (event.target.value!== "") {
-        setIsNotEmpty((prev)=>({...prev,email:true}));
-      } else {
-        setIsNotEmpty((prev)=>({...prev,email:false}));
+    if (event.target.value !== "") {
+      setIsNotEmpty((prev) => ({ ...prev, email: true }));
+    } else {
+      setIsNotEmpty((prev) => ({ ...prev, email: false }));
     }
   };
 
   const handleMobileNumberChange = (event) => {
-    const value = event.target.value.replace(/\D/g, ''); 
+    const value = event.target.value.replace(/\D/g, "");
     setMobileNumber(value);
-    if (value.length!== 10) {
+    if (value.length !== 10) {
       setIsValidMobile(false);
     } else {
       setIsValidMobile(true);
@@ -59,32 +70,60 @@ const ForgotPassword = () => {
     }
   };
   const handleForgotPassword = async () => {
-    if(isValidMobile && email!==''){
-        setLoading(true)
-        try {
-            await axios.post('https://skytrack.tech:2000/api/reset_password_request/', {mobile:mobileNumber, email: email},{
-                headers:{
-                    "Content-type": "application/json"
-                  }
-            });
-            window.location.href="/mis"
-          } catch (err) {
-            console.error(err);
-            setError('Failed to send reset link');
-          }finally{
-            setLoading(false)
+    if (isValidMobile && email !== "") {
+      setLoading(true);
+      try {
+        await axios.post(
+          "https://skytrack.tech:2000/api/reset_password_request/",
+          { mobile: mobileNumber, email: email },
+          {
+            headers: {
+              "Content-type": "application/json",
+            },
           }
-    }else{
-        mobileNumber==='' && setIsValidMobile(false);
-        email==='' &&  setIsNotEmpty((prev)=>({...prev,email:false}));
-        // idNo==='' &&   setIsNotEmpty((prev)=>({...prev,idNo:false}));
-        setError('Failed');
+        );
+        setDialog(true);
+      } catch (err) {       
+        setError("Failed to send reset password link please check your details or contact Administrator");
+        setIsOpen(true)
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      mobileNumber === "" && setIsValidMobile(false);
+      email === "" && setIsNotEmpty((prev) => ({ ...prev, email: false }));
+      // idNo==='' &&   setIsNotEmpty((prev)=>({...prev,idNo:false}));
+      setError("All fields are mandatory, please fill up the details");
+      setIsOpen(true)
     }
-    
   };
-
+  const closeDialog = () => {
+    setDialog(false);
+  };
+  const redirectToHome = () => {
+    setDialog(false);
+    window.location.href = "/mis";
+  };
+  const handleAlert=()=>{
+    setIsOpen(false);
+  }
   return (
     <AuthWrapper1>
+      <AlertBox
+      severity="error"
+      isOpen={isOpen}
+      handleAlertClick={handleAlert}
+      title="Error"
+      message={error}
+      />
+      <DialogAlert
+        open={dialog}
+        title="Skytron Password Reset"
+        detailMessage="Password reset link has been shared successfully to your registered email id and phone which is valid for 5 minutes please follow the instruction in the mail"
+        primaryAction={redirectToHome}
+        primaryText="Home"
+        handleClose={closeDialog}
+      />
       <Grid
         container
         direction="column"
@@ -117,7 +156,7 @@ const ForgotPassword = () => {
                   </Grid>
                 </Grid>
               )}
-              {(
+              {
                 <AuthCardWrapper>
                   <Grid
                     container
@@ -129,7 +168,7 @@ const ForgotPassword = () => {
                     <Grid item xs={12}>
                       <Grid
                         container
-                        direction={matchDownSM? "column-reverse" : "row"}
+                        direction={matchDownSM ? "column-reverse" : "row"}
                         alignItems="center"
                         justifyContent="center"
                       >
@@ -142,14 +181,14 @@ const ForgotPassword = () => {
                             <Typography
                               color={theme.palette.secondary.main}
                               gutterBottom
-                              variant={matchDownSM? "h3" : "h2"}
+                              variant={matchDownSM ? "h3" : "h2"}
                             >
-                             SKYTRON
+                              SKYTRON
                             </Typography>
                             <Typography
                               variant="caption"
                               fontSize="16px"
-                              textAlign={matchDownSM? "center" : "inherit"}
+                              textAlign={matchDownSM ? "center" : "inherit"}
                             >
                               Forgot Password
                             </Typography>
@@ -159,17 +198,20 @@ const ForgotPassword = () => {
                     </Grid>
                     <Grid item xs={12}>
                       <Typography align="center">
-                      <TextField
+                        <TextField
                           label="Mobile Number"
                           type="tel"
                           value={mobileNumber}
                           onChange={handleMobileNumberChange}
                           fullWidth
                           error={!isValidMobile}
-                          helperText={!isValidMobile? "Invalid mobile number" : ""}
+                          helperText={
+                            !isValidMobile ? "Invalid mobile number" : ""
+                          }
                           required
                         />
-                        <br/><br/>
+                        <br />
+                        <br />
                         {/* <TextField
                           label="Last 4 Digit of your id proof"
                           type="text"
@@ -181,16 +223,19 @@ const ForgotPassword = () => {
                           helperText={!isNotEmpty.idNo? "This is required field" : ""}
                         /> */}
                         <TextField
-                        label="Email Id"
-                        type="email"
-                        value={email}
-                        onChange={handleEmail}
-                        fullWidth
-                        required
-                        error={!isNotEmpty.email}
-                        helperText={!isNotEmpty.email? "This is required field" : ""}
-                      />
-                        <br/><br/>
+                          label="Email Id"
+                          type="email"
+                          value={email}
+                          onChange={handleEmail}
+                          fullWidth
+                          required
+                          error={!isNotEmpty.email}
+                          helperText={
+                            !isNotEmpty.email ? "This is required field" : ""
+                          }
+                        />
+                        <br />
+                        <br />
                         {/* <label htmlFor="dob" style={{textAlign:"left",display:"block"}}>Date of Birth</label>
                         <TextField
                           type="date"
@@ -203,23 +248,37 @@ const ForgotPassword = () => {
                           helperText={!isNotEmpty.dob? "This is required field" : ""}
                         />
                         <br/><br/> */}
-                        
-                        <Button
-                          color="primary"
-                          size="large"
-                          type="button"
-                          variant="contained"
-                          onClick={handleForgotPassword}
-// Disable button if passwords don't match
+                        <Stack
+                          direction="row"
+                          spacing={2}
+                          sx={{ float: "right" }}
                         >
-                          Send Link
-                        </Button>
+                          <Button
+                            color="primary"
+                            size="small"
+                            type="button"
+                            variant="contained"
+                            onClick={handleForgotPassword}
+                            endIcon={<SendIcon />}
+                          >
+                            Send Link
+                          </Button>
+                          <Button
+                            color="primary"
+                            size="small"
+                            type="button"
+                            variant="outlined"
+                            onClick={redirectToHome}
+                            startIcon={<HomeIcon />}
+                          >
+                            Home
+                          </Button>
+                        </Stack>
                       </Typography>
                     </Grid>
-                    {error && <Typography style={{ color: "red", textAlign: 'center' }}>{error}</Typography>}
                   </Grid>
                 </AuthCardWrapper>
-              )}
+              }
             </Grid>
           </Grid>
         </Grid>

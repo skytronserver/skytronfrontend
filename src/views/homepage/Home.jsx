@@ -183,9 +183,9 @@ function Home() {
                   ) : (
                     <CircularProgress />
                   )}
-                  <button style={{padding:"4px 4px 1px 4px"}} disabled={!captcha.isLoaded} onClick={()=>getCaptcha()}>
+                  <span style={{padding:"4px 4px 1px 4px",cursor: "pointer"}} disabled={!captcha.isLoaded} onClick={()=>getCaptcha()}>
                     <ReplayIcon />
-                  </button>
+                  </span>
                 </section>
                 <TextField
                   id="captcha_reply"
