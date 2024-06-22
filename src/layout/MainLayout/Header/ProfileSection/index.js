@@ -51,7 +51,7 @@ const ProfileSection = () => {
   /**
    * anchorRef is used on different components and specifying one type leads to other components throwing an error
    * */
-  console.log(data);
+
   const anchorRef = useRef(null);
   const handleLogout =() => {
     dispatch(logout());

@@ -7,7 +7,8 @@ import { useEffect,useState } from 'react';
 //Datatables
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {manufacturerColumns} from '../../datatables/rowsColumn';
-
+import { Link } from "react-router-dom";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 const ManufacturerList = () => {
   const [load,setLoad]=useState(false)
   const [manufacturer,setManufacturer]=useState([]);
@@ -28,10 +29,33 @@ const ManufacturerList = () => {
     fetchManufacturerList();
   },[])
   //For actions refer AvailableForSale Component
+  const actionColumn = [
+    {
+      name: "Action",
+      label: "Action",
+      options: {
+        filter: false,
+        customBodyRender: (value, tableMeta) => {
+          return (
+            <div className="cellAction" style={{ display: "flex" }}>
+              <Link
+                to={`/user/detail/${tableMeta.rowData[0]}`}
+                style={{ textDecoration: "none" }}
+              >
+                <div className="viewButton">
+                  <VisibilityIcon />
+                </div>
+              </Link>
+            </div>
+          );
+        },
+      },
+    },
+  ];
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Manufacturer" rows={manufacturer} columns={manufacturerColumns}/>}
+        {load && <DynamicDatatables tableTitle="Manufacturer" rows={manufacturer} columns={manufacturerColumns.concat(actionColumn)}/>}
         </Grid>
     </Grid>
 );

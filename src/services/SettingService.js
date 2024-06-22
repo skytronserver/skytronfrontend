@@ -58,6 +58,11 @@ const filter_settings_ip = (data) => {
   return http.post("/api/Settings/filter_settings_ip/", data);
 };
 
+//Download Files
+const file_Download = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/download/", data);
+};
 const SettingService = {
     create_settings_hp_freq,
     filter_settings_hp_freq,
@@ -70,7 +75,8 @@ const SettingService = {
     create_settings_firmware,
     filter_settings_firmware,
     create_settings_ip,
-    filter_settings_ip
+    filter_settings_ip,
+    file_Download
 };
 
 export default SettingService;
