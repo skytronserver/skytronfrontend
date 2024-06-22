@@ -44,11 +44,13 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
       otpToken:response.data.token,
     }
     const cookiesData=`${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
+    const skytrack_cookiesData=`${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined )}-${myCipher(response.data?.user?.mobile)}`
     const error={
       message:null,
       status:null,
     }
     sessionStorage.setItem('cookiesData',cookiesData+'-'+response.data?.user?.id);
+    localStorage.setItem('skytrackCookiesData',skytrack_cookiesData);
     dispatch(setLoginInfo(cookiesData));
     dispatch(setUser(responseData));
     dispatch(setError(error));
@@ -154,6 +156,7 @@ export const logout=()=>async(dispatch)=>{
     sessionStorage.removeItem('sessionID');
     sessionStorage.removeItem('oAuthToken');
     sessionStorage.removeItem('cookiesData');
+    localStorage.removeItem('skytrackCookiesData');
     dispatch(setUser(setData));
   }catch(error){
     dispatch(setUser(setData));
@@ -162,6 +165,7 @@ export const logout=()=>async(dispatch)=>{
     sessionStorage.removeItem('sessionID');
     sessionStorage.removeItem('oAuthToken');
     sessionStorage.removeItem('cookiesData');
+    localStorage.removeItem('skytrackCookiesData');
     dispatch(setUser(setData));
   }
 }

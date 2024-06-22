@@ -63,6 +63,7 @@ function Home() {
   }
   useEffect(()=>{
     getCaptcha();
+    localStorage.removeItem('skytrackCookiesData');
   },[])
   const formik = useFormik({
     initialValues,

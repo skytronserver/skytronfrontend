@@ -158,6 +158,9 @@ const user = {
       title: 'Device',
       type: 'collapse',
       icon: icons.IconDeviceSim,
+      roles:['superadmin',
+      'dealer',
+      'devicemanufacture'],  
       children: [
         {
           id: 'new-device-model',
@@ -165,7 +168,7 @@ const user = {
           type: 'item',
           url: '/deviceModel/new',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['superadmin'],
         },
         {
           id: 'device-model-extension',
@@ -173,7 +176,7 @@ const user = {
           type: 'item',
           url: '/deviceModel/extension',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['dealer'],
         },
         {
           id: 'view-device',
@@ -181,7 +184,7 @@ const user = {
           type: 'item',
           url: '/device/list',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['devicemanufacture'],
         },
         {
           id: 'view-device-cop',
@@ -189,7 +192,7 @@ const user = {
           type: 'item',
           url: '/deviceCOP/list',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture','stateadmin'],
+          roles:['devicemanufacture','stateadmin'],
         },
         {
           id: 'new-device',
@@ -197,7 +200,7 @@ const user = {
           type: 'item',
           url: '/device/new',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['devicemanufacture'],
         },
         {
           id: 'upload-device',
@@ -205,7 +208,7 @@ const user = {
           type: 'item',
           url: '/device/bulkupload',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['devicemanufacture'],
         },
         {
           id: 'inactive-device',
@@ -213,7 +216,7 @@ const user = {
           type: 'item',
           url: '/dashboard',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['devicemanufacture'],
         },
         {
           id: 'all-device',
@@ -221,7 +224,7 @@ const user = {
           type: 'item',
           url: '/device/show-device',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture','dealer'],
+          roles:['devicemanufacture','dealer'],
         },
         {
           id: 'assign-device',
@@ -229,7 +232,7 @@ const user = {
           type: 'item',
           url: '/device/assign-device',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['devicemanufacture'],
         },
         {
           id: 'fit-device',
@@ -237,7 +240,7 @@ const user = {
           type: 'item',
           url: '/device/fit-device',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['devicemanufacture','dealer'],
         }
       ]
     },
@@ -269,7 +272,7 @@ const user = {
       title: 'Tagging',
       type: 'collapse',
       icon: icons.IconTag,
-      roles:['dealer','superadmin'],
+      roles:['dealer'],
       children: [
         {
           id: 'new-tagging',
@@ -277,7 +280,7 @@ const user = {
           type: 'item',
           url: '/tag/device-vehicle',
           breadcrumbs: false,
-          roles:['dealer','superadmin'],
+          roles:['dealer'],
         },
         {
           id: 'view-pending',
@@ -285,7 +288,7 @@ const user = {
           type: 'item',
           url: '/tag/unapproved-vehicle',
           breadcrumbs: false,
-          roles:['dealer','superadmin'],
+          roles:['dealer'],
         }
         ,
         {
@@ -294,7 +297,7 @@ const user = {
           type: 'item',
           url: '/tag/upload-receipt',
           breadcrumbs: false,
-          roles:['dealer','superadmin'],
+          roles:['dealer'],
         }
         
       ]

@@ -85,7 +85,7 @@ export const eSIMFormField = {
   file_companRegCertificate:{
     name:"file_companRegCertificate",
     type: "file",
-    label: "Company Registration Certificate",
+    label: "Registration Certificate",
     validation: Yup.mixed().required("Company Registration Certificate is required"),
   },
   file_GSTCertificate:{
@@ -98,6 +98,6 @@ export const eSIMFormField = {
     name:"file_idProof",
     type: "file",
     label: "ID Proof Certificate",
-    validation: Yup.mixed().required("GST Certificate is required"),
+    validation: Yup.mixed().required("ID Proof is required"),
   },
 };

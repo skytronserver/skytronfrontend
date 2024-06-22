@@ -2,8 +2,6 @@ import { Navigate } from 'react-router-dom';
 // project imports
 import { lazy } from "react";
 import MainLayout from "../layout/MainLayout";
-
-import {deviceModelInitials,deviceModelFormField} from "../formjson/deviceModel";
 import DeviceForm from "../views/forms/DeviceForm";
 import DeviceModelForm from "../views/forms/DeviceModelForm";
 import ModelExtension from "../views/forms/ModelExtension";
@@ -55,13 +53,13 @@ const DeviceRoutes = {
     },
     {
         path: "/deviceModel/new",
-        element: <DeviceModelForm fieldConfig={deviceModelFormField} initialData={deviceModelInitials} formTitle="New Device Model Form"/>,
+        element: <DeviceModelForm/>,
         roles:['superadmin','devicemanufacture'],
     },
     {
         path: "/deviceModel/extension",
         element: <ModelExtension  formTitle="Model Extension"/>,
-        roles:['superadmin','devicemanufacture'],
+        roles:['dealer'],
     },
     {
       path: "/device/list",
