@@ -21,6 +21,7 @@ import SOSAdmin from "../views/forms/SOSAdmin";
 import SOSUser from "../views/forms/SOSUser";
 import { decipherEncryption } from '../helper';
 import NotAuthorized from "../views/pages/NotAuthorized";
+import Details from "../views/pages/Details";
 import ManufacturerList from "views/reports/ManufacturerList";
 import VehicleOwnerList from "views/reports/VehicleOwnerList";
 const PrivateRoute = ({ element,roles }) => {
@@ -152,8 +153,12 @@ const UserRoutes = {
       path: "/user/view/:userId",
       element: <UpdateForm fieldConfig={stateAdminField} initialData={stateAdminInitialValues} formTitle="State Admin"/>,
       roles: ['superadmin']
-    }
-    ,
+    },
+    {
+      path: "/user/detail/:userId",
+      element: <Details/>,
+      roles: ['superadmin']
+    },
     {
       path: "/file",
       element: <FileUploadTest/>,
