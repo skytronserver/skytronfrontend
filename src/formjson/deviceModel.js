@@ -1,5 +1,6 @@
 import * as Yup from "yup";
 export const deviceModelInitials = {
+    eSimProviders:"",
     model_name:"",
     test_agency:"",
     tac_no:"",
@@ -9,6 +10,13 @@ export const deviceModelInitials = {
     tac_doc_path:null,
 };
 export const deviceModelFormField = {
+  eSimProviders: {
+    name: "eSimProviders",
+    type: "select",
+    label: "eSIM Provider",
+    validation: Yup.string().required("eSIM Provider is required"),
+    options:[{'label':'Select','value':''}]
+  },
   model_name: {
     name: "model_name",
     type: "text",

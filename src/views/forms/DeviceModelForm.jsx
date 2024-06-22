@@ -7,11 +7,12 @@ import * as Yup from "yup";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray } from "../../helper";
+import { convertErrorObjectToArray,retriveCreatedSimProvider } from "../../helper";
 import { MuiOtpInput } from "mui-one-time-password-input";
-const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
+import {deviceModelInitials,deviceModelFormField} from "../../formjson/deviceModel";
+const DeviceModelForm = () => {
   const [open, setOpen] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [deviceId, setDeviceId] = useState("");
@@ -21,6 +22,8 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [updatedFormFields,setUpdatedFormField]=useState(deviceModelFormField);
+  const [isFormLoaded,setIsFormLoaded]=useState(false);
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
   const handleChange = (newValue) => {
@@ -45,6 +48,21 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
     setShowOTP(true);
   };
 
+  useEffect(()=>{
+    (async()=>{
+    const providerList=await retriveCreatedSimProvider();
+    setUpdatedFormField(prevConfig =>({
+      ...prevConfig,
+      eSimProviders: {
+        ...prevConfig.eSimProviders,
+        options: providerList,
+      }
+    }))
+    setIsFormLoaded(true)
+    }
+  )()
+  },[]);
+
   const handleAlert = (message) => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
@@ -58,8 +76,8 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
+    Object.keys(updatedFormFields).reduce((acc, field) => {
+      acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
@@ -108,7 +126,7 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(initialData);
+      resetForm(deviceModelInitials);
       setDeviceId(response.message.id);
     } else {
       setAlert((prevAlert) => ({
@@ -163,8 +181,8 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
         >
           <MainCard title="Device Model Entry">
             {!showOTP ? (
-              <Formik
-                initialValues={initialData}
+              isFormLoaded && (<Formik
+                initialValues={deviceModelInitials}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
                 enableReinitialize
@@ -172,10 +190,10 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(fieldConfig).map((field) => (
+                      {Object.keys(updatedFormFields).map((field) => (
                         <Grid key={field} item md={6} sm={12} xs={12}>
                           <FormField
-                            fieldConfig={fieldConfig[field]}
+                            fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
                           />
@@ -194,7 +212,7 @@ const DeviceModelForm = ({ fieldConfig, initialData, formTitle }) => {
                     </Grid>
                   </form>
                 )}
-              </Formik>
+              </Formik>)
             ) : (
               <Grid
                 container
