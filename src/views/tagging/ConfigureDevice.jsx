@@ -45,9 +45,6 @@ const ConfigureDevice = ({ status }) => {
     };
     const fetchAvailableDevice = async () => {
       const retriveData = await StockServices.getAvailableDeviceList(filter);
-      retriveData.data.data.map((item) =>
-        console.log('dummies')
-      );
       const arrUniq = [
         ...new Map(
           retriveData.data.data.map((item) => [item.device.id, item])
@@ -62,7 +59,7 @@ const ConfigureDevice = ({ status }) => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (deviceId != "") {
+    if (deviceId !== "") {
       const response = await StockServices.devicePatch(deviceId, 'fitment');
       setShowAction((prev)=>({...prev,'fitment':{'status':true}}))
       setSubmitDis(true)
@@ -70,15 +67,15 @@ const ConfigureDevice = ({ status }) => {
   };
   const buttonAction=async (prevAct,nextAct)=>{
     setShowAction((prev)=>({...prev,[prevAct]:{'button':true,'status':true}}))
-    if (deviceId != "") {
+    if (deviceId !== "") {
       const response = await StockServices.devicePatch(deviceId, nextAct);
-      if(response.status==200){
+      if(response.status===200){
         setShowAction((prev)=>({...prev,[nextAct]:{'status':true}}))
       }else{
         handleAlert("Form Not Submitted");
         setError(true);
       }
-      if(response.status==200 && nextAct=='completed'){
+      if(response.status===200 && nextAct==='completed'){
         setLoadAgain(prevValue => prevValue + 1);
         setDeviceId("");
         setShowAction({})

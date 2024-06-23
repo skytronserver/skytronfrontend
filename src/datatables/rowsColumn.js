@@ -177,9 +177,134 @@ export const dealerListColumn = [
       filter: true,
       sort: false,
     },
-  }
+  },
+  {
+    name: "users",
+    label: "Mobile",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].mobile}</p>
+        );
+      }
+    },
+  },
+  {
+    name: "users",
+    label: "Email",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].email}</p>
+        );
+      }
+    },
+  },
+  {
+    name: "gstnnumber",
+    label: "GST No.",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "idProofno",
+    label: "ID Proof Number",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].created_by_name}</p>
+        );
+      }
+    },
+  },
 ];
-
+export const sosListColumn = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].name}</p>
+        );
+      }
+    },
+  },
+  {
+    name: "users",
+    label: "Mobile",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].mobile}</p>
+        );
+      }
+    },
+  },
+  {
+    name: "users",
+    label: "Email",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].email}</p>
+        );
+      }
+    },
+  },
+  {
+    name: "idProofno",
+    label: "ID Proof Number",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].created_by_name}</p>
+        );
+      }
+    },
+  },
+];
 export const columns = [
   {
     name: "id",

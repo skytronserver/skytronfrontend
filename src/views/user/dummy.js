@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Grid, TextField, Button } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import * as Yup from "yup";
-import { Formik, Field, FieldArray } from "formik";
-
-
+import { Formik } from "formik";
 const NewUser = () => {
 
   const [selectedFileName, setSelectedFileName] = useState("");

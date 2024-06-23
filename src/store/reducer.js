@@ -9,6 +9,7 @@ import deviceModelReducer from '../reducers/deviceModelReducer';
 import stockReducer from "../reducers/stockReducer";
 import settingReducer from 'reducers/settingReducer';
 import dealerReducer from '../reducers/dealerReducer';
+import listReducer from '../reducers/listReducer';
 // ==============================|| COMBINE REDUCER ||============================== //
 
 const reducer = combineReducers({
@@ -20,6 +21,7 @@ const reducer = combineReducers({
   stock:stockReducer,
   setting:settingReducer,
   dealer:dealerReducer,
+  listAll:listReducer,
 });
 
 export default reducer;

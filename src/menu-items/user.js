@@ -325,6 +325,14 @@ const user = {
           roles:['superadmin'],
         },
         {
+          id: 'sos-admin-list',
+          title: 'SOS Admin',
+          type: 'item',
+          url: '/user/sos-user-list',
+          breadcrumbs: false,
+          roles:['superadmin'],
+        },
+        {
           id: 'view-device',
           title: 'Device List',
           type: 'item',

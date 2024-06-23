@@ -24,6 +24,7 @@ import NotAuthorized from "../views/pages/NotAuthorized";
 import Details from "../views/pages/Details";
 import ManufacturerList from "views/reports/ManufacturerList";
 import VehicleOwnerList from "views/reports/VehicleOwnerList";
+import SOSUserList from "views/reports/SOSUserList";
 const PrivateRoute = ({ element,roles }) => {
 const myDecipher = decipherEncryption('skytrack')
 const userData=sessionStorage.getItem('cookiesData');
@@ -155,7 +156,7 @@ const UserRoutes = {
       roles: ['superadmin']
     },
     {
-      path: "/user/detail/:userId",
+      path: "/user/detail/:userType/:userId",
       element: <Details/>,
       roles: ['superadmin']
     },
@@ -163,7 +164,12 @@ const UserRoutes = {
       path: "/file",
       element: <FileUploadTest/>,
       roles: ['superadmin']
-    }
+    },
+    {
+      path: "/user/sos-user-list",
+      element: <SOSUserList/>,
+      roles: ['superadmin']
+    },
   ].map((route) => applyPrivateRoute(route)),
 
 };

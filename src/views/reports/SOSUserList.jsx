@@ -4,29 +4,29 @@ import React from "react";
 import { Grid } from "@mui/material";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
-import DealerServices from "services/DealerServices";
+import UserServices from "services/UserServices";
 import { useEffect, useState } from "react";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
-import { dealerListColumn } from "../../datatables/rowsColumn";
-import {dealerList} from "../../actions/commonDataActions";
+import { sosListColumn } from "../../datatables/rowsColumn";
+import {SOSAdminList} from "../../actions/commonDataActions";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-const DealerList = () => {
+const SOSUserList = () => {
   const [load, setLoad] = useState(false);
   const [updateStore,setUpdateStore]=useState(false)
-  const [dealerData, setDealerData] = useState(""); // here
+  const [sosUser, setSosUser] = useState(""); // here
   const dispatch = useDispatch();
-  const dealers=useSelector((state)=>state.dealer.list);
+  const sosUsers=useSelector((state)=>state.listAll.sosAdmin);
   useEffect(() => {
-    if(dealers.length<1 && !updateStore){
-      const retrievePosts = async () => {
-        const retriveData = await DealerServices.dealerList();
-        setDealerData(retriveData.data);
-        dispatch(dealerList(retriveData.data))
+    if(sosUsers.length<1 && !updateStore){
+      const retrieveUser = async () => {
+        const retriveData = await UserServices.fetchSOSAdmin();
+        setSosUser(retriveData.data);
+        dispatch(SOSAdminList(retriveData.data))
         setLoad(true);
         setUpdateStore(true);
       };
-      retrievePosts();
+      retrieveUser();
     }
   }, [updateStore,dispatch]);
 
@@ -40,7 +40,7 @@ const DealerList = () => {
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Link
-                to={`/user/detail/dealer/${tableMeta.rowData[0]}`}
+                to={`/user/detail/sosUser/${tableMeta.rowData[0]}`}
                 style={{ textDecoration: "none" }}
               >
                 <div className="viewButton">
@@ -59,11 +59,11 @@ const DealerList = () => {
         <PageHeader title="Show Dealer" />
       </Grid>
       <Grid item xs={12}>
-        {dealers.length >= 1 && (
+        {sosUsers.length >= 1 && (
           <DynamicDatatables
-            tableTitle="Dealer List"
-            rows={dealers}
-            columns={dealerListColumn.concat(actionColumn)}
+            tableTitle="SOS Admin List"
+            rows={sosUsers}
+            columns={sosListColumn.concat(actionColumn)}
           />
         )}
       </Grid>
@@ -71,4 +71,4 @@ const DealerList = () => {
   );
 };
 
-export default DealerList;
+export default SOSUserList;

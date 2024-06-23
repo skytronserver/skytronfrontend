@@ -1,19 +1,13 @@
-// NewUser.js
-import React, { useState, useEffect } from "react";
+//Template
+import React from "react";
 import { Grid, Button } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchUserData } from "../../actions/dataActions";
-import Datatable from "../../datatables/Datatable";
-import { userColumns } from "../../datatables/rowsColumn";
-import DummyServices from "services/DummyServices";
 import FormField from "../../ui-component/CustomTextField";
 import {fieldConfig,userInitialValues} from "../../formjson/formConfig";
 import * as Yup from "yup";
-
 const NewUser = () => {
     const handleFileChange = (event, formik) => {
       const selectedFile = event.target.files[0];
@@ -31,10 +25,7 @@ const NewUser = () => {
     );
   
     const handleSubmit = (values, { setSubmitting }) => {
-      // Your form submission logic goes here
       console.log("Form values:", values);
-  
-      // Simulate an asynchronous operation (e.g., API call)
       setTimeout(() => {
         alert("Form submitted successfully!");
         setSubmitting(false);
