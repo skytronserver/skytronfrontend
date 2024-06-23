@@ -39,7 +39,7 @@ const ManufacturerList = () => {
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Link
-                to={`/user/detail/${tableMeta.rowData[0]}`}
+                to={`/user/detail/manufacturer/${tableMeta.rowData[0]}`}
                 style={{ textDecoration: "none" }}
               >
                 <div className="viewButton">

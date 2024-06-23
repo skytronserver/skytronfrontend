@@ -6,10 +6,17 @@ import { Grid } from '@mui/material';
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ManufacturerServices from "../../services/ManufacturerServices";
+import DealerServices from "../../services/DealerServices";
 import {formatDate} from "../../helper";
 import SettingService from "../../services/SettingService";
-const ProfileCard = () => {
-    const { userId } = useParams();
+import DescriptionIcon from '@mui/icons-material/Description';
+import UserServices from "services/UserServices";
+import Button from '@mui/material/Button';
+const docViewStyle={
+  padding:"0px"
+}
+const Details = () => {
+    const { userId,userType } = useParams();
     const [isLoaded,setIsLoaded]=useState(false)
     const [user,setUser]=useState({
         role:"",
@@ -29,7 +36,6 @@ const ProfileCard = () => {
         file_idProof:""
 
     })
-    console.log(user);
     const openFile=async(e,filePath)=>{
         e.preventDefault();
         const file_path={
@@ -43,43 +49,53 @@ const ProfileCard = () => {
         }
     }
     useEffect(()=>{
-        const retriveUserDetails = async () => {
-            const uniqueId={
-                manufacturer_id:userId
+      const retrieveUserDetails = async () => {
+        try {
+            let retrieveData;
+            if (userType === 'manufacturer') {
+                retrieveData = await ManufacturerServices.findManufacturer({ manufacturer_id: userId });
+            } else if (userType === 'dealer') {
+                retrieveData = await DealerServices.dealerList({ dealer_id: userId });
+            }else if (userType === 'sosUser') {
+              retrieveData = await UserServices.fetchSOSAdmin({ StateAdmin_id: userId });
+            }else {
+                throw new Error("Unsupported user type");
             }
-            try {
-              const retrieveData = await ManufacturerServices.findManufacturer(uniqueId);
-              const userData=await retrieveData.data[0];
-              setUser((prev)=>({...prev,
-                role:userData?.users[0]?.role,
-                name:userData?.users[0]?.name,
-                email:userData?.users[0]?.email,
-                mobile:userData?.users[0]?.mobile,
-                dob:userData?.users[0]?.dob,
-                gstNo:userData?.gstnnumber,
-                company_name:userData?.company_name,
-                expiryDate:userData?.expirydate,
-                state:userData?.state?.state,
-                idProofno:userData?.idProofno,
-                created_by_name:userData?.users[0]?.created_by_name,
-                file_authLetter	:userData?.file_authLetter,
-                file_companRegCertificate:userData?.file_companRegCertificate,
-                file_GSTCertificate:userData?.file_GSTCertificate,
-                file_idProof:userData?.file_idProof
-            }));
+
+            const userData = retrieveData.data[0];
+            setUser({
+                role: userData?.users[0]?.role || "",
+                name: userData?.users[0]?.name || "",
+                email: userData?.users[0]?.email || "",
+                mobile: userData?.users[0]?.mobile || "",
+                dob: userData?.users[0]?.dob || "",
+                gstNo: userData?.gstnnumber || "",
+                company_name: userData?.company_name || "",
+                expiryDate: userData?.expirydate || "",
+                state: userData?.state?.state || "",
+                idProofno: userData?.idProofno || "",
+                created_by_name: userData?.users[0]?.created_by_name || "",
+                file_authLetter: userData?.file_authLetter || "",
+                file_companRegCertificate: userData?.file_companRegCertificate || "",
+                file_GSTCertificate: userData?.file_GSTCertificate || "",
+                file_idProof: userData?.file_idProof || ""
+            });
+
             setIsLoaded(true);
-            } catch (error) {
-              if (error.response && error.response.status === 404) {
-                console.log("User not found"); // Set a specific error message for 404
-              } else {
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                console.log("User not found");
+            } else {
                 console.log("An error occurred while fetching user data");
-              }
             }
-          };
-          retriveUserDetails();
+        }
+    };
+
+    retrieveUserDetails();
     },[])
     const role={
-        devicemanufacture:'Device Manufacturer' 
+        devicemanufacture:'Device Manufacturer',
+        dealer:'Dealer'
     }
   return (
     <Card sx={{ margin: 'auto' }}>
@@ -134,24 +150,32 @@ const ProfileCard = () => {
               <strong>ID Proof Number: </strong>{user.idProofno}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>ID Proof: </strong>{user.file_idProof}
+              <strong>ID Proof: </strong>{user.file_idProof!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_idProof)} >
+              <span><DescriptionIcon/></span>View ID Proof
+              </Button>}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Registration Certificate: </strong>{user.file_companRegCertificate!=='' && <a href='' onClick={(e)=>openFile(e,user.file_companRegCertificate)}>View Certificate</a>}
+              <strong>Registration Certificate: </strong>{user.file_companRegCertificate!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_companRegCertificate)} >
+              <span><DescriptionIcon/></span>View Certificate
+              </Button>}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>GST Certificate: </strong>{user.file_GSTCertificate}
+              <strong>GST Certificate: </strong>{user.file_GSTCertificate!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_GSTCertificate)} >
+              <span><DescriptionIcon/></span>View GST Certificate
+              </Button>}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Authorization Letter: </strong>{user.file_authLetter}
+              <strong>Authorization Letter: </strong>{user.file_authLetter!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_authLetter)} >
+              <span><DescriptionIcon/></span>View Authorization Letter
+              </Button>}
             </Typography>
           </Grid>
         </Grid>
@@ -161,4 +185,4 @@ const ProfileCard = () => {
   );
 }
 
-export default ProfileCard;
+export default Details;
