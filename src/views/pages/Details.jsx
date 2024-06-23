@@ -17,6 +17,7 @@ const docViewStyle={
 }
 const Details = () => {
     const { userId,userType } = useParams();
+    const [imageSrc, setImageSrc] = useState(null);
     const [isLoaded,setIsLoaded]=useState(false)
     const [user,setUser]=useState({
         role:"",
@@ -35,19 +36,29 @@ const Details = () => {
         file_GSTCertificate:"",
         file_idProof:""
 
-    })
-    const openFile=async(e,filePath)=>{
-        e.preventDefault();
-        const file_path={
-            file_path:filePath
-        }
-        try{
-            const viewFiles=await SettingService.file_Download(file_path);
-            console.log(viewFiles);
-        }catch(error){
-            console.log(error);
-        }
-    }
+    });
+    const createImageUrl = (blob) => {
+      return URL.createObjectURL(blob);
+    };
+    const openFile = async (e, filePath) => {
+      e.preventDefault();
+      const file_path = {
+        file_path: filePath,
+      };
+      try {
+        const viewFiles = await SettingService.file_Download(file_path);
+        const blob = new Blob([viewFiles.data], {
+          type: "image/png",
+        });
+        const url = window.URL.createObjectURL(blob);
+        setImageSrc("data:image/png;base64," + viewFiles.data);
+        console.log(viewFiles);
+        console.log(blob);
+        return () => window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.log(error);
+      }
+    };
     useEffect(()=>{
       const retrieveUserDetails = async () => {
         try {

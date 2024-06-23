@@ -6,7 +6,6 @@ import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import UserServices from 'services/UserServices';
 import { useEffect,useState } from 'react';
-import { fetchUserDataSuccess } from '../../actions/userDataActions';
 import Datatable from '../../datatables/Datatable';
 import {registeredUserColumns} from '../../datatables/rowsColumn';
 
@@ -17,14 +16,11 @@ const UsersList = () => {
   useEffect(()=>{
     const retrievePosts = async () => {
       const retriveData=await UserServices.getRegisteredUsers();
-      // dispatch(fetchUserDataSuccess(retriveData.data)) ;
       setUsers(retriveData.data);
       setLoad(true)
     };
     retrievePosts();
   },[dispatch])
- 
-  // const users=useSelector((state)=>state.users.registeredUser);
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>

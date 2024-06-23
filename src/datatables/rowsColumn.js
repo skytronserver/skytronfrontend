@@ -376,14 +376,6 @@ export const registeredUserColumns = [
     },
   },
   {
-    name: "companyName",
-    label: "Company Name",
-    options: {
-      filter: false,
-      sort: false,
-    },
-  },
-  {
     name: "status",
     label: "Status",
     options: {
