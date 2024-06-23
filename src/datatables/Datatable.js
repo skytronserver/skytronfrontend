@@ -12,42 +12,6 @@ const Datatable = ({ userColumns, userRows, tableTitle }) => {
   useEffect(() => {
     setData(Array.isArray(userRows) ? userRows : []);
   }, [userRows]);
-
-  // const handleDelete = (id) => {
-  //   setData(data.filter((item) => item.id !== id));
-  // };
-
-  const actionColumn = [
-    {
-      name: "Action",
-      label: "Action",
-      options: {
-        filter: false,
-        customBodyRender: (value, tableMeta) => {
-          return (
-            <div className="cellAction" style={{ display: "flex" }}>
-              <Link
-                to={`/user/view/${tableMeta.rowData[0]}`}
-                style={{ textDecoration: "none" }}
-              >
-                <div className="viewButton">
-                  <VisibilityIcon />
-                </div>
-              </Link>
-              {/* <div
-                className="deleteButton"
-                onClick={() => handleDelete(tableMeta.rowData[0])}
-                style={{ cursor: "pointer" }}
-              >
-                <DeleteIcon />
-              </div> */}
-            </div>
-          );
-        },
-      },
-    },
-  ];
-
   const options = {
     selectableRows: "none",
     viewColumns: false,
@@ -59,7 +23,7 @@ const Datatable = ({ userColumns, userRows, tableTitle }) => {
       <MUIDataTable
         title={tableTitle}
         data={userRows}
-        columns={actionColumn.concat(userColumns)}
+        columns={userColumns}
         options={options}
       />
     </div>
