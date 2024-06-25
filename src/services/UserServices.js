@@ -65,6 +65,10 @@ const createStateAdmin=(formData)=>{
           }
     })
 }
+const fetchStateAdmin=(formData)=>{
+    const http=getAxiosInstance();
+    return http.post("/api/StateAdmin/filter_StateAdmin/",formData)
+}
 const createDTO=(formData)=>{
     const http = getAxiosInstance();
     return http.post("/api/DTO_RTO/create_DTO_RTO/",formData,{
@@ -146,7 +150,8 @@ const UserServices = {
     createSOSUser,
     fetchVehicleOwner,
     fetchSimProvider,
-    fetchSOSAdmin
+    fetchSOSAdmin,
+    fetchStateAdmin
   };
   
   export default UserServices;

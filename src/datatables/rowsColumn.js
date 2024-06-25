@@ -453,6 +453,77 @@ export const manufacturerColumns = [
     },
   }
 ];
+export const stateAdminColumn = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].name}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Email Id",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].email}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Mobile",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].mobile}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].created_by_name}</p>
+        );
+      }
+    }, 
+  },
+  {
+    name: "idProofno",
+    label: "ID Proof No",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+];
 
 export const userColumns = [
   {
