@@ -307,12 +307,21 @@ const user = {
       title: 'Reports',
       type: 'collapse',
       icon: icons.IconReport,
+      
       children: [
         {
           id: 'user-list',
           title: 'Users',
           type: 'item',
           url: '/user/registeredUser',
+          breadcrumbs: false,
+          roles:['superadmin'],
+        },
+        {
+          id: 'admin-user-list',
+          title: 'State Admin',
+          type: 'item',
+          url: '/user/state-admin-list',
           breadcrumbs: false,
           roles:['superadmin'],
         },

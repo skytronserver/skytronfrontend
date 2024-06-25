@@ -69,6 +69,8 @@ const Details = () => {
                 retrieveData = await DealerServices.dealerList({ dealer_id: userId });
             }else if (userType === 'sosUser') {
               retrieveData = await UserServices.fetchSOSAdmin({ StateAdmin_id: userId });
+            }else if (userType === 'stateadmin') {
+              retrieveData = await UserServices.fetchStateAdmin({ StateAdmin_id: userId });
             }else {
                 throw new Error("Unsupported user type");
             }
@@ -106,7 +108,9 @@ const Details = () => {
     },[])
     const role={
         devicemanufacture:'Device Manufacturer',
-        dealer:'Dealer'
+        dealer:'Dealer',
+        stateadmin:'State Admin',
+        sosadmin:'SOS Admin'
     }
   return (
     <Card sx={{ margin: 'auto' }}>
@@ -128,27 +132,27 @@ const Details = () => {
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Date of Birth: </strong>{user.dob!=='' && formatDate(user.dob)}
+              <strong>Date of Birth: </strong>{user.dob!=='' ? formatDate(user.dob) :'NA'}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Expiry Date: </strong>{user.expiryDate}
+              <strong>Expiry Date: </strong>{user.expiryDate!=='' ? user.expiryDate : 'NA'}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>State: </strong>{user.state}
+              <strong>State: </strong>{user.state!==''? user.state :'NA'}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>GST Number: </strong>{user.gstNo}
+              <strong>GST Number: </strong>{user.gstNo!==''?user.gstNo:'NA'}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Company Name: </strong>{user.company_name}
+              <strong>Company Name: </strong>{user.company_name!=='' ?user.company_name: 'NA'}
             </Typography>
           </Grid>
           <Grid item xs={6}>
@@ -163,30 +167,30 @@ const Details = () => {
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>ID Proof: </strong>{user.file_idProof!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_idProof)} >
+              <strong>ID Proof: </strong>{user.file_idProof!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_idProof)} >
               <span><DescriptionIcon/></span>View ID Proof
-              </Button>}
+              </Button>:'NA'}
             </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Registration Certificate: </strong>{user.file_companRegCertificate!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_companRegCertificate)} >
+              <strong>Registration Certificate: </strong>{user.file_companRegCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_companRegCertificate)} >
               <span><DescriptionIcon/></span>View Certificate
-              </Button>}
+              </Button>:'NA'}
             </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>GST Certificate: </strong>{user.file_GSTCertificate!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_GSTCertificate)} >
+              <strong>GST Certificate: </strong>{user.file_GSTCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_GSTCertificate)} >
               <span><DescriptionIcon/></span>View GST Certificate
-              </Button>}
+              </Button>:'NA'}
             </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Authorization Letter: </strong>{user.file_authLetter!=='' && <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_authLetter)} >
+              <strong>Authorization Letter: </strong>{user.file_authLetter!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_authLetter)} >
               <span><DescriptionIcon/></span>View Authorization Letter
-              </Button>}
+              </Button>:'NA'}
             </Typography>
           </Grid>
         </Grid>
