@@ -4,7 +4,7 @@ import amtronlogo from "../../assets/images/amtron-logo.png";
 
 function HomeFooter() {
   return (
-    <footer style={{ position: 'fixed', bottom: 0, width: '100%', textAlign: 'center', color: 'rgb(163, 255, 214);', padding: '10px 0' }}>
+    <footer style={{ position: 'fixed', bottom: 0, width: '100%', textAlign: 'center', color: 'rgb(163, 255, 214)', padding: '10px 0' }}>
       <img
         src={amtronlogo}
         alt="logo"

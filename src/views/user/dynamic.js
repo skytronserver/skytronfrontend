@@ -25,7 +25,6 @@ const NewUser = () => {
     );
   
     const handleSubmit = (values, { setSubmitting }) => {
-      console.log("Form values:", values);
       setTimeout(() => {
         alert("Form submitted successfully!");
         setSubmitting(false);

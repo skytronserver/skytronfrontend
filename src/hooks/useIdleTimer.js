@@ -1,32 +1,39 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
-const useIdleTimer = (timeout, onIdle) => {
-  const [lastActivity, setLastActivity] = useState(Date.now());
-
-  const resetTimer = useCallback(() => {
-    setLastActivity(Date.now());
-  }, []);
+const useIdleTimer = (logoutCallback, timeout = 300000) => {
+  //take state to check if the user is idle or not 
+  const [isIdle, setIsIdle] = useState(false);
 
   useEffect(() => {
+    //variable for storing the timeout
+    let timeoutId;
+    const handleActivity = () => {
+      //when ever user interact we make is idle to false and clear the timeout
+      setIsIdle(false);
+      clearTimeout(timeoutId);
+      //else if the user doesn't interact for certain amount of time then it will update the state as it is idle and then the logout can be called
+      timeoutId = setTimeout(() => setIsIdle(true), timeout);
+    };
+
     const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
 
-    const handleEvent = () => resetTimer();
+    events.forEach((event) => window.addEventListener(event, handleActivity));
 
-    events.forEach(event => window.addEventListener(event, handleEvent));
-
-    const interval = setInterval(() => {
-      if (Date.now() - lastActivity > timeout) {
-        onIdle();
-      }
-    }, 1000);
+    handleActivity(); // Initialize the timeout
 
     return () => {
-      events.forEach(event => window.removeEventListener(event, handleEvent));
-      clearInterval(interval);
+      clearTimeout(timeoutId);
+      events.forEach((event) => window.removeEventListener(event, handleActivity));
     };
-  }, [lastActivity, resetTimer, timeout, onIdle]);
+  }, [timeout]);
 
-  return { resetTimer };
+  useEffect(() => {
+    if (isIdle) {
+      logoutCallback();
+    }
+  }, [isIdle, logoutCallback]);
+
+  return isIdle;
 };
 
 export default useIdleTimer;

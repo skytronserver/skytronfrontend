@@ -84,7 +84,6 @@ const DeviceModelForm = () => {
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.deviceAddOtp(modelOtpData);
-      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -98,7 +97,6 @@ const DeviceModelForm = () => {
   const handleDeviceModelCreate = async (deviceModelData) => {
     try {
       const response = await DeviceModelServices.createModel(deviceModelData);
-      console.log("Device Model is submitted for approval");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);

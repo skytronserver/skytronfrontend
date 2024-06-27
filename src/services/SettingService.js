@@ -61,7 +61,7 @@ const filter_settings_ip = (data) => {
 //Download Files
 const file_Download = (data) => {
   const http = getAxiosInstance();
-  return http.post("/api/download/", data);
+  return http.post("/api/download/", data,{ responseType: 'blob' });
 };
 const SettingService = {
     create_settings_hp_freq,
