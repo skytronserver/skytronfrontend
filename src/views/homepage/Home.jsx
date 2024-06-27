@@ -103,7 +103,6 @@ function Home() {
           item
           xs={12}
           md={4}
-          direction="row"
           justifyContent="center"
           alignItems="center"
         >

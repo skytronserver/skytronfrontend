@@ -57,7 +57,7 @@ const AssignDevice = () => {
           if (error.response && error.response.status === 404) {
               console.log('No Data Found')
              } else {
-               console.log('No Data Found other status')
+               console.log('No Data Found')
              }
       }
   }

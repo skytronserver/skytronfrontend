@@ -71,7 +71,6 @@ const StateAdminCOPModelView = () => {
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.AdminCOPDeviceVerifyOtp(modelOtpData);
-      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -86,7 +85,6 @@ const StateAdminCOPModelView = () => {
   const handleSendOTPValidation = async (OtpData) => {
     try {
       const response = await OtpServices.AdminCOPDeviceSendOtp(OtpData);
-      console.log("Device Model is OTP Verified");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);

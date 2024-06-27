@@ -32,6 +32,7 @@ import {decipherEncryption} from "../../../../helper";
 // assets
 import { IconLogout, IconSettings } from '@tabler/icons';
 import { logout } from "../../../../actions/loginActions";
+import useIdleTimer from "../../../../hooks/useIdleTimer";
 // ==============================|| PROFILE MENU ||============================== //
 
 const ProfileSection = () => {
@@ -51,13 +52,13 @@ const ProfileSection = () => {
   /**
    * anchorRef is used on different components and specifying one type leads to other components throwing an error
    * */
-
   const anchorRef = useRef(null);
   const handleLogout =() => {
     dispatch(logout());
     setLogout((prev)=>prev+1);
     window.location.href = '/mis';
   };
+  useIdleTimer(handleLogout, 300000);
   useEffect(()=>{
     if (!isAuthenticated) {
       window.location.href = '/mis';

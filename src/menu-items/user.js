@@ -6,7 +6,6 @@ const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDev
 
 const myCipher = cipherEncryption('skytrack');
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
-console.log(`${myCipher('Raju Saha')}-${myCipher('superadmin')}-${myCipher('8876042616')}`)
 const user = {
   id: 'utilities',
   type: 'group',
