@@ -1,5 +1,6 @@
 import * as Yup from "yup";
-import { indianStates } from "./indianState";
+const FILE_SIZE = 512 * 1024 ; // 512 MB
+const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split("T")[0];
@@ -99,26 +100,59 @@ export const dealerAccountFormField = {
     name: "file_authLetter",
     type: "file",
     label: "Authorization Letter",
-    validation: Yup.mixed().required("Authorization Letter is required"),
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
   },
   file_companRegCertificate: {
     name: "file_companRegCertificate",
     type: "file",
     label: "Company/Shop Registration/Establishment Certificate",
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
     validation: Yup.mixed().required(
       "Company/Shop Registration/Establishment Certificate is required"
-    ),
+    ).test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    })
+    
   },
   file_GSTCertificate: {
     name: "file_GSTCertificate",
     type: "file",
     label: "GST Certificate",
-    validation: Yup.mixed().required("GST Certificate is required"),
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("GST Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
     label: "User ID Proof",
-    validation: Yup.mixed().required("User ID Proof is required"),
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("User ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
   },
 };

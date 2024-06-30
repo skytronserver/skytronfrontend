@@ -86,6 +86,7 @@ const DeviceForm = ({formTitle }) => {
           formik.setFieldValue("test_agency", retrieveData.data.test_agency);
           formik.setFieldValue("tac_no", retrieveData.data.tac_no);
           formik.setFieldValue("tac_validity", retrieveData.data.tac_validity);
+          formik.setFieldValue("esim_provider", retrieveData.data.eSimProviders[0].company_name);
         } catch (error) {
           if (error.response && error.response.status === 404) {
             console.log("Data not found");

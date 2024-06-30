@@ -1,4 +1,6 @@
 import * as Yup from "yup"; 
+const FILE_SIZE = 512 * 1024 ; // 512 MB
+const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 let stateList=[];
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
@@ -61,6 +63,16 @@ export const stateAdminInitialValues = {
       name:"file_idProof",
       type: "file",
       label: "ID Proof",
-      validation: Yup.mixed().required("ID Proof is required"),
+      message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+      validation: Yup.mixed()
+    .required("ID Proof is required")
+    .test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    })
     }
   };

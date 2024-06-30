@@ -2,7 +2,8 @@ import * as Yup from "yup";
 
   let stateList=[];
   let districtList=[];
-
+  const FILE_SIZE = 512 * 1024 ; // 512 KB
+  const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
@@ -84,6 +85,14 @@ export const dtoFormFields = {
     name:"file_idProof",
     type: "file",
     label: "User ID Proof",
-    validation: Yup.mixed().required("User ID Proof is required"),
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("User ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
   }
 };

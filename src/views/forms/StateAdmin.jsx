@@ -11,8 +11,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
 import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
-
-
+const FILE_SIZE = 512 * 1024 ; // 512 KB
+const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const StateAdmin = () => {
   const [updatedFormFields,setUpdatedFormField]=useState(stateAdminField);
   const [isFormLoaded,setIsFormLoaded]=useState(false)
@@ -66,13 +66,30 @@ const StateAdmin = () => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
-  const handleFileChange = (event, formik) => {
+  const handleFileChangeOld = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
     if (selectedFile) {
       formik.setFieldValue(fieldName, selectedFile);
     }
   };
+  const handleFileChange = (event, formik) => {
+    const selectedFile = event.currentTarget.files[0];
+    const fieldName = event.target.name;
+    const errors = {};
+    if (selectedFile) {
+      if (selectedFile.size > FILE_SIZE) {
+        errors[fieldName] = "File too large. Max size is 512KB";
+      } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
+        errors[fieldName] = "Unsupported Format";
+      } else {
+        formik.setFieldValue(fieldName, selectedFile);
+        return;
+      }
+    }
+    formik.setFieldError(fieldName, errors.file_idProof);
+  };
+  
 //Validation Scheme needs formik need
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {

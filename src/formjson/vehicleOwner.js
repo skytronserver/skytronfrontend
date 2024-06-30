@@ -1,5 +1,7 @@
 import * as Yup from "yup";
 const currentDate = new Date();
+const FILE_SIZE = 512 * 1024 ; // 512 KB
+const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
 export const vehicleOwnerInitialValues = {
@@ -59,12 +61,28 @@ export const vehicleOwnerField = {
     name: "idProofno",
     type: "text",
     label: "User ID Proof Number",
-    validation: Yup.string().required("User ID Proof Number is required"),
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.string().required("User ID Proof Number is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
     label: "ID Proof",
-    validation: Yup.mixed().required("ID Proof is required"),
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
   }
 };

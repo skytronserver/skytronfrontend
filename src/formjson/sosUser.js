@@ -1,5 +1,7 @@
 import * as Yup from "yup";
   let stateList=[];
+  const FILE_SIZE = 512 * 1024 ; // 512 KB
+  const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 export const sosUserInitialValues = {
   name: "",
   mobile: "",
@@ -56,6 +58,14 @@ export const sosUserFormField = {
     name: "file_idProof",
     type: "file",
     label: "User ID Proof",
-    validation: Yup.mixed().required("User ID Document is required"),
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("User ID Document is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
   }
 };
