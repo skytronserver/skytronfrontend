@@ -5,25 +5,25 @@ const getRegisteredData=()=>{
 }
 
 //new
-const getActiveState=()=>{  
+const getStateStats=()=>{  
     const http = getAxiosInstance();        // dashboard- active state 1st card
     return http.post("/api/homepageandstat/homepage_state/")    
 }
 
 
-const getTotalState=()=>{  
+const getAlertDetails=()=>{  
     const http = getAxiosInstance();        // dashboard- total state 2nd card
     return http.post("/api/homepageandstat/homepage_alart/")    
 }
 
-const getTotalDeviceState=()=>{  
+const getDeviceStats=()=>{  
     const http = getAxiosInstance();        // dashboard- total device 3rd card
     return http.post("/api/homepageandstat/homepage_device1/")    
 }
 
 
 
-const getDeviceState=()=>{ 
+const getTaggedDevices=()=>{ 
     const http = getAxiosInstance();  
     return http.post("/api/homepageandstat/homepage_device2/")    
 }
@@ -134,10 +134,10 @@ const fetchDTOList=(formData)=>{
     return http.post("/api/DTO_RTO/filter_DTO_RTO/",formData);
 }
 const UserServices = {
-    getActiveState,
-    getTotalState,
-    getTotalDeviceState,
-    getDeviceState,
+    getStateStats,
+    getAlertDetails,
+    getDeviceStats,
+    getTaggedDevices,
     getRegisteredData,
     getRegisteredUsers,
     getAll,

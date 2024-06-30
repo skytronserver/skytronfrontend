@@ -1,24 +1,3 @@
-// import { Grid } from "@mui/material";
-// import Widget from "./Widget";
-// import { gridSpacing } from "../../../store/constant";
-
-// const ActiveState = () => {
-//   return (
-//     <Grid container spacing={gridSpacing}>
-//       <Grid item lg={3} md={6} sm={6} xs={12} style={{ marginTop: "20px" }}>
-//       {/* <Grid item lg={16} md={3} sm={6} xs={12} style={{ marginTop: "20px" }}> */}
-//         <Widget
-//           cardColor="#1e88e5"
-//           label="Active States,Total States,Total Inactive"
-//         />
-//       </Grid>
-//     </Grid>
-//   );
-// };
-
-// export default ActiveState;
-
-//new 1/3
 import { useEffect, useState } from "react";
 import React from "react";
 import { Grid } from "@mui/material";
@@ -33,33 +12,34 @@ import Mobile from "../../../assets/images/Mobile.svg";
 import Bell from "../../../assets/images/Bell.svg";
 import Overspeed from "../../../assets/images/Overspeed.svg";
 const ActiveState = () => {
-  const [activeStateData, setActiveStateData] = useState({});
-  const [totalStateData, setTotalStateData] = useState({});
-  const [totalDeviceStateData, setTotalDeviceData] = useState({});
-  const [deviceStateData, setDeviceStateData] = useState({});
-  // const [activeStateData, setData] = useState({});
-  // const [activeStateData, setData] = useState({});
-
+  const [stateData, setStateData] = useState({});
+  const [alertData, setAlertData] = useState({});
+  const [deviceData, setDeviceData] = useState({});
+  const [taggedData, setTaggedData] = useState({});
+  const [vehicleData,setVehicleData]=useState({
+    total_vehicle:0,
+    tagged_vehicle:0,
+    untagged_vehicle:0
+  });
+  const [emergencyAlertData, setEmergencyAlertData] = useState({
+    total_alart: 0,
+    alart_month: 0,
+    alart_today: 0
+  });
   useEffect(() => {
     const retrievePosts = async () => {
-      const activeState = await UserServices.getActiveState();
-      const totalState = await UserServices.getTotalState();
-      const totalDeviceState = await UserServices.getTotalDeviceState();
-      const deviceState = await UserServices.getDeviceState();
-      //  const activeState = await UserServices.getActiveState();
-      //  const activeState = await UserServices.getActiveState();
-
-      setActiveStateData(activeState.data);
-      setTotalStateData(totalState.data);
-      setTotalDeviceData(totalDeviceState.data);
-      setDeviceStateData(deviceState.data);
-      // setActiveStateData(activeState.data);
-      // setActiveStateData(activeState.data);
+      const stateDetails = await UserServices.getStateStats();
+      const alertDetails = await UserServices.getAlertDetails();
+      const deviceData = await UserServices.getDeviceStats();
+      const taggedData = await UserServices.getTaggedDevices();
+      setStateData(stateDetails.data);
+      setAlertData(alertDetails.data);
+      setDeviceData(deviceData.data);
+      setTaggedData(taggedData.data);
     };
     retrievePosts();
   }, []);
-
-  // const colors = ["#F7418F", "#3DA5E0", "#FF9800"];
+  console.log(stateData);
   const mar = "100px";
  
   return (
@@ -68,7 +48,7 @@ const ActiveState = () => {
         <Widget
           cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
           label="State,Active,Inactive"
-          device={activeStateData}
+          device={stateData}
           address={Location}
           heading="Active States"
         />
@@ -78,7 +58,7 @@ const ActiveState = () => {
         <Widget
           cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
           label="Total Makers,Device Model,Device Count"
-          device={totalStateData}
+          device={deviceData}
           address={Mobile}
           heading="Device Statistics"
         />
@@ -87,7 +67,7 @@ const ActiveState = () => {
         <Widget
           cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
           label=" Tagged Total, Online Device, Device Offline"
-          device={totalDeviceStateData}
+          device={taggedData}
           address={Wifi}
           heading="Tagging Statistics"
         />
@@ -96,7 +76,7 @@ const ActiveState = () => {
         <Widget
           cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
           label="Total Vehicle,Active,Idle"
-          device={deviceStateData}
+          device={vehicleData}
           address={Car}
           heading="Vehicle Statistics"
         />
@@ -106,7 +86,7 @@ const ActiveState = () => {
         <Widget
           cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
           label="Total Alert,This Month,Today"
-          device={activeStateData}
+          device={alertData}
           address={Overspeed}
           heading="Over Speeding"
         />
@@ -115,7 +95,7 @@ const ActiveState = () => {
         <Widget
           cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
           label="Total Alert,This Month,Today"
-          device={activeStateData}
+          device={emergencyAlertData}
           address={Bell}
           heading="Emeregency Alert"
         />

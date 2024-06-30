@@ -4,11 +4,6 @@ import { Grid } from '@mui/material';
 import Widget from './Widget';
 import { gridSpacing } from '../../../store/constant';
 import ActiveState from './ActveState';
-import DeviceStatistics from './DeviceStatistics';
-import VehicleStatistics from './VehicleStatistics';
-import OverSpeeding from './OverSpeeding';
-import EmeregencyAlert from './EmeregencyAlert';
-import UserStatistics from './UserStatistics';
 import { useSelector } from "react-redux";
 
 // import { Widgets } from '@mui/icons-material';
@@ -45,11 +40,6 @@ const Dashboard = () => {
     </Grid>
     {/* <Widgets/> */}
     <ActiveState/>
-    <DeviceStatistics/>
-    <VehicleStatistics/>
-    <OverSpeeding/>
-    <EmeregencyAlert/>
-    <UserStatistics/>
 
     </>
   
