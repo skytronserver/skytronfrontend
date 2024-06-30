@@ -373,6 +373,14 @@ const user = {
           roles:['superadmin','stateadmin','dealer'],
         },
         {
+          id: 'dto-user-list',
+          title: 'DTO User List',
+          type: 'item',
+          url: '/user/dto-user-list',
+          breadcrumbs: false,
+          roles: ['stateadmin']
+        },
+        {
           id: 'emergency-list',
           title: 'Emergency',
           type: 'item',

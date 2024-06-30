@@ -6,7 +6,7 @@ let providerList=[{value:'',label:'Select'}];
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 export const manufacturerInitialValues = {
-    esimProvider:"",
+    esimProvider:[],
     name: "",
     mobile: "",
     email: "",
@@ -25,9 +25,9 @@ export const manufacturerInitialValues = {
 export const manufacturerFormField = {
   esimProvider: {
     name:"esimProvider",
-    type: "select",
+    type: "multiselect",
     label: "eSim Provider",
-    validation: Yup.string().required("eSim Provider is required"),
+    validation: Yup.array().required("eSim Provider is required"),
     options: providerList
   },
   name: {

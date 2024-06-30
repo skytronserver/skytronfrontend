@@ -52,6 +52,22 @@ export const retriveDistrictList = async (filter) => {
       }
     }
   };
+  export const retriveDTOList = async (filter) => {
+    try {
+      const response = await SettingService.filter_settings_District(filter);
+      const list=response.data.map(device => ({
+        value: device?.district_code,
+        label: device?.district_code,
+      })); 
+      return list;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+       console.log('No Data Found')
+      } else {
+        console.log('No Data Found')
+      }
+    }
+  };
   export const retriveManufacturerList = async () => {
     try {
       const response = await ManufacturerServices.findManufacturer();

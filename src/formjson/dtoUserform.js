@@ -12,7 +12,6 @@ export const dtoInitialsValues = {
     mobile: "",
     email: "",
     state:"",
-    district:"",
     district_code:"",
     idProofno:"",
     expiryDate:formattedDate,
@@ -46,18 +45,12 @@ export const dtoFormFields = {
     validation: Yup.string().required("State Name is required"),
     options:stateList,
   },
-  district: {
-    name:"district",
-    type: "select",
-    label: "District Name",
-    validation: Yup.string().required("District Name is required"),
-    options:districtList,
-  },
   district_code: {
     name:"district_code",
-    type: "text",
+    type: "select",
     label: "District Code",
-    validation: Yup.string().required("District Code is required")
+    validation: Yup.string().required("District Code is required"),
+    options:districtList,
   },
   idProofno: {
     name:"idProofno",
