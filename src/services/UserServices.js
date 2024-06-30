@@ -129,6 +129,10 @@ const fetchSOSAdmin=(formData)=>{
     const http = getAxiosInstance();
     return http.post("/api/SOSAdmin/filter_SOSAdmin/",formData);
 }
+const fetchDTOList=(formData)=>{
+    const http = getAxiosInstance();
+    return http.post("/api/DTO_RTO/filter_DTO_RTO/",formData);
+}
 const UserServices = {
     getActiveState,
     getTotalState,
@@ -151,7 +155,8 @@ const UserServices = {
     fetchVehicleOwner,
     fetchSimProvider,
     fetchSOSAdmin,
-    fetchStateAdmin
+    fetchStateAdmin,
+    fetchDTOList
   };
   
   export default UserServices;

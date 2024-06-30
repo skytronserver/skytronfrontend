@@ -25,6 +25,7 @@ const Details = () => {
         mobile:"",
         dob:"",
         gstNo:"",
+        district:"",
         company_name:"",
         expiryDate:"",
         state:"",
@@ -105,7 +106,10 @@ const Details = () => {
                 retrieveData = await DealerServices.dealerList({ dealer_id: userId });
             }else if (userType === 'sosUser') {
               retrieveData = await UserServices.fetchSOSAdmin({ StateAdmin_id: userId });
-            }else if (userType === 'stateadmin') {
+            }else if (userType === 'dtoUser') {
+              retrieveData = await UserServices.fetchDTOList({ dto_rto_id: userId });
+            }
+            else if (userType === 'stateadmin') {
               retrieveData = await UserServices.fetchStateAdmin({ StateAdmin_id: userId });
             }else {
                 throw new Error("Unsupported user type");
@@ -118,6 +122,7 @@ const Details = () => {
                 email: userData?.users[0]?.email || "",
                 mobile: userData?.users[0]?.mobile || "",
                 dob: userData?.users[0]?.dob || "",
+                district: userData?.district || "",
                 gstNo: userData?.gstnnumber || "",
                 company_name: userData?.company_name || "",
                 expiryDate: userData?.expirydate || "",
@@ -146,14 +151,15 @@ const Details = () => {
         devicemanufacture:'Device Manufacturer',
         dealer:'Dealer',
         stateadmin:'State Admin',
-        sosadmin:'SOS Admin'
+        sosadmin:'SOS Admin',
+        dtorto:'DTO User'
     }
   return (
     <Card sx={{ margin: 'auto' }}>
       {isLoaded && <CardContent>
         <Typography gutterBottom variant="h4" component="div">
           {(user.name).toUpperCase()}<br/>
-          <strong>{user?.role!=='' && role[user.role]}</strong>
+          <strong>{user?.role!=='' && role[user.role]}</strong> <strong>{user?.district!=='' && user?.district}</strong>
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={6}>

@@ -26,6 +26,7 @@ import ManufacturerList from "views/reports/ManufacturerList";
 import VehicleOwnerList from "views/reports/VehicleOwnerList";
 import SOSUserList from "views/reports/SOSUserList";
 import StateAdminList from "views/reports/StateAdminList";
+import DTOUserList from "views/reports/DTOUserList";
 const PrivateRoute = ({ element,roles }) => {
 const myDecipher = decipherEncryption('skytrack')
 const userData=sessionStorage.getItem('cookiesData');
@@ -104,8 +105,12 @@ const UserRoutes = {
       path: "/user/manufacturer-list",
       element: <ManufacturerList/>,
       roles: ['superadmin']
-    }
-    ,
+    },
+    {
+      path: "/user/dto-user-list",
+      element: <DTOUserList/>,
+      roles: ['stateadmin']
+    },
     {
       path: "/user/newDto",
       element: <DtoRto/>,
@@ -124,7 +129,7 @@ const UserRoutes = {
     {
       path: "/user/vehicle-owner-list",
       element: <VehicleOwnerList />,
-      roles: ['dealer']
+      roles: ['dealer','stateadmin']
     },
     {
       path: "/new/otherUser",
@@ -159,7 +164,7 @@ const UserRoutes = {
     {
       path: "/user/detail/:userType/:userId",
       element: <Details/>,
-      roles: ['superadmin']
+      roles: ['superadmin','stateadmin','dealer','devicemanufacture']
     },
     {
       path: "/file",

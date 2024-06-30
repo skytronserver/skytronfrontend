@@ -1,5 +1,6 @@
 const initialState = {
     sosAdmin:[],
+    dtoList:[],
     error:null
 };
 const listReducer=(state=initialState,action)=>{
@@ -8,6 +9,11 @@ const listReducer=(state=initialState,action)=>{
             return {
                 ...state,
                 sosAdmin:action.payload
+            }
+        case 'GET_ALL_DTO_USER':
+            return {
+                ...state,
+                dtoList:action.payload
             }
         default :
             return state;

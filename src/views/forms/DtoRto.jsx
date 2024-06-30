@@ -8,7 +8,7 @@ import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray,retriveStateList,retriveDistrictList } from "../../helper";
+import { convertErrorObjectToArray,retriveStateList,retriveDTOList } from "../../helper";
 import {dtoInitialsValues,dtoFormFields} from "../../formjson/dtoUserform"
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
@@ -25,15 +25,15 @@ const DtoRto = () => {
   useEffect(()=>{
     (async()=>{
     const stateList=await retriveStateList();
-    const districtList=await retriveDistrictList();
+    const districtList=await retriveDTOList();
     setUpdatedFormField(prevConfig =>({
       ...prevConfig,
       state: {
         ...prevConfig.state,
         options: stateList,
       },
-      district: {
-        ...prevConfig.district,
+      district_code: {
+        ...prevConfig.district_code,
         options: districtList,
       },
     }))
