@@ -159,7 +159,7 @@ const user = {
       icon: icons.IconDeviceSim,
       roles:['superadmin',
       'dealer',
-      'devicemanufacture'],  
+      'devicemanufacture','stateadmin'],  
       children: [
         {
           id: 'new-device-model',
@@ -167,7 +167,7 @@ const user = {
           type: 'item',
           url: '/deviceModel/new',
           breadcrumbs: false,
-          roles:['superadmin'],
+          roles:['devicemanufacture'],
         },
         {
           id: 'device-model-extension',
@@ -175,7 +175,7 @@ const user = {
           type: 'item',
           url: '/deviceModel/extension',
           breadcrumbs: false,
-          roles:['dealer'],
+          roles:['devicemanufacture'],
         },
         {
           id: 'view-device',
@@ -183,7 +183,7 @@ const user = {
           type: 'item',
           url: '/device/list',
           breadcrumbs: false,
-          roles:['devicemanufacture'],
+          roles:['stateadmin'],
         },
         {
           id: 'view-device-cop',
@@ -191,7 +191,7 @@ const user = {
           type: 'item',
           url: '/deviceCOP/list',
           breadcrumbs: false,
-          roles:['devicemanufacture','stateadmin'],
+          roles:['stateadmin'],
         },
         {
           id: 'new-device',

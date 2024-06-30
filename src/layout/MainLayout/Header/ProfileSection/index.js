@@ -58,7 +58,7 @@ const ProfileSection = () => {
     setLogout((prev)=>prev+1);
     window.location.href = '/mis';
   };
-  useIdleTimer(handleLogout, 300000);
+  useIdleTimer(handleLogout, 600000);
   useEffect(()=>{
     if (!isAuthenticated) {
       window.location.href = '/mis';

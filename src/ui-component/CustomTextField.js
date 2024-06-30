@@ -138,6 +138,9 @@ const FormField = ({
               </span>
             </Button>
           </label>
+          {fieldConfig?.message && <div style={{ fontSize: "12px", color: "gray", marginTop: "4px" }}>
+          {fieldConfig?.message}
+        </div>}
           {formik.touched[fieldConfig.name] &&
             formik.errors[fieldConfig.name] && (
               <div style={{ color: "red", marginTop: "8px" }}>

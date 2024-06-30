@@ -49,58 +49,58 @@ const DeviceRoutes = {
     {
       path: "/device/new",
       element: <DeviceForm  formTitle="New Device Form"/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['devicemanufacture'],
     },
     {
         path: "/deviceModel/new",
         element: <DeviceModelForm/>,
-        roles:['superadmin','devicemanufacture'],
+        roles:['devicemanufacture'],
     },
     {
         path: "/deviceModel/extension",
         element: <ModelExtension  formTitle="Model Extension"/>,
-        roles:['dealer'],
+        roles:['devicemanufacture'],
     },
     {
       path: "/device/list",
       element: <DeviceModelList/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['stateadmin'],
     },
     {
       path: "/deviceCOP/list",
       element: <UnapproveCopList/>,
-      roles:['superadmin','devicemanufacture','stateadmin'],
+      roles:['stateadmin'],
       
     },
     {
       path: "/deviceModel/view/:deviceId",
       element: <StateAdminDeviceModelView/>,
-      roles:['superadmin','devicemanufacture','stateadmin'],
+      roles:['superadmin','devicemanufacture','stateadmin','dealer'],
     },
     {
       path: "/deviceCOPModel/view/:deviceId",
       element: <StateAdminCOPModelView/>,
-      roles:['superadmin','devicemanufacture','stateadmin'],
+      roles:['superadmin','devicemanufacture','stateadmin','dealer'],
     },
     {
       path: "/device/bulkupload",
       element: <BulkUpload/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['devicemanufacture'],
     },
     {
       path: "/device/show-device",
       element: <ShowDevice/>,
-      roles:['superadmin','devicemanufacture','dealer'],
+      roles:['superadmin','devicemanufacture','dealer','stateadmin'],
     },
     {
       path: "/device/assign-device",
       element: <AssignDevice />,
-      roles:['superadmin','devicemanufacture'],
+      roles:['devicemanufacture'],
     },
     {
       path: "/device/show-available-device",
       element: <AvailableForSale />,
-      roles:['superadmin','devicemanufacture'],
+      roles:['superadmin','devicemanufacture','dealer'],
     },
     {
       path: "/device/show-tagged-device",
@@ -110,7 +110,7 @@ const DeviceRoutes = {
     {
       path: "/device/fit-device",
       element: <ConfigureDevice status='Available_for_fitting'/>,
-      roles:['superadmin','devicemanufacture'],
+      roles:['superadmin','devicemanufacture','dealer'],
     }
   ].map((route) => applyPrivateRoute(route)),
 };

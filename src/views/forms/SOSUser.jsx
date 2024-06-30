@@ -14,6 +14,8 @@ import {
   retriveStateList,
 } from "../../helper";
 import {sosUserFormField,sosUserInitialValues} from "../../formjson/sosUser"
+const FILE_SIZE = 512 * 1024 ; // 512 KB
+const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const SOSUser = () => {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
@@ -53,11 +55,20 @@ const SOSUser = () => {
     setOpen(true);
   };
   const handleFileChange = (event, formik) => {
-    const selectedFile = event.target.files[0];
+    const selectedFile = event.currentTarget.files[0];
     const fieldName = event.target.name;
+    const errors = {};
     if (selectedFile) {
-      formik.setFieldValue(fieldName, selectedFile);
+      if (selectedFile.size > FILE_SIZE) {
+        errors[fieldName] = "File too large. Max size is 512KB";
+      } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
+        errors[fieldName] = "Unsupported Format";
+      } else {
+        formik.setFieldValue(fieldName, selectedFile);
+        return;
+      }
     }
+    formik.setFieldError(fieldName, errors[fieldName]);
   };
 
   const validationSchema = Yup.object(

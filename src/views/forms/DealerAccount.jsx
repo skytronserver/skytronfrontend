@@ -7,10 +7,11 @@ import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "ui-component/cards/MainCard";
 import DialogComponent from "ui-component/DialogComponent";
-import PageHeader from "ui-component/cards/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray,retriveStateList,retriveDistrictList,retriveManufacturerList } from "helper";
-import { dealerAccountFormField, dealerAccountInitialValues } from "../../formjson/dealerAccount"
+import { dealerAccountFormField, dealerAccountInitialValues } from "../../formjson/dealerAccount";
+const FILE_SIZE = 512 * 1024 ; // 512 KB
+const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 function DealerAccount() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -56,13 +57,21 @@ function DealerAccount() {
     setOpen(true);
   };
   const handleFileChange = (event, formik) => {
-    const selectedFile = event.target.files[0];
+    const selectedFile = event.currentTarget.files[0];
     const fieldName = event.target.name;
+    const errors = {};
     if (selectedFile) {
-      formik.setFieldValue(fieldName, selectedFile);
+      if (selectedFile.size > FILE_SIZE) {
+        errors[fieldName] = "File too large. Max size is 512KB";
+      } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
+        errors[fieldName] = "Unsupported Format";
+      } else {
+        formik.setFieldValue(fieldName, selectedFile);
+        return;
+      }
     }
+    formik.setFieldError(fieldName, errors[fieldName]);
   };
-
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {
       acc[field] = updatedFormFields[field].validation;
