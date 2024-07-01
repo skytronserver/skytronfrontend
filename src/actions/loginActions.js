@@ -66,6 +66,9 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
     }else{
       message=error.message
     }
+    if(message=="text is undefined"){
+      message="Incorrect Captcha Details"
+    }
     const errorData={
       message:message,
       status:null,

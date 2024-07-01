@@ -19,6 +19,14 @@ import { loginUser } from "../../actions/loginActions";
 import skytronlogo from '../../assets/images/skytron-logo.png';
 import { Navigate } from "react-router-dom";
 import CaptchaServices from "../../services/CaptchaServices";
+const iconStyle={
+    backgroundColor: "#2196f321",
+    fontSize: "40px",
+    fontWeight: "bold",
+    padding: "4px",
+    borderRadius: "4px",
+    border: "2px solid white"
+}
 function Home() {
   const [captcha,setCaptcha]=useState({
     isLoaded:false,
@@ -166,13 +174,15 @@ function Home() {
                   }
                   helperText={formik.touched.password && formik.errors.password}
                 />
-                <section style={{ textAlign: "center",display:"flex",justifyContent:"space-around" }}>
+               
+                <section style={{ textAlign: "center",display:"flex",justifyContent:"space-around",borderRadius:'10px',backgroundColor:'#cdcdcd' }}>
                   {captcha.isLoaded ? (
                     <section>
                       <img
                         id="captcha-image"
                         src={captcha.src}
                         alt="Captcha Image"
+                        style={{maxHeight:'60px'}}
                       />
                       <input
                         type="hidden"
@@ -183,8 +193,8 @@ function Home() {
                   ) : (
                     <CircularProgress />
                   )}
-                  <span style={{padding:"4px 4px 1px 4px",cursor: "pointer"}} disabled={!captcha.isLoaded} onClick={()=>getCaptcha()}>
-                    <ReplayIcon />
+                  <span style={{padding:"4px 4px 1px 4px",cursor: "pointer",paddingTop:'12px'}} disabled={!captcha.isLoaded} onClick={()=>getCaptcha()}>
+                    <ReplayIcon style={iconStyle}/>
                   </span>
                 </section>
                 <TextField
