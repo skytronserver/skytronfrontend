@@ -5,7 +5,7 @@ import { Grid, Button } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
-import { retriveModelList } from "../../helper";
+import { retriveModelList ,retriveCreatedSimProvider} from "../../helper";
 import { bulkInitials, bulkFormField } from "../../formjson/bulkUpload";
 import StockServices from "../../services/StockServices";
 import { useState, useEffect } from "react";
@@ -17,12 +17,17 @@ const BulkUpload = () => {
   useEffect(() => {
     (async () => {
       const modelList = await retriveModelList();
+      const eSimProvider = await retriveCreatedSimProvider();
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
         model_id: {
           ...prevConfig.model_id,
           options: modelList,
         },
+      esim_provider:{
+        ...prevConfig.esim_provider,
+        options:eSimProvider
+      }
       }));
       setIsFormLoaded(true);
     })();
@@ -89,7 +94,7 @@ const BulkUpload = () => {
             <form onSubmit={formik.handleSubmit}>
               <Grid container spacing={2} className="form-controller">
                 {Object.keys(updatedFormFields).map((field) => (
-                  <Grid key={field} item md={4} sm={12} xs={12}>
+                  <Grid key={field} item md={3} sm={12} xs={12}>
                     <FormField
                       fieldConfig={updatedFormFields[field]}
                       formik={formik}
@@ -97,7 +102,7 @@ const BulkUpload = () => {
                     />
                   </Grid>
                 ))}
-                <Grid item md={4} sm={12} xs={12} style={{ marginTop: "16px" }}>
+                <Grid item md={3} sm={12} xs={12} style={{ marginTop: "16px" }}>
                   <Button
                     variant="outlined"
                     color="secondary"
