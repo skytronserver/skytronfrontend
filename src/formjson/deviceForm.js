@@ -1,5 +1,6 @@
 import * as Yup from "yup";
 let modelList=[];
+let providerList=[{value:'',label:'Select'}];
 export const deviceInitials = {
     imei:"",
     model:"",
@@ -17,7 +18,7 @@ export const deviceInitials = {
     imsi1:"",
     imsi2:"",
     esim_validity:"",
-    esim_provider:"",
+    esim_provider:[],
     remarks:"",
 };
 export const deviceFormField = {
@@ -54,9 +55,10 @@ export const deviceFormField = {
   },
   esim_provider: {
     name:"esim_provider",
-    type: "text",
+    type: "multiselect",
     label: "eSIM Provider",
-    validation: Yup.string().required("eSIM Provider is required"),
+    validation: Yup.array().required("eSIM Provider is required"),
+    options: providerList
   },
   tac_no: {
     name: "tac_no",

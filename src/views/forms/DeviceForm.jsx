@@ -10,7 +10,7 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import StockServices from "../../services/StockServices";
 import { useNavigate } from "react-router-dom";
 import {deviceInitials,deviceFormField} from "../../formjson/deviceForm";
-import {retriveModelList} from "../../helper";
+import {retriveModelList,retriveCreatedSimProvider} from "../../helper";
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
 const DeviceForm = ({formTitle }) => {
@@ -20,6 +20,7 @@ const DeviceForm = ({formTitle }) => {
   const [isFormLoaded,setIsFormLoaded]=useState(false);
   useEffect(()=>{
     (async()=>{
+    const eSimProvider = await retriveCreatedSimProvider();
     const modelList=await retriveModelList();
     setUpdatedFormField(prevConfig =>({
       ...prevConfig,
@@ -27,6 +28,10 @@ const DeviceForm = ({formTitle }) => {
         ...prevConfig.model,
         options: modelList,
       },
+      esim_provider:{
+        ...prevConfig.esim_provider,
+        options:eSimProvider
+      }
     }))
     setIsFormLoaded(true)
     }
@@ -86,7 +91,6 @@ const DeviceForm = ({formTitle }) => {
           formik.setFieldValue("test_agency", retrieveData.data.test_agency);
           formik.setFieldValue("tac_no", retrieveData.data.tac_no);
           formik.setFieldValue("tac_validity", retrieveData.data.tac_validity);
-          formik.setFieldValue("esim_provider", retrieveData.data.eSimProviders[0].company_name);
         } catch (error) {
           if (error.response && error.response.status === 404) {
             console.log("Data not found");
