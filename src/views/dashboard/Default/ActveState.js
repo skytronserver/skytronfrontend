@@ -61,9 +61,9 @@ const ActiveState = () => {
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
 
   const DashboardView = ({ role }) => {
-    console.log(role)
     switch (role) {
       case "superuser":
+        // have to redisn the dashboard for superuser
         return (
           <div>
             <Grid container spacing={gridSpacing} marginBottom={mar}>
