@@ -59,10 +59,11 @@ const ActiveState = () => {
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+  console.log(userRoles);
 
   const DashboardView = ({ role }) => {
     switch (role) {
-      case "superuser":
+      case "superadmin":
         // have to redisn the dashboard for superuser
         return (
           <div>
@@ -558,7 +559,7 @@ const ActiveState = () => {
             </Grid>
           </Grid>
         );
-      case "dto":
+      case "dtorto":
         return (
           <Grid container spacing={gridSpacing} marginBottom={mar}>
             <Grid item xs={12} sm={4}>
