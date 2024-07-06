@@ -4,7 +4,7 @@ let providerList=[{value:'',label:'Select'}];
 export const bulkInitials = {
     model_id:"",
     excel_file:null,
-    esim_provider:[],
+    esim_provider:"",
 };
 export const bulkFormField = {
   model_id: {
@@ -18,7 +18,7 @@ export const bulkFormField = {
     name:"esim_provider",
     type: "multiselect",
     label: "eSIM Provider",
-    validation: Yup.array().required("eSIM Provider is required"),
+    validation: Yup.string().required("eSIM Provider is required"),
     options: providerList
   },
   excel_file:{
