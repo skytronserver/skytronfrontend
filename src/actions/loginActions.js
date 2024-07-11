@@ -67,7 +67,7 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
       message=error.message
     }
     if(message=="text is undefined"){
-      message="Incorrect Captcha Details"
+      message="Whoops! Looks like the math wasn't quite right. Add the numbers in the CAPTCHA and try again."
     }
     const errorData={
       message:message,
@@ -102,7 +102,7 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     dispatch(setError(errorData));
   }catch(error){
     const errorData={
-      message:"OTP Verification Failed",
+      message:"Verification failed. Please check the code and try again.",
       status:null,
     }
     dispatch(setError(errorData));
@@ -130,7 +130,7 @@ export const resendOtp = (mobile,token) => async (dispatch) => {
     dispatch(setError(error));
   } catch (error) {
     const errorData={
-      message:'OTP sending fails',
+      message:"We're unable to send the OTP code right now.Please try again later.",
       status:null,
     }
     dispatch(setError(errorData));

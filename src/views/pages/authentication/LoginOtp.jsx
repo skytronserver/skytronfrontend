@@ -9,13 +9,15 @@ import CircularProgress from "@mui/material/CircularProgress";
 // project imports
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
-import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { MuiOtpInput } from "mui-one-time-password-input";
-import { verifyOtp,resendOtp } from "../../../actions/loginActions";
+import { verifyOtp,resendOtp,setError } from "../../../actions/loginActions";
 import { createAxiosInstance } from '../../../services/axiosInstance';
+import MinimalFooter from 'ui-component/cards/MinimalFooter';
+import AlertBox from "../../../ui-component/AlertBox";
 const LoginOtp = () => {
   const dispatch = useDispatch();
   const [otp, setOtp] = useState("");
+  const [isOpen,setIsOpen]=useState(false);
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
@@ -25,6 +27,18 @@ const LoginOtp = () => {
   const loading = useSelector((state) => state.login.loading);
   const error = useSelector((state) => state.login.error);
   const [remainingTime, setRemainingTime] = useState(180);
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = ''; // This line is necessary for some browsers to show the warning message
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
   useEffect(() => {
     const timer = setInterval(() => {
       if (remainingTime > 0) {
@@ -46,6 +60,9 @@ const LoginOtp = () => {
     createAxiosInstance(sessionStorage.getItem('oAuthToken'));
     return <Navigate to="/dashboard" replace />;
   }
+  if(otpToken===null){
+    window.location.href = "/mis";
+  }
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
@@ -54,11 +71,18 @@ const LoginOtp = () => {
   };
   return (
     <AuthWrapper1>
+      <AlertBox
+      severity="error"
+      isOpen={error.message !== null}
+      handleAlertClick={()=>console.log('information of otp verification')}
+      title="Error"
+      message={error.message}
+      />
       <Grid
         container
         direction="column"
         justifyContent="flex-end"
-        sx={{ minHeight: "100vh" }}
+        sx={{ minHeight: "90vh" }}
       >
         <Grid item xs={12}>
           <Grid
@@ -165,13 +189,6 @@ const LoginOtp = () => {
                           Resend
                         </Button>
                       </Typography>
-                      {error.message != null && (
-                        <Typography
-                          style={{ color: "red", textAlign: "center" }}
-                        >
-                          {error.message}
-                        </Typography>
-                      )}
                     </Grid>
                   </Grid>
                 </AuthCardWrapper>
@@ -180,7 +197,7 @@ const LoginOtp = () => {
           </Grid>
         </Grid>
         <Grid item xs={12} sx={{ m: 3, mt: 1 }}>
-          <AuthFooter />
+          <MinimalFooter />          
         </Grid>
       </Grid>
     </AuthWrapper1>
