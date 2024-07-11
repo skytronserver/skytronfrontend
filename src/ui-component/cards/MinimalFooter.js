@@ -2,16 +2,13 @@ import { Typography, Stack } from "@mui/material";
 import amtronlogo from "assets/images/Amtron.svg";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-
-// ==============================|| FOOTER - AUTHENTICATION 2 & 3 ||============================== //
-
-const AuthFooter = () => {
+const MinimalFooter = () => {
   const theme = useTheme();
 
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <div>
+    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Stack direction="row" justifyContent="space-between">
         <Typography
           variant="subtitle2"
@@ -38,4 +35,4 @@ const AuthFooter = () => {
   );
 };
 
-export default AuthFooter;
+export default MinimalFooter;
