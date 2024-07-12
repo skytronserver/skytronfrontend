@@ -4,6 +4,7 @@ const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
+const today = new Date().toISOString().split('T')[0];
 export const vehicleOwnerInitialValues = {
   name: "",
   mobile: "",
@@ -43,6 +44,7 @@ export const vehicleOwnerField = {
     type: "date",
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
+    maxDate:today
   },
   address: {
     name: "address",
@@ -61,15 +63,7 @@ export const vehicleOwnerField = {
     name: "idProofno",
     type: "text",
     label: "User ID Proof Number",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.string().required("User ID Proof Number is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
   },
   file_idProof: {
     name: "file_idProof",

@@ -7,6 +7,7 @@ import * as Yup from "yup";
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
+const today = new Date().toISOString().split('T')[0];
 export const dtoInitialsValues = {
     name: "",
     mobile: "",
@@ -56,13 +57,14 @@ export const dtoFormFields = {
     name:"idProofno",
     type: "text",
     label: "User ID Proof Number",
-    validation: Yup.string().required("User ID Proof Number is required"),
+    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
   },
   expiryDate: {
     name:"expiryDate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),
+    minDate:today
   },
   dto_rto: {
     name:"dto_rto",

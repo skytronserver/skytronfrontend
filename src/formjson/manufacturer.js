@@ -5,6 +5,7 @@ const formattedDate = currentDate.toISOString().split('T')[0];
 let providerList=[{value:'',label:'Select'}];
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+const today = new Date().toISOString().split('T')[0];
 export const manufacturerInitialValues = {
     esimProvider:[],
     name: "",
@@ -59,12 +60,14 @@ export const manufacturerFormField = {
     type: "date",
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
+    maxDate:today
   },
   expiryDate: {
     name:"expiryDate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),
+    minDate:today
   },
   gstnnumber: {
     name:"gstnnumber",
@@ -83,7 +86,7 @@ export const manufacturerFormField = {
     name:"idProofno",
     type: "text",
     label: "User ID Proof Number",
-    validation: Yup.string().required("User ID Proof Number is required"),
+    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
   },
   file_authLetter:{
     name:"file_authLetter",

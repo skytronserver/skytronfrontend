@@ -18,6 +18,11 @@ const FormField = ({
   handleFileChange,
   handleOptionChange,
 }) => {
+  const inputProps = {
+    onKeyDown: (e) => e.preventDefault(), // Prevent typing
+    ...(fieldConfig.minDate && { min: fieldConfig.minDate }),
+    ...(fieldConfig.maxDate && { max: fieldConfig.maxDate }),
+  };
   const { type, label, options,disabled } = fieldConfig;
   switch (type) {
     case "text":
@@ -202,6 +207,9 @@ const FormField = ({
           {...formik.getFieldProps(fieldConfig.name)}
           InputLabelProps={{
             shrink: true,
+          }}
+          InputProps={{
+            inputProps,
           }}
           error={
             formik.touched[fieldConfig.name] &&

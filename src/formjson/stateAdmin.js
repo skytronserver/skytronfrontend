@@ -5,6 +5,7 @@ let stateList=[];
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
+const today = new Date().toISOString().split('T')[0];
 export const stateAdminInitialValues = {
     name: "",
     mobile: "",
@@ -39,12 +40,14 @@ export const stateAdminInitialValues = {
       type: "date",
       label: "Date of Birth",
       validation: Yup.date().required("Date of Birth is required"),
+      maxDate:today
     },
     expirydate: {
       name:"expirydate",
       type: "date",
       label: "Expiry Date",
       validation: Yup.date().required("Expiry Date is required"),
+      minDate:today
     },
     state: {
         name:"state",
@@ -57,7 +60,9 @@ export const stateAdminInitialValues = {
       name:"idProofno",
       type: "text",
       label: "ID Proof Number",
-      validation: Yup.string().required("ID Proof Number is required"),
+      validation: Yup.string()
+        .min(5, "ID Proof Number must be at least 5 characters long")
+        .required("ID Proof Number is required"),
     },
     file_idProof: {
       name:"file_idProof",

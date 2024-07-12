@@ -2,6 +2,7 @@ import * as Yup from "yup";
   let stateList=[];
   const FILE_SIZE = 512 * 1024 ; // 512 KB
   const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+  const today = new Date().toISOString().split('T')[0];
 export const sosUserInitialValues = {
   name: "",
   mobile: "",
@@ -40,6 +41,7 @@ export const sosUserFormField = {
     type: "date",
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
+    maxDate:today
   },
   state: {
     name:"state",
@@ -52,7 +54,9 @@ export const sosUserFormField = {
     name: "idProofno",
     type: "text",
     label: "User ID Number",
-    validation: Yup.string().required("User ID No is required field"),
+    validation: Yup.string()
+        .min(5, "ID Proof Number must be at least 5 characters long")
+        .required("User ID No is required field"),
   },
   file_idProof: {
     name: "file_idProof",
