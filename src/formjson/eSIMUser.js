@@ -5,6 +5,7 @@ const formattedDate = currentDate.toISOString().split('T')[0];
 const stateList=[{'value':'','label':''}];
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+const today = new Date().toISOString().split('T')[0];
 export const eSIMInitialValues = {
     name: "",
     mobile: "",
@@ -45,6 +46,7 @@ export const eSIMFormField = {
     type: "date",
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
+    maxDate:today
   },
   expiryDate: {
     name:"expiryDate",
@@ -52,6 +54,7 @@ export const eSIMFormField = {
     label: "Expiry Date",
     disabled:true,
     validation: Yup.date().required("Expiry Date is required"),
+    minDate:today
   },
   company_name: {
     name:"company_name",
@@ -69,7 +72,7 @@ export const eSIMFormField = {
     name:"idProofno",
     type: "text",
     label: "User ID Proof No.",
-    validation: Yup.string().required("Name is required"),
+    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("Name is required"),
   },
   stateId: {
     name:"stateId",

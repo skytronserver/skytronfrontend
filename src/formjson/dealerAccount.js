@@ -4,6 +4,7 @@ const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split("T")[0];
+const today = new Date().toISOString().split('T')[0];
 export const dealerAccountInitialValues = {
   manufacturer:"",
   name: "",
@@ -57,6 +58,7 @@ export const dealerAccountFormField = {
     type: "date",
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
+    maxDate:today
   },
   company_name: {
     name: "company_name",
@@ -88,13 +90,14 @@ export const dealerAccountFormField = {
     name: "idProofno",
     type: "text",
     label: "User ID Proof Number",
-    validation: Yup.string().required("User ID Proof Number is required"),
+    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
   },
   expiryDate: {
     name: "expiryDate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),
+    minDate:today
   },
   file_authLetter: {
     name: "file_authLetter",
