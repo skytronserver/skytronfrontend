@@ -1,11 +1,9 @@
-
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme, styled } from "@mui/material/styles";
-import { Avatar, Box, Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import MainCard from "../../../ui-component/cards/MainCard";
 import SkeletonTotalOrderCard from "../../../ui-component/cards/Skeleton/Widget";
-import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import { useMediaQuery } from "@mui/material";
 
 const CardWrapper = styled(MainCard)(({ theme, data }) => ({
@@ -16,19 +14,16 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   borderRadius: "8px",
   width: "100%",
   height: "150px",
-  
-  
 
   "& > div": {
     position: "relative",
     zIndex: 5,
-  
   },
   "&:after, &:before": {
     content: '""',
     position: "absolute",
-    width: "100%", // width to  cover the entire component
-    height: "100%", // height to cover the entire component
+    width: "100%", 
+    height: "100%", 
     borderRadius: "50%",
     zIndex: 1,
     top: 0,
@@ -47,41 +42,23 @@ const Widget = ({
   heading,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   const labelNew = label.split(",");
   const arr = Object.values(device);
-
   return (
-    <Grid
-      item
-      xs={12}
-      sm={6}
-      md={6}
-      lg={10}
-      style={{
-        marginTop: "40px",
-        marginLeft: "30px",
-        marginRight: "10px",
-        marginBottom: "0px",
-        
-        
-      }}
-    >
+    <>
       <CardWrapper
         border={false}
         content={false}
         data={cardColor}
         onClick={onClick}
       >
-        <Box sx={{ p: 2.25 }} >
-          <Grid container alignItems="center" >
+        <Box sx={{ p: 2.25 }}>
+          <Grid container alignItems="center">
             <Grid item xs>
               <Typography
                 variant="h4"
                 gutterBottom
                 sx={{ color: "#fff", fontWeight: "bold" }}
-                
               >
                 {heading}
               </Typography>
@@ -95,7 +72,7 @@ const Widget = ({
                       mb: 0.75,
                     }}
                   >
-                    {`${item}: ${arr[index]}`}
+                    {`${item}: ${arr?.[index] ?? ''}`}
                   </Typography>
                 ))}
               </Box>
@@ -111,7 +88,7 @@ const Widget = ({
           </Grid>
         </Box>
       </CardWrapper>
-    </Grid>
+    </>
   );
 };
 
