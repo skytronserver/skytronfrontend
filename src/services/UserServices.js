@@ -133,6 +133,30 @@ const fetchDTOList=(formData)=>{
     const http = getAxiosInstance();
     return http.post("/api/DTO_RTO/filter_DTO_RTO/",formData);
 }
+const getStateAdminDashboard=()=>{
+    const http=getAxiosInstance();
+    return http.post('/api/homepageandstat/homepage_stateAdmin/')
+}
+const getDealerDashboard=()=>{
+    const http=getAxiosInstance();
+    return http.post('/api/homepageandstat/homepage_Dealer/');
+}
+const getManufacturerDashboard=()=>{
+    const http=getAxiosInstance();
+    return http.post('/api/homepageandstat/homepage_Manufacturer/');
+}
+const getOwnerDashboard=()=>{
+    const http=getAxiosInstance();
+    return http.post('/api/homepageandstat/homepage_VehicleOwner/');
+}
+const getDashboardUserData=()=>{
+    const http=getAxiosInstance();
+    return http.post('/api/homepageandstat/homepage_user1/')
+}
+const getDashboardData=()=>{
+    const http=getAxiosInstance();
+    return http.post('/api/homepageandstat/homepage/')
+}
 const UserServices = {
     getStateStats,
     getAlertDetails,
@@ -156,7 +180,13 @@ const UserServices = {
     fetchSimProvider,
     fetchSOSAdmin,
     fetchStateAdmin,
-    fetchDTOList
+    fetchDTOList,
+    getStateAdminDashboard,
+    getDashboardUserData,
+    getDashboardData,
+    getDealerDashboard,
+    getManufacturerDashboard,
+    getOwnerDashboard
   };
   
   export default UserServices;
