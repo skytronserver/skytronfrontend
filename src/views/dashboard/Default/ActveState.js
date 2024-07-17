@@ -5,9 +5,6 @@ import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
 
 import Car from "../../../assets/images/Car.svg";
-import Location from "../../../assets/images/Location.svg";
-import Wifi from "../../../assets/images/Wifi.svg";
-import Mobile from "../../../assets/images/Mobile.svg";
 import Bell from "../../../assets/images/Bell.svg";
 import Overspeed from "../../../assets/images/Overspeed.svg";
 import User from "../../../assets/images/User.svg";
@@ -41,21 +38,8 @@ const ActiveState = () => {
   const [ownerDashboardInfo,setOwnerDashboardInfo]=useState(dashboardInitialState.userDashboardInfo);
   const [fitmentInfoForAdmin,setFitmentInfoForAdmin]=useState(dashboardInitialState.adminFitmentInfo)
   const [userInfoForAdmin,setUserInfoForAdmin]=useState(dashboardInitialState.userInfoForAdmin)
-  const [stateInfo,setStateInfo]=useState(dashboardInitialState.stateInfo)
-  const [stateData, setStateData] = useState({});
-  const [alertData, setAlertData] = useState({});
-  const [deviceData, setDeviceData] = useState({});
-  const [taggedData, setTaggedData] = useState({});
-  const [vehicleData, setVehicleData] = useState({
-    total_vehicle: 0,
-    tagged_vehicle: 0,
-    untagged_vehicle: 0,
-  });
-  const [emergencyAlertData, setEmergencyAlertData] = useState({
-    total_alart: 0,
-    alart_month: 0,
-    alart_today: 0,
-  });
+  const [stateInfo,setStateInfo]=useState(dashboardInitialState.stateInfo);
+  const [dtoDashboardInfo,setDtoDashboardInfo]=useState(dashboardInitialState.dtoDashboardInfo)
 
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
@@ -63,6 +47,30 @@ const ActiveState = () => {
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   useEffect(() => {
     //for owner
+    if(userRoles=='dtorto'){
+      (async()=>{
+        const response=await UserServices.getDTODashboardData();
+        const data=await response.data;
+        setDtoDashboardInfo((prev) => ({
+          ...prev,
+          activated: data.Total_Device_Activated,
+          vehicles: data.Total_Vehicles,
+          onlineDevice: data.Total_Online_Device,
+          offlineDevice: data.Total_Offline_Device_today,
+          sevenDaysOffline: data.Total_Offline_Device_7day,
+          thirtyDaysOffline: data.Total_Offline_Device_30day,
+          alert: data.Total_Alert,
+          monthlyAlert: data.Alert_month,
+          dailyAlert: data.Alert_today,
+          activations: data.Total_activations,
+          monthlyActivations: data.Activations_month,
+          dailyActivations: data.Activations_today,
+          sosCalls: data.Total_SOS_calls,
+          genuineCalls: data.Genuine_calls,
+          fakeCalls: data.Fake_calls
+        }));
+      })();
+    }
     if(userRoles=='owner'){
       (async()=>{
         const response=await UserServices.getOwnerDashboard();
@@ -166,7 +174,6 @@ const ActiveState = () => {
           manufacturer:data.manufacturer_admin,
           sosAdmin:data.SOS_admin
         }))
-        //if superAdmin
         setFitmentInfoForAdmin((prev=>({
           ...prev,
           fitted:dashboardData.TotalDevice,
@@ -195,16 +202,6 @@ const ActiveState = () => {
       
       })();
     }
-    const retrievePosts = async () => {
-      const stateDetails = await UserServices.getStateStats();
-      const alertDetails = await UserServices.getAlertDetails();
-      const deviceData = await UserServices.getDeviceStats();
-      const taggedData = await UserServices.getTaggedDevices();
-      setStateData(stateDetails.data);
-      setAlertData(alertDetails.data);
-      setDeviceData(deviceData.data);
-      setTaggedData(taggedData.data);
-    };
     // for stateAdmin
     if(userRoles=='stateadmin'){
       (async()=>{
@@ -250,7 +247,6 @@ const ActiveState = () => {
         }))
       })();
     }
-    retrievePosts();
   }, []);
 
   const mar = "100px";
@@ -267,8 +263,8 @@ const ActiveState = () => {
                 <Widget
                   cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                   label="Total State Admin,Total eSim Provider,Total Manufacturer, Total SOS Admin"
-                  device={userInfoForAdmin}
-                  address={User}
+                  cardValue={userInfoForAdmin}
+                  iconImage={User}
                   heading="User Statistics"
                 />
               </Grid>
@@ -277,8 +273,8 @@ const ActiveState = () => {
                 <Widget
                   cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                   label="Total Fitment,Tagged Device,Online Device,Offline Device"
-                  device={fitmentInfoForAdmin}
-                  address={Fitment}
+                  cardValue={fitmentInfoForAdmin}
+                  iconImage={Fitment}
                   heading="Fitment Statistics"
                 />
               </Grid>
@@ -286,8 +282,8 @@ const ActiveState = () => {
                 <Widget
                   cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                   label="Total Alert,This Month,Today"
-                  device={overSpeedInfo}
-                  address={Overspeed}
+                  cardValue={overSpeedInfo}
+                  iconImage={Overspeed}
                   heading="Over Speeding"
                 />
               </Grid>
@@ -295,8 +291,8 @@ const ActiveState = () => {
                 <Widget
                   cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                   label="Total Alert,This month,Today"
-                  device={emergencyInfo}
-                  address={Bell}
+                  cardValue={emergencyInfo}
+                  iconImage={Bell}
                   heading="Emergency Alert"
                 />
               </Grid>
@@ -305,8 +301,8 @@ const ActiveState = () => {
                 <Widget
                   cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                   label="Total State,Active,Inactive"
-                  device={stateInfo}
-                  address={state}
+                  cardValue={stateInfo}
+                  iconImage={state}
                   heading="State Details"
                 />
               </Grid>
@@ -320,8 +316,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Total Dealer,Total Manufacturer,Total DTO, Total Vehicle Owner"
-                device={userInfo}
-                address={User}
+                cardValue={userInfo}
+                iconImage={User}
                 heading="User Statistics"
               />
             </Grid>
@@ -330,8 +326,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                 label="Total Fitment,Online Device,Offline Device"
-                device={fitmentInfo}
-                address={Fitment}
+                cardValue={fitmentInfo}
+                iconImage={Fitment}
                 heading="Fitment Statistics"
               />
             </Grid>
@@ -339,8 +335,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label=" Total Device Activated, Active Today, Inactive for 7 days, Inactive for 30 days"
-                device={deviceHealthInfo}
-                address={Car}
+                cardValue={deviceHealthInfo}
+                iconImage={Car}
                 heading="Health Statistics"
               />
             </Grid>
@@ -348,8 +344,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label="Total Alert,This Month,Today"
-                device={overSpeedInfo}
-                address={Overspeed}
+                cardValue={overSpeedInfo}
+                iconImage={Overspeed}
                 heading="Over Speeding"
               />
             </Grid>
@@ -357,8 +353,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label="Total Alert,This month,Today"
-                device={emergencyInfo}
-                address={Bell}
+                cardValue={emergencyInfo}
+                iconImage={Bell}
                 heading="Emergency Alert"
               />
             </Grid>
@@ -367,8 +363,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Total Alert,This Month,Today"
-                device={harshBreakInfo}
-                address={Brake}
+                cardValue={harshBreakInfo}
+                iconImage={Brake}
                 heading="Harsh Break Alert"
               />
             </Grid>
@@ -377,8 +373,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                 label="Total Alert,This Month,Today"
-                device={suddenBreakInfo}
-                address={Suddenturn}
+                cardValue={suddenBreakInfo}
+                iconImage={Suddenturn}
                 heading="Sudden Turn Alert"
               />
             </Grid>
@@ -391,8 +387,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Assigned,Returned,Stocked,Faulty"
-                device={dealerDeviceInfo}
-                address={Stock}
+                cardValue={dealerDeviceInfo}
+                iconImage={Stock}
                 heading="Stock Statistics"
               />
             </Grid>
@@ -401,8 +397,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                 label="Total Fitment,Fitment this Month,Fitment Today"
-                device={dealerFitmentInfo}
-                address={Fitment}
+                cardValue={dealerFitmentInfo}
+                iconImage={Fitment}
                 heading="Fitment Statistics"
               />
             </Grid>
@@ -410,8 +406,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label=" Online, Offline Today, Offline for 7 days, Offline for 30 days"
-                device={deviceStatusInfo}
-                address={Car}
+                cardValue={deviceStatusInfo}
+                iconImage={Car}
                 heading="Device Statistics"
               />
             </Grid>
@@ -420,8 +416,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label="Total eSim Activation request,Total 1 year renewal,Total 2 year renewal"
-                device={eSIMInfo}
-                address={Sim}
+                cardValue={eSIMInfo}
+                iconImage={Sim}
                 heading="eSIM Statistics"
               />
             </Grid>
@@ -434,12 +430,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Total Alert,Alert this Month,Alert Today"
-                device={{
+                cardValue={{
                   alert: ownerDashboardInfo.alert,
                   monthlyAlert: ownerDashboardInfo.monthlyAlert,
                   dailyAlert: ownerDashboardInfo.dailyAlert
                 }}
-                address={Alert}
+                iconImage={Alert}
                 heading="Alert Statistics"
               />
             </Grid>
@@ -448,12 +444,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                 label="Total Vehicle,Active Device,Inactive Device"
-                device={{
+                cardValue={{
                   vehicles: ownerDashboardInfo.vehicles,
                   deviceActivated: ownerDashboardInfo.deviceActivated,
                   offlineDevice: ownerDashboardInfo.offlineDevice
                 }}
-                address={Vehicle}
+                iconImage={Vehicle}
                 heading="Vehicle Statistics"
               />
             </Grid>
@@ -461,13 +457,13 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label=" Total Device Activated, Active Today, Inactive for 7 days, Inactive for 30 days"
-                device={{
+                cardValue={{
                   deviceActivated: ownerDashboardInfo.deviceActivated,
                   offlineDevice: ownerDashboardInfo.offlineDevice,
                   sevenDaysOffline: ownerDashboardInfo.sevenDaysOffline,
                   thirtyDaysOffline: ownerDashboardInfo.thirtyDaysOffline,
                 }}
-                address={Car}
+                iconImage={Car}
                 heading="Health Statistics"
               />
             </Grid>
@@ -476,12 +472,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label="Total SOS calls,Genuine Calls,Fake calls"
-                device={{
+                cardValue={{
                   sosCalls: ownerDashboardInfo.sosCalls,
                   genuineCalls: ownerDashboardInfo.genuineCalls,
                   fakeCalls: ownerDashboardInfo.fakeCalls
                 }}
-                address={Bell}
+                iconImage={Bell}
                 heading="Emergency Alert"
               />
             </Grid>
@@ -490,12 +486,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Today Harsh Breaking,Today Sudden Turn Alert,Today Overspeeding Alert"
-                device={{
+                cardValue={{
                   harshBreaking: ownerDashboardInfo.harshBreaking,
                   suddenTurn: ownerDashboardInfo.suddenTurn,
                   overSpeeding: ownerDashboardInfo.overSpeeding
                 }}
-                address={Driver}
+                iconImage={Driver}
                 heading="Driver Behaviour"
               />
             </Grid>
@@ -508,8 +504,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Total Alert,Alert this Month,Alert Today"
-                device={stateData}
-                address={Alert}
+                cardValue={{
+                  alert: dtoDashboardInfo.alert,
+                  monthlyAlert: dtoDashboardInfo.monthlyAlert,
+                  dailyAlert: dtoDashboardInfo.dailyAlert
+                }}
+                iconImage={Alert}
                 heading="Alert Statistics"
               />
             </Grid>
@@ -518,8 +518,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                 label="Total Vehicle,Active Device,Inactive Device"
-                device={deviceData}
-                address={Fitment}
+                cardValue={{
+                  vehicles: dtoDashboardInfo.vehicles,
+                  device: dtoDashboardInfo.activated,
+                  inactive: dtoDashboardInfo.offlineDevice
+                }}
+                iconImage={Fitment}
                 heading="Vehicle Statistics"
               />
             </Grid>
@@ -527,8 +531,13 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label=" Total Device Activated, Active Today, Inactive for 7 days, Inactive for 30 days"
-                device={taggedData}
-                address={Car}
+                cardValue={{
+                  activated: dtoDashboardInfo.activated,
+                  dailyActivations: dtoDashboardInfo.dailyActivations,
+                  sevenDaysOffline: dtoDashboardInfo.sevenDaysOffline,
+                  thirtyDaysOffline:dtoDashboardInfo.thirtyDaysOffline
+                }}
+                iconImage={Car}
                 heading="Health Statistics"
               />
             </Grid>
@@ -537,8 +546,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label="Total SOS calls,Genuine Calls,Fake calls"
-                device={vehicleData}
-                address={Bell}
+                cardValue={{
+                  sos: dtoDashboardInfo.sosCalls,
+                  genuineCalls: dtoDashboardInfo.genuineCalls,
+                  fakeCalls: dtoDashboardInfo.fakeCalls
+                }}
+                iconImage={Bell}
                 heading="Emergency Alert"
               />
             </Grid>
@@ -547,8 +560,12 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Total Activation,Activation this Month,Activation Today"
-                device={emergencyAlertData}
-                address={Activation}
+                cardValue={{
+                  activated: dtoDashboardInfo.activated,
+                  monthly: dtoDashboardInfo.monthlyActivations,
+                  dailyActivations: dtoDashboardInfo.dailyActivations
+                }}
+                iconImage={Activation}
                 heading="Activation Statistics"
               />
             </Grid>
@@ -561,8 +578,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Total Dealer,Total Stock Allocated,Total Activation,Total Expired"
-                device={miscInfo}
-                address={Stock}
+                cardValue={miscInfo}
+                iconImage={Stock}
                 heading="Stock Statistics"
               />
             </Grid>
@@ -571,8 +588,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                 label="Total Model,Total M2M provider"
-                device={modelInfo}
-                address={Model}
+                cardValue={modelInfo}
+                iconImage={Model}
                 heading="Model Statistics"
               />
             </Grid>
@@ -580,8 +597,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label=" Total Device Activated, Active Today, Inactive for 7 days, Inactive for 30 days"
-                device={deviceStatusInfo}
-                address={Car}
+                cardValue={deviceStatusInfo}
+                iconImage={Car}
                 heading="Health Statistics"
               />
             </Grid>
@@ -590,8 +607,8 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label="Total eSim Activation request,Total 1 year renewal,Total 2 year renewal"
-                device={eSIMInfo}
-                address={Sim}
+                cardValue={eSIMInfo}
+                iconImage={Sim}
                 heading="eSIM Statistics"
               />
             </Grid>

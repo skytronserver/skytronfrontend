@@ -3,8 +3,6 @@ import PropTypes from "prop-types";
 import { useTheme, styled } from "@mui/material/styles";
 import { Box, Grid, Typography } from "@mui/material";
 import MainCard from "../../../ui-component/cards/MainCard";
-import SkeletonTotalOrderCard from "../../../ui-component/cards/Skeleton/Widget";
-import { useMediaQuery } from "@mui/material";
 
 const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   background: data,
@@ -33,17 +31,16 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
 }));
 
 const Widget = ({
-  isLoading,
   cardColor,
   label,
   onClick,
-  device,
-  address,
+  cardValue,
+  iconImage,
   heading,
 }) => {
   const theme = useTheme();
   const labelNew = label.split(",");
-  const arr = Object.values(device);
+  const arr = Object.values(cardValue);
   return (
     <>
       <CardWrapper
@@ -79,7 +76,7 @@ const Widget = ({
             </Grid>
             <Grid item>
               <img
-                src={address}
+                src={iconImage}
                 alt="Berry"
                 width="50"
                 style={{ marginLeft: "50px" }}
@@ -93,11 +90,10 @@ const Widget = ({
 };
 
 Widget.propTypes = {
-  isLoading: PropTypes.bool,
   cardColor: PropTypes.any,
   label: PropTypes.string.isRequired,
   onClick: PropTypes.func,
-  device: PropTypes.any,
+  cardValue: PropTypes.any,
   heading: PropTypes.any,
 };
 

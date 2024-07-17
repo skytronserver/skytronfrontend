@@ -157,6 +157,10 @@ const getDashboardData=()=>{
     const http=getAxiosInstance();
     return http.post('/api/homepageandstat/homepage/')
 }
+const getDTODashboardData=()=>{
+    const http=getAxiosInstance();
+    return http.post('/api/homepageandstat/homepage_DTO/');
+}
 const UserServices = {
     getStateStats,
     getAlertDetails,
@@ -186,7 +190,8 @@ const UserServices = {
     getDashboardData,
     getDealerDashboard,
     getManufacturerDashboard,
-    getOwnerDashboard
+    getOwnerDashboard,
+    getDTODashboardData
   };
   
   export default UserServices;
