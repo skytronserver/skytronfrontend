@@ -16,6 +16,7 @@
         "gstnnumber",
         "homepageandstat",
         "kycfile",
+        "Overspeed",
         "overspeeding",
         "panfile",
         "Proofno",
@@ -24,6 +25,7 @@
         "skytron",
         "skytronlogo",
         "stateadmin",
+        "Suddenturn",
         "superadmin",
         "tabler"
     ]

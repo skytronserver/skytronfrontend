@@ -70,6 +70,23 @@ export const dashboardInitialState = {
     genuineCalls: 0,
     fakeCalls: 0,
   },
+  dtoDashboardInfo:{
+    activated: 0,
+    vehicles: 0,
+    onlineDevice: 0,
+    offlineDevice: 0,
+    sevenDaysOffline: 0,
+    thirtyDaysOffline: 0,
+    alert: 0,
+    monthlyAlert: 0,
+    dailyAlert: 0,
+    activations: 0,
+    monthlyActivations: 0,
+    dailyActivations: 0,
+    sosCalls: 0,
+    genuineCalls: 0,
+    fakeCalls: 0
+  },
   userInfoForAdmin: {
     stateUser: 0,
     eSimUser: 0,
