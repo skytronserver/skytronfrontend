@@ -25,9 +25,10 @@ export const stateInitials = {
     status:"",
 };
 export const districtInitials={
-  state:"",
+    state:"",
     status:"",
     district:"",
+    district_code:"",
 }
 export const stateFields = {
     state: {
@@ -52,6 +53,12 @@ export const districtFields = {
   type: "text",
   label: "District Name",
   validation: Yup.string().required("District name is required"),
+},
+district_code: {
+  name: "district_code",
+  type: "text",
+  label: "District Code",
+  validation: Yup.string().required("District Code is required"),
 },
 state: {
   name: "state",

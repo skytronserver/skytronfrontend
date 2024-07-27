@@ -24,7 +24,7 @@ const UsersList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <PageHeader title="State Users" />
+          <PageHeader title="All Users List" />
         </Grid>
         <Grid item xs={12}>
         {load && <Datatable tableTitle="All User List test" userRows={users} userColumns={registeredUserColumns}/>}
