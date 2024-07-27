@@ -304,6 +304,22 @@ export const sosListColumn = [
       }
     },
   },
+  {
+    name: "created",
+    label: "Created On",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "expirydate",
+    label: "Expiry Date",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
 ];
 export const dtoListColumn = [
   {
@@ -455,6 +471,33 @@ export const registeredUserColumns = [
     },
   },
   {
+    name:"created_by_name",
+    label:"Created By",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.replace(/_/g, " ")}</p>
+        );
+      }
+    },
+
+  },
+  {
+    name:"created",
+    label:'Created On',
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{new Date(value).toLocaleDateString("en-GB")}</p>
+        );
+      }
+    },
+  },
+  {
     name: "status",
     label: "Status",
     options: {
@@ -530,7 +573,23 @@ export const manufacturerColumns = [
       filter: true,
       sort: false,
     },
-  }
+  },
+  {
+    name: "created",
+    label: "Created On",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "expirydate",
+    label: "Expiry Date",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
 ];
 export const stateAdminColumn = [
   {
@@ -593,6 +652,22 @@ export const stateAdminColumn = [
         );
       }
     }, 
+  },
+  {
+    name: "created",
+    label: "Created On",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "expirydate",
+    label: "Expiry Date",
+    options: {
+      filter: true,
+      sort: false,
+    },
   },
   {
     name: "idProofno",
