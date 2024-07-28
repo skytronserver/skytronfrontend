@@ -17,7 +17,7 @@ import { Navigate } from "react-router-dom";
 // assets
 import { IconChevronRight } from '@tabler/icons';
 import AuthFooter from 'ui-component/cards/AuthFooter';
-import useIdleTimer from "../../hooks/useIdleTimer";
+
 // styles
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
   ...theme.typography.mainContent,

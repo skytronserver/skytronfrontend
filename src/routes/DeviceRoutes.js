@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 // project imports
-import { lazy } from "react";
+
 import MainLayout from "../layout/MainLayout";
 import DeviceForm from "../views/forms/DeviceForm";
 import DeviceModelForm from "../views/forms/DeviceModelForm";
@@ -11,7 +11,6 @@ import { useSelector } from "react-redux";
 import UnapproveCopList from "../views/reports/UnapproveCopList";
 import StateAdminCOPModelView from "../views/detailsview/StateAdminCOPModelView";
 import BulkUpload from "../views/forms/BulkUpload";
-import Loadable from "../ui-component/Loadable";
 import AssignDevice from "../views/forms/AssignDevice";
 import ShowDevice from "../views/showDevice/ShowDevice";
 import AvailableForSale from "../views/showDevice/AvailableForSale";

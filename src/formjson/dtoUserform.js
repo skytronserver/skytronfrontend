@@ -15,6 +15,7 @@ export const dtoInitialsValues = {
     state:"",
     district_code:"",
     idProofno:"",
+    dob:"",
     expiryDate:formattedDate,
     dto_rto:"",
     file_idProof: null,
@@ -58,6 +59,13 @@ export const dtoFormFields = {
     type: "text",
     label: "User ID Proof Number",
     validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
+  },
+  dob: {
+    name:"dob",
+    type: "date",
+    label: "Date of Birth",
+    validation: Yup.date().required("Date of Birth is required"),
+    maxDate:today
   },
   expiryDate: {
     name:"expiryDate",

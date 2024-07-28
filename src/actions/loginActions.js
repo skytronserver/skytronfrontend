@@ -56,7 +56,7 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
     dispatch(setError(error));
   } catch (error) {
     let message="";
-    if(error?.code=="ERR_BAD_REQUEST"){
+    if(error?.code==="ERR_BAD_REQUEST"){
       if(error?.response?.data){
         message=error?.response?.data?.error
       }else{
@@ -66,7 +66,7 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
     }else{
       message=error.message
     }
-    if(message=="text is undefined"){
+    if(message==="text is undefined"){
       message="Whoops! Looks like the math wasn't quite right. Add the numbers in the CAPTCHA and try again."
     }
     const errorData={
@@ -117,7 +117,7 @@ export const resendOtp = (mobile,token) => async (dispatch) => {
   };
   try {
     dispatch(setLoading(true));
-    const response = await axios.post('https://skytrack.tech:2000/api/send_sms_otp/', {
+     await axios.post('https://skytrack.tech:2000/api/send_sms_otp/', {
       mobile,
       token
     },{
@@ -139,12 +139,7 @@ export const resendOtp = (mobile,token) => async (dispatch) => {
   }
 };
 export const logout=()=>async(dispatch)=>{
-  const setData={
-    isAuthenticated:false,
-    token:null,
-    email:null,
-    otpToken:null
-  }
+  
   const header = {
     "Content-type": "application/json",
     "Authorization": "Token "+sessionStorage.getItem('oAuthToken'),
@@ -160,15 +155,25 @@ export const logout=()=>async(dispatch)=>{
     sessionStorage.removeItem('oAuthToken');
     sessionStorage.removeItem('cookiesData');
     localStorage.removeItem('skytrackCookiesData');
-    dispatch(setUser(setData));
+   
   }catch(error){
-    dispatch(setUser(setData));
+    sessionStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('sessionID');
+    sessionStorage.removeItem('oAuthToken');
+    sessionStorage.removeItem('cookiesData');
+    localStorage.removeItem('skytrackCookiesData');
   }finally{
     sessionStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('sessionID');
     sessionStorage.removeItem('oAuthToken');
     sessionStorage.removeItem('cookiesData');
     localStorage.removeItem('skytrackCookiesData');
-    dispatch(setUser(setData));
+    localStorage.clear();
+    sessionStorage.clear();
+    const cacheKeys = Object.keys(localStorage);
+    cacheKeys.forEach((key) => {
+      localStorage.removeItem(key);
+    });
+    
   }
 }
