@@ -6,11 +6,9 @@ import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "services/DeviceModelServices";
 import { useEffect, useState } from "react";
 import { fetchCOPDeviceModels } from "../../actions/deviceModelActions";
-import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { deviceCOPModelColumns } from "../../datatables/rowsColumn";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import DeleteIcon from "@mui/icons-material/Delete";
 import MUIDataTable from "mui-datatables";
 const UnapproveCopList = () => {
   const [load, setLoad] = useState(false);

@@ -4,7 +4,7 @@ import { cipherEncryption } from '../helper';
 // constant
 const icons = {IconUser,IconBrandChrome,IconMap,IconDeviceSim,IconReport,IconDeviceSim1,IconTag,IconUrgent};
 
-const myCipher = cipherEncryption('skytrack');
+
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
 const user = {
   id: 'utilities',

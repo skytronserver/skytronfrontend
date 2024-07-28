@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { useSelector,useDispatch } from 'react-redux';
-import { Navigate } from "react-router-dom";
+
 // material-ui
 import { useTheme } from '@mui/material/styles';
 import {
@@ -44,16 +44,21 @@ const ProfileSection = () => {
   const [open, setOpen] = useState(false);
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
   const [log,setLogout]=useState(0);
-  const userName=useSelector((state) => state.login.user.isAuthenticated) || "User";
   const myDecipher = decipherEncryption('skytrack')
   const userData=localStorage.getItem('skytrackCookiesData');
   const data=userData && userData.split("-").map(item=>myDecipher(item));
-  const userRoles=userData && data.length > 2 && data[1];
   /**
    * anchorRef is used on different components and specifying one type leads to other components throwing an error
    * */
   const anchorRef = useRef(null);
   const handleLogout =() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          registration.unregister();
+        });
+      });
+    }
     dispatch(logout());
     setLogout((prev)=>prev+1);
     window.location.href = '/mis';
@@ -72,14 +77,6 @@ const ProfileSection = () => {
     setOpen(false);
   };
 
-  const handleListItemClick = (event, index, route = '') => {
-    setSelectedIndex(index);
-    handleClose(event);
-
-    if (route && route !== '') {
-      navigate(route);
-    }
-  };
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -192,17 +189,6 @@ const ProfileSection = () => {
                           }
                         }}
                       >
-                        {/* <ListItemButton
-                          sx={{ borderRadius: `${customization.borderRadius}px` }}
-                          selected={selectedIndex === 0}
-                          onClick={(event) => handleListItemClick(event, 0, '#')}
-                        >
-                          <ListItemIcon>
-                            <IconSettings stroke={1.5} size="1.3rem" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
-                        </ListItemButton>
-                      */}
                         <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
                           selected={selectedIndex === 4}
