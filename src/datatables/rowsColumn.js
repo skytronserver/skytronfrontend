@@ -773,14 +773,6 @@ export const deviceModelColumns = [
     },
   },
   {
-    name: "tac_doc_path",
-    label: "TAC File",
-    options: {
-      filter: false,
-      sort: false,
-    },
-  },
-  {
     name: "status",
     label: "Status",
     options: {

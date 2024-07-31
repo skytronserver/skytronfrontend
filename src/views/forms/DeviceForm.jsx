@@ -10,7 +10,7 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import StockServices from "../../services/StockServices";
 import { useNavigate } from "react-router-dom";
 import {deviceInitials,deviceFormField} from "../../formjson/deviceForm";
-import {retriveModelList,retriveCreatedSimProvider} from "../../helper";
+import {retriveModelList,retriveCreatedSimProvider,filterModelList} from "../../helper";
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
 const DeviceForm = ({formTitle }) => {
@@ -21,13 +21,18 @@ const DeviceForm = ({formTitle }) => {
   useEffect(()=>{
     (async()=>{
     const eSimProvider = await retriveCreatedSimProvider();
-    const modelList=await retriveModelList();
+    const models=await filterModelList({status:'StateAdminApproved'});
+    if(!models?.status){
+      setUpdatedFormField(prevConfig =>({
+        ...prevConfig,
+        model: {
+          ...prevConfig.model,
+          options: models,
+        }
+      }))
+    }
     setUpdatedFormField(prevConfig =>({
       ...prevConfig,
-      model: {
-        ...prevConfig.model,
-        options: modelList,
-      },
       esim_provider:{
         ...prevConfig.esim_provider,
         options:eSimProvider

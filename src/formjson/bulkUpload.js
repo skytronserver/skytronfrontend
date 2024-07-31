@@ -1,6 +1,6 @@
 import * as Yup from "yup";
-let modelList=[];
-let providerList=[{value:'',label:'Select'}];
+let modelList=[{value:'',label:'Waiting for Models'}];
+let providerList=[{value:'',label:'Waitinf for Provider'}];
 export const bulkInitials = {
     model_id:"",
     excel_file:null,
@@ -16,7 +16,7 @@ export const bulkFormField = {
   },
   esim_provider: {
     name:"esim_provider",
-    type: "multiselect",
+    type: "select",
     label: "eSIM Provider",
     validation: Yup.string().required("eSIM Provider is required"),
     options: providerList

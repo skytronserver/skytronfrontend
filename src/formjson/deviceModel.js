@@ -5,16 +5,17 @@ export const deviceModelInitials = {
     test_agency:"",
     tac_no:"",
     tac_validity:"",
-    hardware_version:"",
     vendor_id:"",
+    hardware_version:"",
     tac_doc_path:null,
+    
 };
 export const deviceModelFormField = {
   eSimProviders: {
     name: "eSimProviders",
     type: "select",
-    label: "eSIM Provider",
-    validation: Yup.string().required("eSIM Provider is required"),
+    label: "M2M Service Provider",
+    validation: Yup.string().required("M2M Service Provider is required"),
     options:[{'label':'Select','value':''}]
   },
   model_name: {
@@ -41,17 +42,17 @@ export const deviceModelFormField = {
     label: "TAC Validity",
     validation: Yup.date().required("TAC Validity is required"),
   },
+  vendor_id: {
+    name: "vendor_id",
+    type: "text",
+    label: "Vendor ID",
+    validation: Yup.string().required("Vendor ID is required"),
+  },
   hardware_version: {
     name: "hardware_version",
     type: "text",
     label: "Hardware Version",
     validation: Yup.string().required("Hardware Version is required"),
-  },
-  vendor_id: {
-    name: "vendor_id",
-    type: "text",
-    label: "Vendor",
-    validation: Yup.string().required("Vendor Name is required"),
   },
   tac_doc_path: {
     name:"tac_doc_path",

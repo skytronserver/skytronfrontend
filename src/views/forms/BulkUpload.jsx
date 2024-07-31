@@ -5,7 +5,7 @@ import { Grid, Button } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
-import { retriveModelList ,retriveCreatedSimProvider} from "../../helper";
+import { filterModelList ,retriveCreatedSimProvider} from "../../helper";
 import { bulkInitials, bulkFormField } from "../../formjson/bulkUpload";
 import StockServices from "../../services/StockServices";
 import { useState, useEffect } from "react";
@@ -16,19 +16,24 @@ const BulkUpload = () => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
     (async () => {
-      const modelList = await retriveModelList();
+      const modelList = await filterModelList({status:'StateAdminApproved'});
       const eSimProvider = await retriveCreatedSimProvider();
+      if(!modelList?.status){
+        setUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          model_id: {
+            ...prevConfig.model_id,
+            options: modelList,
+          },
+        }));
+      }
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
-        model_id: {
-          ...prevConfig.model_id,
-          options: modelList,
-        },
       esim_provider:{
         ...prevConfig.esim_provider,
         options:eSimProvider
       }
-      }));
+      })); 
       setIsFormLoaded(true);
     })();
   }, []);

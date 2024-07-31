@@ -15,8 +15,6 @@ export const deviceInitials = {
     telecom_provider2:"",
     msisdn1:"",
     msisdn2:"",
-    imsi1:"",
-    imsi2:"",
     esim_validity:"",
     esim_provider:[],
     remarks:"",
@@ -25,8 +23,8 @@ export const deviceFormField = {
   imei: {
     name: "imei",
     type: "text",
-    label: "ID/IMEI No.",
-    validation: Yup.string().required("ID/IMEI No. is required"),
+    label: "IMEI No.",
+    validation: Yup.string().matches(/^[0-9]+$/, "IMEI No. must be a number").required("IMEI No. is required"),
   },
   model: {
     name: "model",
@@ -107,27 +105,14 @@ export const deviceFormField = {
     name: "msisdn1",
     type: "text",
     label: "eSIM Mobile No. MSISDN 1",
-    validation: Yup.string().required("eSIM Mobile No. MSISDN 1 is required field"),
+    validation: Yup.string().matches(/^[0-9]+$/, "eSIM Mobile No. MSISDN 1 must be a number").required("eSIM Mobile No. MSISDN 1 is required field"),
   },
   msisdn2: {
     name: "msisdn2",
     type: "text",
     label: "eSIM Mobile No. MSISDN 2",
-    validation:"",
-  },
-  imsi1: {
-    name: "imsi1",
-    type: "text",
-    label: "eSIM IMSI 1",
-    validation: Yup.string().required("eSIM IMSI 1 is required field"),
-  },
-  imsi2: {
-    name: "imsi2",
-    type: "text",
-    label: "eSIM IMSI 2",
-    validation:"",
-  },
-  
+    validation:Yup.string().matches(/^[0-9]+$/, "eSIM Mobile No. MSISDN 2 must be a number"),
+  },  
   remarks: {
     name:"remarks",
     type: "text",

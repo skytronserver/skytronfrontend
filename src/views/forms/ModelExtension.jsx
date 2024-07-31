@@ -12,7 +12,7 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import CustomLoader from "../../ui-component/CustomLoader";
 import {modelExtensionInitials,modelExtensionFormField} from "../../formjson/modelExtension";
-import {retriveModelList} from "../../helper";
+import {filterModelList} from "../../helper";
 const ModelExtension = ( {formTitle }) => {
   const [open, setOpen] = useState(false);
   const [deviceId, setDeviceId] = useState("");
@@ -20,14 +20,18 @@ const ModelExtension = ( {formTitle }) => {
   const [isFormLoaded,setIsFormLoaded]=useState(false);
   useEffect(()=>{
     (async()=>{
-    const modelList=await retriveModelList();
-    setUpdatedFormField(prevConfig =>({
+    const modelList=await filterModelList({status:'StateAdminApproved'});
+    if(modelList?.status){
+      console.error('Internal Server Error')
+    }else{
+       setUpdatedFormField(prevConfig =>({
       ...prevConfig,
       device_model: {
         ...prevConfig.device_model,
         options: modelList,
       },
     }))
+    }
     setIsFormLoaded(true)
     }
   )()

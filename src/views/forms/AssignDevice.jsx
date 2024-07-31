@@ -43,15 +43,21 @@ const AssignDevice = () => {
       } else {
         console.log('No Data Found')
       }
+      return [{value:'',label:'Unable to fetch'}]
     }
   };
   const retriveDealerList=async()=>{
       try{
           const res=await DealerServices.dealerList();
-          const arrayList=res.data.map(dealer=>({
+          if(res.data.length===0){
+            return [{value:'',label:'No Approved Dealer'}]
+          }
+          const filtered=res.data.filter((item)=>item.users[0].status==='active');
+          const arrayList=filtered.map(dealer=>({
               value:dealer.id,
               label:dealer.company_name,
           }));
+
           return arrayList;
       }catch(error){
           if (error.response && error.response.status === 404) {
@@ -129,7 +135,7 @@ const AssignDevice = () => {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Device Model Extension">
+          <MainCard title="Assign Device to Retailer">
               { isFormLoaded && <Formik
                 initialValues={assignDeviceInitials}
                 validationSchema={validationSchema}

@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
 import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
-
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const StateAdmin = () => {

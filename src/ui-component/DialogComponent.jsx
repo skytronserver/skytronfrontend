@@ -9,7 +9,7 @@ import {
 
 const messageDesc={
   'UNIQUE constraint failed: skytron_api_user.mobile':'Looks like this number is already registered. Would you like to try a different number',
-  'UNIQUE constraint failed: skytron_api_user.email':'It looks like this email address is already in use.'
+  'UNIQUE constraint failed: skytron_api_user.email':'It looks like this email address is already in use.',
 }
 const DialogComponent = ({open,handleClose,message,errorList}) => {
   return (
