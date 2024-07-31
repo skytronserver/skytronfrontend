@@ -3,6 +3,10 @@ const getAllModels = () => {
   const http = getAxiosInstance(); 
   return http.get("/api/devicemodel/devicemodelList/");
 };
+const getFilterModels=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/devicemodel/devicemodelFilter/',data)
+}
 const getAdminAwaitingModels = () => {
   const http = getAxiosInstance(); 
   return http.get("/api/devicemodel/devicemodelAwaitingStateApproval/");
@@ -52,7 +56,8 @@ createModel,
 updateModel,
 copUpload,
 deleteModel,
-getDeviceList
+getDeviceList,
+getFilterModels
 };
 
 export default DeviceModelServices;

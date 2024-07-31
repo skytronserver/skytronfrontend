@@ -12,7 +12,7 @@ export const eSIMInitialValues = {
     email: "",
     company_name: "",
     dob: "",
-    expiryDate:formattedDate,
+    expirydate:formattedDate,
     gstnnumber: "",
     idProofno:"",
     stateId:'',
@@ -20,6 +20,7 @@ export const eSIMInitialValues = {
     file_companRegCertificate: null,
     file_GSTCertificate: null,
     file_idProof:null,
+    file_dot_m2m_registration:null,
 };
 
 export const eSIMFormField = {
@@ -48,11 +49,10 @@ export const eSIMFormField = {
     validation: Yup.date().required("Date of Birth is required"),
     maxDate:today
   },
-  expiryDate: {
-    name:"expiryDate",
+  expirydate: {
+    name:"expirydate",
     type: "date",
     label: "Expiry Date",
-    disabled:true,
     validation: Yup.date().required("Expiry Date is required"),
     minDate:today
   },
@@ -129,6 +129,20 @@ export const eSIMFormField = {
     label: "ID Proof Certificate",
     message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
     validation: Yup.mixed().required("ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
+  },
+  file_dot_m2m_registration:{
+    name:"file_dot_m2m_registration",
+    type: "file",
+    label: "DoT M2M Service Provider Certificate",
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("DoT M2M Service Provider Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })

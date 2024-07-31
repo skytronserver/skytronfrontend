@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-let modelList = [];
+let modelList = [{label:'Waiting for Model',value:''}];
 export const modelExtensionInitials = {
   device_model: "",
   testAgency: "",

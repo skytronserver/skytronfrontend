@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
-
+import SettingService from "../../services/SettingService";
 /* project component/helper import sections */
 
 import { getDeviceModel } from "../../actions/deviceModelActions";
@@ -23,7 +23,9 @@ import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
-
+const docViewStyle={
+  padding:"0px"
+}
 const StateAdminDeviceModelView = () => {
   /* packages helper functionality */
 
@@ -126,7 +128,80 @@ const StateAdminDeviceModelView = () => {
   }, [dispatch, deviceId]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
+  console.log(deviceDetails);
+  const openFile = async (e, filePath) => {
+    let splitData = filePath.split("/");
+    let filename = splitData.length > 1 ? splitData[1] : splitData[0];
+    e.preventDefault();
+    try {
+      // Make the request to download the file
+      const response = await SettingService.file_Download({
+        file_path: filePath,
+      });
 
+      // Extract the filename from the response headers or use the provided filename
+      const contentDisposition = response.headers["content-disposition"];
+      let fileName = filename;
+
+      if (contentDisposition && contentDisposition.includes("attachment")) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (fileNameMatch && fileNameMatch.length === 2) {
+          fileName = fileNameMatch[1];
+        }
+      }
+      // Determine the content type
+      const contentType =
+        response.headers["content-type"] || "application/octet-stream";
+
+      // Create a Blob from the response data with the correct MIME type
+      const blob = new Blob([response.data], { type: contentType });
+
+      // Check if the Blob is not empty
+      if (blob.size === 0) {
+        throw new Error("The downloaded file is empty.");
+      }
+
+      // Convert Blob to base64 string
+
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = function () {
+        const base64data = reader.result;
+
+        // Open the file in a new window or tab with the correct filename
+        const newWindow = window.open("", "_blank");
+        const extension = filename.split(".").pop();
+        const validExtensions = /^(png|jpg|jpeg)$/i;
+        if (validExtensions.test(extension)) {
+          // Open image in a new window/tab
+          newWindow.document.write(
+            `<html><head><title>${fileName}</title></head><body><img src="${base64data}" alt="${fileName}"></body></html>`
+          );
+        } else if (extension === "pdf" || extension === "PDF") {
+          // Open PDF in a new window/tab using an iframe
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName; // Specify the filename you want
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } else {
+          
+          // For other file types, provide a link to download/view the file
+          newWindow.document.write(
+            `<html><head><title>${fileName}</title></head><body><a href="${base64data}" download="${fileName}">Download ${fileName}</a></body></html>`
+          );
+        }
+
+        // Optionally, revoke the object URL after some time to release memory
+        setTimeout(() => window.URL.revokeObjectURL(base64data), 60000); // revoke after 1 minute
+      };
+    } catch (error) {
+      console.error("Error viewing file:", error);
+    }
+  };
   return (
     <>
       <Grid container spacing={gridSpacing}>
@@ -135,10 +210,19 @@ const StateAdminDeviceModelView = () => {
             <MainCard title={`Model Name : ${deviceDetails.model_name}`}>
               {!showOTP && ( <>
               <Grid container>
+              
                 <Grid item xs={12} md={6} lg={6}>
                   <TableContainer component={Paper}>
                     <Table>
                       <TableBody>
+                      <TableRow>
+                          <TableCell style={{ width: "50%" }}>
+                            <strong>M2M Provider:</strong>
+                          </TableCell>
+                          <TableCell style={{ width: "50%" }}>
+                          {deviceDetails.eSimProviders.length>0 && deviceDetails.eSimProviders.map(item=><span>{item.company_name}</span>)}
+                          </TableCell>
+                        </TableRow>
                         <TableRow>
                           <TableCell style={{ width: "50%" }}>
                             <strong>Model Name:</strong>
@@ -204,6 +288,12 @@ const StateAdminDeviceModelView = () => {
                             <strong>Status:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.status}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <strong>TAC File:</strong>
+                          </TableCell>
+                          <TableCell><Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,deviceDetails.tac_doc_path)} ><span>View TAC</span></Button></TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>

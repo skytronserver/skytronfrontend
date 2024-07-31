@@ -15,6 +15,7 @@ export const stateAdminInitialValues = {
     state:"",
     idProofno: "",
     file_idProof: null,
+    file_authorisation_letter:null,
   };
   export const stateAdminField = {
     name: {
@@ -71,6 +72,22 @@ export const stateAdminInitialValues = {
       message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
       validation: Yup.mixed()
     .required("ID Proof is required")
+    .test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    })
+    },
+    file_authorisation_letter: {
+      name:"file_authorisation_letter",
+      type: "file",
+      label: "Authorization Letter",
+      message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+      validation: Yup.mixed()
+    .required("Authorization Letter is required")
     .test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;

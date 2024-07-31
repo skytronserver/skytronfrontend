@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray,retriveCreatedSimProvider } from "../../helper";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import {deviceModelInitials,deviceModelFormField} from "../../formjson/deviceModel";
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 const DeviceModelForm = () => {
   const [open, setOpen] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
@@ -26,6 +28,8 @@ const DeviceModelForm = () => {
   const [isFormLoaded,setIsFormLoaded]=useState(false);
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
+  const [error,setError]=useState(false);
+  const [apiError,setApiError]=useState(false);
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
@@ -45,7 +49,7 @@ const DeviceModelForm = () => {
   const handleClose = () => {
     // !alert.error && navigate("/user/registeredUser");
     setOpen(false);
-    setShowOTP(true);
+    !error && setShowOTP(true);
   };
 
   useEffect(()=>{
@@ -100,6 +104,9 @@ const DeviceModelForm = () => {
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error while submitting data", error.message);
+      if (typeof error.response === 'undefined'){
+        setApiError(true);
+      }
       return {
         code: "400",
         message: error.message,
@@ -108,18 +115,20 @@ const DeviceModelForm = () => {
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const userData=sessionStorage.getItem('cookiesData');
+    const data=userData && userData.split("-")
+    const userId=userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     const updatedValues = {
       ...values,
       approval: "0",
       approved_by: "",
-      vendor_id: "32",
-      created_by: "31",
+      created_by: userId,
     };
 
     const response = await handleDeviceModelCreate(updatedValues);
-    if (response.code === "200") {
+    if (response?.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
@@ -134,6 +143,7 @@ const DeviceModelForm = () => {
       }));
       handleAlert("Form Not Submitted");
       setLoading(false);
+      setError(true);
     }
   };
 
@@ -145,7 +155,12 @@ const DeviceModelForm = () => {
         message={alert.message}
         errorList={alert.errorList}
       />
-
+      {apiError && (
+          <Alert severity="error">
+            <AlertTitle>Internal Server Error</AlertTitle>
+            Unable to fetch data. An error occurred while retrieving data from the server. Please contact the server administrator.
+          </Alert>
+        )}
       <Grid container spacing={gridSpacing}>
         {loading && (
           <div
@@ -217,7 +232,10 @@ const DeviceModelForm = () => {
                 spacing={2}
                 justifyContent="center"
                 alignItems="center"
-              >
+              > 
+                <Grid item xs={12}>
+                  <p>Please validate your submission by entering the OTP sent to your registered mobile no.</p>
+                </Grid>
                 <Grid item xs={12} md="5">
                   <MuiOtpInput value={otp} onChange={handleChange} length={6} />
                   <br />

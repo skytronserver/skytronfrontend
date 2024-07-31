@@ -48,6 +48,7 @@ function TagDeviceToVehicle() {
       const deviceList = await fetchDeviceListForSale();
       const ownerList = await retriveVehicleOwner();
       const categoryList = await fetchVehicleCategory();
+
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
 

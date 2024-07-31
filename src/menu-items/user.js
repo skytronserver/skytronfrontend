@@ -31,7 +31,7 @@ const user = {
         },
         {
           id: 'esim-user',
-          title: 'eSIM Service Provider',
+          title: 'M2M Service Provider',
           type: 'item',
           url: '/user/newEsimUser',
           breadcrumbs: false,

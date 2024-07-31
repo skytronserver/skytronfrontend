@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
-import { Divider, Grid, Stack, Typography, useMediaQuery, Button, TextField } from "@mui/material";
+import { Grid, Stack, Typography, useMediaQuery, Button, TextField } from "@mui/material";
 import { Navigate } from "react-router-dom";
+import DialogAlert from "../../../ui-component/DialogAlert";
 import CircularProgress from "@mui/material/CircularProgress";
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
@@ -13,6 +14,7 @@ const ResetPassword = () => {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [loading, setLoading] = useState(false);
+  const [dialog, setDialog] = useState(false);
   const [error, setError] = useState(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -61,6 +63,13 @@ const ResetPassword = () => {
       setMobileNumber(value);
     }
   };
+  const closeDialog = () => {
+    setDialog(false);
+  };
+  const redirectToHome = () => {
+    setDialog(false);
+    window.location.href = "/mis";
+  };
   const handleResetPassword = async () => {
     if(password!=''){
         setLoading(true)
@@ -71,12 +80,12 @@ const ResetPassword = () => {
                     "Authorization": "Token "+reset_token,
                   }
             });
-            window.location.href="https://www.skytrack.tech/mis"
+            setDialog(true);
           } catch (err) {
             console.error(err);
             setError('Failed to reset password');
           }finally{
-            setLoading(false)
+            setLoading(false);
           }
     }else{
         mobileNumber==='' && setIsValidMobile(false);
@@ -89,6 +98,14 @@ const ResetPassword = () => {
 
   return (
     <AuthWrapper1>
+       <DialogAlert
+        open={dialog}
+        title="Skytron Password Set"
+        detailMessage="Password has been set successfully go to home page and login using the credentials"
+        primaryAction={redirectToHome}
+        primaryText="Home"
+        handleClose={closeDialog}
+      />
       <Grid
         container
         direction="column"

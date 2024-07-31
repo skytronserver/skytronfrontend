@@ -17,6 +17,27 @@ export const retriveModelList = async () => {
     } else {
       console.log('No Data Found')
     }
+    return {status:500}
+  }
+};
+export const filterModelList = async (data) => {
+  try {
+    const response = await DeviceModelServices.getFilterModels(data);
+    if(response.data.length===0){
+      return [{value:"",label:'No Approved Models'}]
+    }
+    const list=response.data.map(device => ({
+      value: device.id,
+      label: device.model_name,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+    return {status:500}
   }
 };
 
@@ -125,7 +146,11 @@ export const fetchDeviceListForSale = async () => {
 export const retriveVehicleOwner = async () => {
     try {
       const response = await UserServices.fetchVehicleOwner();
-      const list = response.data.map((owner) => ({
+      if(response.data.length===0){
+        return [{value:'',label:'No Owner'}];
+      }
+      const filtered=response.data.filter((item)=>item.users[0].status==='active');
+      const list = filtered.map((owner) => ({
         value: owner.id,
         label: owner.users[0].name,
       }));
@@ -141,7 +166,8 @@ export const retriveVehicleOwner = async () => {
 export const retriveCreatedSimProvider = async () => {
     try {
       const response = await UserServices.fetchSimProvider();
-      const list = response.data.map((simProvider) => ({
+      const filtered=response.data.filter((simProvider)=>simProvider.users[0].status!=='pending');
+      const list = filtered.map((simProvider) => ({
         value: simProvider.id,
         label: simProvider.users[0].name,
       }));
@@ -191,6 +217,7 @@ export const fetchVehicleCategory = async () => {
       } else {
         console.log("No Data Found");
       }
+      return [{value:'',label:'No Data Found'}]
     }
   };
 

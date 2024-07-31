@@ -27,7 +27,7 @@ export const manufacturerFormField = {
   esimProvider: {
     name:"esimProvider",
     type: "multiselect",
-    label: "eSim Provider",
+    label: "M2M Provider",
     validation: Yup.array().required("eSim Provider is required"),
     options: providerList
   },
