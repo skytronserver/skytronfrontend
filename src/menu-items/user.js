@@ -234,6 +234,14 @@ const user = {
           roles:['devicemanufacture'],
         },
         {
+          id: 'activate-esim-device',
+          title: 'eSIM Activation',
+          type: 'item',
+          url: '/device/eSimActivation',
+          breadcrumbs: false,
+          roles:['dealer'],
+        },
+        {
           id: 'fit-device',
           title: 'Configure Device/Sell Api',
           type: 'item',
@@ -325,6 +333,14 @@ const user = {
           roles:['superadmin'],
         },
         {
+          id: 'provider-device-list',
+          title: 'Activation Request',
+          type: 'item',
+          url: '/device/activation-request',
+          breadcrumbs: false,
+          roles:['esimprovider'],
+        },
+        {
           id: 'manufacturer-list',
           title: 'Manufacturer',
           type: 'item',
@@ -346,7 +362,7 @@ const user = {
           type: 'item',
           url: '/device/show-available-device',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles:['superadmin','devicemanufacture','dealer'],
         },
         {
           id: 'tagged-device',

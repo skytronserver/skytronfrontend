@@ -32,7 +32,7 @@ import {decipherEncryption} from "../../../../helper";
 // assets
 import { IconLogout, IconSettings } from '@tabler/icons';
 import { logout } from "../../../../actions/loginActions";
-import useIdleTimer from "../../../../hooks/useIdleTimer";
+import useIdle from "../../../../hooks/useIdle";
 // ==============================|| PROFILE MENU ||============================== //
 
 const ProfileSection = () => {
@@ -63,7 +63,12 @@ const ProfileSection = () => {
     setLogout((prev)=>prev+1);
     window.location.href = '/mis';
   };
-  useIdleTimer(handleLogout, 300000);
+  const isIdle = useIdle(300000);
+  useEffect(() => {
+    if (isIdle) {
+      handleLogout();
+    }
+  }, [isIdle]);
   useEffect(()=>{
     if (!isAuthenticated) {
       window.location.href = '/mis';
