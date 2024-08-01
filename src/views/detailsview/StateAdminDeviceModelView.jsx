@@ -128,10 +128,9 @@ const StateAdminDeviceModelView = () => {
   }, [dispatch, deviceId]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
-  console.log(deviceDetails);
   const openFile = async (e, filePath) => {
     let splitData = filePath.split("/");
-    let filename = splitData.length > 1 ? splitData[1] : splitData[0];
+    let filename = splitData.length > 1 && splitData[splitData.length-1];
     e.preventDefault();
     try {
       // Make the request to download the file
@@ -275,7 +274,7 @@ const StateAdminDeviceModelView = () => {
                           <TableCell>
                             <strong>Created By:</strong>
                           </TableCell>
-                          <TableCell>{deviceDetails.created_by}</TableCell>
+                          <TableCell>{deviceDetails.created_by.name}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>

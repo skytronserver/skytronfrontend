@@ -47,7 +47,7 @@ const ConfigureDevice = ({ status }) => {
       const retriveData = await StockServices.getAvailableDeviceList(filter);
       const arrUniq = [
         ...new Map(
-          retriveData.data.data.map((item) => [item.device.id, item])
+          retriveData.data.data.map((item) => [item.id, item])
         ).values(),
       ];
       setDeviceList(arrUniq);
@@ -114,8 +114,8 @@ const ConfigureDevice = ({ status }) => {
               {deviceList.length > 0 &&
                 deviceList.map((item) => {
                   return (
-                    <MenuItem value={item.device.id} key={item.device.id}>
-                      {item.device.imei}
+                    <MenuItem value={item.id} key={item.id}>
+                      {item.imei}
                     </MenuItem>
                   );
                 })}

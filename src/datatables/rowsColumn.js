@@ -786,8 +786,13 @@ export const deviceModelColumns = [
     options: {
       filter: false,
       sort: false,
-    },
-  },
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.name}</p>
+        );
+      }
+    }, 
+  }
 ];
 export const deviceCOPModelColumns = [
   {

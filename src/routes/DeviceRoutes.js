@@ -18,6 +18,8 @@ import ConfigureDevice from "views/tagging/ConfigureDevice";
 import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import TaggedList from "../views/reports/TaggedList";
+import SimActivation from "views/pages/device/SimActivation";
+import ListSimActivation from "views/pages/device/ListSimActivation";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -54,6 +56,11 @@ const DeviceRoutes = {
       path: "/device/new",
       element: <DeviceForm formTitle="New Device Form" />,
       roles: ["devicemanufacture"],
+    },
+    {
+      path: "/device/eSimActivation",
+      element: <SimActivation />,
+      roles: ["dealer"],
     },
     {
       path: "/deviceModel/new",
@@ -99,6 +106,11 @@ const DeviceRoutes = {
       path: "/device/assign-device",
       element: <AssignDevice />,
       roles: ["devicemanufacture"],
+    },
+    {
+      path: "/device/activation-request",
+      element: <ListSimActivation />,
+      roles: ["esimprovider"],
     },
     {
       path: "/device/show-available-device",

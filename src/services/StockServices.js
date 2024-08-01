@@ -109,6 +109,18 @@ const activateEsimReq = (id) => {
   };
   return http.patch("/api/sell/activate_esim_request/", device);
 };
+const simActivationReq=(formData)=>{
+  const http=getAxiosInstance();
+  return http.post("/api/esimActivateReq/create/",formData)
+}
+const getListActivationRequest=(data)=>{
+  const http=getAxiosInstance();
+  return http.post("/api/esimActivateReq/filter/",data);
+}
+const updateRequest=(formData)=>{
+  const http=getAxiosInstance();
+  return http.post("/api/esimActivateReq/update/",formData)
+}
 const StockServices = {
   getBulkStocks,
   stockFilter,
@@ -125,7 +137,10 @@ const StockServices = {
   configureESimAct,
   activateEsimReq,
   devicePatch,
-  getProviderList
+  getProviderList,
+  simActivationReq,
+  getListActivationRequest,
+  updateRequest
 };
 
 export default StockServices;

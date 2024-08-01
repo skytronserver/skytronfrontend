@@ -11,7 +11,6 @@ import {useSelector,useDispatch} from 'react-redux'
 import { stockFilterAction } from '../../actions/stockActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {showDeviceColumns} from '../../datatables/rowsColumn';
-
 const ShowDevice = () => {
   const [load,setLoad]=useState(false);
   const [error,setError]=useState(false);
