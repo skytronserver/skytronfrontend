@@ -1,4 +1,4 @@
- 
+import {openFile} from "../helper"
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
@@ -936,6 +936,11 @@ export const awaitingOwnerApproval = [
     options: {
       filter: false,
       sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <button onClick={(e)=>openFile(e,value)}>View</button>
+        );
+      }
     },
   },
   {

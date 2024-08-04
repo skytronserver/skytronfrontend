@@ -11,6 +11,10 @@ const tagAwaitingOwnerApproval = () => {
   const http = getAxiosInstance();
   return http.get(`/api/tag/TagAwaitingOwnerApproval/`);
 };
+const tagApprovedOwnerApproval = () => {
+  const http = getAxiosInstance();
+  return http.get(`/api/tag/TagAwaitingActivateTag/`);
+};
 const tagSendOwnerOtp = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/tag/TagSendOwnerOtp/", data);
@@ -35,6 +39,31 @@ const downloadTagReceipt=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/download_receiptPDF/',data);
 }
+const vahanVerificationApi=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/GetVahanAPIInfo/',data);
+}
+const activateTag=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/ActivateTag/',data);
+}
+const getTagAwaitingOwnerApprovalFinal=(data)=>{
+  const http=getAxiosInstance();
+  return http.get('/api/tag/TagAwaitingOwnerApprovalFinal/',{
+    params:{
+      device_id:data.device_id
+    }
+    }
+    );
+}
+const sendTagSendOwnerOtpFinal=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/TagSendOwnerOtpFinal/',data);
+}
+const verifyTagVerifyOwnerOtpFinal=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/TagVerifyOwnerOtpFinal/',data);
+}
 const TaggingService = {
     tagDeviceToVehicle,
     tagAwaitingOwnerApproval,
@@ -42,7 +71,13 @@ const TaggingService = {
     tagVerifyOwnerOtp,
     tagVerifyDealerOtp,
     uploadTagReceipt,
-    downloadTagReceipt
+    downloadTagReceipt,
+    vahanVerificationApi,
+    tagApprovedOwnerApproval,
+    activateTag,
+    getTagAwaitingOwnerApprovalFinal,
+    sendTagSendOwnerOtpFinal,
+    verifyTagVerifyOwnerOtpFinal
 };
 
 export default TaggingService;

@@ -3,6 +3,45 @@ import SettingService from "../services/SettingService";
 import StockServices from "../services/StockServices";
 import UserServices from "../services/UserServices";
 import ManufacturerServices from "../services/ManufacturerServices";
+import DealerServices from "../services/DealerServices";
+import TaggingService from "../services/TaggingService";
+export const retriveAwaitingList = async () => {
+  try {
+    const response = await TaggingService.tagApprovedOwnerApproval();
+    if(response.data.length===0){
+      return [{value:"",label:'Data Found'}]
+    }
+    const list=response.data.map(device => ({
+      value: device.device,
+      label: device.vehicle_reg_no,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+    return [{value:'',label:'No Data'}]
+  }
+};
+export const retriveDeviceModelList = async () => {
+  try {
+    const response = await DeviceModelServices.getDeviceList();
+    const list=response.data.data.map(device => ({
+      value: device.id,
+      label: device.imei,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+    return [{value:'',label:'Unable to fetch'}]
+  }
+};
 export const retriveModelList = async () => {
   try {
     const response = await DeviceModelServices.getAllModels();
@@ -44,6 +83,9 @@ export const filterModelList = async (data) => {
 export const retriveStateList = async () => {
   try {
     const response = await SettingService.filter_settings_State();
+    if(response.data.length===0){
+      return [{value:"",label:'No State Found'}]
+    }
     const list=response.data.map(device => ({
       value: device.id,
       label: device.state,
@@ -143,6 +185,27 @@ export const fetchDeviceListForSale = async () => {
       }
     }
   };
+export const retriveDealerList=async()=>{
+    try{
+        const res=await DealerServices.dealerList();
+        if(res.data.length===0){
+          return [{value:'',label:'No Approved Dealer'}]
+        }
+        const filtered=res.data.filter((item)=>item.users[0].status==='active');
+        const arrayList=filtered.map(dealer=>({
+            value:dealer.id,
+            label:dealer.company_name,
+        }));
+
+        return arrayList;
+    }catch(error){
+        if (error.response && error.response.status === 404) {
+            console.log('No Data Found')
+           } else {
+             console.log('No Data Found')
+           }
+    }
+}
 export const retriveVehicleOwner = async () => {
     try {
       const response = await UserServices.fetchVehicleOwner();
@@ -282,3 +345,56 @@ export const debounce=(func, wait)=> {
     timeout = setTimeout(later, wait);
   };
 }
+export const openFile = async (e, filePath) => {
+  let splitData = filePath.split("/");
+  let filename = splitData.length >= 1 && splitData[splitData.length-1];
+  e.preventDefault();
+  try {
+    const response = await SettingService.file_Download({
+      file_path: filePath,
+    });
+    const contentDisposition = response.headers["content-disposition"];
+    let fileName = filename;
+    if (contentDisposition && contentDisposition.includes("attachment")) {
+      const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+      if (fileNameMatch && fileNameMatch.length === 2) {
+        fileName = fileNameMatch[1];
+      }
+    }
+    const contentType =
+      response.headers["content-type"] || "application/octet-stream";
+    const blob = new Blob([response.data], { type: contentType });
+    if (blob.size === 0) {
+      throw new Error("The downloaded file is empty.");
+    }
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function () {
+      const base64data = reader.result;
+      const newWindow = window.open("", "_blank");
+      const extension = filename.split(".").pop();
+      const validExtensions = /^(png|jpg|jpeg)$/i;
+      if (validExtensions.test(extension)) {
+        newWindow.document.write(
+          `<html><head><title>${fileName}</title></head><body><img src="${base64data}" alt="${fileName}"></body></html>`
+        );
+      } else if (extension === "pdf" || extension === "PDF") {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName; // Specify the filename you want
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        newWindow.document.write(
+          `<html><head><title>${fileName}</title></head><body><a href="${base64data}" download="${fileName}">Download ${fileName}</a></body></html>`
+        );
+      }
+      setTimeout(() => window.URL.revokeObjectURL(base64data), 60000); // revoke after 1 minute
+    };
+  } catch (error) {
+    console.error("Error viewing file:", error);
+  }
+};
