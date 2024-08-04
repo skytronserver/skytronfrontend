@@ -7,7 +7,7 @@ import LoginOtp from "../views/pages/authentication/LoginOtp";
 import ResetPassword from "../views/pages/authentication/ResetPassword";
 import SetPassword from "../views/pages/authentication/SetPassword";
 import ForgotPassword from "../views/pages/authentication/ForgotPassword";
-import TestField from "../views/pages/TestField";
+
 // login option 3 routing
 const AuthLogin3 = Loadable(
   lazy(() => import("../views/pages/authentication/authentication3/Login3"))
@@ -37,10 +37,6 @@ const AuthenticationRoutes = {
     {
       path:"/reset-password/:reset_token",
       element:<SetPassword/>
-    },
-    {
-      path:"/test-field",
-      element:<TestField/>
     }
   ],
 };
