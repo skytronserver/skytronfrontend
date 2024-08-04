@@ -3,8 +3,9 @@ let modelList=[{value:'',label:'Waiting for Models'}];
 let providerList=[{value:'',label:'Waitinf for Provider'}];
 export const bulkInitials = {
     model_id:"",
-    excel_file:null,
     esim_provider:"",
+    excel_file:null,
+    
 };
 export const bulkFormField = {
   model_id: {

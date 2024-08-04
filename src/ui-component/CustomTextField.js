@@ -10,7 +10,8 @@ import {
   FormControl,
   Chip,
   Checkbox,
-  ListItemText
+  ListItemText,
+  Autocomplete
 } from "@mui/material";
 const FormField = ({
   fieldConfig,
@@ -220,6 +221,37 @@ const FormField = ({
           }
         />
       );
+      case "autocomplete":
+        const currentValue = options.find(option => option.value === formik.values[fieldConfig.name]);
+        return (
+          <Autocomplete
+            options={options}
+            getOptionLabel={(option) => option.label}
+            value={currentValue || null} 
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+            onChange={(event, value) => {
+              formik.setFieldValue(fieldConfig.name, value ? value.value : '');
+              handleOptionChange && handleOptionChange(event, fieldConfig.name, value ? value.value : '');
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={label}
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                error={
+                  formik.touched[fieldConfig.name] &&
+                  Boolean(formik.errors[fieldConfig.name])
+                }
+                helperText={
+                  formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+                }
+                {...formik.getFieldProps(fieldConfig.name)}
+              />
+            )}
+          />
+        );
     default:
       return null;
   }

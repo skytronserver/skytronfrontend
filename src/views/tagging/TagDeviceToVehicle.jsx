@@ -1,23 +1,29 @@
-import { Button, CircularProgress, Grid, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import { Formik } from "formik";
 import React, { useState, useEffect } from "react";
 import { gridSpacing } from "../../store/constant";
 import TaggingService from "../../services/TaggingService";
 import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
-import MainCard from "ui-component/cards/MainCard";
-import DialogComponent from "ui-component/DialogComponent";
+import MainCard from "../../ui-component/cards/MainCard";
+import DialogComponent from "../../ui-component/DialogComponent";
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 import {
   convertErrorObjectToArray,
   retriveVehicleOwner,
   fetchDeviceListForSale,
   fetchVehicleCategory,
-} from "helper";
+} from "../../helper";
 import {
   taggingFields,
   taggingInitials,
 } from "../../formjson/tagDeviceToVehicle";
 import { MuiOtpInput } from "mui-one-time-password-input";
+import "../forms/form.css";
 function TagDeviceToVehicle() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,6 +31,7 @@ function TagDeviceToVehicle() {
   const [deviceId, setDeviceId] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState(false);
+  const [apiError, setApiError] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -123,12 +130,16 @@ function TagDeviceToVehicle() {
       console.log("Tagged successfully");
       return { code: "200", message: response.data };
     } catch (error) {
-      console.error("Error in API Service:", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
+      if(error.message==='Network Error'){
+        setApiError(true);
+        setLoading(false);
+      }else{
+        return {
+          code: "400",
+          message: error.message,
+          errors: error.response.data,
+        };
+      }
     }
   };
   const handleTagging = async (values, { setSubmitting, resetForm }) => {
@@ -165,37 +176,20 @@ function TagDeviceToVehicle() {
         message={alert.message}
         errorList={alert.errorList}
       />
+      {apiError && (
+          <Alert severity="error" style={{marginBottom:'16px'}}>
+            <AlertTitle>Internal Server Error</AlertTitle>
+            An error occurred in the server. Please contact the server administrator.
+          </Alert>
+          
+        )}
       <Grid container spacing={gridSpacing}>
-        {loading && (
-          <div
-            style={{
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 9999,
-              background: "rgba(255, 255, 255, 0.8)",
-            }}
-          >
-            <CircularProgress
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-              size={50}
-            />
+       {loading && (
+          <div className="spinner-div">
+            <CircularProgress className="circular-progress" size={50} />
           </div>
         )}
-        <Grid
-          item
-          xs={12}
-          style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
+        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
           <MainCard title="Tag Device to Vehicle">
             {!showOTP ? (
               isFormLoaded && (
@@ -217,7 +211,7 @@ function TagDeviceToVehicle() {
                             />
                           </Grid>
                         ))}
-                        <Grid item xs={12} style={{ marginTop: "20px" }}>
+                        <Grid item xs={12} className="grid-item-button-div">
                           <Button
                             type="submit"
                             variant="contained"

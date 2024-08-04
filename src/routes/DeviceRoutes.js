@@ -108,7 +108,7 @@ const DeviceRoutes = {
       roles: ["devicemanufacture"],
     },
     {
-      path: "/device/activation-request",
+      path: "/device/activation-request/:deviceStatus",
       element: <ListSimActivation />,
       roles: ["esimprovider"],
     },

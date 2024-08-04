@@ -9,6 +9,7 @@
         "datatables",
         "deactive",
         "devicemanufacture",
+        "devicemanufacturer",
         "Esim",
         "expirydate",
         "Formik",
@@ -28,6 +29,8 @@
         "stateadmin",
         "Suddenturn",
         "superadmin",
-        "tabler"
+        "tabler",
+        "Userform",
+        "vahan"
     ]
 }

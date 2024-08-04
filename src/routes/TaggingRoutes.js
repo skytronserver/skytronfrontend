@@ -6,6 +6,7 @@ import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import UploadReceipt from "../views/tagging/UploadReceipt";
+import VahanVerification from "../views/tagging/VahanVerification";
 const PrivateRoute = ({ element,roles }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData=sessionStorage.getItem('cookiesData');
@@ -51,6 +52,13 @@ const TaggingRoutes = {
       path: "/tag/upload-receipt",
       element: (
         <UploadReceipt/>
+      ),
+      roles:['dealer','superadmin']
+    },
+    {
+      path: "/tag/vahan-verification",
+      element: (
+        <VahanVerification/>
       ),
       roles:['dealer','superadmin']
     }

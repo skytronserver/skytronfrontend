@@ -1,92 +1,61 @@
 import { Grid, Button } from "@mui/material";
-import MainCard from "../../ui-component/cards/MainCard";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState,useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import DeviceModelServices from "../../services/DeviceModelServices";
+import { useState, useEffect } from "react";
 import DealerServices from "../../services/DealerServices";
 import CustomLoader from "../../ui-component/CustomLoader";
-import {assignDeviceFormFields,assignDeviceInitials} from  "../../formjson/assignDevice";
+import {
+  assignDeviceFormFields,
+  assignDeviceInitials,
+} from "../../formjson/assignDevice";
+import {
+  retriveDeviceModelList,
+  retriveDealerList,
+  convertErrorObjectToArray,
+} from "../../helper";
+import MainCard from "../../ui-component/cards/MainCard";
+import "./form.css";
 const AssignDevice = () => {
-  const [updatedFormFields,setUpdatedFormField]=useState(assignDeviceFormFields);
-  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  const [updatedFormFields, setUpdatedFormField] = useState(
+    assignDeviceFormFields
+  );
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [open, setOpen] = useState(false);
+  const [apiError, setApiError] = useState(false);
   const [deviceId, setDeviceId] = useState("");
   const [alert, setAlert] = useState({
     error: false,
     message: "",
     errorList: [],
   });
-  
+
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const handleClose = () => {
     setOpen(false);
   };
-
-  //Changes from here
-  const retriveModelList = async () => {
-    try {
-      const response = await DeviceModelServices.getDeviceList();
-      const list=response.data.data.map(device => ({
-        value: device.id,
-        label: device.imei,
-      })); 
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-       console.log('No Data Found')
-      } else {
-        console.log('No Data Found')
-      }
-      return [{value:'',label:'Unable to fetch'}]
-    }
-  };
-  const retriveDealerList=async()=>{
-      try{
-          const res=await DealerServices.dealerList();
-          if(res.data.length===0){
-            return [{value:'',label:'No Approved Dealer'}]
-          }
-          const filtered=res.data.filter((item)=>item.users[0].status==='active');
-          const arrayList=filtered.map(dealer=>({
-              value:dealer.id,
-              label:dealer.company_name,
-          }));
-
-          return arrayList;
-      }catch(error){
-          if (error.response && error.response.status === 404) {
-              console.log('No Data Found')
-             } else {
-               console.log('No Data Found')
-             }
-      }
-  }
-  useEffect(()=>{
-    (async()=>{
-     const modelList=await retriveModelList();
-     const dealerList=await retriveDealerList();
-    setUpdatedFormField(prevConfig =>({
-      ...prevConfig,
-      dealer:{
-        ...prevConfig.dealer,
-        options: dealerList,
-      },
-      device:{
-        ...prevConfig.device,
-        options: modelList,
-      }
-    }))
-    setIsFormLoaded(true)
-    }
-  )()
-  },[])
-//Changes till here
+  useEffect(() => {
+    (async () => {
+      const modelList = await retriveDeviceModelList();
+      const dealerList = await retriveDealerList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        dealer: {
+          ...prevConfig.dealer,
+          options: dealerList,
+        },
+        device: {
+          ...prevConfig.device,
+          options: modelList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
 
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
@@ -109,10 +78,19 @@ const AssignDevice = () => {
     try {
       const response = await DealerServices.assignDeviceToDealer(values);
       setDeviceId(response.data.id);
-      setLoading(false);
       resetForm(assignDeviceInitials);
     } catch (error) {
-      console.error("Error :", error.message);
+      if (error.message === "Network Error") {
+        setApiError(true);
+      } else {
+        setAlert((prevAlert) => ({
+          ...prevAlert,
+          error: true,
+          errorList: convertErrorObjectToArray(error.message),
+        }));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,16 +105,17 @@ const AssignDevice = () => {
 
       <Grid container spacing={gridSpacing}>
         {loading && <CustomLoader />}
-        <Grid
-          item
-          xs={12}
-          style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
+        {apiError && (
+          <Alert severity="error" style={{ marginBottom: "16px" }}>
+            <AlertTitle>Internal Server Error</AlertTitle>
+            An error occurred in the server. Please contact the server
+            administrator.
+          </Alert>
+        )}
+        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
           <MainCard title="Assign Device to Retailer">
-              { isFormLoaded && <Formik
+            {isFormLoaded && (
+              <Formik
                 initialValues={assignDeviceInitials}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
@@ -168,7 +147,7 @@ const AssignDevice = () => {
                   </form>
                 )}
               </Formik>
-              }
+            )}
           </MainCard>
         </Grid>
       </Grid>

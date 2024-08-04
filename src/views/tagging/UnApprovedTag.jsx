@@ -1,28 +1,36 @@
 import { useSelector, useDispatch } from "react-redux";
-import React from "react";
-// project imports
-import { Grid, Button, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+import { MuiOtpInput } from "mui-one-time-password-input";
+import { useNavigate } from "react-router-dom";
 import { gridSpacing } from "../../store/constant";
 import TaggingService from "../../services/TaggingService";
-import { useEffect, useState } from "react";
 import { fetchTaggedAwaitingOwner } from "../../actions/commonDataActions";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { awaitingOwnerApproval } from "../../datatables/rowsColumn";
-import { MuiOtpInput } from "mui-one-time-password-input";
-import { useNavigate } from "react-router-dom";
 import MainCard from "../../ui-component/cards/MainCard";
+import {openFile} from "../../helper"
 const UnApprovedTag = () => {
   const [load, setLoad] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [otp, setOtp] = useState("");
   const [deviceId, setDeviceId] = useState("");
+  const [apiError, setApiError] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   useEffect(() => {
     const fetchUnapprovedTag = async () => {
-      const retriveData = await TaggingService.tagAwaitingOwnerApproval();
-      dispatch(fetchTaggedAwaitingOwner(retriveData.data));
-      setLoad(true);
+      try {
+        const retriveData = await TaggingService.tagAwaitingOwnerApproval();
+        dispatch(fetchTaggedAwaitingOwner(retriveData.data));
+        setLoad(true);
+      } catch (error) {
+        setApiError(true);
+      }
     };
     fetchUnapprovedTag();
   }, [dispatch]);
@@ -34,31 +42,18 @@ const UnApprovedTag = () => {
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
-  const handleSendOTP = async (id,deviceId) => {
+  const handleSendOTP = async (id, deviceId) => {
     setDeviceId(deviceId);
     const otpData = {
-      device_id: id,
+      device_id: deviceId,
     };
-    const response = await handleSendOTPValidation(otpData);
-    if (response.code === "200") {
-      setShowOTP(true);
-    } else {
-      console.log(response.error);
-    }
-  };
-
-  const handleSendOTPValidation = async (OtpData) => {
     try {
-      const response = await TaggingService.tagSendOwnerOtp(OtpData);
+      await TaggingService.tagSendOwnerOtp(otpData);
       console.log("OTP Verified");
-      return { code: "200", message: response.data };
+      setShowOTP(true);
     } catch (error) {
+      setApiError(true);
       console.error("Error while submitting data", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
     }
   };
 
@@ -67,29 +62,18 @@ const UnApprovedTag = () => {
       otp: otp,
       device_id: deviceId,
     };
-    const response = await handleOTPValidation(OTPData);
-    if (response.code === "200") {
+    try {
+      await TaggingService.tagVerifyOwnerOtp(OTPData);
+      console.log("OTP Verified");
       setShowOTP(false);
       setOtp("");
       navigate("/tag/unapproved-vehicle");
-    } else {
-      console.log(response.error);
-    }
-  };
-  const handleOTPValidation = async (otpData) => {
-    try {
-      const response = await TaggingService.tagVerifyOwnerOtp(otpData);
-      console.log("OTP Verified");
-      return { code: "200", message: response.data };
     } catch (error) {
+      setApiError(true);
       console.error("Error while submitting data", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
     }
   };
+
   const actionColumn = [
     {
       name: "Action",
@@ -103,7 +87,9 @@ const UnApprovedTag = () => {
               size="small"
               type="submit"
               variant="contained"
-              onClick={() => handleSendOTP(tableMeta.rowData[1],tableMeta.rowData[12])}
+              onClick={() =>
+                handleSendOTP(tableMeta.rowData[1], tableMeta.rowData[12])
+              }
             >
               Send
             </Button>
@@ -115,6 +101,13 @@ const UnApprovedTag = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
+        {apiError && (
+          <Alert severity="error" style={{ marginBottom: "16px" }}>
+            <AlertTitle>Internal Server Error</AlertTitle>
+            An error occurred in the server. Please contact the server
+            administrator.
+          </Alert>
+        )}
         {load && !showOTP && (
           <DynamicDatatables
             tableTitle="Awaiting For Approval"
@@ -124,7 +117,7 @@ const UnApprovedTag = () => {
         )}
       </Grid>
       {showOTP && (
-        <MainCard style={{marginLeft: "16px"}}>
+        <MainCard style={{ marginLeft: "16px" }}>
           <Grid
             container
             spacing={2}

@@ -1,21 +1,21 @@
-import { Grid, Button, CircularProgress } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import MainCard from "../../ui-component/cards/MainCard";
-import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
-import SettingService from "../../services/SettingService";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray } from "../../helper";
+import { convertErrorObjectToArray,retriveStateList } from "../../helper";
 import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
-const FILE_SIZE = 512 * 1024 ; // 512 KB
-const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+import { FILE_SIZE,SUPPORTED_FORMATS,gridSpacing } from "../../store/constant";
 const StateAdmin = () => {
   const [updatedFormFields,setUpdatedFormField]=useState(stateAdminField);
   const [isFormLoaded,setIsFormLoaded]=useState(false)
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -23,23 +23,7 @@ const StateAdmin = () => {
     errorList: [],
   });
   const userData=sessionStorage.getItem('cookiesData');
-  //Changes from here
-  const retriveStateList = async () => {
-    try {
-      const response = await SettingService.filter_settings_State();
-      const list=response.data.map(device => ({
-        value: device.id,
-        label: device.state,
-      })); 
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-       console.log('No Data Found')
-      } else {
-        console.log('No Data Found')
-      }
-    }
-  };
+  const navigate = useNavigate();
   useEffect(()=>{
     (async()=>{
     const stateList=await retriveStateList();
@@ -54,9 +38,7 @@ const StateAdmin = () => {
     }
   )()
   },[])
-//Changes till here
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+ 
   const handleClose = () => {
     !alert.error && navigate("/user/registeredUser");
     setOpen(false);
@@ -66,13 +48,7 @@ const StateAdmin = () => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
-  const handleFileChangeOld = (event, formik) => {
-    const selectedFile = event.target.files[0];
-    const fieldName = event.target.name;
-    if (selectedFile) {
-      formik.setFieldValue(fieldName, selectedFile);
-    }
-  };
+
   const handleFileChange = (event, formik) => {
     const selectedFile = event.currentTarget.files[0];
     const fieldName = event.target.name;
@@ -90,27 +66,12 @@ const StateAdmin = () => {
     formik.setFieldError(fieldName, errors.file_idProof);
   };
   
-//Validation Scheme needs formik need
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {
       acc[field] = updatedFormFields[field].validation;
       return acc;
     }, {})
   );
-  const handleCreateUser = async (userData) => {
-    try {
-      const response = await UserServices.createStateAdmin(userData);
-      console.log("User created successfully:");
-      return { code: "200", message: response.data };
-    } catch (error) {
-      console.error("Error creating user:", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
-    }
-  };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
@@ -122,21 +83,24 @@ const StateAdmin = () => {
         role: "stateadmin",
         createdby: userId,
       };
-
-    const response = await handleCreateUser(valuesWithRole);
-    if (response.code === "200") {
+    try {
+      await UserServices.createStateAdmin(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
-      setLoading(false);
       resetForm(stateAdminInitialValues);
-    } else {
+    } catch (error) {
+      if(error.message==='Network Error'){
+        handleAlert("Internal Server Error");
+        return true
+      }
       setAlert((prevAlert) => ({
         ...prevAlert,
         error: true,
-        errorList: convertErrorObjectToArray(response.errors),
+        errorList: convertErrorObjectToArray(error.response.data,),
       }));
       handleAlert("Form Not Submitted");
+    }finally{
       setLoading(false);
     }
   };

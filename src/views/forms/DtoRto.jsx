@@ -1,17 +1,26 @@
-import { Grid, Button, CircularProgress } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import MainCard from "../../ui-component/cards/MainCard";
-import { gridSpacing } from "../../store/constant";
+import {
+  gridSpacing,
+  FILE_SIZE,
+  SUPPORTED_FORMATS,
+} from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray,retriveStateList,retriveDTOList } from "../../helper";
-import {dtoInitialsValues,dtoFormFields} from "../../formjson/dtoUserform"
-const FILE_SIZE = 512 * 1024 ; // 512 KB
-const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+import {
+  convertErrorObjectToArray,
+  retriveStateList,
+  retriveDTOList,
+} from "../../helper";
+import { dtoInitialsValues, dtoFormFields } from "../../formjson/dtoUserform";
+import "./form.css";
 const DtoRto = () => {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
@@ -20,28 +29,29 @@ const DtoRto = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-  const [updatedFormFields,setUpdatedFormField]=useState(dtoFormFields);
-  const [isFormLoaded,setIsFormLoaded]=useState(false);
-  useEffect(()=>{
-    (async()=>{
-    const stateList=await retriveStateList();
-    const districtList=await retriveDTOList();
-    setUpdatedFormField(prevConfig =>({
-      ...prevConfig,
-      state: {
-        ...prevConfig.state,
-        options: stateList,
-      },
-      district_code: {
-        ...prevConfig.district_code,
-        options: districtList,
-      },
-    }))
-    setIsFormLoaded(true)
-    }
-  )()
-  },[]);
+  const [updatedFormFields, setUpdatedFormField] = useState(dtoFormFields);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    (async () => {
+      const stateList = await retriveStateList();
+      const districtList = await retriveDTOList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        state: {
+          ...prevConfig.state,
+          options: stateList,
+        },
+        district_code: {
+          ...prevConfig.district_code,
+          options: districtList,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
+  }, []);
+
   const handleClose = () => {
     !alert.error && navigate("/user/newDto");
     setOpen(false);
@@ -51,6 +61,7 @@ const DtoRto = () => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
+
   const handleFileChange = (event, formik) => {
     const selectedFile = event.currentTarget.files[0];
     const fieldName = event.target.name;
@@ -74,46 +85,38 @@ const DtoRto = () => {
       return acc;
     }, {})
   );
-  const handleCreateUser = async (userData) => {
-    try {
-      const response = await UserServices.createDTO(userData);
-      console.log("User created successfully:");
-      return { code: "200", message: response.data };
-    } catch (error) {
-      console.error("Error creating user:", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
-    }
-  };
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    const userData=sessionStorage.getItem('cookiesData');
-    const data=userData && userData.split("-")
-    const userId=userData && data.length > 2 && data[3];
+    const userData = sessionStorage.getItem("cookiesData");
+    const data = userData && userData.split("-");
+    const userId = userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
-        ...values,
-        role: "dto",
-        createdby: userId,
-      };
-    const response = await handleCreateUser(valuesWithRole);
-    if (response.code === "200") {
+      ...values,
+      role: "dto",
+      createdby: userId,
+    };
+
+    try {
+      await UserServices.createDTO(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
-      setLoading(false);
       resetForm(dtoInitialsValues);
-    } else {
+    } catch (error) {
+      if (error.message === "Network Error") {
+        handleAlert("Internal Server Error");
+        return true;
+      }
       setAlert((prevAlert) => ({
         ...prevAlert,
         error: true,
-        errorList: response,
+        errorList: convertErrorObjectToArray(error.response.data),
       }));
       handleAlert("Form Not Submitted");
+    } finally {
       setLoading(false);
     }
   };
@@ -129,69 +132,46 @@ const DtoRto = () => {
 
       <Grid container spacing={gridSpacing}>
         {loading && (
-          <div
-            style={{
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 9999,
-              background: "rgba(255, 255, 255, 0.8)",
-            }}
-          >
-            <CircularProgress
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-              size={50}
-            />
+          <div className="spinner-div">
+            <CircularProgress className="circular-progress" size={50} />
           </div>
         )}
-        <Grid
-          item
-          xs={12}
-          style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
+        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
           <MainCard title="Create DTO/RTO">
-            {isFormLoaded && <Formik
-              initialValues={dtoInitialsValues}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
-              enableReinitialize
-            >
-              {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(updatedFormFields).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={updatedFormFields[field]}
-                          formik={formik}
-                          handleFileChange={handleFileChange}
-                        />
+            {isFormLoaded && (
+              <Formik
+                initialValues={dtoInitialsValues}
+                validationSchema={validationSchema}
+                onSubmit={handleSubmit}
+                enableReinitialize
+              >
+                {(formik) => (
+                  <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={2} className="form-controller">
+                      {Object.keys(updatedFormFields).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={updatedFormFields[field]}
+                            formik={formik}
+                            handleFileChange={handleFileChange}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} className="grid-item-button-div">
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={loading}
+                        >
+                          Submit
+                        </Button>
                       </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={loading}
-                      >
-                        Submit
-                      </Button>
                     </Grid>
-                  </Grid>
-                </form>
-              )}
-            </Formik>
-            }
+                  </form>
+                )}
+              </Formik>
+            )}
           </MainCard>
         </Grid>
       </Grid>
