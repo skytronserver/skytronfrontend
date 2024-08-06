@@ -14,12 +14,12 @@ import BulkUpload from "../views/forms/BulkUpload";
 import AssignDevice from "../views/forms/AssignDevice";
 import ShowDevice from "../views/showDevice/ShowDevice";
 import AvailableForSale from "../views/showDevice/AvailableForSale";
-import ConfigureDevice from "views/tagging/ConfigureDevice";
+import ConfigureDevice from "../views/tagging/ConfigureDevice";
 import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import TaggedList from "../views/reports/TaggedList";
-import SimActivation from "views/pages/device/SimActivation";
-import ListSimActivation from "views/pages/device/ListSimActivation";
+import SimActivation from "../views/pages/device/SimActivation";
+import ListSimActivation from "../views/pages/device/ListSimActivation";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");

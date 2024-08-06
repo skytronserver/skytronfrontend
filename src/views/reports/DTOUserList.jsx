@@ -1,10 +1,10 @@
 import { useDispatch,useSelector } from "react-redux";
 import React from "react";
 // project imports
-import { Grid } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
-import UserServices from "services/UserServices";
+import UserServices from "../../services/UserServices";
 import { useEffect, useState } from "react";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { dtoListColumn } from "../../datatables/rowsColumn";

@@ -2,7 +2,7 @@ import React from 'react';
 // project imports
 import { Grid,Button } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
-import StockServices from 'services/StockServices';
+import StockServices from '../../services/StockServices';
 import { useEffect,useState } from 'react';
 //Datatables
 import {useSelector,useDispatch} from 'react-redux'

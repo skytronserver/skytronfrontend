@@ -5,7 +5,7 @@ import React from 'react';
 import { Grid } from "@mui/material";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
-import DummyServices from 'services/DummyServices';
+import DummyServices from '../../services/DummyServices';
 import { useEffect,useState } from 'react';
 import { fetchDataSuccess } from '../../actions/dataActions';
 import Datatable from '../../datatables/Datatable';

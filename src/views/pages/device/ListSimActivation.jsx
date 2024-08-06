@@ -2,7 +2,7 @@ import React from 'react';
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import { gridSpacing } from "../../../store/constant";
-import StockServices from 'services/StockServices';
+import StockServices from '../../../services/StockServices';
 import { useEffect,useState } from 'react';
 import DynamicDatatables from '../../../datatables/DynamicDatatables';
 import {requestList} from '../../../datatables/deviceColumns';

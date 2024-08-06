@@ -4,7 +4,7 @@ import React from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import { useEffect, useState } from "react";
-import DeviceModelServices from "services/DeviceModelServices";
+import DeviceModelServices from "../../services/DeviceModelServices";
 // ==============================|| SAMPLE PAGE ||============================== //
 import {  MenuItem, Button,Grid,TextField } from '@mui/material';
 const RouteFixing = () => {

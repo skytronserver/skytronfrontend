@@ -4,7 +4,8 @@ import { Outlet } from 'react-router-dom';
 // material-ui
 import { styled, useTheme } from '@mui/material/styles';
 import { AppBar, Box, CssBaseline, Toolbar, useMediaQuery } from '@mui/material';
-
+import { IconChevronRight } from '@tabler/icons';
+import { Navigate } from "react-router-dom";
 // project imports
 import Breadcrumbs from '../../ui-component/extended/Breadcrumbs';
 import Header from './Header';
@@ -13,10 +14,10 @@ import navigation from '../../menu-items';
 import { drawerWidth } from '../../store/constant';
 import { SET_MENU } from '../../store/actions';
 import { createAxiosInstance } from '../../services/axiosInstance';
-import { Navigate } from "react-router-dom";
+
 // assets
-import { IconChevronRight } from '@tabler/icons';
-import AuthFooter from 'ui-component/cards/AuthFooter';
+
+import AuthFooter from '../../ui-component/cards/AuthFooter';
 
 // styles
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({

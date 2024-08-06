@@ -19,7 +19,7 @@ import Vehicle from "../../../assets/images/Vehicle.svg";
 import Driver from "../../../assets/images/Driver.svg";
 import Activation from "../../../assets/images/Activation.svg";
 import Model from "../../../assets/images/Model.svg";
-import { decipherEncryption } from "helper";
+import { decipherEncryption } from "../../../helper";
 import { dashboardInitialState } from "./dashboardInitialState";
 const ActiveState = () => {
   const [userInfo,setUserInfo]=useState(dashboardInitialState.userInfo);

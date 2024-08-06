@@ -2,7 +2,7 @@ import React from 'react';
 // project imports
 import { Grid } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
-import DeviceModelServices from 'services/DeviceModelServices';
+import DeviceModelServices from '../../services/DeviceModelServices';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import { useEffect,useState } from 'react';

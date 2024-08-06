@@ -1,5 +1,5 @@
 import { Typography, Stack } from "@mui/material";
-import amtronlogo from "assets/images/Amtron.svg";
+import amtronlogo from "../../assets/images/Amtron.svg";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 

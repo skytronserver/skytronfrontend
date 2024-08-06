@@ -3,7 +3,7 @@ import React from "react";
 // project imports
 import { Grid } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
-import DeviceModelServices from "services/DeviceModelServices";
+import DeviceModelServices from "../../services/DeviceModelServices";
 import { useEffect, useState } from "react";
 import { fetchCOPDeviceModels } from "../../actions/deviceModelActions";
 import { deviceCOPModelColumns } from "../../datatables/rowsColumn";
