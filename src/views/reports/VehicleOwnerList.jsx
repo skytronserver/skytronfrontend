@@ -2,7 +2,7 @@ import React from 'react';
 // project imports
 import Grid from "@mui/material/Grid";
 import { gridSpacing } from "../../store/constant";
-import UserServices from 'services/UserServices';
+import UserServices from '../../services/UserServices';
 import { useEffect,useState } from 'react';
 //Datatables
 import DynamicDatatables from '../../datatables/DynamicDatatables';

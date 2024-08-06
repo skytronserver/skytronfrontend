@@ -2,8 +2,8 @@ import React from 'react';
 // project imports
 import { Grid,Button } from "@mui/material";
 import { gridSpacing } from "../../../store/constant";
-import StockServices from 'services/StockServices';
-import DeviceModelServices from 'services/DeviceModelServices'
+import StockServices from '../../../services/StockServices';
+import DeviceModelServices from '../../../services/DeviceModelServices'
 import { useEffect,useState } from 'react';
 //Datatables
 import {useSelector,useDispatch} from 'react-redux'
@@ -19,7 +19,8 @@ const SimActivation = () => {
   useEffect(()=>{
     const retrievePosts = async () => {
       const filter={
-        "stock_status": "Available_for_fitting"
+        "stock_status": "Available_for_fitting",
+        "esim_status":	"NotAssigned"
       }
       const retriveData = await DeviceModelServices.getDeviceList(filter); 
       dispatch(getDeviceListAvailable(retriveData.data.data)) ;   

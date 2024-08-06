@@ -8,18 +8,18 @@ import {
   FILE_SIZE,
   SUPPORTED_FORMATS,
 } from "../../store/constant";
-import DealerServices from "services/DealerServices";
+import DealerServices from "../../services/DealerServices";
 import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
-import MainCard from "ui-component/cards/MainCard";
-import DialogComponent from "ui-component/DialogComponent";
+import MainCard from "../../ui-component/cards/MainCard";
+import DialogComponent from "../../ui-component/DialogComponent";
 import { useNavigate } from "react-router-dom";
 import {
   convertErrorObjectToArray,
   retriveStateList,
   retriveDistrictList,
   retriveManufacturerList,
-} from "helper";
+} from "../../helper";
 import "./form.css";
 import {
   dealerAccountFormField,

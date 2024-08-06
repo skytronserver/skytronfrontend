@@ -11,7 +11,7 @@ import {useSelector,useDispatch} from 'react-redux'
 import { fetchUserData } from '../../actions/dataActions';
 import Datatable from '../../datatables/Datatable';
 import {userColumns} from '../../datatables/rowsColumn';
-import DummyServices from 'services/DummyServices';
+import DummyServices from '../../services/DummyServices';
 const NewUser = () => {
   const [load,setLoad]=useState(false)
   const dispatch=useDispatch();

@@ -12,7 +12,7 @@ import AuthCardWrapper from "./AuthCardWrapper";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { verifyOtp,resendOtp,setError } from "../../../actions/loginActions";
 import { createAxiosInstance } from '../../../services/axiosInstance';
-import MinimalFooter from 'ui-component/cards/MinimalFooter';
+import MinimalFooter from '../../../ui-component/cards/MinimalFooter';
 import AlertBox from "../../../ui-component/AlertBox";
 const LoginOtp = () => {
   const dispatch = useDispatch();

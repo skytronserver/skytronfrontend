@@ -4,7 +4,7 @@ import React from "react";
 import { Grid } from "@mui/material";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
-import DealerServices from "services/DealerServices";
+import DealerServices from "../../services/DealerServices";
 import { useEffect, useState } from "react";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { dealerListColumn } from "../../datatables/rowsColumn";

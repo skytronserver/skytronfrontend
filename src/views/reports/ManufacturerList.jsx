@@ -2,7 +2,7 @@ import React from 'react';
 // project imports
 import { Grid,Button } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
-import ManufacturerServices from 'services/ManufacturerServices';
+import ManufacturerServices from '../../services/ManufacturerServices';
 import { useEffect,useState } from 'react';
 //Datatables
 import DynamicDatatables from '../../datatables/DynamicDatatables';

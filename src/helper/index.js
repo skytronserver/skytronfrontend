@@ -260,9 +260,9 @@ export const fetchVehicleCategory = async () => {
     }
   };
 
-  export const fetchTaggedList = async () => {
+  export const fetchTaggedList = async (data) => {
     try {
-      const filter = {
+      const filter = data ? data : {
         is_tagged: false,
       };
       const response = await DeviceModelServices.getDeviceList(filter);

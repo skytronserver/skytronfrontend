@@ -7,7 +7,7 @@ import loginReducer from '../reducers/loginReducer';
 import userDataReducer from '../reducers/userDataReducer';
 import deviceModelReducer from '../reducers/deviceModelReducer';
 import stockReducer from "../reducers/stockReducer";
-import settingReducer from 'reducers/settingReducer';
+import settingReducer from '../reducers/settingReducer';
 import dealerReducer from '../reducers/dealerReducer';
 import listReducer from '../reducers/listReducer';
 // ==============================|| COMBINE REDUCER ||============================== //

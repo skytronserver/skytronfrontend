@@ -5,9 +5,8 @@ import { gridSpacing } from "../../store/constant";
 import SettingService from "../../services/SettingService";
 import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
-import MainCard from "ui-component/cards/MainCard";
-import DialogComponent from "ui-component/DialogComponent";
-import { convertErrorObjectToArray } from "helper";
+import MainCard from "../../ui-component/cards/MainCard";
+import DialogComponent from "../../ui-component/DialogComponent";
 import {
   ipSettingInitials,
   ipSettingFormFields,
@@ -16,7 +15,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchIPSettingList } from "../../actions/settingAction";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { ipSettingColumns } from "../../datatables/settingColumns";
-import { retriveModelList, retriveStateList } from "../../helper";
+import { retriveModelList, retriveStateList,convertErrorObjectToArray } from "../../helper";
 function IPSetting() {
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState(false);

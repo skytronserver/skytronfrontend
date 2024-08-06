@@ -15,7 +15,10 @@ const UploadReceipt = () => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
     (async () => {
-        const tagged_list = await fetchTaggedList();
+      const filter={
+        is_tagged: "True",
+      }
+        const tagged_list = await fetchTaggedList(filter);
         setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
             tag_id: {

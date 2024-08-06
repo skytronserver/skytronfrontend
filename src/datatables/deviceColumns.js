@@ -324,6 +324,11 @@ const formatDate = (dateString) => {
       options: {
         filter: false,
         sort: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <p>{value[0]?.company_name}</p>
+          );
+        }
       },
     },
     {

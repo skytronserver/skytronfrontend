@@ -4,7 +4,7 @@ import React from 'react';
 import Grid  from "@mui/material/Grid";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
-import UserServices from 'services/UserServices';
+import UserServices from '../../services/UserServices';
 import { useEffect,useState } from 'react';
 import Datatable from '../../datatables/Datatable';
 import {registeredUserColumns} from '../../datatables/rowsColumn';
