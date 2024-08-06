@@ -56,7 +56,7 @@ const SOSUserList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="Show Dealer" />
+        <PageHeader title="SOS Admin List" />
       </Grid>
       <Grid item xs={12}>
         {sosUsers.length >= 1 && (

@@ -3,6 +3,7 @@ import React from 'react';
 import { Grid,Button } from "@mui/material";
 import { gridSpacing } from "../../../store/constant";
 import StockServices from 'services/StockServices';
+import DeviceModelServices from 'services/DeviceModelServices'
 import { useEffect,useState } from 'react';
 //Datatables
 import {useSelector,useDispatch} from 'react-redux'
@@ -17,7 +18,10 @@ const SimActivation = () => {
   const availableDeviceList=useSelector((state)=>state.stock.availableList);
   useEffect(()=>{
     const retrievePosts = async () => {
-      const retriveData = await StockServices.getAvailableDeviceList(); 
+      const filter={
+        "stock_status": "Available_for_fitting"
+      }
+      const retriveData = await DeviceModelServices.getDeviceList(filter); 
       dispatch(getDeviceListAvailable(retriveData.data.data)) ;   
       setLoad(true)
     }; 
@@ -31,7 +35,7 @@ const SimActivation = () => {
     );
     if (confirmed) {
       const formData = {
-        eSim_provider: data[1][0],
+        eSim_provider: data[1][0]?.id,
         valid_from: data[5],
         valid_upto: data[6],
         device: data[0],

@@ -17,9 +17,14 @@ const AvailableForSale = () => {
   const availableDeviceList=useSelector((state)=>state.stock.availableList);
   useEffect(()=>{
     const retrievePosts = async () => {
-      const retriveData = await StockServices.getAvailableDeviceList(); 
-      dispatch(getDeviceListAvailable(retriveData.data.data)) ;   
-      setLoad(true)
+      try{
+        const retriveData = await StockServices.getAvailableDeviceList(); 
+        dispatch(getDeviceListAvailable(retriveData.data.data)) ;   
+        setLoad(true)
+      }catch(error){
+        console.log(error?.status)
+      }
+      
     }; 
     retrievePosts();
   },[dispatch])

@@ -25,9 +25,9 @@ export const retriveAwaitingList = async () => {
     return [{value:'',label:'No Data'}]
   }
 };
-export const retriveDeviceModelList = async () => {
+export const retriveDeviceModelList = async (data) => {
   try {
-    const response = await DeviceModelServices.getDeviceList();
+    const response = await DeviceModelServices.getDeviceList(data);
     const list=response.data.data.map(device => ({
       value: device.id,
       label: device.imei,
@@ -150,7 +150,7 @@ export const retriveDistrictList = async (filter) => {
 export const fetchDeviceListForSale = async () => {
     try {
       const filter = {
-        is_tagged: false,
+        esim_status:"ESIM_Active_Confirmed"
       };
       const response = await StockServices.stockFilter(filter);
       const list = response.data.data.map((device) => ({

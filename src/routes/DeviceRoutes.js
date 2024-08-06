@@ -125,7 +125,7 @@ const DeviceRoutes = {
     {
       path: "/device/fit-device",
       element: <ConfigureDevice status="Available_for_fitting" />,
-      roles: ["superadmin", "devicemanufacture", "dealer"],
+      roles: ["dealer"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };

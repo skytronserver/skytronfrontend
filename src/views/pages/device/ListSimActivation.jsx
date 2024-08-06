@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 const ListSimActivation = () => {
   const [load,setLoad]=useState(false)
   const { deviceStatus } = useParams();
+  const [reload,setReload]=useState(false);
   const [pageTitle,setPageTitle]=useState("")
   const title={
     valid:'Activated eSIM Device',
@@ -27,10 +28,10 @@ const ListSimActivation = () => {
       const retriveData = await StockServices.getListActivationRequest(status); 
       setList(retriveData.data);
       setPageTitle(title?.[deviceStatus])
-      setLoad(true)
+      setLoad(true);
     }; 
     retrieveList();
-  },[deviceStatus])
+  },[deviceStatus,reload])
   const handleRequest=async (e,data,status)=>{
     e.preventDefault();
     const confirmed = window.confirm(
@@ -44,6 +45,7 @@ const ListSimActivation = () => {
       try {
         const status = await StockServices.updateRequest(formData);
         console.log(status);
+        setReload(prev=>!prev)
       } catch (error) {
         console.error(error);
       }
