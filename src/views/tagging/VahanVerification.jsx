@@ -21,6 +21,7 @@ const VahanVerification = () => {
   const [updatedFormFields, setUpdatedFormField] = useState(
     vahanVerificationFields
   );
+  const [reload,setReload]=useState(false);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [apiData, setApiData] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
@@ -68,7 +69,7 @@ const VahanVerification = () => {
       }));
       setIsFormLoaded(true);
     })();
-  }, []);
+  }, [reload]);
 
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {
@@ -105,6 +106,7 @@ const VahanVerification = () => {
       setMapLoaded(false);
       setOtp("");
       setApiData(false);
+      setReload(prev=>!prev)
     } catch (error) {
       console.log(error);
     }

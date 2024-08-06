@@ -20,6 +20,7 @@ const UnApprovedTag = () => {
   const [otp, setOtp] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [apiError, setApiError] = useState(false);
+  const [reload,setReload]=useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   useEffect(() => {
@@ -33,7 +34,7 @@ const UnApprovedTag = () => {
       }
     };
     fetchUnapprovedTag();
-  }, [dispatch]);
+  }, [dispatch,reload]);
 
   const unApprovedList = useSelector(
     (state) => state.userData.awaitApprovalOwnerList
@@ -67,6 +68,7 @@ const UnApprovedTag = () => {
       console.log("OTP Verified");
       setShowOTP(false);
       setOtp("");
+      setReload(prev=>!prev)
       navigate("/tag/unapproved-vehicle");
     } catch (error) {
       setApiError(true);

@@ -19,7 +19,8 @@ const SimActivation = () => {
   useEffect(()=>{
     const retrievePosts = async () => {
       const filter={
-        "stock_status": "Available_for_fitting"
+        "stock_status": "Available_for_fitting",
+        "esim_status":	"NotAssigned"
       }
       const retriveData = await DeviceModelServices.getDeviceList(filter); 
       dispatch(getDeviceListAvailable(retriveData.data.data)) ;   
