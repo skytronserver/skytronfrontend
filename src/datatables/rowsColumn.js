@@ -80,27 +80,16 @@ export const showDeviceColumns = [
     },
   },
   {
-    name: "msisdn2",
-    label: "MSISDN 2",
+    name: "assigned",
+    label: "Status",
     options: {
       filter: false,
       sort: false,
-    },
-  },
-  {
-    name: "imsi1",
-    label: "IMSI 1",
-    options: {
-      filter: false,
-      sort: false,
-    },
-  },
-  {
-    name: "imsi2",
-    label: "IMSI 2",
-    options: {
-      filter: false,
-      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value===null?<span style={{color:"red"}}>Not Assigned</span>:<span style={{color:"green"}}>Assigned</span>}</p>
+        );
+      }
     },
   },
   {
@@ -122,6 +111,11 @@ export const showDeviceColumns = [
     options: {
       filter: false,
       sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0]?.company_name}</p>
+        );
+      }
     },
   },
   {
@@ -130,6 +124,7 @@ export const showDeviceColumns = [
     options: {
       filter: false,
       sort: false,
+      
     },
   },
   {
@@ -510,6 +505,88 @@ export const registeredUserColumns = [
 
 
 export const manufacturerColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "company_name",
+    label: "Company Name",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Email Id",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].email}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Mobile",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].mobile}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "users",
+    label: "Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].name}</p>
+        );
+      }
+    },  
+  },
+  {
+    name: "gstnnumber",
+    label: "GSTN No.",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "created",
+    label: "Created On",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "expirydate",
+    label: "Expiry Date",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+];
+export const serviceProviderCol = [
   {
     name: "id",
     label: "ID",

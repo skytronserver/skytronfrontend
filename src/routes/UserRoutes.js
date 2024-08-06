@@ -22,11 +22,12 @@ import SOSUser from "../views/forms/SOSUser";
 import { decipherEncryption } from '../helper';
 import NotAuthorized from "../views/pages/NotAuthorized";
 import Details from "../views/pages/Details";
-import ManufacturerList from "views/reports/ManufacturerList";
-import VehicleOwnerList from "views/reports/VehicleOwnerList";
-import SOSUserList from "views/reports/SOSUserList";
-import StateAdminList from "views/reports/StateAdminList";
-import DTOUserList from "views/reports/DTOUserList";
+import ManufacturerList from "../views/reports/ManufacturerList";
+import VehicleOwnerList from "../views/reports/VehicleOwnerList";
+import SOSUserList from "../views/reports/SOSUserList";
+import StateAdminList from "../views/reports/StateAdminList";
+import DTOUserList from "../views/reports/DTOUserList";
+import EsimProviderList from "../views/reports/EsimProviderList";
 const PrivateRoute = ({ element,roles }) => {
 const myDecipher = decipherEncryption('skytrack')
 const userData=sessionStorage.getItem('cookiesData');
@@ -174,6 +175,11 @@ const UserRoutes = {
     {
       path: "/user/sos-user-list",
       element: <SOSUserList/>,
+      roles: ['superadmin']
+    },
+    {
+      path: "/user/esim-provider-list",
+      element: <EsimProviderList/>,
       roles: ['superadmin']
     },
     {

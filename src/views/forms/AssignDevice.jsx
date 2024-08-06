@@ -40,7 +40,10 @@ const AssignDevice = () => {
   };
   useEffect(() => {
     (async () => {
-      const modelList = await retriveDeviceModelList();
+      const filter={
+        stock_status:"NotAssigned"
+      }
+      const deviceList = await retriveDeviceModelList(filter);
       const dealerList = await retriveDealerList();
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
@@ -50,7 +53,7 @@ const AssignDevice = () => {
         },
         device: {
           ...prevConfig.device,
-          options: modelList,
+          options: deviceList,
         },
       }));
       setIsFormLoaded(true);
