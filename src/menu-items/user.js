@@ -309,10 +309,10 @@ const user = {
           roles: ["dealer"],
         },
         {
-          id: "upload-tagging-receipt",
-          title: "Upload Receipt",
+          id: "download-tagging-receipt",
+          title: "Download Receipt",
           type: "item",
-          url: "/tag/upload-receipt",
+          url: "/tag/download-receipt",
           breadcrumbs: false,
           roles: ["dealer"],
         },

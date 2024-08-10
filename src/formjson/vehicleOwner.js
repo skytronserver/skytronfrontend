@@ -5,7 +5,7 @@ const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
 const today = new Date().toISOString().split('T')[0];
-export const vehicleOwnerInitialValues = {
+export const ownerInitialValues = {
   name: "",
   mobile: "",
   email: "",
@@ -14,7 +14,6 @@ export const vehicleOwnerInitialValues = {
   expiryDate: formattedDate,
   idProofno: "",
   file_idProof: null,
-
 };
 export const vehicleOwnerField = {
   name: {

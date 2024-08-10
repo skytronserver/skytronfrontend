@@ -101,6 +101,14 @@ const createVehicleOwner=(ownerData)=>{
         }
       })
 }
+const updateVehicleOwner=(ownerData)=>{
+    const http = getAxiosInstance();
+    return http.post(`/api/VehicleOwner/update_VehicleOwner/`,ownerData,{
+        headers: {
+          'Content-type': 'multipart/form-data',
+        }
+      })
+}
 const createSOSAdmin=(formData)=>{
     const http = getAxiosInstance();
     return http.post(`/api/SOSAdmin/create_SOSAdmin/`,formData,{
@@ -174,6 +182,7 @@ const UserServices = {
     registerUser,
     updateUser,
     createVehicleOwner,
+    updateVehicleOwner,
     createStateAdmin,
     createDTO,
     createManufacturer,

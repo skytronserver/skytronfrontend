@@ -14,6 +14,7 @@ const UploadReceipt = () => {
   const [updatedFormFields, setUpdatedFormField] = useState(uploadReceiptFormFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
+   
     (async () => {
       const filter={
         is_tagged: "True",
@@ -21,8 +22,8 @@ const UploadReceipt = () => {
         const tagged_list = await fetchTaggedList(filter);
         setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
-            tag_id: {
-              ...prevConfig.tag_id,
+            device_id: {
+              ...prevConfig.device_id,
               options: tagged_list,
             },
           }));
@@ -36,7 +37,7 @@ const UploadReceipt = () => {
       formik.setFieldValue(fieldName, selectedFile);
     }
   };
-
+ 
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {
       acc[field] = updatedFormFields[field].validation;
@@ -47,7 +48,22 @@ const UploadReceipt = () => {
     setSubmitting(true);
     setLoading(true);
     try {
-      const response = await TaggingService.uploadTagReceipt(values);
+      const response = await TaggingService.downloadTagReceipt(values);
+      const blob = new Blob([response.data], {
+        type: "application/octet-stream",
+      });
+      console.log(blob)
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "receipt.pdf"; // Specify the filename you want
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Release the Blob URL
+      window.URL.revokeObjectURL(url);
       setLoading(false);
       resetForm(uploadReceiptInitials);
     } catch (error) {

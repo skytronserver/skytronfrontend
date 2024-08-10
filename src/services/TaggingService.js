@@ -29,11 +29,7 @@ const tagVerifyDealerOtp = (data) => {
 };
 const uploadTagReceipt=(data)=>{
   const http=getAxiosInstance();
-  return http.post('/api/tag/upload_receiptPDF/',data,{
-    headers: {
-      "Content-type": "multipart/form-data",
-    },
-  });
+  return http.post('/api/tag/upload_receiptPDF/',data);
 }
 const downloadTagReceipt=(data)=>{
   const http=getAxiosInstance();
@@ -64,6 +60,10 @@ const verifyTagVerifyOwnerOtpFinal=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/TagVerifyOwnerOtpFinal/',data);
 }
+const getTagStatus=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/tag_status/',data);
+}
 const TaggingService = {
     tagDeviceToVehicle,
     tagAwaitingOwnerApproval,
@@ -77,7 +77,8 @@ const TaggingService = {
     activateTag,
     getTagAwaitingOwnerApprovalFinal,
     sendTagSendOwnerOtpFinal,
-    verifyTagVerifyOwnerOtpFinal
+    verifyTagVerifyOwnerOtpFinal,
+    getTagStatus
 };
 
 export default TaggingService;

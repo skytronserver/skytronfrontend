@@ -12,7 +12,11 @@ import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray,retriveStateList } from "../../helper";
 import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
 import { FILE_SIZE,SUPPORTED_FORMATS,gridSpacing } from "../../store/constant";
+import { useParams } from "react-router-dom";
+import "./form.css";
 const StateAdmin = () => {
+  const params = useParams();
+  console.log(params)
   const [updatedFormFields,setUpdatedFormField]=useState(stateAdminField);
   const [isFormLoaded,setIsFormLoaded]=useState(false)
   const [loading, setLoading] = useState(false);
@@ -116,35 +120,11 @@ const StateAdmin = () => {
 
       <Grid container spacing={gridSpacing}>
         {loading && (
-          <div
-            style={{
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 9999,
-              background: "rgba(255, 255, 255, 0.8)",
-            }}
-          >
-            <CircularProgress
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-              size={50}
-            />
+          <div className="spinner-div">
+            <CircularProgress className="circular-progress" size={50} />
           </div>
         )}
-        <Grid
-          item
-          xs={12}
-          style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
+        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
           <MainCard title="Create State Admin">
             {isFormLoaded && <Formik
               initialValues={stateAdminInitialValues}
@@ -164,7 +144,7 @@ const StateAdmin = () => {
                         />
                       </Grid>
                     ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
+                 <Grid item xs={12} className="grid-item-button-div">
                       <Button
                         type="submit"
                         variant="contained"
