@@ -67,10 +67,11 @@ const UserRoutes = {
   element: <MainLayout />,
   children: [
     {
-      path: "/user/newStateAdmin",
+      path: "/user/newStateAdmin/*",
       element: <StateAdmin/>,
       roles: ['superadmin']
     },
+    
     {
       path: "/user/list",
       element: <ListUser />,
@@ -123,7 +124,7 @@ const UserRoutes = {
       roles: ['stateadmin']
     },
     {
-      path: "/new/vehicleOwner",
+      path: "/new/vehicleOwner/*",
       element: <VehicleOwner />,
       roles: ['dealer']
     },

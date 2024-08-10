@@ -1,27 +1,63 @@
 import { Grid, Button,CircularProgress  } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
-import PageHeader from "../../ui-component/cards/PageHeader";
-import { gridSpacing } from "../../store/constant";
+
+import { gridSpacing,FILE_SIZE,SUPPORTED_FORMATS } from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
-import {vehicleOwnerInitialValues,vehicleOwnerField} from "../../formjson/vehicleOwner";
-const FILE_SIZE = 512 * 1024 ; // 512 KB
-const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+import {ownerInitialValues,vehicleOwnerField} from "../../formjson/vehicleOwner";
+import NotAuthorized from "../../views/pages/NotAuthorized";
+import { useParams } from "react-router-dom";
 const VehicleOwner = () => {
+  const params = useParams();
+  const parameter= params['*'] && !isNaN(params['*'])
+  const [editPage,setEditPage]=useState(false);
   const [open, setOpen] = useState(false);
+  const [vehicleOwnerInitialValues, setVehicleOwnerInitialValues] = useState(ownerInitialValues);
   const navigate = useNavigate();
-  
   const [alert,setAlert]=useState({
     error:false,
     message:'',
     errorList:[]
   })
+  useEffect(()=>{
+    if(params['*'] && !isNaN(params['*'])){
+      const id=params['*']; 
+      (async()=>{
+        try {
+          const responseData=await UserServices.fetchVehicleOwner({VehicleOwner_id:id});
+          if(responseData?.data?.[0]){
+            const response=responseData?.data?.[0];
+            const formattedDate = new Date(response.expirydate)
+              .toISOString()
+              .split("T")[0];
+              setVehicleOwnerInitialValues({
+              name: response.users[0]?.name || "",
+              mobile: response.users[0]?.mobile || "",
+              email: response.users[0]?.email || "",
+              dob: response.users[0]?.dob || "",
+              address: response.users[0]?.address || "",
+              expiryDate: formattedDate,
+              idProofno: response.idProofno || "",
+              file_idProof: response.file_idProof || null,
+              vehicleowner_id:response.id
+            });
+            setEditPage(true);
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      })()
+    }else{
+      setVehicleOwnerInitialValues(ownerInitialValues);
+      setEditPage(false);
+    }
+  },[parameter]);
   const [loading,setLoading]=useState(false);
   const handleClose = () => {
     !alert.error && navigate("/new/vehicleOwner");
@@ -55,44 +91,49 @@ const VehicleOwner = () => {
       return acc;
     }, {})
   );
-  const handleCreateUser = async (userData) => {
-    try {
-      const response = await UserServices.createVehicleOwner(userData);
-      console.log("User created successfully:");
-      return { code: "200", message: response.data };
-    } catch (error) {
-      console.error("Error creating user:", error.message);
-      return { code: "400", message: error.message,errors:error.response.data };
-    }
-  };
-
+  const handleSubmit  = async (values, { setSubmitting, resetForm }) => {
+    const userData = sessionStorage.getItem('cookiesData');
+    const userId = userData?.split("-")[3];
   
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    const userData=sessionStorage.getItem('cookiesData');
-    const data=userData && userData.split("-")
-    const userId=userData && data.length > 2 && data[3];
-    setSubmitting(true);
-    setLoading(true);
-    let valuesWithRole={};
-    valuesWithRole = {
+    const valuesWithRole = {
       ...values,
       role: "owner",
-      createdby: userId,
+      createdby: userId || null, 
     };
-    
-    const response = await handleCreateUser(valuesWithRole);
-    if (response.code === "200") {
-      setAlert((prevAlert)=>({...prevAlert,error:false,errorList:[]}))
+  
+    setSubmitting(true);
+    setLoading(true);
+  
+    try {
+      if(editPage){
+        const { data } = await UserServices.updateVehicleOwner(valuesWithRole);  
+      }else{
+        const { data } = await UserServices.createVehicleOwner(valuesWithRole);  
+      }   
+      setAlert(prevAlert => ({
+        ...prevAlert,
+        error: false,
+        errorList: [],
+      }));
+  
       handleAlert("Form Submitted Successfully");
-      setSubmitting(false);
-      setLoading(false);
       resetForm(vehicleOwnerInitialValues);
-    } else {
-      setAlert((prevAlert)=>({...prevAlert,error:true,errorList:convertErrorObjectToArray(response.errors)}));
+    } catch (error) {
+      console.error("Error creating user:", error.message);
+  
+      setAlert(prevAlert => ({
+        ...prevAlert,
+        error: true,
+        errorList: convertErrorObjectToArray(error.response?.data || []),
+      }));
+  
       handleAlert("Form Not Submitted");
+    } finally {
+      setSubmitting(false);
       setLoading(false);
     }
   };
+  
 
   return (
     <>

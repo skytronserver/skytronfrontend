@@ -49,7 +49,7 @@ const TaggingRoutes = {
       roles:['dealer','superadmin']
     },
     {
-      path: "/tag/upload-receipt",
+      path: "/tag/download-receipt",
       element: (
         <UploadReceipt/>
       ),
