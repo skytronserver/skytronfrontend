@@ -53,8 +53,8 @@ function DealerAccount() {
           ...prevConfig.address_State,
           options: stateList,
         },
-        address: {
-          ...prevConfig.address,
+        district: {
+          ...prevConfig.district,
           options: districtList,
         },
       }));

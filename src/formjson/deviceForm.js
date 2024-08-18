@@ -1,6 +1,9 @@
 import * as Yup from "yup";
 let modelList=[];
 let providerList=[{value:'',label:'Select'}];
+const currentDate = new Date();
+currentDate.setFullYear(currentDate.getFullYear() + 2);
+const formattedDate = currentDate.toISOString().split('T')[0];
 export const deviceInitials = {
     imei:"",
     model:"",
@@ -15,7 +18,7 @@ export const deviceInitials = {
     telecom_provider2:"",
     msisdn1:"",
     msisdn2:"",
-    esim_validity:"",
+    esim_validity:formattedDate,
     esim_provider:[],
     remarks:"",
 };

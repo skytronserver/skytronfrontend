@@ -6,14 +6,13 @@ import { Formik } from "formik";
 import React, { useState, useEffect } from "react";
 import { gridSpacing } from "../../store/constant";
 import TaggingService from "../../services/TaggingService";
+import HomePageService from "../../services/HomePage";
 import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "../../ui-component/cards/MainCard";
-import DialogComponent from "../../ui-component/DialogComponent";
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import {
-  convertErrorObjectToArray,
   retriveVehicleOwner,
   fetchDeviceListForSale,
   fetchVehicleCategory,
@@ -24,32 +23,71 @@ import {
 } from "../../formjson/tagDeviceToVehicle";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import "../forms/form.css";
+import CustomStepper from "../../ui-component/CustomStepper";
+import AutoHideAlert from "../../ui-component/AutoHideAlert";
+import DisplayTable from "../../ui-component/DisplayTable";
+const steps = [
+  { label: "Tag Device to Vehicle", name: "Step 1" },
+  { label: "Dealer Verification", name: "Step 2" },
+  { label: "Send Owner OTP", name: "Step 3" },
+  { label: "Vehicle Owner Verification", name: "Step 4" },
+  { label: "Ready for Activation", name: "Step 5" },
+  { label: "Get Location", name: "Step 6" },
+  { label: "Confirm Location", name: "Step 7" },
+  { label: "Owner OTP Confirmation", name: "Step 8" },
+];
 function TagDeviceToVehicle() {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
+  const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
   const [deviceId, setDeviceId] = useState("");
-  const [otp, setOtp] = useState("");
-  const [error, setError] = useState(false);
-  const [apiError, setApiError] = useState(false);
-  const [alert, setAlert] = useState({
-    error: false,
-    message: "",
-    errorList: [],
+  const [activeStep, setActiveStep] = useState(0);
+  const [htmlContent, setHtmlContent] = useState("");
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [reload, setReload] = useState(false);
+  const [getMap, setGetMap] = useState({ imei: "", regno: "" });
+  const [loading, setLoading] = useState({
+    loader: false,
+    form: false,
+  });
+  const [error, setError] = useState({
+    normal: false,
+    api: false,
   });
 
-  const handleClose = () => {
-    if (error) {
-      setOpen(false);
-      setShowOTP(false);
-      setError(false);
-    } else {
-      setOpen(false);
-      setShowOTP(true);
-    }
-  };
-  const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
-  const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [otp, setOtp] = useState({
+    dealer: "",
+    owner: "",
+    finalOwner: "",
+  });
+  const [dismissibleAlert, setDismissibleAlert] = useState({
+    isOpen: false,
+    type: "success",
+    message: "",
+  });
+  const [deviceDetails, setDeviceDetails] = useState({
+    device_esn: "",
+    iccid: "",
+    imei: "",
+    telecom_provider1: "",
+    telecom_provider2: "",
+    msisdn1: "",
+    msisdn2: "",
+    esim_validity: "",
+    esim_provider: "",
+    model: "",
+  });
+  const [ownerDetails, setOwnerDetails] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+  });
+  const [vehicleDetails, setVehicleDetails] = useState({
+    vehicle_reg_no: "",
+    engine_no: "",
+    chassis_no: "",
+    vehicle_make: "",
+    vehicle_model: "",
+    category: "",
+  });
   useEffect(() => {
     (async () => {
       const deviceList = await fetchDeviceListForSale();
@@ -72,50 +110,160 @@ function TagDeviceToVehicle() {
           options: categoryList,
         },
       }));
-      setIsFormLoaded(true);
+      setLoading((prev) => ({ ...prev, form: true }));
     })();
-  }, []);
-  const handleChange = (newValue) => {
-    setOtp(newValue);
+    setActiveStep(0);
+  }, [reload]);
+
+  const handleDealerOtp = (otp) => {
+    setOtp((prev) => ({ ...prev, dealer: otp }));
   };
-  const handleOTPSubmit = async () => {
-    const OTPData = {
-      otp: otp,
+  const handleOwnerOtp = (otp) => {
+    setOtp((prev) => ({ ...prev, owner: otp }));
+  };
+  const handleFinalOwnerOtp = (otp) => {
+    setOtp((prev) => ({ ...prev, finalOwner: otp }));
+  };
+  const handleOtpSubmit = async (type) => {
+    setLoading((prev) => ({ ...prev, loader: true }));
+    const OtpData = {
+      otp: otp?.[type],
       device_id: deviceId,
     };
-    const response = await handleOTPValidation(OTPData);
-
-    if (response.code === "200") {
-      setShowOTP(false);
-    } else {
-      console.log(response.error);
+    try {
+      if(type==='dealer'){await TaggingService.tagVerifyDealerOtp(OtpData);}
+      if(type==='owner'){await TaggingService.tagVerifyOwnerOtp(OtpData);}
+      if(type==='finalOwner'){await TaggingService.verifyTagVerifyOwnerOtpFinal(OtpData);}
+      setActiveStep(prevActiveStep=>prevActiveStep+1)
+      setDismissibleAlert(prev=>({...prev,isOpen:true,message:'OTP has been successfully verified',type:'success'}));
+   
+    } catch (error) {
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message:
+          "Something went wrong! Please try after sometimes or check your details",
+        type: "error",
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
     }
   };
-  const handleOTPValidation = async (modelOtpData) => {
+  const sendOwnerOtp = async (type) => {
+    setLoading((prev) => ({ ...prev, loader: true }));
+    const otpData = {
+      device_id: deviceId,
+    };
     try {
-      const response = await TaggingService.tagVerifyDealerOtp(modelOtpData);
-      console.log("Device Model is OTP Verified", response.data);
-      return { code: "200", message: response.data };
+      if(type==='owner'){await TaggingService.tagSendOwnerOtp(otpData);}
+      if(type==='finalOwner'){await TaggingService.sendTagSendOwnerOtpFinal(otpData);}
+      setActiveStep(prevActiveStep=>prevActiveStep+1)
+      setDismissibleAlert(prev=>({...prev,isOpen:true,message:'Vehicle Owner OTP has been sent successfully',type:'success'}));
     } catch (error) {
       console.error("Error while submitting data", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message:
+          "Something went wrong! Please try after sometimes or check your details",
+        type: "error",
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
     }
   };
+  const getVahanDetail = async () => {
+    setLoading((prev) => ({ ...prev, loader: true }));
+    const deviceData = {
+      device_id: deviceId,
+    };
+    try {
+      const response = await TaggingService.vahanVerificationApi(deviceData);
+      const device = response.data.data.device;
+      const owner = response.data.data.vehicle_owner.users[0];
+      const vehicle = response.data.data;
+      setGetMap((prev) => ({
+        ...prev,
+        imei: vehicle.vehicle_reg_no,
+        regno: device.imei,
+      }));
+      setDeviceDetails((prev) => ({
+        ...prev,
+        device_esn: device.device_esn,
+        iccid: device.iccid,
+        imei: device.imei,
+        telecom_provider1: device.telecom_provider1,
+        telecom_provider2: device.telecom_provider2,
+        msisdn1: device.msisdn1,
+        msisdn2: device.msisdn2,
+        esim_validity: device.esim_validity,
+        esim_provider: device.esim_provider[0],
+        model: device.model,
+      }));
+      setOwnerDetails((prev) => ({
+        ...prev,
+        name: owner.name,
+        email: owner.email,
+        mobile: owner.mobile,
+      }));
+      setVehicleDetails((prev) => ({
+        ...prev,
+        vehicle_reg_no: vehicle.vehicle_reg_no,
+        engine_no: vehicle.engine_no,
+        chassis_no: vehicle.chassis_no,
+        vehicle_make: vehicle.vehicle_make,
+        vehicle_model: vehicle.vehicle_model,
+        category: vehicle.category,
+      }));
+      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      setDismissibleAlert(prev=>({...prev,isOpen:true,message:'Vahan Details are successfully fetched',type:'success'}));
+    
+    } catch (error) {
+      console.error("Error :", error?.message);
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message:
+          "Something went wrong! Please try after sometimes or check your details",
+        type: "error",
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
+    }
+  };
+  const retriveMapData = async () => {
+    setLoading((prev) => ({ ...prev, loader: true }));
+    try {
+      const retriveData = await HomePageService.getLiveTracking(getMap);
+      setHtmlContent(retriveData.data);
+      setMapLoaded(true);
 
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message: "Map Details is fetched successfully",
+        type: "success",
+      }));
+      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    } catch (error) {
+      console.log(error);
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message:
+          "Something went wrong! Please try after sometimes or check your details",
+        type: "error",
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
+    }
+  };
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
     if (selectedFile) {
       formik.setFieldValue(fieldName, selectedFile);
     }
-  };
-  const handleAlert = (message) => {
-    setAlert((prevAlert) => ({ ...prevAlert, message: message }));
-    setOpen(true);
   };
 
   const validationTagging = Yup.object(
@@ -124,127 +272,313 @@ function TagDeviceToVehicle() {
       return acc;
     }, {})
   );
-  const tagDevice = async (formData) => {
-    try {
-      const response = await TaggingService.tagDeviceToVehicle(formData);
-      console.log("Tagged successfully");
-      return { code: "200", message: response.data };
-    } catch (error) {
-      if(error.message==='Network Error'){
-        setApiError(true);
-        setLoading(false);
-      }else{
-        return {
-          code: "400",
-          message: error.message,
-          errors: error.response.data,
-        };
-      }
-    }
-  };
+
   const handleTagging = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
-    setLoading(true);
-    const resp = await tagDevice(values);
-    if (resp.code === "200") {
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: false,
-        errorList: [],
-      }));
-      handleAlert("Tagged Successfully");
-      setSubmitting(false);
-      setLoading(false);
+    setLoading((prev) => ({ ...prev, loader: true }));
+    try {
+      const response=await TaggingService.tagDeviceToVehicle(values);
       resetForm(taggingInitials);
-      setDeviceId(resp.message.data.device);
-    } else {
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: true,
-        errorList: convertErrorObjectToArray(resp.errors),
+      setDeviceId(response?.data?.data?.device);
+      setActiveStep(prevActiveStep=>prevActiveStep+1);
+      setDismissibleAlert(prev=>({...prev,isOpen:true,message:'Successfully OTP has been sent to your registered mobile number',type:'success'}));
+    } catch (error) {
+      console.log(error);
+      if (error?.message === "Network Error") {
+        setError((prev) => ({ ...prev, api: true }));
+      } else {
+        
+        setError((prev) => ({ ...prev, normal: true }));
+      }
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message:
+          "Something went wrong! Please try after sometimes or check your details",
+        type: "error",
       }));
-      handleAlert("Form Not Submitted");
-      setLoading(false);
-      setError(true);
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
+      setSubmitting(false);
     }
   };
+  const handleDismissibleAlert = () => {
+    setDismissibleAlert((prev) => ({ ...prev, isOpen: false, message: "" }));
+  };
+  const reset = () => {
+    setReload((prev) => !prev);
+  };
+
   return (
     <>
-      <DialogComponent
-        open={open}
-        handleClose={handleClose}
-        message={alert.message}
-        errorList={alert.errorList}
+      <AutoHideAlert
+        open={dismissibleAlert.isOpen}
+        onClose={handleDismissibleAlert}
+        message={dismissibleAlert.message}
+        type={dismissibleAlert.type}
       />
-      {apiError && (
-          <Alert severity="error" style={{marginBottom:'16px'}}>
-            <AlertTitle>Internal Server Error</AlertTitle>
-            An error occurred in the server. Please contact the server administrator.
-          </Alert>
-          
-        )}
+      {error.api && (
+        <Alert severity="error" style={{ marginBottom: "16px" }}>
+          <AlertTitle>Internal Server Error</AlertTitle>
+          An error occurred in the server. Please contact the server
+          administrator.
+        </Alert>
+      )}
       <Grid container spacing={gridSpacing}>
-       {loading && (
+        {loading.loader && (
           <div className="spinner-div">
             <CircularProgress className="circular-progress" size={50} />
           </div>
         )}
-        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="Tag Device to Vehicle">
-            {!showOTP ? (
-              isFormLoaded && (
-                <Formik
-                  initialValues={taggingInitials}
-                  validationSchema={validationTagging}
-                  onSubmit={handleTagging}
-                  enableReinitialize
+        <Grid item xs={12} style={{ width: "100%" }}>
+          <CustomStepper activeStep={activeStep} label={false} steps={steps} />
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          className={loading.loader ? "loading" : "not-loading"}
+        >
+          <MainCard>
+            {activeStep === 8 ? (
+              <React.Fragment>
+                <Typography sx={{ mt: 2, mb: 1 }}>
+                  All steps completed - you're finished with Tagging device to
+                  the vehicle receipt in the Download Receipt Tab!
+                </Typography>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  onClick={reset}
                 >
-                  {(formik) => (
-                    <form onSubmit={formik.handleSubmit}>
-                      <Grid container spacing={2} className="form-controller">
-                        {Object.keys(updatedFormFields).map((field) => (
-                          <Grid key={field} item md={6} sm={12} xs={12}>
-                            <FormField
-                              fieldConfig={updatedFormFields[field]}
-                              formik={formik}
-                              handleFileChange={handleFileChange}
-                            />
-                          </Grid>
-                        ))}
-                        <Grid item xs={12} className="grid-item-button-div">
-                          <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            disabled={loading}
-                          >
-                            Submit
-                          </Button>
-                        </Grid>
-                      </Grid>
-                    </form>
-                  )}
-                </Formik>
-              )
+                  Finish
+                </Button>
+              </React.Fragment>
             ) : (
-              <Grid
-                container
-                spacing={2}
-                justifyContent="center"
-                alignItems="center"
+              <React.Fragment>
+                <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
+                  {steps[activeStep].label}
+                </Typography>
+                
+              </React.Fragment>
+            )}
+
+            {activeStep === 0 && loading.form && (
+              <Formik
+                initialValues={taggingInitials}
+                validationSchema={validationTagging}
+                onSubmit={handleTagging}
+                enableReinitialize
               >
+                {(formik) => (
+                  <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={2} className="form-controller">
+                      {Object.keys(updatedFormFields).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={updatedFormFields[field]}
+                            formik={formik}
+                            handleFileChange={handleFileChange}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} className="grid-item-button-div">
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={loading.loader}
+                        >
+                          Next
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </form>
+                )}
+              </Formik>
+            )}
+            {activeStep === 1 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>
+                    An OTP has been sent to your registered mobile number.
+                    Please enter the OTP below to continue.
+                  </Typography>
+                </Grid>
                 <Grid item xs={12} md={5}>
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                  <MuiOtpInput
+                    value={otp.dealer}
+                    onChange={handleDealerOtp}
+                    length={6}
+                  />
                   <br />
-                  <Typography align="center">
+                  <Typography>
                     <Button
                       color="primary"
-                      size="large"
                       type="submit"
                       variant="contained"
-                      onClick={handleOTPSubmit}
+                      onClick={() => handleOtpSubmit("dealer")}
                     >
-                      Verify OTP
+                      Confirm
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 2 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>Request OTP for Owner Verification</Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      variant="contained"
+                      onClick={() => sendOwnerOtp("owner")}
+                    >
+                      Request
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 3 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>
+                    An OTP has been sent to vehicle owner mobile number. Please
+                    enter the OTP below to continue.
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <MuiOtpInput
+                    value={otp.owner}
+                    onChange={handleOwnerOtp}
+                    length={6}
+                  />
+                  <br />
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      variant="contained"
+                      onClick={() => handleOtpSubmit("owner")}
+                    >
+                      Confirm
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 4 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>Click below to get details from Vahan</Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <br />
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      variant="contained"
+                      onClick={getVahanDetail}
+                    >
+                      Get Details
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 5 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>
+                    Click below to get location of Vehicle
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <br />
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      variant="contained"
+                      onClick={retriveMapData}
+                    >
+                      Get Location
+                    </Button>
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <DisplayTable values={ownerDetails} title="Owner Details" />
+                  <DisplayTable values={deviceDetails} title="Device Details" />
+                  <DisplayTable
+                    values={vehicleDetails}
+                    title="Vehicle Details"
+                  />
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 6 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>Request OTP for Owner Verification</Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      variant="contained"
+                      onClick={() => sendOwnerOtp("finalOwner")}
+                    >
+                      Request
+                    </Button>
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  {mapLoaded && (
+                    <section>
+                      <iframe
+                        title="HTML Content"
+                        srcDoc={htmlContent} // Set the HTML content as srcDoc
+                        style={{
+                          width: "100%",
+                          height: "500px",
+                          border: "1px solid #ccc",
+                        }}
+                      />
+                    </section>
+                  )}
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 7 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>
+                    An OTP has been sent to vehicle owner mobile number. Please
+                    enter the OTP below to continue.
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <MuiOtpInput
+                    value={otp.finalOwner}
+                    onChange={handleFinalOwnerOtp}
+                    length={6}
+                  />
+                  <br />
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      variant="contained"
+                      onClick={() => handleOtpSubmit("finalOwner")}
+                    >
+                      Submit
                     </Button>
                   </Typography>
                 </Grid>

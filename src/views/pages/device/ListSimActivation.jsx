@@ -39,7 +39,7 @@ const ListSimActivation = () => {
     );
     if (confirmed) {
       const formData = {
-        eSim_activation_req_id: data[0],
+        eSim_activation_req_id: data[1],
         status: status,
       };
       try {
@@ -95,7 +95,7 @@ const ListSimActivation = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={pageTitle} rows={list} columns={ deviceStatus==='pending' ? requestList.concat(actionColumn):requestList}/>}
+        {load && <DynamicDatatables tableTitle={pageTitle} rows={list} columns={ deviceStatus==='pending' ? actionColumn.concat(requestList):requestList}/>}
         </Grid>
     </Grid>
 );

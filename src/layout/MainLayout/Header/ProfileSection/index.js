@@ -59,6 +59,13 @@ const ProfileSection = () => {
         });
       });
     }
+    if (caches) {
+      caches.keys().then((names) => {
+        names.forEach((name) => {
+          caches.delete(name);
+        });
+      });
+    }
     dispatch(logout());
     setLogout((prev)=>prev+1);
     window.location.href = '/mis';

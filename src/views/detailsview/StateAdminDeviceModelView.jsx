@@ -17,18 +17,21 @@ import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import SettingService from "../../services/SettingService";
 /* project component/helper import sections */
-
+import AutoHideAlert from "../../ui-component/AutoHideAlert"
 import { getDeviceModel } from "../../actions/deviceModelActions";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
+import { openFile } from "../../helper";
 const docViewStyle={
   padding:"0px"
 }
 const StateAdminDeviceModelView = () => {
   /* packages helper functionality */
-
+  const [openAlert, setOpenAlert] = useState(false);
+  const [alertType,setAlertType]=useState("success");
+  const [message, setMessage] = useState('');
   const { deviceId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -51,18 +54,25 @@ const StateAdminDeviceModelView = () => {
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
-
+  const handleCloseAlert = () => {
+    setOpenAlert(false);
+  };
   const handleOTPSubmit = async () => {
     const OTPData = {
       otp: otp,
       device_model_id: deviceId,
     };
-    const response = await handleOTPValidation(OTPData);
-    if (response.code === "200") {
+    try {
+      await OtpServices.AdminDeviceVerifyOtp(OTPData);
       setShowOTP(false);
       navigate("/device/list");
-    } else {
-      console.log(response.error);
+      setOpenAlert(true);
+      setAlertType("success")
+      setMessage('Model has been successfully verified');
+    } catch (error) {
+      setOpenAlert(true);
+      setAlertType("error")
+      setMessage('Internal Server Error ! Please try again');
     }
   };
 
@@ -70,11 +80,16 @@ const StateAdminDeviceModelView = () => {
     const deviceOTPData = {
       device_model_id: deviceId,
     };
-    const response = await handleSendOTPValidation(deviceOTPData);
-    if (response.code === "200") {
+    try {
+      await OtpServices.AdminDeviceSendOtp(deviceOTPData);
       setShowOTP(true);
-    } else {
-      console.log(response.error);
+      setOpenAlert(true);
+      setAlertType("success")
+      setMessage('OTP has been successfully send to your registered mobile number please enter in the below form');
+    } catch (error) {
+      setOpenAlert(true);
+      setAlertType("error")
+      setMessage('Internal Server Error ! Please try again');
     }
   };
 
@@ -92,19 +107,7 @@ const StateAdminDeviceModelView = () => {
     }
   };
 
-  const handleSendOTPValidation = async (OtpData) => {
-    try {
-      const response = await OtpServices.AdminDeviceSendOtp(OtpData);
-      return { code: "200", message: response.data };
-    } catch (error) {
-      console.error("Error while submitting data", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
-    }
-  };
+
 
   useEffect(() => {
     const retrieveSingleItem = async () => {
@@ -128,81 +131,10 @@ const StateAdminDeviceModelView = () => {
   }, [dispatch, deviceId]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
-  const openFile = async (e, filePath) => {
-    let splitData = filePath.split("/");
-    let filename = splitData.length > 1 && splitData[splitData.length-1];
-    e.preventDefault();
-    try {
-      // Make the request to download the file
-      const response = await SettingService.file_Download({
-        file_path: filePath,
-      });
-
-      // Extract the filename from the response headers or use the provided filename
-      const contentDisposition = response.headers["content-disposition"];
-      let fileName = filename;
-
-      if (contentDisposition && contentDisposition.includes("attachment")) {
-        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
-        if (fileNameMatch && fileNameMatch.length === 2) {
-          fileName = fileNameMatch[1];
-        }
-      }
-      // Determine the content type
-      const contentType =
-        response.headers["content-type"] || "application/octet-stream";
-
-      // Create a Blob from the response data with the correct MIME type
-      const blob = new Blob([response.data], { type: contentType });
-
-      // Check if the Blob is not empty
-      if (blob.size === 0) {
-        throw new Error("The downloaded file is empty.");
-      }
-
-      // Convert Blob to base64 string
-
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = function () {
-        const base64data = reader.result;
-
-        // Open the file in a new window or tab with the correct filename
-        const newWindow = window.open("", "_blank");
-        const extension = filename.split(".").pop();
-        const validExtensions = /^(png|jpg|jpeg)$/i;
-        if (validExtensions.test(extension)) {
-          // Open image in a new window/tab
-          newWindow.document.write(
-            `<html><head><title>${fileName}</title></head><body><img src="${base64data}" alt="${fileName}"></body></html>`
-          );
-        } else if (extension === "pdf" || extension === "PDF") {
-          // Open PDF in a new window/tab using an iframe
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = fileName; // Specify the filename you want
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        } else {
-          
-          // For other file types, provide a link to download/view the file
-          newWindow.document.write(
-            `<html><head><title>${fileName}</title></head><body><a href="${base64data}" download="${fileName}">Download ${fileName}</a></body></html>`
-          );
-        }
-
-        // Optionally, revoke the object URL after some time to release memory
-        setTimeout(() => window.URL.revokeObjectURL(base64data), 60000); // revoke after 1 minute
-      };
-    } catch (error) {
-      console.error("Error viewing file:", error);
-    }
-  };
+  
   return (
     <>
+    <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType}/>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           {loading && (
@@ -272,7 +204,7 @@ const StateAdminDeviceModelView = () => {
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>Created By:</strong>
+                            <strong>Manufacturer Name:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.created_by.name}</TableCell>
                         </TableRow>
@@ -319,6 +251,9 @@ const StateAdminDeviceModelView = () => {
                 justifyContent="center"
                 alignItems="center"
               >
+                <Grid item xs={12}>
+                  <p>Please validate your submission by entering the OTP sent to your registered mobile no.</p>
+                </Grid>
                 <Grid item xs={12} md="5">
                   <MuiOtpInput value={otp} onChange={handleChange} length={6} />
                   <br />

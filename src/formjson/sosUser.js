@@ -12,6 +12,7 @@ export const sosUserInitialValues = {
   state:'',
   idProofno: "",
   file_idProof: null,
+  file_authorization_letter:null
 };
 export const sosUserFormField = {
   name: {
@@ -64,6 +65,20 @@ export const sosUserFormField = {
     label: "User ID Proof",
     message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
     validation: Yup.mixed().required("User ID Document is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
+  },
+  file_authorization_letter: {
+    name: "file_authorization_letter",
+    type: "file",
+    label: "Authorization Letter",
+    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+    validation: Yup.mixed().required("Authorization Letter Document is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })

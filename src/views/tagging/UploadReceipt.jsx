@@ -72,7 +72,7 @@ const UploadReceipt = () => {
   };
 
   return (
-    <MainCard title="Upload Tagging Receipt">
+    <MainCard title="Download Tagging Receipt">
       {isFormLoaded && (
         <Formik
           initialValues={uploadReceiptInitials}

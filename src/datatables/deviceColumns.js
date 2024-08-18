@@ -194,6 +194,58 @@ const formatDate = (dateString) => {
       },
       {
         name: "device",
+        label: "Device ESN",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value, tableMeta, updateValue) => {
+            return (
+              <p>{value.device_esn}</p>
+            );
+          }
+        },
+      },
+      {
+        name: "device",
+        label: "Device ICCID",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value, tableMeta, updateValue) => {
+            return (
+              <p>{value.iccid}</p>
+            );
+          }
+        },
+      },
+      {
+        name: "device",
+        label: "Device MSISDN 1",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value, tableMeta, updateValue) => {
+            return (
+              <p>{value.msisdn1	}</p>
+            );
+          }
+        },
+      },
+      {
+        name: "device",
+        label: "Device MSISDN 2",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value, tableMeta, updateValue) => {
+            return (
+              <p>{value.msisdn2}</p>
+            );
+          }
+        },
+      },
+      {
+        name: "device",
         label: "Validity",
         options: {
           filter: true,

@@ -14,7 +14,11 @@ import { MuiOtpInput } from "mui-one-time-password-input";
 import {deviceModelInitials,deviceModelFormField} from "../../formjson/deviceModel";
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
+import AutoHideAlert from "../../ui-component/AutoHideAlert"
 const DeviceModelForm = () => {
+  const [openAlert, setOpenAlert] = useState(false);
+  const [alertType,setAlertType]=useState("success");
+  const [message, setMessage] = useState('');
   const [open, setOpen] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [deviceId, setDeviceId] = useState("");
@@ -33,21 +37,8 @@ const DeviceModelForm = () => {
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
-  const handleOTPSubmit = async () => {
-    const OTPData = {
-      otp: otp,
-      device_model_id: deviceId,
-    };
-    const response = await handleOTPValidation(OTPData);
-
-    if (response.code === "200") {
-      setShowOTP(false);
-    } else {
-      console.log(response.error);
-    }
-  };
+ 
   const handleClose = () => {
-    // !alert.error && navigate("/user/registeredUser");
     setOpen(false);
     !error && setShowOTP(true);
   };
@@ -85,70 +76,75 @@ const DeviceModelForm = () => {
       return acc;
     }, {})
   );
-  const handleOTPValidation = async (modelOtpData) => {
-    try {
-      const response = await OtpServices.deviceAddOtp(modelOtpData);
-      return { code: "200", message: response.data };
-    } catch (error) {
-      console.error("Error while submitting data", error.message);
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
-    }
+  const handleCloseAlert = () => {
+    setOpenAlert(false);
   };
-  const handleDeviceModelCreate = async (deviceModelData) => {
+  const handleOTPSubmit = async () => {
+    const OTPData = {
+      otp: otp,
+      device_model_id: deviceId,
+    };
     try {
-      const response = await DeviceModelServices.createModel(deviceModelData);
-      return { code: "200", message: response.data };
+      await OtpServices.deviceAddOtp(OTPData);
+      setShowOTP(false);
+      setOpenAlert(true);
+      setAlertType("success")
+      setMessage('Model has been sent successfully for approval to state admin');
     } catch (error) {
       console.error("Error while submitting data", error.message);
-      if (typeof error.response === 'undefined'){
-        setApiError(true);
-      }
-      return {
-        code: "400",
-        message: error.message,
-        errors: error.response.data,
-      };
+      setOpenAlert(true);
+      setAlertType("error")
+      setMessage('Internal Server Error ! Please try again');
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    const userData=sessionStorage.getItem('cookiesData');
-    const data=userData && userData.split("-")
-    const userId=userData && data.length > 2 && data[3];
-    setSubmitting(true);
-    setLoading(true);
-    const updatedValues = {
-      ...values,
-      approval: "0",
-      approved_by: "",
-      created_by: userId,
-    };
-
-    const response = await handleDeviceModelCreate(updatedValues);
-    if (response?.code === "200") {
-      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+    try {
+      const userData = sessionStorage.getItem('cookiesData');
+      const userId = userData?.split("-")[3];
+  
+      setSubmitting(true);
+      setLoading(true);
+  
+      const updatedValues = {
+        ...values,
+        approval: "0",
+        approved_by: "",
+        created_by: userId,
+      };
+  
+      const response = await DeviceModelServices.createModel(updatedValues);
+  
+      if (response?.data) {
+        setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+        handleAlert("An OTP has been sent to your registered mobile number. Please click below to continue to enter the OTP");
+        resetForm(deviceModelInitials);
+        setDeviceId(response.data.id);
+      }
+    } catch (error) {
+      console.error("Error while submitting data", error.message);
+  
+      if (!error.response) {
+        setApiError(true);
+      } else {
+        setAlert((prevAlert) => ({
+          ...prevAlert,
+          error: true,
+          errorList: convertErrorObjectToArray(error.response.data),
+        }));
+      }
+      
+      handleAlert("Form Not Submitted");
+      setError(true);
+    } finally {
       setSubmitting(false);
       setLoading(false);
-      resetForm(deviceModelInitials);
-      setDeviceId(response.message.id);
-    } else {
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: true,
-        errorList: convertErrorObjectToArray(response.errors),
-      }));
-      handleAlert("Form Not Submitted");
-      setLoading(false);
-      setError(true);
     }
   };
+  
 
   return (
     <>
+      <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType}/>
       <DialogComponent
         open={open}
         handleClose={handleClose}
@@ -162,6 +158,7 @@ const DeviceModelForm = () => {
           </Alert>
         )}
       <Grid container spacing={gridSpacing}>
+      
         {loading && (
           <div
             style={{
