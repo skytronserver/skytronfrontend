@@ -27,15 +27,30 @@ export const createAxiosInstance = (token) => {
     return config;
   });
 
-  // Add an interceptor to handle errors globally
+  // Add an interceptor to handle responses and errors globally
   axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response && error.response.status === 404) {
-        console.error("404 Error: Page not found");
+    (response) => {
+      // If the status code is in the 200 range, resolve the promise
+      if (response.status >= 200 && response.status < 300) {
+        return response;
       }
-      if (error.response && error.response.status === 500) {
-        console.error("500 Error");
+      // If for some reason the status is in the 200 range but an error needs to be thrown, 
+      // you can handle it here (though typically this wouldn't be the case).
+      return Promise.reject(new Error(`Unexpected status code: ${response.status}`));
+    },
+    (error) => {
+      // Handle specific error statuses
+      if (error.response) {
+        if (error.response.status === 404) {
+          console.error("404 Error: Page not found");
+        } else if (error.response.status === 500) {
+          console.error("500 Error");
+        } else {
+          console.error(`Error: ${error.response.status} - ${error.response.statusText}`);
+        }
+      } else {
+        // Handle network errors or errors without a response
+        console.error("Error: No response received");
       }
       return Promise.reject(error);
     }

@@ -33,7 +33,9 @@ const uploadTagReceipt=(data)=>{
 }
 const downloadTagReceipt=(data)=>{
   const http=getAxiosInstance();
-  return http.post('/api/tag/download_receiptPDF/',data);
+  return http.post('/api/tag/download_receiptPDF/',data,{
+    responseType: "arraybuffer",
+  });
 }
 const vahanVerificationApi=(data)=>{
   const http=getAxiosInstance();

@@ -150,24 +150,13 @@ export const logout=()=>async(dispatch)=>{
     },{
       headers:header
     });
-    sessionStorage.removeItem('isAuthenticated');
-    sessionStorage.removeItem('sessionID');
-    sessionStorage.removeItem('oAuthToken');
-    sessionStorage.removeItem('cookiesData');
-    localStorage.removeItem('skytrackCookiesData');
+    localStorage.clear();
+    sessionStorage.clear();
    
   }catch(error){
-    sessionStorage.removeItem('isAuthenticated');
-    sessionStorage.removeItem('sessionID');
-    sessionStorage.removeItem('oAuthToken');
-    sessionStorage.removeItem('cookiesData');
-    localStorage.removeItem('skytrackCookiesData');
+    localStorage.clear();
+    sessionStorage.clear();
   }finally{
-    sessionStorage.removeItem('isAuthenticated');
-    sessionStorage.removeItem('sessionID');
-    sessionStorage.removeItem('oAuthToken');
-    sessionStorage.removeItem('cookiesData');
-    localStorage.removeItem('skytrackCookiesData');
     localStorage.clear();
     sessionStorage.clear();
     const cacheKeys = Object.keys(localStorage);

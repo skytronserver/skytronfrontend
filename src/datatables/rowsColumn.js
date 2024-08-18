@@ -859,7 +859,7 @@ export const deviceModelColumns = [
   },
   {
     name: "created_by",
-    label: "Created By",
+    label: "Manufacturer Name",
     options: {
       filter: false,
       sort: false,

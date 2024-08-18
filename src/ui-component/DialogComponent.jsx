@@ -15,7 +15,7 @@ const DialogComponent = ({open,handleClose,message,errorList}) => {
   return (
     <Dialog open={open} onClose={handleClose} style={{ padding: "30px" }}>
       <DialogContent>
-        <p>{message}</p>
+        <p dangerouslySetInnerHTML={{ __html: message }}/>
         {(typeof errorList === "string" ||
           (Array.isArray(errorList) && errorList.length > 0)) && (
           <ul className="error-list">

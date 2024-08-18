@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+const today = new Date().toISOString().split('T')[0];
 export const deviceModelInitials = {
     eSimProviders:"",
     model_name:"",
@@ -41,6 +42,7 @@ export const deviceModelFormField = {
     type: "date",
     label: "TAC Validity",
     validation: Yup.date().required("TAC Validity is required"),
+    minDate:today
   },
   vendor_id: {
     name: "vendor_id",
