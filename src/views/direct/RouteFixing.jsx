@@ -4,7 +4,7 @@ import React from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import { useEffect, useState } from "react";
-import DeviceModelServices from "../../services/DeviceModelServices";
+import TaggingService from "../../services/TaggingService";
 // ==============================|| SAMPLE PAGE ||============================== //
 import {  MenuItem, Button,Grid,TextField } from '@mui/material';
 const RouteFixing = () => {
@@ -13,12 +13,9 @@ const RouteFixing = () => {
   const [deviceList, setDeviceList] = useState([]);
   const [deviceId, setDeviceId] = useState("");
   useEffect(() => {
-    const post_data = {
-      is_tagged: "True",
-    };
     const fetchVehicleList = async () => {
-      const retriveData = await DeviceModelServices.getDeviceList(post_data);
-      setDeviceList(retriveData.data.data);
+      const retriveData = await TaggingService.getOwnerList();
+      setDeviceList(retriveData.data);
     };
     fetchVehicleList();
   }, []);
@@ -29,7 +26,6 @@ const RouteFixing = () => {
     e.preventDefault();
     retriveRouteData(deviceId);
   };
-
   const retriveRouteData = async (id) => {
     try {
       const retriveData = await HomePageService.getRouteFixing(id);
@@ -60,8 +56,8 @@ value={deviceId}
                 {deviceList.length > 0 && (
                   deviceList.map((item) => {
                     return (
-                      <MenuItem value={item.id} key={item.id}>
-                        {item.device_esn}
+                      <MenuItem value={item.device.id} key={item.device.id}>
+                        {item.device.device_esn}
                       </MenuItem>
                     );
                   })
