@@ -24,6 +24,13 @@ export const manufacturerInitialValues = {
 };
 
 export const manufacturerFormField = {
+  state: {
+    name:"state",
+    type: "select",
+    label: "Select State",
+    validation: Yup.string().required("State is required"),
+    options:[{'label':'Select','value':''}]
+  },
   esimProvider: {
     name:"esimProvider",
     type: "multiselect",
@@ -74,13 +81,6 @@ export const manufacturerFormField = {
     type: "text",
     label: "GST No",
     validation: Yup.string().required("GTS No is required"),
-  },
-  state: {
-    name:"state",
-    type: "select",
-    label: "Select State",
-    validation: Yup.string().required("State is required"),
-    options:[{'label':'Select','value':''}]
   },
   idProofno: {
     name:"idProofno",

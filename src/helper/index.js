@@ -226,9 +226,9 @@ export const retriveVehicleOwner = async () => {
       }
     }
   };
-export const retriveCreatedSimProvider = async () => {
+export const retriveCreatedSimProvider = async (data) => {
     try {
-      const response = await UserServices.fetchSimProvider();
+      const response = await UserServices.fetchSimProvider(data);
       const filtered=response.data.filter((simProvider)=>simProvider.users[0].status!=='pending');
       const list = filtered.map((simProvider) => ({
         value: simProvider.id,

@@ -42,7 +42,6 @@ function DealerAccount() {
     (async () => {
       const manufacturerList = await retriveManufacturerList();
       const stateList = await retriveStateList();
-      const districtList = await retriveDistrictList();
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
         manufacturer: {
@@ -53,10 +52,6 @@ function DealerAccount() {
           ...prevConfig.address_State,
           options: stateList,
         },
-        district: {
-          ...prevConfig.district,
-          options: districtList,
-        },
       }));
       setIsFormLoaded(true);
     })();
@@ -65,7 +60,28 @@ function DealerAccount() {
     !alert.error && navigate("/user/newDealerAccount");
     setOpen(false);
   };
-
+  const handleStateChange = (event, formik) => {
+    const fieldName = event.target.name;
+    if (fieldName === "address_State") {
+      (async () => {
+        const getDetailsOf = {
+          state: event.target.value,
+        };
+        try {
+          const districtList = await retriveDistrictList(getDetailsOf);
+          setUpdatedFormField((prevConfig) => ({
+            ...prevConfig,
+            district: {
+              ...prevConfig.district,
+              options: districtList,
+            },
+          }));
+        } catch (error) {
+          console.log(error)
+        }
+      })();
+    }
+  };
   const handleAlert = (message) => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
@@ -166,6 +182,7 @@ function DealerAccount() {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
+                            handleOptionChange={handleStateChange}
                           />
                         </Grid>
                       ))}

@@ -4,6 +4,11 @@ const Datatable = ({ columns, rows,tableTitle }) => {
     selectableRows: "none",
     viewColumns: false,
     responsive: 'standard',
+    downloadOptions: {
+      filename: "exported.csv",
+      separator: ",",
+      
+    },
   };
   return (
     <div className="datatable">

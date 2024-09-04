@@ -24,14 +24,9 @@ const Manufacturer = () => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
     (async () => {
-        const eSimProvider = await retriveCreatedSimProvider();
         const stateList = await retriveStateList();
         setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
-            esimProvider: {
-              ...prevConfig.esimProvider,
-              options: eSimProvider,
-            },
             state:{
               ...prevConfig.state,
               options:stateList
@@ -40,6 +35,28 @@ const Manufacturer = () => {
           setIsFormLoaded(true);
       })();
   }, []);
+  const handleStateChange = (event, formik) => {
+    const fieldName = event.target.name;
+    if (fieldName === "state") {
+      (async () => {
+        const getDetailsOf = {
+          state: event.target.value,
+        };
+        try {
+          const eSimProvider = await retriveCreatedSimProvider(getDetailsOf);
+          setUpdatedFormField((prevConfig) => ({
+            ...prevConfig,
+            esimProvider: {
+              ...prevConfig.esimProvider,
+              options: eSimProvider,
+            },
+          }));
+        } catch (error) {
+          console.log(error)
+        }
+      })();
+    }
+  };
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/user/newManufacturer");
@@ -173,6 +190,7 @@ const Manufacturer = () => {
                           fieldConfig={updatedFormFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
+                          handleOptionChange={handleStateChange}
                         />
                       </Grid>
                     ))}
