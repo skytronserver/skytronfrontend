@@ -36,22 +36,38 @@ const DtoRto = () => {
   useEffect(() => {
     (async () => {
       const stateList = await retriveStateList();
-      const districtList = await retriveDTOList();
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
         state: {
           ...prevConfig.state,
           options: stateList,
-        },
-        district_code: {
-          ...prevConfig.district_code,
-          options: districtList,
-        },
+        }
       }));
       setIsFormLoaded(true);
     })();
   }, []);
-
+  const handleStateChange = (event, formik) => {
+    const fieldName = event.target.name;
+    if (fieldName === "state") {
+      (async () => {
+        const getDetailsOf = {
+          state: event.target.value,
+        };
+        try {
+          const districtList = await retriveDTOList(getDetailsOf);
+          setUpdatedFormField((prevConfig) => ({
+            ...prevConfig,
+            district_code: {
+              ...prevConfig.district_code,
+              options: districtList,
+            },
+          }));
+        } catch (error) {
+          console.log(error)
+        }
+      })();
+    }
+  };
   const handleClose = () => {
     !alert.error && navigate("/user/newDto");
     setOpen(false);
@@ -154,6 +170,7 @@ const DtoRto = () => {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
+                            handleOptionChange={handleStateChange}
                           />
                         </Grid>
                       ))}
