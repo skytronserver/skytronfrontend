@@ -8,6 +8,9 @@ import {
   IconDeviceSim1,
   IconTag,
   IconUrgent,
+  IconCircleCheck,
+  IconChecks,
+  IconBan
 } from "@tabler/icons";
 
 const icons = {
@@ -19,6 +22,9 @@ const icons = {
   IconDeviceSim1,
   IconTag,
   IconUrgent,
+  IconCircleCheck,
+  IconChecks,
+  IconBan
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -163,6 +169,33 @@ const user = {
       icon: icons.IconUrgent,
       breadcrumbs: false,
       roles: ["superadmin", "sosadmin", "teamleader", "sosuser"],
+    },
+    {
+      id: "provider-device-list-pending",
+      title: "Activation",
+      type: "item",
+      url: "/device/activation-request/pending",
+      icon: icons.IconCircleCheck,
+      breadcrumbs: false,
+      roles: ["esimprovider"],
+    },
+    {
+      id: "provider-device-list-invalid",
+      title: "Rejected",
+      type: "item",
+      url: "/device/activation-request/invalid",
+      icon: icons.IconBan,
+      breadcrumbs: false,
+      roles: ["esimprovider"],
+    },
+    {
+      id: "provider-device-list-valid",
+      title: "Accepted",
+      type: "item",
+      url: "/device/activation-request/valid",
+      icon: icons.IconChecks,
+      breadcrumbs: false,
+      roles: ["esimprovider"],
     },
     {
       id: "device-icons",
@@ -340,30 +373,6 @@ const user = {
           url: "/user/state-admin-list",
           breadcrumbs: false,
           roles: ["superadmin"],
-        },
-        {
-          id: "provider-device-list-pending",
-          title: "Activation Request",
-          type: "item",
-          url: "/device/activation-request/pending",
-          breadcrumbs: false,
-          roles: ["esimprovider"],
-        },
-        {
-          id: "provider-device-list-invalid",
-          title: "Rejected Request",
-          type: "item",
-          url: "/device/activation-request/invalid",
-          breadcrumbs: false,
-          roles: ["esimprovider"],
-        },
-        {
-          id: "provider-device-list-valid",
-          title: "Accepted Request",
-          type: "item",
-          url: "/device/activation-request/valid",
-          breadcrumbs: false,
-          roles: ["esimprovider"],
         },
         {
           id: "manufacturer-list",

@@ -27,7 +27,7 @@ const AuthenticationRoutes = {
       element: <LoginOtp />,
     },
     {
-      path:"/new/:reset_token",
+      path:"/mis/new/:reset_token",
       element:<ResetPassword/>
     },
     {
@@ -35,7 +35,7 @@ const AuthenticationRoutes = {
       element:<ForgotPassword/>
     },
     {
-      path:"/reset-password/:reset_token",
+      path:"/mis/reset-password/:reset_token",
       element:<SetPassword/>
     }
   ],
