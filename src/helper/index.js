@@ -241,6 +241,7 @@ export const retriveCreatedSimProvider = async (data) => {
       } else {
         console.log("No Data Found");
       }
+      return [{value:'',label:'No Data Found'}]
     }
   };
 export const fetchVehicleCategory = async () => {
