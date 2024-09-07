@@ -27,7 +27,9 @@ export const showDeviceColumns = [
         return (
           <p>{value.model_name}</p>
         );
-      }
+      },
+      csvExportKey: "model_name",
+      
     },
     
   },
@@ -115,7 +117,9 @@ export const showDeviceColumns = [
         return (
           <p>{value[0]?.company_name}</p>
         );
-      }
+      },
+      csvExportKey: "company_name",
+      columnKey:0,
     },
   },
   {
@@ -150,7 +154,8 @@ export const showDeviceColumns = [
         return (
           <p>{value.name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
     },
   },
 ];
@@ -183,7 +188,9 @@ export const dealerListColumn = [
         return (
           <p>{value[0].mobile}</p>
         );
-      }
+      },
+      csvExportKey: "mobile",
+      columnKey:0,
     },
   },
   {
@@ -196,7 +203,9 @@ export const dealerListColumn = [
         return (
           <p>{value[0].email}</p>
         );
-      }
+      },
+      csvExportKey: "email",
+      columnKey:0,
     },
   },
   {
@@ -225,7 +234,9 @@ export const dealerListColumn = [
         return (
           <p>{value[0].created_by_name}</p>
         );
-      }
+      },
+      csvExportKey: "created_by_name",
+      columnKey:0,
     },
   },
 ];
@@ -249,7 +260,9 @@ export const sosListColumn = [
         return (
           <p>{value[0].name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
+      columnKey:0,
     },
   },
   {
@@ -262,7 +275,9 @@ export const sosListColumn = [
         return (
           <p>{value[0].mobile}</p>
         );
-      }
+      },
+      csvExportKey: "mobile",
+      columnKey:0,
     },
   },
   {
@@ -275,7 +290,9 @@ export const sosListColumn = [
         return (
           <p>{value[0].email}</p>
         );
-      }
+      },
+      csvExportKey: "email",
+      columnKey:0,
     },
   },
   {
@@ -296,7 +313,9 @@ export const sosListColumn = [
         return (
           <p>{value[0].created_by_name}</p>
         );
-      }
+      },
+      csvExportKey: "created_by_name",
+      columnKey:0,
     },
   },
   {
@@ -344,7 +363,9 @@ export const dtoListColumn = [
         return (
           <p>{value[0].name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
+      columnKey:0,
     },
   },
   {
@@ -357,7 +378,9 @@ export const dtoListColumn = [
         return (
           <p>{value[0].mobile}</p>
         );
-      }
+      },
+      csvExportKey: "mobile",
+      columnKey:0,
     },
   },
   {
@@ -370,7 +393,9 @@ export const dtoListColumn = [
         return (
           <p>{value[0].email}</p>
         );
-      }
+      },
+      csvExportKey: "email",
+      columnKey:0,
     },
   },
   {
@@ -391,7 +416,9 @@ export const dtoListColumn = [
         return (
           <p>{value[0].created_by_name}</p>
         );
-      }
+      },
+      csvExportKey: "created_by_name",
+      columnKey:0,
     },
   },
 ];
@@ -532,7 +559,9 @@ export const manufacturerColumns = [
         return (
           <p>{value[0].email}</p>
         );
-      }
+      },
+      csvExportKey: "email",
+      columnKey:0,
     },  
   },
   {
@@ -545,7 +574,9 @@ export const manufacturerColumns = [
         return (
           <p>{value[0].mobile}</p>
         );
-      }
+      },
+      csvExportKey: "mobile",
+      columnKey:0,
     },  
   },
   {
@@ -558,7 +589,9 @@ export const manufacturerColumns = [
         return (
           <p>{value[0].name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
+      columnKey:0,
     },  
   },
   {
@@ -614,7 +647,9 @@ export const serviceProviderCol = [
         return (
           <p>{value[0].email}</p>
         );
-      }
+      },
+      csvExportKey: "email",
+      columnKey:0,
     },  
   },
   {
@@ -627,7 +662,9 @@ export const serviceProviderCol = [
         return (
           <p>{value[0].mobile}</p>
         );
-      }
+      },
+      csvExportKey: "mobile",
+      columnKey:0,
     },  
   },
   {
@@ -640,7 +677,9 @@ export const serviceProviderCol = [
         return (
           <p>{value[0].name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
+      columnKey:0,
     },  
   },
   {
@@ -688,7 +727,9 @@ export const stateAdminColumn = [
         return (
           <p>{value[0].name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
+      columnKey:0,
     },  
   },
   {
@@ -701,7 +742,9 @@ export const stateAdminColumn = [
         return (
           <p>{value[0].email}</p>
         );
-      }
+      },
+      csvExportKey: "email",
+      columnKey:0,
     },  
   },
   {
@@ -714,7 +757,9 @@ export const stateAdminColumn = [
         return (
           <p>{value[0].mobile}</p>
         );
-      }
+      },
+      csvExportKey: "mobile",
+      columnKey:0,
     },  
   },
   {
@@ -727,7 +772,9 @@ export const stateAdminColumn = [
         return (
           <p>{value[0].created_by_name}</p>
         );
-      }
+      },
+      csvExportKey: "created_by_name",
+      columnKey:0,
     }, 
   },
   {
@@ -867,7 +914,9 @@ export const deviceModelColumns = [
         return (
           <p>{value.name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
+      
     }, 
   }
 ];
@@ -1117,7 +1166,9 @@ export const vehicleOwnerCols = [
         return (
           <p>{value[0].name}</p>
         );
-      }
+      },
+      csvExportKey: "name",
+      columnKey:0,
     },  
   },
   {
@@ -1130,7 +1181,9 @@ export const vehicleOwnerCols = [
         return (
           <p>{value[0].email}</p>
         );
-      }
+      },
+      csvExportKey: "email",
+      columnKey:0,
     },  
   },
   {
@@ -1143,7 +1196,9 @@ export const vehicleOwnerCols = [
         return (
           <p>{value[0].mobile}</p>
         );
-      }
+      },
+      csvExportKey: "mobile",
+      columnKey:0,
     },  
   },
   {
@@ -1156,7 +1211,9 @@ export const vehicleOwnerCols = [
         return (
           <p>{value[0].dob}</p>
         );
-      }
+      },
+      csvExportKey: "dob",
+      columnKey:0,
     },  
   },
   {
@@ -1169,7 +1226,9 @@ export const vehicleOwnerCols = [
         return (
           <p>{value[0].status}</p>
         );
-      }
+      },
+      csvExportKey: "status",
+      columnKey:0,
     },  
   },
   {
@@ -1182,7 +1241,9 @@ export const vehicleOwnerCols = [
         return (
           <p>{formatDate(value[0].created)}</p>
         );
-      }
+      },
+      csvExportKey: "created",
+      columnKey:0,
     },
   },
 ];

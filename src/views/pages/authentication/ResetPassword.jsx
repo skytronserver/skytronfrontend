@@ -16,6 +16,7 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [dialog, setDialog] = useState(false);
   const [error, setError] = useState(null);
+  const [passwordError, setPasswordError] = useState('');
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [arePasswordsMatch, setArePasswordsMatch] = useState(false);
@@ -45,6 +46,16 @@ const ResetPassword = () => {
   };
   const handlePasswordChange = (value) => {
     setPassword(value); 
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    // Check if the password matches the pattern
+    if (!passwordPattern.test(value)) {
+      setPasswordError(
+        'Password must contain at least one uppercase, lowercase, numeric, and special character'
+      );
+    } else {
+      setPasswordError(''); // Clear error if password is valid
+    }
   };
 
   const handleConfirmPasswordChange = (value) => {
@@ -219,6 +230,8 @@ const ResetPassword = () => {
                           value={password}
                           onChange={(e) => handlePasswordChange(e.target.value)}
                           fullWidth
+                          error={!!passwordError}
+                          helperText={passwordError}
                         />
                         <br/><br/>
                         <TextField
