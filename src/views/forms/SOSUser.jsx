@@ -13,7 +13,7 @@ import {
   retriveDistrictList,
   retriveStateList,
 } from "../../helper";
-import {sosUserFormField,sosUserInitialValues} from "../../formjson/sosUser"
+import {sosOtherUserFormField,sosOtherUserInitialValues} from "../../formjson/sosUser"
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const SOSUser = () => {
@@ -24,7 +24,7 @@ const SOSUser = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-  const [updatedFormFields, setUpdatedFormField] = useState(sosUserFormField);
+  const [updatedFormFields, setUpdatedFormField] = useState(sosOtherUserFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   useEffect(() => {
     (async () => {
@@ -79,7 +79,7 @@ const SOSUser = () => {
   );
   const handleCreateUser = async (userData) => {
     try {
-      const response = await UserServices.createSOSAdmin(userData);
+      const response = await UserServices.createSOSUser(userData);
       console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
@@ -109,7 +109,7 @@ const SOSUser = () => {
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(sosUserInitialValues);
+      resetForm(sosOtherUserInitialValues);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -163,7 +163,7 @@ const SOSUser = () => {
         >
           <MainCard title="Create SOS User">
            {isFormLoaded && <Formik
-              initialValues={sosUserInitialValues}
+              initialValues={sosOtherUserInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
               enableReinitialize
