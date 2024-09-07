@@ -163,7 +163,9 @@ const formatDate = (dateString) => {
           return (
             <p>{value.company_name}</p>
           );
-        }
+        },
+        csvExportKey: "company_name",
+      
       },
     },
       {
@@ -189,7 +191,9 @@ const formatDate = (dateString) => {
             return (
               <p>{value.imei}</p>
             );
-          }
+          },
+          csvExportKey: "imei",
+      
         },
       },
       {
@@ -202,7 +206,8 @@ const formatDate = (dateString) => {
             return (
               <p>{value.device_esn}</p>
             );
-          }
+          },
+          csvExportKey: "device_esn",
         },
       },
       {
@@ -215,7 +220,9 @@ const formatDate = (dateString) => {
             return (
               <p>{value.iccid}</p>
             );
-          }
+          },
+          csvExportKey: "iccid",
+      
         },
       },
       {
@@ -228,7 +235,9 @@ const formatDate = (dateString) => {
             return (
               <p>{value.msisdn1	}</p>
             );
-          }
+          },
+          csvExportKey: "msisdn1",
+      
         },
       },
       {
@@ -241,7 +250,9 @@ const formatDate = (dateString) => {
             return (
               <p>{value.msisdn2}</p>
             );
-          }
+          },
+          csvExportKey: "msisdn2",
+      
         },
       },
       {
@@ -254,7 +265,9 @@ const formatDate = (dateString) => {
             return (
               <p>{formatDate(value.esim_validity)}</p>
             );
-          }
+          },
+          csvExportKey: "esim_validity",
+      
         },
       },
       {
@@ -267,7 +280,9 @@ const formatDate = (dateString) => {
             return (
               <p>{value.telecom_provider1}</p>
             );
-          }
+          },
+          csvExportKey: "telecom_provider1",
+      
         },
       },
   ];
@@ -380,7 +395,9 @@ const formatDate = (dateString) => {
           return (
             <p>{value[0]?.company_name}</p>
           );
-        }
+        },
+        csvExportKey: "company_name",
+        columnKey:0,
       },
     },
     {

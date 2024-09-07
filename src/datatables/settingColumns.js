@@ -18,7 +18,9 @@ export const ipSettingColumns=[
         return (
           <p>{value.state}</p>
         );
-      }
+      },
+      csvExportKey: "state",
+ 
     },
   },
   {
@@ -31,7 +33,9 @@ export const ipSettingColumns=[
         return (
           <p>{value.model_name}</p>
         );
-      }
+      },
+      csvExportKey: "model_name",
+      
     },
   },
   {
@@ -128,7 +132,8 @@ export const frequencyColumns=[
         return (
           <p>{value.model_name}</p>
         );
-      }
+      },
+      csvExportKey: "model_name",
     },
   },
   {
@@ -160,7 +165,8 @@ export const firmwareColumns=[
         return (
           <p>{value.model_name}</p>
         );
-      }
+      },
+      csvExportKey: "model_name",
     },
   },
   {
@@ -220,7 +226,8 @@ export const districtColumns=[
           return (
             <p>{stateName}</p>
           );
-        }
+        },
+        csvExportKey: "state",
       },
     },
     {
