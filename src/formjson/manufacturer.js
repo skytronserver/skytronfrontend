@@ -12,7 +12,7 @@ export const manufacturerInitialValues = {
     mobile: "",
     email: "",
     dob:"",
-    expiryDate:formattedDate,
+    expirydate:formattedDate,
     company_name: "",
     gstnnumber: "",
     idProofno:"",
@@ -69,8 +69,8 @@ export const manufacturerFormField = {
     validation: Yup.date().required("Date of Birth is required"),
     maxDate:today
   },
-  expiryDate: {
-    name:"expiryDate",
+  expirydate: {
+    name:"expirydate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),

@@ -16,7 +16,7 @@ export const dealerAccountInitialValues = {
   address_State: "",
   district: [],
   idProofno: "",
-  expiryDate: formattedDate,
+  expirydate: formattedDate,
   file_authLetter: null,
   file_companRegCertificate: null,
   file_GSTCertificate: null,
@@ -92,8 +92,8 @@ export const dealerAccountFormField = {
     label: "User ID Proof Number",
     validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
   },
-  expiryDate: {
-    name: "expiryDate",
+  expirydate: {
+    name: "expirydate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),

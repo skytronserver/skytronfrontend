@@ -17,7 +17,6 @@ export const eSIMInitialValues = {
     idProofno:"",
     stateId:'',
     file_authLetter: null,
-    file_companRegCertificate: null,
     file_GSTCertificate: null,
     file_idProof:null,
     file_dot_m2m_registration:null,
@@ -87,20 +86,6 @@ export const eSIMFormField = {
     label: "Authorization Letter",
     message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
     validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
-  },
-  file_companRegCertificate:{
-    name:"file_companRegCertificate",
-    type: "file",
-    label: "Registration Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("Company Registration Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })

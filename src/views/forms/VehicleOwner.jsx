@@ -42,7 +42,7 @@ const VehicleOwner = () => {
               email: response.users[0]?.email || "",
               dob: response.users[0]?.dob || "",
               address: response.users[0]?.address || "",
-              expiryDate: formattedDate,
+              expirydate: formattedDate,
               idProofno: response.idProofno || "",
               file_idProof: response.file_idProof || null,
               vehicleowner_id:response.id

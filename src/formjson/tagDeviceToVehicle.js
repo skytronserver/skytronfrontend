@@ -23,10 +23,10 @@ export const taggingFields = {
   },
   vehicle_owner: {
     name: "vehicle_owner",
-    type: "select",
-    label: "Vehicle Owner",
-    validation: Yup.string().required("Vehicle Owner is required"),
-    options: ownerList,
+    type: "text",
+    label: "Vehicle Owner Mobile Number",
+    validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
+
   },
   vehicle_reg_no: {
     name: "vehicle_reg_no",

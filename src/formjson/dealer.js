@@ -12,7 +12,7 @@ export const dealerInitialValues = {
     state:"",
     district:"",
     userIdProofNo:"",
-    expiryDate:formattedDate,
+    expirydate:formattedDate,
     authorizationLetter: null,
     companyRegistrationCertificate: null,
     gstCertificate: null,
@@ -78,8 +78,8 @@ export const dealerFormField = {
     label: "User ID Proof Number",
     validation: Yup.string().required("User ID Proof Number is required"),
   },
-  expiryDate: {
-    name:"expiryDate",
+  expirydate: {
+    name:"expirydate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),

@@ -13,7 +13,6 @@ import MainCard from "../../ui-component/cards/MainCard";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import {
-  retriveVehicleOwner,
   fetchDeviceListForSale,
   fetchVehicleCategory,
 } from "../../helper";
@@ -91,7 +90,6 @@ function TagDeviceToVehicle() {
   useEffect(() => {
     (async () => {
       const deviceList = await fetchDeviceListForSale();
-      const ownerList = await retriveVehicleOwner();
       const categoryList = await fetchVehicleCategory();
 
       setUpdatedFormField((prevConfig) => ({
@@ -100,10 +98,6 @@ function TagDeviceToVehicle() {
         device: {
           ...prevConfig.device,
           options: deviceList,
-        },
-        vehicle_owner: {
-          ...prevConfig.vehicle_owner,
-          options: ownerList,
         },
         category: {
           ...prevConfig.category,
