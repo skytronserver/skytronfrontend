@@ -16,7 +16,7 @@ export const dtoInitialsValues = {
     district_code:"",
     idProofno:"",
     dob:"",
-    expiryDate:formattedDate,
+    expirydate:formattedDate,
     dto_rto:"",
     file_idProof: null,
     file_authorisation_letter:null
@@ -68,8 +68,8 @@ export const dtoFormFields = {
     validation: Yup.date().required("Date of Birth is required"),
     maxDate:today
   },
-  expiryDate: {
-    name:"expiryDate",
+  expirydate: {
+    name:"expirydate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),

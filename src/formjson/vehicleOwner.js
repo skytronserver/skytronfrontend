@@ -11,7 +11,7 @@ export const ownerInitialValues = {
   email: "",
   dob:"",
   address: "",
-  expiryDate: formattedDate,
+  expirydate: formattedDate,
   idProofno: "",
   file_idProof: null,
 };
@@ -51,8 +51,8 @@ export const vehicleOwnerField = {
     label: "Full Address",
     validation: Yup.string().required("Full Address is required"),
   },
-  expiryDate: {
-    name:"expiryDate",
+  expirydate: {
+    name:"expirydate",
     type: "date",
     label: "Expiry Date",
     disabled:true,

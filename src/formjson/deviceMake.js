@@ -7,7 +7,7 @@ export const deviceMakeInitialValues = {
     mobile: "",
     email: "",
     dob:"",
-    expiryDate:formattedDate,
+    expirydate:formattedDate,
     companyName: "",
     gstNo: "",
     userIdProofNo:"",
@@ -49,8 +49,8 @@ export const deviceMakeFormField = {
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
   },
-  expiryDate: {
-    name:"expiryDate",
+  expirydate: {
+    name:"expirydate",
     type: "date",
     label: "Expiry Date",
     validation: Yup.date().required("Expiry Date is required"),
