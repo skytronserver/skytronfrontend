@@ -1,11 +1,10 @@
-import { Container, Typography, Button, Box } from "@mui/material";
+import { Container, Typography,Box } from "@mui/material";
 import skytrack from "../../assets/images/skytrack.jpg";
 import DetailSection from "./DetailSection";
 import AboutUs from "./AboutUs";
 import ContactUs from "./ContactUs";
 import Footer from "./Footer";
-
-function LandingPage() {
+function LandingPage() { 
   return (
     <>
       <Box

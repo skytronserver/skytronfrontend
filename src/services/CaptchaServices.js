@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { BASE_URL } from '../store/constant';
 const handleAxiosError = (error) => {
   if (error.response) {
     console.error("Response error:", error.response.data);
@@ -10,7 +11,7 @@ const handleAxiosError = (error) => {
   alert("A network error occurred. Please try again later.");
 }
 const http=axios.create({
-    baseURL: "https://skytrack.tech:2000/",
+    baseURL: BASE_URL,
     headers: {
       "Content-type": "application/json",
     },

@@ -28,6 +28,7 @@ import SOSUserList from "../views/reports/SOSUserList";
 import StateAdminList from "../views/reports/StateAdminList";
 import DTOUserList from "../views/reports/DTOUserList";
 import EsimProviderList from "../views/reports/EsimProviderList";
+import NoticeList from "../views/reports/NoticeList";
 const PrivateRoute = ({ element,roles }) => {
 const myDecipher = decipherEncryption('skytrack')
 const userData=sessionStorage.getItem('cookiesData');
@@ -176,6 +177,11 @@ const UserRoutes = {
     {
       path: "/user/sos-user-list",
       element: <SOSUserList/>,
+      roles: ['superadmin']
+    },
+    {
+      path: "/notice/all-notice-list",
+      element: <NoticeList/>,
       roles: ['superadmin']
     },
     {

@@ -18,6 +18,14 @@ const other = {
       icon:icons.IconSettings,
       children: [
         {
+          id: 'notice-create',
+          title: 'Notice',
+          type: 'item',
+          url: '/setting/notice',
+          breadcrumbs: false,
+          roles:['superadmin']
+        },
+        {
           id: 'vehicle-category',
           title: 'Vehicle Category',
           type: 'item',

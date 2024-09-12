@@ -1,3 +1,4 @@
+import ViewNotice from "../views/landingpage/ViewNotice";
 import LandingLayout from "../layout/LandingLayout";
 import LandingPage from "../views/landingpage/LandingPage";
 const LandingRoutes = {
@@ -11,6 +12,10 @@ const LandingRoutes = {
     {
       path: "home-page",
       element: <LandingPage />,
+    },
+    {
+      path: "notice-view-all",
+      element: <ViewNotice />,
     },
   ],
 };

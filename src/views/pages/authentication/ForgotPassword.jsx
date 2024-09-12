@@ -7,6 +7,7 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import { BASE_URL } from "../../../store/constant";
 import CircularProgress from "@mui/material/CircularProgress";
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
@@ -74,7 +75,7 @@ const ForgotPassword = () => {
       setLoading(true);
       try {
         await axios.post(
-          "https://skytrack.tech:2000/api/reset_password_request/",
+          `${BASE_URL}api/reset_password_request/`,
           { mobile: mobileNumber, email: email },
           {
             headers: {

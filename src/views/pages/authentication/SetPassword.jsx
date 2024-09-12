@@ -8,6 +8,7 @@ import AuthCardWrapper from "./AuthCardWrapper";
 import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { useParams } from "react-router-dom";
 import axios from 'axios';
+import { BASE_URL } from "../../../store/constant";
 const SetPassword = () => {
   const { reset_token } = useParams();
   const theme = useTheme();
@@ -65,7 +66,7 @@ const SetPassword = () => {
     if(password!=''){
         setLoading(true)
         try {
-            await axios.post('https://skytrack.tech:2000/api/password_reset/', {mobile:mobileNumber, new_password: password,id_no:idNo,dob:dob },{
+            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: password,id_no:idNo,dob:dob },{
                 headers:{
                     "Content-type": "application/json",
                     "Authorization": "Token "+reset_token,

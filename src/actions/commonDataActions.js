@@ -51,6 +51,10 @@ export const SOSAdminList=(data)=>({
   type:"GET_ALL_SOS_ADMIN",
   payload:data
 })
+export const allNoticeList=(data)=>({
+  type:"GET_ALL_NOTICE_DATA",
+  payload:data
+})
 export const DTOUserList=(data)=>({
   type:"GET_ALL_DTO_USER",
   payload:data

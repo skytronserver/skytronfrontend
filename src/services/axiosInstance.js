@@ -1,11 +1,11 @@
 // axiosInstance.js
 import axios from 'axios';
-
+import { BASE_URL } from '../store/constant';
 let axiosInstance = null;
 
 export const createAxiosInstance = (token) => {
   axiosInstance = axios.create({
-    baseURL: "https://skytrack.tech:2000/",
+    baseURL: BASE_URL,
     headers: {
       "Content-type": "application/json",
       "Authorization": `Token ${token}`,
