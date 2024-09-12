@@ -41,14 +41,15 @@ function Navbar() {
       onKeyDown={toggleDrawer(false)}
     >
       <List>
-        <ListItem button component={Link} to="/mis">
-          <ListItemText primary="MIS" sx={{ color: "white !important" }} />
-        </ListItem>
+       
         <ListItem button component="a" href="#about">
           <ListItemText primary="About Us" sx={{ color: "white !important" }} />
         </ListItem>
         <ListItem button component="a" href="#contact">
           <ListItemText primary="Contact Us" sx={{ color: "white !important" }} />
+        </ListItem>
+        <ListItem button component={Link} to="/notice-view-all">
+          <ListItemText primary="Notice" sx={{ color: "white !important" }} />
         </ListItem>
       </List>
     </Box>
@@ -85,14 +86,15 @@ function Navbar() {
 
         {/* Right-side navigation links for larger screens */}
         <Box sx={{ display: { xs: "none", sm: "block" } }}>
-          <Button color="inherit" component={Link} to="/mis">
-            MIS
-          </Button>
+          
           <Button color="inherit" component="a" href="#about">
             About Us
           </Button>
           <Button color="inherit" component="a" href="#contact">
             Contact Us
+          </Button>
+          <Button color="inherit" component={Link} to="/notice-view-all">
+            Notice
           </Button>
         </Box>
 

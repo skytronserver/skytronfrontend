@@ -1248,4 +1248,39 @@ export const vehicleOwnerCols = [
   },
 ];
 
-
+export const noticeColumn = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "title",
+    label: "Title",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "detail",
+    label: "Details",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "file",
+    label: "Notice FIle",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  }
+];

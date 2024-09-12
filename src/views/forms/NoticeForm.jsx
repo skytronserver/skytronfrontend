@@ -1,52 +1,63 @@
 import { Grid, Button, CircularProgress } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
-import { gridSpacing } from "../../store/constant";
+import {
+  gridSpacing,
+  FILE_SIZE,
+  SUPPORTED_FORMATS,
+} from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
-import UserServices from "../../services/UserServices";
+import Notice from "../../services/Notice";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  convertErrorObjectToArray,
-  retriveDistrictList,
-  retriveStateList,
-} from "../../helper";
-import {sosOtherUserFormField,sosOtherUserInitialValues} from "../../formjson/sosUser"
-const FILE_SIZE = 512 * 1024 ; // 512 KB
-const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
-const SOSUser = () => {
+import { formFields, initialValues } from "../../formjson/notice";
+import { useParams } from "react-router-dom";
+import "./form.css";
+const NoticeForm = () => {
+  const params = useParams();
+  const parameter= params['*'] && !isNaN(params['*'])
+  const [editPage,setEditPage]=useState(false);
   const [open, setOpen] = useState(false);
+  const [noticeInitialValues, setNoticeInitialValues] = useState(initialValues);
   const [alert, setAlert] = useState({
     error: false,
     message: "",
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-  const [updatedFormFields, setUpdatedFormField] = useState(sosOtherUserFormField);
-  const [isFormLoaded, setIsFormLoaded] = useState(false);
-  useEffect(() => {
-    (async () => {
-      const stateList = await retriveStateList();
-      const districtList = await retriveDistrictList();
-      setUpdatedFormField((prevConfig) => ({
-        ...prevConfig,
-        state: {
-          ...prevConfig.state,
-          options: stateList,
-        },
-        district: {
-          ...prevConfig.district,
-          options: districtList,
-        },
-      }));
-      setIsFormLoaded(true);
-    })();
-  }, []);
   const navigate = useNavigate();
+
+  useEffect(()=>{
+    if(params['*'] && !isNaN(params['*'])){
+      const id=params['*']; 
+      (async()=>{
+        try {
+          const responseData=await Notice.filter({notice_id:id});
+          if(responseData?.data?.[0]){
+            const response=responseData?.data?.[0];
+            setNoticeInitialValues({
+              title: response.title,
+              detail: response.detail,
+              file: response.file,
+              status: response.status,
+              id:response.id
+            });
+            setEditPage(true);
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      })()
+    }else{
+      setNoticeInitialValues(initialValues);
+      setEditPage(false);
+    }
+  },[parameter]);
+
   const handleClose = () => {
-    !alert.error && navigate("/new/sos-user");
+    !alert.error && navigate("/setting/notice");
     setOpen(false);
   };
 
@@ -72,40 +83,37 @@ const SOSUser = () => {
   };
 
   const validationSchema = Yup.object(
-    Object.keys(updatedFormFields).reduce((acc, field) => {
-      acc[field] = updatedFormFields[field].validation;
+    Object.keys(formFields).reduce((acc, field) => {
+      acc[field] = formFields[field].validation;
       return acc;
     }, {})
   );
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      // Extract user data from sessionStorage
-      const userData = sessionStorage.getItem('cookiesData');
+      const userData = sessionStorage.getItem("cookiesData");
       const data = userData && userData.split("-");
       const userId = userData && data.length > 2 && data[3];
-  
-      // Prepare values with role and createdby
+
       const valuesWithRole = {
         ...values,
-        role: values['user_type'],
         createdby: userId,
       };
-  
-      // Set submitting and loading state
       setSubmitting(true);
       setLoading(true);
-  
-      // Create the user and handle the response
-      const response = await UserServices.createSOSUser(valuesWithRole);
-      console.log("User created successfully:");
+      const message="Notice added successfully"
+      if(editPage){
+        message="Notice Updated successfully"
+        await Notice.update(valuesWithRole);
+      }else{
+        await Notice.create(valuesWithRole);  
+      } 
       
-      // Successful response
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
-      resetForm(sosOtherUserInitialValues);
+      handleAlert(message);
+      resetForm(noticeInitialValues);
     } catch (error) {
       // Handle error response
-      console.error("Error creating user:", error?.message);
+      console.error("Error adding notice:", error?.message);
       setAlert((prevAlert) => ({
         ...prevAlert,
         error: true,
@@ -115,13 +123,12 @@ const SOSUser = () => {
           errors: error?.response?.data,
         },
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert("Something went wrong");
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
   };
-  
 
   return (
     <>
@@ -134,38 +141,14 @@ const SOSUser = () => {
 
       <Grid container spacing={gridSpacing}>
         {loading && (
-          <div
-            style={{
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 9999,
-              background: "rgba(255, 255, 255, 0.8)",
-            }}
-          >
-            <CircularProgress
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-              size={50}
-            />
+          <div className="spinner-div">
+            <CircularProgress className="circular-progress" size={50} />
           </div>
         )}
-        <Grid
-          item
-          xs={12}
-          style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
-          <MainCard title="Create SOS User">
-           {isFormLoaded && <Formik
-              initialValues={sosOtherUserInitialValues}
+        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
+          <MainCard title="New Notice">
+            <Formik
+              initialValues={noticeInitialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
               enableReinitialize
@@ -173,10 +156,10 @@ const SOSUser = () => {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(updatedFormFields).map((field) => (
+                    {Object.keys(formFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={updatedFormFields[field]}
+                          fieldConfig={formFields[field]}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
@@ -196,7 +179,6 @@ const SOSUser = () => {
                 </form>
               )}
             </Formik>
-          }
           </MainCard>
         </Grid>
       </Grid>
@@ -204,4 +186,4 @@ const SOSUser = () => {
   );
 };
 
-export default SOSUser;
+export default NoticeForm;

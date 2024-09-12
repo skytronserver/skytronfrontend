@@ -12,6 +12,7 @@ import IPSetting from "../views/settings/IPSetting";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
+import NoticeForm from "../views/forms/NoticeForm";
 const PrivateRoute = ({ element,roles }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData=sessionStorage.getItem('cookiesData');
@@ -68,6 +69,13 @@ const SettingRoutes = {
         <FrequencyFirmware/>
       ),
       roles: ['superadmin','devicemanufacture']
+    },
+    {
+      path: "/setting/notice/*",
+      element: (
+        <NoticeForm/>
+      ),
+      roles: ['superadmin']
     },
     {
       path: "/setting/ip-settings",

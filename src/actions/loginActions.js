@@ -1,5 +1,5 @@
 // userActions.js
-import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP } from '../store/constant';
+import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP,BASE_URL } from '../store/constant';
 import { cipherEncryption } from '../helper';
 import axios from 'axios';
 export const setUser = (user) => ({
@@ -30,7 +30,7 @@ export const logoutUser=(user)=>({
 export const loginUser = (username, password,captcha_key,captcha_reply) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
-    const response = await axios.post('https://skytrack.tech:2000/api/user_login/', {
+    const response = await axios.post(`${BASE_URL}api/user_login/`, {
       username,
       password,
       captcha_key,
@@ -81,7 +81,7 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
 export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
   try{
     dispatch(setLoading(true));
-    const response=await axios.post('https://skytrack.tech:2000/api/validate_otp/',{
+    const response=await axios.post(`${BASE_URL}api/validate_otp/`,{
       token,
       otp
     });
@@ -117,7 +117,7 @@ export const resendOtp = (mobile,token) => async (dispatch) => {
   };
   try {
     dispatch(setLoading(true));
-     await axios.post('https://skytrack.tech:2000/api/send_sms_otp/', {
+     await axios.post(`${BASE_URL}api/send_sms_otp/`, {
       mobile,
       token
     },{
@@ -145,7 +145,7 @@ export const logout=()=>async(dispatch)=>{
     "Authorization": "Token "+sessionStorage.getItem('oAuthToken'),
   };
   try{
-    await axios.post('https://skytrack.tech:2000/api/user_logout/',{
+    await axios.post(`${BASE_URL}api/user_logout/`,{
       "token":sessionStorage.getItem('oAuthToken')
     },{
       headers:header
