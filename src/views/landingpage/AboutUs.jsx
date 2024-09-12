@@ -41,7 +41,6 @@ function AboutUs() {
                 the forefront of developing state-of-the-art hardware and software solutions for the transportation
                 sector. As a proud supporter of the Make in India initiative, all our devices and technologies are
                 designed, prototyped, and tested locally in India.
-
               </Typography>
               <Typography variant="body1" paragraph sx={{fontSize: "16px",fontWeight: "bold",fontStyle: "italic",lineHeight:'30px'}}>At Skytrack, we recognize the challenges faced by the
                 Indian transportation industry. The lack of
