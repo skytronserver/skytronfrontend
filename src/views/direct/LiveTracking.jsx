@@ -24,8 +24,8 @@ const LiveTracking = () => {
   const [tableDataTop, setTableDataTop] = useState([]); // Data for the scrollable table
   const [selectedId, setSelectedId] = useState(null); // Track the selected button ID
   const [filteredData, setFilteredData] = useState([]); // Data for the bottom table
+
   const keyMapping = {
-    "id": "ID",
     "entry_time": "Entry Time",
     "packet_type": "Packet Type",
     "alert_id": "Alert ID",
@@ -160,7 +160,6 @@ const LiveTracking = () => {
         </Grid>
       </form>
 
-
       {/* Scrollable Table (First Table) */}
       <div style={{ display: "flex", paddingTop: "20px" }}>
         <div
@@ -178,9 +177,8 @@ const LiveTracking = () => {
               <TableBody>
                 {tableDataTop.length > 0 ? (
                   tableDataTop.map((row) => (
-                    <TableRow key={row.id}>
-
-                      <TableCell>
+                    <TableRow key={row.id} style={{ borderBottom: "none" }}>
+                      <TableCell style={{ paddingBottom: "5px", borderBottom: "none" }}>
                         <Button
                           variant="contained"
                           color={selectedId === row.id ? "secondary" : "primary"} // Change color if selected
@@ -196,8 +194,6 @@ const LiveTracking = () => {
                           {row.vehicle_registration_number}
                         </Button>
                       </TableCell>
-
-
                     </TableRow>
                   ))
                 ) : (
@@ -212,14 +208,7 @@ const LiveTracking = () => {
 
         {/* HTML Content (iframe) */}
         <div style={{ width: "80%", height: "400px" }}>
-
           <MapComponent gpsData={filteredData} width="100%" height="400px" />
-          { //< iframe
-            //title="HTML Content"
-            // srcDoc={htmlContent} // Set the HTML content as srcDoc
-            // style={{ width: "100%", height: "400px", border: "1px solid #ccc" }}
-            ///>
-          }
         </div>
       </div>
 
@@ -231,7 +220,7 @@ const LiveTracking = () => {
         overflowX: "auto",  // Enable horizontal scrolling
         overflowY: "auto",  // Enable vertical scrolling
       }}>
-        <Table>
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               {/* Dynamically generate headers based on data keys */}
