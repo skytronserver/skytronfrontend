@@ -108,14 +108,18 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
     const timeDifference = calculateTimeDifference(entryTime, currentTime);
+    console.log("timediff", timeDifference);
+    console.log("data.packet_type ", data.packet_type);
+    console.log("data.ignition_status ", data.ignition_status);
+    console.log("data.speed  ", data.speed);
 
     if (data.packet_type === "EA") {
       return iconStyles.red; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       return iconStyles.orange; // Any Alert Packet except EA - Orange Icon
-    } else if (data.ignition_status === 0 && data.speed === 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed === 0) {
       return iconStyles.blue; // Ignition ON but stationary - Blue Icon
-    } else if (data.ignition_status === 1 && data.speed > 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed > 0) {
       return iconStyles.green; // Ignition ON and moving - Green Icon
     } else if (timeDifference > 5) {
       return iconStyles.grey; // Offline device (no packets from device for 5+ minutes) - Grey Icon
