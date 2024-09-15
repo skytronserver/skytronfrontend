@@ -1,44 +1,43 @@
-// material-ui
-import React from 'react';
-// project imports
+import React, { useEffect, useState } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
-import HomePageService from "../../services/HomePage"
-import { useEffect, useState } from 'react';
-
+import HomePageService from "../../services/HomePage";
 import GPSHistoryMap from "./HistoryPlaybackMap";
-// ==============================|| SAMPLE PAGE ||============================== //
 import { FormControl, InputLabel, Select, MenuItem, TextField, Button, Grid } from '@mui/material';
-
 
 const HistoryPlayback = () => {
   const currentDate = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-  const [load, setLoad] = useState(false)
-  const [htmlContent, setHtmlContent] = useState('');
-  const [vehicleNo, setVehicleNo] = useState('');
-  const [fromDate, setFromDate] = useState(yesterday);
-  const [toDate, setToDate] = useState(currentDate);
+  const [load, setLoad] = useState(false);
+  const [vehicleNo, setVehicleNo] = useState('GEM1205-04-00');
+  const [fromDate, setFromDate] = useState("2024-09-14T12:00:00");//useState(yesterday);
+  const [toDate, setToDate] = useState("2024-09-14T17:59:59");//useState(currentDate);
   const [vehicleList, setVehicleList] = useState([]);
+  const [downloadStatus, setDownloadStatus] = useState("");
+  // const [fromDate, setStartDateTime] = 
+  // const [toDate, setEndDateTime] = 
+  // const [vehicleNo, setVehicleRegistrationNumber] = useState("");
+  const [showMap, setShowMap] = useState(false); // To control visibility of the map
 
   useEffect(() => {
     const fetchVehicleList = async () => {
       const retriveData = await HomePageService.getVehicleList();
-      setVehicleList(retriveData.data)
-      setLoad(true)
+      setVehicleList(retriveData.data);
+      setLoad(true);
     };
     fetchVehicleList();
-  }, [])
-
-
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const params = {
-      vehicleNo: vehicleNo,
-      fromDate: fromDate,
-      toDate: toDate
-    }
-    retriveMapData(params)
+
+    // Set the state values based on form inputs
+    //setStartDateTime(fromDate);
+    //setEndDateTime(toDate);
+    //setVehicleRegistrationNumber(vehicleNo);
+
+    // Display the map after the form is submitted
+    setShowMap(true);
+    console.log("Submitted data:", { vehicleNo, fromDate, toDate });
   };
 
   const handleVehicleNoChange = (e) => {
@@ -49,20 +48,9 @@ const HistoryPlayback = () => {
     setFromDate(e.target.value);
   };
 
-  const retriveMapData = async (data) => {
-    try {
-      const retriveData = await HomePageService.getHistoryPlayback(data);
-      setHtmlContent(retriveData.data)
-      setLoad(true)
-    } catch (error) {
-      console.log(error)
-    }
+  const handleToDateChange = (e) => {
+    setToDate(e.target.value);
   };
-
-  const [startDateTime] = useState("2024-09-10T00:00:00");
-  const [endDateTime] = useState("2024-09-12T23:59:59");
-  const [vehicleRegistrationNumber] = useState("ABC00000012");
-
 
   return (
     <MainCard>
@@ -70,21 +58,22 @@ const HistoryPlayback = () => {
         <Grid container spacing={2} className="form-controller">
           <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <FormControl fullWidth>
-
               <InputLabel>Vehicle No</InputLabel>
-              <Select
-                value={vehicleNo}
-                onChange={handleVehicleNoChange}
-              >
+              <Select value={vehicleNo} onChange={handleVehicleNoChange}>
                 <MenuItem value="">Select</MenuItem>
                 {vehicleList.length > 0 ? (
-                  vehicleList.map((item) => {
-                    return <MenuItem value={item} key={item}>{item}</MenuItem>
-                  })
-                ) : <MenuItem value="">Wait Fetching Vehicle List</MenuItem>}
+                  vehicleList.map((item) => (
+                    <MenuItem value={item} key={item}>
+                      {item}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="">Wait Fetching Vehicle List</MenuItem>
+                )}
               </Select>
             </FormControl>
           </Grid>
+
           <Grid item md={3} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <TextField
               fullWidth
@@ -95,36 +84,46 @@ const HistoryPlayback = () => {
               inputProps={{ max: yesterday }}
             />
           </Grid>
+
           <Grid item md={3} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <TextField
               fullWidth
               label="To Date"
               type="datetime-local"
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
+              onChange={handleToDateChange}
               InputLabelProps={{ shrink: true }}
               inputProps={{ max: currentDate }}
             />
           </Grid>
+
           <Grid item md={2} sm={12} xs={12} style={{ marginTop: "20px" }}>
-            <Button type="submit" variant="contained" color="primary" style={{ height: '48px' }}>Submit</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              style={{ height: "48px" }}
+            >
+              Submit
+            </Button>
           </Grid>
         </Grid>
       </form>
+
+      {/* Show the map only after the form is submitted */}
       <div style={{ paddingTop: "20px" }}>
-        <GPSHistoryMap
-          startDateTime={startDateTime}
-          endDateTime={endDateTime}
-          vehicleRegistrationNumber={vehicleRegistrationNumber}
-        />
-        {//load && <iframe
-          //  title="HTML Content"
-          //  srcDoc={htmlContent} // Set the HTML content as srcDoc
-          // style={{ width: '100%', height: '500px', border: '1px solid #ccc' }}
-          // />
-        }
+        {showMap && (
+          <GPSHistoryMap
+            startDateTime={fromDate}
+            endDateTime={toDate}
+            vehicleRegistrationNumber={vehicleNo}
+            downloadStatus={downloadStatus}
+            setDownloadStatus={setDownloadStatus}
+          />
+        )}
       </div>
     </MainCard>
   );
-}
+};
+
 export default HistoryPlayback;
