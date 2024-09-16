@@ -49,11 +49,9 @@ const getVehicleList = (data) => {
 }
 const getRouteFixing = (device_id) => {
   const http = getAxiosInstance();
-  return http.get("/api/setRout/", {
-    params: {
-      device: device_id
-    }
-  })
+  const data = { "device_id": device_id }
+  return http.post("/api/getRoute/", data);
+
 }
 const getAllSOSCall = () => {
   const http = getAxiosInstance();
@@ -71,6 +69,15 @@ const updateSOSCall = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/submit_status/", data);
 }
+
+const addRoute = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/saveRoute/", data);
+}
+const delRoute = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/delRoute/", data);
+}
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -83,7 +90,9 @@ const HomePageService = {
   getAllSOSCall,
   getCallDetails,
   broadCastHelp,
-  updateSOSCall
+  updateSOSCall,
+  addRoute,
+  delRoute
 
 };
 

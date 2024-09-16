@@ -152,8 +152,11 @@ const GPSHistoryMap = ({
       });
       var col = "gray";
       console.log(entry.ps);
-      if (entry.ps == "NR") { col = "green" }
-      else if (entry.ps == "EM") { col = "red" }
+      if (entry.ps == "EM") { col = "red" }
+
+
+      else if (entry.s < 1) { col = "blue" }
+      else if (entry.ps == "NR") { col = "green" }
       else { col = "gray" }
 
       // Adding circular marker for each point
