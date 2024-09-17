@@ -57,13 +57,24 @@ const Logo = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-          
           }}
         >
           SKYTRON
         </h3>
 
-        <h5 style={{ marginBottom:"15px",paddingRight:"30px",fontfamily: "Quantico", fontSize: "10px", marginRight: "100px", textAlign: "left",color: "white"}}>TM</h5>
+        <h5
+          style={{
+            marginBottom: "15px",
+            paddingRight: "30px",
+            fontfamily: "Quantico",
+            fontSize: "10px",
+            marginRight: "100px",
+            textAlign: "left",
+            color: "white",
+          }}
+        >
+          TM
+        </h5>
       </div>
     </div>
   );
