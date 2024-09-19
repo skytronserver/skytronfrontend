@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import TaggingService from "../../services/TaggingService";
-import { MenuItem, Button, Grid, TextField, Select, Box } from "@mui/material";
+import { MenuItem, Button, Grid, TextField, Select, Box, Autocomplete } from "@mui/material";
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
@@ -16,6 +16,7 @@ import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
+
 
 const RouteFixing = () => {
   const [load, setLoad] = useState(false);
@@ -156,6 +157,9 @@ const RouteFixing = () => {
           image: new Icon({
             src: "https://skytrack.tech:2000/static/track.png",
             scale: 0.051,
+            anchor: [0.5, 1], // Horizontal center and bottom edge as anchor point
+            anchorXUnits: 'fraction', // Anchor unit is fraction of the icon's width
+            anchorYUnits: 'fraction', // Anchor unit is fraction of the icon's height
           }),
         })
       );
@@ -164,6 +168,7 @@ const RouteFixing = () => {
 
     // Add the new point features to the map
     vectorSourceRef.current.addFeatures(pointFeatures);
+
 
     // Create and add the route line if we have more than one point
     if (points.length > 1) {
@@ -194,7 +199,12 @@ const RouteFixing = () => {
       console.error("Error adding new route:", error);
     }
   };
-
+  const handleAutocompleteChange = (event, newValue) => {
+    // If a valid option is selected, pass the device ID to the change handler
+    if (newValue) {
+      handleDeviceChange({ target: { value: newValue.device.id } });
+    }
+  };
   const delRoute = async () => {
     if (!selectedRoute) {
       alert("Please select a route to delete.");
@@ -222,23 +232,20 @@ const RouteFixing = () => {
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2} className="form-controller">
           <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
-            <TextField
-              select
-              label="Select Vehicle Registration No"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={deviceId}
-              onChange={handleDeviceChange}
-            >
-              <MenuItem value="">Select</MenuItem>
-              {deviceList.length > 0 &&
-                deviceList.map((item) => (
-                  <MenuItem value={item.device.id} key={item.device.id}>
-                    {item.vehicle_reg_no}
-                  </MenuItem>
-                ))}
-            </TextField>
+            <Autocomplete
+              value={deviceList.find((item) => item.device.id === deviceId) || null}
+              onChange={handleAutocompleteChange}
+              options={deviceList}
+              getOptionLabel={(option) => option.vehicle_reg_no || ''}
+              renderInput={(params) => (
+                <TextField {...params} label="Select Vehicle Registration No" variant="outlined" fullWidth margin="normal" />
+              )}
+              noOptionsText="Wait Fetching Device List"
+              isOptionEqualToValue={(option, value) => option.device.id === value.device.id}
+              disableClearable
+            />
+
+
           </Grid>
 
           <Grid item md={2} sm={12} xs={12} style={{ marginTop: "38px" }}>

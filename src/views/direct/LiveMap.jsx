@@ -117,9 +117,9 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
       return iconStyles.red; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       return iconStyles.orange; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed === 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed < 1) {
       return iconStyles.blue; // Ignition ON but stationary - Blue Icon
-    } else if (String(data.ignition_status) === "1" && data.speed > 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       return iconStyles.green; // Ignition ON and moving - Green Icon
     } else if (timeDifference > 5) {
       return iconStyles.grey; // Offline device (no packets from device for 5+ minutes) - Grey Icon
@@ -164,10 +164,16 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
           const coordinates = feature.getGeometry().getCoordinates();
           const entryData = feature.get("entryData");
 
+
           // Set overlay content
           document.getElementById("overlay-content").innerHTML =
-            "<strong>Vehicle Registration:</strong> " +
-            entryData.vehicle_registration_number;
+            "<strong>" + entryData.vehicle_registration_number + "</strong> <br>" + ""
+            + "<strong>Date:</strong> " + entryData.date + ".<br>" +
+            "" + "<strong>Time:</strong> " + entryData.time + ".<br>" +
+            "" + "<strong>Allert:</strong> " + entryData.packet_type + ".<br>" +
+            "" + "<strong>Speed:</strong> " + (entryData.speed > 2 ? entryData.speed : 0) + "km/h.<br>" +
+            "" + "<strong>Battery:</strong> " + entryData.internal_battery_voltage + "-" + entryData.main_input_voltage + ".<br>" +
+            "";
 
           dynamicOverlay.setPosition(coordinates);
           dynamicOverlay.getElement().style.display = "block";

@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import HomePageService from "../../services/HomePage";
 import GPSHistoryMap from "./HistoryPlaybackMap";
-import { FormControl, InputLabel, Select, MenuItem, TextField, Button, Grid } from '@mui/material';
+import { FormControl, InputLabel, Select, Autocomplete, MenuItem, TextField, Button, Grid } from '@mui/material';
+
+
 
 const HistoryPlayback = () => {
   const currentDate = new Date().toISOString().split('T')[0];
@@ -40,8 +42,8 @@ const HistoryPlayback = () => {
     console.log("Submitted data:", { vehicleNo, fromDate, toDate });
   };
 
-  const handleVehicleNoChange = (e) => {
-    setVehicleNo(e.target.value);
+  const handleVehicleNoChange = (event, newValue) => {
+    setVehicleNo(newValue);
   };
 
   const handleFromDateChange = (e) => {
@@ -58,19 +60,18 @@ const HistoryPlayback = () => {
         <Grid container spacing={2} className="form-controller">
           <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <FormControl fullWidth>
-              <InputLabel>Vehicle No</InputLabel>
-              <Select value={vehicleNo} onChange={handleVehicleNoChange}>
-                <MenuItem value="">Select</MenuItem>
-                {vehicleList.length > 0 ? (
-                  vehicleList.map((item) => (
-                    <MenuItem value={item} key={item}>
-                      {item}
-                    </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem value="">Wait Fetching Vehicle List</MenuItem>
+
+              <Autocomplete
+                value={vehicleNo}
+                onChange={handleVehicleNoChange}
+                options={vehicleList.length > 0 ? vehicleList : []}
+                getOptionLabel={(option) => option || ''}
+                renderInput={(params) => (
+                  <TextField {...params} label="Select Vehicle" variant="outlined" />
                 )}
-              </Select>
+                noOptionsText="Wait Fetching Vehicle List"
+                disableClearable
+              />
             </FormControl>
           </Grid>
 

@@ -198,9 +198,9 @@ const LiveTracking = () => {
       return iconStyles.red; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       return iconStyles.orange; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed === 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed <= 1) {
       return iconStyles.blue; // Ignition ON but stationary - Blue Icon
-    } else if (String(data.ignition_status) === "1" && data.speed > 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       return iconStyles.green; // Ignition ON and moving - Green Icon
     } else if (timeDifference > 5) {
       return iconStyles.grey; // Offline device (no packets from device for 5+ minutes) - Grey Icon
@@ -218,9 +218,9 @@ const LiveTracking = () => {
       return "red"; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       return "orange"; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed === 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed <= 1) {
       return "blue"; // Ignition ON but stationary - Blue Icon
-    } else if (String(data.ignition_status) === "1" && data.speed > 0) {
+    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       return "green"; // Ignition ON and moving - Green Icon
     } else if (timeDifference > 5) {
       return "grey"; // Offline device (no packets from device for 5+ minutes) - Grey Icon
