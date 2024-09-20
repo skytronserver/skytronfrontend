@@ -22,8 +22,8 @@ const NoticeList = () => {
   const [allNotice, setAllNotice] = useState(""); // here
   const dispatch = useDispatch();
   const notices=useSelector((state)=>state.listAll.noticeList);
+ 
   useEffect(() => {
-    if(notices.length<1 && !updateStore){
       const retriveNotice = async () => {
         const retriveData = await Notice.list();
         setAllNotice(retriveData.data);
@@ -32,8 +32,8 @@ const NoticeList = () => {
         setUpdateStore(true);
       };
       retriveNotice();
-    }
-  }, [updateStore,dispatch]);
+    
+  }, []);
 
   const actionColumn = [
     {
