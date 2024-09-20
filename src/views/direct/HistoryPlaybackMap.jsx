@@ -41,6 +41,47 @@ const GPSHistoryMap = ({
 
   const STREET_ZOOM_LEVEL = 18;
 
+
+  const redM = new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: "https://skytrack.tech:2000/static/logo/red-skytron-transparent.png",
+      scale: 0.06,
+    }),
+  });
+  const orangeM = new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: "https://skytrack.tech:2000/static/logo/orange-skytron-transparent.png",
+      scale: 0.06,
+    }),
+  });
+
+  const blueM = new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: "https://skytrack.tech:2000/static/logo/blue-skytron-transparent.png",
+      scale: 0.06,
+    }),
+  });
+
+  const greenM = new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: "https://skytrack.tech:2000/static/logo/green-skytron-transparent.png",
+      scale: 0.06,
+    }),
+  });
+
+  const greyM = new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: "https://skytrack.tech:2000/static/logo/grey-skytron-transparent.png",
+      scale: 0.06,
+    }),
+  });
+
+
   // Fetch map data from the API
   const fetchMapData = async () => {
     setIsPlaying(false);
@@ -163,7 +204,7 @@ const GPSHistoryMap = ({
       point.setStyle(
         new Style({
           image: new CircleStyle({
-            radius: 6,
+            radius: 3,
             fill: new Fill({ color: col }),
           }),
           text: new Text({
@@ -213,7 +254,7 @@ const GPSHistoryMap = ({
         <p><strong>Longitude:</strong> ${data.lon}</p>
         <p><strong>Speed:</strong> ${data.s} km/h</p>
         <p><strong>Heading:</strong> ${data.h}</p>
-        <p><strong>Date:</strong> ${data.date}</p>
+        <p><strong>DateTime:</strong> ${data.et}</p>
       `;
       console.log(data);
       document.getElementById("overlay-content").innerHTML = content;
@@ -238,13 +279,7 @@ const GPSHistoryMap = ({
     });
 
     marker.setStyle(
-      new Style({
-        image: new Icon({
-          anchor: [0.5, 1],
-          src: "https://skytrack.tech:2000/static/track.png",
-          scale: 0.06,
-        }),
-      })
+      greenM
     );
 
     markerRef.current.addFeature(marker);
@@ -335,7 +370,7 @@ const GPSHistoryMap = ({
         <Button onClick={restartAnimation} sx={{ ml: 2, alignItems: "left", }}>
           Restart
         </Button>
-        <Typography variant="body2" sx={{ ml: 2, alignItems: "right", }}>Animation: Fast</Typography>
+        <Typography variant="body2" sx={{ ml: 2, alignItems: "right", }}>Faster</Typography>
         <Slider
           value={animationSpeed}
           onChange={(e, value) => setAnimationSpeed(value)}
@@ -344,7 +379,7 @@ const GPSHistoryMap = ({
           step={10}
           sx={{ width: "10%", ml: 2, alignItems: "right", }}
         />
-        <Typography sx={{ ml: 2, alignItems: "right", }} variant="body2">Slow-"{animationSpeed} ms" </Typography>
+        <Typography sx={{ ml: 2, alignItems: "right", }} variant="body2">Slower</Typography>
 
       </Box>
 
