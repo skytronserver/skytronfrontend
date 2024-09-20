@@ -57,7 +57,8 @@ const NoticeForm = () => {
   },[parameter]);
 
   const handleClose = () => {
-    !alert.error && navigate("/setting/notice");
+    console.log(alert.error)
+    !alert.error && navigate("/notice/all-notice-list");
     setOpen(false);
   };
 
@@ -82,12 +83,52 @@ const NoticeForm = () => {
     formik.setFieldError(fieldName, errors[fieldName]);
   };
 
+  // const validationSchema = Yup.object(
+  //   Object.keys(formFields).reduce((acc, field) => {
+  //     acc[field] = formFields[field].validation;
+  //     return acc;
+  //   }, {})
+  // );
+  
   const validationSchema = Yup.object(
     Object.keys(formFields).reduce((acc, field) => {
-      acc[field] = formFields[field].validation;
+      if (field === "file") {
+
+        acc[field] = Yup.mixed().test(
+          "fileRequired",
+          "File is required if selected",
+         
+          function (value) {
+            if (editPage && (typeof value=="string")) {
+              // If we're on the edit page and no file is selected, no validation
+              return true;
+            }
+            // If a file is selected, apply the size and format validations
+            if (value) {
+              
+              if (value.size > FILE_SIZE) {
+                return this.createError({
+                  path: field,
+                  message: `Max file size is 512KB`,
+                });
+              } else if (!SUPPORTED_FORMATS.includes(value.type)) {
+                return this.createError({
+                  path: field,
+                  message: `Unsupported file format`,
+                });
+              }
+            }
+            return true;
+          }
+        );
+      } else {
+        acc[field] = formFields[field].validation;
+      }
       return acc;
     }, {})
   );
+  
+  
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       const userData = sessionStorage.getItem("cookiesData");
@@ -100,9 +141,11 @@ const NoticeForm = () => {
       };
       setSubmitting(true);
       setLoading(true);
-      const message="Notice added successfully"
+      let message="Notice added successfully"
+      
       if(editPage){
         message="Notice Updated successfully"
+        console.log('inside')
         await Notice.update(valuesWithRole);
       }else{
         await Notice.create(valuesWithRole);  
