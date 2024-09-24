@@ -231,6 +231,14 @@ export const districtColumns=[
       },
     },
     {
+      name: "district_code",
+      label: "District Code",
+      options: {
+        filter: true,
+        sort: false,
+      },
+    },
+    {
       name: "district",
       label: "District",
       options: {
