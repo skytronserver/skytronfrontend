@@ -9,6 +9,7 @@ export const VERIFY_OTP='VERIFY_OTP';
 export const FILE_SIZE = 512 * 1024 ; // 512 KB
 export const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 export const BASE_URL='https://skytrack.tech:2000/';
+export const CUSTOM_BASE_URL="https://skytrack.tech";
 export const keyMapping = {
     "entry_time": "Entry Time",
     "packet_type": "Packet Type",
