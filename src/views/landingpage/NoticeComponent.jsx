@@ -4,13 +4,12 @@ import AboutUs from "./AboutUs";
 import ContactUs from "./ContactUs";
 import Footer from "./Footer";
 import { useEffect, useState } from "react";
-import { BASE_URL } from "../../store/constant";
+import { BASE_URL,CUSTOM_BASE_URL } from "../../store/constant";
 
 const NoticeComponent = () => {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     const fetchNotices = async () => {
       try {
@@ -65,11 +64,12 @@ const NoticeComponent = () => {
                 }
               />
               {notice.file && (
+               
                 <ListItemSecondaryAction>
                   <Button
                     variant="contained"
                     color="primary"
-                    href={notice.file} // Assuming the PDF URL is stored in `pdf`
+                    href={`${CUSTOM_BASE_URL}${notice.file}`} 
                     target="_blank"
                     rel="noopener noreferrer"
                   >
