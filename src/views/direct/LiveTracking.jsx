@@ -151,7 +151,7 @@ const LiveTracking = () => {
   };
   return (
     <MainCard>
-      <Typography variant="h6">Live Tracking</Typography>
+      <Typography variant="h4">Live Tracking</Typography>
 
       {/* Scrollable Table (First Table) */}
       <div className="container">

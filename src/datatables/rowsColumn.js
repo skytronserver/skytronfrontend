@@ -1,4 +1,5 @@
-import {openFile} from "../helper"
+import { display } from "@mui/system";
+import {openFile,getRole} from "../helper"
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
@@ -6,7 +7,7 @@ const formatDate = (dateString) => {
   const year = date.getFullYear();
   return `${day}-${month}-${year}`;
 };
-
+const role=getRole();
 export const showDeviceColumns = [
   {
     name: "id",
@@ -222,6 +223,7 @@ export const dealerListColumn = [
     options: {
       filter: true,
       sort: false,
+      display:role === 'superadmin' || role === 'stateadmin'
     },
   },
   {

@@ -113,6 +113,22 @@ const formatDate = (dateString) => {
         sort: false,
       },
     },
+    {
+      name: "iccid",
+      label: "ICCID",
+      options: {
+        filter: true,
+        sort: false,
+      },
+    },
+    {
+      name: "imei",
+      label: "IMEI No.",
+      options: {
+        filter: true,
+        sort: false,
+      },
+    },
       {
         name: "assigned",
         label: "Assigned Date",
@@ -126,6 +142,20 @@ const formatDate = (dateString) => {
           }
         },
       },
+      
+      {
+        name: "stock_status",
+        label: "Status",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value, tableMeta, updateValue) => {
+            return (
+              <p>{value==='Fitted'?'Fitted':'Available'}</p>
+            );
+          }
+        },
+      },
       {
         name: "shipping_remark",
         label: "Remarks",
@@ -134,14 +164,6 @@ const formatDate = (dateString) => {
           sort: false,
         },
       },
-      {
-        name: "stock_status",
-        label: "Status",
-        options: {
-          filter: true,
-          sort: false,
-        },
-      }
   ];
   export const requestList = [
     {

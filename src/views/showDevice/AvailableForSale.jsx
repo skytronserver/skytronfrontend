@@ -1,6 +1,7 @@
 import React from 'react';
 // project imports
 import { Grid,Button } from "@mui/material";
+import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import StockServices from '../../services/StockServices';
 import { useEffect,useState } from 'react';
@@ -9,10 +10,11 @@ import {useSelector,useDispatch} from 'react-redux'
 import { getDeviceListAvailable } from '../../actions/stockActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {availableForSalesColumn} from '../../datatables/deviceColumns';
-
+import { getRole } from '../../helper';
 const AvailableForSale = () => {
   const [load,setLoad]=useState(false)
   //Datatables data using redux
+  const role=getRole();
   const dispatch=useDispatch();
   const availableDeviceList=useSelector((state)=>state.stock.availableList);
   useEffect(()=>{
@@ -60,7 +62,7 @@ const AvailableForSale = () => {
                           size="small"
                           onClick={(event) => handleMarkDefective(event, tableMeta.rowData[1].id)}
                         >
-                          Mark Defective
+                          Defective
                         </Button>
              </div>
              <div><Button
@@ -70,7 +72,7 @@ const AvailableForSale = () => {
                           size="small"
                           onClick={(event) => handleReturnManufacturer(event, tableMeta.rowData[1].id)}
                         >
-                          Return to Manufacturer
+                          Return
                         </Button></div>
             </div>
           );
@@ -78,10 +80,15 @@ const AvailableForSale = () => {
       },
     },
   ];
+
+  const columns = role !== 'devicemanufacture' ? availableForSalesColumn.concat(actionColumn) : availableForSalesColumn;
   return (
     <Grid container spacing={gridSpacing}>
+      <Grid item xs={12}>
+        <PageHeader title="Device Report" />
+      </Grid>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Available for Sales" rows={availableDeviceList} columns={availableForSalesColumn.concat(actionColumn)}/>}
+        {load && <DynamicDatatables tableTitle="" rows={availableDeviceList} columns={columns}/>}
         </Grid>
     </Grid>
 );

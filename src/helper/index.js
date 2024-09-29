@@ -327,6 +327,13 @@ export const decipherEncryption = (salt) => {
       .join('');
 }
 
+export const getRole=()=>{
+  const myDecipher = decipherEncryption("skytrack");
+  const userData = sessionStorage.getItem("cookiesData");
+  const data = userData && userData.split("-").map((item) => myDecipher(item));
+  const userRoles = userData && data.length > 2 && data[1];
+  return userRoles
+}
 export const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
