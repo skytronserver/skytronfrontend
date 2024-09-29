@@ -94,7 +94,7 @@ function Navbar() {
             Contact Us
           </Button>
           <Button color="inherit" component={Link} to="/notice-view-all">
-            Notice
+            Public Notice
           </Button>
         </Box>
 

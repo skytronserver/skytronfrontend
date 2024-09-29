@@ -11,12 +11,16 @@ import { dealerListColumn } from "../../datatables/rowsColumn";
 import {dealerList} from "../../actions/commonDataActions";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { getRole } from '../../helper';
 const DealerList = () => {
   const [load, setLoad] = useState(false);
   const [updateStore,setUpdateStore]=useState(false)
   const [dealerData, setDealerData] = useState(""); // here
   const dispatch = useDispatch();
   const dealers=useSelector((state)=>state.dealer.list);
+  
+  const role = getRole();
+
   useEffect(() => {
     if(dealers.length<1 && !updateStore){
       const retrievePosts = async () => {
@@ -53,17 +57,20 @@ const DealerList = () => {
       },
     },
   ];
+  const columns = role === 'superadmin' || role === 'stateadmin' 
+  ? dealerListColumn.concat(actionColumn) 
+  : dealerListColumn;
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="Show Dealer" />
+        <PageHeader title="Dealer Report" />
       </Grid>
       <Grid item xs={12}>
         {dealers.length >= 1 && (
           <DynamicDatatables
-            tableTitle="Dealer List"
+            tableTitle=""
             rows={dealers}
-            columns={dealerListColumn.concat(actionColumn)}
+            columns={columns}
           />
         )}
       </Grid>
