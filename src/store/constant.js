@@ -11,7 +11,8 @@ export const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "appli
 export const BASE_URL='https://skytrack.tech:2000/';
 export const CUSTOM_BASE_URL="https://skytrack.tech";
 export const keyMapping = {
-    "entry_time": "Entry Time",
+    "id":"ID",
+    "entry_time": "Date & Time",
     "packet_type": "Packet Type",
     "alert_id": "Alert ID",
     "packet_status": "Packet Status",

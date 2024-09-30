@@ -1,30 +1,42 @@
 import * as Yup from "yup";
-  let stateList=[];
-  const FILE_SIZE = 512 * 1024 ; // 512 KB
-  const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
-  const today = new Date().toISOString().split('T')[0];
+let stateList = [];
+const FILE_SIZE = 512 * 1024; // 512 KB
+const SUPPORTED_FORMATS = [
+  "image/jpg",
+  "image/jpeg",
+  "image/png",
+  "application/pdf",
+];
+const today = new Date().toISOString().split("T")[0];
 export const sosUserInitialValues = {
   name: "",
   mobile: "",
   email: "",
-  dob:"",
+  dob: "",
   dtoCode: "",
-  state:'',
+  state: "",
   idProofno: "",
   file_idProof: null,
-  file_authorization_letter:null
+  file_authorization_letter: null,
+};
+export const emTeamInitialValues = {
+  name: "",
+  detail: "",
+  state: "",
+  teamlead: "",
+  members: [],
 };
 export const sosOtherUserInitialValues = {
-  user_type:"",
+  user_type: "",
   name: "",
   mobile: "",
   email: "",
-  dob:"",
+  dob: "",
   dtoCode: "",
-  state:'',
+  state: "",
   idProofno: "",
   file_idProof: null,
-  file_authorization_letter:null
+  file_authorization_letter: null,
 };
 export const sosUserFormField = {
   name: {
@@ -50,55 +62,75 @@ export const sosUserFormField = {
       .required("Email is required"),
   },
   dob: {
-    name:"dob",
+    name: "dob",
     type: "date",
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
-    maxDate:today
+    maxDate: today,
   },
   state: {
-    name:"state",
+    name: "state",
     type: "select",
     label: "State Name",
     validation: Yup.string().required("State Name is required"),
-    options:stateList,
+    options: stateList,
   },
   idProofno: {
     name: "idProofno",
     type: "text",
     label: "User ID Number",
     validation: Yup.string()
-        .min(5, "ID Proof Number must be at least 5 characters long")
-        .required("User ID No is required field"),
+      .min(5, "ID Proof Number must be at least 5 characters long")
+      .required("User ID No is required field"),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
     label: "User ID Proof",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("User ID Document is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    validation: Yup.mixed()
+      .required("User ID Document is required")
+      .test(
+        "fileSize",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return value.size <= FILE_SIZE;
+        }
+      )
+      .test(
+        "fileFormat",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return SUPPORTED_FORMATS.includes(value.type);
+        }
+      ),
   },
   file_authorization_letter: {
     name: "file_authorization_letter",
     type: "file",
     label: "Authorization Letter",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("Authorization Letter Document is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
-  }
+    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    validation: Yup.mixed()
+      .required("Authorization Letter Document is required")
+      .test(
+        "fileSize",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return value.size <= FILE_SIZE;
+        }
+      )
+      .test(
+        "fileFormat",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return SUPPORTED_FORMATS.includes(value.type);
+        }
+      ),
+  },
 };
 
 export const sosOtherUserFormField = {
@@ -107,7 +139,11 @@ export const sosOtherUserFormField = {
     type: "select",
     label: "User Type",
     validation: Yup.string().required("User Type is required"),
-    options:[{value:'Team_lead',label:'Team Lead'},{value:'Desk_executive',label:'Desk Executive'},{value:'Field_executive',label:'Field Executive'}]
+    options: [
+      { value: "Team_lead", label: "Team Lead" },
+      { value: "Desk_executive", label: "Desk Executive" },
+      { value: "Field_executive", label: "Field Executive" },
+    ],
   },
   name: {
     name: "name",
@@ -132,53 +168,109 @@ export const sosOtherUserFormField = {
       .required("Email is required"),
   },
   dob: {
-    name:"dob",
+    name: "dob",
     type: "date",
     label: "Date of Birth",
     validation: Yup.date().required("Date of Birth is required"),
-    maxDate:today
+    maxDate: today,
   },
   state: {
-    name:"state",
+    name: "state",
     type: "select",
     label: "State Name",
     validation: Yup.string().required("State Name is required"),
-    options:stateList,
+    options: stateList,
   },
   idProofno: {
     name: "idProofno",
     type: "text",
     label: "User ID Number",
     validation: Yup.string()
-        .min(5, "ID Proof Number must be at least 5 characters long")
-        .required("User ID No is required field"),
+      .min(5, "ID Proof Number must be at least 5 characters long")
+      .required("User ID No is required field"),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
     label: "User ID Proof",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("User ID Document is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    validation: Yup.mixed()
+      .required("User ID Document is required")
+      .test(
+        "fileSize",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return value.size <= FILE_SIZE;
+        }
+      )
+      .test(
+        "fileFormat",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return SUPPORTED_FORMATS.includes(value.type);
+        }
+      ),
   },
   file_authorization_letter: {
     name: "file_authorization_letter",
     type: "file",
     label: "Authorization Letter",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("Authorization Letter Document is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
-  }
+    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    validation: Yup.mixed()
+      .required("Authorization Letter Document is required")
+      .test(
+        "fileSize",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return value.size <= FILE_SIZE;
+        }
+      )
+      .test(
+        "fileFormat",
+        "Max size is 520KB and supported files are pdf/png/jpg",
+        (value) => {
+          if (!value) return false;
+          return SUPPORTED_FORMATS.includes(value.type);
+        }
+      ),
+  },
+};
+
+export const emTeamFormField = {
+  name: {
+    name: "name",
+    type: "text",
+    label: "Name",
+    validation: Yup.string().required("Name is required"),
+  },
+  detail: {
+    name: "detail",
+    type: "text",
+    label: "Detail",
+    validation: Yup.string().required("Details is required"),
+  },
+  state: {
+    name: "state",
+    type: "select",
+    label: "State Name",
+    validation: Yup.string().required("State Name is required"),
+    options: stateList,
+  },
+  teamlead: {
+    name: "teamlead",
+    type: "select",
+    label: "Team Lead",
+    validation: Yup.string().required("Team Lead is required"),
+    options: [{ value: "", label: "Select Team Lead" }],
+  },
+  members: {
+    name: "members",
+    type: "multiselect",
+    label: "Team Member",
+    validation: Yup.array().required("Team member is required"),
+    options: [{ value: "", label: "Select" }],
+  },
 };

@@ -424,6 +424,77 @@ export const dtoListColumn = [
     },
   },
 ];
+export const emTeamColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: true,
+      sort: true,
+      display: false,
+    },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "name",
+    label: "Team Name",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "state",
+    label: "State",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.state}</p>
+        );
+      },
+      csvExportKey: "state",
+    },
+  },
+  {
+    name: "teamlead",
+    label: "Team Lead",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{(value.users[0].name).toString()}</p>
+        );
+      },
+    },
+  },
+  {
+    name: "members",
+    label: "Team Members",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        const teamMembers=value.map((item)=>{
+          return item?.users?.[0].name;
+        })
+        return (
+          <p>{teamMembers.toString()}</p>
+        );
+      },
+    },
+  },
+];
+
 export const columns = [
   {
     name: "id",
