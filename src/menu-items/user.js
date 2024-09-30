@@ -10,11 +10,13 @@ import {
   IconUrgent,
   IconCircleCheck,
   IconChecks,
-  IconBan
+  IconBan,
+  IconUsers
 } from "@tabler/icons";
 
 const icons = {
   IconUser,
+  IconUsers,
   IconBrandChrome,
   IconMap,
   IconDeviceSim,
@@ -106,7 +108,31 @@ const user = {
         },
       ],
     },
-
+    {
+      id: "new-icons",
+      title: "EM Team",
+      type: "collapse",
+      icon: icons.IconUsers,
+      roles: ["sosadmin"],
+      children: [
+        {
+          id: "em-team",
+          title: "Create",
+          type: "item",
+          url: "/new/em-team",
+          breadcrumbs: false,
+          roles: ["sosadmin"],
+        },
+        {
+          id: "em-team-list",
+          title: "List",
+          type: "item",
+          url: "/list/em-team",
+          breadcrumbs: false,
+          roles: ["sosadmin"],
+        },
+      ],
+    },
     {
       id: "sos-call-list",
       title: "SOS Call List",
