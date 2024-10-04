@@ -18,7 +18,8 @@ import HomePageService from "../../services/HomePage";
 import MapComponent from "./LiveMap";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
-import { keyMapping, iconData, iconStyles } from "../../store/constant";
+import { keyMapping, iconData, iconStyles,fullText,isoDatePattern } from "../../store/constant";
+import {formatDateTime} from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
 const LiveTracking = () => {
@@ -266,41 +267,43 @@ const LiveTracking = () => {
 
       {selectedId && (
         <TableContainer component={Paper} className="skytron-table-container">
+          
           <Table className="skytron-table">
-            <TableHead>
-              <TableRow>
-                {/* Dynamically generate headers based on data keys */}
-                {filteredData.length > 0 &&
-                  Object.keys(filteredData[0]).map((key) => (
-                    <TableCell key={key} className="skytron-table-header-cell">
-                      {keyMapping[key] || key}
-                    </TableCell>
-                  ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredData.length > 0 ? (
-                filteredData.map((row, index) => (
-                  <TableRow key={index} className="skytron-table-row">
-                    {Object.values(row).map((value, idx) => (
-                      <TableCell key={idx} className="skytron-table-cell">
-                        {value}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={Object.keys(filteredData[0] || {}).length}
-                    className="skytron-no-data-cell"
-                  >
-                    No data available
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+      <TableHead>
+        <TableRow>
+          {/* Dynamically generate headers based on keyMapping order */}
+          {filteredData.length > 0 &&
+            Object.keys(keyMapping).map((key) => (
+              <TableCell key={key} className="skytron-table-header-cell">
+                {keyMapping[key]}
+              </TableCell>
+            ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {filteredData.length > 0 ? (
+          filteredData.map((row, rowIndex) => (
+            <TableRow key={rowIndex} className="skytron-table-row">
+              {/* Dynamically generate table cells based on keyMapping order */}
+              {Object.keys(keyMapping).map((key, cellIndex) => (
+                <TableCell key={cellIndex} className="skytron-table-cell">
+                  {fullText?.[row[key]] || (isoDatePattern.test(row[key]) && formatDateTime(row[key])) || row[key] || ""}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell
+              colSpan={Object.keys(keyMapping).length}
+              className="skytron-no-data-cell"
+            >
+              No data available
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
         </TableContainer>
       )}
     </MainCard>

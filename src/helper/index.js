@@ -406,3 +406,33 @@ export const openFile = async (e, filePath) => {
     console.error("Error viewing file:", error);
   }
 };
+
+export const formatDateTime=(dateTimeString)=>{
+  // Check if the string matches the date and time format
+  const isoDatePattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z/;
+  
+  if (isoDatePattern.test(dateTimeString)) {
+      // Convert string to Date object
+      const dateObj = new Date(dateTimeString);
+      
+      // Extract Date in YYYY-MM-DD format
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      
+      // Extract Time in HH:MM:SS.mmm format
+      const hours = String(dateObj.getHours()).padStart(2, '0');
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+      const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+      const milliseconds = String(dateObj.getMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
+      const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} IST`;
+      
+      // Return formatted date and time
+      return `${formattedDate} \n ${formattedTime}`
+  } else {
+      return "Invalid date-time format!";
+  }
+}
+
+
