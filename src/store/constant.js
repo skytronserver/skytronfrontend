@@ -10,9 +10,22 @@ export const FILE_SIZE = 512 * 1024 ; // 512 KB
 export const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 export const BASE_URL='https://skytrack.tech:2000/';
 export const CUSTOM_BASE_URL="https://skytrack.tech";
+export const isoDatePattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z/;
+export const fullText={
+  "L":"Live",
+  "H":"History",
+  "EA":"Emergency Alert",
+  "E":"East",
+  "N":"North",
+  "S":"South",
+  "W":"West"
+}
 export const keyMapping = {
     "id":"ID",
     "entry_time": "Date & Time",
+    "vehicle_registration_number": "Vehicle Reg. No.",
+    "odometer": "Odometer (km)",
+    "imei": "IMEI",
     "packet_type": "Packet Type",
     "alert_id": "Alert ID",
     "packet_status": "Packet Status",
@@ -56,10 +69,7 @@ export const keyMapping = {
     "digital_input_status": "Digital Input Status",
     "digital_output_status": "Digital Output Status",
     "frame_number": "Frame Number",
-    "odometer": "Odometer (km)",
-    "device_tag": "Device Tag",
-    "vehicle_registration_number": "Vehicle Registration Number",
-    "imei": "IMEI"
+    "device_tag": "Device Tag"
   };
 
   export const iconData = [
