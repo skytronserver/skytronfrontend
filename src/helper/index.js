@@ -99,6 +99,44 @@ export const retriveStateList = async () => {
     }
   }
 };
+export const retriveSOSLead = async () => {
+  try {
+    const response = await UserServices.fetchSOSUser({user_type:"Team_lead"});
+    if(response.data.length===0){
+      return [{value:"",label:'No Data Found'}]
+    }
+    const list=response.data.map(user => ({
+      value: user.id,
+      label: user.users[0].name,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+  }
+};
+export const retriveSOSMember = async () => {
+  try {
+    const response = await UserServices.fetchSOSUser({user_type:"desk_ex"});
+    if(response.data.length===0){
+      return [{value:"",label:'No Data Found'}]
+    }
+    const list=response.data.map(user => ({
+      value: user.id,
+      label: user.users[0].name,
+    })); 
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+     console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
+    }
+  }
+};
 export const retriveDistrictList = async (filter) => {
     try {
       const response = await SettingService.filter_settings_District(filter);

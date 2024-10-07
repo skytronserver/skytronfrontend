@@ -47,7 +47,10 @@ const Details = () => {
                 retrieveData = await DealerServices.dealerList({ dealer_id: userId });
             }else if (userType === 'sosUser') {
               retrieveData = await UserServices.fetchSOSAdmin({ StateAdmin_id: userId });
-            }else if (userType === 'dtoUser') {
+            }else if (userType === 'sosOtherUser') {
+              retrieveData = await UserServices.fetchSOSUser({ SOSUser_id: userId });
+            }
+            else if (userType === 'dtoUser') {
               retrieveData = await UserServices.fetchDTOList({ dto_rto_id: userId });
             }
             else if (userType === 'stateadmin') {

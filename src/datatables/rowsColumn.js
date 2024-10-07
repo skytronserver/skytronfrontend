@@ -298,14 +298,6 @@ export const sosListColumn = [
     },
   },
   {
-    name: "idProofno",
-    label: "ID Proof Number",
-    options: {
-      filter: true,
-      sort: false,
-    },
-  },
-  {
     name: "users",
     label: "Created By",
     options: {

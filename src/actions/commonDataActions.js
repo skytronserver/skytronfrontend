@@ -46,7 +46,10 @@ export const dealerList=(data)=>({
   type:"GET_ALL_DEALER",
   payload:data
 });
-
+export const SOSUsers=(data)=>({
+  type:"GET_ALL_SOS_USER",
+  payload:data
+})
 export const SOSAdminList=(data)=>({
   type:"GET_ALL_SOS_ADMIN",
   payload:data

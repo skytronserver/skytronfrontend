@@ -385,6 +385,14 @@ const user = {
 
       children: [
         {
+          id: "sos-other-list",
+          title: "SOS Users",
+          type: "item",
+          url: "/user/sos-other-list",
+          breadcrumbs: false,
+          roles: ["sosadmin"],
+        },
+        {
           id: "all-notice-list",
           title: "Notices",
           type: "item",

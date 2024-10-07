@@ -1,5 +1,6 @@
 const initialState = {
   sosAdmin: [],
+  sosUser:[],
   dtoList: [],
   noticeList: [],
   error: null,
@@ -11,6 +12,11 @@ const listReducer = (state = initialState, action) => {
         ...state,
         sosAdmin: action.payload,
       };
+    case "GET_ALL_SOS_USER":
+        return {
+          ...state,
+          sosUser: action.payload,
+        };
     case "GET_ALL_DTO_USER":
       return {
         ...state,
