@@ -137,6 +137,10 @@ const fetchSOSAdmin=(formData)=>{
     const http = getAxiosInstance();
     return http.post("/api/SOSAdmin/filter_SOSAdmin/",formData);
 }
+const fetchSOSUser=(formData)=>{
+    const http = getAxiosInstance();
+    return http.post("/api/SOSuser/filter_SOSuser/",formData);
+}
 const fetchDTOList=(formData)=>{
     const http = getAxiosInstance();
     return http.post("/api/DTO_RTO/filter_DTO_RTO/",formData);
@@ -192,6 +196,7 @@ const UserServices = {
     fetchVehicleOwner,
     fetchSimProvider,
     fetchSOSAdmin,
+    fetchSOSUser,
     fetchStateAdmin,
     fetchDTOList,
     getStateAdminDashboard,

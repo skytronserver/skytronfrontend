@@ -31,6 +31,7 @@ import Details from "../views/pages/Details";
 import ManufacturerList from "../views/reports/ManufacturerList";
 import VehicleOwnerList from "../views/reports/VehicleOwnerList";
 import SOSUserList from "../views/reports/SOSUserList";
+import SOSOtherList from "../views/reports/SOSOtherList";
 import StateAdminList from "../views/reports/StateAdminList";
 import DTOUserList from "../views/reports/DTOUserList";
 import EsimProviderList from "../views/reports/EsimProviderList";
@@ -188,7 +189,7 @@ const UserRoutes = {
     {
       path: "/user/detail/:userType/:userId",
       element: <Details />,
-      roles: ["superadmin", "stateadmin", "dealer", "devicemanufacture"],
+      roles: ["superadmin", "stateadmin", "dealer", "devicemanufacture","sosadmin"],
     },
     {
       path: "/file",
@@ -199,6 +200,11 @@ const UserRoutes = {
       path: "/user/sos-user-list",
       element: <SOSUserList />,
       roles: ["superadmin"],
+    },
+    {
+      path: "/user/sos-other-list",
+      element: <SOSOtherList />,
+      roles: ["sosadmin"],
     },
     {
       path: "/notice/all-notice-list",

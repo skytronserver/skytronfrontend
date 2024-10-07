@@ -31,7 +31,7 @@ const AuthenticationRoutes = {
       element:<ResetPassword/>
     },
     {
-      path:"/forgot-password",
+      path:"mis/forgot-password",
       element:<ForgotPassword/>
     },
     {

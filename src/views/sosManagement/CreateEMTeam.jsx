@@ -8,7 +8,7 @@ import SOSManagement from "../../services/SOSManagement";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { retriveStateList } from "../../helper";
+import { retriveSOSLead, retriveSOSMember, retriveStateList } from "../../helper";
 import "../forms/form.css";
 import { emTeamFormField, emTeamInitialValues } from "../../formjson/sosUser";
 const CreateEMTeam = () => {
@@ -28,12 +28,22 @@ const CreateEMTeam = () => {
   useEffect(() => {
     (async () => {
       const stateList = await retriveStateList();
+      const sosLead=await retriveSOSLead();
+      const sosTeam=await retriveSOSMember();
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
         state: {
           ...prevConfig.state,
           options: stateList,
         },
+        teamlead:{
+          ...prevConfig.teamlead,
+          options:sosLead
+        },
+        members:{
+          ...prevConfig.members,
+          options:sosTeam
+        }
       }));
       setIsFormLoaded(true);
     })();
@@ -108,10 +118,11 @@ const CreateEMTeam = () => {
         errorList: {
           code: "400",
           message: error.message,
-          errors: error.response?.data,
+          errors: error.response?.data?.error,
         },
       }));
-      handleAlert("Form Not Submitted ! ");
+      const message=error.response?.data?.error!=="" ? ` Reason : ${error.response?.data?.error}`:""
+      handleAlert("Form Not Submitted."+message);
     } finally {
       setSubmitting(false);
       setLoading(false);
