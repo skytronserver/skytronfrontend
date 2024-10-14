@@ -53,9 +53,36 @@ const getRouteFixing = (device_id) => {
   return http.post("/api/getRoute/", data);
 
 }
+
+
+
+const broadCast = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/DEx/broadcast/", data);
+}
+
+const closeCase = (data) => {
+  const http = getAxiosInstance();
+  return http.post("api/EM/DEx/closeCase/", data);
+}
+
+const getEMmessage = (data) => {
+  const http = getAxiosInstance();
+  return http.post("api/EM/DEx/rcvMsg/", data);
+}
+const sendEMmessage = (data) => {
+  const http = getAxiosInstance();
+  return http.post("api/EM/DEx/sendMsg/", data);
+}
+const getEMCallloc = (data) => {
+  const http = getAxiosInstance();
+  return http.post("api/EM/DEx/getCallAllLoc/", data);
+}
+
+
 const getAllSOSCall = () => {
   const http = getAxiosInstance();
-  return http.get("/api/get-all-call/");
+  return http.post("/api/EM/DEx/getLiveCallList/");
 }
 const getCallDetails = (id) => {
   const http = getAxiosInstance();
@@ -78,6 +105,12 @@ const delRoute = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/delRoute/", data);
 }
+const acceptEMCall = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/DEx/replyCall/", data);
+}
+
+
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -92,7 +125,13 @@ const HomePageService = {
   broadCastHelp,
   updateSOSCall,
   addRoute,
-  delRoute
+  delRoute,
+  broadCast,
+  closeCase,
+  getEMmessage,
+  sendEMmessage,
+  getEMCallloc,
+  acceptEMCall
 
 };
 
