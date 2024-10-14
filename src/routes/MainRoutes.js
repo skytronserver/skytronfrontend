@@ -11,6 +11,7 @@ import SOSAlert from "../views/direct/SOSAlert";
 import HistoryPlayback from "../views/direct/HistoryPlayback";
 import SOSUserExp from "../views/direct/SOSUserExp";
 import SOSExe from "../views/direct/SOSExe";
+import EMCall from "../views/direct/emcall";
 import RouteFixing from "../views/direct/RouteFixing";
 import GetAllCall from "../views/direct/GetAllCall";
 import CallDetails from "../views/direct/CallDetails";
@@ -81,7 +82,7 @@ const MainRoutes = {
     {
       path: "/sos-exe",
       element: <SOSExe />,
-      roles: ["superadmin", "sosadmin", "teamleader", "sosuser"],
+      roles: ["superadmin", "sosadmin", "teamleader", "sosexecutive"],
     },
     {
       path: "/history-playback",
@@ -96,12 +97,17 @@ const MainRoutes = {
     {
       path: "/sos-call-list",
       element: <GetAllCall />,
-      roles: ["superadmin", "sosadmin", "sosuser", "teamleader"],
+      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
+    },
+    {
+      path: "/emcall",
+      element: <EMCall />,
+      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
     },
     {
       path: "/sos-call-details/:call_id",
       element: <CallDetails />,
-      roles: ["superadmin", "sosadmin", "sosuser", "teamleader"],
+      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
     },
     {
       path: "sample-page",
@@ -111,7 +117,7 @@ const MainRoutes = {
     {
       path: "alert-list",
       element: <AlertList />,
-      roles: ["superadmin", "sosadmin", "sosuser", "teamleader"],
+      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };
