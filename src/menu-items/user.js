@@ -140,7 +140,7 @@ const user = {
       url: "/sos-call-list",
       icon: icons.IconUrgent,
       breadcrumbs: false,
-      roles: ["superadmin", "sosadmin", "sosuser", "teamleader"],
+      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
     },
     {
       id: "route-fixing",
@@ -194,7 +194,7 @@ const user = {
       url: "/sos-exe",
       icon: icons.IconUrgent,
       breadcrumbs: false,
-      roles: ["superadmin", "sosadmin", "teamleader", "sosuser"],
+      roles: ["superadmin", "sosadmin", "teamleader", "sosexecutive"],
     },
     {
       id: "provider-device-list-pending",
@@ -374,7 +374,7 @@ const user = {
           breadcrumbs: false,
           roles: ["dealer"],
         },
-        
+
       ],
     },
     {
