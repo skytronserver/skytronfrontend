@@ -6,7 +6,7 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import { Map, View } from 'ol';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
-import { OSM, Vector as VectorSource } from 'ol/source';
+import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
 import { fromLonLat } from 'ol/proj';
 
 import { Icon, Style } from "ol/style";
@@ -29,13 +29,44 @@ const EMCall = () => {
     // Initialize map
     useEffect(() => {
         const map = new Map({
-            target: mapElement.current,
-            layers: [new TileLayer({ source: new OSM() }), vectorLayer],
+            target: mapRef.current,
+            layers: [
+                new TileLayer({
+                    source: new OSM(),
+                }),
+                new TileLayer({
+                    source: new TileWMS({
+                        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+                        params: {
+                            'LAYERS': 'basemap%3Aadmin_group',
+                            'TILED': true,
+                            'VERSION': '1.1.1',
+                            'FORMAT': 'image/png',
+                            'TRANSPARENT': 'true',
+                            'SRS': 'EPSG:4326',
+                            'WIDTH': 256,   // Set the tile width to 256 pixels
+                            'HEIGHT': 256,   // Set the tile height to 256 pixels
+                            'pixelRatio': 1,
+
+                        },
+                        serverType: 'geoserver',
+                        projection: 'EPSG:4326', // Ensure the projection is set:' 
+
+
+
+                    })
+                }),
+            ],
+
+
             view: new View({
-                center: fromLonLat([91.829437, 26.131644]), // Initial center
-                zoom: 9,
+                center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
+                zoom: 7,
             }),
+
+            pixelRatio: 1,
         });
+
         mapRef.current = map;
         return () => map.setTarget(null); // Cleanup on unmount
     }, []);
@@ -172,7 +203,15 @@ const EMCall = () => {
                 <Card>
                     <CardContent>
                         <Typography variant="h5">Map Display</Typography>
-                        <div ref={mapElement} style={{ height: '300px' }}></div>
+
+
+                        <div ref={mapElement} style={{ height: '300px', position: 'relative' }}>
+                            {/* Position logos using absolute positioning within the map container */}
+                            <img src="https://skytrack.tech:2000/static/logo/inspace.png" style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
+                            <img src="https://skytrack.tech:2000/static/logo/isro.png" style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
+                            <img src="https://skytrack.tech:2000/static/logo/skytron.png" style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
+
+                        </div>
                     </CardContent>
                 </Card>
             </Grid>
@@ -182,6 +221,9 @@ const EMCall = () => {
                     <CardContent>
                         <Typography variant="h5">Chat Box</Typography>
                         <Box sx={{ border: '1px solid #ccc', padding: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+
+
+
                             {messages.map((msg) => (
                                 <Typography key={msg.id}>
                                     {msg.assignment.admin.users[0].name}: {msg.message}
