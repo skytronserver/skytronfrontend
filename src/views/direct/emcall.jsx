@@ -6,7 +6,7 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import { Map, View } from 'ol';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
-import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
+import { OSM, Vector as VectorSource, TileWMS } from 'ol/source';
 import { fromLonLat } from 'ol/proj';
 
 import { Icon, Style } from "ol/style";
@@ -29,7 +29,7 @@ const EMCall = () => {
     // Initialize map
     useEffect(() => {
         const map = new Map({
-            target: mapRef.current,
+            target: mapElement.current,
             layers: [
                 new TileLayer({
                     source: new OSM(),
@@ -83,6 +83,7 @@ const EMCall = () => {
 
             // Add new features
             locations.forEach((location) => {
+                console.log(location);
                 const { longitude, latitude } = location;
                 const coordinates = fromLonLat([longitude, latitude]);
                 const feature = new Feature({ geometry: new Point(coordinates) });
@@ -95,7 +96,9 @@ const EMCall = () => {
                 }))
 
                 source.addFeature(feature);
-                // mapRef.current.getView().setCenter(coordinates);
+
+                //console.log("locationu pdated ");
+                //mapRef.current.getView().setCenter(coordinates);
             });
         } catch (error) {
             console.error('Fetch Locations Error:', error);
@@ -203,8 +206,6 @@ const EMCall = () => {
                 <Card>
                     <CardContent>
                         <Typography variant="h5">Map Display</Typography>
-
-
                         <div ref={mapElement} style={{ height: '300px', position: 'relative' }}>
                             {/* Position logos using absolute positioning within the map container */}
                             <img src="https://skytrack.tech:2000/static/logo/inspace.png" style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
@@ -221,9 +222,6 @@ const EMCall = () => {
                     <CardContent>
                         <Typography variant="h5">Chat Box</Typography>
                         <Box sx={{ border: '1px solid #ccc', padding: '10px', maxHeight: '200px', overflowY: 'auto' }}>
-
-
-
                             {messages.map((msg) => (
                                 <Typography key={msg.id}>
                                     {msg.assignment.admin.users[0].name}: {msg.message}
