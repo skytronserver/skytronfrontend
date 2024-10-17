@@ -7,6 +7,7 @@ import { getAllSOSCall } from '../../actions/commonDataActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { useNavigate } from 'react-router-dom';
 
+const audio = new Audio('https://skytrack.tech:2000/static/bell.wav');
 const GetAllCall = () => {
   const [load, setLoad] = useState(false);
   const [newPendingCall, setNewPendingCall] = useState(null); // Track new pending assignment
@@ -17,7 +18,7 @@ const GetAllCall = () => {
   useEffect(() => {
     const fetchCallList = async () => {
       try {
-        const response = await HomePageService.getAllSOSCall();
+        const response = await HomePageService.getPendingSOSCall();
         const calls = response?.data?.calls || [];
         dispatch(getAllSOSCall(calls));
         checkForNewPendingCall(calls); // Check for new "pending" assignments
@@ -41,6 +42,7 @@ const GetAllCall = () => {
     const newPendingCall = calls.find(
       (call) =>
         call.call?.status === 'pending' &&
+        call?.status === 'pending' &&
         !previousCallsRef.current.some((prevCall) => prevCall.id === call.id)
     );
     if (newPendingCall) {
@@ -51,7 +53,6 @@ const GetAllCall = () => {
   };
 
   const playBuzzer = () => {
-    const audio = new Audio('/beep-07.wav');
     audio.play();
   };
 
@@ -60,6 +61,7 @@ const GetAllCall = () => {
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
 
     setNewPendingCall(null); // Close the popup after accepting
+    audio.pause();
   };
 
   const handleNavigate = (call) => {

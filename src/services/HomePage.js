@@ -80,6 +80,10 @@ const getEMCallloc = (data) => {
 }
 
 
+const getPendingSOSCall = () => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/DEx/getPendingCallList/");
+}
 const getAllSOSCall = () => {
   const http = getAxiosInstance();
   return http.post("/api/EM/DEx/getLiveCallList/");
@@ -131,7 +135,7 @@ const HomePageService = {
   getEMmessage,
   sendEMmessage,
   getEMCallloc,
-  acceptEMCall
+  acceptEMCall, getPendingSOSCall
 
 };
 
