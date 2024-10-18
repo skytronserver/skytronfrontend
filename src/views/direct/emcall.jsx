@@ -55,7 +55,8 @@ const EMCall = () => {
 
 
                     })
-                }),
+                })
+                , vectorLayer,
             ],
 
 
