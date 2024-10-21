@@ -101,11 +101,15 @@ export const retriveStateList = async () => {
 };
 export const retriveSOSLead = async () => {
   try {
-    const response = await UserServices.fetchSOSUser({user_type:"Team_lead"});
+    let filteredData=[];
+    const response = await UserServices.fetchSOSUser({user_type:"teamlead"});
     if(response.data.length===0){
       return [{value:"",label:'No Data Found'}]
     }
-    const list=response.data.map(user => ({
+    if(response?.data){
+      filteredData=response?.data.filter(item=>item.user_type==="teamlead")
+    }
+    const list=filteredData.map(user => ({
       value: user.id,
       label: user.users[0].name,
     })); 
@@ -120,11 +124,16 @@ export const retriveSOSLead = async () => {
 };
 export const retriveSOSMember = async () => {
   try {
-    const response = await UserServices.fetchSOSUser({user_type:"desk_ex"});
+    let filteredData=[];
+    const response = await UserServices.fetchSOSUser();
     if(response.data.length===0){
       return [{value:"",label:'No Data Found'}]
     }
-    const list=response.data.map(user => ({
+    
+    if(response?.data){
+      filteredData=response?.data.filter(item=>item.user_type!=="teamlead")
+    }
+    const list=filteredData.map(user => ({
       value: user.id,
       label: user.users[0].name,
     })); 

@@ -109,7 +109,7 @@ const user = {
       ],
     },
     {
-      id: "new-icons",
+      id: "new-icons-em-team",
       title: "EM Team",
       type: "collapse",
       icon: icons.IconUsers,

@@ -1,5 +1,13 @@
 import { display } from "@mui/system";
-import {openFile,getRole} from "../helper"
+import {openFile,getRole} from "../helper";
+const user_type = {
+  teamlead: "Team Lead",
+  desk_ex: "Desk Executive",
+  police_ex: "Police Executive",
+  ambulance_ex: "Ambulance Executive",
+  PCR: "Police Control Room",
+  ACR: "Ambulance Control Room",
+};
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
@@ -250,6 +258,21 @@ export const sosListColumn = [
       filter: false,
       sort: false,
       display: false,
+    },
+  },
+  {
+    name: "user_type",
+    label: "Type",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{user_type?.[value] ?? value}</p>
+        );
+      },
+      csvExportKey: "Type",
+      columnKey:0,
     },
   },
   {
