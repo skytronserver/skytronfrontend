@@ -133,6 +133,7 @@ export const sosUserFormField = {
   },
 };
 
+// ('teamlead’, ’desk_ex’,’police_ex', 'ambulance_ex', 'PCR’(police control room), 'ACR’(ambulance control room)
 export const sosOtherUserFormField = {
   user_type: {
     name: "user_type",
@@ -140,9 +141,13 @@ export const sosOtherUserFormField = {
     label: "User Type",
     validation: Yup.string().required("User Type is required"),
     options: [
-      { value: "Team_lead", label: "Team Lead" },
-      { value: "Desk_executive", label: "Desk Executive" },
-      { value: "Field_executive", label: "Field Executive" },
+      { value: "teamlead", label: "Team Lead" },
+      { value: "desk_ex", label: "Desk Executive" },
+      { value: "police_ex", label: "Police Executive" },
+      { value: "ambulance_ex", label: "Ambulance Executive" },
+      { value: "PCR", label: "Police Control Room" },
+      { value: "ACR", label: "Ambulance Control Room" },
+
     ],
   },
   name: {
@@ -249,7 +254,7 @@ export const emTeamFormField = {
   detail: {
     name: "detail",
     type: "text",
-    label: "Detail",
+    label: "Shift Details",
     validation: Yup.string().required("Details is required"),
   },
   state: {

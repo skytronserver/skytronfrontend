@@ -9,7 +9,6 @@ import DialogComponent from "../../ui-component/DialogComponent";
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  convertErrorObjectToArray,
   retriveDistrictList,
   retriveStateList,
 } from "../../helper";
@@ -87,7 +86,7 @@ const SOSUser = () => {
       // Prepare values with role and createdby
       const valuesWithRole = {
         ...values,
-        role: values['user_type'],
+        role: 'sosexecutive',
         createdby: userId,
       };
   
