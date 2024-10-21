@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
 import LiveTracking from "../views/direct/LiveTracking";
-import { element } from "prop-types";
 import SOSAlert from "../views/direct/SOSAlert";
 import HistoryPlayback from "../views/direct/HistoryPlayback";
 import SOSUserExp from "../views/direct/SOSUserExp";
