@@ -173,9 +173,9 @@ function TagDeviceToVehicle() {
     };
     try {
       const response = await TaggingService.vahanVerificationApi(deviceData);
-      const device = response.data.data.device;
-      const owner = response.data.data.vehicle_owner.users[0];
-      const vehicle = response.data.data;
+      const device = response?.data?.Skytrack_data?.device || response?.Skytrack_data?.device;
+      const owner = response?.data?.Skytrack_data?.vehicle_owner.users[0] || response?.Skytrack_data?.vehicle_owner.users[0];
+      const vehicle = response?.data?.Skytrack_data || response?.Skytrack_data;
       setGetMap((prev) => ({
         ...prev,
         imei: vehicle.vehicle_reg_no,
@@ -278,6 +278,7 @@ function TagDeviceToVehicle() {
       setDismissibleAlert(prev=>({...prev,isOpen:true,message:'Successfully OTP has been sent to your registered mobile number',type:'success'}));
     } catch (error) {
       console.log(error);
+      const message=error?.response?.data?.detail ? "Details "+ error?.response?.data?.detail :'Something went wrong! Please try after sometimes or check your details';
       if (error?.message === "Network Error") {
         setError((prev) => ({ ...prev, api: true }));
       } else {
@@ -287,8 +288,7 @@ function TagDeviceToVehicle() {
       setDismissibleAlert((prev) => ({
         ...prev,
         isOpen: true,
-        message:
-          "Something went wrong! Please try after sometimes or check your details",
+        message:message,
         type: "error",
       }));
     } finally {
