@@ -216,6 +216,29 @@ export const fetchDeviceListForSale = async () => {
       }
     }
   };
+export const fetchDeviceListForTagging = async () => {
+    try {
+      const filter = {
+        esim_status:"ESIM_Active_Confirmed",
+        stock_status:"Available_for_fitting"
+      };
+      const response = await StockServices.stockFilter(filter);
+      const list = response.data.data.map((device) => ({
+        value: device.id,
+        label: device.imei,
+      }));
+      const uniqueList = [
+        ...new Map(list.map((item) => [item["value"], item])).values(),
+      ];
+      return uniqueList;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log("No Data Found");
+      } else {
+        console.log("No Data Found");
+      }
+    }
+  };
   export const fetchEsimProvider = async () => {
     try {
       const response = await StockServices.getProviderList();
