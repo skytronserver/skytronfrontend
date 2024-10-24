@@ -13,7 +13,7 @@ import MainCard from "../../ui-component/cards/MainCard";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import {
-  fetchDeviceListForSale,
+  fetchDeviceListForTagging,
   fetchVehicleCategory,
 } from "../../helper";
 import {
@@ -89,7 +89,7 @@ function TagDeviceToVehicle() {
   });
   useEffect(() => {
     (async () => {
-      const deviceList = await fetchDeviceListForSale();
+      const deviceList = await fetchDeviceListForTagging();
       const categoryList = await fetchVehicleCategory();
 
       setUpdatedFormField((prevConfig) => ({
@@ -178,8 +178,8 @@ function TagDeviceToVehicle() {
       const vehicle = response?.data?.Skytrack_data || response?.Skytrack_data;
       setGetMap((prev) => ({
         ...prev,
-        imei: vehicle.vehicle_reg_no,
-        regno: device.imei,
+        regno: vehicle.vehicle_reg_no,
+        imei: device.imei,
       }));
       setDeviceDetails((prev) => ({
         ...prev,
