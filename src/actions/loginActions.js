@@ -81,6 +81,7 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
 export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
   try{
     dispatch(setLoading(true));
+    const myCipher = cipherEncryption('skytrack');
     const response=await axios.post(`${BASE_URL}api/validate_otp/`,{
       token,
       otp
@@ -90,6 +91,13 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
       token:response.data.token,
       email:username,
       otpToken:null,
+    }
+    if(response?.data?.user?.role==='sosexecutive'){
+      const cookiesData=`${myCipher(response.data?.user?.name)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.mobile)}`
+      const skytrack_cookiesData=`${myCipher(response.data?.user?.email)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.date_joined )}-${myCipher(response.data?.user?.mobile)}`
+      sessionStorage.setItem('cookiesData',cookiesData+'-'+response.data?.user?.id);
+      localStorage.setItem('skytrackCookiesData',skytrack_cookiesData);
+      dispatch(setLoginInfo(cookiesData));
     }
     sessionStorage.setItem('isAuthenticated',true);
     sessionStorage.setItem('sessionID', Date.now());
@@ -152,7 +160,7 @@ export const logout=()=>async(dispatch)=>{
     });
     localStorage.clear();
     sessionStorage.clear();
-   
+    dispatch(setLoginInfo(""));
   }catch(error){
     localStorage.clear();
     sessionStorage.clear();

@@ -173,6 +173,19 @@ const getDTODashboardData=()=>{
     const http=getAxiosInstance();
     return http.post('/api/homepageandstat/homepage_DTO/');
 }
+const getSOSAdminDashboard=()=>{
+    const http=getAxiosInstance();
+    return http.get("/api/SOS/SOS_Admin_report/");
+}
+const getSOSLeadDashboard=()=>{
+    const http=getAxiosInstance();
+    return http.get("/api/SOS/SOS_TL_report/");
+}
+const getSOSExeDashboard=()=>{
+    const http=getAxiosInstance();
+    return http.get("/api/SOS/SOS_EX_report/");
+}
+
 const UserServices = {
     getStateStats,
     getAlertDetails,
@@ -205,7 +218,10 @@ const UserServices = {
     getDealerDashboard,
     getManufacturerDashboard,
     getOwnerDashboard,
-    getDTODashboardData
+    getDTODashboardData,
+    getSOSAdminDashboard,
+    getSOSLeadDashboard,
+    getSOSExeDashboard,
   };
   
   export default UserServices;
