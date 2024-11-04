@@ -19,6 +19,15 @@ import Vehicle from "../../../assets/images/Vehicle.svg";
 import Driver from "../../../assets/images/Driver.svg";
 import Activation from "../../../assets/images/Activation.svg";
 import Model from "../../../assets/images/Model.svg";
+import IncomingC from "../../../assets/images/incomingC.svg";
+import Rejection from "../../../assets/images/rejection.svg";
+import FakeCall from "../../../assets/images/fakeCall.svg";
+import OnCall from "../../../assets/images/onCall.svg";
+import UserImage from "../../../assets/images/userImage.svg";
+import DoneAssignment from "../../../assets/images/doneAssignment.svg";
+import RejectedAssignment from "../../../assets/images/rejectedAssignment.svg";
+import Assignment from "../../../assets/images/assignmentCall.svg";
+import FalseAssignment from "../../../assets/images/falseAssignment.svg";
 import { decipherEncryption } from "../../../helper";
 import { dashboardInitialState } from "./dashboardInitialState";
 const ActiveState = () => {
@@ -40,7 +49,16 @@ const ActiveState = () => {
   const [userInfoForAdmin,setUserInfoForAdmin]=useState(dashboardInitialState.userInfoForAdmin)
   const [stateInfo,setStateInfo]=useState(dashboardInitialState.stateInfo);
   const [dtoDashboardInfo,setDtoDashboardInfo]=useState(dashboardInitialState.dtoDashboardInfo)
-
+  const [team,setTeam]=useState(dashboardInitialState.team)
+  const [teamForLead,setTeamForLead]=useState(dashboardInitialState.teamForLead)
+  const [incomingCall,setIncomingCall]=useState(dashboardInitialState.incomingCall)
+  const [fakeCall,setFakeCall]=useState(dashboardInitialState.fakeCall)
+  const [callRejection,setCallRejection]=useState(dashboardInitialState.callRejection)
+  const [calls,setCalls]=useState(dashboardInitialState.calls)
+  const [assignment,setAssignment]=useState(dashboardInitialState.assignment);
+  const [closedAssignment,setClosedAssignment]=useState(dashboardInitialState.closedAssignment);
+  const [falseAssignment,setFalseAssignment]=useState(dashboardInitialState.falseAssignment);
+  const [rejectedAssignment,setRejectedAssignment]=useState(dashboardInitialState.rejectedAssignment);
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
@@ -246,6 +264,125 @@ const ActiveState = () => {
           todayAlert:data.Today_harsh_brake_Alert
         }))
       })();
+    }
+    if(userRoles==='sosadmin'){
+      (async () => {
+        const response = await UserServices.getSOSAdminDashboard();
+        const data = await response.data;
+        setTeam((prev) => ({
+          ...prev,
+          Total_Teams: data.Total_Teams,
+          Total_DeskExecutives: data.Total_DeskExecutives,
+          Live_Teams: data.Live_Teams,
+          Live_DeskExecutives: data.Live_DeskExecutives,
+        }));
+        setIncomingCall((prev) => ({
+          ...prev,
+          Total_Incoming_Calls:data.Total_Incoming_Calls,
+          Total_Incoming_Calls_thismonth:data.Total_Incoming_Calls_thismonth,
+          Total_Incoming_Calls_thisweek:data.Total_Incoming_Calls_thisweek,
+          Total_Incoming_Calls_today:data.Total_Incoming_Calls_today,
+        }));
+        setCalls((prev) => ({
+          ...prev,
+          Total_Active_Calls: data.Total_Active_Calls,
+          Total_Closed_Calls: data.Total_Closed_Calls,
+          Total_Pending_Calls: data.Total_Pending_Calls,
+          Average_time_to_Accept: data.Average_time_to_Accept,
+        }));
+        setFakeCall((prev) => ({
+          ...prev,
+          Total_Fake_Calls: data.Total_Fake_Calls,
+          Total_Fake_Calls_thismonth: data.Total_Fake_Calls_thismonth,
+          Total_Fake_Calls_thisweek: data.Total_Fake_Calls_thisweek,
+          Total_Fake_Calls_today: data.Total_Fake_Calls_today,
+        }));
+        setCallRejection((prev) => ({
+          ...prev,
+          Total_Rejected_Assignemnt:data.Total_Rejected_Assignemnt,
+          Total_Rejected_Assignemnt_thismonth:data.Total_Rejected_Assignemnt_thismonth,
+          Total_Rejected_Assignemnt_thisweek:data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
+        }));
+
+      })();
+    }
+    if(userRoles==='teamlead'){
+      (async () => {
+        const response=await UserServices.getSOSLeadDashboard();
+        const data = await response.data;
+        setTeamForLead((prev) => ({
+          ...prev,
+          Total_DeskExecutives: data.Total_DeskExecutives,
+          Live_DeskExecutives: data.Live_DeskExecutives,
+        }));
+        setIncomingCall((prev) => ({
+          ...prev,
+          Total_Incoming_Calls:data.Total_Incoming_Calls,
+          Total_Incoming_Calls_thismonth:data.Total_Incoming_Calls_thismonth,
+          Total_Incoming_Calls_thisweek:data.Total_Incoming_Calls_thisweek,
+          Total_Incoming_Calls_today:data.Total_Incoming_Calls_today,
+        }));
+        setCalls((prev) => ({
+          ...prev,
+          Total_Active_Calls: data.Total_Active_Calls,
+          Total_Closed_Calls: data.Total_Closed_Calls,
+          Total_Pending_Calls: data.Total_Pending_Calls,
+          Average_time_to_Accept: data.Average_time_to_Accept,
+        }));
+        setFakeCall((prev) => ({
+          ...prev,
+          Total_Fake_Calls: data.Total_Fake_Calls,
+          Total_Fake_Calls_thismonth: data.Total_Fake_Calls_thismonth,
+          Total_Fake_Calls_thisweek: data.Total_Fake_Calls_thisweek,
+          Total_Fake_Calls_today: data.Total_Fake_Calls_today,
+        }));
+        setCallRejection((prev) => ({
+          ...prev,
+          Total_Rejected_Assignemnt:data.Total_Rejected_Assignemnt,
+          Total_Rejected_Assignemnt_thismonth:data.Total_Rejected_Assignemnt_thismonth,
+          Total_Rejected_Assignemnt_thisweek:data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
+        }));
+        
+      })()
+    }
+    if(userRoles==='desk_ex'){
+      (async () => {
+        const response=await UserServices.getSOSExeDashboard();
+        const data = await response.data;
+        setAssignment((prev) => ({
+          ...prev,
+          Total_Assignemnt_thistmonth: data.Total_Assignemnt_thistmonth,
+          Total_Assignemnt_thisweek: data.Total_Assignemnt_thisweek,
+          Total_Assignemnt_today: data.Total_Assignemnt_today,
+          Total_Assignemnt: data.Total_Assignemnt,
+        }));
+        setFalseAssignment((prev) => ({
+          ...prev,
+          Total_False_Assignemnt_thistmonth:
+            data.Total_False_Assignemnt_thistmonth,
+          Total_False_Assignemnt_thisweek: data.Total_False_Assignemnt_thisweek,
+          Total_False_Assignemnt_today: data.Total_False_Assignemnt_today,
+          Total_False_Assignemnt: data.Total_False_Assignemnt,
+        }));
+        setClosedAssignment((prev) => ({
+          ...prev,
+          Total_Closed_Assignemnt_thistmonth:
+            data.Total_Closed_Assignemnt_thistmonth,
+          Total_Closed_Assignemnt_thisweek:
+            data.Total_Closed_Assignemnt_thisweek,
+          Total_Closed_Assignemnt_today: data.Total_Closed_Assignemnt_today,
+          Total_Closed_Assignemnt: data.Total_Closed_Assignemnt,
+        }));
+        setRejectedAssignment((prev) => ({
+          ...prev,
+          Total_Rejected_Assignemnt_thistmonth:data.Total_Rejected_Assignemnt_thistmonth,
+          Total_Rejected_Assignemnt_thisweek:data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
+          Total_Rejected_Assignemnt:data.Total_Rejected_Assignemnt,
+        }));
+      })()
     }
   }, []);
 
@@ -614,7 +751,109 @@ const ActiveState = () => {
             </Grid>
           </Grid>
         );
-      default:
+      case "sosadmin":
+      case "teamlead":
+        return (
+          <Grid container spacing={2} marginBottom={mar}>
+          <Grid item xs={12} sm={12} md={6} lg={4}>
+          {role === "sosadmin" ? (
+            <Widget
+              cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+              label="Team,Desk Executive,Live Team,Live Desk Executive"
+              cardValue={team}
+              iconImage={UserImage}
+              heading="Users & Teams"
+            />
+          ):(
+            <Widget
+              cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+              label="Desk Executive,Live Desk Executive"
+              cardValue={teamForLead}
+              iconImage={UserImage}
+              heading="Users"
+            />
+          )}
+          </Grid>
+          <Grid item xs={12} sm={12} md={6} lg={4}>
+            <Widget
+              cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+              label="Active,Closed,Pending,Average accepted time"
+              cardValue={calls}
+              iconImage={OnCall}
+              heading="Calls"
+            />
+          </Grid>
+          <Grid item xs={12} sm={12} md={6} lg={4}>
+            <Widget
+             cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+              label="Total,Monthly,Weekly,Daily"
+              cardValue={fakeCall}
+              iconImage={FakeCall}
+              heading="Fake Calls"
+            />
+          </Grid>
+          <Grid item xs={12} sm={12} md={6} lg={4}>
+            <Widget
+              cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+              label="Total,Monthly,Weekly,Daily"
+              cardValue={incomingCall}
+              iconImage={IncomingC}
+              heading="Incoming Calls"
+            />
+          </Grid>
+          <Grid item xs={12} sm={12} md={6} lg={4}>
+            <Widget
+              cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+              label="Total,Monthly,Weekly,Daily"
+              cardValue={callRejection}
+              iconImage={Rejection}
+              heading="Rejected Calls"
+            />
+          </Grid>
+          </Grid>
+        )
+        case "desk_ex":
+          return (
+            <Grid container spacing={2} marginBottom={mar}>
+            <Grid item xs={12} sm={12} md={6} lg={3}>
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label="Monthly,Weekly,Daily,Total"
+                cardValue={assignment}
+                iconImage={Assignment}
+                heading="Call Assignment"
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={3}>
+              <Widget
+                cardColor="linear-gradient(to right, #ff6666 0%, #ffcc99 100%)"
+                label="Monthly,Weekly,Daily,Total"
+                cardValue={falseAssignment}
+                iconImage={FalseAssignment}
+                heading="False Assignment"
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={3}>
+              <Widget
+               cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
+                label="Monthly,Weekly,Daily,Total"
+                cardValue={closedAssignment}
+                iconImage={DoneAssignment}
+                heading="Closed Assignment"
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={3}>
+              <Widget
+                cardColor="linear-gradient(to right, #cc00cc 0%, #ff99ff 100%)"
+                label="Monthly,Weekly,Daily,Total"
+                cardValue={rejectedAssignment}
+                iconImage={RejectedAssignment}
+                heading="Rejected"
+              />
+            </Grid>
+            </Grid>
+          )
+        default:
         return null;
     }
   };

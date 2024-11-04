@@ -96,17 +96,17 @@ const MainRoutes = {
     {
       path: "/sos-call-list",
       element: <GetAllCall />,
-      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
+      roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
     },
     {
       path: "/emcall",
       element: <EMCall />,
-      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
+      roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
     },
     {
       path: "/sos-call-details/:call_id",
       element: <CallDetails />,
-      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
+      roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
     },
     {
       path: "sample-page",
@@ -116,7 +116,7 @@ const MainRoutes = {
     {
       path: "alert-list",
       element: <AlertList />,
-      roles: ["superadmin", "sosadmin", "sosexecutive", "teamleader"],
+      roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };
