@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useSelector, useDispatch } from 'react-redux';
 import React, { useEffect, useState, useRef } from 'react';
 import { Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
@@ -57,11 +58,11 @@ const GetAllCall = () => {
   };
 
   const handleAccept = async (id) => {
-
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
-
+    const acceptedCall=response.data;
     setNewPendingCall(null); // Close the popup after accepting
     audio.pause();
+    handleNavigate(acceptedCall)
   };
 
   const handleNavigate = (call) => {

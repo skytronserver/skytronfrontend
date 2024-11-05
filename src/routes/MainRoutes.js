@@ -62,7 +62,6 @@ const MainRoutes = {
       path: "dashboard",
       element: <DashboardDefault />,
     },
-
     {
       path: "/live-tracking",
       element: <LiveTracking />,
@@ -76,12 +75,12 @@ const MainRoutes = {
     {
       path: "/sos-lead-exp",
       element: <SOSUserExp />,
-      roles: ["superadmin", "sosadmin", "teamleader"],
+      roles: ["superadmin", "sosadmin", "teamlead"],
     },
     {
       path: "/sos-exe",
       element: <SOSExe />,
-      roles: ["superadmin", "sosadmin", "teamleader", "sosexecutive"],
+      roles: ["superadmin", "sosadmin", "teamlead", "desk_ex"],
     },
     {
       path: "/history-playback",
