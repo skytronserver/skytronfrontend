@@ -2,8 +2,10 @@
     "liveServer.settings.port": 5501,
     "cSpell.words": [
         "amtronlogo",
+        "Assignemnt",
         "Behaviour",
         "bulkupload",
+        "Callloc",
         "compan",
         "createdby",
         "Datatable",
@@ -11,6 +13,7 @@
         "deactive",
         "devicemanufacture",
         "devicemanufacturer",
+        "emcall",
         "Esim",
         "esimprovider",
         "expirydate",
@@ -40,6 +43,8 @@
         "tabstyle",
         "teamlead",
         "teamleader",
+        "thistmonth",
+        "thisweek",
         "Userform",
         "vahan"
     ]

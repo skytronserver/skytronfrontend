@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import React from "react";
-import { Grid } from "@mui/material";
+import { Grid,Card, CardContent,Typography } from "@mui/material";
 import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
-
+import { lazy } from "react";
 import Car from "../../../assets/images/Car.svg";
 import Bell from "../../../assets/images/Bell.svg";
 import Overspeed from "../../../assets/images/Overspeed.svg";
@@ -30,6 +30,7 @@ import Assignment from "../../../assets/images/assignmentCall.svg";
 import FalseAssignment from "../../../assets/images/falseAssignment.svg";
 import { decipherEncryption } from "../../../helper";
 import { dashboardInitialState } from "./dashboardInitialState";
+const SOSDashboard=lazy(()=>import("../../direct/SOSDashboard"))
 const ActiveState = () => {
   const [userInfo,setUserInfo]=useState(dashboardInitialState.userInfo);
   const [fitmentInfo,setFitmentInfo]=useState(dashboardInitialState.fitmentInfo);
@@ -859,7 +860,14 @@ const ActiveState = () => {
   };
 
   return (
+    <>
+    {userRoles==='teamlead' || userRoles==='desk_ex' ? (
+        <SOSDashboard role={userRoles} calls={calls} deskCalls={assignment}/>
+    ):(
     <DashboardView role={userRoles} />
+  )}
+    </>
+    
   );
 };
 
