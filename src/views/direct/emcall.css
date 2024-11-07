@@ -1,0 +1,63 @@
+.chat-box {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+  }
+  
+  .chat-message {
+    margin-bottom: 8px;
+    padding: 8px;
+    background-color: #e1f5fe;
+    border-radius: 8px;
+    max-width: 80%;
+    word-wrap: break-word;
+  }
+  
+  .chat-username {
+    font-weight: bold;
+    color: #0277bd;
+    display: inline;
+  }
+  
+  .chat-text {
+    display: inline;
+  }
+  
+  .chat-input-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .map-container {
+    height: 100%;
+    position: relative;
+  }
+  
+  .logo-map {
+    position: absolute;
+    z-index: 1000;
+  }
+  
+  .inspace-logo {
+    bottom: 0;
+    left: 0;
+    width: 120px;
+  }
+  
+  .isro-logo {
+    top: 0;
+    right: 0;
+    width: 70px;
+  }
+  
+  .skytron-logo {
+    bottom: 0;
+    right: 0;
+    width: 200px;
+    background-color: #ffffff;
+  }
+  
