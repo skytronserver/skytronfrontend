@@ -195,10 +195,10 @@ const checkForNewPendingCall = (calls) => {
   ];
   if(role==='desk_ex'){
     data = [
-        { title: "Assignment Monthly", value: deskCalls.Total_Assignemnt_thistmonth },
-        { title: "Assignment Weekly", value: deskCalls.Total_Assignemnt_thisweek },
-        { title: "Assignment Daily", value: deskCalls.Total_Assignemnt_today },
-        { title: "Assignment", value: deskCalls.Total_Assignemnt },
+        { title: "Average Acceptance Time", value: deskCalls.averageTime },
+        { title: "Weekly Inbound", value: deskCalls.Total_Assignemnt_thisweek },
+        { title: "Today's Inbound", value: deskCalls.Total_Assignemnt_today },
+        { title: "Total Inbound", value: deskCalls.Total_Assignemnt },
       ];
   }
   if(role==='teamlead'){

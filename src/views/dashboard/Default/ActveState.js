@@ -60,6 +60,7 @@ const ActiveState = () => {
   const [closedAssignment,setClosedAssignment]=useState(dashboardInitialState.closedAssignment);
   const [falseAssignment,setFalseAssignment]=useState(dashboardInitialState.falseAssignment);
   const [rejectedAssignment,setRejectedAssignment]=useState(dashboardInitialState.rejectedAssignment);
+  const [avgAcceptance,setAvgAcceptance]=useState("");
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
@@ -383,6 +384,7 @@ const ActiveState = () => {
           Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
           Total_Rejected_Assignemnt:data.Total_Rejected_Assignemnt,
         }));
+        setAvgAcceptance(data.Average_time_to_Accept);
       })()
     }
   }, []);
@@ -862,7 +864,12 @@ const ActiveState = () => {
   return (
     <>
     {userRoles==='teamlead' || userRoles==='desk_ex' ? (
-        <SOSDashboard role={userRoles} calls={calls} deskCalls={assignment}/>
+        <SOSDashboard role={userRoles} calls={calls} deskCalls={{
+          Total_Assignemnt_today:assignment.Total_Assignemnt_today,
+Total_Assignemnt:assignment.Total_Assignemnt,
+averageTime:avgAcceptance,
+Total_Assignemnt_thisweek:assignment.Total_Assignemnt_thisweek
+        }}/>
     ):(
     <DashboardView role={userRoles} />
   )}
