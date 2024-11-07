@@ -23,7 +23,7 @@ import { createAxiosInstance } from "../../services/axiosInstance";
 import { useLocation } from 'react-router-dom';
 import {useEffect} from 'react'
 // assets
-
+import { decipherEncryption } from "../../helper";
 import AuthFooter from "../../ui-component/cards/AuthFooter";
 
 // styles
@@ -87,7 +87,10 @@ const MainLayout = () => {
   }
   sessionStorage.getItem("oAuthToken") &&
     createAxiosInstance(sessionStorage.getItem("oAuthToken"));
-
+    const myDecipher = decipherEncryption("skytrack");
+  const userData = sessionStorage.getItem("cookiesData");
+  const data = userData && userData.split("-").map((item) => myDecipher(item));
+  const userRoles = userData && data.length > 2 && data[1]; 
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -116,11 +119,12 @@ const MainLayout = () => {
       </AppBar>
 
       {/* drawer */}
-      <Sidebar
+
+     {userRoles!=='desk_ex' && <Sidebar
         drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened}
         drawerToggle={handleLeftDrawerToggle}
       />
-
+     }
       {/* main content */}
       <Main theme={theme} open={leftDrawerOpened}>
         {/* breadcrumb */}

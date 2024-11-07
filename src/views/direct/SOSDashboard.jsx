@@ -16,6 +16,7 @@ import MiniBoard from "../../ui-component/MiniBoard";
 import DetailCard from "../../ui-component/DetailCard";
 import { useDispatch } from 'react-redux';
 import { getAllSOSCall } from '../../actions/commonDataActions';
+import { useNavigate } from "react-router";
 const audio = new Audio('https://skytrack.tech:2000/static/bell.wav');
 const SOSDashboard = ({role,calls,deskCalls}) => {
   const mapElement = useRef();
@@ -26,7 +27,7 @@ const SOSDashboard = ({role,calls,deskCalls}) => {
     new VectorLayer({ source: new VectorSource() })
   );
   const mapRef = useRef(null);
-  
+  const navigate = useNavigate();
   //Call Details
   const dispatch = useDispatch();
   const previousCallsRef = useRef([]);
@@ -94,7 +95,6 @@ useEffect(() => {
       }
       setLoad(true);
     };
-
     // Fetch data every 10 seconds
     fetchCallList();
     const interval = setInterval(fetchCallList, 10000);
@@ -176,16 +176,24 @@ const checkForNewPendingCall = (calls) => {
   const playBuzzer = () => {
     audio.play();
   };
-  const handleAccept = async (id) => {
+  const handleAccept = async (id,show) => {
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
     const acceptedCall=response.data;
     setNewPendingCall(null); // Close the popup after accepting
     audio.pause();
-    handleNavigate(acceptedCall)
-    setShowDetails(true)
+    if(show==="here"){
+      handleShow(acceptedCall)
+      setShowDetails(true)
+    }else{
+      handleNavigate(acceptedCall)
+    }
+    
   };
-  const handleNavigate = (callObj) => {
+  const handleShow = (callObj) => {
     setCall(callObj)
+  };
+  const handleNavigate = (call) => {
+    navigate('/emcall', { state: { call } });
   };
   let data = [
     { title: "Active Call", value: "0" },
@@ -215,7 +223,7 @@ const checkForNewPendingCall = (calls) => {
         <MiniBoard data={data} />
       </Grid>
       <Grid item xs={12} md={12}>
-        <div ref={mapElement} style={{ height: "60vh", position: "relative" }}>
+        <div ref={mapElement} style={{ height: "65vh", position: "relative" }}>
           {/* Position logos using absolute positioning within the map container */}
           <img
             src="https://skytrack.tech:2000/static/logo/inspace.png"
@@ -263,15 +271,40 @@ const checkForNewPendingCall = (calls) => {
 
       {/* Popup Dialog for New Pending Call */}
       <Dialog open={!!newPendingCall} onClose={() => setNewPendingCall(null)}>
-        <DialogTitle>New Pending Assignment</DialogTitle>
-        <DialogContent>
+        <DialogTitle
+          sx={{
+            backgroundColor: "darkred",
+            color: "white",
+            textAlign: "center",
+            fontSize:"16px",
+          }}
+        >
+          New Pending Assignment
+        </DialogTitle>
+        <DialogContent sx={{padding:"16px !important"}}>
           <Typography>
-            A new assignment with ID {newPendingCall?.id} is pending. Do you want to accept it?
+            A new assignment with ID {newPendingCall?.id} is pending. Do you
+            want to accept it?
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleAccept(newPendingCall?.id)} color="primary" variant="contained">
-            Accept
+        <DialogActions
+          sx={{
+            justifyContent: "center",
+          }}
+        >
+          <Button
+            onClick={() => handleAccept(newPendingCall?.id,"here")}
+            color="primary"
+            variant="contained"
+          >
+            Accept 
+          </Button>
+          <Button
+            onClick={() => handleAccept(newPendingCall?.id,"detail")}
+            color="secondary"
+            variant="contained"
+          >
+            Detail
           </Button>
         </DialogActions>
       </Dialog>
