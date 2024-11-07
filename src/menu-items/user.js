@@ -194,7 +194,7 @@ const user = {
       url: "/sos-exe",
       icon: icons.IconUrgent,
       breadcrumbs: false,
-      roles: ["superadmin", "sosadmin", "teamlead", "desk_ex"],
+      roles: ["superadmin", "sosadmin", "teamlead"],
     },
     {
       id: "provider-device-list-pending",
@@ -382,7 +382,7 @@ const user = {
       title: "Reports",
       type: "collapse",
       icon: icons.IconReport,
-
+      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","teamlead","superadmin"],
       children: [
         {
           id: "sos-other-list",
