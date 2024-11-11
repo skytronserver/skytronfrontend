@@ -20,7 +20,7 @@ const DialogComponent = ({open,handleClose,message,errorList}) => {
           (Array.isArray(errorList) && errorList.length > 0)) && (
           <ul className="error-list">
             {typeof errorList === "string" ? (
-              <li>{messageDesc?.[errorList] ?? errorList}</li>
+              <li>{messageDesc?.[errorList] ?? <p dangerouslySetInnerHTML={{ __html: errorList }}/>}</li>
             ) : (
               errorList.map((item) => <li key={item.field}>
                 {messageDesc?.[item.message] ?? item.message}

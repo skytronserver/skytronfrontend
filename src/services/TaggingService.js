@@ -70,6 +70,15 @@ const getOwnerList=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/tag_ownerlist/',data)
 }
+const untagDevice=(tagId)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/untag/',tagId);
+}
+const cancelTagDevice=(deviceId)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/cancelTagDevice2Vehicle/',deviceId)
+}
+
 const TaggingService = {
     tagDeviceToVehicle,
     tagAwaitingOwnerApproval,
@@ -85,7 +94,10 @@ const TaggingService = {
     sendTagSendOwnerOtpFinal,
     verifyTagVerifyOwnerOtpFinal,
     getTagStatus,
-    getOwnerList
+    getOwnerList,
+    untagDevice,
+    cancelTagDevice,
+
 };
 
 export default TaggingService;
