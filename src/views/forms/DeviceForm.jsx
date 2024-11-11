@@ -77,11 +77,23 @@ const DeviceForm = ({formTitle }) => {
 
     try {
       const response = await StockServices.createStock(values);
-      setLoading(false);
       resetForm(deviceInitials);
       navigate("/device/show-device");
     } catch (error) {
+      if(error?.response){
+        const errorObject=error?.response?.data || '';
+        const errorString = errorObject!=='' ? Object.values(errorObject).flat().join("<br>") :'';
+        console.log(errorString)
+        setAlert({
+          error: true,
+          message: 'Unable to Submit',
+          errorList: errorString
+        });
+        setOpen(true)
+      }
       console.error("Error :", error.message);
+    }finally{
+      setLoading(false);
     }
   };
   const handleModelChange = (event, formik) => {

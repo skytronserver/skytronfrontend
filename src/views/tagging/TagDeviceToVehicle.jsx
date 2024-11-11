@@ -214,11 +214,15 @@ function TagDeviceToVehicle() {
     
     } catch (error) {
       console.error("Error :", error?.message);
+      let errorString="Something went wrong! Please try after sometimes or check your details";
+      if(error?.response){
+        const errorObject=error?.response?.data || '';
+        errorString = errorObject!=='' && Object.values(errorObject).flat().join(" ");
+      }
       setDismissibleAlert((prev) => ({
         ...prev,
         isOpen: true,
-        message:
-          "Something went wrong! Please try after sometimes or check your details",
+        message:errorString,
         type: "error",
       }));
     } finally {
