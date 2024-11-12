@@ -87,6 +87,24 @@ function TagDeviceToVehicle() {
     vehicle_model: "",
     category: "",
   });
+  const [vahanDetails,setVahanDetails]=useState({
+    chassis_no:"",
+    date_of_registration:"",
+    device_activation_status:"",
+    device_serial_no:"",
+    engine_no:"",
+    fitment_centre_name:"",
+    gnss_constellation_code:"",
+    icc_id:"",
+    imei_no:"",
+    maker_name:"", 
+    model_name:"",
+    owner_name:"", 
+    regn_no:"",
+    tac_no:"",
+    tac_valid_upto:"",
+    vehicle_class:"",
+  })
   useEffect(() => {
     (async () => {
       const deviceList = await fetchDeviceListForTagging();
@@ -176,6 +194,9 @@ function TagDeviceToVehicle() {
       const device = response?.data?.Skytrack_data?.device || response?.Skytrack_data?.device;
       const owner = response?.data?.Skytrack_data?.vehicle_owner.users[0] || response?.Skytrack_data?.vehicle_owner.users[0];
       const vehicle = response?.data?.Skytrack_data || response?.Skytrack_data;
+      const vahanStringData=response?.data?.vahan_data;
+      const vahanJSONData=JSON.parse(vahanStringData);
+      const vahanData=vahanJSONData?.VltdDetailsDobj
       setGetMap((prev) => ({
         ...prev,
         regno: vehicle.vehicle_reg_no,
@@ -208,6 +229,25 @@ function TagDeviceToVehicle() {
         vehicle_make: vehicle.vehicle_make,
         vehicle_model: vehicle.vehicle_model,
         category: vehicle.category,
+      }));
+      setVahanDetails((prev) => ({
+        ...prev,
+        chassis_no:vahanData?.chassisNo,
+        date_of_registration:vahanData?.dateOfRegistration,
+        device_activation_status:vahanData?.deviceActivationStatus,
+        device_serial_no:vahanData?.deviceSerialno,
+        engine_no:vahanData?.engineNo,
+        fitment_centre_name:vahanData?.fitmentCentreName,
+        gnss_constellation_code:vahanData?.gnssConstellationCode,
+        icc_id:vahanData?.iccId,
+        imei_no:vahanData?.imeiNo,
+        maker_name:vahanData?.makerName, 
+        model_name:vahanData?.modelName,
+        owner_name:vahanData?.ownerName, 
+        regn_no:vahanData?.regnNo,
+        tac_no:vahanData?.tacNo,
+        tac_valid_upto:vahanData?.tacValidUpto,
+        vehicle_class:vahanData?.vehClass,
       }));
       setActiveStep((prevActiveStep) => prevActiveStep + 1);
       setDismissibleAlert(prev=>({...prev,isOpen:true,message:'Vahan Details are successfully fetched',type:'success'}));
@@ -282,7 +322,8 @@ function TagDeviceToVehicle() {
       setDismissibleAlert(prev=>({...prev,isOpen:true,message:'Successfully OTP has been sent to your registered mobile number',type:'success'}));
     } catch (error) {
       console.log(error);
-      const message=error?.response?.data?.detail ? "Details "+ error?.response?.data?.detail :'Something went wrong! Please try after sometimes or check your details';
+      const errorData=error?.response?.data?.detail || error?.response?.data?.error
+      const message=errorData ? "Error Details "+ errorData :'Something went wrong! Please try after sometimes or check your details';
       if (error?.message === "Network Error") {
         setError((prev) => ({ ...prev, api: true }));
       } else {
@@ -357,7 +398,6 @@ function TagDeviceToVehicle() {
                 <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
                   {steps[activeStep].label}
                 </Typography>
-                
               </React.Fragment>
             )}
 
@@ -511,12 +551,28 @@ function TagDeviceToVehicle() {
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <DisplayTable values={ownerDetails} title="Owner Details" />
-                  <DisplayTable values={deviceDetails} title="Device Details" />
-                  <DisplayTable
-                    values={vehicleDetails}
-                    title="Vehicle Details"
-                  />
+                  <Grid container spacing={1}>
+                    <Grid item xs={6}>
+                      <DisplayTable
+                        values={ownerDetails}
+                        title="Owner Details"
+                      />
+                      <DisplayTable
+                        values={deviceDetails}
+                        title="Device Details"
+                      />
+                      <DisplayTable
+                        values={vehicleDetails}
+                        title="Vehicle Details"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                    <DisplayTable
+                        values={vahanDetails}
+                        title="Vahan Details"
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
               </Grid>
             )}

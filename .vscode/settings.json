@@ -13,12 +13,14 @@
         "deactive",
         "devicemanufacture",
         "devicemanufacturer",
+        "Dobj",
         "emcall",
         "Esim",
         "esimprovider",
         "expirydate",
         "Formik",
         "formjson",
+        "gnss",
         "GSTN",
         "gstnnumber",
         "homepageandstat",
@@ -33,6 +35,7 @@
         "panfile",
         "Proofno",
         "retrive",
+        "Serialno",
         "skytrack",
         "skytron",
         "skytronlogo",
@@ -48,6 +51,7 @@
         "thistmonth",
         "thisweek",
         "Userform",
-        "vahan"
+        "vahan",
+        "Vltd"
     ]
 }

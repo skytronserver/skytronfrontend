@@ -12,6 +12,7 @@ import { getRole } from '../../helper';
 import TaggingService from '../../services/TaggingService';
 const TaggedList = () => {
   const [load,setLoad]=useState(false)
+  const [reload,setReload]=useState(false);
   const role=getRole();
   const [tagged,setTagged]=useState([]);
   useEffect(()=>{
@@ -32,7 +33,7 @@ const TaggedList = () => {
       }
     };
     fetchTaggedList();
-  },[])
+  },[reload])
   //For actions refer AvailableForSale Component
   const handleUntag=async (e,id)=>{
     e.preventDefault();
@@ -40,8 +41,8 @@ const TaggedList = () => {
     if (confirmed) {
      console.log(id);
      try {
-      const response = await TaggingService.cancelTagDevice({device_id:id});
-      console.log(response)
+      await TaggingService.cancelTagDevice({device_id:id});
+      setReload(prev=>!prev)
      } catch (error) {
       console.log(error)
      }
