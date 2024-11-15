@@ -12,7 +12,12 @@ import {
 const transformKey = (key) => {
   return key
     .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map(word => {
+      if (word.toLowerCase() === 'esim') {
+        return 'eSIM';
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
     .join(' ');
 };
 
