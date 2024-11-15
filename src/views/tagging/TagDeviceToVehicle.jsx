@@ -62,49 +62,52 @@ function TagDeviceToVehicle() {
     type: "success",
     message: "",
   });
-  const [deviceDetails, setDeviceDetails] = useState({
-    device_esn: "",
-    iccid: "",
-    imei: "",
-    telecom_provider1: "",
-    telecom_provider2: "",
-    msisdn1: "",
-    msisdn2: "",
-    esim_validity: "",
-    esim_provider: "",
-    model: "",
-  });
+ 
   const [ownerDetails, setOwnerDetails] = useState({
     name: "",
     email: "",
     mobile: "",
-  });
-  const [vehicleDetails, setVehicleDetails] = useState({
+    device_ESN: "",
+    ICCID: "",
+    IMEI: "",
     vehicle_reg_no: "",
-    engine_no: "",
-    chassis_no: "",
     vehicle_make: "",
     vehicle_model: "",
+    engine_no: "",
+    chassis_no: "",
     category: "",
+    telecom_provider_1: "",
+    telecom_provider_2: "",
+    MSSISDN_1: "",
+    MSSISDN_2: "",
+    esim_validity: "",
+    esim_provider: "",
+    model: "",
+    
   });
+ 
   const [vahanDetails,setVahanDetails]=useState({
+    owner_name:"",
+    email: "",
+    mobile: "", 
+    device_serial_no:"",
+    ICCID:"",
+    IMEI:"",
+    vehicle_reg_no:"",
+    vehicle_make:"", 
+    vehicle_model:"",
+    engine_no:"",
     chassis_no:"",
+    vehicle_class:"",
     date_of_registration:"",
     device_activation_status:"",
-    device_serial_no:"",
-    engine_no:"",
     fitment_centre_name:"",
-    gnss_constellation_code:"",
-    icc_id:"",
-    imei_no:"",
-    maker_name:"", 
-    model_name:"",
-    owner_name:"", 
-    regn_no:"",
+    GNSS_constellation_code:"",
     tac_no:"",
     tac_valid_upto:"",
-    vehicle_class:"",
+    
   })
+
   useEffect(() => {
     (async () => {
       const deviceList = await fetchDeviceListForTagging();
@@ -202,27 +205,21 @@ function TagDeviceToVehicle() {
         regno: vehicle.vehicle_reg_no,
         imei: device.imei,
       }));
-      setDeviceDetails((prev) => ({
-        ...prev,
-        device_esn: device.device_esn,
-        iccid: device.iccid,
-        imei: device.imei,
-        telecom_provider1: device.telecom_provider1,
-        telecom_provider2: device.telecom_provider2,
-        msisdn1: device.msisdn1,
-        msisdn2: device.msisdn2,
-        esim_validity: device.esim_validity,
-        esim_provider: device.esim_provider[0],
-        model: device.model,
-      }));
       setOwnerDetails((prev) => ({
         ...prev,
         name: owner.name,
         email: owner.email,
         mobile: owner.mobile,
-      }));
-      setVehicleDetails((prev) => ({
-        ...prev,
+        device_ESN: device.device_esn,
+        ICCID: device.iccid,
+        IMEI: device.imei,
+        telecom_provider_1: device.telecom_provider1,
+        telecom_provider_2: device.telecom_provider2,
+        MSSISDN_1: device.msisdn1,
+        MSSISDN_2: device.msisdn2,
+        esim_validity: device.esim_validity,
+        esim_provider: device.esim_provider[0],
+        model: device.model,
         vehicle_reg_no: vehicle.vehicle_reg_no,
         engine_no: vehicle.engine_no,
         chassis_no: vehicle.chassis_no,
@@ -238,13 +235,13 @@ function TagDeviceToVehicle() {
         device_serial_no:vahanData?.deviceSerialno,
         engine_no:vahanData?.engineNo,
         fitment_centre_name:vahanData?.fitmentCentreName,
-        gnss_constellation_code:vahanData?.gnssConstellationCode,
-        icc_id:vahanData?.iccId,
-        imei_no:vahanData?.imeiNo,
-        maker_name:vahanData?.makerName, 
-        model_name:vahanData?.modelName,
+        GNSS_constellation_code:vahanData?.gnssConstellationCode,
+        ICCID:vahanData?.iccId,
+        IMEI:vahanData?.imeiNo,
+        vehicle_make:vahanData?.makerName, 
+        vehicle_model:vahanData?.modelName,
         owner_name:vahanData?.ownerName, 
-        regn_no:vahanData?.regnNo,
+        vehicle_reg_no:vahanData?.regnNo,
         tac_no:vahanData?.tacNo,
         tac_valid_upto:vahanData?.tacValidUpto,
         vehicle_class:vahanData?.vehClass,
@@ -551,28 +548,37 @@ function TagDeviceToVehicle() {
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Grid container spacing={1}>
-                    <Grid item xs={6}>
-                      <DisplayTable
-                        values={ownerDetails}
-                        title="Owner Details"
-                      />
-                      <DisplayTable
-                        values={deviceDetails}
-                        title="Device Details"
-                      />
-                      <DisplayTable
-                        values={vehicleDetails}
-                        title="Vehicle Details"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                    <DisplayTable
-                        values={vahanDetails}
-                        title="Vahan Details"
-                      />
-                    </Grid>
-                  </Grid>
+                <Grid container spacing={1}>
+  <Grid 
+    item 
+    xs={6} 
+    sx={{ 
+      borderRadius: '8px 0 0 8px', 
+      border: '1px solid #f0f0f0', 
+      backgroundColor: 'white'
+    }}
+  >
+    <DisplayTable
+      values={ownerDetails}
+      title="Details as in Skytron"
+    />
+  </Grid>
+  <Grid 
+    item 
+    xs={6} 
+    sx={{ 
+      borderRadius: '0 8px 8px 0', 
+      border: '1px solid #f0f0f0', 
+      backgroundColor: 'white'
+    }}
+  >
+    <DisplayTable
+      values={vahanDetails}
+      title="Details as in Vahan"
+    />
+  </Grid>
+</Grid>
+
                 </Grid>
               </Grid>
             )}

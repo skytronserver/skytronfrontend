@@ -17,7 +17,7 @@ export const taggingFields = {
   device: {
     name: "device",
     type: "select",
-    label: "Device",
+    label: "Device IMEI No",
     validation: Yup.string().required("Device is required"),
     options: deviceList,
   },
