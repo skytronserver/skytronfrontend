@@ -293,18 +293,11 @@ const checkForNewPendingCall = (calls) => {
           }}
         >
           <Button
-            onClick={() => handleAccept(newPendingCall?.id,"here")}
-            color="primary"
-            variant="contained"
-          >
-            Accept 
-          </Button>
-          <Button
             onClick={() => handleAccept(newPendingCall?.id,"detail")}
             color="secondary"
             variant="contained"
           >
-            Detail
+            Accept
           </Button>
         </DialogActions>
       </Dialog>
