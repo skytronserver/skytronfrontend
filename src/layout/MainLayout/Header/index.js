@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 // material-ui
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, ButtonBase } from "@mui/material";
-
+import {getRole} from "../../../helper";
 // project imports
 import LogoSection from "../LogoSection";
 import ProfileSection from "./ProfileSection";
@@ -37,7 +37,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
         >
           <LogoSection />
         </Box>
-
+        {getRole()!=='desk_ex' &&
         <ButtonBase
           sx={{ borderRadius: "12px", overflow: "hidden", left: "10px" }}
         >
@@ -60,6 +60,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
             <IconMenu2 stroke={1.5} size="1.3rem" />
           </Avatar>
         </ButtonBase>
+        }
       </Box>
 
       {/* header search */}

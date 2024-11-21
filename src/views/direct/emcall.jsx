@@ -203,11 +203,8 @@ const EMCall = () => {
         content="Call closed successfully!"
         actions={
           <>
-            <Button onClick={handleModalClose} color="primary" variant="contained">
-              OK
-            </Button>
             <Button onClick={handleRedirectToDashboard} color="secondary" variant="outlined">
-              Dashboard
+              Done
             </Button>
           </>
         }
