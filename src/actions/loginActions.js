@@ -36,6 +36,8 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
       captcha_key,
       captcha_reply
     });
+    console.log(response,'response')
+    if(response?.data?.success){
     const myCipher = cipherEncryption('skytrack');
     const responseData={
       isAuthenticated:false,
@@ -54,7 +56,11 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
     dispatch(setLoginInfo(cookiesData));
     dispatch(setUser(responseData));
     dispatch(setError(error));
+  }else{
+    throw new Error(response?.data?.error)
+  }
   } catch (error) {
+    console.log(error,'error')
     let message="";
     if(error?.code==="ERR_BAD_REQUEST"){
       if(error?.response?.data){
@@ -85,7 +91,7 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     const response=await axios.post(`${BASE_URL}api/validate_otp/`,{
       token,
       otp
-    });
+    }); 
     const responseData={
       isAuthenticated:true,
       token:response.data.token,

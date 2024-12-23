@@ -24,6 +24,9 @@ import {
   captchaStyle,
   replyStyle,
 } from "./homeStyle";
+import { IconButton, InputAdornment } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+
 function Home() {
   const dispatch = useDispatch();
   const [error, setError] = useState(false);
@@ -32,6 +35,7 @@ function Home() {
     src: "",
     captcha_key: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const initialValues = {
     mobile: "",
     password: "",
@@ -146,6 +150,15 @@ function Home() {
                   fullWidth
                   margin="normal"
                   sx={{ backgroundColor: "none" }}
+                  inputProps={{
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*'
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   {...formik.getFieldProps("mobile")}
                   error={formik.touched.mobile && Boolean(formik.errors.mobile)}
                   helperText={formik.touched.mobile && formik.errors.mobile}
@@ -154,7 +167,7 @@ function Home() {
                   id="password"
                   label="Password"
                   variant="outlined"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   fullWidth
                   name="password"
                   margin="normal"
@@ -163,6 +176,19 @@ function Home() {
                     formik.touched.password && Boolean(formik.errors.password)
                   }
                   helperText={formik.touched.password && formik.errors.password}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
 
                 <section style={captchaStyle}>
