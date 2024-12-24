@@ -152,12 +152,20 @@ function Home() {
                   sx={{ backgroundColor: "none" }}
                   inputProps={{
                     inputMode: 'numeric',
-                    pattern: '[0-9]*'
+                    pattern: '[0-9]*',
+                    maxLength: 10,
                   }}
                   onKeyPress={(e) => {
-                    if (!/[0-9]/.test(e.key)) {
+                    if (
+                      !/[0-9]/.test(e.key) || 
+                      (formik.values.mobile.length >= 10 && e.key !== 'Backspace')
+                    ) {
                       e.preventDefault();
                     }
+                  }}
+                  onChange={(e) => {
+                    const value = e.target.value.slice(0, 10);
+                    formik.setFieldValue('mobile', value);
                   }}
                   {...formik.getFieldProps("mobile")}
                   error={formik.touched.mobile && Boolean(formik.errors.mobile)}

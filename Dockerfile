@@ -12,11 +12,11 @@ RUN npm ci && \
 # Copy application
 COPY . .
 
+
 # Build the application (if needed)
 # RUN npm run build
 
 EXPOSE 3000
 
-USER node
 
 CMD ["npm", "start"] 
