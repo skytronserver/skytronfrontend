@@ -5,17 +5,19 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies with clean cache
+RUN npm ci && \
+    npm cache clean --force
 
 # Copy the rest of the application
 COPY . .
 
-# Copy .env file
-COPY .env .env
+# Build the application (if needed)
+# RUN npm run build
 
-# Expose the port (adjust if needed)
 EXPOSE 3000
 
-# Start the application
+# Use a non-root user for better security
+USER node
+
 CMD ["npm", "start"] 
