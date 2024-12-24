@@ -5,11 +5,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with clean cache
+# Install dependencies 
 RUN npm ci && \
     npm cache clean --force
 
-# Copy the rest of the application
+# Copy application
 COPY . .
 
 # Build the application (if needed)
@@ -17,7 +17,6 @@ COPY . .
 
 EXPOSE 3000
 
-# Use a non-root user for better security
 USER node
 
 CMD ["npm", "start"] 
