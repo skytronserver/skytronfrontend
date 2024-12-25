@@ -36,8 +36,7 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
       captcha_key,
       captcha_reply
     });
-    console.log(response,'response')
-    if(response?.data?.success){
+    if(response?.data?.token){
     const myCipher = cipherEncryption('skytrack');
     const responseData={
       isAuthenticated:false,
