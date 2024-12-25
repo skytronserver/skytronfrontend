@@ -9,7 +9,7 @@ const HistoryPlayback = () => {
   const currentDate = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   const [load, setLoad] = useState(false);
-  const [vehicleNo, setVehicleNo] = useState('GEM1205-04-00');
+  const [vehicleNo, setVehicleNo] = useState('');
   const [fromDate, setFromDate] = useState(dateTimeUpdate(new Date(Date.now() - 86400000)));
   const [toDate, setToDate] = useState(dateTimeUpdate(new Date()));
   const [vehicleList, setVehicleList] = useState([]);

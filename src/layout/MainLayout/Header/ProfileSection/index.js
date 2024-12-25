@@ -66,6 +66,8 @@ const ProfileSection = () => {
         });
       });
     }
+    sessionStorage.clear();
+    localStorage.clear();
     dispatch(logout());
     setLogout((prev)=>prev+1);
     window.location.href = '/mis';
