@@ -99,7 +99,7 @@ const EMCall = () => {
           new Style({
             image: new Icon({
               anchor: [0.5, 1],
-              src: `${process.env.REACT_APP_BASE_URL}/static/logo/red-skytron-transparent.png`,
+              src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
               scale: 0.06,
             }),
           })
@@ -276,17 +276,17 @@ const EMCall = () => {
         <div ref={mapElement} className="map-container">
           {/* Position logos using absolute positioning within the map container */}
           <img
-            src={`${process.env.REACT_APP_BASE_URL}/static/logo/inspace.png`}
+            src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
             className="logo-map inspace-logo"
             alt="img-logo"
           />
           <img
-            src={`${process.env.REACT_APP_BASE_URL}/static/logo/isro.png`}
+            src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
             className="logo-map isro-logo"
             alt="img-iso"
           />
           <img
-            src={`${process.env.REACT_APP_BASE_URL}/static/logo/skytron.png`}
+            src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
             className="logo-map skytron-logo"
             alt="img-skytrack"
           />

@@ -192,7 +192,7 @@ const RouteFixing = () => {
       pointFeature.setStyle(
         new Style({
           image: new Icon({
-            src: `${process.env.REACT_APP_BASE_URL}/static/track.png`, 
+            src: `${process.env.REACT_APP_BASE_URL}static/track.png`, 
             scale: 0.051,
             anchor: [0.5, 1], // Horizontal center and bottom edge as anchor point
             anchorXUnits: "fraction", // Anchor unit is fraction of the icon's width
@@ -347,9 +347,9 @@ const RouteFixing = () => {
 
 
       <Box ref={mapRef} id="map" sx={{ width: "100%", height: "500px", mt: 4, position: 'relative' }}>
-        <img src={`${process.env.REACT_APP_BASE_URL}/static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}/static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}/static/logo/skytron.png`} style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
       </Box>
 
       <div

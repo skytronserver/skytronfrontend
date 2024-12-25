@@ -26,42 +26,42 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
     red: new Style({
       image: new Icon({
         anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}/static/logo/red-skytron-transparent.png`,
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
         scale: 0.06,
       }),
     }),
     orange: new Style({
       image: new Icon({
         anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}/static/logo/orange-skytron-transparent.png`,
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/orange-skytron-transparent.png`,
         scale: 0.06,
       }),
     }),
     blue: new Style({
       image: new Icon({
         anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}/static/logo/blue-skytron-transparent.png`,
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/blue-skytron-transparent.png`,
         scale: 0.06,
       }),
     }),
     green: new Style({
       image: new Icon({
         anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}/static/logo/green-skytron-transparent.png`,
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/green-skytron-transparent.png`,
         scale: 0.06,
       }),
     }),
     grey: new Style({
       image: new Icon({
         anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}/static/logo/grey-skytron-transparent.png`,
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/grey-skytron-transparent.png`,
         scale: 0.06,
       }),
     }),
     default: new Style({
       image: new Icon({
         anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}/static/track.png`,
+        src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
         scale: 0.06,
       }),
     }),
@@ -343,9 +343,9 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
 
       <div ref={mapElement} style={{ width, height, position: 'relative' }}>
         {/* Position logos using absolute positioning within the map container */}
-        <img src={`${process.env.REACT_APP_BASE_URL}/static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}/static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}/static/logo/skytron.png`} style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
 
       </div>
 
