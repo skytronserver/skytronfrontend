@@ -33,41 +33,69 @@ const DtoRto = () => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const navigate = useNavigate();
 
+
   useEffect(() => {
     (async () => {
-      const stateList = await retriveStateList();
-      setUpdatedFormField((prevConfig) => ({
-        ...prevConfig,
-        state: {
-          ...prevConfig.state,
-          options: stateList,
-        }
-      }));
-      setIsFormLoaded(true);
-    })();
-  }, []);
-  const handleStateChange = (event, formik) => {
-    const fieldName = event.target.name;
-    if (fieldName === "state") {
-      (async () => {
-        const getDetailsOf = {
-          state: event.target.value,
-        };
-        try {
-          const districtList = await retriveDTOList(getDetailsOf);
+      try {
+        const stateList = await retriveStateList();
+        
+        setUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          state: {
+            ...prevConfig.state,
+            value: stateList?.[0]?.label || '', 
+            id: stateList?.[0]?.value || '',
+          },
+          district_code: {
+            ...prevConfig.district_code,
+            options: [],
+          },
+        }));
+
+        if (stateList?.[0]?.value) {
+          dtoInitialsValues.state = stateList[0].label;
+          const districtList = await retriveDTOList({ state: stateList[0].value });
+          console.log(districtList,'districtList')
           setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
             district_code: {
               ...prevConfig.district_code,
-              options: districtList,
+              options: districtList, 
             },
           }));
-        } catch (error) {
-          console.log(error)
         }
-      })();
-    }
-  };
+        
+      } catch (error) {
+        console.error("Failed to retrieve state or district list:", error);
+      } finally {
+        setIsFormLoaded(true);
+      }
+    })();
+  }, []);
+
+  // const handleStateChange = (event, formik) => {
+  //   const fieldName = event.target.name;
+  //   if (fieldName === "state") {
+  //     (async () => {
+  //       const getDetailsOf = {
+  //         state: event.target.value,
+  //       };
+  //       try {
+  //         const districtList = await retriveDTOList(getDetailsOf);
+  //         setUpdatedFormField((prevConfig) => ({
+  //           ...prevConfig,
+  //           district_code: {
+  //             ...prevConfig.district_code,
+  //             options: districtList,
+  //           },
+  //         }));
+  //       } catch (error) {
+  //         console.log(error)
+  //       }
+  //     })();
+  //   }
+  // };
+
   const handleClose = () => {
     !alert.error && navigate("/user/newDto");
     setOpen(false);
@@ -106,6 +134,7 @@ const DtoRto = () => {
     const userData = sessionStorage.getItem("cookiesData");
     const data = userData && userData.split("-");
     const userId = userData && data.length > 2 && data[3];
+    const selectedState = updatedFormFields.state;
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
@@ -113,6 +142,7 @@ const DtoRto = () => {
       ...values,
       role: "dto",
       createdby: userId,
+      state:selectedState.id,
     };
 
     try {
@@ -170,7 +200,7 @@ const DtoRto = () => {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
-                            handleOptionChange={handleStateChange}
+                            // handleOptionChange={handleStateChange}
                           />
                         </Grid>
                       ))}

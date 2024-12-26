@@ -21,7 +21,6 @@ export const dtoInitialsValues = {
     file_idProof: null,
     file_authorisation_letter:null
 };
-
 export const dtoFormFields = {
   name: {
     name:"name",
@@ -43,10 +42,10 @@ export const dtoFormFields = {
   },
    state: {
     name:"state",
-    type: "select",
+    type: "text",
     label: "State Name",
     validation: Yup.string().required("State Name is required"),
-    options:stateList,
+    disabled:true,
   },
   district_code: {
     name:"district_code",

@@ -38,50 +38,81 @@ function DealerAccount() {
     dealerAccountFormField
   );
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+
+
   useEffect(() => {
     (async () => {
-      const manufacturerList = await retriveManufacturerList();
-      const stateList = await retriveStateList();
-      setUpdatedFormField((prevConfig) => ({
-        ...prevConfig,
-        manufacturer: {
-          ...prevConfig.manufacturer,
-          options: manufacturerList,
-        },
-        address_State: {
-          ...prevConfig.address_State,
-          options: stateList,
-        },
-      }));
-      setIsFormLoaded(true);
-    })();
-  }, []);
-  const handleClose = () => {
-    !alert.error && navigate("/user/newDealerAccount");
-    setOpen(false);
-  };
-  const handleStateChange = (event, formik) => {
-    const fieldName = event.target.name;
-    if (fieldName === "address_State") {
-      (async () => {
-        const getDetailsOf = {
-          state: event.target.value,
-        };
-        try {
-          const districtList = await retriveDistrictList(getDetailsOf);
+      try {
+        const manufacturerList = await retriveManufacturerList();
+        const stateList = await retriveStateList();
+        
+        setUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          manufacturer: {
+            ...prevConfig.manufacturer,
+            options: manufacturerList || [], 
+          },
+          address_State: {
+            ...prevConfig.address_State,
+            value: stateList?.[0]?.label || '', 
+            id: stateList?.[0]?.value || '',
+          },
+          district: {
+            ...prevConfig.district,
+            options: [],
+          },
+        }));
+
+        if (stateList?.[0]?.value) {
+          dealerAccountInitialValues.address_State = stateList[0].label;
+          const districtList = await retriveDistrictList({ state: stateList[0].value });
+          console.log(districtList,'districtList')
           setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
             district: {
               ...prevConfig.district,
-              options: districtList,
+              options: districtList 
             },
           }));
-        } catch (error) {
-          console.log(error)
         }
-      })();
-    }
+        
+      } catch (error) {
+        console.error("Failed to retrieve state or district list:", error);
+      } finally {
+        setIsFormLoaded(true);
+      }
+    })();
+  }, []);
+
+  const handleClose = () => {
+    !alert.error && navigate("/user/newDealerAccount");
+    setOpen(false);
   };
+
+  // const handleStateChange = (event, formik) => {
+  //   const fieldName = event.target.name;
+  //   if (fieldName === "address_State") {
+  //     (async () => {
+  //       const getDetailsOf = {
+  //         state: event.target.value,
+  //       };
+  //       try {
+  //         const districtList = await retriveDistrictList(getDetailsOf);
+  //         setUpdatedFormField((prevConfig) => ({
+  //           ...prevConfig,
+  //           district: {
+  //             ...prevConfig.district,
+  //             options: districtList,
+  //           },
+  //         }));
+  //       } catch (error) {
+  //         console.log(error)
+  //       }
+  //     })();
+  //   }
+  // };
+
+
   const handleAlert = (message) => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
@@ -120,16 +151,19 @@ function DealerAccount() {
     const userData = sessionStorage.getItem("cookiesData");
     const data = userData && userData.split("-");
     const userId = userData && data.length > 2 && data[3];
+    
     setSubmitting(true);
     setLoading(true);
-    let valuesWithRole = {};
-    valuesWithRole = {
+    
+    const valuesWithRole = {
       ...values,
       role: "devicemanufacturer",
       createdby: userId,
+      address_State: updatedFormFields.address_State?.id
     };
+
     try {
-      await await DealerServices.dealerUser(valuesWithRole);
+      await DealerServices.dealerUser(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("Form Submitted Successfully");
       setSubmitting(false);
@@ -182,7 +216,7 @@ function DealerAccount() {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
-                            handleOptionChange={handleStateChange}
+                            // handleOptionChange={handleStateChange}
                           />
                         </Grid>
                       ))}

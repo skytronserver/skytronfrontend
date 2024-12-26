@@ -74,7 +74,7 @@ const ProfileSection = () => {
   };
   const isIdle = useIdle(300000);
   useEffect(() => {
-    if (isIdle) {
+    if (isIdle && isAuthenticated) {
       handleLogout();
     }
   }, [isIdle]);

@@ -74,10 +74,10 @@ export const dealerAccountFormField = {
   },
   address_State: {
     name: "address_State",
-    type: "select",
+    type: "text",
     label: "State Name",
     validation: Yup.string().required("State Name is required"),
-    options: [],
+    disabled:true
   },
   district: {
     name: "district",
