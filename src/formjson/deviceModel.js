@@ -1,7 +1,8 @@
 import * as Yup from "yup";
+const providerList=[]
 const today = new Date().toISOString().split('T')[0];
 export const deviceModelInitials = {
-    eSimProviders:"",
+    eSimProviders: [],
     model_name:"",
     test_agency:"",
     tac_no:"",
@@ -14,10 +15,10 @@ export const deviceModelInitials = {
 export const deviceModelFormField = {
   eSimProviders: {
     name: "eSimProviders",
-    type: "select",
+    type: "multiselect",
     label: "M2M Service Provider",
-    validation: Yup.string().required("M2M Service Provider is required"),
-    options:[{'label':'Select','value':''}]
+    validation: Yup.array().min(1, "At least one M2M Service Provider is required"),
+    options: [{'label':'Select','value':''}]
   },
   model_name: {
     name: "model_name",
