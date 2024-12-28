@@ -8,7 +8,7 @@ import { getAllSOSCall } from '../../actions/commonDataActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { useNavigate } from 'react-router-dom';
 
-const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
+const audio = new Audio("https://skytrack.tech:2000/static/bell.wav");
 const GetAllCall = () => {
   const [load, setLoad] = useState(false);
   const [newPendingCall, setNewPendingCall] = useState(null); // Track new pending assignment
