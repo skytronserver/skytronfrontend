@@ -22,7 +22,12 @@ const DeviceModelList = () => {
     retriveDeviceModel();
   },[dispatch])
  
-  const deviceModelList=useSelector((state)=>state.deviceModel.deviceModelList);  
+  const deviceModelList = useSelector((state) => 
+    state.deviceModel.deviceModelList.map((model) => ({
+      ...model,
+      status: model.status.replace(/_/g, ' '),
+    }))
+  );
   const actionColumn = [
     {
       name: "Action",

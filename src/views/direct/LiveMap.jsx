@@ -84,7 +84,7 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
       layers: [
        new ol.layer.Tile({
             source: new ol.source.TileWMS({
-                url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+                url: '',
                 params: {
                     'LAYERS': 'india3',
                     'TILED': true,
@@ -111,7 +111,7 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
         //indiabasemap 
         new ol.layer.Tile({
           source: new ol.source.TileWMS({
-            url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+            url:https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms,
             params: {
               'LAYERS': 'basemap%3Aadmin_group',
               'TILED': true,
@@ -134,7 +134,7 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
         //Road etc 
          new ol.layer.Tile({
             source: new ol.source.TileWMS({
-                url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+                url:https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms,
                 params: {
                     'LAYERS': 'mmi:mmi_india',
                     'TILED': true,
@@ -176,7 +176,7 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
         }),
         new TileLayer({
           source: new TileWMS({
-            url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+            url: "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms",
             params: {
               'LAYERS': 'basemap%3Aadmin_group',
               'TILED': true,
@@ -343,9 +343,9 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
 
       <div ref={mapElement} style={{ width, height, position: 'relative' }}>
         {/* Position logos using absolute positioning within the map container */}
-        <img src="https://skytrack.tech:2000/static/logo/inspace.png" style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
-        <img src="https://skytrack.tech:2000/static/logo/isro.png" style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
-        <img src="https://skytrack.tech:2000/static/logo/skytron.png" style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
+        <img src={"https://skytrack.tech:2000/static/logo/inspace.png"} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
+        <img src={"https://skytrack.tech:2000/static/logo/isro.png"} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
+        <img src={"https://skytrack.tech:2000/static/logo/skytron.png"} style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
 
       </div>
 

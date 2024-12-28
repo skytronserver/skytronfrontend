@@ -22,6 +22,7 @@ const DeviceForm = ({formTitle }) => {
     (async()=>{
     const eSimProvider = await retriveCreatedSimProvider();
     const models=await filterModelList({status:'StateAdminApproved'});
+    console.log(models,'models')
     if(!models?.status){
       setUpdatedFormField(prevConfig =>({
         ...prevConfig,

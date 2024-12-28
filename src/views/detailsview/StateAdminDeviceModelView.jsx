@@ -218,7 +218,7 @@ const StateAdminDeviceModelView = () => {
                           <TableCell>
                             <strong>Status:</strong>
                           </TableCell>
-                          <TableCell>{deviceDetails.status}</TableCell>
+                          <TableCell>{deviceDetails.status.replace(/_/g, ' ')}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>

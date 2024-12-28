@@ -17,7 +17,7 @@ import DetailCard from "../../ui-component/DetailCard";
 import { useDispatch } from 'react-redux';
 import { getAllSOSCall } from '../../actions/commonDataActions';
 import { useNavigate } from "react-router";
-const audio = new Audio('https://skytrack.tech:2000/static/bell.wav');
+const audio = new Audio("https://skytrack.tech:2000/static/bell.wav");
 const SOSDashboard = ({role,calls,deskCalls}) => {
   const mapElement = useRef();
   const [call,setCall]=useState({})
@@ -44,7 +44,7 @@ const SOSDashboard = ({role,calls,deskCalls}) => {
         }),
         new TileLayer({
           source: new TileWMS({
-            url: "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms",
+            url:"https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms",
             params: {
               LAYERS: "basemap%3Aadmin_group",
               TILED: true,
@@ -226,7 +226,7 @@ const checkForNewPendingCall = (calls) => {
         <div ref={mapElement} style={{ height: "65vh", position: "relative" }}>
           {/* Position logos using absolute positioning within the map container */}
           <img
-            src="https://skytrack.tech:2000/static/logo/inspace.png"
+            src={"https://skytrack.tech:2000/static/logo/inspace.png"}  
             style={{
               position: "absolute",
               bottom: 0,
@@ -237,7 +237,7 @@ const checkForNewPendingCall = (calls) => {
             alt="space-logo"
           />
           <img
-            src="https://skytrack.tech:2000/static/logo/isro.png"
+            src={"https://skytrack.tech:2000/static/logo/isro.png"}
             style={{
               position: "absolute",
               top: 0,
@@ -248,7 +248,7 @@ const checkForNewPendingCall = (calls) => {
             alt="logo"
           />
           <img
-            src="https://skytrack.tech:2000/static/logo/skytron.png"
+            src={"https://skytrack.tech:2000/static/logo/skytron.png"}
             style={{
               position: "absolute",
               bottom: 0,

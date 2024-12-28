@@ -276,17 +276,17 @@ const EMCall = () => {
         <div ref={mapElement} className="map-container">
           {/* Position logos using absolute positioning within the map container */}
           <img
-            src="https://skytrack.tech:2000/static/logo/inspace.png"
+            src={"https://skytrack.tech:2000/static/logo/inspace.png"}
             className="logo-map inspace-logo"
             alt="img-logo"
           />
           <img
-            src="https://skytrack.tech:2000/static/logo/isro.png"
+            src={"https://skytrack.tech:2000/static/logo/isro.png"}
             className="logo-map isro-logo"
             alt="img-iso"
           />
           <img
-            src="https://skytrack.tech:2000/static/logo/skytron.png"
+            src={"https://skytrack.tech:2000/static/logo/skytron.png"}
             className="logo-map skytron-logo"
             alt="img-skytrack"
           />

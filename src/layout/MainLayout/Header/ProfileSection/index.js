@@ -66,13 +66,15 @@ const ProfileSection = () => {
         });
       });
     }
+    sessionStorage.clear();
+    localStorage.clear();
     dispatch(logout());
     setLogout((prev)=>prev+1);
     window.location.href = '/mis';
   };
   const isIdle = useIdle(300000);
   useEffect(() => {
-    if (isIdle) {
+    if (isIdle && isAuthenticated) {
       handleLogout();
     }
   }, [isIdle]);

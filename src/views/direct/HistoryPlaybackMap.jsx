@@ -124,7 +124,7 @@ const GPSHistoryMap = ({
           }),
           new TileLayer({
             source: new TileWMS({
-              url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+              url: "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms",
               params: {
                 'LAYERS': 'basemap%3Aadmin_group',
                 'TILED': true,
@@ -413,9 +413,9 @@ const GPSHistoryMap = ({
 
 
       <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative' }}>
-        <img src="https://skytrack.tech:2000/static/logo/inspace.png" style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
-        <img src="https://skytrack.tech:2000/static/logo/isro.png" style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
-        <img src="https://skytrack.tech:2000/static/logo/skytron.png" style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
+        <img src={"https://skytrack.tech:2000/static/logo/inspace.png"} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
+        <img src={"https://skytrack.tech:2000/static/logo/isro.png"} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
+        <img src={"https://skytrack.tech:2000/static/logo/skytron.png"} style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
       </Box>
       <Box
         ref={overlayRef}

@@ -84,7 +84,7 @@ const user = {
         },
         {
           id: "vehicle-owner",
-          title: "Vehicle Owner",
+          title: "Create Vehicle Owner",
           type: "item",
           url: "/new/vehicleOwner",
           breadcrumbs: false,
@@ -224,28 +224,22 @@ const user = {
       roles: ["esimprovider"],
     },
     {
-      id: "device-icons",
-      title: "Device",
+      id: "activate-esim-device",
+      title: "Request eSIM Activation",
+      type: "item",
+      url: "/device/eSimActivation",
+      icon: icons.IconDeviceSim1,
+      breadcrumbs: false,
+      roles: ["dealer"],
+    },
+    // device management
+    {
+      id: "device-management",
+      title: "Device Management",
       type: "collapse",
       icon: icons.IconDeviceSim,
-      roles: ["dealer", "devicemanufacture", "stateadmin"],
+      roles: ["stateadmin"],
       children: [
-        {
-          id: "new-device-model",
-          title: "Model",
-          type: "item",
-          url: "/deviceModel/new",
-          breadcrumbs: false,
-          roles: ["devicemanufacture"],
-        },
-        {
-          id: "device-model-extension",
-          title: "Model Extension",
-          type: "item",
-          url: "/deviceModel/extension",
-          breadcrumbs: false,
-          roles: ["devicemanufacture"],
-        },
         {
           id: "view-device",
           title: "Model Awaiting Approval",
@@ -262,9 +256,43 @@ const user = {
           breadcrumbs: false,
           roles: ["stateadmin"],
         },
+      ]
+    },
+    {
+      id: "device-model",
+      title: "Device Model",
+      type: "collapse",
+      icon: icons.IconDeviceSim1,
+      roles: ["devicemanufacture"],
+      children: [
+        {
+          id: "new-device-model",
+          title: "Create Model",
+          type: "item",
+          url: "/deviceModel/new",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
+        {
+          id: "device-model-extension",
+          title: "TAC Extension",
+          type: "item",
+          url: "/deviceModel/extension",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        }
+      ]
+    },
+    {
+      id: "device-stock",
+      title: "Device Stock",
+      type: "collapse",
+      icon: icons.IconDeviceSim1,
+      roles: ["devicemanufacture"],
+      children: [
         {
           id: "new-device",
-          title: "New Device Stock",
+          title: "Individual Stock",
           type: "item",
           url: "/device/new",
           breadcrumbs: false,
@@ -272,72 +300,25 @@ const user = {
         },
         {
           id: "upload-device",
-          title: "Upload Device Stock",
+          title: "Bulk Stock",
           type: "item",
           url: "/device/bulkupload",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
         {
-          id: "all-device",
-          title: "Show All Device",
-          type: "item",
-          url: "/device/show-device",
-          breadcrumbs: false,
-          roles: ["devicemanufacture", "dealer"],
-        },
-        {
           id: "assign-device",
-          title: "Assign Device to Retailer",
+          title: "Assign Stock",
           type: "item",
           url: "/device/assign-device",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
-        },
-        {
-          id: "activate-esim-device",
-          title: "eSIM Activation",
-          type: "item",
-          url: "/device/eSimActivation",
-          breadcrumbs: false,
-          roles: ["dealer"],
         }
-        // {
-        //   id: "fit-device",
-        //   title: "Configure Device/Sell Api",
-        //   type: "item",
-        //   url: "/device/fit-device",
-        //   breadcrumbs: false,
-        //   roles: ["dealer"],
-        // },
-      ],
+      ]
     },
-    // {
-    //   id: 'icons-esim',
-    //   title: 'E Sim',
-    //   type: 'collapse',
-    //   icon: icons.IconDeviceSim1,
-    //   children: [
-    //     {
-    //       id: 'new-sim',
-    //       title: 'New',
-    //       type: 'item',
-    //       url: '',
-    //       breadcrumbs: false
-    //     },
-    //     {
-    //       id: 'view-sim',
-    //       title: 'List',
-    //       type: 'item',
-    //       url: '',
-    //       breadcrumbs: false
-    //     }
-
-    //   ]
-    // },
     {
       id: "icons-tag",
-      title: "Tagging",
+      title: "Tagging & Activation",
       type: "collapse",
       icon: icons.IconTag,
       roles: ["dealer"],
@@ -358,6 +339,7 @@ const user = {
           breadcrumbs: false,
           roles: ["dealer"],
         },
+        
         // {
         //   id: "view-pending",
         //   title: "Pending for Owner Approval",
@@ -378,7 +360,7 @@ const user = {
     },
     {
       id: "download-tagging-receipt",
-      title: "Download Receipt",
+      title: "Download Fitment Receipt",
       type: "item",
       url: "/tag/download-receipt",
       icon: icons.IconChecks,
@@ -454,7 +436,23 @@ const user = {
           type: "item",
           url: "/device/show-available-device",
           breadcrumbs: false,
-          roles: ["superadmin", "devicemanufacture", "dealer"],
+          roles: ["superadmin", "devicemanufacture"],
+        },
+        {
+          id: "all-device",
+          title: "Stock Report",
+          type: "item",
+          url: "/device/show-device",
+          breadcrumbs: false,
+          roles: ["dealer"],
+        },
+        {
+          id: "view-device",
+          title: "Fitment Report",
+          type: "item",
+          url: "/device/show-available-device",
+          breadcrumbs: false,
+          roles: ["dealer"],
         },
         {
           id: "dealer-list",
@@ -470,7 +468,15 @@ const user = {
           type: "item",
           url: "/user/vehicle-owner-list",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin", "dealer"],
+          roles: ["superadmin", "stateadmin"],
+        },
+        {
+          id: "vehicle-owner",
+          title: "Vehicle Owner Report",
+          type: "item",
+          url: "/user/vehicle-owner-list",
+          breadcrumbs: false,
+          roles: ["dealer"],
         },
         {
           id: "dto-user-list",
@@ -536,6 +542,14 @@ const user = {
           breadcrumbs: false,
           roles: ["superadmin"],
         },
+        {
+          id: "all-device",
+          title: "View Stocks",
+          type: "item",
+          url: "/device/show-device",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        }
       ],
     },
   ],

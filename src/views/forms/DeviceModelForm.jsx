@@ -46,6 +46,7 @@ const DeviceModelForm = () => {
   useEffect(()=>{
     (async()=>{
     const providerList=await retriveCreatedSimProvider();
+    console.log(providerList,'providerList')
     setUpdatedFormField(prevConfig =>({
       ...prevConfig,
       eSimProviders: {
