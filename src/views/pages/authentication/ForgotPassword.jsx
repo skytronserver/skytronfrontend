@@ -103,7 +103,7 @@ const ForgotPassword = () => {
   };
   const redirectToHome = () => {
     setDialog(false);
-    window.location.href = "/mis";
+    window.location.href = "/";
   };
   const handleAlert=()=>{
     setIsOpen(false);
