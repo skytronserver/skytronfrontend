@@ -43,7 +43,7 @@
   }
   
   .inspace-logo {
-    bottom: 0;
+    bottom: 5px;
     left: 0;
     width: 120px;
   }
@@ -55,9 +55,9 @@
   }
   
   .skytron-logo {
-    bottom: 0;
+    bottom: 20px;
     right: 0;
     width: 200px;
-    background-color: #ffffff;
+    /* background-color: #ffffff; */
   }
   

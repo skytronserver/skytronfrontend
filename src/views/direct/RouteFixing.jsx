@@ -49,6 +49,7 @@ const RouteFixing = () => {
   }, []);
 
   const handleSubmit = async (e) => {
+    console.log("deviceId",deviceId);
     e.preventDefault();
     retriveRouteData(deviceId);
   };
@@ -60,7 +61,7 @@ const RouteFixing = () => {
       setRouteData(retriveData.data.route || []);
 
       console.log("route data ", retriveData.data);
-      setLoad(true);
+      setLoad(true)
     } catch (error) {
       console.log("Error retrieving route data:", error);
     }
@@ -349,7 +350,7 @@ const RouteFixing = () => {
       <Box ref={mapRef} id="map" sx={{ width: "100%", height: "500px", mt: 4, position: 'relative' }}>
         <img src={"https://skytrack.tech:2000/static/logo/inspace.png" } style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
         <img src={"https://skytrack.tech:2000/static/logo/isro.png"} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
-        <img src={"https://skytrack.tech:2000/static/logo/skytron.png" } style={{ position: 'absolute', bottom: 0, right: 0, width: '200px', zIndex: 1000, backgroundColor: '#FFFFFF' }} />
+        <img src={"https://skytrack.tech:2000/static/logo/skytron.png" } style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
       </Box>
 
       <div
