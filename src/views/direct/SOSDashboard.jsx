@@ -251,11 +251,11 @@ const checkForNewPendingCall = (calls) => {
             src={"https://skytrack.tech:2000/static/logo/skytron.png"}
             style={{
               position: "absolute",
-              bottom: 0,
+              bottom: "20px",
               right: 0,
               width: "200px",
               zIndex: 1000,
-              backgroundColor: "#FFFFFF",
+              backgroundColor: "transparent",
             }}
             alt="skytron-logo"
           />

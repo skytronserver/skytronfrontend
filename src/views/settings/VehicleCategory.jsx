@@ -28,14 +28,15 @@ function VehicleCategory({ fieldConfig, initialData }) {
   const dispatch=useDispatch();
   const vehicleCategoryList=useSelector((state)=>state.setting.vehicleCategoryList);
 
-  useEffect(()=>{
-    const retriveVehicleList = async () => {
-      const response=await SettingService.filter_settings_VehicleCategory();
-      dispatch(fetchVehicleCategory(response.data)) ;
-      setLoad(true)
-    };
+  const retriveVehicleList = async () => {
+    const response = await SettingService.filter_settings_VehicleCategory();
+    dispatch(fetchVehicleCategory(response.data));
+    setLoad(true);
+  };
+
+  useEffect(() => {
     retriveVehicleList();
-  },[dispatch])
+  }, [dispatch]);
 
   const handleClose = () => {
     setOpen(false);
@@ -75,6 +76,7 @@ function VehicleCategory({ fieldConfig, initialData }) {
       setSubmitting(false);
       setLoading(false);
       resetForm(initialData);
+      retriveVehicleList();
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,

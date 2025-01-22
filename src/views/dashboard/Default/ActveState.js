@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import React from "react";
-import { Grid,Card, CardContent,Typography } from "@mui/material";
+import { Grid,Card, CardContent,Typography, Box } from "@mui/material";
 import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
 import { lazy } from "react";
@@ -30,6 +30,7 @@ import Assignment from "../../../assets/images/assignmentCall.svg";
 import FalseAssignment from "../../../assets/images/falseAssignment.svg";
 import { decipherEncryption } from "../../../helper";
 import { dashboardInitialState } from "./dashboardInitialState";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 const SOSDashboard=lazy(()=>import("../../direct/SOSDashboard"))
 const ActiveState = () => {
   const [userInfo,setUserInfo]=useState(dashboardInitialState.userInfo);
@@ -394,6 +395,49 @@ const ActiveState = () => {
 
 
   const DashboardView = ({ role }) => {
+    // Add check for restricted roles
+    const webRestrictedRoles = ["police_ex", "ambulance_ex"];
+    if (webRestrictedRoles.includes(role)) {
+      return (
+        <Card 
+          sx={{
+            maxWidth: 600,
+            margin: '40px auto',
+            padding: '32px',
+            textAlign: 'center',
+            background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            borderRadius: '16px'
+          }}
+        >
+          <CardContent>
+            <Typography 
+              variant="h4" 
+              sx={{
+                color: '#e74c3c',
+                fontWeight: 600,
+                marginBottom: '16px'
+              }}
+            >
+              Access Restricted
+            </Typography>
+            
+            <Typography 
+              variant="body1"
+              sx={{
+                color: '#666',
+                fontSize: '1.1rem',
+                lineHeight: 1.6
+              }}
+            >
+              This dashboard is only accessible through your mobile application. 
+              Please use the dedicated mobile app to view your dashboard.
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    }
+
     switch (role) {
       case "superadmin":
         return (
@@ -857,7 +901,34 @@ const ActiveState = () => {
             </Grid>
           )
         default:
-        return null;
+        return (
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            p={4}
+          >
+            <ErrorOutlineIcon
+              sx={{
+                fontSize: '4rem',
+                color: 'error.main',
+                mb: 2
+              }}
+            />
+            <Typography
+              variant="h4"
+              color="error"
+              align="center"
+              sx={{
+                fontWeight: 500,
+                mb: 1
+              }}
+            >
+              No Dashboard Available
+            </Typography>
+          </Box>
+        );
     }
   };
 
