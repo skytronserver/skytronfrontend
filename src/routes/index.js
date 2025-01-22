@@ -11,5 +11,5 @@ import HomeRoutes from './HomeRoutes';
 import LandingRoutes from './LandingRoutes';
 // import Home from 'layout/MainLayout/Header/Home';
 export default function ThemeRoutes() {
-  return useRoutes([LandingRoutes,HomeRoutes,MainRoutes, AuthenticationRoutes,UserRoutes,DeviceRoutes,SettingRoutes,TaggingRoutes]);
+  return useRoutes([HomeRoutes,LandingRoutes,MainRoutes, AuthenticationRoutes,UserRoutes,DeviceRoutes,SettingRoutes,TaggingRoutes]);
 }

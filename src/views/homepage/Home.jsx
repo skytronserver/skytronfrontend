@@ -263,7 +263,7 @@ function Home() {
               </Form>
             </Formik>
             <Box sx={{ mt: 1, textAlign: "right" }}>
-              <Link href="/mis/forgot-password" variant="body2">
+              <Link href="/forgot-password" variant="body2">
                 Forgot password?
               </Link>
             </Box>

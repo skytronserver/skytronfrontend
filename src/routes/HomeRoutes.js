@@ -5,7 +5,7 @@ const HomeRoutes = {
   element: <HomepageLayout />,
   children: [
     {
-      path: "/mis",
+      path: "/",
       element: <Home />,
     }
   ],
