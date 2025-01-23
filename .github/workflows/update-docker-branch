@@ -1,0 +1,30 @@
+name: Update docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Merge main into project-dockerization
+        run: |
+          git checkout project-dockerization
+          git merge main --no-edit
+
+      - name: Push changes
+        run: git push origin project-dockerization
