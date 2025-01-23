@@ -70,7 +70,7 @@ const ProfileSection = () => {
     localStorage.clear();
     dispatch(logout());
     setLogout((prev)=>prev+1);
-    window.location.href = '/mis';
+    window.location.href = '/';
   };
   const isIdle = useIdle(300000);
   useEffect(() => {
@@ -80,7 +80,7 @@ const ProfileSection = () => {
   }, [isIdle]);
   useEffect(()=>{
     if (!isAuthenticated) {
-      window.location.href = '/mis';
+      window.location.href = '/';
     }
   })
   

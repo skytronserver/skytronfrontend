@@ -2,11 +2,11 @@ import ViewNotice from "../views/landingpage/ViewNotice";
 import LandingLayout from "../layout/LandingLayout";
 import LandingPage from "../views/landingpage/LandingPage";
 const LandingRoutes = {
-  path: "/",
+  path: "/landing",
   element: <LandingLayout />,
   children: [
     {
-      path: "/",
+      path: "/landing",
       element: <LandingPage />,
     },
     {

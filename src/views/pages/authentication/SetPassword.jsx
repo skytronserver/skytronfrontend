@@ -72,7 +72,7 @@ const SetPassword = () => {
                     "Authorization": "Token "+reset_token,
                   }
             });
-            window.location.href="https://www.skytrack.tech/mis"
+            window.location.href="https://www.skytrack.tech/"
           } catch (err) {
             console.error(err);
             setError('Failed to reset password');

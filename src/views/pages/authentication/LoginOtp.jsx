@@ -61,7 +61,7 @@ const LoginOtp = () => {
     return <Navigate to="/dashboard" replace />;
   }
   if(otpToken===null){
-    window.location.href = "/mis";
+    window.location.href = "/";
   }
   const handleChange = (newValue) => {
     setOtp(newValue);

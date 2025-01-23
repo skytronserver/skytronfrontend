@@ -80,7 +80,7 @@ const ResetPassword = () => {
   };
   const redirectToHome = () => {
     setDialog(false);
-    window.location.href = "/mis";
+    window.location.href = "/";
   };
   const handleResetPassword = async () => {
     if(password!=''){
