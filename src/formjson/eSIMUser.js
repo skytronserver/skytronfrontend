@@ -37,7 +37,7 @@ export const eSIMFormField = {
   },
   mobile: {
     name:"mobile",
-    type: "text",
+    type: "tel",
     label: "Mobile",
     validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
   },

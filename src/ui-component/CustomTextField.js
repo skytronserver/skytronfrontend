@@ -221,37 +221,64 @@ const FormField = ({
           }
         />
       );
-      case "autocomplete":
-        const currentValue = options.find(option => option.value === formik.values[fieldConfig.name]);
-        return (
-          <Autocomplete
-            options={options}
-            getOptionLabel={(option) => option.label}
-            value={currentValue || null} 
-            isOptionEqualToValue={(option, value) => option.value === value.value}
-            onChange={(event, value) => {
-              formik.setFieldValue(fieldConfig.name, value ? value.value : '');
-              handleOptionChange && handleOptionChange(event, fieldConfig.name, value ? value.value : '');
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label={label}
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                error={
-                  formik.touched[fieldConfig.name] &&
-                  Boolean(formik.errors[fieldConfig.name])
-                }
-                helperText={
-                  formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
-                }
-                {...formik.getFieldProps(fieldConfig.name)}
-              />
-            )}
-          />
-        );
+    case "tel":
+      return (
+        <TextField
+          label={label}
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          type="tel"
+          disabled={disabled ? true:false}
+          inputProps={{
+            maxLength: 10,
+            pattern: "[0-9]*"
+          }}
+          {...formik.getFieldProps(fieldConfig.name)}
+          error={
+            formik.touched[fieldConfig.name] &&
+            Boolean(formik.errors[fieldConfig.name])
+          }
+          helperText={
+            formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+          }
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, '');
+            formik.setFieldValue(fieldConfig.name, value);
+          }}
+        />
+      );
+    case "autocomplete":
+      const currentValue = options.find(option => option.value === formik.values[fieldConfig.name]);
+      return (
+        <Autocomplete
+          options={options}
+          getOptionLabel={(option) => option.label}
+          value={currentValue || null} 
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          onChange={(event, value) => {
+            formik.setFieldValue(fieldConfig.name, value ? value.value : '');
+            handleOptionChange && handleOptionChange(event, fieldConfig.name, value ? value.value : '');
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={label}
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              error={
+                formik.touched[fieldConfig.name] &&
+                Boolean(formik.errors[fieldConfig.name])
+              }
+              helperText={
+                formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+              }
+              {...formik.getFieldProps(fieldConfig.name)}
+            />
+          )}
+        />
+      );
     default:
       return null;
   }

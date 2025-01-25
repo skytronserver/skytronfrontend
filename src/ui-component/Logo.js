@@ -73,7 +73,7 @@ const Logo = () => {
             color: "white",
           }}
         >
-          TM
+          ®
         </h5>
       </div>
     </div>
