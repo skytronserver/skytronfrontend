@@ -17,6 +17,9 @@ import CallDetails from "../views/direct/CallDetails";
 import AlertList from "../views/reports/AlertList";
 import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
+import GpsDataLog from "../views/reports/GpsDataLog";
+import EmergencyDataLogs from "views/reports/EmergencyDataLogs";
+
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -116,6 +119,16 @@ const MainRoutes = {
       path: "alert-list",
       element: <AlertList />,
       roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
+    },
+    {
+      path: '/reports/gps-data-log',
+      element: <GpsDataLog />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/reports/emergency-data-logs',
+      element: <EmergencyDataLogs />,
+      roles: ['superadmin']
     },
   ].map((route) => applyPrivateRoute(route)),
 };
