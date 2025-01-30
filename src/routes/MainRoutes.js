@@ -98,7 +98,7 @@ const MainRoutes = {
     {
       path: "/sos-call-list",
       element: <GetAllCall />,
-      roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
+      roles: ["desk_ex", "teamlead"],
     },
     {
       path: "/emcall",
