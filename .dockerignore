@@ -3,9 +3,7 @@ node_modules
 .gitignore
 Dockerfile
 docker-compose.yml
-.env
 npm-debug.log
 build
 .idea
 .vscode
-
