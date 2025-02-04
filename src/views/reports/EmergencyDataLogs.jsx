@@ -30,7 +30,6 @@ const EmergencyDataLogs = () => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-
     const parseGpsData = (response) => {
         try {
             console.log('Raw data received:', response);
