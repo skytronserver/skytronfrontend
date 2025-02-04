@@ -117,13 +117,13 @@ const acceptEMCall = (data) => {
 const getGpsDataLog = (search = '') => {
   const http = getAxiosInstance();
   return http.get("/api/gps-data-log-table/", {
-    params: { search }
+    params: search
   });
 };
 const getEmergencyDataLogs = (search = '') => {
   const http = getAxiosInstance();
   return http.get("/api/gps-em-data-log-table/", {
-    params: { search }
+    params: search
   });
 };
 
