@@ -30,17 +30,19 @@ const EmergencyDataLogs = () => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-
-    const parseGpsData = (data) => {
+    const parseGpsData = (response) => {
         try {
-            console.log('Raw data received:', data);
+            console.log('Raw data received:', response);
             
-            if (!data || !Array.isArray(data)) {
-                console.error('Invalid data format received');
+            if (!response?.data?.data) {
                 return [];
             }
 
-            return data.map(item => ({
+            // Parse the nested data string
+            const parsedData = JSON.parse(response.data.data);
+            console.log('Parsed data:', parsedData);
+
+            return parsedData.map(item => ({
                 id: item.pk,
                 timestamp: item.fields.timestamp,
                 rawData: item.fields.raw_data,
@@ -48,6 +50,7 @@ const EmergencyDataLogs = () => {
             }));
         } catch (error) {
             console.error('Error parsing GPS data:', error);
+            console.error('Response structure:', response);
             return [];
         }
     }
@@ -59,7 +62,7 @@ const EmergencyDataLogs = () => {
                 search: search
             });
             console.log('API Response:', response);
-            const parsedData = parseGpsData(response.data);
+            const parsedData = parseGpsData(response);
             setData(parsedData);
         } catch (error) {
             console.error('Error fetching GPS data:', error);
@@ -114,15 +117,14 @@ const EmergencyDataLogs = () => {
                 </form>
             </Grid>
             <Grid item xs={12}>
-                <DynamicDatatables
-                    tableTitle="GPS Data Log"
-                    rows={data}
-                    columns={gpsDataColumns}
-                    options={{
-                        ...options,
-                        loading: loading
-                    }}
-                />
+                {!loading && (
+                    <DynamicDatatables
+                        tableTitle="GPS Data Log"
+                        rows={data}
+                        columns={gpsDataColumns}
+                        options={options}
+                    />
+                )}
             </Grid>
         </Grid>
     )
