@@ -17,7 +17,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
         <img src={ashokstambh} alt="Skytron" style={{ width: '40px', marginRight: '16px' ,height:'auto',marginLeft:'16px'}} />
 
           <Typography variant="h2" component="div" sx={{ flexGrow: 1, color: '#FFC94A', fontWeight: 'bold', position: 'relative', padding: '12px', marginLeft: '12px' }}>
-            <span>SkyTron<sup style={{ fontSize: "12px" }}>TM</sup></span>
+            <span>SkyTron<sup style={{ fontSize: "12px" }}>®</sup></span>
             <Typography variant="caption" sx={{ color: 'white', fontFamily: "Caveat", display: 'block', fontSize: '16px', fontWeight: 'bold' }}>VLTD BackEnd, ASSAM</Typography>
           </Typography>
           {/* Menu icon */}

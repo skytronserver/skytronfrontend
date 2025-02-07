@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
-import { Grid, Stack, Typography, useMediaQuery, Button, TextField } from "@mui/material";
+import { Grid, Stack, Typography, useMediaQuery, Button, TextField, InputAdornment, IconButton } from "@mui/material";
 import { Navigate } from "react-router-dom";
 import DialogAlert from "../../../ui-component/DialogAlert";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -10,6 +10,9 @@ import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { useParams } from "react-router-dom";
 import axios from 'axios';
 import { BASE_URL } from "../../../store/constant";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
 const ResetPassword = () => {
   const { reset_token } = useParams();
   const theme = useTheme();
@@ -29,6 +32,9 @@ const ResetPassword = () => {
     idNo:true,
     dob:true
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const handleIdNo = (event) => {
     setIdNo(event.target.value);
     if (event.target.value!== "") {
@@ -66,14 +72,9 @@ const ResetPassword = () => {
     setArePasswordsMatch(password === confirmPassword);
   },[password,confirmPassword]);
   const handleMobileNumberChange = (event) => {
-    const value = event.target.value.replace(/\D/g, ''); 
+    const value = event.target.value.replace(/\D/g, '').slice(0, 10); // Limit to 10 digits
     setMobileNumber(value);
-    if (value.length!== 10) {
-      setIsValidMobile(false);
-    } else {
-      setIsValidMobile(true);
-      setMobileNumber(value);
-    }
+    setIsValidMobile(value.length === 10);
   };
   const closeDialog = () => {
     setDialog(false);
@@ -107,6 +108,9 @@ const ResetPassword = () => {
     }
     
   };
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
 
   return (
     <AuthWrapper1>
@@ -199,7 +203,8 @@ const ResetPassword = () => {
                           onChange={handleMobileNumberChange}
                           fullWidth
                           error={!isValidMobile}
-                          helperText={!isValidMobile? "Invalid mobile number" : ""}
+                          helperText={!isValidMobile ? "Invalid mobile number" : ""}
+                          inputProps={{ maxLength: 10 }}
                         />
                         <br/><br/>
                         <TextField
@@ -227,22 +232,40 @@ const ResetPassword = () => {
                         <br/><br/>
                         <TextField
                           label="New Password"
-                          type="password"
+                          type={showPassword ? 'text' : 'password'}
                           value={password}
                           onChange={(e) => handlePasswordChange(e.target.value)}
                           fullWidth
                           error={!!passwordError}
                           helperText={passwordError}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton onClick={handleClickShowPassword} edge="end">
+                                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
                         />
                         <br/><br/>
                         <TextField
                           label="Confirm New Password"
-                          type="password"
+                          type={showConfirmPassword ? 'text' : 'password'}
                           value={confirmPassword}
                           onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                           fullWidth
-                          error={!arePasswordsMatch} // Set error state based on password match
-                          helperText={!arePasswordsMatch? "Passwords do not match" : ""} // Show error message if passwords do not match
+                          error={!arePasswordsMatch}
+                          helperText={!arePasswordsMatch ? "Passwords do not match" : ""}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton onClick={handleClickShowConfirmPassword} edge="end">
+                                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
                         />
                         <br/><br/>
                         <Button

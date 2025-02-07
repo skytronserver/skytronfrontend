@@ -152,7 +152,7 @@ const EsimUser = () => {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Create e M2M Service Provider">
+          <MainCard title="Creates M2M Service Provider">s
             {isFormLoaded && <Formik
               initialValues={eSIMInitialValues}
               validationSchema={validationSchema}
