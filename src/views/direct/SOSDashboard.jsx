@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Grid,Dialog, DialogActions, DialogContent, DialogTitle, Typography,Button
+  Grid, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Button
 } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
@@ -18,9 +18,9 @@ import { useDispatch } from 'react-redux';
 import { getAllSOSCall } from '../../actions/commonDataActions';
 import { useNavigate } from "react-router";
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
-const SOSDashboard = ({role,calls,deskCalls}) => {
+const SOSDashboard = ({ role, calls, deskCalls }) => {
   const mapElement = useRef();
-  const [call,setCall]=useState({})
+  const [call, setCall] = useState({})
   const [broadcastDisabled, setBroadcastDisabled] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [vectorLayer, setVectorLayer] = useState(
@@ -33,7 +33,7 @@ const SOSDashboard = ({role,calls,deskCalls}) => {
   const previousCallsRef = useRef([]);
   const [load, setLoad] = useState(false);
   const [newPendingCall, setNewPendingCall] = useState(null);
-  const [showDetails,setShowDetails]=useState(false)
+  const [showDetails, setShowDetails] = useState(false)
   // Initialize map
   useEffect(() => {
     const map = new Map({
@@ -79,10 +79,10 @@ const SOSDashboard = ({role,calls,deskCalls}) => {
     // Set interval to update locations every 30 seconds
     const interval = setInterval(fetchAndPlotLocations, 30000);
     return () => clearInterval(interval); // Cleanup on unmount
-}, []);
+  }, []);
 
-//fetching pending call
-useEffect(() => {
+  //fetching pending call
+  useEffect(() => {
     const fetchCallList = async () => {
       try {
         const response = await HomePageService.getPendingSOSCall();
@@ -134,33 +134,33 @@ useEffect(() => {
   };
   const handleBroadcast = async (type) => {
     try {
-        let broadcastType = type;
-        if (type === "both") {
-            await HomePageService.broadCast({ assignment_id: call.id, radius: 5, type: "police_ex" });
-            await HomePageService.broadCast({ assignment_id: call.id, radius: 5, type: "ambulance_ex" });
-            broadcastType = "Police and Ambulance";
-        } else {
-            await HomePageService.broadCast({ assignment_id: call.id, radius: 5, type });
-            broadcastType = type === "police_ex" ? "Police" : "Ambulance";
-        }
-        setBroadcastDisabled(true);
-        alert(`${broadcastType} broadcast successful!`);
+      let broadcastType = type;
+      if (type === "both") {
+        await HomePageService.broadCast({ assignment_id: call.id, radius: 5, type: "police_ex" });
+        await HomePageService.broadCast({ assignment_id: call.id, radius: 5, type: "ambulance_ex" });
+        broadcastType = "Police and Ambulance";
+      } else {
+        await HomePageService.broadCast({ assignment_id: call.id, radius: 5, type });
+        broadcastType = type === "police_ex" ? "Police" : "Ambulance";
+      }
+      setBroadcastDisabled(true);
+      alert(`${broadcastType} broadcast successful!`);
     } catch (error) {
-        console.error('Broadcast Error:', error);
+      console.error('Broadcast Error:', error);
     }
- };
+  };
 
- const handleCloseCall = async () => {
+  const handleCloseCall = async () => {
     try {
-        await HomePageService.closeCase({ assignment_id: call.id });
-        alert('Call closed successfully!');
-        setShowDetails(false)
+      await HomePageService.closeCase({ assignment_id: call.id });
+      alert('Call closed successfully!');
+      setShowDetails(false)
     } catch (error) {
-        console.error('Close Call Error:', error);
+      console.error('Close Call Error:', error);
     }
-};
+  };
 
-const checkForNewPendingCall = (calls) => {
+  const checkForNewPendingCall = (calls) => {
     const newPendingCall = calls.find(
       (call) =>
         call.call?.status === 'pending' &&
@@ -176,18 +176,18 @@ const checkForNewPendingCall = (calls) => {
   const playBuzzer = () => {
     audio.play();
   };
-  const handleAccept = async (id,show) => {
+  const handleAccept = async (id, show) => {
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
-    const acceptedCall=response.data;
+    const acceptedCall = response.data;
     setNewPendingCall(null); // Close the popup after accepting
     audio.pause();
-    if(show==="here"){
+    if (show === "here") {
       handleShow(acceptedCall)
       setShowDetails(true)
-    }else{
+    } else {
       handleNavigate(acceptedCall)
     }
-    
+
   };
   const handleShow = (callObj) => {
     setCall(callObj)
@@ -201,21 +201,21 @@ const checkForNewPendingCall = (calls) => {
     { title: "Pending Call", value: "0" },
     { title: "Average Call Accepting", value: "0" },
   ];
-  if(role==='desk_ex'){
+  if (role === 'desk_ex') {
     data = [
-        { title: "Average Acceptance Time", value: deskCalls.averageTime },
-        { title: "Weekly Inbound", value: deskCalls.Total_Assignemnt_thisweek },
-        { title: "Today's Inbound", value: deskCalls.Total_Assignemnt_today },
-        { title: "Total Inbound", value: deskCalls.Total_Assignemnt },
-      ];
+      { title: "Average Acceptance Time", value: deskCalls.averageTime },
+      { title: "Weekly Inbound", value: deskCalls.Total_Assignemnt_thisweek },
+      { title: "Today's Inbound", value: deskCalls.Total_Assignemnt_today },
+      { title: "Total Inbound", value: deskCalls.Total_Assignemnt },
+    ];
   }
-  if(role==='teamlead'){
+  if (role === 'teamlead') {
     data = [
-        { title: "Active Call", value: calls.Total_Active_Calls },
-        { title: "Closed Call", value: calls.Total_Closed_Calls },
-        { title: "Pending Call", value: calls.Total_Pending_Calls },
-        { title: "Average Call Accepting", value: calls.Average_time_to_Accept},
-      ];
+      { title: "Active Call", value: calls.Total_Active_Calls },
+      { title: "Closed Call", value: calls.Total_Closed_Calls },
+      { title: "Pending Call", value: calls.Total_Pending_Calls },
+      { title: "Average Call Accepting", value: calls.Average_time_to_Accept },
+    ];
   }
   return (
     <Grid container spacing={2}>
@@ -226,7 +226,7 @@ const checkForNewPendingCall = (calls) => {
         <div ref={mapElement} style={{ height: "65vh", position: "relative" }}>
           {/* Position logos using absolute positioning within the map container */}
           <img
-            src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}  
+            src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
             style={{
               position: "absolute",
               bottom: 0,
@@ -248,7 +248,7 @@ const checkForNewPendingCall = (calls) => {
             alt="logo"
           />
           <img
-            src={`$static/logo/skytron.png`}
+            src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
             style={{
               position: "absolute",
               bottom: "20px",
@@ -276,12 +276,12 @@ const checkForNewPendingCall = (calls) => {
             backgroundColor: "darkred",
             color: "white",
             textAlign: "center",
-            fontSize:"16px",
+            fontSize: "16px",
           }}
         >
           New Pending Assignment
         </DialogTitle>
-        <DialogContent sx={{padding:"16px !important"}}>
+        <DialogContent sx={{ padding: "16px !important" }}>
           <Typography>
             A new assignment with ID {newPendingCall?.id} is pending. Do you
             want to accept it?
@@ -293,7 +293,7 @@ const checkForNewPendingCall = (calls) => {
           }}
         >
           <Button
-            onClick={() => handleAccept(newPendingCall?.id,"detail")}
+            onClick={() => handleAccept(newPendingCall?.id, "detail")}
             color="secondary"
             variant="contained"
           >

@@ -62,12 +62,13 @@ const ForgotPassword = () => {
 
   const handleMobileNumberChange = (event) => {
     const value = event.target.value.replace(/\D/g, "");
-    setMobileNumber(value);
-    if (value.length !== 10) {
-      setIsValidMobile(false);
-    } else {
-      setIsValidMobile(true);
+    if (value.length <= 10) {
       setMobileNumber(value);
+      if (value.length !== 10) {
+        setIsValidMobile(false);
+      } else {
+        setIsValidMobile(true);
+      }
     }
   };
   const handleForgotPassword = async () => {
@@ -205,10 +206,9 @@ const ForgotPassword = () => {
                           value={mobileNumber}
                           onChange={handleMobileNumberChange}
                           fullWidth
+                          inputProps={{ maxLength: 10 }}
                           error={!isValidMobile}
-                          helperText={
-                            !isValidMobile ? "Invalid mobile number" : ""
-                          }
+                          helperText={!isValidMobile ? "Invalid mobile number" : ""}
                           required
                         />
                         <br />

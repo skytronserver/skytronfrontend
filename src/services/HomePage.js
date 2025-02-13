@@ -114,6 +114,18 @@ const acceptEMCall = (data) => {
   return http.post("/api/EM/DEx/replyCall/", data);
 }
 
+const getGpsDataLog = (search = '') => {
+  const http = getAxiosInstance();
+  return http.get("/api/gps-data-log-table/", {
+    params: search
+  });
+};
+const getEmergencyDataLogs = (search = '') => {
+  const http = getAxiosInstance();
+  return http.get("/api/gps-em-data-log-table/", {
+    params: search
+  });
+};
 
 const HomePageService = {
   getLiveTracking,
@@ -135,8 +147,10 @@ const HomePageService = {
   getEMmessage,
   sendEMmessage,
   getEMCallloc,
-  acceptEMCall, getPendingSOSCall
-
+  acceptEMCall,
+  getPendingSOSCall,
+  getGpsDataLog,
+  getEmergencyDataLogs,
 };
 
 export default HomePageService;

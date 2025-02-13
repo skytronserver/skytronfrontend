@@ -140,7 +140,7 @@ const user = {
       url: "/sos-call-list",
       icon: icons.IconUrgent,
       breadcrumbs: false,
-      roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
+      roles: ["desk_ex", "teamlead"],
     },
     // {
     //   id: "route-fixing",
@@ -549,6 +549,24 @@ const user = {
           url: "/device/show-device",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
+        },
+        {
+          id: 'gps-data-log',
+          title: 'GPS Data Log',
+          type: 'item',
+          url: '/reports/gps-data-log',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+        {
+          id: 'emergency-data-logs',
+          title: 'Emergency Data Logs',
+          type: 'item',
+          url: '/reports/emergency-data-logs',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin']
         }
       ],
     },
