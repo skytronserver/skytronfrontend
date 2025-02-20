@@ -27,41 +27,58 @@ export const logoutUser=(user)=>({
   type:"LOGOUT_USER",
   payload:user,
 })
-export const loginUser = (username, password) => async (dispatch) => {
+export const loginUser = (username, password,captcha_key,captcha_reply) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
     const response = await axios.post(`${BASE_URL}api/user_login/`, {
       username,
-      password
+      password,
+      // captcha_key,
+      // captcha_reply
     });
-    
-    if(response?.data?.token) {
-      const myCipher = cipherEncryption('skytrack');
-      const responseData = {
-        isAuthenticated: true,
-        token: "Token " + response.data.token,
-        email: username,
-        otpToken: null
-      }
-      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
-      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`
-      
-      sessionStorage.setItem('isAuthenticated', true);
-      sessionStorage.setItem('sessionID', Date.now());
-      sessionStorage.setItem('oAuthToken', response.data.token);
-      sessionStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
-      localStorage.setItem('skytrackCookiesData', skytrack_cookiesData);
-      
-      dispatch(setLoginInfo(cookiesData));
-      dispatch(setUser(responseData));
-      dispatch(setError({message: null, status: null}));
-    } else {
-      throw new Error(response?.data?.error)
+    if(response?.data?.token){
+    const myCipher = cipherEncryption('skytrack');
+    const responseData={
+      isAuthenticated:false,
+      token:"Token "+response.data.token,
+      email:username,
+      otpToken:response.data.token,
     }
+    const cookiesData=`${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
+    const skytrack_cookiesData=`${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined )}-${myCipher(response.data?.user?.mobile)}`
+    const error={
+      message:null,
+      status:null,
+    }
+    sessionStorage.setItem('cookiesData',cookiesData+'-'+response.data?.user?.id);
+    localStorage.setItem('skytrackCookiesData',skytrack_cookiesData);
+    dispatch(setLoginInfo(cookiesData));
+    dispatch(setUser(responseData));
+    dispatch(setError(error));
+  }else{
+    throw new Error(response?.data?.error)
+  }
   } catch (error) {
-    console.log(error, 'error')
-    const message = error?.response?.data?.error || "Internal Server Error";
-    dispatch(setError({message, status: null}));
+    console.log(error,'error')
+    let message="";
+    if(error?.code==="ERR_BAD_REQUEST"){
+      if(error?.response?.data){
+        message=error?.response?.data?.error
+      }else{
+        message="Internal Server Error"
+      }
+    
+    }else{
+      message=error.message
+    }
+    if(message==="text is undefined"){
+      message="Whoops! Looks like the math wasn't quite right. Add the numbers in the CAPTCHA and try again."
+    }
+    const errorData={
+      message:message,
+      status:null,
+    }
+    dispatch(setError(errorData));
   } finally {
     dispatch(setLoading(false));
   }

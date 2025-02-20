@@ -17,6 +17,7 @@ const LandingRoutes = {
       path: "notice-view-all",
       element: <ViewNotice />,
     },
+    
   ],
 };
 
