@@ -3,6 +3,7 @@ import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListIt
 import { Home as HomeIcon, Menu as MenuIcon } from '@mui/icons-material';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
+import logo from "../../assets/images/icons/logo_truck.png";
 import WebFont from "webfontloader";
 WebFont.load({
   google: {
@@ -12,14 +13,63 @@ WebFont.load({
 function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   return (
     <div>
-      <AppBar position="static" sx={{ backgroundColor: 'purple' }}>
+      <AppBar position="static" sx={{ backgroundColor: 'purple',padding:'4px' }}>
         <Toolbar>
-        <img src={ashokstambh} alt="Skytron" style={{ width: '40px', marginRight: '16px' ,height:'auto',marginLeft:'16px'}} />
+          {/* Ashoka Stambh Icon - Moved to the start */}
+          <img 
+            src={ashokstambh} 
+            alt="Ashoka Stambh" 
+            style={{ 
+              width: '30px', 
+              height: 'auto',
+              marginRight: '12px'
+            }} 
+          />
 
-          <Typography variant="h2" component="div" sx={{ flexGrow: 1, color: '#FFC94A', fontWeight: 'bold', position: 'relative', padding: '12px', marginLeft: '12px' }}>
-            <span>SkyTron<sup style={{ fontSize: "12px" }}>®</sup></span>
-            <Typography variant="caption" sx={{ color: 'white', fontFamily: "Caveat", display: 'block', fontSize: '16px', fontWeight: 'bold' }}>VLTD BackEnd, ASSAM</Typography>
+          {/* Logo and Title Container */}
+          <Typography 
+            variant="h2" 
+            component="div" 
+            sx={{ 
+              flexGrow: 1, 
+              color: '#FFC94A', 
+              fontWeight: 'bold', 
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                <img 
+                  src={logo} 
+                  alt="Skytron Logo" 
+                  style={{  
+                    width: '35px',
+                    height: 'auto',
+                    marginRight: '8px'
+                  }} 
+                />
+                <span style={{ fontFamily: "Bicubik", fontSize: '1.8rem' }}>
+                  SkyTron<sup style={{ fontSize: "12px" }}>®</sup>
+                </span>
+              </div>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'white', 
+                  fontFamily: "Caveat", 
+                  fontSize: '16px', 
+                  fontWeight: 'bold',
+                  lineHeight: 1,
+                  marginLeft:'10px'
+                }}
+              >
+                VLTD BackEnd, ASSAM
+              </Typography>
+            </div>
           </Typography>
+
           {/* Menu icon */}
           <IconButton
             size="large"
@@ -35,8 +85,9 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
           <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
             <Button color="inherit" startIcon={<HomeIcon />} component={Link} to="/" sx={{ mr: 2 }}>Home</Button>
-            <Button color="inherit" component="a" href="#contact" sx={{ mr: 2 }}>Contact Us</Button>
-            <Button color="inherit" component="a" href="#about">About Us</Button>
+            {/* <Button color="inherit" component="a" href="#contact" sx={{ mr: 2 }}>Contact Us</Button>
+            <Button color="inherit" component="a" href="#about" sx={{ mr: 2 }}>About Us</Button> */}
+            <Button color="inherit" component={Link} to="/privacy-policy">Privacy Policy</Button>
           </Grid>
           
         </Toolbar>
@@ -63,6 +114,9 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             </ListItem>
             <ListItem button>
               <ListItemText primary="About Us" />
+            </ListItem>
+            <ListItem button component={Link} to="/privacy-policy">
+              <ListItemText primary="Privacy Policy" />
             </ListItem>
           </List>
           <Divider />

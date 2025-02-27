@@ -7,3 +7,9 @@ services:
     ports:
       - "3000:80"
     container_name: skytron-app
+    environment:
+      - API_DOMAIN=https://api.gromed.in/
+      - BHUVAN_DOMAIN=https://bhuvan-vec1.nrsc.gov.in
+      - FONTS_DOMAIN=https://fonts.googleapis.com
+      - FONTS_STATIC_DOMAIN=https://fonts.gstatic.com
+      - OSM_DOMAIN=https://*.openstreetmap.org

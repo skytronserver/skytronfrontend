@@ -1,3 +1,4 @@
+import PrivacyPolicy from "views/pages/PrivacyPolicy";
 import HomepageLayout from "../layout/HomepageLayout";
 import Home from "../views/homepage/Home";
 const HomeRoutes = {
@@ -7,6 +8,10 @@ const HomeRoutes = {
     {
       path: "/",
       element: <Home />,
+    },
+    {
+      path: "/privacy-policy",
+      element: <PrivacyPolicy />,
     }
   ],
 };
