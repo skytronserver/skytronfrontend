@@ -22,7 +22,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography variant="body1">
-                Welcome to SkyTron, a vehicle tracking application developed and operated by Skytrack Technologies Pvt Ltd in collaboration with AMTRON. Your privacy is important to us, and this Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application SkyTron. By using the application, you agree to the terms outlined in this policy.
+              Welcome to SkyTron<sup>®</sup>, a vehicle tracking application developed by Skytrack Technologies Pvt Ltd and implemented in collaboration with AMTRON. Your privacy is important to us, and this Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application SkyTron<sup>®</sup>. By using the application, you agree to the terms outlined in this policy.
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -40,7 +40,7 @@ function PrivacyPolicy() {
               </Typography>
               <ul>
                 <li>Name, email address, phone number, and other contact details provided during registration.</li>
-                <li>Login credentials to access your SkyTron account.</li>
+                <li>Login credentials to access your SkyTron<sup>®</sup> account.</li>
               </ul>
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
                 (b) Vehicle and Tracking Information:
@@ -95,7 +95,7 @@ function PrivacyPolicy() {
                   <strong>With Service Providers:</strong> We may share data with third-party vendors who assist in hosting, analytics, and technical support.
                 </li>
                 <li>
-                  <strong>With Business Partners:</strong> If SkyTron collaborates with authorized fleet management companies or service partners, necessary information may be shared.
+                  <strong>With Business Partners:</strong> If SkyTron<sup>®</sup> collaborates with authorized fleet management companies or service partners, necessary information may be shared.
                 </li>
                 <li>
                   <strong>In Case of Business Transfers:</strong> In the event of a merger, acquisition, or sale of assets, user data may be transferred as part of business restructuring.
@@ -163,18 +163,18 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography variant="body1">
-                SkyTron may integrate third-party services (such as Bhuvan Maps or payment gateways). We do not control these third-party services, and users should review their respective privacy policies.
+                SkyTron<sup>®</sup> may integrate third-party services (such as Bhuvan Maps or payment gateways). We do not control these third-party services, and users should review their respective privacy policies.
               </Typography>
             </AccordionDetails>
           </Accordion>
 
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">9. Children’s Privacy</Typography>
+              <Typography variant="h6">9. Children's Privacy</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Typography variant="body1">
-                SkyTron is not intended for use by children under 13 years old. We do not knowingly collect data from minors. If we become aware of such data collection, we will take steps to delete it.
+                SkyTron<sup>®</sup> is not intended for use by children under 13 years old. We do not knowingly collect data from minors. If we become aware of such data collection, we will take steps to delete it.
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -199,9 +199,7 @@ function PrivacyPolicy() {
                 For any questions or concerns regarding this Privacy Policy, contact us at:
               </Typography>
               <Typography variant="body1">
-                Skytrack Technologies Pvt Ltd<br />
-                Email: contact@skytrack.tech<br />
-                Address: 1, Prashanti Path, Survey, Beltola, Guwahati, Assam, India. Pin code 781028
+                Email: contact@skytrack.tech
               </Typography>
             </AccordionDetails>
           </Accordion>

@@ -15,8 +15,16 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
     <div>
       <AppBar position="static" sx={{ backgroundColor: 'purple',padding:'4px' }}>
         <Toolbar>
-          {/* Ashoka Stambh Icon */}
-          
+          {/* Ashoka Stambh Icon - Moved to the start */}
+          <img 
+            src={ashokstambh} 
+            alt="Ashoka Stambh" 
+            style={{ 
+              width: '30px', 
+              height: 'auto',
+              marginRight: '12px'
+            }} 
+          />
 
           {/* Logo and Title Container */}
           <Typography 
@@ -31,44 +39,34 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               gap: '12px'
             }}
           >
-            <img 
-              src={logo} 
-              alt="Skytron Logo" 
-              style={{  
-                width: '45px', 
-                height: 'auto',
-                marginRight: '0px'
-              }} 
-            />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontFamily: "Bicubik" }}>
-                  SkyTron<sup style={{ fontSize: "12px" }}>®</sup>
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-              <img 
-                  src={ashokstambh} 
-                  alt="Ashoka Stambh" 
-                  style={{ 
-                    width: '15px', 
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                <img 
+                  src={logo} 
+                  alt="Skytron Logo" 
+                  style={{  
+                    width: '35px',
                     height: 'auto',
                     marginRight: '8px'
                   }} 
                 />
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: 'white', 
-                    fontFamily: "Caveat", 
-                    fontSize: '16px', 
-                    fontWeight: 'bold',
-                    lineHeight: 1
-                  }}
-                >
-                  VLTD BackEnd, ASSAM
-                </Typography>
+                <span style={{ fontFamily: "Bicubik", fontSize: '1.8rem' }}>
+                  SkyTron<sup style={{ fontSize: "12px" }}>®</sup>
+                </span>
               </div>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'white', 
+                  fontFamily: "Caveat", 
+                  fontSize: '16px', 
+                  fontWeight: 'bold',
+                  lineHeight: 1,
+                  marginLeft:'10px'
+                }}
+              >
+                VLTD BackEnd, ASSAM
+              </Typography>
             </div>
           </Typography>
 
