@@ -13,3 +13,4 @@ services:
       - FONTS_DOMAIN=https://fonts.googleapis.com
       - FONTS_STATIC_DOMAIN=https://fonts.gstatic.com
       - OSM_DOMAIN=https://*.openstreetmap.org
+    restart: always
