@@ -13,44 +13,66 @@ WebFont.load({
 function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   return (
     <div>
-      <AppBar position="static" sx={{ backgroundColor: 'purple',padding:'4px' }}>
-        <Toolbar>
-          {/* Ashoka Stambh Icon - Moved to the start */}
-          <img 
-            src={ashokstambh} 
-            alt="Ashoka Stambh" 
-            style={{ 
-              width: '30px', 
-              height: 'auto',
-              marginRight: '12px'
-            }} 
-          />
+      <AppBar position="static" sx={{ backgroundColor: 'purple', padding: '8px' }}>
+        <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* Left section with Ashok Stambh */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            marginRight: '20px' 
+          }}>
+            <img 
+              src={ashokstambh} 
+              alt="Ashoka Stambh" 
+              style={{ 
+                width: '40px', 
+                height: 'auto'
+              }} 
+            />
+          </div>
 
-          {/* Logo and Title Container */}
+          {/* Logo section */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            marginRight: '12px'
+          }}>
+            <img 
+              src={logo} 
+              alt="Skytron Logo" 
+              style={{  
+                width: '50px',
+                height: 'auto'
+              }} 
+            />
+          </div>
+
+          {/* Title section */}
           <Typography 
             variant="h2" 
             component="div" 
             sx={{ 
               flexGrow: 1, 
-              color: '#FFC94A', 
-              fontWeight: 'bold', 
+              color: '#FFC94A',
               display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
+              alignItems: 'center'
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                <img 
-                  src={logo} 
-                  alt="Skytron Logo" 
-                  style={{  
-                    width: '35px',
-                    height: 'auto',
-                    marginRight: '8px'
-                  }} 
-                />
-                <span style={{ fontFamily: "Bicubik", fontSize: '1.8rem' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'flex-start'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                marginBottom: '4px'
+              }}>
+                <span style={{ 
+                  fontFamily: "Bicubik", 
+                  fontSize: '2rem',
+                  letterSpacing: '0.5px'
+                }}>
                   SkyTron<sup style={{ fontSize: "12px" }}>®</sup>
                 </span>
               </div>
@@ -62,7 +84,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                   fontSize: '16px', 
                   fontWeight: 'bold',
                   lineHeight: 1,
-                  marginLeft:'10px'
+                  letterSpacing: '0.5px'
                 }}
               >
                 VLTD BackEnd, ASSAM
