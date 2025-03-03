@@ -4,6 +4,13 @@
 // third-party
 @import '~react-perfect-scrollbar/dist/css/styles.css';
 
+@font-face {
+  font-family: 'Bicubik';
+  src: url('/assets/fonts/bicubik.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 // ==============================|| LIGHT BOX ||============================== //
 .fullscreen .react-images__blanket {
   z-index: 1200;
