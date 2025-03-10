@@ -19,24 +19,14 @@ RUN npm run build
 # Stage 2: Serve
 FROM nginx:alpine
 
-# Install envsubst utility
-RUN apk add --no-cache bash gettext
-
 # Copy the build files to the Nginx HTML directory
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy the Nginx config as a template
-COPY default.conf /etc/nginx/conf.d/default.template
-
-# Copy the entrypoint script
-COPY entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
+# Copy the custom Nginx configuration file
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 # Expose the port Nginx listens on
 EXPOSE 80
-
-# Set the entrypoint
-ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
