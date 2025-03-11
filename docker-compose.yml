@@ -1,4 +1,4 @@
-version: '3.7' 
+version: '3.7'
 services:
   react-app:
     build:
@@ -8,7 +8,7 @@ services:
       - "3000:80"
     container_name: skytron-app
     environment:
-      - API_DOMAIN=https://api.gromed.in/
+      - API_DOMAIN=https://dev-api.skytron.in/
       - BHUVAN_DOMAIN=https://bhuvan-vec1.nrsc.gov.in
       - FONTS_DOMAIN=https://fonts.googleapis.com
       - FONTS_STATIC_DOMAIN=https://fonts.gstatic.com

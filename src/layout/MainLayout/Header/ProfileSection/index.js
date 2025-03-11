@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
-import { useSelector,useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -28,7 +28,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import MainCard from '../../../../ui-component/cards/MainCard';
 import Transitions from '../../../../ui-component/extended/Transitions';
 import User1 from '../../../../assets/images/users/user-round.svg';
-import {decipherEncryption} from "../../../../helper";
+import { decipherEncryption } from "../../../../helper";
 // assets
 import { IconLogout, IconSettings } from '@tabler/icons';
 import { logout } from "../../../../actions/loginActions";
@@ -43,15 +43,15 @@ const ProfileSection = () => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
-  const [log,setLogout]=useState(0);
+  const [log, setLogout] = useState(0);
   const myDecipher = decipherEncryption('skytrack')
-  const userData=localStorage.getItem('skytrackCookiesData');
-  const data=userData && userData.split("-").map(item=>myDecipher(item));
+  const userData = localStorage.getItem('skytrackCookiesData');
+  const data = userData && userData.split("-").map(item => myDecipher(item));
   /**
    * anchorRef is used on different components and specifying one type leads to other components throwing an error
    * */
   const anchorRef = useRef(null);
-  const handleLogout =() => {
+  const handleLogout = () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         registrations.forEach((registration) => {
@@ -59,17 +59,10 @@ const ProfileSection = () => {
         });
       });
     }
-    if (caches) {
-      caches.keys().then((names) => {
-        names.forEach((name) => {
-          caches.delete(name);
-        });
-      });
-    }
     sessionStorage.clear();
     localStorage.clear();
     dispatch(logout());
-    setLogout((prev)=>prev+1);
+    setLogout((prev) => prev + 1);
     window.location.href = '/';
   };
   const isIdle = useIdle(300000);
@@ -78,12 +71,12 @@ const ProfileSection = () => {
       handleLogout();
     }
   }, [isIdle]);
-  useEffect(()=>{
+  useEffect(() => {
     if (!isAuthenticated) {
       window.location.href = '/';
     }
   })
-  
+
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
@@ -172,7 +165,7 @@ const ProfileSection = () => {
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
                   <Box sx={{ p: 2 }}>
-                  <Stack>
+                    <Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
                         <Typography variant="h4">Welcome Back,</Typography>
                         <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
@@ -180,12 +173,12 @@ const ProfileSection = () => {
                         </Typography>
                       </Stack>
                       <Typography variant="subtitle2">
-                      {userData && data.length > 2 && <span>{data[1]}</span>}
+                        {userData && data.length > 2 && <span>{data[1]}</span>}
                       </Typography>
                     </Stack>
                   </Box>
                   <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
-                    <Box sx={{ p: 2 }}>      
+                    <Box sx={{ p: 2 }}>
                       <Divider />
                       <List
                         component="nav"
@@ -222,10 +215,10 @@ const ProfileSection = () => {
           </Transitions>
         )}
       </Popper>
-      
-      
+
+
     </>
-    
+
   );
 };
 
