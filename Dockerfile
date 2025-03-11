@@ -30,13 +30,13 @@ COPY default.conf /etc/nginx/conf.d/default.template
 
 # Copy the entrypoint script
 COPY entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Expose the port Nginx listens on
 EXPOSE 80
 
 # Set the entrypoint
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
