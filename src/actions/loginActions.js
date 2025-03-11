@@ -44,14 +44,18 @@ export const loginUser = (username, password) => async (dispatch) => {
       const userType = user.role === 'sosexecutive' && response.data.info?.user_type
         ? response.data.info.user_type
         : user.role;
-      
+        
+      console.log(userType, 'userType');
+
       const responseData = {
         isAuthenticated: true,
         token: "Token " + response.data.token,
         email: username,
         userType: userType,
       };
-      
+
+      console.log(responseData, 'responseData');
+
       const cookiesData = `${myCipher(user.name)}-${myCipher(userType)}-${myCipher(user.mobile)}`;
       const skytrack_cookiesData = `${myCipher(user.email)}-${myCipher(userType)}-${myCipher(user.date_joined)}-${myCipher(user.mobile)}`;
 

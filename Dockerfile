@@ -29,7 +29,7 @@ COPY --from=build /app/build /usr/share/nginx/html
 COPY default.conf /etc/nginx/conf.d/default.template
 
 # Copy the entrypoint script
-COPY entrypoint.sh /
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Expose the port Nginx listens on
