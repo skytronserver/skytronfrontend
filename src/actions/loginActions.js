@@ -27,45 +27,56 @@ export const logoutUser=(user)=>({
   type:"LOGOUT_USER",
   payload:user,
 })
+
 export const loginUser = (username, password) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
     const response = await axios.post(`${BASE_URL}api/user_login/`, {
       username,
-      password
+      password,
     });
-    
-    if(response?.data?.token) {
+
+    if (response?.data?.token) {
       const myCipher = cipherEncryption('skytrack');
+      const user = response.data.user;
+      
+      // Determine user type: If role is 'sosexecutive', use 'user_type' from info
+      const userType = user.role === 'sosexecutive' && response.data.info?.user_type
+        ? response.data.info.user_type
+        : user.role;
+      
       const responseData = {
         isAuthenticated: true,
         token: "Token " + response.data.token,
         email: username,
-        otpToken: null
-      }
-      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
-      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`
+        userType: userType,
+      };
       
+      const cookiesData = `${myCipher(user.name)}-${myCipher(userType)}-${myCipher(user.mobile)}`;
+      const skytrack_cookiesData = `${myCipher(user.email)}-${myCipher(userType)}-${myCipher(user.date_joined)}-${myCipher(user.mobile)}`;
+
       sessionStorage.setItem('isAuthenticated', true);
       sessionStorage.setItem('sessionID', Date.now());
       sessionStorage.setItem('oAuthToken', response.data.token);
-      sessionStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
+      sessionStorage.setItem('cookiesData', cookiesData + '-' + user.id);
+      sessionStorage.setItem('userType', userType);
       localStorage.setItem('skytrackCookiesData', skytrack_cookiesData);
-      
+
       dispatch(setLoginInfo(cookiesData));
       dispatch(setUser(responseData));
-      dispatch(setError({message: null, status: null}));
+      dispatch(setError({ message: null, status: null }));
     } else {
-      throw new Error(response?.data?.error)
+      throw new Error(response?.data?.error);
     }
   } catch (error) {
-    console.log(error, 'error')
+    console.log(error, 'error');
     const message = error?.response?.data?.error || "Internal Server Error";
-    dispatch(setError({message, status: null}));
+    dispatch(setError({ message, status: null }));
   } finally {
     dispatch(setLoading(false));
   }
 };
+
 export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
   try{
     dispatch(setLoading(true));
