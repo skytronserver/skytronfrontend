@@ -105,6 +105,10 @@ const addRoute = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/saveRoute/", data);
 }
+const getRoute = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/get_routePath/", data);
+}
 const delRoute = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/delRoute/", data);
@@ -141,6 +145,7 @@ const HomePageService = {
   broadCastHelp,
   updateSOSCall,
   addRoute,
+  getRoute,
   delRoute,
   broadCast,
   closeCase,
