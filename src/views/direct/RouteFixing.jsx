@@ -316,26 +316,36 @@ const RouteFixing = () => {
 
     try {
       const routeData = await HomePageService.getRoute({ points: newPoints }); 
-      if (routeData.data.paths.length > 0) {  
-        const response = await HomePageService.addRoute({
-          device_id: deviceId,
-          route: routeData.data.paths[0].points,
-          routepoints: newPoints,
-        });
-        setRouteData(response.data.route);
-        setNewPoints([]); 
-        vectorSourceRef.current.clear();
-        setAlert({
-          open: true,
-          message: "Route added successfully!",
-          type: "success"
-        });
+      console.log('Route Data:', routeData?.data)
+      
+      // Check if we have valid paths data
+      if (!routeData?.data?.data?.paths?.[0]?.points?.coordinates) {
+        throw new Error('Invalid route data received');
       }
+
+      const firstPath = routeData.data.data.paths[0];
+      const coordinates = firstPath.points.coordinates;
+      
+      const response = await HomePageService.addRoute({
+        device_id: deviceId,
+        route: coordinates,
+        routepoints: newPoints,
+        hash: routeData.data.hash
+      });
+      
+      setRouteData(response.data.route);
+      setNewPoints([]); 
+      vectorSourceRef.current.clear();
+      setAlert({
+        open: true,
+        message: "Route added successfully!",
+        type: "success"
+      });
     } catch (error) {
       console.error("Error adding new route:", error);
       setAlert({
         open: true,
-        message: "Failed to add route. Please try again.",
+        message: error.message || "Failed to add route. Please try again.",
         type: "error"
       });
     }
