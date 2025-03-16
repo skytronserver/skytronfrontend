@@ -24,6 +24,8 @@ import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
+import Stroke from "ol/style/Stroke";
+import AutoHideAlert from "../../ui-component/AutoHideAlert";
 
 const RouteFixing = () => {
   const [load, setLoad] = useState(false);
@@ -39,6 +41,11 @@ const RouteFixing = () => {
   const map = useRef(null);
   const overlayRef = useRef(null);
   const selectedId = useRef("");
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    type: "success"
+  });
 
   useEffect(() => {
     const fetchDeviceList = async () => {
@@ -49,7 +56,6 @@ const RouteFixing = () => {
   }, []);
 
   const handleSubmit = async (e) => {
-    console.log("deviceId",deviceId);
     e.preventDefault();
     retriveRouteData(deviceId);
   };
@@ -59,11 +65,9 @@ const RouteFixing = () => {
       const retriveData = await HomePageService.getRouteFixing(id);
       setRouteContent(retriveData.data);
       setRouteData(retriveData.data.route || []);
-
-      console.log("route data ", retriveData.data);
-      setLoad(true)
+      setLoad(true);
     } catch (error) {
-      console.log("Error retrieving route data:", error);
+      console.error("Error retrieving route data:", error);
     }
   };
 
@@ -73,9 +77,43 @@ const RouteFixing = () => {
   };
 
   const handleRouteSelect = (event) => {
-    const [routeId, routeRout] = event.target.value.split("|");
-    setSelectedRoute({ routeId, routeRout });
-    loadRoute(JSON.parse(routeRout), routeId);
+    try {
+      const [routeId, routeRout] = event.target.value.split("|");
+      
+      const coordinates = routeRout
+        .split("],")
+        .map(coord => {
+          try {
+            return coord
+              .replace(/[\[\]']/g, '')
+              .split(',')
+              .map(num => {
+                const parsed = parseFloat(num.trim());
+                if (isNaN(parsed)) throw new Error('Invalid coordinate value');
+                return parsed;
+              });
+          } catch (e) {
+            console.error('Error parsing coordinate:', coord);
+            return null;
+          }
+        })
+        .filter(coord => coord && coord.length >= 2)
+        .map(coord => [coord[0], coord[1]]);
+
+      if (coordinates.length < 2) {
+        throw new Error('Not enough valid coordinates to create a route');
+      }
+
+      setSelectedRoute({ 
+        routeId, 
+        coordinates, // Store the parsed coordinates
+        routeRout 
+      });
+      loadRoute(coordinates, routeId);
+    } catch (error) {
+      console.error('Error selecting route:', error);
+      alert('There was an error selecting the route. Please try again.');
+    }
   };
 
   // Initialize map on first render
@@ -148,25 +186,74 @@ const RouteFixing = () => {
 
   // Function to load route on the map
   const loadRoute = (route, routeId) => {
-    selectedId.current = routeId;
-    vectorSourceRef.current.clear();
+    try {
+      if (!route || route.length < 2) {
+        console.warn('Invalid route data: Need at least 2 points to display a route');
+        return;
+      }
 
-    const points = route.map(
-      (coords) =>
-        new Feature({
-          geometry: new Point(fromLonLat(coords)),
-        })
-    );
-    vectorSourceRef.current.addFeatures(points);
+      selectedId.current = routeId;
+      vectorSourceRef.current.clear();
 
-    if (points.length > 1) {
-      const coordinates = points.map((point) =>
-        point.getGeometry().getCoordinates()
-      );
+      // Create point features only for start and end points
+      const startPoint = new Feature({
+        geometry: new Point(fromLonLat(route[0])),
+      });
+      const endPoint = new Feature({
+        geometry: new Point(fromLonLat(route[route.length - 1])),
+      });
+
+      // Set style for start and end points
+      [startPoint, endPoint].forEach(point => {
+        point.setStyle(
+          new Style({
+            image: new Icon({
+              src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+              scale: 0.051,
+              anchor: [0.5, 1],
+              anchorXUnits: "fraction",
+              anchorYUnits: "fraction",
+            }),
+          })
+        );
+      });
+
+      vectorSourceRef.current.addFeatures([startPoint, endPoint]);
+
+      // Create and add the route line
+      const coordinates = route.map(coords => fromLonLat(coords));
+      
+      if (coordinates.some(coord => !coord || coord.length < 2)) {
+        throw new Error('Invalid coordinates in route');
+      }
+
       const line = new Feature({
         geometry: new LineString(coordinates),
       });
+      
+      line.setStyle(new Style({
+        stroke: new Stroke({
+          color: '#0066ff',
+          width: 3
+        })
+      }));
+      
       vectorSourceRef.current.addFeature(line);
+
+      // Get the extent and verify it's valid before fitting
+      const extent = line.getGeometry().getExtent();
+      if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
+        map.current.getView().fit(extent, {
+          padding: [50, 50, 50, 50],
+          duration: 1000,
+          maxZoom: 18
+        });
+      } else {
+        console.warn('Invalid extent calculated for route');
+      }
+    } catch (error) {
+      console.error('Error loading route:', error);
+      alert('There was an error loading the route. Please try again.');
     }
   };
 
@@ -195,9 +282,9 @@ const RouteFixing = () => {
           image: new Icon({
             src: `${process.env.REACT_APP_BASE_URL}static/track.png` , 
             scale: 0.051,
-            anchor: [0.5, 1], // Horizontal center and bottom edge as anchor point
-            anchorXUnits: "fraction", // Anchor unit is fraction of the icon's width
-            anchorYUnits: "fraction", // Anchor unit is fraction of the icon's height
+            anchor: [0.5, 1], 
+            anchorXUnits: "fraction", 
+            anchorYUnits: "fraction",
           }),
         })
       );
@@ -219,21 +306,38 @@ const RouteFixing = () => {
 
   const addRoute = async () => {
     if (newPoints.length < 2) {
-      alert("Please add at least two points to create a route.");
+      setAlert({
+        open: true,
+        message: "Please add at least two points to create a route.",
+        type: "error"
+      });
       return;
     }
-    const data = {
-      device_id: deviceId,
-      route: JSON.stringify(newPoints), // Serializing newPoints as JSON
-    };
 
     try {
-      const response = await HomePageService.addRoute(data);
-      console.log("New Route Added:", response);
-      setRouteData(response.data.route); // Update route data with the new route
-      setNewPoints([]); // Clear new points after adding route
+      const routeData = await HomePageService.getRoute({ points: newPoints }); 
+      if (routeData.data.paths.length > 0) {  
+        const response = await HomePageService.addRoute({
+          device_id: deviceId,
+          route: routeData.data.paths[0].points,
+          routepoints: newPoints,
+        });
+        setRouteData(response.data.route);
+        setNewPoints([]); 
+        vectorSourceRef.current.clear();
+        setAlert({
+          open: true,
+          message: "Route added successfully!",
+          type: "success"
+        });
+      }
     } catch (error) {
       console.error("Error adding new route:", error);
+      setAlert({
+        open: true,
+        message: "Failed to add route. Please try again.",
+        type: "error"
+      });
     }
   };
   const handleAutocompleteChange = (event, newValue) => {
@@ -244,7 +348,11 @@ const RouteFixing = () => {
   };
   const delRoute = async () => {
     if (!selectedRoute) {
-      alert("Please select a route to delete.");
+      setAlert({
+        open: true,
+        message: "Please select a route to delete.",
+        type: "error"
+      });
       return;
     }
 
@@ -256,15 +364,31 @@ const RouteFixing = () => {
       await HomePageService.delRoute(data);
       setRouteData(
         routeData.filter((route) => route.id != selectedRoute.routeId)
-      ); // Remove the deleted route from list
-      setSelectedRoute(null); // Clear selected route
-      console.log("Route deleted");
+      );
+      setSelectedRoute(null);
+      vectorSourceRef.current.clear(); // Clear the route from map
+      setAlert({
+        open: true,
+        message: "Route deleted successfully!",
+        type: "success"
+      });
     } catch (error) {
       console.error("Error deleting route:", error);
+      setAlert({
+        open: true,
+        message: "Failed to delete route. Please try again.",
+        type: "error"
+      });
     }
   };
   return (
     <MainCard>
+      <AutoHideAlert 
+        open={alert.open}
+        onClose={() => setAlert({...alert, open: false})}
+        message={alert.message}
+        type={alert.type}
+      />
       <p>Route Fixing</p>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2} className="form-controller">
@@ -311,11 +435,7 @@ const RouteFixing = () => {
         <Box className="button-container" sx={{ mt: 3 }}>
           <Select
             id="routeDropdown"
-            value={
-              selectedRoute
-                ? `${selectedRoute.routeId}|${selectedRoute.routeRout}`
-                : ""
-            }
+            value={selectedRoute ? `${selectedRoute.routeId}|${selectedRoute.routeRout}` : ""}
             onChange={handleRouteSelect}
             displayEmpty
             fullWidth
@@ -324,8 +444,11 @@ const RouteFixing = () => {
               Select a route
             </MenuItem>
             {routeData.map((route) => (
-              <MenuItem value={`${route.id}|${route.route}`} key={route.id}>
-                Route #{route.id}
+              <MenuItem 
+                value={`${route.id}|${route.route}`} 
+                key={route.id}
+              >
+                {`Route #${route.id}`}
               </MenuItem>
             ))}
           </Select>
