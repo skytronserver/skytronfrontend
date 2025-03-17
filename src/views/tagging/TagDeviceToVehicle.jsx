@@ -202,6 +202,7 @@ function TagDeviceToVehicle() {
       const vahanStringData = response?.data?.vahan_data;
       const vahanJSONData = JSON.parse(vahanStringData);
       const vahanData = vahanJSONData?.VltdDetailsDobj
+      console.log("vahanData", vahanData);
       setGetMap((prev) => ({
         ...prev,
         regno: vehicle.vehicle_reg_no,

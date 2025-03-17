@@ -436,7 +436,7 @@ const user = {
           type: "item",
           url: "/device/show-available-device",
           breadcrumbs: false,
-          roles: ["superadmin", "devicemanufacture"],
+          roles: [ "devicemanufacture"],
         },
         {
           id: "all-device",
