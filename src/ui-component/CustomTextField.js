@@ -25,6 +25,7 @@ const FormField = ({
     ...(fieldConfig.maxDate && { max: fieldConfig.maxDate }),
   };
   const { type, label, options,disabled } = fieldConfig;
+  const restrictedFields = ['name', 'title', 'category','company_name', 'companyName'];
   switch (type) {
     case "text":
       return (
@@ -33,7 +34,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
-          disabled={disabled ? true:false}
+          disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
             formik.touched[fieldConfig.name] &&
@@ -42,6 +43,33 @@ const FormField = ({
           helperText={
             formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
           }
+          onChange={(e) => {
+            let value = e.target.value;
+            
+            // Remove potential XSS/script injection attempts
+            value = value.replace(/<[^>]*>/g, ''); // Remove HTML tags
+            value = value.replace(/javascript:/gi, ''); // Remove javascript: protocol
+            value = value.replace(/on\w+\s*=/gi, ''); // Remove event handlers
+            value = value.replace(/script/gi, ''); // Remove the word 'script'
+            
+            // Check if field is email type
+            if (fieldConfig.name.toLowerCase().includes('email')) {
+              const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+              if (value && !emailRegex.test(value)) {
+                formik.setFieldError(fieldConfig.name, 'Please enter a valid email address');
+              }
+              formik.setFieldValue(fieldConfig.name, value);
+            }
+            // Check if field is one of the restricted fields
+            else if (restrictedFields.includes(fieldConfig.name)) {
+              // Only allow letters and single spaces, prevent consecutive spaces
+              const sanitizedValue = value.replace(/\s+/g, ' '); // Replace multiple spaces with single space
+              const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ''); // Remove non-letters
+              formik.setFieldValue(fieldConfig.name, letterOnlyValue);
+            } else {
+              formik.setFieldValue(fieldConfig.name, value);
+            }
+          }}
         />
       );
     case "select":
@@ -119,7 +147,24 @@ const FormField = ({
             id={fieldConfig.name}
             name={fieldConfig.name}
             type="file"
+            accept=".pdf,.png,.jpg,.jpeg"
             onChange={(event) => {
+              const file = event.target.files[0];
+              if (file) {
+                const allowedTypes = [
+                  'application/pdf',
+                  'image/png',
+                  'image/jpeg',
+                  'image/jpg'
+                ];
+                
+                if (!allowedTypes.includes(file.type)) {
+                  formik.setFieldError(fieldConfig.name, 'Only PDF, PNG, and JPG files are allowed');
+                  event.target.value = ''; // Clear the file input
+                  return;
+                }
+                console.log('File MIME type:', file.type);
+              }
               formik.handleChange(event);
               handleFileChange(event, formik);
             }}
@@ -219,6 +264,30 @@ const FormField = ({
           helperText={
             formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
           }
+          onChange={(e) => {
+            const selectedDate = new Date(e.target.value);
+            
+            // Check if the field is date of birth
+            if (fieldConfig.name.toLowerCase().includes('dob') || fieldConfig.name.toLowerCase().includes('dateofbirth')) {
+              const today = new Date();
+              const age = today.getFullYear() - selectedDate.getFullYear();
+              const monthDiff = today.getMonth() - selectedDate.getMonth();
+              
+              // Adjust age if birthday hasn't occurred this year
+              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
+                const actualAge = age - 1;
+                if (actualAge < 18) {
+                  formik.setFieldError(fieldConfig.name, 'Age must be 18 or above');
+                  return;
+                }
+              } else if (age < 18) {
+                formik.setFieldError(fieldConfig.name, 'Age must be 18 or above');
+                return;
+              }
+            }
+            
+            formik.setFieldValue(fieldConfig.name, e.target.value);
+          }}
         />
       );
     case "tel":
