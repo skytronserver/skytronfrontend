@@ -50,10 +50,11 @@ function DealerAccount() {
           ...prevConfig,
           manufacturer: {
             ...prevConfig.manufacturer,
-            options: manufacturerList || [], 
+            options: manufacturerList || [],
           },
           address_State: {
             ...prevConfig.address_State,
+            options: stateList || [],
             value: stateList?.[0]?.label || '', 
             id: stateList?.[0]?.value || '',
           },
@@ -71,7 +72,7 @@ function DealerAccount() {
             ...prevConfig,
             district: {
               ...prevConfig.district,
-              options: districtList 
+              options: districtList || []
             },
           }));
         }

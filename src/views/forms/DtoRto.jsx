@@ -39,28 +39,29 @@ const DtoRto = () => {
       try {
         const stateList = await retriveStateList();
         
-        setUpdatedFormField((prevConfig) => ({
-          ...prevConfig,
-          state: {
-            ...prevConfig.state,
-            value: stateList?.[0]?.label || '', 
-            id: stateList?.[0]?.value || '',
-          },
-          district_code: {
-            ...prevConfig.district_code,
-            options: [],
-          },
-        }));
+        if (stateList && stateList.length > 0) {
+          setUpdatedFormField((prevConfig) => ({
+            ...prevConfig,
+            state: {
+              ...prevConfig.state,
+              value: stateList[0].label || '',
+              id: stateList[0].value || '',
+              options: stateList,
+            },
+            district_code: {
+              ...prevConfig.district_code,
+              options: [],
+            },
+          }));
 
-        if (stateList?.[0]?.value) {
           dtoInitialsValues.state = stateList[0].label;
+          
           const districtList = await retriveDTOList({ state: stateList[0].value });
-          console.log(districtList,'districtList')
           setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
             district_code: {
               ...prevConfig.district_code,
-              options: districtList, 
+              options: districtList || [],
             },
           }));
         }
@@ -134,15 +135,14 @@ const DtoRto = () => {
     const userData = sessionStorage.getItem("cookiesData");
     const data = userData && userData.split("-");
     const userId = userData && data.length > 2 && data[3];
-    const selectedState = updatedFormFields.state;
     setSubmitting(true);
     setLoading(true);
-    let valuesWithRole = {};
-    valuesWithRole = {
+    
+    const valuesWithRole = {
       ...values,
       role: "dto",
       createdby: userId,
-      state:selectedState.id,
+      state: updatedFormFields.state.id,
     };
 
     try {
