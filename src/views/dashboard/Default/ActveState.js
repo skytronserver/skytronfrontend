@@ -65,7 +65,19 @@ const ActiveState = () => {
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+  const userRoles = userData && data.length > 2 && data[1];
+
+  // Add check for restricted roles
+  const webRestrictedRoles = ["police_ex", "ambulance_ex", "PCR", "ACR"];
+  const m2mRestrictedRoles = ["esimprovider"];
+  
+  // For M2M providers, redirect to their main workflow
+  useEffect(() => {
+    if (m2mRestrictedRoles.includes(userRoles)) {
+      window.location.href = '/device/activation-request/pending';
+    }
+  }, [userRoles]);
+
   useEffect(() => {
     //for owner
     if(userRoles=='dtorto'){
@@ -392,8 +404,6 @@ const ActiveState = () => {
 
   const mar = "100px";
 
-
-
   const DashboardView = ({ role }) => {
     // Add check for restricted roles
     const webRestrictedRoles = ["police_ex", "ambulance_ex"];
@@ -411,6 +421,14 @@ const ActiveState = () => {
           }}
         >
           <CardContent>
+            <ErrorOutlineIcon 
+              sx={{
+                fontSize: '64px',
+                color: '#e74c3c',
+                marginBottom: '16px'
+              }}
+            />
+            
             <Typography 
               variant="h4" 
               sx={{
@@ -419,7 +437,7 @@ const ActiveState = () => {
                 marginBottom: '16px'
               }}
             >
-              Access Restricted
+              Mobile App Access Only
             </Typography>
             
             <Typography 
@@ -431,7 +449,18 @@ const ActiveState = () => {
               }}
             >
               This dashboard is only accessible through your mobile application. 
-              Please use the dedicated mobile app to view your dashboard.
+              Please use the dedicated mobile app to access your dashboard and features.
+            </Typography>
+
+            <Typography 
+              variant="body2"
+              sx={{
+                color: '#888',
+                marginTop: '24px',
+                fontSize: '0.9rem'
+              }}
+            >
+              If you need assistance, please contact your system administrator.
             </Typography>
           </CardContent>
         </Card>
