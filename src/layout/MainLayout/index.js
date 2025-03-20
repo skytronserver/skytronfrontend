@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // material-ui
 import { styled, useTheme } from "@mui/material/styles";
@@ -68,29 +69,46 @@ const MainLayout = () => {
   const theme = useTheme();
   const matchDownMd = useMediaQuery(theme.breakpoints.down("md"));
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get user role first
+  const myDecipher = decipherEncryption("skytrack");
+  const userData = sessionStorage.getItem("cookiesData");
+  const data = userData && userData.split("-").map((item) => myDecipher(item));
+  const userRoles = userData && data.length > 2 && data[1];
+
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
   const dispatch = useDispatch();
-  const handleLeftDrawerToggle = () => {
-    dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
-  };
+  
+  // All useEffect hooks must be before any conditional returns
   useEffect(() => {
     if (location.pathname === '/live-tracking') {
       dispatch({ type: SET_MENU, opened: false });
     }
-  }, [location]);
+  }, [location, dispatch]);
+
+  useEffect(() => {
+    if (userRoles === 'esimprovider' && location.pathname === '/dashboard') {
+      navigate('/device/activation-request/pending');
+    }
+  }, [userRoles, location.pathname, navigate]);
+
+  const handleLeftDrawerToggle = () => {
+    dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
+  };
+
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
     sessionStorage.getItem("isAuthenticated");
+
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
   sessionStorage.getItem("oAuthToken") &&
     createAxiosInstance(sessionStorage.getItem("oAuthToken"));
-    const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData");
-  const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const userRoles = userData && data.length > 2 && data[1]; 
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />

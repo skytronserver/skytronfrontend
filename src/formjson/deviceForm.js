@@ -27,7 +27,9 @@ export const deviceFormField = {
     name: "imei",
     type: "text",
     label: "IMEI No.",
-    validation: Yup.string().matches(/^[0-9]+$/, "IMEI No. must be a number").required("IMEI No. is required"),
+    validation: Yup.string()
+      .matches(/^[0-9]{15}$/, "IMEI No. must be exactly 15 digits")
+      .required("IMEI No. is required"),
   },
   model: {
     name: "model",
@@ -90,36 +92,47 @@ export const deviceFormField = {
     name: "iccid",
     type: "text",
     label: "eSIM No (ICCID)",
-    validation: Yup.string().required("eSIM No (ICCID) is required field"),
+    validation: Yup.string()
+      .matches(/^[0-9]{19,20}$/, "ICCID must be 19 or 20 digits")
+      .required("eSIM No (ICCID) is required field"),
   },
   telecom_provider1: {
     name: "telecom_provider1",
     type: "text",
     label: "eSIM Telecom Service Provider 1",
-    validation: Yup.string().required("eSIM Telecom Service Provider 1 is required field"),
+    validation: Yup.string()
+      .min(2, "Provider name must be at least 2 characters")
+      .max(50, "Provider name cannot exceed 50 characters")
+      .required("eSIM Telecom Service Provider 1 is required field"),
   },
   telecom_provider2: {
     name: "telecom_provider2",
     type: "text",
     label: "eSIM Telecom Service Provider 2",
-    validation:"",
+    validation: Yup.string()
+      .min(2, "Provider name must be at least 2 characters")
+      .max(50, "Provider name cannot exceed 50 characters"),
   },
   msisdn1: {
     name: "msisdn1",
     type: "text",
     label: "eSIM Mobile No. MSISDN 1",
-    validation: Yup.string().matches(/^[0-9]+$/, "eSIM Mobile No. MSISDN 1 must be a number").required("eSIM Mobile No. MSISDN 1 is required field"),
+    validation: Yup.string()
+      .matches(/^[0-9]{10,15}$/, "Msisdn must be between 10 and 15 digits")
+      .required("eSIM Mobile No. MSISDN 1 is required field"),
   },
   msisdn2: {
     name: "msisdn2",
     type: "text",
     label: "eSIM Mobile No. MSISDN 2",
-    validation:Yup.string().matches(/^[0-9]+$/, "eSIM Mobile No. MSISDN 2 must be a number"),
+    validation: Yup.string()
+      .matches(/^[0-9]{10,15}$/, "Msisdn must be between 10 and 15 digits"),
   },  
   remarks: {
     name:"remarks",
     type: "text",
     label: "Remarks",
-    validation: "",
+    validation: Yup.string()
+      .max(500, "Remarks cannot exceed 500 characters"),
   },
 };
