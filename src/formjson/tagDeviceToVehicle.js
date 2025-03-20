@@ -31,7 +31,7 @@ export const taggingFields = {
     type: "tel",
     label: "Vehicle Owner Mobile Number",
     validation: Yup.string()
-      .matches(/^[6-9]\d{9}$/, 'Mobile Number must be a valid 10-digit number')
+      .matches(/^\d{10}$/, 'Mobile Number must be a valid 10-digit number')
       .required('Mobile Number is required'),
   },
   vehicle_reg_no: {

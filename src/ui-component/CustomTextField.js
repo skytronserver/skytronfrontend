@@ -147,19 +147,32 @@ const FormField = ({
             id={fieldConfig.name}
             name={fieldConfig.name}
             type="file"
-            accept=".pdf,.png,.jpg,.jpeg"
+            accept={fieldConfig.name === 'excel_file' ? 
+              '.xlsx,.xls,.csv' : 
+              '.pdf,.png,.jpg,.jpeg'}
             onChange={(event) => {
               const file = event.target.files[0];
               if (file) {
-                const allowedTypes = [
-                  'application/pdf',
-                  'image/png',
-                  'image/jpeg',
-                  'image/jpg'
-                ];
+                const allowedTypes = fieldConfig.name === 'excel_file' ? 
+                  [
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'text/csv'
+                  ] : 
+                  [
+                    'application/pdf',
+                    'image/png',
+                    'image/jpeg',
+                    'image/jpg'
+                  ];
                 
                 if (!allowedTypes.includes(file.type)) {
-                  formik.setFieldError(fieldConfig.name, 'Only PDF, PNG, and JPG files are allowed');
+                  formik.setFieldError(
+                    fieldConfig.name, 
+                    fieldConfig.name === 'excel_file' ?
+                      'Only Excel and CSV files are allowed' :
+                      'Only PDF, PNG, and JPG files are allowed'
+                  );
                   event.target.value = ''; // Clear the file input
                   return;
                 }
