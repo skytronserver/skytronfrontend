@@ -21,20 +21,20 @@ let stateList=[];
     stateList=await retriveStateList();
   }
 export const stateInitials = {
-    state:"",
-    status:"",
+    state_name: "",
+    status: ""
 };
 export const districtInitials={
     state:"",
     status:"",
-    district:"",
+    district_name:"",
     district_code:"",
 }
 export const stateFields = {
-    state: {
-        name: "state",
+    state_name: {
+        name: "state_name",
         type: "text",
-        label: "State Name",
+        label: "State",
         validation: Yup.string()
             .required("State name is required")
             .min(2, "State name must be at least 2 characters")
@@ -51,11 +51,11 @@ export const stateFields = {
         options: [
             { value: "active", label: "Active" }
         ],
-    },
+    }
 };
 export const districtFields = {
-    district: {
-        name: "district",
+    district_name: {
+        name: "district_name",
         type: "text",
         label: "District Name",
         validation: Yup.string()

@@ -93,7 +93,7 @@ export const deviceFormField = {
     type: "text",
     label: "eSIM No (ICCID)",
     validation: Yup.string()
-      .matches(/^[0-9]{19,20}$/, "ICCID must be 19 or 20 digits")
+      .matches(/^[0-9]{19,20}$/,"ICCID must be 19 or 20 digits")
       .required("eSIM No (ICCID) is required field"),
   },
   telecom_provider1: {
