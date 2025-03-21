@@ -129,7 +129,7 @@ function TagDeviceToVehicle() {
       }));
       setLoading((prev) => ({ ...prev, form: true }));
     })();
-    setActiveStep(0);
+    setActiveStep(4);
   }, [reload]);
 
   const handleDealerOtp = (otp) => {
@@ -199,10 +199,14 @@ function TagDeviceToVehicle() {
       const device = response?.data?.Skytrack_data?.device || response?.Skytrack_data?.device;
       const owner = response?.data?.Skytrack_data?.vehicle_owner.users[0] || response?.Skytrack_data?.vehicle_owner.users[0];
       const vehicle = response?.data?.Skytrack_data || response?.Skytrack_data;
-      const vahanStringData = response?.data?.vahan_data;
-      const vahanJSONData = JSON.parse(vahanStringData);
-      const vahanData = vahanJSONData?.VltdDetailsDobj
+      
+      // Handle vahan_data based on its type
+      const vahanData = typeof response?.data?.vahan_data === 'string' 
+        ? JSON.parse(response.data.vahan_data)?.VltdDetailsDobj 
+        : response?.data?.vahan_data?.VltdDetailsDobj;
+
       console.log("vahanData", vahanData);
+      
       setGetMap((prev) => ({
         ...prev,
         regno: vehicle.vehicle_reg_no,
