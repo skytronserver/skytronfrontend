@@ -70,13 +70,13 @@ const SettingRoutes = {
       ),
       roles: ['superadmin','devicemanufacture']
     },
-    {
-      path: "/setting/notice/*",
-      element: (
-        <NoticeForm/>
-      ),
-      roles: ['superadmin']
-    },
+    // {
+    //   path: "/setting/notice/*",
+    //   element: (
+    //     <NoticeForm/>
+    //   ),
+    //   roles: ['superadmin']
+    // },
     {
       path: "/setting/ip-settings",
       element: (

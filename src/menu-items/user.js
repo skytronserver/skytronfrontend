@@ -382,14 +382,14 @@ const user = {
           breadcrumbs: false,
           roles: ["sosadmin"],
         },
-        {
-          id: "all-notice-list",
-          title: "Notices",
-          type: "item",
-          url: "/notice/all-notice-list",
-          breadcrumbs: false,
-          roles: ["superadmin"],
-        },
+        // {
+        //   id: "all-notice-list",
+        //   title: "Notices",
+        //   type: "item",
+        //   url: "/notice/all-notice-list",
+        //   breadcrumbs: false,
+        //   roles: ["superadmin"],
+        // },
         {
           id: "user-list",
           title: "Users",

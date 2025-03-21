@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider,  Grid, Button } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider,  Grid, Button, ListItemIcon } from '@mui/material';
 import { Home as HomeIcon, Menu as MenuIcon } from '@mui/icons-material';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
@@ -129,14 +129,17 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
         >
           <List>
             <ListItem button component={Link} to="/">
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItem>
-            <ListItem button>
+            {/* <ListItem button component="a" href="#contact">
               <ListItemText primary="Contact Us" />
             </ListItem>
-            <ListItem button>
+            <ListItem button component="a" href="#about">
               <ListItemText primary="About Us" />
-            </ListItem>
+            </ListItem> */}
             <ListItem button component={Link} to="/privacy-policy">
               <ListItemText primary="Privacy Policy" />
             </ListItem>

@@ -206,11 +206,11 @@ const UserRoutes = {
       element: <SOSOtherList />,
       roles: ["sosadmin"],
     },
-    {
-      path: "/notice/all-notice-list",
-      element: <NoticeList />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/notice/all-notice-list",
+    //   element: <NoticeList />,
+    //   roles: ["superadmin"],
+    // },
     {
       path: "/user/esim-provider-list",
       element: <EsimProviderList />,
