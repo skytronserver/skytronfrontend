@@ -515,3 +515,35 @@ export const formatDateTime=(dateTimeString)=>{
 }
 
 
+export const checkFileSignature = async (file) => {
+  const signatures = {
+    jpg: ["FFD8FFE0", "FFD8FFE1", "FFD8FFE2"],
+    png: ["89504E47"],
+    pdf: ["25504446"],
+    xls: ["D0CF11E0", "504B0304"], // XLS, XLSX
+    csv: [] // CSV has no specific magic number
+  };
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = function (e) {
+      const arr = new Uint8Array(e.target.result).subarray(0, 4);
+      let hex = "";
+      for (let i = 0; i < arr.length; i++) {
+        hex += arr[i].toString(16).padStart(2, "0").toUpperCase();
+      }
+      
+      if (file.name.endsWith(".csv")) {
+        resolve(true);
+      } else {
+        resolve(
+          signatures.jpg.includes(hex) || 
+          signatures.png.includes(hex) || 
+          signatures.pdf.includes(hex) ||
+          signatures.xls.includes(hex)
+        );
+      }
+    };
+    reader.readAsArrayBuffer(file.slice(0, 4));
+  });
+};

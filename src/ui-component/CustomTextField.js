@@ -1,5 +1,6 @@
 // FormField.js
 import React from "react";
+import { checkFileSignature } from "../helper"; 
 import {
   TextField,
   MenuItem,
@@ -26,6 +27,25 @@ const FormField = ({
   };
   const { type, label, options,disabled } = fieldConfig;
   const restrictedFields = ['name', 'title', 'category','company_name', 'companyName'];
+
+  // Handle file validation
+  const handleFileValidation = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const isValid = await checkFileSignature(file);
+      if (!isValid) {
+        formik.setFieldError(
+          fieldConfig.name,
+          "Invalid file format. Please upload a valid file."
+        );
+        event.target.value = "";
+        return;
+      }
+    }
+    formik.handleChange(event);
+    handleFileChange(event, formik);
+  };
+
   switch (type) {
     case "text":
       return (
@@ -140,79 +160,45 @@ const FormField = ({
           </TextField>
         );
       
-    case "file":
-      return (
-        <div style={{ marginTop: "16px" }}>
-          <input
-            id={fieldConfig.name}
-            name={fieldConfig.name}
-            type="file"
-            accept={fieldConfig.name === 'excel_file' ? 
-              '.xlsx,.xls,.csv' : 
-              '.pdf,.png,.jpg,.jpeg'}
-            onChange={(event) => {
-              const file = event.target.files[0];
-              if (file) {
-                const allowedTypes = fieldConfig.name === 'excel_file' ? 
-                  [
-                    'application/vnd.ms-excel',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'text/csv'
-                  ] : 
-                  [
-                    'application/pdf',
-                    'image/png',
-                    'image/jpeg',
-                    'image/jpg'
-                  ];
-                
-                if (!allowedTypes.includes(file.type)) {
-                  formik.setFieldError(
-                    fieldConfig.name, 
-                    fieldConfig.name === 'excel_file' ?
-                      'Only Excel and CSV files are allowed' :
-                      'Only PDF, PNG, and JPG files are allowed'
-                  );
-                  event.target.value = ''; // Clear the file input
-                  return;
-                }
-                console.log('File MIME type:', file.type);
-              }
-              formik.handleChange(event);
-              handleFileChange(event, formik);
-            }}
-            onBlur={() => formik.setFieldTouched(fieldConfig.name, true)}
-            style={{ display: "none" }}
-          />
-          <label htmlFor={fieldConfig.name}>
-            <Button
-              variant="outlined"
-              component="span"
-              style={{
-                width: "100%",
-                height: "50px",
-                borderRadius: "10px",
-                justifyContent: "flex-start",
-              }}
-            >
-              {label}
-              {" : "}
-              <span style={{ color: "#2196f3", fontStyle: "italic" }}>
-                {formik.values[fieldConfig.name]?.name || ""}
-              </span>
-            </Button>
-          </label>
-          {fieldConfig?.message && <div style={{ fontSize: "12px", color: "gray", marginTop: "4px" }}>
-          {fieldConfig?.message}
-        </div>}
-          {formik.touched[fieldConfig.name] &&
-            formik.errors[fieldConfig.name] && (
-              <div style={{ color: "red", marginTop: "8px" }}>
-                {formik.errors[fieldConfig.name]}
-              </div>
-            )}
-        </div>
-      );
+        case "file":
+          return (
+            <div style={{ marginTop: "16px" }}>
+              <input
+                id={fieldConfig.name}
+                name={fieldConfig.name}
+                type="file"
+                accept={fieldConfig.name === 'excel_file' ? 
+                  '.xlsx,.xls,.csv' : 
+                  '.pdf,.png,.jpg,.jpeg'}
+                onChange={handleFileValidation}
+                onBlur={() => formik.setFieldTouched(fieldConfig.name, true)}
+                style={{ display: "none" }}
+              />
+              <label htmlFor={fieldConfig.name}>
+                <Button
+                  variant="outlined"
+                  component="span"
+                  style={{
+                    width: "100%",
+                    height: "50px",
+                    borderRadius: "10px",
+                    justifyContent: "flex-start",
+                  }}
+                >
+                  {fieldConfig.label}
+                  {" : "}
+                  <span style={{ color: "#2196f3", fontStyle: "italic" }}>
+                    {formik.values[fieldConfig.name]?.name || ""}
+                  </span>
+                </Button>
+              </label>
+              {formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name] && (
+                <div style={{ color: "red", marginTop: "8px" }}>
+                  {formik.errors[fieldConfig.name]}
+                </div>
+              )}
+            </div>
+          );
     case "radio":
       return (
         <FormControl style={{ width: "100%", marginBottom: "16px" }}>

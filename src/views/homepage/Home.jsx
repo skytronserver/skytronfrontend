@@ -26,6 +26,7 @@ import {
 } from "./homeStyle";
 import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { cipherEncryption } from "helper";
 
 function Home() {
   const dispatch = useDispatch();
@@ -58,10 +59,12 @@ function Home() {
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
+    const myCipher = cipherEncryption("skytrack");
+    const hashedPassword = myCipher(values.password);
     dispatch(
       loginUser(
         values.mobile,
-        values.password,
+        hashedPassword,
         // captcha.captcha_key,
         // values.captcha_reply
       )
