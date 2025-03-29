@@ -1,6 +1,5 @@
 // FormField.js
 import React from "react";
-import { checkFileSignature } from "../helper"; 
 import {
   TextField,
   MenuItem,
@@ -27,25 +26,6 @@ const FormField = ({
   };
   const { type, label, options,disabled } = fieldConfig;
   const restrictedFields = ['name', 'title', 'category','company_name', 'companyName'];
-
-  // Handle file validation
-  const handleFileValidation = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const isValid = await checkFileSignature(file);
-      if (!isValid) {
-        formik.setFieldError(
-          fieldConfig.name,
-          "Invalid file format. Please upload a valid file."
-        );
-        event.target.value = "";
-        return;
-      }
-    }
-    formik.handleChange(event);
-    handleFileChange(event, formik);
-  };
-
   switch (type) {
     case "text":
       return (
@@ -160,45 +140,132 @@ const FormField = ({
           </TextField>
         );
       
-        case "file":
-          return (
-            <div style={{ marginTop: "16px" }}>
-              <input
-                id={fieldConfig.name}
-                name={fieldConfig.name}
-                type="file"
-                accept={fieldConfig.name === 'excel_file' ? 
-                  '.xlsx,.xls,.csv' : 
-                  '.pdf,.png,.jpg,.jpeg'}
-                onChange={handleFileValidation}
-                onBlur={() => formik.setFieldTouched(fieldConfig.name, true)}
-                style={{ display: "none" }}
-              />
-              <label htmlFor={fieldConfig.name}>
-                <Button
-                  variant="outlined"
-                  component="span"
-                  style={{
-                    width: "100%",
-                    height: "50px",
-                    borderRadius: "10px",
-                    justifyContent: "flex-start",
-                  }}
-                >
-                  {fieldConfig.label}
-                  {" : "}
-                  <span style={{ color: "#2196f3", fontStyle: "italic" }}>
-                    {formik.values[fieldConfig.name]?.name || ""}
-                  </span>
-                </Button>
-              </label>
-              {formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name] && (
-                <div style={{ color: "red", marginTop: "8px" }}>
-                  {formik.errors[fieldConfig.name]}
-                </div>
-              )}
-            </div>
-          );
+    case "file":
+      return (
+        <div style={{ marginTop: "16px" }}>
+          <input
+            id={fieldConfig.name}
+            name={fieldConfig.name}
+            type="file"
+            accept={fieldConfig.name === 'excel_file' ? 
+              '.xlsx,.xls,.csv' : 
+              '.pdf,.png,.jpg,.jpeg'}
+            onChange={(originalEvent) => {
+              // Store the original event data before async operations
+              const file = originalEvent?.currentTarget?.files?.[0];
+              const fieldName = originalEvent?.currentTarget?.name;
+
+              if (!file) return;
+
+              // Clear previous errors
+              formik.setFieldError(fieldName, '');
+
+              // Read file header to check signature
+              const reader = new FileReader();
+              reader.onerror = function() {
+                formik.setFieldError(fieldName, 'Error reading file');
+              };
+
+              reader.onload = function(e) {
+                const arr = new Uint8Array(e.target.result).subarray(0, 8);
+                const header = Array.from(arr).map(byte => byte.toString(16).padStart(2, '0')).join('');
+                
+                let isValidType = false;
+                if (fieldConfig.name === 'excel_file') {
+                  // Signatures for Excel and CSV files
+                  const validSignatures = {
+                    'xlsx': '504b34', // XLSX
+                    'xls': 'd0cf11e0', // XLS
+                    'csv': '', // CSV files don't have a specific signature
+                  };
+                  
+                  // For CSV, check if it's a text file
+                  if (file.type === 'text/csv') {
+                    isValidType = true;
+                  } else {
+                    isValidType = Object.values(validSignatures).some(sig => sig && header.startsWith(sig));
+                  }
+                  
+                  if (!isValidType) {
+                    formik.setFieldError(fieldName, 'Only Excel and CSV files are allowed');
+                    formik.setFieldValue(fieldName, ''); // Clear the field value
+                    return;
+                  }
+                } else {
+                  // Signatures for PDF and image files
+                  const validSignatures = {
+                    'pdf': '25504446', // PDF
+                    'png': '89504e47', // PNG
+                    'jpeg': ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8'], // JPEG variants
+                  };
+                  
+                  isValidType = 
+                    header.startsWith(validSignatures.pdf) || 
+                    header.startsWith(validSignatures.png) || 
+                    validSignatures.jpeg.some(sig => header.startsWith(sig));
+                  
+                  if (!isValidType) {
+                    formik.setFieldError(fieldName, 'Only PDF, PNG, and JPG files are allowed');
+                    formik.setFieldValue(fieldName, ''); // Clear the field value
+                    return;
+                  }
+                }
+                
+                // If validation passes, update form and call handler
+                if (isValidType) {
+                  formik.setFieldValue(fieldName, file);
+                  
+                  // Call handleFileChange with a new event object
+                  if (handleFileChange) {
+                    const syntheticEvent = {
+                      currentTarget: {
+                        files: [file],
+                        name: fieldName
+                      },
+                      target: {
+                        files: [file],
+                        name: fieldName
+                      }
+                    };
+                    handleFileChange(syntheticEvent, formik);
+                  }
+                }
+              };
+              
+              reader.readAsArrayBuffer(file);
+            }}
+            onBlur={() => formik.setFieldTouched(fieldConfig.name, true)}
+            style={{ display: "none" }}
+          />
+          <label htmlFor={fieldConfig.name}>
+            <Button
+              variant="outlined"
+              component="span"
+              style={{
+                width: "100%",
+                height: "50px",
+                borderRadius: "10px",
+                justifyContent: "flex-start",
+              }}
+            >
+              {label}
+              {" : "}
+              <span style={{ color: "#2196f3", fontStyle: "italic" }}>
+                {formik.values[fieldConfig.name]?.name || ""}
+              </span>
+            </Button>
+          </label>
+          {fieldConfig?.message && <div style={{ fontSize: "12px", color: "gray", marginTop: "4px" }}>
+            {fieldConfig?.message}
+          </div>}
+          {formik.touched[fieldConfig.name] &&
+            formik.errors[fieldConfig.name] && (
+              <div style={{ color: "red", marginTop: "8px" }}>
+                {formik.errors[fieldConfig.name]}
+              </div>
+            )}
+        </div>
+      );
     case "radio":
       return (
         <FormControl style={{ width: "100%", marginBottom: "16px" }}>

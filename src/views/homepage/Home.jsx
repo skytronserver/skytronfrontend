@@ -64,7 +64,7 @@ function Home() {
     dispatch(
       loginUser(
         values.mobile,
-        hashedPassword,
+        values.password,
         // captcha.captcha_key,
         // values.captcha_reply
       )
