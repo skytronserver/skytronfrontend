@@ -15,6 +15,26 @@ function TermsAndConditions() {
           Terms & Conditions
         </Typography>
 
+        <Typography
+          variant="subtitle1"
+          sx={{ textAlign: "center", marginBottom: 4 }}
+        >
+          Last Updated: 02.04.2025
+        </Typography>
+
+        <Typography variant="body1" paragraph>
+          Welcome to SkyTron, an intelligent vehicle tracking and safety platform developed by AMTRON 
+          in collaboration with Skytrack Technologies Private Limited ("Company," "we," "us," or "our"). 
+          It enables real-time monitoring, safety alerts, and compliance for public transport and 
+          emergency services under the Nirbhaya framework.
+        </Typography>
+
+        <Typography variant="body1" paragraph sx={{ mb: 4 }}>
+          These Terms and Conditions ("Terms") govern your access to and use of the SkyTron mobile 
+          application ("App"). By downloading, installing, or using the App, you agree to be bound 
+          by these Terms. If you do not agree, please do not use the App.
+        </Typography>
+
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="h6">1. Acceptance of Terms</Typography>
@@ -55,23 +75,119 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">4. User Accounts</Typography>
+            <Typography variant="h6">4. Permissions Required</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1" paragraph>
-              You agree to:
+              To provide the best experience, the App may request the following permissions:
+            </Typography>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Camera Access
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Required for capturing driver photos for identification and verification for vehicle owner.
+            </Typography>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Location Access
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Used for real-time vehicle tracking and navigation:
             </Typography>
             <ul>
-              <li>Create an account to access certain features</li>
-              <li>Maintain the confidentiality of your account credentials</li>
-              <li>Accept that we reserve the right to suspend or terminate your account if we detect any unauthorized activity</li>
+              <li>Precise Location (GPS) – Required for accurate tracking of driver and vehicle location by vehicle owner or Police/ambulance.</li>
+              <li>Approximate Location – Used for general location-based features.</li>
+              <li>Background Location – Needed for tracking even when the app is not in use, ensuring uninterrupted service by Police/Ambulance.</li>
+            </ul>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Storage Access
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Allows saving and retrieving files and media within the app:
+            </Typography>
+            <ul>
+              <li>Read Storage – To access images and media files for Driver photo.</li>
+              <li>Write Storage – To store downloaded alerts.</li>
+            </ul>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Network & Internet Access
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Ensures connectivity for real-time data exchange and MQTT communication:
+            </Typography>
+            <ul>
+              <li>Internet Access – Required for cloud-based operations and data synchronization of Skytron.</li>
+              <li>Network Status Check – Ensures stable network connectivity for uninterrupted service for Vehicle Owner and Police/Ambulance.</li>
+            </ul>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Bluetooth Access
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Enables communication with external devices, such as vehicle tracking hardware for guest user:
+            </Typography>
+            <ul>
+              <li>Connect to Bluetooth Devices – Required for pairing with IoT and tracking devices by guest user.</li>
+              <li>Scan for Bluetooth Devices – To detect and establish connections with Vehicle Tracking devices.</li>
+            </ul>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Foreground Services
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Used for critical app functions such as continuous tracking and data sync for vehicle owner alerts and Police/Ambulance to provide emergency assistance to accident vehicle:
+            </Typography>
+            <ul>
+              <li>Data Sync – Ensures real-time MQTT-based location updates and server communication for vehicle owner alerts and Police/Ambulance to provide emergency assistance to accident vehicle.</li>
+              <li>Location Services – Enables background and foreground tracking for seamless monitoring of accident vehicles by Police/Ambulance.</li>
+            </ul>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Notifications Access
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Allows the app to send important alerts and updates regarding trip status, driver updates, SOS alerts and system messages.
+            </Typography>
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+              Device & System Access
+            </Typography>
+            <ul>
+              <li>Auto-start on Reboot – Ensures essential services (such as tracking) resume automatically after a device restart.</li>
+              <li>Wake Lock – Prevents the device from sleeping during critical operations, such as continuous location tracking of accident vehicles and alerts.</li>
+              <li>App License Verification – Ensures the authenticity of the skytron app and prevents unauthorized usage.</li>
+              <li>Internal App Functionality – Supports secure internal communication and processing within the skytron app.</li>
+            </ul>
+
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              These permissions will be requested explicitly, and you can manage them via your device settings.
+            </Typography>
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">5. User Roles</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography variant="body1" paragraph>
+              SkyTron® supports multiple user roles, each with specific permissions and responsibilities:
+            </Typography>
+            <ul>
+              <li>Vehicle Owner: Can track vehicles history, monitor real-time tracking, check reports and receive alerts.</li>
+              <li>Police/ Ambulance: Monitors emergency alerts, accesses accident-related tracking data, and provides emergency assistance.</li>
+              <li>DTO/RTO (District Transport Officer/Regional Transport Officer): Regulates vehicle compliance, fitment of tracking devices, and transport safety measures.</li>
+              <li>Guest User: Limited access to basic features, Bluetooth connectivity for vehicle hardware, and public safety notifications and create emergency alerts.</li>
             </ul>
           </AccordionDetails>
         </Accordion>
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">5. Privacy Policy</Typography>
+            <Typography variant="h6">6. Privacy Policy</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
@@ -83,7 +199,7 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">6. Intellectual Property</Typography>
+            <Typography variant="h6">7. Intellectual Property</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1" paragraph>
@@ -99,7 +215,7 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">7. Third-Party Services</Typography>
+            <Typography variant="h6">8. Third-Party Services</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
@@ -111,7 +227,7 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">8. Limitation of Liability</Typography>
+            <Typography variant="h6">9. Limitation of Liability</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1" paragraph>
@@ -126,7 +242,7 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">9. Termination</Typography>
+            <Typography variant="h6">10. Termination</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
@@ -138,7 +254,7 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">10. Governing Law & Dispute Resolution</Typography>
+            <Typography variant="h6">11. Governing Law & Dispute Resolution</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
@@ -150,7 +266,7 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">11. Modifications to the Terms</Typography>
+            <Typography variant="h6">12. Modifications to the Terms</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
@@ -162,7 +278,7 @@ function TermsAndConditions() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">12. Contact Information</Typography>
+            <Typography variant="h6">13. Contact Information</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1" paragraph>
