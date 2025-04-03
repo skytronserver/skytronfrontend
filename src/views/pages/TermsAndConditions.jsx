@@ -12,7 +12,7 @@ function TermsAndConditions() {
           gutterBottom
           sx={{ textAlign: "center", fontWeight: 400, marginBottom: 4 }}
         >
-          Terms & Conditions
+          SkyTron® Terms & Conditions
         </Typography>
 
         <Typography
@@ -23,14 +23,14 @@ function TermsAndConditions() {
         </Typography>
 
         <Typography variant="body1" paragraph>
-          Welcome to SkyTron, an intelligent vehicle tracking and safety platform developed by AMTRON 
+          Welcome to SkyTron®,<br/> SkyTron® is an intelligent vehicle tracking and safety platform developed by AMTRON 
           in collaboration with Skytrack Technologies Private Limited ("Company," "we," "us," or "our"). 
           It enables real-time monitoring, safety alerts, and compliance for public transport and 
           emergency services under the Nirbhaya framework.
         </Typography>
 
         <Typography variant="body1" paragraph sx={{ mb: 4 }}>
-          These Terms and Conditions ("Terms") govern your access to and use of the SkyTron mobile 
+          These Terms and Conditions ("Terms") govern your access to and use of the SkyTron® mobile 
           application ("App"). By downloading, installing, or using the App, you agree to be bound 
           by these Terms. If you do not agree, please do not use the App.
         </Typography>
@@ -41,7 +41,7 @@ function TermsAndConditions() {
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
-              By accessing and using SkyTron, you acknowledge that you have read, understood, and agree to comply with these Terms. These Terms apply to all users, including those who register an account or use the App without an account.
+              By accessing and using SkyTron®, you acknowledge that you have read, understood, and agree to comply with these Terms. These Terms apply to all users, including those who register an account or use the App without an account.
             </Typography>
           </AccordionDetails>
         </Accordion>
@@ -52,7 +52,7 @@ function TermsAndConditions() {
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
-              You must be at least 18 years old to use this App. By using SkyTron, you represent that you have the legal capacity to enter into this agreement.
+              You must be at least 18 years old to use this App. By using SkyTron®, you represent that you have the legal capacity to enter into this agreement.
             </Typography>
           </AccordionDetails>
         </Accordion>
@@ -62,13 +62,10 @@ function TermsAndConditions() {
             <Typography variant="h6">3. Use of the App</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="body1" paragraph>
-              You agree to:
-            </Typography>
             <ul>
-              <li>Use the App only for lawful purposes and in accordance with these Terms.</li>
-              <li>Not misuse, exploit, or interfere with the functionality, security, or integrity of the App.</li>
-              <li>Not attempt unauthorized access, reverse engineering, or data extraction from the App.</li>
+              <li>You agree to use the App only for lawful purposes and in accordance with these Terms.</li>
+              <li>You shall not misuse, exploit, or interfere with the functionality, security, or integrity of the App.</li>
+              <li>Unauthorized access, reverse engineering, or data extraction from the App is strictly prohibited.</li>
             </ul>
           </AccordionDetails>
         </Accordion>
@@ -119,7 +116,7 @@ function TermsAndConditions() {
               Ensures connectivity for real-time data exchange and MQTT communication:
             </Typography>
             <ul>
-              <li>Internet Access – Required for cloud-based operations and data synchronization of Skytron.</li>
+              <li>Internet Access – Required for cloud-based operations and data synchronization of Skytron®.</li>
               <li>Network Status Check – Ensures stable network connectivity for uninterrupted service for Vehicle Owner and Police/Ambulance.</li>
             </ul>
 
@@ -192,7 +189,7 @@ function TermsAndConditions() {
           <AccordionDetails>
             <Typography variant="body1">
               Our Privacy Policy governs how we collect, use, and protect your personal information. 
-              By using SkyTron, you acknowledge and accept our Privacy Policy.
+              By using SkyTron®, you acknowledge and accept our Privacy Policy.
             </Typography>
           </AccordionDetails>
         </Accordion>
@@ -219,7 +216,7 @@ function TermsAndConditions() {
           </AccordionSummary>
           <AccordionDetails>
             <Typography variant="body1">
-              SkyTron may integrate with third-party services, and we are not responsible for their terms, 
+              SkyTron® may integrate with third-party services, and we are not responsible for their terms, 
               policies, or actions. Your use of third-party services is at your own risk.
             </Typography>
           </AccordionDetails>
