@@ -142,15 +142,15 @@ const user = {
       breadcrumbs: false,
       roles: ["desk_ex", "teamlead"],
     },
-    // {
-    //   id: "route-fixing",
-    //   title: "Route Fixing",
-    //   type: "item",
-    //   url: "/route-fixing",
-    //   icon: icons.IconMap,
-    //   breadcrumbs: false,
-    //   roles: ["superadmin", "stateadmin", "owner", "dto"],
-    // },
+    {
+      id: "route-fixing",
+      title: "Route Fixing",
+      type: "item",
+      url: "/route-fixing",
+      icon: icons.IconMap,
+      breadcrumbs: false,
+      roles: ["superadmin", "stateadmin", "owner", "dto"],
+    },
     {
       id: "live-tracking",
       title: "Live Tracking",
@@ -278,6 +278,23 @@ const user = {
           title: "TAC Extension",
           type: "item",
           url: "/deviceModel/extension",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        }
+      ]
+    },
+    {
+      id: "accessory-management",
+      title: "Accessory Management",
+      type: "collapse",
+      icon: icons.IconDeviceSim1,
+      roles: ["devicemanufacture"],
+      children: [
+        {
+          id: "new-accessory",
+          title: "Individual Accessory",
+          type: "item",
+          url: "/accessory/new",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         }

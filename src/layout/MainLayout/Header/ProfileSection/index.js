@@ -59,7 +59,7 @@ const ProfileSection = () => {
         });
       });
     }
-    if (caches) {
+    if (typeof caches !== 'undefined') {
       caches.keys().then((names) => {
         names.forEach((name) => {
           caches.delete(name);
@@ -72,7 +72,8 @@ const ProfileSection = () => {
     setLogout((prev)=>prev+1);
     window.location.href = '/';
   };
-  const isIdle = useIdle(300000);
+  // const isIdle = useIdle(300000);
+  const isIdle = useIdle(28800000);
   useEffect(() => {
     if (isIdle && isAuthenticated) {
       handleLogout();

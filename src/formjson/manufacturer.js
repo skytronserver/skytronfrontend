@@ -64,10 +64,12 @@ export const manufacturerFormField = {
   },
   dob: {
     name:"dob",
-    type: "date",
+    type: "date", 
     label: "Date of Birth",
-    validation: Yup.date().required("Date of Birth is required"),
-    maxDate:today
+    validation: Yup.date()
+      .required("Date of Birth is required")
+      .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), "Must be at least 18 years old")
+      .max(today, "Date of birth cannot be in the future")
   },
   expirydate: {
     name:"expirydate",

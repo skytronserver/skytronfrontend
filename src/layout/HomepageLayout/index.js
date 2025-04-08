@@ -35,7 +35,7 @@ const HomepageLayout = () => {
         });
       });
     }
-    if (caches) {
+    if (typeof caches !== 'undefined') {
       caches.keys().then((names) => {
         names.forEach((name) => {
           caches.delete(name);

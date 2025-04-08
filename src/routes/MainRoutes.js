@@ -19,6 +19,7 @@ import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import GpsDataLog from "../views/reports/GpsDataLog";
 import EmergencyDataLogs from "views/reports/EmergencyDataLogs";
+import CameraFeedsView from "../pages/CameraFeedsView";
 
 
 const PrivateRoute = ({ element, roles }) => {
@@ -130,6 +131,12 @@ const MainRoutes = {
       element: <EmergencyDataLogs />,
       roles: ['superadmin']
     },
+    {
+      path: "/camera-feeds",
+      element: <CameraFeedsView />,
+      roles: ["superadmin", "stateadmin"],
+    },
+   
   ].map((route) => applyPrivateRoute(route)),
 };
 
