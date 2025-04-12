@@ -13,6 +13,9 @@ import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import NoticeForm from "../views/forms/NoticeForm";
+import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
+import SchoolHolidayList from "../views/reports/SchoolHolidayList";
+
 const PrivateRoute = ({ element,roles }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData=sessionStorage.getItem('cookiesData');
@@ -83,6 +86,27 @@ const SettingRoutes = {
         <IPSetting/>
       ),
       roles: ['superadmin','dealer']
+    },
+    {
+      path: "/setting/holiday/*",
+      element: (
+        <SchoolHolidayForm/>
+      ),
+      roles: ['superadmin', 'owner']
+    },
+    {
+      path: "/setting/holiday/new",
+      element: (
+        <SchoolHolidayForm/>
+      ),
+      roles: ['superadmin', 'owner']
+    },
+    {
+      path: "/holiday/all-holiday-list",
+      element: (
+        <SchoolHolidayList/>
+      ),
+      roles: ['superadmin', 'owner']
     },
   ].map((route) => applyPrivateRoute(route)),
 };

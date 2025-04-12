@@ -11,7 +11,9 @@ import {
   IconCircleCheck,
   IconChecks,
   IconBan,
-  IconUsers
+  IconUsers,
+  IconRoute,
+  IconCalendarTime
 } from "@tabler/icons";
 
 const icons = {
@@ -26,7 +28,9 @@ const icons = {
   IconUrgent,
   IconCircleCheck,
   IconChecks,
-  IconBan
+  IconBan,
+  IconRoute,
+  IconCalendarTime
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -150,6 +154,15 @@ const user = {
       icon: icons.IconMap,
       breadcrumbs: false,
       roles: ["superadmin", "stateadmin", "owner", "dto"],
+    },
+    {
+      id: "trip-planning",
+      title: "Trip Planning",
+      type: "item",
+      url: "/trip-planning",
+      breadcrumbs: false,
+      icon: icons.IconCalendarTime,
+      roles: ["owner", "dto"],
     },
     {
       id: "live-tracking",
@@ -389,7 +402,7 @@ const user = {
       title: "Reports",
       type: "collapse",
       icon: icons.IconReport,
-      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","teamlead","superadmin"],
+      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","teamlead","superadmin","owner"],
       children: [
         {
           id: "sos-other-list",
@@ -584,7 +597,23 @@ const user = {
           icon: icons.IconDeviceAnalytics,
           breadcrumbs: false,
           roles: ['superadmin']
-        }
+        },
+        {
+          id: "all-holiday-list",
+          title: "School Holidays",
+          type: "item",
+          url: "/holiday/all-holiday-list",
+          breadcrumbs: false,
+          roles: ["superadmin", "owner"],
+        },
+        {
+          id: "create-holiday",
+          title: "Create Holiday",
+          type: "item",
+          url: "/setting/holiday/new",
+          breadcrumbs: false,
+          roles: ["superadmin", "owner"],
+        },
       ],
     },
   ],
