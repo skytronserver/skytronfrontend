@@ -1,26 +1,13 @@
 import MUIDataTable from "mui-datatables";
-const Datatable = ({ columns, rows,tableTitle }) => {
-  const options = {
+const Datatable = ({ columns, rows, tableTitle, options: userOptions }) => {
+  const defaultOptions = {
     selectableRows: "none",
     viewColumns: false,
     responsive: 'standard',
     downloadOptions: {
       filename: "exported.csv",
       separator: ",",
-      
     },
-    // onDownload: (buildHead, buildBody, columns, data) => {
-    //   const modifiedData = data.map(row => {
-    //     const rowData = row.data.map((cell, index) => {
-    //       if (columns[index].name === 'state_info' && typeof cell === 'object') {
-    //         return cell.state; 
-    //       }
-    //       return cell; 
-    //     });
-    //     return { ...row, data: rowData };
-    //   });
-    //   return buildHead(columns) + buildBody(modifiedData);
-    // },
     onDownload: (buildHead, buildBody, columns, data) => {
       // Dynamically extract specific keys from object values during CSV export
       const modifiedData = data.map(row => {
@@ -44,15 +31,18 @@ const Datatable = ({ columns, rows,tableTitle }) => {
   
       return buildHead(columns) + buildBody(modifiedData);
     },
-    
   };
+  
+  // Merge the default options with user provided options
+  const mergedOptions = { ...defaultOptions, ...userOptions };
+  
   return (
     <div className="datatable">
       <MUIDataTable
         title={tableTitle}
         data={rows}
         columns={columns}
-        options={options}
+        options={mergedOptions}
       />
     </div>
   );

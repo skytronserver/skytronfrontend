@@ -599,6 +599,15 @@ const user = {
           roles: ['superadmin']
         },
         {
+          id: 'api-data-log',
+          title: 'API Data Log',
+          type: 'item',
+          url: '/reports/api-data-log',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+        {
           id: "all-holiday-list",
           title: "School Holidays",
           type: "item",

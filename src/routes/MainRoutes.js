@@ -20,6 +20,7 @@ import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import GpsDataLog from "../views/reports/GpsDataLog";
 import EmergencyDataLogs from "views/reports/EmergencyDataLogs";
+import ApiDataLog from "../views/reports/ApiDataLog";
 import CameraFeedsView from "../pages/CameraFeedsView";
 
 
@@ -135,6 +136,11 @@ const MainRoutes = {
     {
       path: '/reports/emergency-data-logs',
       element: <EmergencyDataLogs />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/reports/api-data-log',
+      element: <ApiDataLog />,
       roles: ['superadmin']
     },
     {
