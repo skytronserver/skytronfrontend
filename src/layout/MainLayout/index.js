@@ -22,6 +22,7 @@ import { SET_MENU } from "../../store/actions";
 import { createAxiosInstance } from "../../services/axiosInstance";
 import { useLocation } from 'react-router-dom';
 import {useEffect} from 'react'
+import { useTranslation } from "react-i18next";
 // assets
 import { decipherEncryption } from "../../helper";
 import AuthFooter from "../../ui-component/cards/AuthFooter";
@@ -30,35 +31,45 @@ import AuthFooter from "../../ui-component/cards/AuthFooter";
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
   ({ theme, open }) => ({
     ...theme.typography.mainContent,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    transition: theme.transitions.create(
-      "margin",
-      open
-        ? {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-          }
-        : {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }
-    ),
-    [theme.breakpoints.up("md")]: {
-      marginLeft: open ? 0 : -(drawerWidth - 20),
+    ...(!open && {
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+      transition: theme.transitions.create("margin", {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.shorter,
+      }),
+      [theme.breakpoints.up("md")]: {
+        marginLeft: -(drawerWidth - 20),
+        width: `calc(100% - ${drawerWidth}px)`,
+      },
+      [theme.breakpoints.down("md")]: {
+        marginLeft: "20px",
+        width: `calc(100% - ${drawerWidth}px)`,
+        padding: "16px",
+      },
+      [theme.breakpoints.down("sm")]: {
+        marginLeft: "10px",
+        width: `calc(100% - ${drawerWidth}px)`,
+        padding: "16px",
+        marginRight: "10px",
+      },
+    }),
+    ...(open && {
+      transition: theme.transitions.create("margin", {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.shorter,
+      }),
+      marginLeft: 0,
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
       width: `calc(100% - ${drawerWidth}px)`,
-    },
-    [theme.breakpoints.down("md")]: {
-      marginLeft: "20px",
-      width: `calc(100% - ${drawerWidth}px)`,
-      padding: "16px",
-    },
-    [theme.breakpoints.down("sm")]: {
-      marginLeft: "10px",
-      width: `calc(100% - ${drawerWidth}px)`,
-      padding: "16px",
-      marginRight: "10px",
-    },
+      [theme.breakpoints.down("md")]: {
+        marginLeft: "20px",
+      },
+      [theme.breakpoints.down("sm")]: {
+        marginLeft: "10px",
+      },
+    }),
   })
 );
 
@@ -66,7 +77,8 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
 
 const MainLayout = () => {
   const theme = useTheme();
-  const matchDownMd = useMediaQuery(theme.breakpoints.down("md"));
+  const { t } = useTranslation();
+  const matchDownMd = useMediaQuery(theme.breakpoints.down("lg"));
   const location = useLocation();
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
@@ -90,7 +102,7 @@ const MainLayout = () => {
     const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const userRoles = userData && data.length > 2 && data[1]; 
+  const userRoles = (userData && data.length > 2 && data[1]) || "desk_ex"; 
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -146,7 +158,7 @@ const MainLayout = () => {
           }}
         >
           <AuthFooter />
-          <div style={{ marginTop: "0px" }}>&copy; All Rights Reserved</div>
+          <div style={{ marginTop: "0px" }}>&copy; {t('common.allRights')}</div>
         </div>
       </Main>
     </Box>

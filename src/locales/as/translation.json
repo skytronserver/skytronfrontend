@@ -1,0 +1,61 @@
+{
+  "common": {
+    "welcome": "পুনৰ আদৰণিজনোৱা",
+    "logout": "লগআউট",
+    "dashboard": "ডেশ্বৰ্ড",
+    "users": "ব্যৱহাৰকাৰীসকল",
+    "profile": "প্ৰ'ফাইল",
+    "settings": "ছেটিংছ",
+    "search": "সন্ধান",
+    "allRights": "সকলো অধিকাৰ সংৰক্ষিত",
+    "implementedBy": "আচাম ইলেকট্ৰনিক্স ডেভেলপমেন্ট কৰ্পোৰেচন লিমিটেড দ্বাৰা কাৰ্যকৰী"
+  },
+  "dashboard": {
+    "title": "ডেশ্বৰ্ড",
+    "welcome": "স্কাইট্ৰেকলৈ স্বাগতম",
+    "summary": "সাৰাংশ",
+    "recentActivity": "শেহতীয়া কাৰ্যকলাপ"
+  },
+  "menu": {
+    "dashboard": "ডেশ্বৰ্ড",
+    "users": "ব্যৱহাৰকাৰীসকল",
+    "reports": "প্ৰতিবেদন",
+    "settings": "ছেটিংছ",
+    "notice": "জাননী",
+    "vehicleCategory": "যান শ্ৰেণী",
+    "stateDistrict": "ৰাজ্য আৰু জিলা",
+    "frequencyFirmware": "এইচপি ফ্ৰিকুৱেন্সী আৰু ফাৰ্মৱেৰ",
+    "ipSettings": "আইপি ছেটিংছ",
+    "register": "নতুন সৃষ্টি কৰক",
+    "manageUsers": "ব্যৱহাৰকাৰী পৰিচালনা",
+    "userRegistration": "ব্যৱহাৰকাৰী পঞ্জীয়ন",
+    "vehicles": "যান-বাহন",
+    "vehicleRegistration": "যান-বাহন পঞ্জীয়ন",
+    "liveTracking": "লাইভ ট্ৰেকিং",
+    "deviceManagement": "ডিভাইচ পৰিচালনা",
+    "stateAdmin": "ৰাজ্য প্ৰশাসক",
+    "m2mServiceProvider": "এম2এম সেৱা প্ৰদানকাৰী",
+    "manufacturer": "নিৰ্মাতা",
+    "dto": "ডিটিঅ'",
+    "dealerAccount": "ডিলাৰ একাউণ্ট",
+    "vehicleOwner": "যান-বাহন মালিক সৃষ্টি",
+    "sosAdmin": "এচঅ'এচ প্ৰশাসক",
+    "sosUser": "এচঅ'এচ ব্যৱহাৰকাৰী",
+    "emTeam": "ইএম দল",
+    "create": "সৃষ্টি কৰক",
+    "list": "তালিকা",
+    "sosCallList": "এচঅ'এচ কল তালিকা",
+    "routeFixing": "পথ নিৰ্ধাৰণ",
+    "tripPlanning": "ভ্ৰমণ পৰিকল্পনা",
+    "historyPlayback": "ইতিহাস প্লেবেক"
+  },
+  "auth": {
+    "login": "লগইন",
+    "register": "পঞ্জীয়ন",
+    "forgotPassword": "পাছৱৰ্ড পাহৰি গ'ল",
+    "resetPassword": "পাছৱৰ্ড পুনৰ সংস্থাপন",
+    "username": "ব্যৱহাৰকাৰীৰ নাম",
+    "password": "পাছৱৰ্ড",
+    "email": "ইমেইল"
+  }
+} 

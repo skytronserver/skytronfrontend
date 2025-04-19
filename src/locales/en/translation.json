@@ -1,0 +1,61 @@
+{
+  "common": {
+    "welcome": "Welcome Back",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "profile": "Profile",
+    "settings": "Settings",
+    "search": "Search",
+    "allRights": "All Rights Reserved",
+    "implementedBy": "Implemented by Assam Electronics Development Corporation Ltd"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to Skytrack",
+    "summary": "Summary",
+    "recentActivity": "Recent Activity"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "reports": "Reports",
+    "settings": "Settings",
+    "notice": "Notice",
+    "vehicleCategory": "Vehicle Category",
+    "stateDistrict": "State & District",
+    "frequencyFirmware": "HP Frequency & Firmware",
+    "ipSettings": "IP Settings",
+    "register": "Create New",
+    "manageUsers": "Manage Users",
+    "userRegistration": "User Registration",
+    "vehicles": "Vehicles",
+    "vehicleRegistration": "Vehicle Registration",
+    "liveTracking": "Live Tracking",
+    "deviceManagement": "Device Management",
+    "stateAdmin": "State Admin",
+    "m2mServiceProvider": "M2M Service Provider",
+    "manufacturer": "Manufacturer",
+    "dto": "DTO",
+    "dealerAccount": "Dealer Account",
+    "vehicleOwner": "Create Vehicle Owner",
+    "sosAdmin": "SOS Admin",
+    "sosUser": "SOS User",
+    "emTeam": "EM Team",
+    "create": "Create",
+    "list": "List",
+    "sosCallList": "SOS Call List",
+    "routeFixing": "Route Fixing",
+    "tripPlanning": "Trip Planning",
+    "historyPlayback": "History Playback"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "username": "Username",
+    "password": "Password",
+    "email": "Email"
+  }
+} 

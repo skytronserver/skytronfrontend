@@ -1,4 +1,5 @@
 import { Typography, Stack } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import amtronlogo from "../../assets/images/Amtron.svg";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -7,7 +8,7 @@ import { useTheme } from "@mui/material/styles";
 
 const AuthFooter = () => {
   const theme = useTheme();
-
+  const { t } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
@@ -30,7 +31,7 @@ const AuthFooter = () => {
           <span
             style={{ width: isMobile ? "365px" : "365px", display: "block" }}
           >
-            Implemented by Assam Electronics Development Corporation Ltd
+            {t('common.implementedBy')}
           </span>
         </Typography>
       </Stack>

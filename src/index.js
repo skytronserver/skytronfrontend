@@ -9,6 +9,9 @@ import * as serviceWorker from "./serviceWorker";
 import App from "./App";
 import { store } from "./store";
 
+// i18n initialization
+import "./i18n";
+
 // style + assets
 import "./assets/scss/style.scss";
 import config from "./config";

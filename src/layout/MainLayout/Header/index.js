@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 // material-ui
 import { useTheme } from "@mui/material/styles";
@@ -7,6 +8,8 @@ import {getRole} from "../../../helper";
 // project imports
 import LogoSection from "../LogoSection";
 import ProfileSection from "./ProfileSection";
+import LanguageSwitcher from "../../../ui-component/LanguageSwitcher";
+
 // assets
 import { IconMenu2 } from "@tabler/icons";
 
@@ -14,6 +17,7 @@ import { IconMenu2 } from "@tabler/icons";
 
 const Header = ({ handleLeftDrawerToggle }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -66,12 +70,14 @@ const Header = ({ handleLeftDrawerToggle }) => {
       {/* header search */}
 
       <Box sx={{ flexGrow: 1 }} />
+      
+      {/* language switcher */}
+      <LanguageSwitcher />
+      
       <Box sx={{ flexGrow: 1 }} />
 
       {/* notification & profile */}
       <ProfileSection />
-
-      {/* Add the Hello tag here */}
     </>
   );
 };

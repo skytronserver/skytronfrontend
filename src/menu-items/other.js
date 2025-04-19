@@ -1,21 +1,21 @@
 // assets
-import { IconBrandChrome, IconHelp,IconSettings } from '@tabler/icons';
+import { IconBrandChrome, IconHelp, IconSettings } from '@tabler/icons';
 
 // constant
-const icons = { IconBrandChrome, IconHelp,IconSettings };
+const icons = { IconBrandChrome, IconHelp, IconSettings };
 
 // ==============================|| SAMPLE PAGE & DOCUMENTATION MENU ITEMS ||============================== //
 
 const other = {
   id: 'setting-all-routes',
   type: 'group',
-  roles:['superadmin','dealer','devicemanufacture'],
+  roles: ['superadmin', 'dealer', 'devicemanufacture'],
   children: [
     {
       id: 'setting-all',
-      title: 'Setting',
+      title: 'Settings',
       type: 'collapse',
-      icon:icons.IconSettings,
+      icon: icons.IconSettings,
       children: [
         {
           id: 'notice-create',
@@ -23,7 +23,7 @@ const other = {
           type: 'item',
           url: '/setting/notice',
           breadcrumbs: false,
-          roles:['superadmin']
+          roles: ['superadmin']
         },
         {
           id: 'vehicle-category',
@@ -31,7 +31,7 @@ const other = {
           type: 'item',
           url: '/setting/vehicle-category',
           breadcrumbs: false,
-          roles:['superadmin']
+          roles: ['superadmin']
         },
         {
           id: 'state-district',
@@ -39,7 +39,7 @@ const other = {
           type: 'item',
           url: '/setting/state-district',
           breadcrumbs: false,
-          roles:['superadmin']
+          roles: ['superadmin']
         },
         {
           id: 'firmware-frequency',
@@ -47,7 +47,7 @@ const other = {
           type: 'item',
           url: '/setting/frequency-firmware',
           breadcrumbs: false,
-          roles:['superadmin','devicemanufacture'],
+          roles: ['superadmin', 'devicemanufacture'],
         },
         {
           id: 'ip-settings',
@@ -55,9 +55,8 @@ const other = {
           type: 'item',
           url: '/setting/ip-settings',
           breadcrumbs: false,
-          roles:['superadmin','dealer']
+          roles: ['superadmin', 'dealer']
         }
-        
       ]
     },
   ]

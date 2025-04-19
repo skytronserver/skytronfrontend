@@ -1,0 +1,61 @@
+{
+  "common": {
+    "welcome": "वापसी पर स्वागत है",
+    "logout": "लॉग आउट",
+    "dashboard": "डैशबोर्ड",
+    "users": "उपयोगकर्ता",
+    "profile": "प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "search": "खोज",
+    "allRights": "सर्वाधिकार सुरक्षित",
+    "implementedBy": "असम इलेक्ट्रॉनिक्स डेवलपमेंट कॉर्पोरेशन लिमिटेड द्वारा कार्यान्वित"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "welcome": "स्काईट्रैक में आपका स्वागत है",
+    "summary": "सारांश",
+    "recentActivity": "हाल की गतिविधि"
+  },
+  "menu": {
+    "dashboard": "डैशबोर्ड",
+    "users": "उपयोगकर्ता",
+    "reports": "रिपोर्ट",
+    "settings": "सेटिंग्स",
+    "notice": "सूचना",
+    "vehicleCategory": "वाहन श्रेणी",
+    "stateDistrict": "राज्य और जिला",
+    "frequencyFirmware": "एचपी फ्रीक्वेंसी और फर्मवेयर",
+    "ipSettings": "आईपी सेटिंग्स",
+    "register": "नया बनाएं",
+    "manageUsers": "उपयोगकर्ता प्रबंधन",
+    "userRegistration": "उपयोगकर्ता पंजीकरण",
+    "vehicles": "वाहन",
+    "vehicleRegistration": "वाहन पंजीकरण",
+    "liveTracking": "लाइव ट्रैकिंग",
+    "deviceManagement": "उपकरण प्रबंधन",
+    "stateAdmin": "राज्य प्रशासक",
+    "m2mServiceProvider": "एम2एम सेवा प्रदाता",
+    "manufacturer": "निर्माता",
+    "dto": "डीटीओ",
+    "dealerAccount": "डीलर खाता",
+    "vehicleOwner": "वाहन मालिक बनाएं",
+    "sosAdmin": "एसओएस प्रशासक",
+    "sosUser": "एसओएस उपयोगकर्ता",
+    "emTeam": "ईएम टीम",
+    "create": "बनाएं",
+    "list": "सूची",
+    "sosCallList": "एसओएस कॉल सूची",
+    "routeFixing": "मार्ग निर्धारण",
+    "tripPlanning": "यात्रा योजना",
+    "historyPlayback": "इतिहास प्लेबैक"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "register": "पंजीकरण",
+    "forgotPassword": "पासवर्ड भूल गए",
+    "resetPassword": "पासवर्ड रीसेट",
+    "username": "उपयोगकर्ता नाम",
+    "password": "पासवर्ड",
+    "email": "ईमेल"
+  }
+} 

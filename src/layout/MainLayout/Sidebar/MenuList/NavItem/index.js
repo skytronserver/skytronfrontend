@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { forwardRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -17,6 +18,7 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 const NavItem = ({ item, level }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   const customization = useSelector((state) => state.customization);
@@ -63,6 +65,27 @@ const NavItem = ({ item, level }) => {
     }
     // eslint-disable-next-line
   }, [pathname]);
+  
+  // Get translation key based on item title
+  const getTranslationKey = (title) => {
+    // Special case for "Create New"
+    if (title === "Create New") {
+      return "menu.register";
+    }
+    
+    // Convert title to camelCase for menu.* keys
+    const camelTitle = title
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map((word, index) => 
+        index === 0 
+          ? word.toLowerCase() 
+          : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join('');
+    
+    return `menu.${camelTitle}`;
+  };
 
   return (
     <ListItemButton
@@ -83,7 +106,8 @@ const NavItem = ({ item, level }) => {
       <ListItemText
         primary={
           <Typography variant={customization.isOpen.findIndex((id) => id === item.id) > -1 ? 'h5' : 'body1'} color="inherit">
-            {item.title}
+            {/* Translate menu title if there is a matching key, fallback to the original title */}
+            {t(getTranslationKey(item.title), { fallbackLng: 'en', defaultValue: item.title })}
           </Typography>
         }
         secondary={

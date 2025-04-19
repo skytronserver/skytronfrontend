@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
-
+import { Suspense } from "react";
 import { ThemeProvider } from "@mui/material/styles";
-import { CssBaseline, StyledEngineProvider } from "@mui/material";
+import { CssBaseline, StyledEngineProvider, CircularProgress } from "@mui/material";
 import "./themes/styles.css"
 // routing
 import Routes from "./routes";
@@ -21,7 +21,13 @@ const App = () => {
       <ThemeProvider theme={themes(customization)}>
         <CssBaseline />
         <NavigationScroll>
-          <Routes />
+          <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+              <CircularProgress />
+            </div>
+          }>
+            <Routes />
+          </Suspense>
         </NavigationScroll>
       </ThemeProvider>
     </StyledEngineProvider>

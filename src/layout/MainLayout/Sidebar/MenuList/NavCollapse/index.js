@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -16,8 +17,9 @@ import { IconChevronDown, IconChevronUp } from '@tabler/icons';
 
 // ==============================|| SIDEBAR MENU LIST COLLAPSE ITEMS ||============================== //
 
-const NavCollapse = ({ menu, level ,role}) => {
+const NavCollapse = ({ menu, level, role }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const customization = useSelector((state) => state.customization);
 
   const [open, setOpen] = useState(false);
@@ -65,13 +67,12 @@ const NavCollapse = ({ menu, level ,role}) => {
     
     switch (item.type) {
       case 'collapse':
-        const collapse=item.roles ? ( item.roles.includes(role) ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/> : ''): <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/>
+        const collapse = item.roles ? (item.roles.includes(role) ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/> : '') : <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/>;
         return collapse;
       case 'item':
         
-        const navItem=item.roles ? ( item.roles.includes(role) ? <NavItem key={item.id} item={item} level={level + 1} /> : ''): <NavItem key={item.id} item={item} level={level + 1} />
+        const navItem = item.roles ? (item.roles.includes(role) ? <NavItem key={item.id} item={item} level={level + 1} /> : '') : <NavItem key={item.id} item={item} level={level + 1} />;
         return navItem;
-        // return <NavItem key={item.id} item={item} level={level + 1} />;
       default:
         return (
           <Typography key={item.id} variant="h6" color="error" align="center">
@@ -80,6 +81,27 @@ const NavCollapse = ({ menu, level ,role}) => {
         );
     }
   });
+
+  // Get translation key based on menu title
+  const getTranslationKey = (title) => {
+    // Special case for "Create New"
+    if (title === "Create New") {
+      return "menu.register";
+    }
+    
+    // Convert title to camelCase for menu.* keys
+    const camelTitle = title
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map((word, index) => 
+        index === 0 
+          ? word.toLowerCase() 
+          : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join('');
+    
+    return `menu.${camelTitle}`;
+  };
 
   const Icon = menu.icon;
   const menuIcon = menu.icon ? (
@@ -112,7 +134,7 @@ const NavCollapse = ({ menu, level ,role}) => {
         <ListItemText
           primary={
             <Typography variant={selected === menu.id ? 'h5' : 'body1'} color="inherit" sx={{ my: 'auto' }}>
-              {menu.title}
+              {t(getTranslationKey(menu.title), { fallbackLng: 'en', defaultValue: menu.title })}
             </Typography>
           }
           secondary={
@@ -156,7 +178,8 @@ const NavCollapse = ({ menu, level ,role}) => {
 
 NavCollapse.propTypes = {
   menu: PropTypes.object,
-  level: PropTypes.number
+  level: PropTypes.number,
+  role: PropTypes.string
 };
 
 export default NavCollapse;
