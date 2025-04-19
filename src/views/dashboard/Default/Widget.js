@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { useTheme, styled } from "@mui/material/styles";
 import { Box, Grid, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import MainCard from "../../../ui-component/cards/MainCard";
 
 const CardWrapper = styled(MainCard)(({ theme, data }) => ({
@@ -39,6 +40,7 @@ const Widget = ({
   heading,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const labelNew = label.split(",");
   const arr = Object.values(cardValue);
   return (
@@ -57,7 +59,7 @@ const Widget = ({
                 gutterBottom
                 sx={{ color: "#fff", fontWeight: "bold" }}
               >
-                {heading}
+                {t(`dashboard.headings.${heading.replace(/\s+/g, '')}`)}
               </Typography>
               <Box>
                 {labelNew.map((item, index) => (
@@ -77,7 +79,7 @@ const Widget = ({
             <Grid item>
               <img
                 src={iconImage}
-                alt="Berry"
+                alt={heading}
                 width="50"
                 style={{ marginLeft: "50px" }}
               />
