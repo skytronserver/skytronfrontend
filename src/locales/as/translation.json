@@ -8,7 +8,17 @@
     "settings": "ছেটিংছ",
     "search": "সন্ধান",
     "allRights": "সকলো অধিকাৰ সংৰক্ষিত",
-    "implementedBy": "আচাম ইলেকট্ৰনিক্স ডেভেলপমেন্ট কৰ্পোৰেচন লিমিটেড দ্বাৰা কাৰ্যকৰী"
+    "implementedBy": "আচাম ইলেকট্ৰনিক্স ডেভেলপমেন্ট কৰ্পোৰেচন লিমিটেড দ্বাৰা কাৰ্যকৰী",
+    "error": "ত্ৰুটি",
+    "home": "হোম",
+    "logo": "লগো",
+    "ashokStambh": "অশোক স্তম্ভ",
+    "skytronLogo": "স্কাইট্ৰন লগো",
+    "vltdBackend": "ভিএলটিডি বেকএণ্ড, অসম",
+    "menu": "মেনু",
+    "privacyPolicy": "গোপনীয়তা নীতি",
+    "contactUs": "যোগাযোগ কৰক",
+    "aboutUs": "আমাৰ বিষয়ে"
   },
   "dashboard": {
     "title": "ডেশ্বৰ্ড",
@@ -56,6 +66,45 @@
     "resetPassword": "পাছৱৰ্ড পুনৰ সংস্থাপন",
     "username": "ব্যৱহাৰকাৰীৰ নাম",
     "password": "পাছৱৰ্ড",
-    "email": "ইমেইল"
+    "email": "ইমেইল",
+    "signIn": "ছাইন ইন কৰক",
+    "signInWithEmail": "আপোনাৰ ইমেইল ঠিকনাৰে ছাইন ইন কৰক",
+    "invalidEmail": "অবৈধ ইমেইল ঠিকনা",
+    "emailRequired": "ইমেইল প্ৰয়োজনীয়",
+    "passwordRequired": "পাছৱৰ্ড প্ৰয়োজনীয়",
+    "enterOtpSentToMobile": "আপোনাৰ মোবাইল নম্বৰত পঠিওৱা OTP লিখক",
+    "verifyOtp": "OTP প্ৰমাণীকৰণ কৰক",
+    "resendOtpIn": "{{seconds}} ছেকেণ্ডত OTP পুনৰ পঠিয়াওক।  ",
+    "resend": "পুনৰ পঠিয়াওক",
+    "setPassword": "পাছৱৰ্ড সংস্থাপন কৰক",
+    "mobileNumber": "মোবাইল নম্বৰ",
+    "invalidMobile": "অবৈধ মোবাইল নম্বৰ",
+    "idProofLastDigit": "আপোনাৰ ID প্ৰমাণৰ শেষ ৪ টা অংক",
+    "requiredField": "এই ক্ষেত্ৰ প্ৰয়োজনীয়",
+    "dateOfBirth": "জন্ম তাৰিখ",
+    "newPassword": "নতুন পাছৱৰ্ড",
+    "confirmNewPassword": "নতুন পাছৱৰ্ড নিশ্চিত কৰক",
+    "passwordsDoNotMatch": "পাছৱৰ্ডসমূহ মিল নাখায়",
+    "passwordRequirements": "পাছৱৰ্ডত কমেও এটা আপাৰকেছ, লোৱাৰকেছ, সংখ্যা আৰু বিশেষ চিহ্ন থাকিব লাগিব",
+    "failedPasswordReset": "পাছৱৰ্ড ৰিছেট কৰিবলৈ বিফল হৈছে",
+    "failedPasswordResetEmpty": "পাছৱৰ্ড ৰিছেট কৰিবলৈ বিফল হৈছে বা পাছৱৰ্ড ক্ষেত্ৰ খালী আছে",
+    "skytronPasswordSet": "স্কাইট্ৰন পাছৱৰ্ড নিৰ্ধাৰিত",
+    "passwordSetSuccess": "পাছৱৰ্ড সফলভাৱে সংস্থাপন কৰা হৈছে, হোম পেজলৈ যাওক আৰু পৰিচয়সমূহ ব্যৱহাৰ কৰি লগইন কৰক"
+  },
+  "login": {
+    "mobile": "মোবাইল",
+    "password": "পাছৱৰ্ড",
+    "loginButton": "লগইন",
+    "waiting": "অপেক্ষা কৰক",
+    "forgotPassword": "পাছৱৰ্ড পাহৰি গ'ল?",
+    "captchaImage": "কেপচা চিত্ৰ",
+    "enterCaptcha": "ফলাফল লিখক",
+    "togglePasswordVisibility": "পাছৱৰ্ড দৃশ্যমানতা টগল কৰক"
+  },
+  "validation": {
+    "mobileNumberFormat": "মোবাইল নম্বৰ ১০-অংকৰ সংখ্যা হ'ব লাগিব",
+    "mobileRequired": "মোবাইল নম্বৰ প্ৰয়োজনীয়",
+    "passwordRequired": "পাছৱৰ্ড প্ৰয়োজনীয়",
+    "required": "প্ৰয়োজনীয় ক্ষেত্ৰ"
   }
 } 

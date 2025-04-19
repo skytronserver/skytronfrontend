@@ -11,6 +11,7 @@ import themes from "./themes";
 
 // project imports
 import NavigationScroll from "./layout/NavigationScroll";
+import StickyLanguageSwitcher from "./ui-component/StickyLanguageSwitcher";
 
 // ==============================|| APP ||============================== //
 
@@ -27,6 +28,7 @@ const App = () => {
             </div>
           }>
             <Routes />
+            <StickyLanguageSwitcher />
           </Suspense>
         </NavigationScroll>
       </ThemeProvider>

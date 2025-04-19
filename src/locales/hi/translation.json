@@ -8,7 +8,17 @@
     "settings": "सेटिंग्स",
     "search": "खोज",
     "allRights": "सर्वाधिकार सुरक्षित",
-    "implementedBy": "असम इलेक्ट्रॉनिक्स डेवलपमेंट कॉर्पोरेशन लिमिटेड द्वारा कार्यान्वित"
+    "implementedBy": "असम इलेक्ट्रॉनिक्स डेवलपमेंट कॉर्पोरेशन लिमिटेड द्वारा कार्यान्वित",
+    "error": "त्रुटि",
+    "home": "होम",
+    "logo": "लोगो",
+    "ashokStambh": "अशोक स्तंभ",
+    "skytronLogo": "स्काईट्रॉन लोगो",
+    "vltdBackend": "वीएलटीडी बैकएंड, असम",
+    "menu": "मेनू",
+    "privacyPolicy": "गोपनीयता नीति",
+    "contactUs": "संपर्क करें",
+    "aboutUs": "हमारे बारे में"
   },
   "dashboard": {
     "title": "डैशबोर्ड",
@@ -56,6 +66,45 @@
     "resetPassword": "पासवर्ड रीसेट",
     "username": "उपयोगकर्ता नाम",
     "password": "पासवर्ड",
-    "email": "ईमेल"
+    "email": "ईमेल",
+    "signIn": "साइन इन करें",
+    "signInWithEmail": "अपने ईमेल पते से साइन इन करें",
+    "invalidEmail": "अमान्य ईमेल पता",
+    "emailRequired": "ईमेल आवश्यक है",
+    "passwordRequired": "पासवर्ड आवश्यक है",
+    "enterOtpSentToMobile": "अपने मोबाइल नंबर पर भेजा गया OTP दर्ज करें",
+    "verifyOtp": "OTP सत्यापित करें",
+    "resendOtpIn": "{{seconds}} सेकंड में OTP फिर से भेजें।  ",
+    "resend": "पुनः भेजें",
+    "setPassword": "पासवर्ड सेट करें",
+    "mobileNumber": "मोबाइल नंबर",
+    "invalidMobile": "अमान्य मोबाइल नंबर",
+    "idProofLastDigit": "आपके ID प्रूफ के अंतिम 4 अंक",
+    "requiredField": "यह फ़ील्ड आवश्यक है",
+    "dateOfBirth": "जन्म तिथि",
+    "newPassword": "नया पासवर्ड",
+    "confirmNewPassword": "नए पासवर्ड की पुष्टि करें",
+    "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते",
+    "passwordRequirements": "पासवर्ड में कम से कम एक अपरकेस, लोअरकेस, संख्यात्मक और विशेष वर्ण होना चाहिए",
+    "failedPasswordReset": "पासवर्ड रीसेट करने में विफल",
+    "failedPasswordResetEmpty": "पासवर्ड रीसेट करने में विफल या पासवर्ड फ़ील्ड खाली है",
+    "skytronPasswordSet": "स्काईट्रॉन पासवर्ड सेट",
+    "passwordSetSuccess": "पासवर्ड सफलतापूर्वक सेट किया गया है, होम पेज पर जाएं और क्रेडेंशियल्स का उपयोग करके लॉगिन करें"
+  },
+  "login": {
+    "mobile": "मोबाइल",
+    "password": "पासवर्ड",
+    "loginButton": "लॉगिन",
+    "waiting": "प्रतीक्षा करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "captchaImage": "कैप्चा छवि",
+    "enterCaptcha": "परिणाम दर्ज करें",
+    "togglePasswordVisibility": "पासवर्ड दृश्यता टॉगल करें"
+  },
+  "validation": {
+    "mobileNumberFormat": "मोबाइल नंबर 10-अंकों का होना चाहिए",
+    "mobileRequired": "मोबाइल नंबर आवश्यक है",
+    "passwordRequired": "पासवर्ड आवश्यक है",
+    "required": "आवश्यक फ़ील्ड"
   }
 } 

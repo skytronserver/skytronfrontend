@@ -1,4 +1,3 @@
-
 import {useState,useEffect} from 'react';
 // material-ui
 import { useTheme } from "@mui/material/styles";
@@ -6,6 +5,7 @@ import { Divider, Grid, Stack, Typography, useMediaQuery,Button } from "@mui/mat
 import { useSelector,useDispatch } from "react-redux";
 import { Navigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
+import { useTranslation } from 'react-i18next';
 // project imports
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
@@ -16,6 +16,7 @@ import MinimalFooter from '../../../ui-component/cards/MinimalFooter';
 import AlertBox from "../../../ui-component/AlertBox";
 const LoginOtp = () => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const [otp, setOtp] = useState("");
   const [isOpen,setIsOpen]=useState(false);
   const theme = useTheme();
@@ -75,7 +76,7 @@ const LoginOtp = () => {
       severity="error"
       isOpen={error.message !== null}
       handleAlertClick={()=>console.log('information of otp verification')}
-      title="Error"
+      title={t("common.error")}
       message={error.message}
       />
       <Grid
@@ -143,7 +144,7 @@ const LoginOtp = () => {
                               fontSize="16px"
                               textAlign={matchDownSM ? "center" : "inherit"}
                             >
-                              Enter your OTP sent to your Mobile No
+                              {t("auth.enterOtpSentToMobile")}
                             </Typography>
                           </Stack>
                         </Grid>
@@ -165,7 +166,7 @@ const LoginOtp = () => {
                           onClick={handleOTPSubmit}
                           disabled={remainingTime <= 0}
                         >
-                          Verify OTP
+                          {t("auth.verifyOtp")}
                         </Button>
                       </Typography>
                     </Grid>
@@ -178,7 +179,7 @@ const LoginOtp = () => {
                       <Divider />
                       <br/>
                       <Typography className="otp-timer" style={{textAlign:"center"}}>
-                        <span>Resend OTP in {remainingTime} seconds.  &nbsp;</span>
+                        <span>{t("auth.resendOtpIn", { seconds: remainingTime })}</span>
                         <Button
                         color="success"
                         size="small"
@@ -186,7 +187,7 @@ const LoginOtp = () => {
                           disabled={remainingTime > 0}
                           onClick={handleClick}
                         >
-                          Resend
+                          {t("auth.resend")}
                         </Button>
                       </Typography>
                     </Grid>

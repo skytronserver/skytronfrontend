@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider,  Grid, Button } from '@mui/material';
 import { Home as HomeIcon, Menu as MenuIcon } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
 import logo from "../../assets/images/icons/logo_truck.png";
@@ -11,6 +12,8 @@ WebFont.load({
   },
 });
 function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
+  const { t } = useTranslation();
+  
   return (
     <div>
       <AppBar position="static" sx={{ backgroundColor: 'purple',padding:'4px' }}>
@@ -18,7 +21,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           {/* Ashoka Stambh Icon - Moved to the start */}
           <img 
             src={ashokstambh} 
-            alt="Ashoka Stambh" 
+            alt={t('common.ashokStambh')} 
             style={{ 
               width: '30px', 
               height: 'auto',
@@ -43,7 +46,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
                 <img 
                   src={logo} 
-                  alt="Skytron Logo" 
+                  alt={t('common.skytronLogo')} 
                   style={{  
                     width: '35px',
                     height: 'auto',
@@ -65,7 +68,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                   marginLeft:'10px'
                 }}
               >
-                VLTD BackEnd, ASSAM
+                {t('common.vltdBackend')}
               </Typography>
             </div>
           </Typography>
@@ -75,7 +78,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             size="large"
             edge="start"
             color="inherit"
-            aria-label="menu"
+            aria-label={t('common.menu')}
             sx={{ mr: 2, display: { md: 'none' } }}
             onClick={toggleDrawer(true)}
           >
@@ -84,10 +87,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           {/* Navigation buttons */}
 
           <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <Button color="inherit" startIcon={<HomeIcon />} component={Link} to="/" sx={{ mr: 2 }}>Home</Button>
+            <Button color="inherit" startIcon={<HomeIcon />} component={Link} to="/" sx={{ mr: 2 }}>{t('common.home')}</Button>
             {/* <Button color="inherit" component="a" href="#contact" sx={{ mr: 2 }}>Contact Us</Button>
             <Button color="inherit" component="a" href="#about" sx={{ mr: 2 }}>About Us</Button> */}
-            <Button color="inherit" component={Link} to="/privacy-policy">Privacy Policy</Button>
+            <Button color="inherit" component={Link} to="/privacy-policy">{t('common.privacyPolicy')}</Button>
           </Grid>
           
         </Toolbar>
@@ -107,16 +110,16 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
         >
           <List>
             <ListItem button component={Link} to="/">
-              <ListItemText primary="Home" />
+              <ListItemText primary={t('common.home')} />
             </ListItem>
             <ListItem button>
-              <ListItemText primary="Contact Us" />
+              <ListItemText primary={t('common.contactUs')} />
             </ListItem>
             <ListItem button>
-              <ListItemText primary="About Us" />
+              <ListItemText primary={t('common.aboutUs')} />
             </ListItem>
             <ListItem button component={Link} to="/privacy-policy">
-              <ListItemText primary="Privacy Policy" />
+              <ListItemText primary={t('common.privacyPolicy')} />
             </ListItem>
           </List>
           <Divider />

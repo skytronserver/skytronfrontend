@@ -10,20 +10,23 @@ import {
 // third party
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
+import { useTranslation } from 'react-i18next';
 import AnimateButton from "../../../../ui-component/extended/AnimateButton";
 import { useDispatch} from 'react-redux';
 import { loginUser } from "../../../../actions/loginActions";
 const FirebaseLogin = ({ ...others }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
+  
   const initialValues = {
     email: "",
     password: "",
   };
   const validationSchema = Yup.object({
     email: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
-    password: Yup.string().required("Password is required"),
+      .email(t("auth.invalidEmail"))
+      .required(t("auth.emailRequired")),
+    password: Yup.string().required(t("auth.passwordRequired")),
   });
   const handleSubmit = (values, { setSubmitting }) => {
     dispatch(loginUser(values.email, values.password));
@@ -45,7 +48,7 @@ const FirebaseLogin = ({ ...others }) => {
         >
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1">
-              Sign in with your Email Address
+              {t("auth.signInWithEmail")}
             </Typography>
           </Box>
         </Grid>
@@ -59,7 +62,7 @@ const FirebaseLogin = ({ ...others }) => {
           <Grid container spacing={0}>
             <Grid item xs={12}>
               <TextField
-                label="Email"
+                label={t("auth.email")}
                 variant="outlined"
                 fullWidth
                 margin="normal"
@@ -70,7 +73,7 @@ const FirebaseLogin = ({ ...others }) => {
             </Grid>
             <Grid item xs={12}>
               <TextField
-                label="Password"
+                label={t("auth.password")}
                 variant="outlined"
                 fullWidth
                 type="password"
@@ -95,7 +98,7 @@ const FirebaseLogin = ({ ...others }) => {
               color="secondary"
               sx={{ textDecoration: "none", cursor: "pointer" }}
             >
-              Forgot Password?
+              {t("auth.forgotPassword")}
             </Typography>
           </Stack>
           {formik.errors.submit && (
@@ -113,7 +116,7 @@ const FirebaseLogin = ({ ...others }) => {
                 variant="contained"
                 color="secondary"
               >
-                Sign in
+                {t("auth.signIn")}
               </Button>
             </AnimateButton>
           </Box>
