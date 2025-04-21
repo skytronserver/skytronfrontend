@@ -122,9 +122,29 @@ const GPSHistoryMap = ({
           new TileLayer({
             source: new OSM(),
           }),
+          // India3 layer
           new TileLayer({
             source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL,
+              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+              params: {
+                'LAYERS': 'india3',
+                'TILED': true,
+                'VERSION': '1.1.1',
+                'FORMAT': 'image/png',
+                'TRANSPARENT': 'true',
+                'SRS': 'EPSG:4326',
+                'WIDTH': 256,
+                'HEIGHT': 256,
+                'pixelRatio': 1,
+              },
+              serverType: 'geoserver',
+              projection: 'EPSG:4326',
+            })
+          }),
+          // Admin group layer (basemap)
+          new TileLayer({
+            source: new TileWMS({
+              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
               params: {
                 'LAYERS': 'basemap%3Aadmin_group',
                 'TILED': true,
@@ -132,16 +152,31 @@ const GPSHistoryMap = ({
                 'FORMAT': 'image/png',
                 'TRANSPARENT': 'true',
                 'SRS': 'EPSG:4326',
-                'WIDTH': 256,   // Set the tile width to 256 pixels
-                'HEIGHT': 256,   // Set the tile height to 256 pixels
+                'WIDTH': 256,
+                'HEIGHT': 256,
                 'pixelRatio': 1,
-
               },
               serverType: 'geoserver',
-              projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
+              projection: 'EPSG:4326',
+            })
+          }),
+          // Roads layer (mmi_india)
+          new TileLayer({
+            source: new TileWMS({
+              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+              params: {
+                'LAYERS': 'mmi:mmi_india',
+                'TILED': true,
+                'VERSION': '1.1.1',
+                'FORMAT': 'image/png',
+                'TRANSPARENT': 'true',
+                'SRS': 'EPSG:4326',
+                'WIDTH': 256,
+                'HEIGHT': 256,
+                'pixelRatio': 1,
+              },
+              serverType: 'geoserver',
+              projection: 'EPSG:4326',
             })
           }),
         ],

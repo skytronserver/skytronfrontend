@@ -12,6 +12,7 @@ import SOSUserExp from "../views/direct/SOSUserExp";
 import SOSExe from "../views/direct/SOSExe";
 import EMCall from "../views/direct/emcall";
 import RouteFixing from "../views/direct/RouteFixing";
+import RouteETA from "../views/direct/RouteETA";
 import TripPlanning from "../views/direct/TripPlanning";
 import GetAllCall from "../views/direct/GetAllCall";
 import CallDetails from "../views/direct/CallDetails";
@@ -97,6 +98,11 @@ const MainRoutes = {
       path: "/route-fixing",
       element: <RouteFixing />,
       roles: ["superadmin", "stateadmin", "owner", "dto"],
+    },
+    {
+      path: "/route-eta",
+      element: <RouteETA />,
+      roles: ["owner"],
     },
     {
       path: "/trip-planning",

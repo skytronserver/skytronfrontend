@@ -13,7 +13,8 @@ import {
   IconBan,
   IconUsers,
   IconRoute,
-  IconCalendarTime
+  IconCalendarTime,
+  IconCalculator
 } from "@tabler/icons";
 
 const icons = {
@@ -30,7 +31,8 @@ const icons = {
   IconChecks,
   IconBan,
   IconRoute,
-  IconCalendarTime
+  IconCalendarTime,
+  IconCalculator
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -154,6 +156,15 @@ const user = {
       icon: icons.IconMap,
       breadcrumbs: false,
       roles: ["superadmin", "stateadmin", "owner", "dto"],
+    },
+    {
+      id: "route-eta",
+      title: "Route ETA Calculator",
+      type: "item",
+      url: "/route-eta",
+      icon: icons.IconCalculator,
+      breadcrumbs: false,
+      roles: ["owner"],
     },
     {
       id: "trip-planning",

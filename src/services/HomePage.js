@@ -131,25 +131,6 @@ const getEmergencyDataLogs = (search = '') => {
   });
 };
 
-const getApiDataLog = (params = {}) => {
-  const http = getAxiosInstance();
-  
-  // Build query string to match the exact format
-  let queryString = '?';
-  
-  // Add 'q' parameter if provided (search term)
-  if (params.q) {
-    queryString += `q=${encodeURIComponent(params.q)}&`;
-  }
-  
-  // Add required pagination parameters
-  queryString += `page=${params.page || 1}&per_page=${params.per_page || 10}`;
-  
-  // Make POST request with the exact URL format
-  console.log(`Sending request to: /api/apiLog/${queryString}`);
-  return http.post(`/api/apiLog/${queryString}`, {});
-};
-
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -175,7 +156,6 @@ const HomePageService = {
   getPendingSOSCall,
   getGpsDataLog,
   getEmergencyDataLogs,
-  getApiDataLog,
 };
 
 export default HomePageService;

@@ -43,15 +43,14 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
         width: `calc(100% - ${drawerWidth}px)`,
       },
       [theme.breakpoints.down("md")]: {
-        marginLeft: "20px",
-        width: `calc(100% - ${drawerWidth}px)`,
+        marginLeft: "0px",
+        width: "100%",
         padding: "16px",
       },
       [theme.breakpoints.down("sm")]: {
-        marginLeft: "10px",
-        width: `calc(100% - ${drawerWidth}px)`,
+        marginLeft: "0px",
+        width: "100%",
         padding: "16px",
-        marginRight: "10px",
       },
     }),
     ...(open && {
@@ -64,10 +63,12 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
       borderBottomRightRadius: 0,
       width: `calc(100% - ${drawerWidth}px)`,
       [theme.breakpoints.down("md")]: {
-        marginLeft: "20px",
+        marginLeft: "0px",
+        width: "100%",
       },
       [theme.breakpoints.down("sm")]: {
-        marginLeft: "10px",
+        marginLeft: "0px",
+        width: "100%",
       },
     }),
   })
@@ -90,7 +91,13 @@ const MainLayout = () => {
     if (location.pathname === '/live-tracking') {
       dispatch({ type: SET_MENU, opened: false });
     }
-  }, [location]);
+    // Close drawer when screen size changes to mobile
+    if (matchDownMd) {
+      dispatch({ type: SET_MENU, opened: false });
+    } else {
+      dispatch({ type: SET_MENU, opened: true });
+    }
+  }, [location, matchDownMd, dispatch]);
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
     sessionStorage.getItem("isAuthenticated");
@@ -133,7 +140,7 @@ const MainLayout = () => {
       {/* drawer */}
 
      {userRoles!=='desk_ex' && <Sidebar
-        drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened}
+        drawerOpen={matchDownMd ? leftDrawerOpened : leftDrawerOpened}
         drawerToggle={handleLeftDrawerToggle}
       />
      }

@@ -171,74 +171,37 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
     const initialMap = new Map({
       target: mapElement.current,
       layers: [
+        // Base OSM layer
         new TileLayer({
           source: new OSM(),
         }),
-        new TileLayer({
-          source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL,
-            params: {
-              'LAYERS': 'basemap%3Aadmin_group',
-              'TILED': true,
-              'VERSION': '1.1.1',
-              'FORMAT': 'image/png',
-              'TRANSPARENT': 'true',
-              'SRS': 'EPSG:4326',
-              'WIDTH': 256,   // Set the tile width to 256 pixels
-              'HEIGHT': 256,   // Set the tile height to 256 pixels
-              'pixelRatio': 1,
-
-            },
-            serverType: 'geoserver',
-            projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
-          })
+        
+        // Add the vector layer for markers
+        new VectorLayer({
+          source: new VectorSource(),
         }),
       ],
-
-
       view: new View({
         center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
         zoom: 7,
       }),
-
       pixelRatio: 1,
     });
 
     // Initialize vector layer for markers
     const initialVectorLayer = new VectorLayer({
       source: new VectorSource(),
+      zIndex: 100, // Ensure markers appear on top
     });
 
     // Add vector layer to map
     initialMap.addLayer(initialVectorLayer);
-
-    //initialMap.addLayer(administrativeLayer);
 
     // Create dynamic overlay
     const initialOverlay = new Overlay({
       element: overlayElement.current,
     });
     initialMap.addOverlay(initialOverlay);
-
-
-
-    // Create overlays for each logo
-    /* logos.forEach(logo => {
-       const element = document.createElement('img');
-       element.src = logo.src;
-       element.style.width = '50px'; // Adjust size as necessary
-       const logoOverlay = new Overlay({
-         element: element,
-         position: fromLonLat(logo.coordinates),
-         positioning: `${logo.position.includes('top') ? 'top' : 'bottom'}-${logo.position.includes('left') ? 'left' : 'right'}`
-       });
-       initialMap.addOverlay(logoOverlay);
-       logoOverlays.current.push(logoOverlay);
-     });
-     */
 
     setMap(initialMap);
     setVectorLayer(initialVectorLayer);
