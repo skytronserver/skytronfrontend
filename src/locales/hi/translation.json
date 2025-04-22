@@ -18,7 +18,11 @@
     "menu": "मेनू",
     "privacyPolicy": "गोपनीयता नीति",
     "contactUs": "संपर्क करें",
-    "aboutUs": "हमारे बारे में"
+    "aboutUs": "हमारे बारे में",
+    "submit": "जमा करें",
+    "formSubmittedSuccessfully": "फॉर्म सफलतापूर्वक जमा किया गया",
+    "formNotSubmitted": "फॉर्म जमा नहीं किया गया",
+    "internalServerError": "आंतरिक सर्वर त्रुटि"
   },
   "dashboard": {
     "title": "डैशबोर्ड",
@@ -265,6 +269,41 @@
     "mobileNumberFormat": "मोबाइल नंबर 10-अंकों का होना चाहिए",
     "mobileRequired": "मोबाइल नंबर आवश्यक है",
     "passwordRequired": "पासवर्ड आवश्यक है",
-    "required": "आवश्यक फ़ील्ड"
+    "required": "आवश्यक फ़ील्ड",
+    "fileTooLarge": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 512KB है",
+    "unsupportedFormat": "असमर्थित प्रारूप"
+  },
+  "stateAdmin": {
+    "createTitle": "राज्य प्रशासक बनाएं",
+    "fields": {
+      "name": "नाम",
+      "email": "ईमेल",
+      "mobile": "मोबाइल",
+      "dob": "जन्म तिथि",
+      "expirydate": "समाप्ति तिथि",
+      "state": "राज्य का नाम",
+      "idProofno": "पहचान पत्र संख्या",
+      "file_idProof": "पहचान पत्र",
+      "file_authorisation_letter": "प्राधिकरण पत्र"
+    },
+    "messages": {
+      "file_idProof": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए।",
+      "file_authorisation_letter": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए।"
+    },
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "invalidEmail": "अमान्य ईमेल पता",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "mobileFormat": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+      "dobRequired": "जन्म तिथि आवश्यक है",
+      "expiryDateRequired": "समाप्ति तिथि आवश्यक है",
+      "stateRequired": "राज्य का नाम आवश्यक है",
+      "idProofRequired": "पहचान पत्र संख्या आवश्यक है",
+      "idProofMinLength": "पहचान पत्र संख्या कम से कम 5 अक्षर लंबी होनी चाहिए",
+      "fileRequired": "फ़ाइल आवश्यक है",
+      "fileSize": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
+      "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं"
+    }
   }
 } 

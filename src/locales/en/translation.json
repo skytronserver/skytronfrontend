@@ -18,7 +18,11 @@
     "menu": "Menu",
     "privacyPolicy": "Privacy Policy",
     "contactUs": "Contact Us",
-    "aboutUs": "About Us"
+    "aboutUs": "About Us",
+    "submit": "Submit",
+    "formSubmittedSuccessfully": "Form Submitted Successfully",
+    "formNotSubmitted": "Form Not Submitted",
+    "internalServerError": "Internal Server Error"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -265,6 +269,41 @@
     "mobileNumberFormat": "Mobile Number must be a 10-digit number",
     "mobileRequired": "Mobile number is required",
     "passwordRequired": "Password is required",
-    "required": "Required Field"
+    "required": "Required Field",
+    "fileTooLarge": "File too large. Max size is 512KB",
+    "unsupportedFormat": "Unsupported Format"
+  },
+  "stateAdmin": {
+    "createTitle": "Create State Admin",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "mobile": "Mobile",
+      "dob": "Date of Birth",
+      "expirydate": "Expiry Date",
+      "state": "State Name",
+      "idProofno": "ID Proof Number",
+      "file_idProof": "ID Proof",
+      "file_authorisation_letter": "Authorization Letter"
+    },
+    "messages": {
+      "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+      "file_authorisation_letter": "Only JPG, PDF, PNG files are allowed and must be below 512KB."
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email address",
+      "mobileRequired": "Mobile Number is required",
+      "mobileFormat": "Mobile Number must be a 10-digit number",
+      "dobRequired": "Date of Birth is required",
+      "expiryDateRequired": "Expiry Date is required",
+      "stateRequired": "State Name is required",
+      "idProofRequired": "ID Proof Number is required",
+      "idProofMinLength": "ID Proof Number must be at least 5 characters long",
+      "fileRequired": "File is required",
+      "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
+      "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
+    }
   }
 } 

@@ -22,39 +22,43 @@ export const stateAdminInitialValues = {
       name:"name",
       type: "text",
       label: "Name",
-      validation: Yup.string().required("Name is required"),
+      validation: Yup.string().required("stateAdmin.validation.nameRequired"),
     },
     email: {
       name:"email",
       type: "text",
       label: "Email",
-      validation: Yup.string().email("Invalid email address").required("Email is required"),
+      validation: Yup.string()
+        .email("stateAdmin.validation.invalidEmail")
+        .required("stateAdmin.validation.emailRequired"),
     },
     mobile: {
       name:"mobile",
       type: "tel",
       label: "Mobile",
-      validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
+      validation: Yup.string()
+        .matches(/^\d{10}$/, 'stateAdmin.validation.mobileFormat')
+        .required('stateAdmin.validation.mobileRequired'),
     },
     dob: {
       name:"dob",
       type: "date",
       label: "Date of Birth",
-      validation: Yup.date().required("Date of Birth is required"),
+      validation: Yup.date().required("stateAdmin.validation.dobRequired"),
       maxDate:today
     },
     expirydate: {
       name:"expirydate",
       type: "date",
       label: "Expiry Date",
-      validation: Yup.date().required("Expiry Date is required"),
+      validation: Yup.date().required("stateAdmin.validation.expiryDateRequired"),
       minDate:today
     },
     state: {
         name:"state",
         type: "select",
         label: "State Name",
-        validation: Yup.string().required("State Name is required"),
+        validation: Yup.string().required("stateAdmin.validation.stateRequired"),
         options: stateList,
       },
     idProofno: {
@@ -62,21 +66,21 @@ export const stateAdminInitialValues = {
       type: "text",
       label: "ID Proof Number",
       validation: Yup.string()
-        .min(5, "ID Proof Number must be at least 5 characters long")
-        .required("ID Proof Number is required"),
+        .min(5, "stateAdmin.validation.idProofMinLength")
+        .required("stateAdmin.validation.idProofRequired"),
     },
     file_idProof: {
       name:"file_idProof",
       type: "file",
       label: "ID Proof",
-      message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+      message: "stateAdmin.messages.file_idProof",
       validation: Yup.mixed()
-    .required("ID Proof is required")
-    .test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .required("stateAdmin.validation.fileRequired")
+    .test("fileSize", "stateAdmin.validation.fileSize", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "stateAdmin.validation.fileFormat", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     })
@@ -85,14 +89,14 @@ export const stateAdminInitialValues = {
       name:"file_authorisation_letter",
       type: "file",
       label: "Authorization Letter",
-      message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
+      message: "stateAdmin.messages.file_authorisation_letter",
       validation: Yup.mixed()
-    .required("Authorization Letter is required")
-    .test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .required("stateAdmin.validation.fileRequired")
+    .test("fileSize", "stateAdmin.validation.fileSize", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "stateAdmin.validation.fileFormat", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     })

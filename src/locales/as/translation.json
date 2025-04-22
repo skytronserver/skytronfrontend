@@ -18,7 +18,11 @@
     "menu": "মেনু",
     "privacyPolicy": "গোপনীয়তা নীতি",
     "contactUs": "যোগাযোগ কৰক",
-    "aboutUs": "আমাৰ বিষয়ে"
+    "aboutUs": "আমাৰ বিষয়ে",
+    "submit": "দাখিল কৰক",
+    "formSubmittedSuccessfully": "ফৰ্ম সফলতাৰে দাখিল কৰা হ'ল",
+    "formNotSubmitted": "ফৰ্ম দাখিল কৰা নহ'ল",
+    "internalServerError": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি"
   },
   "dashboard": {
     "title": "ডেশ্বব'ৰ্ড",
@@ -264,6 +268,41 @@
     "mobileNumberFormat": "মোবাইল নম্বৰ ১০-অংকৰ সংখ্যা হ'ব লাগিব",
     "mobileRequired": "মোবাইল নম্বৰ প্ৰয়োজনীয়",
     "passwordRequired": "পাছৱৰ্ড প্ৰয়োজনীয়",
-    "required": "প্ৰয়োজনীয় ক্ষেত্ৰ"
+    "required": "প্ৰয়োজনীয় ক্ষেত্ৰ",
+    "fileTooLarge": "ফাইল বহুত ডাঙৰ। সৰ্বাধিক আকাৰ 512KB",
+    "unsupportedFormat": "অসমৰ্থিত ফৰ্মেট"
+  },
+  "stateAdmin": {
+    "createTitle": "ৰাজ্য প্ৰশাসক সৃষ্টি কৰক",
+    "fields": {
+      "name": "নাম",
+      "email": "ইমেইল",
+      "mobile": "মোবাইল",
+      "dob": "জন্ম তাৰিখ",
+      "expirydate": "মেয়াদ উকলি যোৱা তাৰিখ",
+      "state": "ৰাজ্যৰ নাম",
+      "idProofno": "পৰিচয় পত্ৰ নম্বৰ",
+      "file_idProof": "পৰিচয় পত্ৰ",
+      "file_authorisation_letter": "অনুমোদন পত্ৰ"
+    },
+    "messages": {
+      "file_idProof": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু 512KB তকৈ কম হ'ব লাগিব।",
+      "file_authorisation_letter": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু 512KB তকৈ কম হ'ব লাগিব।"
+    },
+    "validation": {
+      "nameRequired": "নাম প্ৰয়োজনীয়",
+      "emailRequired": "ইমেইল প্ৰয়োজনীয়",
+      "invalidEmail": "অবৈধ ইমেইল ঠিকনা",
+      "mobileRequired": "মোবাইল নম্বৰ প্ৰয়োজনীয়",
+      "mobileFormat": "মোবাইল নম্বৰ 10 টা সংখ্যাৰ হ'ব লাগিব",
+      "dobRequired": "জন্ম তাৰিখ প্ৰয়োজনীয়",
+      "expiryDateRequired": "মেয়াদ উকলি যোৱা তাৰিখ প্ৰয়োজনীয়",
+      "stateRequired": "ৰাজ্যৰ নাম প্ৰয়োজনীয়",
+      "idProofRequired": "পৰিচয় পত্ৰ নম্বৰ প্ৰয়োজনীয়",
+      "idProofMinLength": "পৰিচয় পত্ৰ নম্বৰ কমেও 5 টা আখৰৰ হ'ব লাগিব",
+      "fileRequired": "ফাইল প্ৰয়োজনীয়",
+      "fileSize": "সৰ্বাধিক আকাৰ 520KB আৰু সমৰ্থিত ফাইল pdf/png/jpg",
+      "fileFormat": "সৰ্বাধিক আকাৰ 520KB আৰু সমৰ্থিত ফাইল pdf/png/jpg"
+    }
   }
 } 

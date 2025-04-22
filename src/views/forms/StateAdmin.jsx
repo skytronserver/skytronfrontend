@@ -13,10 +13,12 @@ import { convertErrorObjectToArray,retriveStateList } from "../../helper";
 import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
 import { FILE_SIZE,SUPPORTED_FORMATS,gridSpacing } from "../../store/constant";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./form.css";
+
 const StateAdmin = () => {
+  const { t } = useTranslation();
   const params = useParams();
-  console.log(params)
   const [updatedFormFields,setUpdatedFormField]=useState(stateAdminField);
   const [isFormLoaded,setIsFormLoaded]=useState(false)
   const [loading, setLoading] = useState(false);
@@ -28,6 +30,7 @@ const StateAdmin = () => {
   });
   const userData=sessionStorage.getItem('cookiesData');
   const navigate = useNavigate();
+
   useEffect(()=>{
     (async()=>{
     const stateList=await retriveStateList();
@@ -59,9 +62,9 @@ const StateAdmin = () => {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = t("validation.fileTooLarge");
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
-        errors[fieldName] = "Unsupported Format";
+        errors[fieldName] = t("validation.unsupportedFormat");
       } else {
         formik.setFieldValue(fieldName, selectedFile);
         return;
@@ -76,6 +79,7 @@ const StateAdmin = () => {
       return acc;
     }, {})
   );
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
@@ -90,12 +94,12 @@ const StateAdmin = () => {
     try {
       await UserServices.createStateAdmin(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t("common.formSubmittedSuccessfully"));
       setSubmitting(false);
       resetForm(stateAdminInitialValues);
     } catch (error) {
       if(error.message==='Network Error'){
-        handleAlert("Internal Server Error");
+        handleAlert(t("common.internalServerError"));
         return true
       }
       setAlert((prevAlert) => ({
@@ -103,7 +107,7 @@ const StateAdmin = () => {
         error: true,
         errorList: convertErrorObjectToArray(error.response.data,),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t("common.formNotSubmitted"));
     }finally{
       setLoading(false);
     }
@@ -125,7 +129,7 @@ const StateAdmin = () => {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="Create State Admin">
+          <MainCard title={t("stateAdmin.createTitle")}>
             {isFormLoaded && <Formik
               initialValues={stateAdminInitialValues}
               validationSchema={validationSchema}
@@ -138,20 +142,25 @@ const StateAdmin = () => {
                     {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={updatedFormFields[field]}
+                          fieldConfig={{
+                            ...updatedFormFields[field],
+                            label: t(`stateAdmin.fields.${field}`),
+                            message: updatedFormFields[field].message ? t(`stateAdmin.messages.${field}`) : undefined,
+                            validation: updatedFormFields[field].validation
+                          }}
                           formik={formik}
                           handleFileChange={handleFileChange}
                         />
                       </Grid>
                     ))}
-                 <Grid item xs={12} className="grid-item-button-div">
+                    <Grid item xs={12} className="grid-item-button-div">
                       <Button
                         type="submit"
                         variant="contained"
                         color="primary"
                         disabled={loading}
                       >
-                        Submit
+                        {t("common.submit")}
                       </Button>
                     </Grid>
                   </Grid>
