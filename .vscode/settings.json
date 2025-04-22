@@ -54,5 +54,6 @@
         "Userform",
         "vahan",
         "Vltd"
-    ]
+    ],
+    "git-blame.configs.statusBar.length": "short"
 }

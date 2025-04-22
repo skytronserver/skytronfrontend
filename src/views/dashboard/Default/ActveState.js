@@ -445,48 +445,48 @@ const ActiveState = () => {
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
                   cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                  label="Total State Admin,Total eSim Provider,Total Manufacturer,Total SOS Admin"
+                  label={t('dashboard.widgets.total_state_admin,total_esim_provider,total_manufacturer,total_sos_admin')}
                   cardValue={userInfoForAdmin}
                   iconImage={User}
-                  heading="UserStatistics"
+                  heading={t('dashboard.headings.userStatistics')}
                 />
               </Grid>
 
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
                   cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                  label="Total Fitment,Tagged Device,Online Device,Offline Device"
+                  label={t('dashboard.widgets.total_fitment,tagged_device,online_device,offline_device')}
                   cardValue={fitmentInfoForAdmin}
                   iconImage={Fitment}
-                  heading="FitmentStatistics"
+                  heading={t('dashboard.headings.fitmentStatistics')}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
                   cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                  label="Total Alert,This Month,Today"
+                  label={t('dashboard.widgets.total_alert,this_month,today')}
                   cardValue={overSpeedInfo}
                   iconImage={Overspeed}
-                  heading="OverSpeeding"
+                  heading={t('dashboard.headings.overSpeeding')}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
                   cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                  label="Total Alert,This month,Today"
+                  label={t('dashboard.widgets.total_alert,this_month,today')}
                   cardValue={emergencyInfo}
                   iconImage={Bell}
-                  heading="EmergencyAlert"
+                  heading={t('dashboard.headings.emergencyAlert')}
                 />
               </Grid>
 
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
                   cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                  label="Total State,Active,Inactive"
+                  label={t('dashboard.widgets.total_state,active,inactive')}
                   cardValue={stateInfo}
                   iconImage={state}
-                  heading="StateDetails"
+                  heading={t('dashboard.headings.stateDetails')}
                 />
               </Grid>
             </Grid>
@@ -498,10 +498,10 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label="Total Dealer,Total Manufacturer,Total DTO,Total Vehicle Owner"
+                label={t('dashboard.widgets.total_dealer,total_manufacturer,total_dto,total_vehicle_owner')}
                 cardValue={userInfo}
                 iconImage={User}
-                heading="UserInfo"
+                heading={t('dashboard.headings.userInfo')}
               />
             </Grid>
 

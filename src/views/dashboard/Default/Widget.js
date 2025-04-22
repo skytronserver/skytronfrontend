@@ -59,7 +59,9 @@ const Widget = ({
                 gutterBottom
                 sx={{ color: "#fff", fontWeight: "bold" }}
               >
-                {t(`dashboard.headings.${heading.replace(/\s+/g, '')}`)}
+                {typeof heading === 'string' && heading.startsWith('dashboard.headings.') 
+                  ? t(heading)
+                  : t(`${heading.replace(/\s+/g, '')}`)}
               </Typography>
               <Box>
                 {labelNew.map((item, index) => (
@@ -71,7 +73,7 @@ const Widget = ({
                       mb: 0.75,
                     }}
                   >
-                    {`${item}: ${arr?.[index] ?? ''}`}
+                    {`${item.trim()}: ${arr?.[index] ?? ''}`}
                   </Typography>
                 ))}
               </Box>
