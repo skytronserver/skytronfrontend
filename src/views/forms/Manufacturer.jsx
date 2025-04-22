@@ -6,13 +6,17 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray,fetchEsimProvider,retriveStateList,retriveCreatedSimProvider } from "../../helper";
-import {manufacturerInitialValues,manufacturerFormField} from "../../formjson/manufacturer";
-const FILE_SIZE = 512 * 1024 ; // 512 KB
+import { useTranslation } from 'react-i18next';
+import { convertErrorObjectToArray, fetchEsimProvider, retriveStateList, retriveCreatedSimProvider } from "../../helper";
+import { manufacturerInitialValues, manufacturerFormField } from "../../formjson/manufacturer";
+
+const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+
 const Manufacturer = () => {
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -22,19 +26,29 @@ const Manufacturer = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(manufacturerFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+
+  // Debug translations
+  useEffect(() => {
+    console.log('Current language:', i18n.language);
+    console.log('Translation test:', t('manufacturer.title'));
+    console.log('Available languages:', i18n.languages);
+    console.log('Translation resources:', i18n.options.resources);
+  }, [i18n, t]);
+
   useEffect(() => {
     (async () => {
-        const stateList = await retriveStateList();
-        setUpdatedFormField((prevConfig) => ({
-            ...prevConfig,
-            state:{
-              ...prevConfig.state,
-              options:stateList
-            }
-          }));
-          setIsFormLoaded(true);
-      })();
+      const stateList = await retriveStateList();
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        state: {
+          ...prevConfig.state,
+          options: stateList
+        }
+      }));
+      setIsFormLoaded(true);
+    })();
   }, []);
+
   const handleStateChange = (event, formik) => {
     const fieldName = event.target.name;
     if (fieldName === "state") {
@@ -57,16 +71,19 @@ const Manufacturer = () => {
       })();
     }
   };
+
   const navigate = useNavigate();
+
   const handleClose = () => {
     !alert.error && navigate("/user/newManufacturer");
     setOpen(false);
   };
 
   const handleAlert = (message) => {
-    setAlert((prevAlert) => ({ ...prevAlert, message: message }));
+    setAlert((prevAlert) => ({ ...prevAlert, message: t(message) }));
     setOpen(true);
   };
+
   const handleFileChange = (event, formik) => {
     const selectedFile = event.currentTarget.files[0];
     const fieldName = event.target.name;
@@ -90,6 +107,7 @@ const Manufacturer = () => {
       return acc;
     }, {})
   );
+
   const handleCreateUser = async (userData) => {
     try {
       const response = await UserServices.createManufacturer(userData);
@@ -104,22 +122,23 @@ const Manufacturer = () => {
       };
     }
   };
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    const userData=sessionStorage.getItem('cookiesData');
-    const data=userData && userData.split("-")
-    const userId=userData && data.length > 2 && data[3];
+    const userData = sessionStorage.getItem('cookiesData');
+    const data = userData && userData.split("-")
+    const userId = userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
     let valuesWithRole = {};
     valuesWithRole = {
-        ...values,
-        role: "devicemanufacture",
-        createdby:userId,
-      };
+      ...values,
+      role: "devicemanufacture",
+      createdby: userId,
+    };
     const response = await handleCreateUser(valuesWithRole);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert("manufacturer.form.success");
       setSubmitting(false);
       setLoading(false);
       resetForm(manufacturerInitialValues);
@@ -129,7 +148,7 @@ const Manufacturer = () => {
         error: true,
         errorList: response,
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert("manufacturer.form.error");
       setLoading(false);
     }
   };
@@ -174,7 +193,7 @@ const Manufacturer = () => {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Create Manufacturer">
+          <MainCard title={t('manufacturer.title')}>
             {isFormLoaded && <Formik
               initialValues={manufacturerInitialValues}
               validationSchema={validationSchema}
@@ -187,7 +206,11 @@ const Manufacturer = () => {
                     {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={updatedFormFields[field]}
+                          fieldConfig={{
+                            ...updatedFormFields[field],
+                            label: t(updatedFormFields[field].label),
+                            helperText: updatedFormFields[field].helperText ? t(updatedFormFields[field].helperText) : undefined
+                          }}
                           formik={formik}
                           handleFileChange={handleFileChange}
                           handleOptionChange={handleStateChange}
@@ -201,7 +224,7 @@ const Manufacturer = () => {
                         color="primary"
                         disabled={loading}
                       >
-                        Submit
+                        {t('manufacturer.form.submit')}
                       </Button>
                     </Grid>
                   </Grid>

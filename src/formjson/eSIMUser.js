@@ -26,70 +26,70 @@ export const eSIMFormField = {
   name: {
     name:"name",
     type: "text",
-    label: "Name",
-    validation: Yup.string().required("Name is required"),
+    label: "esimUser.form.fields.name",
+    validation: Yup.string().required("esimUser.form.validation.name_required"),
   },
   email: {
     name:"email",
     type: "text",
-    label: "Email",
-    validation: Yup.string().email("Invalid email address").required("Email is required"),
+    label: "esimUser.form.fields.email",
+    validation: Yup.string().email("esimUser.form.validation.invalid_email").required("esimUser.form.validation.email_required"),
   },
   mobile: {
     name:"mobile",
     type: "tel",
-    label: "Mobile",
-    validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
+    label: "esimUser.form.fields.mobile",
+    validation: Yup.string().matches(/^\d{10}$/, 'esimUser.form.validation.invalid_mobile').required('esimUser.form.validation.mobile_required'),
   },
   dob: {
     name:"dob",
     type: "date",
-    label: "Date of Birth",
-    validation: Yup.date().required("Date of Birth is required"),
+    label: "esimUser.form.fields.dob",
+    validation: Yup.date().required("esimUser.form.validation.dob_required"),
     maxDate:today
   },
   expirydate: {
     name:"expirydate",
     type: "date",
-    label: "Expiry Date",
-    validation: Yup.date().required("Expiry Date is required"),
+    label: "esimUser.form.fields.expiry_date",
+    validation: Yup.date().required("esimUser.form.validation.expiry_date_required"),
     minDate:today
   },
   company_name: {
     name:"company_name",
     type: "text",
-    label: "Company Name",
-    validation: Yup.string().required("Company Name is required"),
+    label: "esimUser.form.fields.company_name",
+    validation: Yup.string().required("esimUser.form.validation.company_name_required"),
   },
   gstnnumber: {
     name:"gstnnumber",
     type: "text",
-    label: "GST No",
-    validation: Yup.string().required("GTS No is required"),
+    label: "esimUser.form.fields.gst_no",
+    validation: Yup.string().required("esimUser.form.validation.gst_no_required"),
   },
   idProofno: {
     name:"idProofno",
     type: "text",
-    label: "User ID Proof No.",
-    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("Name is required"),
+    label: "esimUser.form.fields.id_proof_number",
+    validation: Yup.string().min(5, "esimUser.form.validation.id_proof_min_length").required("esimUser.form.validation.id_proof_required"),
   },
   stateId: {
     name:"stateId",
     type: "select",
-    label: "State",
-    validation: Yup.string().required("State is required"),
+    label: "esimUser.form.fields.state",
+    validation: Yup.string().required("esimUser.form.validation.state_required"),
     options:stateList,
   },
   file_authLetter:{
     name:"file_authLetter",
     type: "file",
-    label: "Authorization Letter",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "esimUser.form.fields.auth_letter",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("esimUser.form.validation.auth_letter_required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "esimUser.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
@@ -97,13 +97,13 @@ export const eSIMFormField = {
   file_GSTCertificate:{
     name:"file_GSTCertificate",
     type: "file",
-    label: "GST Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("GST Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "esimUser.form.fields.gst_certificate",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("esimUser.form.validation.gst_certificate_required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "esimUser.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
@@ -111,13 +111,13 @@ export const eSIMFormField = {
   file_idProof:{
     name:"file_idProof",
     type: "file",
-    label: "ID Proof Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "esimUser.form.fields.id_proof",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("esimUser.form.validation.id_proof_required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "esimUser.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
@@ -125,13 +125,13 @@ export const eSIMFormField = {
   file_dot_m2m_registration:{
     name:"file_dot_m2m_registration",
     type: "file",
-    label: "DoT M2M Service Provider Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("DoT M2M Service Provider Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "esimUser.form.fields.company_reg_certificate",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("esimUser.form.validation.company_reg_required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "esimUser.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),

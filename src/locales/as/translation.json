@@ -304,5 +304,143 @@
       "fileSize": "সৰ্বাধিক আকাৰ 520KB আৰু সমৰ্থিত ফাইল pdf/png/jpg",
       "fileFormat": "সৰ্বাধিক আকাৰ 520KB আৰু সমৰ্থিত ফাইল pdf/png/jpg"
     }
+  },
+  "manufacturer": {
+    "title": "নিৰ্মাতা সৃষ্টি কৰক",
+    "form": {
+      "submit": "দাখিল কৰক",
+      "success": "ফৰ্ম সফলতাৰে দাখিল কৰা হ'ল",
+      "error": "ফৰ্ম দাখিল কৰা নহ'ল",
+      "select": "বাছক",
+      "fields": {
+        "state": "ৰাজ্য বাছক",
+        "m2m_provider": "এম২এম প্ৰদানকাৰী",
+        "name": "নাম",
+        "email": "ইমেইল",
+        "mobile": "মোবাইল",
+        "company_name": "কোম্পানীৰ নাম",
+        "dob": "জন্ম তাৰিখ",
+        "expiry_date": "ম্যাদ উকলি যোৱাৰ তাৰিখ",
+        "gst_no": "জিএছটি নম্বৰ",
+        "id_proof_number": "ব্যৱহাৰকাৰীৰ পৰিচয় প্ৰমাণ নম্বৰ",
+        "auth_letter": "প্ৰাধিকাৰ পত্ৰ",
+        "company_reg_certificate": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰ",
+        "gst_certificate": "জিএছটি প্ৰমাণপত্ৰ",
+        "id_proof": "ব্যৱহাৰকাৰীৰ পৰিচয় প্ৰমাণ"
+      },
+      "validation": {
+        "state_required": "ৰাজ্যৰ প্ৰয়োজন",
+        "esim_provider_required": "ই-ছিম প্ৰদানকাৰীৰ প্ৰয়োজন",
+        "name_required": "নামৰ প্ৰয়োজন",
+        "invalid_email": "অবৈধ ইমেইল ঠিকনা",
+        "email_required": "ইমেইলৰ প্ৰয়োজন",
+        "invalid_mobile": "মোবাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
+        "mobile_required": "মোবাইল নম্বৰৰ প্ৰয়োজন",
+        "company_name_required": "কোম্পানীৰ নামৰ প্ৰয়োজন",
+        "dob_required": "জন্ম তাৰিখৰ প্ৰয়োজন",
+        "age_restriction": "কমেও ১৮ বছৰ বয়সী হ'ব লাগে",
+        "future_date": "জন্ম তাৰিখ ভৱিষ্যতৰ হ'ব নোৱাৰে",
+        "expiry_date_required": "ম্যাদ উকলি যোৱাৰ তাৰিখৰ প্ৰয়োজন",
+        "gst_no_required": "জিএছটি নম্বৰৰ প্ৰয়োজন",
+        "id_proof_min_length": "পৰিচয় প্ৰমাণ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগে",
+        "id_proof_required": "ব্যৱহাৰকাৰীৰ পৰিচয় প্ৰমাণ নম্বৰৰ প্ৰয়োজন",
+        "auth_letter_required": "প্ৰাধিকাৰ পত্ৰৰ প্ৰয়োজন",
+        "company_reg_required": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰৰ প্ৰয়োজন",
+        "gst_certificate_required": "জিএছটি প্ৰমাণপত্ৰৰ প্ৰয়োজন",
+        "file_restrictions": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু ৫১২KB তকৈ কম হ'ব লাগে",
+        "file_size": "সৰ্বাধিক আকাৰ ৫২০KB আৰু সমৰ্থিত ফাইল pdf/png/jpg",
+        "file_format": "সৰ্বাধিক আকাৰ ৫২০KB আৰু সমৰ্থিত ফাইল pdf/png/jpg"
+      }
+    }
+  },
+  "esimUser": {
+    "title": "এম২এম সেৱা প্ৰদানকাৰী সৃষ্টি কৰক",
+    "form": {
+      "submit": "দাখিল কৰক",
+      "success": "ফৰ্ম সফলতাৰে দাখিল কৰা হ'ল",
+      "error": "ফৰ্ম দাখিল কৰা নহ'ল",
+      "fields": {
+        "state": "ৰাজ্য বাছক",
+        "name": "নাম",
+        "email": "ইমেইল",
+        "mobile": "মোবাইল",
+        "company_name": "কোম্পানীৰ নাম",
+        "dob": "জন্ম তাৰিখ",
+        "expiry_date": "ম্যাদ উকলি যোৱাৰ তাৰিখ",
+        "gst_no": "জিএছটি নম্বৰ",
+        "id_proof_number": "পৰিচয় প্ৰমাণ নম্বৰ",
+        "auth_letter": "প্ৰাধিকাৰ পত্ৰ",
+        "company_reg_certificate": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰ",
+        "gst_certificate": "জিএছটি প্ৰমাণপত্ৰ",
+        "id_proof": "পৰিচয় প্ৰমাণ"
+      },
+      "validation": {
+        "state_required": "ৰাজ্যৰ প্ৰয়োজন",
+        "name_required": "নামৰ প্ৰয়োজন",
+        "invalid_email": "অবৈধ ইমেইল ঠিকনা",
+        "email_required": "ইমেইলৰ প্ৰয়োজন",
+        "invalid_mobile": "মোবাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
+        "mobile_required": "মোবাইল নম্বৰৰ প্ৰয়োজন",
+        "company_name_required": "কোম্পানীৰ নামৰ প্ৰয়োজন",
+        "dob_required": "জন্ম তাৰিখৰ প্ৰয়োজন",
+        "age_restriction": "কমেও ১৮ বছৰ বয়সী হ'ব লাগে",
+        "future_date": "জন্ম তাৰিখ ভৱিষ্যতৰ হ'ব নোৱাৰে",
+        "expiry_date_required": "ম্যাদ উকলি যোৱাৰ তাৰিখৰ প্ৰয়োজন",
+        "gst_no_required": "জিএছটি নম্বৰৰ প্ৰয়োজন",
+        "id_proof_min_length": "পৰিচয় প্ৰমাণ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগে",
+        "id_proof_required": "পৰিচয় প্ৰমাণ নম্বৰৰ প্ৰয়োজন",
+        "auth_letter_required": "প্ৰাধিকাৰ পত্ৰৰ প্ৰয়োজন",
+        "company_reg_required": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰৰ প্ৰয়োজন",
+        "gst_certificate_required": "জিএছটি প্ৰমাণপত্ৰৰ প্ৰয়োজন",
+        "file_restrictions": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু ৫১২KB তকৈ কম হ'ব লাগে",
+        "file_size": "সৰ্বাধিক আকাৰ ৫২০KB আৰু সমৰ্থিত ফাইল pdf/png/jpg",
+        "file_format": "সৰ্বাধিক আকাৰ ৫২০KB আৰু সমৰ্থিত ফাইল pdf/png/jpg"
+      }
+    }
+  },
+  "sosAdmin": {
+    "title": "এছ অ' এছ এডমিন সৃষ্টি কৰক",
+    "form": {
+      "submit": "দাখিল কৰক",
+      "success": "ফৰ্ম সফলতাৰে দাখিল কৰা হ'ল",
+      "error": "ফৰ্ম দাখিল কৰা নহ'ল",
+      "fields": {
+        "state": "ৰাজ্য বাছক",
+        "name": "নাম",
+        "email": "ইমেইল",
+        "mobile": "মোবাইল",
+        "company_name": "কোম্পানীৰ নাম",
+        "dob": "জন্ম তাৰিখ",
+        "expiry_date": "ম্যাদ উকলি যোৱাৰ তাৰিখ",
+        "gst_no": "জিএছটি নম্বৰ",
+        "id_proof_number": "পৰিচয় প্ৰমাণ নম্বৰ",
+        "auth_letter": "প্ৰাধিকাৰ পত্ৰ",
+        "company_reg_certificate": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰ",
+        "gst_certificate": "জিএছটি প্ৰমাণপত্ৰ",
+        "id_proof": "পৰিচয় প্ৰমাণ"
+      },
+      "validation": {
+        "state_required": "ৰাজ্যৰ প্ৰয়োজন",
+        "name_required": "নামৰ প্ৰয়োজন",
+        "invalid_email": "অবৈধ ইমেইল ঠিকনা",
+        "email_required": "ইমেইলৰ প্ৰয়োজন",
+        "invalid_mobile": "মোবাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
+        "mobile_required": "মোবাইল নম্বৰৰ প্ৰয়োজন",
+        "company_name_required": "কোম্পানীৰ নামৰ প্ৰয়োজন",
+        "dob_required": "জন্ম তাৰিখৰ প্ৰয়োজন",
+        "age_restriction": "কমেও ১৮ বছৰ বয়সী হ'ব লাগে",
+        "future_date": "জন্ম তাৰিখ ভৱিষ্যতৰ হ'ব নোৱাৰে",
+        "expiry_date_required": "ম্যাদ উকলি যোৱাৰ তাৰিখৰ প্ৰয়োজন",
+        "gst_no_required": "জিএছটি নম্বৰৰ প্ৰয়োজন",
+        "id_proof_min_length": "পৰিচয় প্ৰমাণ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগে",
+        "id_proof_required": "পৰিচয় প্ৰমাণৰ প্ৰয়োজন",
+        "auth_letter_required": "প্ৰাধিকাৰ পত্ৰৰ প্ৰয়োজন",
+        "company_reg_required": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰৰ প্ৰয়োজন",
+        "gst_certificate_required": "জিএছটি প্ৰমাণপত্ৰৰ প্ৰয়োজন",
+        "file_restrictions": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু ৫১২KB তকৈ কম হ'ব লাগে",
+        "file_size": "সৰ্বাধিক আকাৰ ৫২০KB আৰু সমৰ্থিত ফাইল pdf/png/jpg",
+        "file_format": "সৰ্বাধিক আকাৰ ৫২০KB আৰু সমৰ্থিত ফাইল pdf/png/jpg"
+      }
+    }
   }
 } 

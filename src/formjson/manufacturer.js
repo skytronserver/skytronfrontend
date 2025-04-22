@@ -27,79 +27,79 @@ export const manufacturerFormField = {
   state: {
     name:"state",
     type: "select",
-    label: "Select State",
-    validation: Yup.string().required("State is required"),
-    options:[{'label':'Select','value':''}]
+    label: "manufacturer.form.fields.state",
+    validation: Yup.string().required("manufacturer.form.validation.state_required"),
+    options:[{'label':'manufacturer.form.select','value':''}]
   },
   esimProvider: {
     name:"esimProvider",
     type: "multiselect",
-    label: "M2M Provider",
-    validation: Yup.array().required("eSim Provider is required"),
+    label: "manufacturer.form.fields.m2m_provider",
+    validation: Yup.array().required("manufacturer.form.validation.esim_provider_required"),
     options: providerList
   },
   name: {
     name:"name",
     type: "text",
-    label: "Name",
-    validation: Yup.string().required("Name is required"),
+    label: "manufacturer.form.fields.name",
+    validation: Yup.string().required("manufacturer.form.validation.name_required"),
   },
   email: {
     name:"email",
     type: "text",
-    label: "Email",
-    validation: Yup.string().email("Invalid email address").required("Email is required"),
+    label: "manufacturer.form.fields.email",
+    validation: Yup.string().email("manufacturer.form.validation.invalid_email").required("manufacturer.form.validation.email_required"),
   },
   mobile: {
     name:"mobile",
     type: "tel",
-    label: "Mobile",
-    validation: Yup.string().matches(/^\d{10}$/, 'Mobile Number must be a 10-digit number').required('Mobile Number is required'),
+    label: "manufacturer.form.fields.mobile",
+    validation: Yup.string().matches(/^\d{10}$/, 'manufacturer.form.validation.invalid_mobile').required('manufacturer.form.validation.mobile_required'),
   },
   company_name: {
     name:"company_name",
     type: "text",
-    label: "Company Name",
-    validation: Yup.string().required("Company Name is required"),
+    label: "manufacturer.form.fields.company_name",
+    validation: Yup.string().required("manufacturer.form.validation.company_name_required"),
   },
   dob: {
     name:"dob",
     type: "date", 
-    label: "Date of Birth",
+    label: "manufacturer.form.fields.dob",
     validation: Yup.date()
-      .required("Date of Birth is required")
-      .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), "Must be at least 18 years old")
-      .max(today, "Date of birth cannot be in the future")
+      .required("manufacturer.form.validation.dob_required")
+      .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), "manufacturer.form.validation.age_restriction")
+      .max(today, "manufacturer.form.validation.future_date"),
   },
   expirydate: {
     name:"expirydate",
     type: "date",
-    label: "Expiry Date",
-    validation: Yup.date().required("Expiry Date is required"),
+    label: "manufacturer.form.fields.expiry_date",
+    validation: Yup.date().required("manufacturer.form.validation.expiry_date_required"),
     minDate:today
   },
   gstnnumber: {
     name:"gstnnumber",
     type: "text",
-    label: "GST No",
-    validation: Yup.string().required("GTS No is required"),
+    label: "manufacturer.form.fields.gst_no",
+    validation: Yup.string().required("manufacturer.form.validation.gst_no_required"),
   },
   idProofno: {
     name:"idProofno",
     type: "text",
-    label: "User ID Proof Number",
-    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
+    label: "manufacturer.form.fields.id_proof_number",
+    validation: Yup.string().min(5, "manufacturer.form.validation.id_proof_min_length").required("manufacturer.form.validation.id_proof_required"),
   },
   file_authLetter:{
     name:"file_authLetter",
     type: "file",
-    label: "Authorization Letter",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "manufacturer.form.fields.auth_letter",
+    message:'manufacturer.form.validation.file_restrictions',
+    validation: Yup.mixed().required("manufacturer.form.validation.auth_letter_required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
@@ -107,13 +107,13 @@ export const manufacturerFormField = {
   file_companRegCertificate:{
     name:"file_companRegCertificate",
     type: "file",
-    label: "Company Registration Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("Company Registration Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "manufacturer.form.fields.company_reg_certificate",
+    message:'manufacturer.form.validation.file_restrictions',
+    validation: Yup.mixed().required("manufacturer.form.validation.company_reg_required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
@@ -121,13 +121,13 @@ export const manufacturerFormField = {
   file_GSTCertificate:{
     name:"file_GSTCertificate",
     type: "file",
-    label: "GST Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("GST Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "manufacturer.form.fields.gst_certificate",
+    message:'manufacturer.form.validation.file_restrictions',
+    validation: Yup.mixed().required("manufacturer.form.validation.gst_certificate_required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
@@ -135,13 +135,13 @@ export const manufacturerFormField = {
   file_idProof:{
     name:"file_idProof",
     type: "file",
-    label: "User ID Proof",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("User ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "manufacturer.form.fields.id_proof",
+    message:'manufacturer.form.validation.file_restrictions',
+    validation: Yup.mixed().required("manufacturer.form.validation.id_proof_required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),

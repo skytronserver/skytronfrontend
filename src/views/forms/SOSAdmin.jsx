@@ -15,7 +15,10 @@ import { useNavigate } from "react-router-dom";
 import { retriveDistrictList, retriveStateList } from "../../helper";
 import "./form.css";
 import { sosUserFormField, sosUserInitialValues } from "../../formjson/sosUser";
+import { useTranslation } from "react-i18next";
+
 const SOSAdmin = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -55,9 +58,9 @@ const SOSAdmin = () => {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = t("validation.fileTooLarge");
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
-        errors[fieldName] = "Unsupported Format";
+        errors[fieldName] = t("validation.unsupportedFormat");
       } else {
         formik.setFieldValue(fieldName, selectedFile);
         return;
@@ -90,7 +93,7 @@ const SOSAdmin = () => {
           error: false,
           errorList: [],
         }));
-        handleAlert("Form Submitted Successfully");
+        handleAlert(t("sosAdmin.form.success"));
         resetForm(sosUserInitialValues);
       }
     } catch (error) {
@@ -99,10 +102,10 @@ const SOSAdmin = () => {
       const errorMessage = error?.response?.data?.error || "";
       if (errorMessage) {
         emailError = errorMessage.includes("email")
-          ? "The <b>email address</b> you entered is already registered. Please provide a unique email address to continue"
+          ? t("sosAdmin.form.validation.email_exists")
           : "";
         mobileError = errorMessage.includes("mobile")
-          ? "The <b>mobile number</b> you entered is already registered. Please provide a unique mobile number to continue"
+          ? t("sosAdmin.form.validation.mobile_exists")
           : "";
       }
       setAlert((prevAlert) => ({
@@ -114,7 +117,7 @@ const SOSAdmin = () => {
           errors: error.response?.data,
         },
       }));
-      handleAlert("Form Not Submitted ! " + emailError + mobileError);
+      handleAlert(t("sosAdmin.form.error") + " " + emailError + " " + mobileError);
     } finally {
       setSubmitting(false);
       setLoading(false);
@@ -137,7 +140,7 @@ const SOSAdmin = () => {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="Create SOS Admin">
+          <MainCard title={t("sosAdmin.title")}>
             {isFormLoaded && (
               <Formik
                 initialValues={sosUserInitialValues}
@@ -164,7 +167,7 @@ const SOSAdmin = () => {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit
+                          {t("sosAdmin.form.submit")}
                         </Button>
                       </Grid>
                     </Grid>

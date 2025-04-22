@@ -305,5 +305,143 @@
       "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
       "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
     }
+  },
+  "manufacturer": {
+    "title": "Create Manufacturer",
+    "form": {
+      "submit": "Submit",
+      "success": "Form Submitted Successfully",
+      "error": "Form Not Submitted",
+      "select": "Select",
+      "fields": {
+        "state": "Select State",
+        "m2m_provider": "M2M Provider",
+        "name": "Name",
+        "email": "Email",
+        "mobile": "Mobile",
+        "company_name": "Company Name",
+        "dob": "Date of Birth",
+        "expiry_date": "Expiry Date",
+        "gst_no": "GST No",
+        "id_proof_number": "User ID Proof Number",
+        "auth_letter": "Authorization Letter",
+        "company_reg_certificate": "Company Registration Certificate",
+        "gst_certificate": "GST Certificate",
+        "id_proof": "User ID Proof"
+      },
+      "validation": {
+        "state_required": "State is required",
+        "esim_provider_required": "eSim Provider is required",
+        "name_required": "Name is required",
+        "invalid_email": "Invalid email address",
+        "email_required": "Email is required",
+        "invalid_mobile": "Mobile Number must be a 10-digit number",
+        "mobile_required": "Mobile Number is required",
+        "company_name_required": "Company Name is required",
+        "dob_required": "Date of Birth is required",
+        "age_restriction": "Must be at least 18 years old",
+        "future_date": "Date of birth cannot be in the future",
+        "expiry_date_required": "Expiry Date is required",
+        "gst_no_required": "GST No is required",
+        "id_proof_min_length": "ID Proof Number must be at least 5 characters long",
+        "id_proof_required": "User ID Proof Number is required",
+        "auth_letter_required": "Authorization Letter is required",
+        "company_reg_required": "Company Registration Certificate is required",
+        "gst_certificate_required": "GST Certificate is required",
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 512KB",
+        "file_size": "Max size is 520KB and supported files are pdf/png/jpg",
+        "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
+      }
+    }
+  },
+  "esimUser": {
+    "title": "Create M2M Service Provider",
+    "form": {
+      "submit": "Submit",
+      "success": "Form Submitted Successfully",
+      "error": "Form Not Submitted",
+      "fields": {
+        "state": "Select State",
+        "name": "Name",
+        "email": "Email",
+        "mobile": "Mobile",
+        "company_name": "Company Name",
+        "dob": "Date of Birth",
+        "expiry_date": "Expiry Date",
+        "gst_no": "GST Number",
+        "id_proof_number": "ID Proof Number",
+        "auth_letter": "Authorization Letter",
+        "company_reg_certificate": "Company Registration Certificate",
+        "gst_certificate": "GST Certificate",
+        "id_proof": "ID Proof"
+      },
+      "validation": {
+        "state_required": "State is required",
+        "name_required": "Name is required",
+        "invalid_email": "Invalid email address",
+        "email_required": "Email is required",
+        "invalid_mobile": "Mobile number must be 10 digits",
+        "mobile_required": "Mobile number is required",
+        "company_name_required": "Company name is required",
+        "dob_required": "Date of birth is required",
+        "age_restriction": "Must be at least 18 years old",
+        "future_date": "Date of birth cannot be in the future",
+        "expiry_date_required": "Expiry date is required",
+        "gst_no_required": "GST number is required",
+        "id_proof_min_length": "ID proof number must be at least 5 characters",
+        "id_proof_required": "ID proof number is required",
+        "auth_letter_required": "Authorization letter is required",
+        "company_reg_required": "Company registration certificate is required",
+        "gst_certificate_required": "GST certificate is required",
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be less than 512KB",
+        "file_size": "Maximum size 520KB and supported files pdf/png/jpg",
+        "file_format": "Maximum size 520KB and supported files pdf/png/jpg"
+      }
+    }
+  },
+  "sosAdmin": {
+    "title": "Create SOS Admin",
+    "form": {
+      "submit": "Submit",
+      "success": "Form Submitted Successfully",
+      "error": "Form Not Submitted",
+      "fields": {
+        "state": "Select State",
+        "name": "Name",
+        "email": "Email",
+        "mobile": "Mobile",
+        "company_name": "Company Name",
+        "dob": "Date of Birth",
+        "expiry_date": "Expiry Date",
+        "gst_no": "GST No",
+        "id_proof_number": "ID Proof Number",
+        "auth_letter": "Authorization Letter",
+        "company_reg_certificate": "Company Registration Certificate",
+        "gst_certificate": "GST Certificate",
+        "id_proof": "ID Proof"
+      },
+      "validation": {
+        "state_required": "State is required",
+        "name_required": "Name is required",
+        "invalid_email": "Invalid email address",
+        "email_required": "Email is required",
+        "invalid_mobile": "Mobile Number must be a 10-digit number",
+        "mobile_required": "Mobile Number is required",
+        "company_name_required": "Company Name is required",
+        "dob_required": "Date of Birth is required",
+        "age_restriction": "Must be at least 18 years old",
+        "future_date": "Date of Birth cannot be in the future",
+        "expiry_date_required": "Expiry Date is required",
+        "gst_no_required": "GST No is required",
+        "id_proof_min_length": "ID Proof Number must be at least 5 characters long",
+        "id_proof_required": "ID Proof is required",
+        "auth_letter_required": "Authorization Letter is required",
+        "company_reg_required": "Company Registration Certificate is required",
+        "gst_certificate_required": "GST Certificate is required",
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 512KB",
+        "file_size": "Max size is 520KB and supported files are pdf/png/jpg",
+        "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
+      }
+    }
   }
 } 

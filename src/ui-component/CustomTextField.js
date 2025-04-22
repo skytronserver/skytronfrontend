@@ -1,5 +1,6 @@
 // FormField.js
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import {
   TextField,
   MenuItem,
@@ -13,23 +14,25 @@ import {
   ListItemText,
   Autocomplete
 } from "@mui/material";
+
 const FormField = ({
   fieldConfig,
   formik,
   handleFileChange,
   handleOptionChange,
 }) => {
+  const { t } = useTranslation();
   const inputProps = {
     onKeyDown: (e) => e.preventDefault(), // Prevent typing
     ...(fieldConfig.minDate && { min: fieldConfig.minDate }),
     ...(fieldConfig.maxDate && { max: fieldConfig.maxDate }),
   };
-  const { type, label, options,disabled } = fieldConfig;
+  const { type, label, options, disabled } = fieldConfig;
   switch (type) {
     case "text":
       return (
         <TextField
-          label={label}
+          label={t(label)}
           variant="outlined"
           fullWidth
           margin="normal"
@@ -40,7 +43,7 @@ const FormField = ({
             Boolean(formik.errors[fieldConfig.name])
           }
           helperText={
-            formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
         />
       );
@@ -48,7 +51,7 @@ const FormField = ({
       return (
         <TextField
           select
-          label={label}
+          label={t(label)}
           variant="outlined"
           fullWidth
           margin="normal"
@@ -58,7 +61,7 @@ const FormField = ({
             Boolean(formik.errors[fieldConfig.name])
           }
           helperText={
-            formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
           onChange={(event) => {
             formik.handleChange(event);
@@ -67,51 +70,50 @@ const FormField = ({
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
-              {option.label}
+              {t(option.label)}
             </MenuItem>
           ))}
         </TextField>
       );
-      case "multiselect":
-        return (
-          <TextField
-            select
-            label={label}
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            {...formik.getFieldProps(fieldConfig.name)}
-            error={
-              formik.touched[fieldConfig.name] &&
-              Boolean(formik.errors[fieldConfig.name])
-            }
-            helperText={
-              formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
-            }
-            onChange={(event) => {
-              formik.handleChange(event);
-              handleOptionChange && handleOptionChange(event, formik);
-            }}
-            SelectProps={{
-              multiple: true, // Enable multiple selection
-              renderValue: (selected) => (
-                <div>
-                  {selected.map((value) => (
-                    <Chip key={value} label={options.find(option => option.value === value)?.label || value} />
-                  ))}
-                </div>
-              ),
-            }}
-          >
-            {options.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                <Checkbox checked={formik.values[fieldConfig.name].includes(option.value)} />
-                <ListItemText primary={option.label} />
-              </MenuItem>
-            ))}
-          </TextField>
-        );
-      
+    case "multiselect":
+      return (
+        <TextField
+          select
+          label={t(label)}
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          {...formik.getFieldProps(fieldConfig.name)}
+          error={
+            formik.touched[fieldConfig.name] &&
+            Boolean(formik.errors[fieldConfig.name])
+          }
+          helperText={
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
+          }
+          onChange={(event) => {
+            formik.handleChange(event);
+            handleOptionChange && handleOptionChange(event, formik);
+          }}
+          SelectProps={{
+            multiple: true,
+            renderValue: (selected) => (
+              <div>
+                {selected.map((value) => (
+                  <Chip key={value} label={t(options.find(option => option.value === value)?.label || value)} />
+                ))}
+              </div>
+            ),
+          }}
+        >
+          {options.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              <Checkbox checked={formik.values[fieldConfig.name].includes(option.value)} />
+              <ListItemText primary={t(option.label)} />
+            </MenuItem>
+          ))}
+        </TextField>
+      );
     case "file":
       return (
         <div style={{ marginTop: "16px" }}>
@@ -137,7 +139,7 @@ const FormField = ({
                 justifyContent: "flex-start",
               }}
             >
-              {label}
+              {t(label)}
               {" : "}
               <span style={{ color: "#2196f3", fontStyle: "italic" }}>
                 {formik.values[fieldConfig.name]?.name || ""}
@@ -145,12 +147,12 @@ const FormField = ({
             </Button>
           </label>
           {fieldConfig?.message && <div style={{ fontSize: "12px", color: "gray", marginTop: "4px" }}>
-          {fieldConfig?.message}
-        </div>}
+            {t(fieldConfig?.message)}
+          </div>}
           {formik.touched[fieldConfig.name] &&
             formik.errors[fieldConfig.name] && (
               <div style={{ color: "red", marginTop: "8px" }}>
-                {formik.errors[fieldConfig.name]}
+                {t(formik.errors[fieldConfig.name])}
               </div>
             )}
         </div>
@@ -163,10 +165,10 @@ const FormField = ({
               formik.errors[fieldConfig.name] && "custom-fieldset-error"
             }`}
           >
-            <legend>{label}</legend>
+            <legend>{t(label)}</legend>
             <RadioGroup
               row
-              aria-label={label}
+              aria-label={t(label)}
               name={fieldConfig.name}
               value={formik.values[fieldConfig.name]}
               onChange={formik.handleChange}
@@ -177,7 +179,7 @@ const FormField = ({
                   key={option.value}
                   value={option.value}
                   control={<Radio />}
-                  label={option.label}
+                  label={t(option.label)}
                 />
               ))}
             </RadioGroup>
@@ -191,7 +193,7 @@ const FormField = ({
                   fontSize: "0.75rem",
                 }}
               >
-                {formik.errors[fieldConfig.name]}
+                {t(formik.errors[fieldConfig.name])}
               </div>
             )}
         </FormControl>
@@ -199,7 +201,7 @@ const FormField = ({
     case "date":
       return (
         <TextField
-          label={label}
+          label={t(label)}
           variant="outlined"
           fullWidth
           margin="normal"
@@ -217,14 +219,14 @@ const FormField = ({
             Boolean(formik.errors[fieldConfig.name])
           }
           helperText={
-            formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
         />
       );
     case "tel":
       return (
         <TextField
-          label={label}
+          label={t(label)}
           variant="outlined"
           fullWidth
           margin="normal"
@@ -240,7 +242,7 @@ const FormField = ({
             Boolean(formik.errors[fieldConfig.name])
           }
           helperText={
-            formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
           onChange={(e) => {
             const value = e.target.value.replace(/[^0-9]/g, '');
@@ -263,7 +265,7 @@ const FormField = ({
           renderInput={(params) => (
             <TextField
               {...params}
-              label={label}
+              label={t(label)}
               variant="outlined"
               fullWidth
               margin="normal"
@@ -272,7 +274,7 @@ const FormField = ({
                 Boolean(formik.errors[fieldConfig.name])
               }
               helperText={
-                formik.touched[fieldConfig.name] && formik.errors[fieldConfig.name]
+                formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
               }
               {...formik.getFieldProps(fieldConfig.name)}
             />

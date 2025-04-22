@@ -305,5 +305,143 @@
       "fileSize": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
       "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं"
     }
+  },
+  "manufacturer": {
+    "title": "निर्माता बनाएं",
+    "form": {
+      "submit": "जमा करें",
+      "success": "फॉर्म सफलतापूर्वक जमा किया गया",
+      "error": "फॉर्म जमा नहीं किया गया",
+      "select": "चुनें",
+      "fields": {
+        "state": "राज्य चुनें",
+        "m2m_provider": "एम2एम प्रदाता",
+        "name": "नाम",
+        "email": "ईमेल",
+        "mobile": "मोबाइल",
+        "company_name": "कंपनी का नाम",
+        "dob": "जन्म तिथि",
+        "expiry_date": "समाप्ति तिथि",
+        "gst_no": "जीएसटी नंबर",
+        "id_proof_number": "उपयोगकर्ता आईडी प्रूफ नंबर",
+        "auth_letter": "अधिकृत पत्र",
+        "company_reg_certificate": "कंपनी पंजीकरण प्रमाणपत्र",
+        "gst_certificate": "जीएसटी प्रमाणपत्र",
+        "id_proof": "उपयोगकर्ता आईडी प्रूफ"
+      },
+      "validation": {
+        "state_required": "राज्य आवश्यक है",
+        "esim_provider_required": "ई-सिम प्रदाता आवश्यक है",
+        "name_required": "नाम आवश्यक है",
+        "invalid_email": "अमान्य ईमेल पता",
+        "email_required": "ईमेल आवश्यक है",
+        "invalid_mobile": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+        "mobile_required": "मोबाइल नंबर आवश्यक है",
+        "company_name_required": "कंपनी का नाम आवश्यक है",
+        "dob_required": "जन्म तिथि आवश्यक है",
+        "age_restriction": "कम से कम 18 वर्ष का होना चाहिए",
+        "future_date": "जन्म तिथि भविष्य में नहीं हो सकती",
+        "expiry_date_required": "समाप्ति तिथि आवश्यक है",
+        "gst_no_required": "जीएसटी नंबर आवश्यक है",
+        "id_proof_min_length": "आईडी प्रूफ नंबर कम से कम 5 अक्षरों का होना चाहिए",
+        "id_proof_required": "उपयोगकर्ता आईडी प्रूफ नंबर आवश्यक है",
+        "auth_letter_required": "अधिकृत पत्र आवश्यक है",
+        "company_reg_required": "कंपनी पंजीकरण प्रमाणपत्र आवश्यक है",
+        "gst_certificate_required": "जीएसटी प्रमाणपत्र आवश्यक है",
+        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 512KB से कम होनी चाहिए",
+        "file_size": "अधिकतम आकार 520KB है और समर्थित फाइलें pdf/png/jpg हैं",
+        "file_format": "अधिकतम आकार 520KB है और समर्थित फाइलें pdf/png/jpg हैं"
+      }
+    }
+  },
+  "esimUser": {
+    "title": "एम2एम सेवा प्रदाता बनाएं",
+    "form": {
+      "submit": "जमा करें",
+      "success": "फॉर्म सफलतापूर्वक जमा किया गया",
+      "error": "फॉर्म जमा नहीं किया गया",
+      "fields": {
+        "state": "राज्य चुनें",
+        "name": "नाम",
+        "email": "ईमेल",
+        "mobile": "मोबाइल",
+        "company_name": "कंपनी का नाम",
+        "dob": "जन्म तिथि",
+        "expiry_date": "समाप्ति तिथि",
+        "gst_no": "जीएसटी नंबर",
+        "id_proof_number": "पहचान प्रमाण संख्या",
+        "auth_letter": "अधिकार पत्र",
+        "company_reg_certificate": "कंपनी पंजीकरण प्रमाणपत्र",
+        "gst_certificate": "जीएसटी प्रमाणपत्र",
+        "id_proof": "पहचान प्रमाण"
+      },
+      "validation": {
+        "state_required": "राज्य आवश्यक है",
+        "name_required": "नाम आवश्यक है",
+        "invalid_email": "अमान्य ईमेल पता",
+        "email_required": "ईमेल आवश्यक है",
+        "invalid_mobile": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+        "mobile_required": "मोबाइल नंबर आवश्यक है",
+        "company_name_required": "कंपनी का नाम आवश्यक है",
+        "dob_required": "जन्म तिथि आवश्यक है",
+        "age_restriction": "कम से कम 18 वर्ष का होना चाहिए",
+        "future_date": "जन्म तिथि भविष्य में नहीं हो सकती",
+        "expiry_date_required": "समाप्ति तिथि आवश्यक है",
+        "gst_no_required": "जीएसटी नंबर आवश्यक है",
+        "id_proof_min_length": "पहचान प्रमाण संख्या कम से कम 5 अक्षरों की होनी चाहिए",
+        "id_proof_required": "पहचान प्रमाण संख्या आवश्यक है",
+        "auth_letter_required": "अधिकार पत्र आवश्यक है",
+        "company_reg_required": "कंपनी पंजीकरण प्रमाणपत्र आवश्यक है",
+        "gst_certificate_required": "जीएसटी प्रमाणपत्र आवश्यक है",
+        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 512KB से कम होनी चाहिए",
+        "file_size": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg",
+        "file_format": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg"
+      }
+    }
+  },
+  "sosAdmin": {
+    "title": "एसओएस एडमिन बनाएं",
+    "form": {
+      "submit": "जमा करें",
+      "success": "फॉर्म सफलतापूर्वक जमा किया गया",
+      "error": "फॉर्म जमा नहीं किया गया",
+      "fields": {
+        "state": "राज्य चुनें",
+        "name": "नाम",
+        "email": "ईमेल",
+        "mobile": "मोबाइल",
+        "company_name": "कंपनी का नाम",
+        "dob": "जन्म तिथि",
+        "expiry_date": "समाप्ति तिथि",
+        "gst_no": "जीएसटी नंबर",
+        "id_proof_number": "पहचान प्रमाण संख्या",
+        "auth_letter": "अधिकृत पत्र",
+        "company_reg_certificate": "कंपनी पंजीकरण प्रमाणपत्र",
+        "gst_certificate": "जीएसटी प्रमाणपत्र",
+        "id_proof": "पहचान प्रमाण"
+      },
+      "validation": {
+        "state_required": "राज्य आवश्यक है",
+        "name_required": "नाम आवश्यक है",
+        "invalid_email": "अमान्य ईमेल पता",
+        "email_required": "ईमेल आवश्यक है",
+        "invalid_mobile": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+        "mobile_required": "मोबाइल नंबर आवश्यक है",
+        "company_name_required": "कंपनी का नाम आवश्यक है",
+        "dob_required": "जन्म तिथि आवश्यक है",
+        "age_restriction": "कम से कम 18 वर्ष का होना चाहिए",
+        "future_date": "जन्म तिथि भविष्य की नहीं हो सकती",
+        "expiry_date_required": "समाप्ति तिथि आवश्यक है",
+        "gst_no_required": "जीएसटी नंबर आवश्यक है",
+        "id_proof_min_length": "पहचान प्रमाण संख्या कम से कम 5 अक्षरों की होनी चाहिए",
+        "id_proof_required": "पहचान प्रमाण आवश्यक है",
+        "auth_letter_required": "अधिकृत पत्र आवश्यक है",
+        "company_reg_required": "कंपनी पंजीकरण प्रमाणपत्र आवश्यक है",
+        "gst_certificate_required": "जीएसटी प्रमाणपत्र आवश्यक है",
+        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 512KB से कम होनी चाहिए",
+        "file_size": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg",
+        "file_format": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg"
+      }
+    }
   }
 } 

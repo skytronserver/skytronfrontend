@@ -42,57 +42,57 @@ export const sosUserFormField = {
   name: {
     name: "name",
     type: "text",
-    label: "Name",
-    validation: Yup.string().required("Name is required"),
+    label: "sosAdmin.form.fields.name",
+    validation: Yup.string().required("sosAdmin.form.validation.name_required"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
-    label: "Mobile",
+    label: "sosAdmin.form.fields.mobile",
     validation: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile Number is required"),
+      .matches(/^\d{10}$/, "sosAdmin.form.validation.invalid_mobile")
+      .required("sosAdmin.form.validation.mobile_required"),
   },
   email: {
     name: "email",
     type: "text",
-    label: "Email",
+    label: "sosAdmin.form.fields.email",
     validation: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+      .email("sosAdmin.form.validation.invalid_email")
+      .required("sosAdmin.form.validation.email_required"),
   },
   dob: {
     name: "dob",
     type: "date",
-    label: "Date of Birth",
-    validation: Yup.date().required("Date of Birth is required"),
+    label: "sosAdmin.form.fields.dob",
+    validation: Yup.date().required("sosAdmin.form.validation.dob_required"),
     maxDate: today,
   },
   state: {
     name: "state",
     type: "select",
-    label: "State Name",
-    validation: Yup.string().required("State Name is required"),
+    label: "sosAdmin.form.fields.state",
+    validation: Yup.string().required("sosAdmin.form.validation.state_required"),
     options: stateList,
   },
   idProofno: {
     name: "idProofno",
     type: "text",
-    label: "User ID Number",
+    label: "sosAdmin.form.fields.id_proof_number",
     validation: Yup.string()
-      .min(5, "ID Proof Number must be at least 5 characters long")
-      .required("User ID No is required field"),
+      .min(5, "sosAdmin.form.validation.id_proof_min_length")
+      .required("sosAdmin.form.validation.id_proof_required"),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
-    label: "User ID Proof",
-    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    label: "sosAdmin.form.fields.id_proof",
+    message: "sosAdmin.form.validation.file_restrictions",
     validation: Yup.mixed()
-      .required("User ID Document is required")
+      .required("sosAdmin.form.validation.id_proof_required")
       .test(
         "fileSize",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosAdmin.form.validation.file_size",
         (value) => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
@@ -100,7 +100,7 @@ export const sosUserFormField = {
       )
       .test(
         "fileFormat",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosAdmin.form.validation.file_format",
         (value) => {
           if (!value) return false;
           return SUPPORTED_FORMATS.includes(value.type);
@@ -110,13 +110,13 @@ export const sosUserFormField = {
   file_authorization_letter: {
     name: "file_authorization_letter",
     type: "file",
-    label: "Authorization Letter",
-    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    label: "sosAdmin.form.fields.auth_letter",
+    message: "sosAdmin.form.validation.file_restrictions",
     validation: Yup.mixed()
-      .required("Authorization Letter Document is required")
+      .required("sosAdmin.form.validation.auth_letter_required")
       .test(
         "fileSize",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosAdmin.form.validation.file_size",
         (value) => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
@@ -124,7 +124,7 @@ export const sosUserFormField = {
       )
       .test(
         "fileFormat",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosAdmin.form.validation.file_format",
         (value) => {
           if (!value) return false;
           return SUPPORTED_FORMATS.includes(value.type);
@@ -133,7 +133,7 @@ export const sosUserFormField = {
   },
 };
 
-// ('teamlead’, ’desk_ex’,’police_ex', 'ambulance_ex', 'PCR’(police control room), 'ACR’(ambulance control room)
+// ('teamlead', 'desk_ex', 'police_ex', 'ambulance_ex', 'PCR'(police control room), 'ACR'(ambulance control room)
 export const sosOtherUserFormField = {
   user_type: {
     name: "user_type",
@@ -147,7 +147,6 @@ export const sosOtherUserFormField = {
       { value: "ambulance_ex", label: "Ambulance Executive" },
       { value: "PCR", label: "Police Control Room" },
       { value: "ACR", label: "Ambulance Control Room" },
-
     ],
   },
   name: {
