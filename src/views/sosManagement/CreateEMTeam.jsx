@@ -11,7 +11,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { retriveSOSLead, retriveSOSMember, retriveStateList } from "../../helper";
 import "../forms/form.css";
 import { emTeamFormField, emTeamInitialValues } from "../../formjson/sosUser";
+import { useTranslation } from "react-i18next";
+
 const CreateEMTeam = () => {
+  const { t } = useTranslation();
   const params = useParams();
   const parameter = params["*"] && !isNaN(params["*"]);
   const [editPage, setEditPage] = useState(false);
@@ -96,9 +99,9 @@ const CreateEMTeam = () => {
     try {
       setSubmitting(true);
       setLoading(true);
-      let message = "Team added successfully";
+      let message = t("emTeamForm.messages.teamAdded");
       if (editPage) {
-        message = "Team Updated successfully";
+        message = t("emTeamForm.messages.teamUpdated");
       } else {
         const response = await SOSManagement.createEmTeam(values);
         if (response) {
@@ -121,8 +124,8 @@ const CreateEMTeam = () => {
           errors: error.response?.data?.error,
         },
       }));
-      const message=error.response?.data?.error!=="" ? ` Reason : ${error.response?.data?.error}`:""
-      handleAlert("Form Not Submitted."+message);
+      const message = error.response?.data?.error !== "" ? ` ${t("common.reason")}: ${error.response?.data?.error}` : "";
+      handleAlert(t("common.formNotSubmitted") + message);
     } finally {
       setSubmitting(false);
       setLoading(false);
@@ -145,7 +148,7 @@ const CreateEMTeam = () => {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="Create EM Team">
+          <MainCard title={t("emTeamForm.title")}>
             {isFormLoaded && (
               <Formik
                 initialValues={emInitialValues}
@@ -171,7 +174,7 @@ const CreateEMTeam = () => {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit
+                          {t("common.submit")}
                         </Button>
                       </Grid>
                     </Grid>

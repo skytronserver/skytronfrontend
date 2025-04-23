@@ -1,12 +1,13 @@
 import * as Yup from "yup";
-const FILE_SIZE = 512 * 1024 ; // 512 MB
+const FILE_SIZE = 512 * 1024; // 512 MB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split("T")[0];
 const today = new Date().toISOString().split('T')[0];
+
 export const dealerAccountInitialValues = {
-  manufacturer:"",
+  manufacturer: "",
   name: "",
   mobile: "",
   email: "",
@@ -27,135 +28,136 @@ export const dealerAccountFormField = {
   manufacturer: {
     name: "manufacturer",
     type: "select",
-    label: "Manufacturer",
-    validation: Yup.string().required("Manufacturer is required"),
+    label: "dealerAccountForm.fields.manufacturer",
+    validation: Yup.string().required("dealerAccountForm.validation.manufacturerRequired"),
     options: [],
   },
   name: {
     name: "name",
     type: "text",
-    label: "Name",
-    validation: Yup.string().required("Name is required"),
+    label: "dealerAccountForm.fields.name",
+    validation: Yup.string().required("dealerAccountForm.validation.nameRequired"),
   },
   email: {
     name: "email",
     type: "text",
-    label: "Email",
+    label: "dealerAccountForm.fields.email",
     validation: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+      .email("dealerAccountForm.validation.invalidEmail")
+      .required("dealerAccountForm.validation.emailRequired"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
-    label: "Mobile",
+    label: "dealerAccountForm.fields.mobile",
     validation: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile Number is required"),
+      .matches(/^\d{10}$/, "dealerAccountForm.validation.mobileFormat")
+      .required("dealerAccountForm.validation.mobileRequired"),
   },
   dob: {
     name: "dob",
     type: "date",
-    label: "Date of Birth",
-    validation: Yup.date().required("Date of Birth is required"),
-    maxDate:today
+    label: "dealerAccountForm.fields.dob",
+    validation: Yup.date().required("dealerAccountForm.validation.dobRequired"),
+    maxDate: today
   },
   company_name: {
     name: "company_name",
     type: "text",
-    label: "Company Name",
-    validation: Yup.string().required("Company Name is required"),
+    label: "dealerAccountForm.fields.companyName",
+    validation: Yup.string().required("dealerAccountForm.validation.companyNameRequired"),
   },
   gstnnumber: {
     name: "gstnnumber",
     type: "text",
-    label: "GST No",
-    validation: Yup.string().required("GTS No is required"),
+    label: "dealerAccountForm.fields.gstNo",
+    validation: Yup.string().required("dealerAccountForm.validation.gstNoRequired"),
   },
   address_State: {
     name: "address_State",
     type: "text",
-    label: "State Name",
-    validation: Yup.string().required("State Name is required"),
-    disabled:true
+    label: "dealerAccountForm.fields.state",
+    validation: Yup.string().required("dealerAccountForm.validation.stateRequired"),
+    disabled: true
   },
   district: {
     name: "district",
     type: "multiselect",
-    label: "District Name",
-    validation: Yup.array().required("District Name is required"),
+    label: "dealerAccountForm.fields.district",
+    validation: Yup.array().required("dealerAccountForm.validation.districtRequired"),
     options: [],
   },
   idProofno: {
     name: "idProofno",
     type: "text",
-    label: "User ID Proof Number",
-    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
+    label: "dealerAccountForm.fields.userIdProofNo",
+    validation: Yup.string().min(5, "dealerAccountForm.validation.idProofMinLength").required("dealerAccountForm.validation.userIdProofNoRequired"),
   },
   expirydate: {
     name: "expirydate",
     type: "date",
-    label: "Expiry Date",
-    validation: Yup.date().required("Expiry Date is required"),
-    minDate:today
+    label: "dealerAccountForm.fields.expirydate",
+    validation: Yup.date().required("dealerAccountForm.validation.expirydateRequired"),
+    minDate: today
   },
   file_authLetter: {
     name: "file_authLetter",
     type: "file",
-    label: "Authorization Letter",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+    label: "dealerAccountForm.fields.authorizationLetter",
+    message: "dealerAccountForm.messages.fileRestrictions",
+    validation: Yup.mixed().required("dealerAccountForm.validation.authorizationLetterRequired")
+      .test("fileSize", "dealerAccountForm.validation.fileSize", value => {
+        if (!value) return false;
+        return value.size <= FILE_SIZE;
+      })
+      .test("fileFormat", "dealerAccountForm.validation.fileFormat", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
   file_companRegCertificate: {
     name: "file_companRegCertificate",
     type: "file",
-    label: "Company/Shop Registration/Establishment Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required(
-      "Company/Shop Registration/Establishment Certificate is required"
-    ).test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    })
-    
+    label: "dealerAccountForm.fields.companyRegistrationCertificate",
+    message: "dealerAccountForm.messages.fileRestrictions",
+    validation: Yup.mixed().required("dealerAccountForm.validation.companyRegistrationCertificateRequired")
+      .test("fileSize", "dealerAccountForm.validation.fileSize", value => {
+        if (!value) return false;
+        return value.size <= FILE_SIZE;
+      })
+      .test("fileFormat", "dealerAccountForm.validation.fileFormat", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      })
   },
   file_GSTCertificate: {
     name: "file_GSTCertificate",
     type: "file",
-    label: "GST Certificate",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("GST Certificate is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+    label: "dealerAccountForm.fields.gstCertificate",
+    message: "dealerAccountForm.messages.fileRestrictions",
+    validation: Yup.mixed().required("dealerAccountForm.validation.gstCertificateRequired")
+      .test("fileSize", "dealerAccountForm.validation.fileSize", value => {
+        if (!value) return false;
+        return value.size <= FILE_SIZE;
+      })
+      .test("fileFormat", "dealerAccountForm.validation.fileFormat", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
-    label: "User ID Proof",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("User ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+    label: "dealerAccountForm.fields.userIdProof",
+    message: "dealerAccountForm.messages.fileRestrictions",
+    validation: Yup.mixed().required("dealerAccountForm.validation.userIdProofRequired")
+      .test("fileSize", "dealerAccountForm.validation.fileSize", value => {
+        if (!value) return false;
+        return value.size <= FILE_SIZE;
+      })
+      .test("fileFormat", "dealerAccountForm.validation.fileFormat", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
 };

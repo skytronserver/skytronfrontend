@@ -1,6 +1,6 @@
 import { Grid, Button,CircularProgress  } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
-
+import { useTranslation } from "react-i18next";
 import { gridSpacing,FILE_SIZE,SUPPORTED_FORMATS } from "../../store/constant";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
@@ -13,7 +13,9 @@ import { convertErrorObjectToArray } from "../../helper";
 import {ownerInitialValues,vehicleOwnerField} from "../../formjson/vehicleOwner";
 import NotAuthorized from "../../views/pages/NotAuthorized";
 import { useParams } from "react-router-dom";
+
 const VehicleOwner = () => {
+  const { t } = useTranslation();
   const params = useParams();
   const parameter= params['*'] && !isNaN(params['*'])
   const [editPage,setEditPage]=useState(false);
@@ -74,9 +76,9 @@ const VehicleOwner = () => {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = t("vehicleOwnerForm.validation.fileSize");
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
-        errors[fieldName] = "Unsupported Format";
+        errors[fieldName] = t("vehicleOwnerForm.validation.fileFormat");
       } else {
         formik.setFieldValue(fieldName, selectedFile);
         return;
@@ -116,7 +118,7 @@ const VehicleOwner = () => {
         errorList: [],
       }));
   
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t("common.formSubmittedSuccessfully"));
       resetForm(vehicleOwnerInitialValues);
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -127,7 +129,7 @@ const VehicleOwner = () => {
         errorList: convertErrorObjectToArray(error.response?.data || []),
       }));
   
-      handleAlert("Form Not Submitted");
+      handleAlert(t("common.formNotSubmitted"));
     } finally {
       setSubmitting(false);
       setLoading(false);
@@ -146,7 +148,7 @@ const VehicleOwner = () => {
         </div>
       )}
       <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out"}}>
-        <MainCard title="Create New Vehicle Owner">
+        <MainCard title={t("vehicleOwnerForm.title")}>
           <Formik
             initialValues={vehicleOwnerInitialValues}
             validationSchema={validationSchema}
@@ -162,13 +164,12 @@ const VehicleOwner = () => {
                         fieldConfig={vehicleOwnerField[field]}
                         formik={formik}
                         handleFileChange={handleFileChange}
-                       
                       />
                     </Grid>
                   ))}
                   <Grid item xs={12} style={{ marginTop: "20px" }}>
                     <Button type="submit" variant="contained" color="primary"  disabled={loading}>
-                      Submit
+                      {t("common.submit")}
                     </Button>
                   </Grid>
                 </Grid>

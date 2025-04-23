@@ -6,16 +6,17 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  retriveDistrictList,
-  retriveStateList,
-} from "../../helper";
-import {sosOtherUserFormField,sosOtherUserInitialValues} from "../../formjson/sosUser"
-const FILE_SIZE = 512 * 1024 ; // 512 KB
+import { retriveDistrictList, retriveStateList } from "../../helper";
+import { sosOtherUserFormField, sosOtherUserInitialValues } from "../../formjson/sosUser";
+import { useTranslation } from "react-i18next";
+
+const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+
 const SOSUser = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -25,6 +26,7 @@ const SOSUser = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(sosOtherUserFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+
   useEffect(() => {
     (async () => {
       const stateList = await retriveStateList();
@@ -43,7 +45,9 @@ const SOSUser = () => {
       setIsFormLoaded(true);
     })();
   }, []);
+
   const navigate = useNavigate();
+
   const handleClose = () => {
     !alert.error && navigate("/new/sos-user");
     setOpen(false);
@@ -53,15 +57,16 @@ const SOSUser = () => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
+
   const handleFileChange = (event, formik) => {
     const selectedFile = event.currentTarget.files[0];
     const fieldName = event.target.name;
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = t("sosUserForm.validation.fileSize");
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
-        errors[fieldName] = "Unsupported Format";
+        errors[fieldName] = t("sosUserForm.validation.fileFormat");
       } else {
         formik.setFieldValue(fieldName, selectedFile);
         return;
@@ -76,34 +81,29 @@ const SOSUser = () => {
       return acc;
     }, {})
   );
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      // Extract user data from sessionStorage
       const userData = sessionStorage.getItem('cookiesData');
       const data = userData && userData.split("-");
       const userId = userData && data.length > 2 && data[3];
-  
-      // Prepare values with role and createdby
+
       const valuesWithRole = {
         ...values,
         role: 'sosexecutive',
         createdby: userId,
       };
-  
-      // Set submitting and loading state
+
       setSubmitting(true);
       setLoading(true);
-  
-      // Create the user and handle the response
+
       const response = await UserServices.createSOSUser(valuesWithRole);
       console.log("User created successfully:");
       
-      // Successful response
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t("common.formSubmittedSuccessfully"));
       resetForm(sosOtherUserInitialValues);
     } catch (error) {
-      // Handle error response
       console.error("Error creating user:", error?.message);
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -114,13 +114,12 @@ const SOSUser = () => {
           errors: error?.response?.data,
         },
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t("common.formNotSubmitted"));
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
   };
-  
 
   return (
     <>
@@ -162,40 +161,41 @@ const SOSUser = () => {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Create SOS User">
-           {isFormLoaded && <Formik
-              initialValues={sosOtherUserInitialValues}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
-              enableReinitialize
-            >
-              {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(updatedFormFields).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={updatedFormFields[field]}
-                          formik={formik}
-                          handleFileChange={handleFileChange}
-                        />
+          <MainCard title={t("sosUserForm.title")}>
+            {isFormLoaded && (
+              <Formik
+                initialValues={sosOtherUserInitialValues}
+                validationSchema={validationSchema}
+                onSubmit={handleSubmit}
+                enableReinitialize
+              >
+                {(formik) => (
+                  <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={2} className="form-controller">
+                      {Object.keys(updatedFormFields).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={updatedFormFields[field]}
+                            formik={formik}
+                            handleFileChange={handleFileChange}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={loading}
+                        >
+                          {t("common.submit")}
+                        </Button>
                       </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={loading}
-                      >
-                        Submit
-                      </Button>
                     </Grid>
-                  </Grid>
-                </form>
-              )}
-            </Formik>
-          }
+                  </form>
+                )}
+              </Formik>
+            )}
           </MainCard>
         </Grid>
       </Grid>

@@ -681,5 +681,186 @@
     "validation": {
       "dealerRequired": "Dealer is required"
     }
+  },
+  "dealerAccountForm": {
+    "title": "Create Dealer Account",
+    "fields": {
+      "manufacturer": "Manufacturer",
+      "name": "Name",
+      "email": "Email",
+      "mobile": "Mobile",
+      "dob": "Date of Birth",
+      "companyName": "Company Name",
+      "gstNo": "GST No",
+      "state": "State Name",
+      "district": "District Name",
+      "userIdProofNo": "User ID Proof Number",
+      "expirydate": "Expiry Date",
+      "authorizationLetter": "Authorization Letter",
+      "companyRegistrationCertificate": "Company/Shop Registration/Establishment Certificate",
+      "gstCertificate": "GST Certificate",
+      "userIdProof": "User ID Proof"
+    },
+    "validation": {
+      "manufacturerRequired": "Manufacturer is required",
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email address",
+      "mobileRequired": "Mobile Number is required",
+      "mobileFormat": "Mobile Number must be a 10-digit number",
+      "dobRequired": "Date of Birth is required",
+      "companyNameRequired": "Company Name is required",
+      "gstNoRequired": "GST No is required",
+      "stateRequired": "State Name is required",
+      "districtRequired": "District Name is required",
+      "userIdProofNoRequired": "User ID Proof Number is required",
+      "idProofMinLength": "ID Proof Number must be at least 5 characters long",
+      "expirydateRequired": "Expiry Date is required",
+      "authorizationLetterRequired": "Authorization Letter is required",
+      "companyRegistrationCertificateRequired": "Company/Shop Registration/Establishment Certificate is required",
+      "gstCertificateRequired": "GST Certificate is required",
+      "userIdProofRequired": "User ID Proof is required",
+      "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
+      "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
+    },
+    "messages": {
+      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be below 512KB."
+    }
+  },
+  "tagDeviceForm": {
+    "title": "Tag Device to Vehicle",
+    "steps": {
+      "tagDevice": "Tag Device to Vehicle",
+      "dealerVerification": "Dealer Verification",
+      "sendOwnerOtp": "Send Owner OTP",
+      "ownerVerification": "Vehicle Owner Verification",
+      "readyForActivation": "Ready for Activation",
+      "getLocation": "Get Location",
+      "confirmLocation": "Confirm Location",
+      "ownerOtpConfirmation": "Owner OTP Confirmation"
+    },
+    "fields": {
+      "deviceImei": "Device IMEI No",
+      "ownerMobile": "Vehicle Owner Mobile Number",
+      "vehicleRegNo": "Vehicle Registration No.",
+      "engineNo": "Engine No",
+      "chassisNo": "Chassis No.",
+      "vehicleMake": "Vehicle Make",
+      "vehicleModel": "Vehicle Model",
+      "vehicleCategory": "Vehicle Category",
+      "registrationCertificate": "Registration Certificate"
+    },
+    "validation": {
+      "deviceRequired": "Device is required",
+      "mobileRequired": "Mobile Number is required",
+      "mobileFormat": "Mobile Number must be a 10-digit number",
+      "vehicleRegNoRequired": "Vehicle Registration No. is required",
+      "engineNoRequired": "Engine No. is required",
+      "chassisNoRequired": "Chassis No. is required",
+      "vehicleMakeRequired": "Vehicle Make is required",
+      "vehicleModelRequired": "Vehicle Model is required",
+      "vehicleCategoryRequired": "Vehicle Category is required",
+      "registrationCertificateRequired": "Registration Certificate is required"
+    },
+    "messages": {
+      "allStepsCompleted": "All steps completed - you're finished with Tagging device to the vehicle receipt in the Download Receipt Tab!",
+      "dealerOtpSent": "An OTP has been sent to your registered mobile number. Please enter the OTP below to continue.",
+      "requestOwnerOtp": "Request OTP for Owner Verification",
+      "ownerOtpSent": "An OTP has been sent to vehicle owner mobile number. Please enter the OTP below to continue.",
+      "getVahanDetails": "Click below to get details from Vahan",
+      "getLocation": "Click below to get location of Vehicle",
+      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 512KB."
+    }
+  },
+  "vehicleOwnerForm": {
+    "title": "Create New Vehicle Owner",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "mobile": "Mobile",
+      "dob": "Date of Birth",
+      "address": "Address",
+      "expirydate": "Expiry Date",
+      "idProofno": "ID Proof Number",
+      "file_idProof": "ID Proof Document"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email address",
+      "mobileRequired": "Mobile number is required",
+      "invalidMobile": "Invalid mobile number",
+      "dobRequired": "Date of birth is required",
+      "addressRequired": "Address is required",
+      "expirydateRequired": "Expiry date is required",
+      "idProofnoRequired": "ID proof number is required",
+      "file_idProofRequired": "ID proof document is required",
+      "fileSize": "File too large. Max size is 512KB",
+      "fileFormat": "Unsupported format. Only JPG, PDF and PNG files are allowed"
+    }
+  },
+  "sosUserForm": {
+    "title": "Create SOS User",
+    "fields": {
+      "name": "Name",
+      "mobile": "Mobile",
+      "email": "Email",
+      "dob": "Date of Birth",
+      "state": "State",
+      "idProofNo": "ID Proof Number",
+      "idProof": "ID Proof Document",
+      "authLetter": "Authorization Letter",
+      "userType": "User Type",
+      "fileMessage": "Only JPG, PDF, PNG files are allowed and must be below 512KB"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "mobileRequired": "Mobile number is required",
+      "invalidMobile": "Invalid mobile number",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email address",
+      "dobRequired": "Date of birth is required",
+      "stateRequired": "State is required",
+      "idProofNoRequired": "ID proof number is required",
+      "idProofNoLength": "ID proof number must be at least 5 characters",
+      "idProofRequired": "ID proof document is required",
+      "authLetterRequired": "Authorization letter is required",
+      "userTypeRequired": "User type is required",
+      "fileSize": "File too large. Maximum size is 512KB",
+      "fileFormat": "Unsupported format. Only JPG, PDF and PNG files are allowed"
+    },
+    "options": {
+      "teamLead": "Team Lead",
+      "deskExecutive": "Desk Executive",
+      "policeExecutive": "Police Executive",
+      "ambulanceExecutive": "Ambulance Executive",
+      "policeControlRoom": "Police Control Room",
+      "ambulanceControlRoom": "Ambulance Control Room"
+    }
+  },
+  "emTeamForm": {
+    "title": "Create EM Team",
+    "fields": {
+      "name": "Name",
+      "shiftDetails": "Shift Details",
+      "stateName": "State Name",
+      "teamLead": "Team Lead",
+      "teamMember": "Team Member"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "detailsRequired": "Details is required",
+      "stateRequired": "State Name is required",
+      "teamLeadRequired": "Team Lead is required",
+      "teamMemberRequired": "Team member is required"
+    },
+    "options": {
+      "selectTeamLead": "Select Team Lead",
+      "select": "Select"
+    },
+    "messages": {
+      "teamAdded": "Team added successfully",
+      "teamUpdated": "Team Updated successfully"
+    }
   }
 }

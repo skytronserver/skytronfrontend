@@ -670,5 +670,186 @@
       "waitingForModels": "मॉडल की प्रतीक्षा में",
       "waitingForProvider": "प्रदाता की प्रतीक्षा में"
     }
+  },
+  "dealerAccountForm": {
+    "title": "डीलर अकाउंट बनाएं",
+    "fields": {
+      "manufacturer": "निर्माता",
+      "name": "नाम",
+      "email": "ईमेल",
+      "mobile": "मोबाइल",
+      "dob": "जन्म तिथि",
+      "companyName": "कंपनी का नाम",
+      "gstNo": "जीएसटी नंबर",
+      "state": "राज्य का नाम",
+      "district": "जिले का नाम",
+      "userIdProofNo": "यूजर आईडी प्रूफ नंबर",
+      "expirydate": "समाप्ति तिथि",
+      "authorizationLetter": "अधिकृत पत्र",
+      "companyRegistrationCertificate": "कंपनी/दुकान पंजीकरण/स्थापना प्रमाणपत्र",
+      "gstCertificate": "जीएसटी प्रमाणपत्र",
+      "userIdProof": "यूजर आईडी प्रूफ"
+    },
+    "validation": {
+      "manufacturerRequired": "निर्माता आवश्यक है",
+      "nameRequired": "नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "invalidEmail": "अमान्य ईमेल पता",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "mobileFormat": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+      "dobRequired": "जन्म तिथि आवश्यक है",
+      "companyNameRequired": "कंपनी का नाम आवश्यक है",
+      "gstNoRequired": "जीएसटी नंबर आवश्यक है",
+      "stateRequired": "राज्य का नाम आवश्यक है",
+      "districtRequired": "जिले का नाम आवश्यक है",
+      "userIdProofNoRequired": "यूजर आईडी प्रूफ नंबर आवश्यक है",
+      "idProofMinLength": "आईडी प्रूफ नंबर कम से कम 5 अक्षरों का होना चाहिए",
+      "expirydateRequired": "समाप्ति तिथि आवश्यक है",
+      "authorizationLetterRequired": "अधिकृत पत्र आवश्यक है",
+      "companyRegistrationCertificateRequired": "कंपनी/दुकान पंजीकरण/स्थापना प्रमाणपत्र आवश्यक है",
+      "gstCertificateRequired": "जीएसटी प्रमाणपत्र आवश्यक है",
+      "userIdProofRequired": "यूजर आईडी प्रूफ आवश्यक है",
+      "fileSize": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
+      "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं"
+    },
+    "messages": {
+      "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए।"
+    }
+  },
+  "tagDeviceForm": {
+    "title": "वाहन से डिवाइस टैग करें",
+    "steps": {
+      "tagDevice": "वाहन से डिवाइस टैग करें",
+      "dealerVerification": "डीलर सत्यापन",
+      "sendOwnerOtp": "मालिक को ओटीपी भेजें",
+      "ownerVerification": "वाहन मालिक सत्यापन",
+      "readyForActivation": "सक्रियण के लिए तैयार",
+      "getLocation": "स्थान प्राप्त करें",
+      "confirmLocation": "स्थान की पुष्टि करें",
+      "ownerOtpConfirmation": "मालिक ओटीपी पुष्टिकरण"
+    },
+    "fields": {
+      "deviceImei": "डिवाइस IMEI नंबर",
+      "ownerMobile": "वाहन मालिक का मोबाइल नंबर",
+      "vehicleRegNo": "वाहन पंजीकरण संख्या",
+      "engineNo": "इंजन नंबर",
+      "chassisNo": "चेसिस नंबर",
+      "vehicleMake": "वाहन निर्माता",
+      "vehicleModel": "वाहन मॉडल",
+      "vehicleCategory": "वाहन श्रेणी",
+      "registrationCertificate": "पंजीकरण प्रमाणपत्र"
+    },
+    "validation": {
+      "deviceRequired": "डिवाइस आवश्यक है",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "mobileFormat": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+      "vehicleRegNoRequired": "वाहन पंजीकरण संख्या आवश्यक है",
+      "engineNoRequired": "इंजन नंबर आवश्यक है",
+      "chassisNoRequired": "चेसिस नंबर आवश्यक है",
+      "vehicleMakeRequired": "वाहन निर्माता आवश्यक है",
+      "vehicleModelRequired": "वाहन मॉडल आवश्यक है",
+      "vehicleCategoryRequired": "वाहन श्रेणी आवश्यक है",
+      "registrationCertificateRequired": "पंजीकरण प्रमाणपत्र आवश्यक है"
+    },
+    "messages": {
+      "allStepsCompleted": "सभी चरण पूरे हो गए हैं - आप डाउनलोड रसीद टैब में वाहन रसीद के साथ टैगिंग डिवाइस को समाप्त कर चुके हैं!",
+      "dealerOtpSent": "आपके पंजीकृत मोबाइल नंबर पर एक ओटीपी भेजा गया है। कृपया जारी रखने के लिए नीचे ओटीपी दर्ज करें।",
+      "requestOwnerOtp": "मालिक सत्यापन के लिए ओटीपी का अनुरोध करें",
+      "ownerOtpSent": "वाहन मालिक के मोबाइल नंबर पर एक ओटीपी भेजा गया है। कृपया जारी रखने के लिए नीचे ओटीपी दर्ज करें।",
+      "getVahanDetails": "वाहन से विवरण प्राप्त करने के लिए नीचे क्लिक करें",
+      "getLocation": "वाहन का स्थान प्राप्त करने के लिए नीचे क्लिक करें",
+      "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए।"
+    }
+  },
+  "vehicleOwnerForm": {
+    "title": "नया वाहन मालिक बनाएं",
+    "fields": {
+      "name": "नाम",
+      "email": "ईमेल",
+      "mobile": "मोबाइल",
+      "dob": "जन्म तिथि",
+      "address": "पता",
+      "expirydate": "समाप्ति तिथि",
+      "idProofno": "आईडी प्रूफ नंबर",
+      "file_idProof": "आईडी प्रूफ दस्तावेज़"
+    },
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "invalidEmail": "अमान्य ईमेल पता",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "invalidMobile": "अमान्य मोबाइल नंबर",
+      "dobRequired": "जन्म तिथि आवश्यक है",
+      "addressRequired": "पता आवश्यक है",
+      "expirydateRequired": "समाप्ति तिथि आवश्यक है",
+      "idProofnoRequired": "आईडी प्रूफ नंबर आवश्यक है",
+      "file_idProofRequired": "आईडी प्रूफ दस्तावेज़ आवश्यक है",
+      "fileSize": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 512KB है",
+      "fileFormat": "असमर्थित प्रारूप। केवल JPG, PDF और PNG फ़ाइलें अनुमत हैं"
+    }
+  },
+  "sosUserForm": {
+    "title": "SOS उपयोगकर्ता बनाएं",
+    "fields": {
+      "name": "नाम",
+      "mobile": "मोबाइल",
+      "email": "ईमेल",
+      "dob": "जन्म तिथि",
+      "state": "राज्य",
+      "idProofNo": "आईडी प्रूफ नंबर",
+      "idProof": "आईडी प्रूफ दस्तावेज़",
+      "authLetter": "अधिकृत पत्र",
+      "userType": "उपयोगकर्ता प्रकार",
+      "fileMessage": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए"
+    },
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "invalidMobile": "अमान्य मोबाइल नंबर",
+      "emailRequired": "ईमेल आवश्यक है",
+      "invalidEmail": "अमान्य ईमेल पता",
+      "dobRequired": "जन्म तिथि आवश्यक है",
+      "stateRequired": "राज्य आवश्यक है",
+      "idProofNoRequired": "आईडी प्रूफ नंबर आवश्यक है",
+      "idProofNoLength": "आईडी प्रूफ नंबर कम से कम 5 अक्षर का होना चाहिए",
+      "idProofRequired": "आईडी प्रूफ दस्तावेज़ आवश्यक है",
+      "authLetterRequired": "अधिकृत पत्र आवश्यक है",
+      "userTypeRequired": "उपयोगकर्ता प्रकार आवश्यक है",
+      "fileSize": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 512KB है",
+      "fileFormat": "असमर्थित प्रारूप। केवल JPG, PDF और PNG फ़ाइलें अनुमत हैं"
+    },
+    "options": {
+      "teamLead": "टीम लीड",
+      "deskExecutive": "डेस्क एक्जीक्यूटिव",
+      "policeExecutive": "पुलिस एक्जीक्यूटिव",
+      "ambulanceExecutive": "एम्बुलेंस एक्जीक्यूटिव",
+      "policeControlRoom": "पुलिस कंट्रोल रूम",
+      "ambulanceControlRoom": "एम्बुलेंस कंट्रोल रूम"
+    }
+  },
+  "emTeamForm": {
+    "title": "ईएम टीम बनाएं",
+    "fields": {
+      "name": "नाम",
+      "shiftDetails": "शिफ्ट विवरण",
+      "stateName": "राज्य का नाम",
+      "teamLead": "टीम लीड",
+      "teamMember": "टीम सदस्य"
+    },
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "detailsRequired": "विवरण आवश्यक है",
+      "stateRequired": "राज्य का नाम आवश्यक है",
+      "teamLeadRequired": "टीम लीड आवश्यक है",
+      "teamMemberRequired": "टीम सदस्य आवश्यक है"
+    },
+    "options": {
+      "selectTeamLead": "टीम लीड चुनें",
+      "select": "चुनें"
+    },
+    "messages": {
+      "teamAdded": "टीम सफलतापूर्वक जोड़ी गई",
+      "teamUpdated": "टीम सफलतापूर्वक अपडेट की गई"
+    }
   }
 }

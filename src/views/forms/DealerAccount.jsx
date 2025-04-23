@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Formik } from "formik";
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   gridSpacing,
   FILE_SIZE,
@@ -25,7 +26,9 @@ import {
   dealerAccountFormField,
   dealerAccountInitialValues,
 } from "../../formjson/dealerAccount";
+
 function DealerAccount() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const [alert, setAlert] = useState({
@@ -38,7 +41,6 @@ function DealerAccount() {
     dealerAccountFormField
   );
   const [isFormLoaded, setIsFormLoaded] = useState(false);
-
 
   useEffect(() => {
     (async () => {
@@ -123,9 +125,9 @@ function DealerAccount() {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = t("dealerAccountForm.validation.fileSize");
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
-        errors[fieldName] = "Unsupported Format";
+        errors[fieldName] = t("dealerAccountForm.validation.fileFormat");
       } else {
         formik.setFieldValue(fieldName, selectedFile);
         return;
@@ -165,12 +167,12 @@ function DealerAccount() {
     try {
       await DealerServices.dealerUser(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t("common.formSubmittedSuccessfully"));
       setSubmitting(false);
       resetForm(dealerAccountInitialValues);
     } catch (error) {
       if (error.message === "Network Error") {
-        handleAlert("Internal Server Error");
+        handleAlert(t("common.internalServerError"));
         return true;
       }
       setAlert((prevAlert) => ({
@@ -178,7 +180,7 @@ function DealerAccount() {
         error: true,
         errorList: convertErrorObjectToArray(error.response.data),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t("common.formNotSubmitted"));
     } finally {
       setLoading(false);
     }
@@ -199,7 +201,7 @@ function DealerAccount() {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="Create Dealer Account">
+          <MainCard title={t("dealerAccountForm.title")}>
             {isFormLoaded && (
               <Formik
                 initialValues={dealerAccountInitialValues}
@@ -227,7 +229,7 @@ function DealerAccount() {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit
+                          {t("common.submit")}
                         </Button>
                       </Grid>
                     </Grid>

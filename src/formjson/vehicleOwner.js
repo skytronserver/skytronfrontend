@@ -19,61 +19,61 @@ export const vehicleOwnerField = {
   name: {
     name: "name",
     type: "text",
-    label: "Name",
-    validation: Yup.string().required("Name is required"),
+    label: "vehicleOwnerForm.fields.name",
+    validation: Yup.string().required("vehicleOwnerForm.validation.nameRequired"),
   },
   email: {
     name: "email",
     type: "text",
-    label: "Email",
+    label: "vehicleOwnerForm.fields.email",
     validation: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+      .email("vehicleOwnerForm.validation.invalidEmail")
+      .required("vehicleOwnerForm.validation.emailRequired"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
-    label: "Mobile",
+    label: "vehicleOwnerForm.fields.mobile",
     validation: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile Number is required"),
+      .matches(/^\d{10}$/, "vehicleOwnerForm.validation.mobileFormat")
+      .required("vehicleOwnerForm.validation.mobileRequired"),
   },
   dob: {
     name:"dob",
     type: "date",
-    label: "Date of Birth",
-    validation: Yup.date().required("Date of Birth is required"),
+    label: "vehicleOwnerForm.fields.dob",
+    validation: Yup.date().required("vehicleOwnerForm.validation.dobRequired"),
     maxDate:today
   },
   address: {
     name: "address",
     type: "text",
-    label: "Full Address",
-    validation: Yup.string().required("Full Address is required"),
+    label: "vehicleOwnerForm.fields.address",
+    validation: Yup.string().required("vehicleOwnerForm.validation.addressRequired"),
   },
   expirydate: {
     name:"expirydate",
     type: "date",
-    label: "Expiry Date",
+    label: "vehicleOwnerForm.fields.expiryDate",
     disabled:true,
-    validation: Yup.date().required("Expiry Date is required"),
+    validation: Yup.date().required("vehicleOwnerForm.validation.expiryDateRequired"),
   },
   idProofno: {
     name: "idProofno",
     type: "text",
-    label: "User ID Proof Number",
-    validation: Yup.string().min(5, "ID Proof Number must be at least 5 characters long").required("User ID Proof Number is required"),
+    label: "vehicleOwnerForm.fields.idProofNo",
+    validation: Yup.string().min(5, "vehicleOwnerForm.validation.idProofNoLength").required("vehicleOwnerForm.validation.idProofNoRequired"),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
-    label: "ID Proof",
-    message:'Only JPG, PDF, PNG files are allowed and must be below 512KB.',
-    validation: Yup.mixed().required("ID Proof is required").test("fileSize", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    label: "vehicleOwnerForm.fields.idProof",
+    message: "vehicleOwnerForm.fields.fileMessage",
+    validation: Yup.mixed().required("vehicleOwnerForm.validation.idProofRequired").test("fileSize", "vehicleOwnerForm.validation.fileSize", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "Max size is 520KB and supported files are pdf/png/jpg", value => {
+    .test("fileFormat", "vehicleOwnerForm.validation.fileFormat", value => {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),

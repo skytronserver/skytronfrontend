@@ -42,57 +42,57 @@ export const sosUserFormField = {
   name: {
     name: "name",
     type: "text",
-    label: "sosAdmin.form.fields.name",
-    validation: Yup.string().required("sosAdmin.form.validation.name_required"),
+    label: "sosUserForm.fields.name",
+    validation: Yup.string().required("sosUserForm.validation.nameRequired"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
-    label: "sosAdmin.form.fields.mobile",
+    label: "sosUserForm.fields.mobile",
     validation: Yup.string()
-      .matches(/^\d{10}$/, "sosAdmin.form.validation.invalid_mobile")
-      .required("sosAdmin.form.validation.mobile_required"),
+      .matches(/^\d{10}$/, "sosUserForm.validation.invalidMobile")
+      .required("sosUserForm.validation.mobileRequired"),
   },
   email: {
     name: "email",
     type: "text",
-    label: "sosAdmin.form.fields.email",
+    label: "sosUserForm.fields.email",
     validation: Yup.string()
-      .email("sosAdmin.form.validation.invalid_email")
-      .required("sosAdmin.form.validation.email_required"),
+      .email("sosUserForm.validation.invalidEmail")
+      .required("sosUserForm.validation.emailRequired"),
   },
   dob: {
     name: "dob",
     type: "date",
-    label: "sosAdmin.form.fields.dob",
-    validation: Yup.date().required("sosAdmin.form.validation.dob_required"),
+    label: "sosUserForm.fields.dob",
+    validation: Yup.date().required("sosUserForm.validation.dobRequired"),
     maxDate: today,
   },
   state: {
     name: "state",
     type: "select",
-    label: "sosAdmin.form.fields.state",
-    validation: Yup.string().required("sosAdmin.form.validation.state_required"),
+    label: "sosUserForm.fields.state",
+    validation: Yup.string().required("sosUserForm.validation.stateRequired"),
     options: stateList,
   },
   idProofno: {
     name: "idProofno",
     type: "text",
-    label: "sosAdmin.form.fields.id_proof_number",
+    label: "sosUserForm.fields.idProofNo",
     validation: Yup.string()
-      .min(5, "sosAdmin.form.validation.id_proof_min_length")
-      .required("sosAdmin.form.validation.id_proof_required"),
+      .min(5, "sosUserForm.validation.idProofNoLength")
+      .required("sosUserForm.validation.idProofNoRequired"),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
-    label: "sosAdmin.form.fields.id_proof",
-    message: "sosAdmin.form.validation.file_restrictions",
+    label: "sosUserForm.fields.idProof",
+    message: "sosUserForm.fields.fileMessage",
     validation: Yup.mixed()
-      .required("sosAdmin.form.validation.id_proof_required")
+      .required("sosUserForm.validation.idProofRequired")
       .test(
         "fileSize",
-        "sosAdmin.form.validation.file_size",
+        "sosUserForm.validation.fileSize",
         (value) => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
@@ -100,7 +100,7 @@ export const sosUserFormField = {
       )
       .test(
         "fileFormat",
-        "sosAdmin.form.validation.file_format",
+        "sosUserForm.validation.fileFormat",
         (value) => {
           if (!value) return false;
           return SUPPORTED_FORMATS.includes(value.type);
@@ -110,13 +110,13 @@ export const sosUserFormField = {
   file_authorization_letter: {
     name: "file_authorization_letter",
     type: "file",
-    label: "sosAdmin.form.fields.auth_letter",
-    message: "sosAdmin.form.validation.file_restrictions",
+    label: "sosUserForm.fields.authLetter",
+    message: "sosUserForm.fields.fileMessage",
     validation: Yup.mixed()
-      .required("sosAdmin.form.validation.auth_letter_required")
+      .required("sosUserForm.validation.authLetterRequired")
       .test(
         "fileSize",
-        "sosAdmin.form.validation.file_size",
+        "sosUserForm.validation.fileSize",
         (value) => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
@@ -124,7 +124,7 @@ export const sosUserFormField = {
       )
       .test(
         "fileFormat",
-        "sosAdmin.form.validation.file_format",
+        "sosUserForm.validation.fileFormat",
         (value) => {
           if (!value) return false;
           return SUPPORTED_FORMATS.includes(value.type);
@@ -138,71 +138,71 @@ export const sosOtherUserFormField = {
   user_type: {
     name: "user_type",
     type: "select",
-    label: "User Type",
-    validation: Yup.string().required("User Type is required"),
+    label: "sosUserForm.fields.userType",
+    validation: Yup.string().required("sosUserForm.validation.userTypeRequired"),
     options: [
-      { value: "teamlead", label: "Team Lead" },
-      { value: "desk_ex", label: "Desk Executive" },
-      { value: "police_ex", label: "Police Executive" },
-      { value: "ambulance_ex", label: "Ambulance Executive" },
-      { value: "PCR", label: "Police Control Room" },
-      { value: "ACR", label: "Ambulance Control Room" },
+      { value: "teamlead", label: "sosUserForm.options.teamLead" },
+      { value: "desk_ex", label: "sosUserForm.options.deskExecutive" },
+      { value: "police_ex", label: "sosUserForm.options.policeExecutive" },
+      { value: "ambulance_ex", label: "sosUserForm.options.ambulanceExecutive" },
+      { value: "PCR", label: "sosUserForm.options.policeControlRoom" },
+      { value: "ACR", label: "sosUserForm.options.ambulanceControlRoom" },
     ],
   },
   name: {
     name: "name",
     type: "text",
-    label: "Name",
-    validation: Yup.string().required("Name is required"),
+    label: "sosUserForm.fields.name",
+    validation: Yup.string().required("sosUserForm.validation.nameRequired"),
   },
   mobile: {
     name: "mobile",
     type: "text",
-    label: "Mobile",
+    label: "sosUserForm.fields.mobile",
     validation: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile Number is required"),
+      .matches(/^\d{10}$/, "sosUserForm.validation.invalidMobile")
+      .required("sosUserForm.validation.mobileRequired"),
   },
   email: {
     name: "email",
     type: "text",
-    label: "Email",
+    label: "sosUserForm.fields.email",
     validation: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+      .email("sosUserForm.validation.invalidEmail")
+      .required("sosUserForm.validation.emailRequired"),
   },
   dob: {
     name: "dob",
     type: "date",
-    label: "Date of Birth",
-    validation: Yup.date().required("Date of Birth is required"),
+    label: "sosUserForm.fields.dob",
+    validation: Yup.date().required("sosUserForm.validation.dobRequired"),
     maxDate: today,
   },
   state: {
     name: "state",
     type: "select",
-    label: "State Name",
-    validation: Yup.string().required("State Name is required"),
+    label: "sosUserForm.fields.state",
+    validation: Yup.string().required("sosUserForm.validation.stateRequired"),
     options: stateList,
   },
   idProofno: {
     name: "idProofno",
     type: "text",
-    label: "User ID Number",
+    label: "sosUserForm.fields.idProofNo",
     validation: Yup.string()
-      .min(5, "ID Proof Number must be at least 5 characters long")
-      .required("User ID No is required field"),
+      .min(5, "sosUserForm.validation.idProofNoLength")
+      .required("sosUserForm.validation.idProofNoRequired"),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
-    label: "User ID Proof",
-    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    label: "sosUserForm.fields.idProof",
+    message: "sosUserForm.fields.fileMessage",
     validation: Yup.mixed()
-      .required("User ID Document is required")
+      .required("sosUserForm.validation.idProofRequired")
       .test(
         "fileSize",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosUserForm.validation.fileSize",
         (value) => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
@@ -210,7 +210,7 @@ export const sosOtherUserFormField = {
       )
       .test(
         "fileFormat",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosUserForm.validation.fileFormat",
         (value) => {
           if (!value) return false;
           return SUPPORTED_FORMATS.includes(value.type);
@@ -220,13 +220,13 @@ export const sosOtherUserFormField = {
   file_authorization_letter: {
     name: "file_authorization_letter",
     type: "file",
-    label: "Authorization Letter",
-    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    label: "sosUserForm.fields.authLetter",
+    message: "sosUserForm.fields.fileMessage",
     validation: Yup.mixed()
-      .required("Authorization Letter Document is required")
+      .required("sosUserForm.validation.authLetterRequired")
       .test(
         "fileSize",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosUserForm.validation.fileSize",
         (value) => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
@@ -234,7 +234,7 @@ export const sosOtherUserFormField = {
       )
       .test(
         "fileFormat",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "sosUserForm.validation.fileFormat",
         (value) => {
           if (!value) return false;
           return SUPPORTED_FORMATS.includes(value.type);
@@ -247,34 +247,34 @@ export const emTeamFormField = {
   name: {
     name: "name",
     type: "text",
-    label: "Name",
-    validation: Yup.string().required("Name is required"),
+    label: "emTeamForm.fields.name",
+    validation: Yup.string().required("emTeamForm.validation.nameRequired"),
   },
   detail: {
     name: "detail",
     type: "text",
-    label: "Shift Details",
-    validation: Yup.string().required("Details is required"),
+    label: "emTeamForm.fields.shiftDetails",
+    validation: Yup.string().required("emTeamForm.validation.detailsRequired"),
   },
   state: {
     name: "state",
     type: "select",
-    label: "State Name",
-    validation: Yup.string().required("State Name is required"),
+    label: "emTeamForm.fields.stateName",
+    validation: Yup.string().required("emTeamForm.validation.stateRequired"),
     options: stateList,
   },
   teamlead: {
     name: "teamlead",
     type: "select",
-    label: "Team Lead",
-    validation: Yup.string().required("Team Lead is required"),
-    options: [{ value: "", label: "Select Team Lead" }],
+    label: "emTeamForm.fields.teamLead",
+    validation: Yup.string().required("emTeamForm.validation.teamLeadRequired"),
+    options: [{ value: "", label: "emTeamForm.options.selectTeamLead" }],
   },
   members: {
     name: "members",
     type: "multiselect",
-    label: "Team Member",
-    validation: Yup.array().required("Team member is required"),
-    options: [{ value: "", label: "Select" }],
+    label: "emTeamForm.fields.teamMember",
+    validation: Yup.array().required("emTeamForm.validation.teamMemberRequired"),
+    options: [{ value: "", label: "emTeamForm.options.select" }],
   },
 };

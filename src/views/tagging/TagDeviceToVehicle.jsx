@@ -4,6 +4,7 @@ import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import { Formik } from "formik";
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { gridSpacing } from "../../store/constant";
 import TaggingService from "../../services/TaggingService";
 import HomePageService from "../../services/HomePage";
@@ -26,17 +27,20 @@ import CustomStepper from "../../ui-component/CustomStepper";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 import DisplayTable from "../../ui-component/DisplayTable";
 import MapComponent from "views/direct/LiveMap";
+
 const steps = [
-  { label: "Tag Device to Vehicle", name: "Step 1" },
-  { label: "Dealer Verification", name: "Step 2" },
-  { label: "Send Owner OTP", name: "Step 3" },
-  { label: "Vehicle Owner Verification", name: "Step 4" },
-  { label: "Ready for Activation", name: "Step 5" },
-  { label: "Get Location", name: "Step 6" },
-  { label: "Confirm Location", name: "Step 7" },
-  { label: "Owner OTP Confirmation", name: "Step 8" },
+  { label: "tagDeviceForm.steps.tagDevice", name: "Step 1" },
+  { label: "tagDeviceForm.steps.dealerVerification", name: "Step 2" },
+  { label: "tagDeviceForm.steps.sendOwnerOtp", name: "Step 3" },
+  { label: "tagDeviceForm.steps.ownerVerification", name: "Step 4" },
+  { label: "tagDeviceForm.steps.readyForActivation", name: "Step 5" },
+  { label: "tagDeviceForm.steps.getLocation", name: "Step 6" },
+  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 7" },
+  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 8" },
 ];
+
 function TagDeviceToVehicle() {
+  const { t } = useTranslation();
   const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
   const [deviceId, setDeviceId] = useState("");
   const [activeStep, setActiveStep] = useState(0);
@@ -371,9 +375,8 @@ function TagDeviceToVehicle() {
       />
       {error.api && (
         <Alert severity="error" style={{ marginBottom: "16px" }}>
-          <AlertTitle>Internal Server Error</AlertTitle>
-          An error occurred in the server. Please contact the server
-          administrator.
+          <AlertTitle>{t("common.error")}</AlertTitle>
+          {t("common.internalServerError")}
         </Alert>
       )}
       <Grid container spacing={gridSpacing}>
@@ -383,7 +386,7 @@ function TagDeviceToVehicle() {
           </div>
         )}
         <Grid item xs={12} style={{ width: "100%" }}>
-          <CustomStepper activeStep={activeStep} label={false} steps={steps} />
+          <CustomStepper activeStep={activeStep} label={false} steps={steps.map(step => ({ ...step, label: t(step.label) }))} />
         </Grid>
         <Grid
           item
@@ -394,8 +397,7 @@ function TagDeviceToVehicle() {
             {activeStep === 8 ? (
               <React.Fragment>
                 <Typography sx={{ mt: 2, mb: 1 }}>
-                  All steps completed - you're finished with Tagging device to
-                  the vehicle receipt in the Download Receipt Tab!
+                  {t("tagDeviceForm.messages.allStepsCompleted")}
                 </Typography>
                 <Button
                   type="submit"
@@ -403,13 +405,13 @@ function TagDeviceToVehicle() {
                   color="primary"
                   onClick={reset}
                 >
-                  Finish
+                  {t("common.finish")}
                 </Button>
               </React.Fragment>
             ) : (
               <React.Fragment>
                 <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
-                  {steps[activeStep].label}
+                  {t(steps[activeStep].label)}
                 </Typography>
               </React.Fragment>
             )}
@@ -452,8 +454,7 @@ function TagDeviceToVehicle() {
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>
-                    An OTP has been sent to your registered mobile number.
-                    Please enter the OTP below to continue.
+                    {t("tagDeviceForm.messages.dealerOtpSent")}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={5}>
@@ -470,7 +471,7 @@ function TagDeviceToVehicle() {
                       variant="contained"
                       onClick={() => handleOtpSubmit("dealer")}
                     >
-                      Confirm
+                      {t("common.confirm")}
                     </Button>
                   </Typography>
                 </Grid>
@@ -479,7 +480,7 @@ function TagDeviceToVehicle() {
             {activeStep === 2 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <Typography>Request OTP for Owner Verification</Typography>
+                  <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
                 </Grid>
                 <Grid item xs={12} md={5}>
                   <Typography>
@@ -489,7 +490,7 @@ function TagDeviceToVehicle() {
                       variant="contained"
                       onClick={() => sendOwnerOtp("owner")}
                     >
-                      Request
+                      {t("common.request")}
                     </Button>
                   </Typography>
                 </Grid>
@@ -601,7 +602,7 @@ function TagDeviceToVehicle() {
             {activeStep === 6 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <Typography>Request OTP for Owner Verification</Typography>
+                  <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
                 </Grid>
                 <Grid item xs={12} md={5}>
                   <Typography>
@@ -611,7 +612,7 @@ function TagDeviceToVehicle() {
                       variant="contained"
                       onClick={() => sendOwnerOtp("finalOwner")}
                     >
-                      Request
+                      {t("common.request")}
                     </Button>
                   </Typography>
                 </Grid>
