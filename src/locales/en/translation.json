@@ -34,6 +34,29 @@
     "toDate": "To Date",
     "submit": "Submit"
   },
+  "form": {
+    "accessory": {
+      "title": "Accessory Details",
+      "serialNo": "Serial No.",
+      "model": "Model",
+      "testAgency": "Test Agency Name",
+      "tacNo": "Tac No",
+      "tacValidity": "TAC Validity",
+      "copNo": "COP No",
+      "copValidity": "COP Validity",
+      "quantity": "Quantity",
+      "remarks": "Remarks",
+      "submitError": "Unable to Submit"
+    },
+    "validation": {
+      "serialNoRequired": "Serial No. is required",
+      "modelRequired": "Model is required",
+      "quantityNumber": "Quantity must be a number",
+      "quantityPositive": "Quantity must be positive",
+      "quantityInteger": "Quantity must be an integer",
+      "quantityRequired": "Quantity is required"
+    }
+  },
   "liveTracking": {
     "title": "Live Tracking",
     "vehicleRegistrationNo": "Vehicle Registration No",

@@ -18,60 +18,60 @@ export const accessoryFormField = {
     serial_no: {
         name: "serial_no",
         type: "text",
-        label: "Serial No.",
-        validation: Yup.string().required("Serial No. is required"),
+        label: "form.accessory.serialNo", // Use translation key
+        validation: Yup.string().required("form.validation.serialNoRequired"), // Use translation key
     },
     model: {
         name: "model",
         type: "select",
-        label: "Model",
-        validation: Yup.string().required("Model is required"),
+        label: "form.accessory.model", // Use translation key
+        validation: Yup.string().required("form.validation.modelRequired"), // Use translation key
         options: modelList,
     },
     test_agency: {
         name: "test_agency",
         type: "text",
-        label: "Test Agency Name",
+        label: "form.accessory.testAgency", // Use translation key
         disabled: true,
     },
     tac_no: {
         name: "tac_no",
         type: "text",
         disabled: true,
-        label: "Tac No",
+        label: "form.accessory.tacNo", // Use translation key
     },
     tac_validity: {
         name: "tac_validity",
         type: "date",
         disabled: true,
-        label: "TAC Validity",
+        label: "form.accessory.tacValidity", // Use translation key
     },
     cop_no: {
         name: "cop_no",
         type: "text",
-        label: "COP No",
+        label: "form.accessory.copNo", // Use translation key
         disabled: true,
     },
     cop_validity: {
         name: "cop_validity",
         type: "date",
-        label: "COP Validity",
+        label: "form.accessory.copValidity", // Use translation key
         disabled: true,
     },
     quantity: {
         name: "quantity",
         type: "text",
-        label: "Quantity",
+        label: "form.accessory.quantity", // Use translation key
         validation: Yup.number()
-            .typeError("Quantity must be a number")
-            .positive("Quantity must be positive")
-            .integer("Quantity must be an integer")
-            .required("Quantity is required"),
+            .typeError("form.validation.quantityNumber") // Use translation key
+            .positive("form.validation.quantityPositive") // Use translation key
+            .integer("form.validation.quantityInteger") // Use translation key
+            .required("form.validation.quantityRequired"), // Use translation key
     },
     remarks: {
         name: "remarks",
         type: "text",
-        label: "Remarks",
+        label: "form.accessory.remarks", // Use translation key
         validation: "",
     },
-}; 
+};

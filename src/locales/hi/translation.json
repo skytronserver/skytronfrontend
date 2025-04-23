@@ -34,6 +34,29 @@
     "toDate": "अंतिम दिनांक",
     "submit": "जमा करें"
   },
+  "form": {
+    "accessory": {
+      "title": "सहायक उपकरण विवरण",
+      "serialNo": "क्रम संख्या",
+      "model": "मॉडल",
+      "testAgency": "परीक्षण एजेंसी का नाम",
+      "tacNo": "टैक नंबर",
+      "tacValidity": "टैक वैधता",
+      "copNo": "सीओपी नंबर",
+      "copValidity": "सीओपी वैधता",
+      "quantity": "मात्रा",
+      "remarks": "टिप्पणियां",
+      "submitError": "सबमिट करने में असमर्थ"
+    },
+    "validation": {
+      "serialNoRequired": "क्रम संख्या आवश्यक है",
+      "modelRequired": "मॉडल आवश्यक है",
+      "quantityNumber": "मात्रा एक संख्या होनी चाहिए",
+      "quantityPositive": "मात्रा सकारात्मक होनी चाहिए",
+      "quantityInteger": "मात्रा एक पूर्णांक होनी चाहिए",
+      "quantityRequired": "मात्रा आवश्यक है"
+    }
+  },
   "liveTracking": {
     "title": "लाइव ट्रैकिंग",
     "vehicleRegistrationNo": "वाहन पंजीकरण संख्या",

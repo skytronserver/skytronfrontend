@@ -34,6 +34,21 @@
     "toDate": "শেষৰ তাৰিখ",
     "submit": "দাখিল কৰক"
   },
+  "form": {
+    "accessory": {
+      "title": "এক্সেচৰি বিৱৰণ",
+      "serialNo": "ক্ৰমিক নং",
+      "model": "মডেল",
+      "testAgency": "পৰীক্ষা সংস্থাৰ নাম",
+      "tacNo": "টেক নং",
+      "tacValidity": "টেক বৈধতা",
+      "copNo": "চিঅ'পি নং",
+      "copValidity": "চিঅ'পি বৈধতা",
+      "quantity": "পৰিমাণ",
+      "remarks": "মন্তব্য",
+      "submitError": "দাখিল কৰিব পৰা নাই"
+    }
+  },
   "liveTracking": {
     "title": "লাইভ ট্ৰেকিং",
     "vehicleRegistrationNo": "যানবাহন পঞ্জীয়ন নম্বৰ",
@@ -250,14 +265,11 @@
     "downloadFitmentReceipt": "ফিটমেন্ট ৰচিট ডাউনলোড কৰক",
     "sosUsers": "এছঅ'এছ ব্যৱহাৰকাৰী",
     "notices": "নোটিছ",
-    "stateAdmin": "ৰাজ্য প্ৰশাসক",
-    "sosAdmin": "এছঅ'এছ প্ৰশাসক",
     "m2mProvider": "এমটুএম প্ৰদানকাৰী",
     "deviceList": "ডিভাইচ তালিকা",
     "stockReport": "ষ্টক ৰিপ'ৰ্ট",
     "fitmentReport": "ফিটমেন্ট ৰিপ'ৰ্ট",
     "dealers": "ডিলাৰ",
-    "vehicleOwner": "যানবাহনৰ মালিক",
     "vehicleOwnerReport": "যানবাহনৰ মালিক ৰিপ'ৰ্ট",
     "dtoUserList": "ডিটিঅ' ব্যৱহাৰকাৰী তালিকা",
     "viewStocks": "ষ্টক চাওক",

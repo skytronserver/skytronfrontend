@@ -8,7 +8,6 @@ import {getRole} from "../../../helper";
 // project imports
 import LogoSection from "../LogoSection";
 import ProfileSection from "./ProfileSection";
-import LanguageSwitcher from "../../../ui-component/LanguageSwitcher";
 
 // assets
 import { IconMenu2 } from "@tabler/icons";
@@ -72,8 +71,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
       <Box sx={{ flexGrow: 1 }} />
       
       {/* language switcher */}
-      <LanguageSwitcher />
-      
+            
       <Box sx={{ flexGrow: 1 }} />
 
       {/* notification & profile */}
