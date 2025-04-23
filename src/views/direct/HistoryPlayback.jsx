@@ -4,8 +4,10 @@ import HomePageService from "../../services/HomePage";
 import GPSHistoryMap from "./HistoryPlaybackMap";
 import {dateTimeUpdate} from "../../helper"
 import { FormControl, Autocomplete,TextField, Button, Grid } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const HistoryPlayback = () => {
+  const { t } = useTranslation();
   const currentDate = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   const [load, setLoad] = useState(false);
@@ -60,9 +62,9 @@ const HistoryPlayback = () => {
                 options={vehicleList.length > 0 ? vehicleList : []}
                 getOptionLabel={(option) => option || ''}
                 renderInput={(params) => (
-                  <TextField {...params} label="Select Vehicle" variant="outlined" />
+                  <TextField {...params} label={t('historyPlayback.selectVehicle')} variant="outlined" />
                 )}
-                noOptionsText="Wait Fetching Vehicle List"
+                noOptionsText={t('historyPlayback.noVehicleOptions')}
                 disableClearable
               />
             </FormControl>
@@ -71,7 +73,7 @@ const HistoryPlayback = () => {
           <Grid item md={3} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <TextField
               fullWidth
-              label="From Date"
+              label={t('historyPlayback.fromDate')}
               type="datetime-local"
               value={fromDate}
               onChange={handleFromDateChange}
@@ -82,7 +84,7 @@ const HistoryPlayback = () => {
           <Grid item md={3} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <TextField
               fullWidth
-              label="To Date"
+              label={t('historyPlayback.toDate')}
               type="datetime-local"
               value={toDate}
               onChange={handleToDateChange}
@@ -98,7 +100,7 @@ const HistoryPlayback = () => {
               color="primary"
               style={{ height: "48px" }}
             >
-              Submit
+              {t('historyPlayback.submit')}
             </Button>
           </Grid>
         </Grid>

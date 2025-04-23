@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import TaggingService from "../../services/TaggingService";
+import { useTranslation } from "react-i18next";
 import {
   MenuItem,
   Button,
@@ -28,6 +29,7 @@ import Stroke from "ol/style/Stroke";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 
 const RouteFixing = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [routeContent, setRouteContent] = useState("");
   const [inputValue, setInputValue] = useState("");
@@ -343,7 +345,7 @@ const RouteFixing = () => {
     if (newPoints.length < 2) {
       setAlert({
         open: true,
-        message: "Please add at least two points to create a route.",
+        message: t('routeFixing.alerts.minimumPoints'),
         type: "error"
       });
       return;
@@ -380,14 +382,14 @@ const RouteFixing = () => {
       vectorSourceRef.current.clear();
       setAlert({
         open: true,
-        message: "Route added successfully!",
+        message: t('routeFixing.alerts.routeAdded'),
         type: "success"
       });
     } catch (error) {
       console.error("Error adding new route:", error);
       setAlert({
         open: true,
-        message: error.message || "Failed to add route. Please try again.",
+        message: error.message || t('routeFixing.alerts.routeAddFailed'),
         type: "error"
       });
     }
@@ -402,7 +404,7 @@ const RouteFixing = () => {
     if (!selectedRoute) {
       setAlert({
         open: true,
-        message: "Please select a route to delete.",
+        message: t('routeFixing.alerts.selectRouteDelete'),
         type: "error"
       });
       return;
@@ -421,14 +423,14 @@ const RouteFixing = () => {
       vectorSourceRef.current.clear(); // Clear the route from map
       setAlert({
         open: true,
-        message: "Route deleted successfully!",
+        message: t('routeFixing.alerts.routeDeleted'),
         type: "success"
       });
     } catch (error) {
       console.error("Error deleting route:", error);
       setAlert({
         open: true,
-        message: "Failed to delete route. Please try again.",
+        message: t('routeFixing.alerts.routeDeleteFailed'),
         type: "error"
       });
     }
@@ -441,7 +443,7 @@ const RouteFixing = () => {
         message={alert.message}
         type={alert.type}
       />
-      <p>Route Fixing</p>
+      <p>{t('routeFixing.title')}</p>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2} className="form-controller">
           <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
@@ -455,14 +457,14 @@ const RouteFixing = () => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Select Vehicle Registration No"
+                  label={t('routeFixing.selectVehicle')}
                   variant="outlined"
                   fullWidth
                   margin="normal"
                   onChange={(e) => setInputValue(e.target.value)} // Update inputValue on change
                 />
               )}
-              noOptionsText="Enter Vehicle Registration No."
+              noOptionsText={t('routeFixing.noVehicleOptions')}
               isOptionEqualToValue={(option, value) =>
                 option.device.id === value.device.id
               }
@@ -477,7 +479,7 @@ const RouteFixing = () => {
               color="primary"
               style={{ height: "48px" }}
             >
-              Submit
+              {t('routeFixing.buttons.submit')}
             </Button>
           </Grid>
         </Grid>
@@ -493,21 +495,21 @@ const RouteFixing = () => {
             fullWidth
           >
             <MenuItem value="" disabled>
-              Select a route
+              {t('routeFixing.selectRoute')}
             </MenuItem>
             {routeData.map((route) => (
               <MenuItem 
                 value={`${route.id}|${route.route}`} 
                 key={route.id}
               >
-                {`Route #${route.id}`}
+                {t('routeFixing.routeNumber', { number: route.id })}
               </MenuItem>
             ))}
           </Select>
 
           <Box sx={{ mt: 2 }}>
             <Button onClick={addRoute} variant="contained" color="primary">
-              Add Route
+              {t('routeFixing.buttons.addRoute')}
             </Button>
             <Button
               onClick={delRoute}
@@ -515,7 +517,7 @@ const RouteFixing = () => {
               color="secondary"
               sx={{ ml: 2 }}
             >
-              Delete Route
+              {t('routeFixing.buttons.deleteRoute')}
             </Button>
           </Box>
         </Box>

@@ -25,6 +25,50 @@
     "internalServerError": "आंतरिक सर्वर त्रुटि"
   },
   "dashboard": {
+  },
+  "historyPlayback": {
+    "title": "इतिहास प्लेबैक",
+    "selectVehicle": "वाहन चुनें",
+    "noVehicleOptions": "वाहन सूची प्राप्त की जा रही है",
+    "fromDate": "आरंभ दिनांक",
+    "toDate": "अंतिम दिनांक",
+    "submit": "जमा करें"
+  },
+  "liveTracking": {
+    "title": "लाइव ट्रैकिंग",
+    "vehicleRegistrationNo": "वाहन पंजीकरण संख्या",
+    "searchButton": "खोजें",
+    "noData": "कोई डेटा उपलब्ध नहीं",
+    "iconLabels": {
+      "emergencyAlert": "आपातकालीन अलर्ट",
+      "otherAlert": "अन्य अलर्ट",
+      "movingVehicle": "चलता वाहन",
+      "stationaryVehicle": "स्थिर वाहन",
+      "offlineDevice": "ऑफलाइन डिवाइस",
+      "defaultStatus": "डिफ़ॉल्ट स्थिति"
+    }
+  },
+  "routeFixing": {
+    "title": "रूट फिक्सिंग",
+    "selectVehicle": "वाहन पंजीकरण संख्या चुनें",
+    "noVehicleOptions": "वाहन पंजीकरण संख्या दर्ज करें।",
+    "selectRoute": "एक रूट चुनें",
+    "routeNumber": "रूट #{{number}}",
+    "buttons": {
+      "submit": "जमा करें",
+      "addRoute": "रूट जोड़ें",
+      "deleteRoute": "रूट हटाएं"
+    },
+    "alerts": {
+      "minimumPoints": "कृपया रूट बनाने के लिए कम से कम दो बिंदु जोड़ें।",
+      "routeAdded": "रूट सफलतापूर्वक जोड़ा गया!",
+      "routeAddFailed": "रूट जोड़ने में विफल। कृपया पुनः प्रयास करें।",
+      "selectRouteDelete": "कृपया हटाने के लिए एक रूट चुनें।",
+      "routeDeleted": "रूट सफलतापूर्वक हटा दिया गया!",
+      "routeDeleteFailed": "रूट हटाने में विफल। कृपया पुनः प्रयास करें।"
+    }
+  },
+  "dashboard": {
     "title": "डैशबोर्ड",
     "welcome": "स्काइट्रैक में आपका स्वागत है",
     "summary": "सारांश",
@@ -444,4 +488,4 @@
       }
     }
   }
-} 
+}

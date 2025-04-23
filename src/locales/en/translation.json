@@ -25,6 +25,50 @@
     "internalServerError": "Internal Server Error"
   },
   "dashboard": {
+  },
+  "historyPlayback": {
+    "title": "History Playback",
+    "selectVehicle": "Select Vehicle",
+    "noVehicleOptions": "Wait Fetching Vehicle List",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "submit": "Submit"
+  },
+  "liveTracking": {
+    "title": "Live Tracking",
+    "vehicleRegistrationNo": "Vehicle Registration No",
+    "searchButton": "Search",
+    "noData": "No data available",
+    "iconLabels": {
+      "emergencyAlert": "Emergency Alert",
+      "otherAlert": "Other Alert",
+      "movingVehicle": "Moving Vehicle",
+      "stationaryVehicle": "Stationary Vehicle",
+      "offlineDevice": "Offline Device",
+      "defaultStatus": "Default Status"
+    }
+  },
+  "routeFixing": {
+    "title": "Route Fixing",
+    "selectVehicle": "Select Vehicle Registration No",
+    "noVehicleOptions": "Enter Vehicle Registration No.",
+    "selectRoute": "Select a route",
+    "routeNumber": "Route #{{number}}",
+    "buttons": {
+      "submit": "Submit",
+      "addRoute": "Add Route",
+      "deleteRoute": "Delete Route"
+    },
+    "alerts": {
+      "minimumPoints": "Please add at least two points to create a route.",
+      "routeAdded": "Route added successfully!",
+      "routeAddFailed": "Failed to add route. Please try again.",
+      "selectRouteDelete": "Please select a route to delete.",
+      "routeDeleted": "Route deleted successfully!",
+      "routeDeleteFailed": "Failed to delete route. Please try again."
+    }
+  },
+  "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome to Skytrack",
     "summary": "Summary",
@@ -444,4 +488,4 @@
       }
     }
   }
-} 
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   TextField,
   Button,
@@ -23,6 +24,7 @@ import {formatDateTime} from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
 const LiveTracking = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
   const [vehicleNo, setVehicleNo] = useState("");
@@ -152,7 +154,7 @@ const LiveTracking = () => {
   };
   return (
     <MainCard>
-      <Typography variant="h4">Live Tracking</Typography>
+      <Typography variant="h4">{t('liveTracking.title')}</Typography>
 
       {/* Scrollable Table (First Table) */}
       <div className="container">
@@ -173,7 +175,7 @@ const LiveTracking = () => {
                 >
                   <TextField
                     fullWidth
-                    label="Vehicle Registration No"
+                    label={t('liveTracking.vehicleRegistrationNo')}
                     type="text"
                     value={vehicleNo}
                     name="vehicleNo"
@@ -187,7 +189,7 @@ const LiveTracking = () => {
                     color="primary"
                     className="submit-button"
                   >
-                    <SearchIcon className="submit-button-icon" />
+                    <SearchIcon title={t('liveTracking.searchButton')} className="submit-button-icon" />
                   </Button>
                 </Box>
               </Grid>
@@ -247,7 +249,7 @@ const LiveTracking = () => {
                   )
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} style={{textAlign:'center'}}><CircularProgress size="30px" /></TableCell>
+                    <TableCell colSpan={6} style={{textAlign:'center'}}><CircularProgress size="30px" title={t('liveTracking.noData')} /></TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -298,7 +300,7 @@ const LiveTracking = () => {
               colSpan={Object.keys(keyMapping).length}
               className="skytron-no-data-cell"
             >
-              No data available
+              {t('liveTracking.noData')}
             </TableCell>
           </TableRow>
         )}
