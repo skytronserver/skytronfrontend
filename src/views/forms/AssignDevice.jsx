@@ -9,6 +9,7 @@ import DialogComponent from "../../ui-component/DialogComponent";
 import { useState, useEffect } from "react";
 import DealerServices from "../../services/DealerServices";
 import CustomLoader from "../../ui-component/CustomLoader";
+import { useTranslation } from 'react-i18next';
 import {
   assignDeviceFormFields,
   assignDeviceInitials,
@@ -20,7 +21,9 @@ import {
 } from "../../helper";
 import MainCard from "../../ui-component/cards/MainCard";
 import "./form.css";
+
 const AssignDevice = () => {
+  const { t } = useTranslation();
   const [updatedFormFields, setUpdatedFormField] = useState(
     assignDeviceFormFields
   );
@@ -110,13 +113,12 @@ const AssignDevice = () => {
         {loading && <CustomLoader />}
         {apiError && (
           <Alert severity="error" style={{ marginBottom: "16px" }}>
-            <AlertTitle>Internal Server Error</AlertTitle>
-            An error occurred in the server. Please contact the server
-            administrator.
+            <AlertTitle>{t('common.internalServerError')}</AlertTitle>
+            {t('common.serverErrorContactAdmin')}
           </Alert>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="Assign Device to Retailer">
+          <MainCard title={t('assignDeviceForm.title')}>
             {isFormLoaded && (
               <Formik
                 initialValues={assignDeviceInitials}
@@ -143,7 +145,7 @@ const AssignDevice = () => {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit
+                          {t('common.submit')}
                         </Button>
                       </Grid>
                     </Grid>

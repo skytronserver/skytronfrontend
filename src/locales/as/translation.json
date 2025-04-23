@@ -499,5 +499,176 @@
         "file_format": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি"
       }
     }
+  },
+  "deviceForm": {
+    "deviceDetails": "ডিভাইচৰ বিৱৰণ",
+    "fields": {
+      "imei": "আইএমইআই নম্বৰ",
+      "model": "মডেল",
+      "test_agency": "পৰীক্ষা সংস্থাৰ নাম",
+      "device_esn": "ডিভাইচ ইএচএন",
+      "esim_validity": "ইচিম বৈধতা",
+      "esim_provider": "ইচিম প্ৰদানকাৰী",
+      "tac_no": "টিএচি নম্বৰ",
+      "tac_validity": "টিএচি বৈধতা",
+      "cop_no": "চিঅ'পি নম্বৰ",
+      "cop_validity": "চিঅ'পি বৈধতা",
+      "iccid": "ইচিম নম্বৰ (আইচিচিআইডি)",
+      "telecom_provider1": "ইচিম টেলিকম সেৱা প্ৰদানকাৰী ১",
+      "telecom_provider2": "ইচিম টেলিকম সেৱা প্ৰদানকাৰী ২",
+      "msisdn1": "ইচিম ম'বাইল নম্বৰ এমএচআইএচডিএন ১",
+      "msisdn2": "ইচিম ম'বাইল নম্বৰ এমএচআইএচডিএন ২",
+      "remarks": "মন্তব্য"
+    },
+    "validation": {
+      "imeiNumber": "আইএমইআই নম্বৰটো সংখ্যা হ'ব লাগে",
+      "imeiRequired": "আইএমইআই নম্বৰ আৱশ্যক",
+      "modelRequired": "মডেল আৱশ্যক",
+      "deviceEsnRequired": "ডিভাইচ ইএচএন খালী হ'ব নোৱাৰে",
+      "esimValidityRequired": "ইচিম বৈধতা আৱশ্যক",
+      "esimProviderRequired": "ইচিম প্ৰদানকাৰী আৱশ্যক",
+      "tacNoRequired": "টিএচি নম্বৰ আৱশ্যক",
+      "tacValidityRequired": "টিএচি বৈধতা আৱশ্যক",
+      "copNoRequired": "চিঅ'পি নম্বৰ আৱশ্যক",
+      "copValidityRequired": "চিঅ'পি বৈধতা আৱশ্যক",
+      "iccidRequired": "ইচিম নম্বৰ (আইচিচিআইডি) আৱশ্যক",
+      "telecomProvider1Required": "ইচিম টেলিকম সেৱা প্ৰদানকাৰী ১ আৱশ্যক",
+      "msisdn1Number": "ইচিম ম'বাইল নম্বৰ এমএচআইএচডিএন ১ সংখ্যা হ'ব লাগে",
+      "msisdn1Required": "ইচিম ম'বাইল নম্বৰ এমএচআইএচডিএন ১ আৱশ্যক",
+      "msisdn2Number": "ইচিম ম'বাইল নম্বৰ এমএচআইএচডিএন ২ সংখ্যা হ'ব লাগে"
+    },
+    "submit": "দাখিল কৰক",
+    "submitError": "দাখিল কৰিব পৰা নগ'ল",
+    "loading": "ল'ড হৈ আছে..."
+  },
+  "deviceModelForm": {
+    "title": "ডিভাইচ মডেল প্ৰৱিষ্টি",
+    "submitForApproval": "অনুমোদনৰ বাবে জমা কৰক",
+    "otpValidation": "অনুগ্ৰহ কৰি আপোনাৰ পঞ্জীয়ন কৰা মোবাইল নম্বৰলৈ পঠিওৱা OTP টো সুমুৱাই আপোনাৰ দাখিলকৰণ যাচাই কৰক",
+    "verifyOTP": "OTP যাচাই কৰক",
+    "otpSent": "আপোনাৰ পঞ্জীয়ন কৰা মোবাইল নম্বৰলৈ এটা OTP পঠিওৱা হৈছে। অনুগ্ৰহ কৰি OTP সুমুৱাবলৈ তলত ক্লিক কৰক",
+    "formNotSubmitted": "ফৰ্ম জমা কৰা হোৱা নাই",
+    "modelSentForApproval": "মডেলটো সফলভাৱে ৰাজ্য প্ৰশাসনলৈ অনুমোদনৰ বাবে পঠিওৱা হৈছে",
+    "internalServerError": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি",
+    "unableToFetchData": "ডাটা আহৰণ কৰিব পৰা নগ'ল। চাৰ্ভাৰৰ পৰা ডাটা আহৰণ কৰোতে এটা ত্ৰুটি হৈছে। অনুগ্ৰহ কৰি চাৰ্ভাৰ প্ৰশাসকৰ সৈতে যোগাযোগ কৰক",
+    "fields": {
+      "m2mServiceProvider": "এম২এম সেৱা প্ৰদানকাৰী",
+      "select": "বাছক",
+      "model": "মডেল",
+      "tacNo": "টিএচি নম্বৰ",
+      "testAgency": "পৰীক্ষা সংস্থাৰ নাম",
+      "tacValidity": "টিএচি বৈধতা",
+      "vendorId": "বিক্ৰেতা আইডি",
+      "hardwareVersion": "হাৰ্ডৱেৰ সংস্কৰণ",
+      "uploadTac": "টিএচি আপলোড কৰক"
+    },
+    "validation": {
+      "m2mServiceProviderRequired": "অন্ততঃ এজন এম২এম সেৱা প্ৰদানকাৰী আৱশ্যক",
+      "modelRequired": "মডেল আৱশ্যক",
+      "tacNoRequired": "টিএচি নম্বৰ আৱশ্যক",
+      "testAgencyRequired": "পৰীক্ষা সংস্থা আৱশ্যক",
+      "tacValidityRequired": "টিএচি বৈধতা আৱশ্যক",
+      "vendorIdRequired": "বিক্ৰেতা আইডি আৱশ্যক",
+      "hardwareVersionRequired": "হাৰ্ডৱেৰ সংস্কৰণ আৱশ্যক",
+      "tacRequired": "টিএচি আৱশ্যক"
+    }
+  },
+  "modelExtensionForm": {
+    "title": "ডিভাইচ মডেল এক্সটেনশ্বন",
+    "submitForApproval": "অনুমোদনৰ বাবে দাখিল কৰক",
+    "otpVerified": "ডিভাইচ মডেল অ'টিপি সত্যাপিত হৈছে",
+    "submitError": "ডাটা দাখিল কৰোতে ত্ৰুটি",
+    "dataNotFound": "ডাটা পোৱা নগ'ল",
+    "fetchError": "ডাটা প্ৰাপ্ত কৰোতে ত্ৰুটি হ'ল",
+    "fields": {
+      "model": "মডেল",
+      "testAgency": "পৰীক্ষা সংস্থা",
+      "tacNo": "টেক নং",
+      "tacValidity": "টেক বৈধতা",
+      "copNo": "চিঅ'পি নং",
+      "copValidity": "চিঅ'পি বৈধতা",
+      "copFile": "চিঅ'পি ফাইল"
+    },
+    "validation": {
+      "modelRequired": "মডেলৰ প্ৰয়োজন",
+      "testAgencyRequired": "পৰীক্ষা সংস্থাৰ প্ৰয়োজন",
+      "tacNoRequired": "টেক নংৰ প্ৰয়োজন",
+      "tacValidityRequired": "টেক বৈধতাৰ প্ৰয়োজন",
+      "copNoRequired": "চিঅ'পি নংৰ প্ৰয়োজন",
+      "copValidityRequired": "চিঅ'পি বৈধতাৰ প্ৰয়োজন",
+      "copFileRequired": "চিঅ'পি ফাইলৰ প্ৰয়োজন"
+    }
+  },
+  "dtoForm": {
+    "title": "ডিটিঅ'/আৰটিঅ' সৃষ্টি কৰক",
+    "fields": {
+      "name": "নাম",
+      "email": "ইমেইল",
+      "mobile": "ম'বাইল",
+      "state": "ৰাজ্য",
+      "districtCode": "জিলা ক'ড",
+      "idProofNo": "পৰিচয় প্ৰমাণ নম্বৰ",
+      "dob": "জন্ম তাৰিখ",
+      "expiryDate": "ম্যাদ উকলি যোৱাৰ তাৰিখ",
+      "dtoRto": "ডিটিঅ'/আৰটিঅ'",
+      "idProof": "পৰিচয় প্ৰমাণ",
+      "authorisationLetter": "অধিকাৰ পত্ৰ"
+    },
+    "validation": {
+      "nameRequired": "নামৰ প্ৰয়োজন",
+      "emailRequired": "ইমেইলৰ প্ৰয়োজন",
+      "invalidEmail": "অবৈধ ইমেইল ফৰ্মেট",
+      "mobileRequired": "ম'বাইল নম্বৰৰ প্ৰয়োজন",
+      "mobileFormat": "ম'বাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
+      "stateRequired": "ৰাজ্যৰ প্ৰয়োজন",
+      "districtCodeRequired": "জিলা ক'ডৰ প্ৰয়োজন",
+      "idProofRequired": "পৰিচয় প্ৰমাণ নম্বৰৰ প্ৰয়োজন",
+      "idProofMinLength": "পৰিচয় প্ৰমাণ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগে",
+      "dobRequired": "জন্ম তাৰিখৰ প্ৰয়োজন",
+      "expiryDateRequired": "ম্যাদ উকলি যোৱাৰ তাৰিখৰ প্ৰয়োজন",
+      "dtoRtoRequired": "ডিটিঅ'/আৰটিঅ' বাছনিৰ প্ৰয়োজন",
+      "fileRequired": "ফাইলৰ প্ৰয়োজন",
+      "fileSize": "ফাইলৰ আকাৰ ৫১২ কেবিৰ কম হ'ব লাগে",
+      "fileFormat": "অসমৰ্থিত ফাইল ফৰ্মেট"
+    },
+    "options": {
+      "dto": "ডিটিঅ'",
+      "rto": "আৰটিঅ'"
+    },
+    "messages": {
+      "fileRestrictions": "সমৰ্থিত ফৰ্মেট: JPG, JPEG, PNG, PDF। সৰ্বাধিক আকাৰ: ৫১২ কেবি"
+    }
+  },
+  "bulkUploadForm": {
+    "title": "ষ্টকৰ বাল্ক আপলোড",
+    "fields": {
+      "model": "মডেলৰ নাম",
+      "esimProvider": "ইচিম প্ৰদানকাৰী",
+      "excelFile": "এক্সেল ফাইল বাছক"
+    },
+    "validation": {
+      "modelRequired": "মডেল আৱশ্যক",
+      "esimProviderRequired": "ইচিম প্ৰদানকাৰী আৱশ্যক",
+      "excelFileRequired": "এক্সেল ফাইল আৱশ্যক"
+    },
+    "buttons": {
+      "downloadSample": "নমুনা ডাউনলোড কৰক",
+      "submit": "দাখিল কৰক"
+    },
+    "options": {
+      "waitingForModels": "মডেলৰ বাবে অপেক্ষা কৰি আছে",
+      "waitingForProvider": "প্ৰদানকাৰীৰ বাবে অপেক্ষা কৰি আছে"
+    }
+  },
+  "assignDeviceForm": {
+    "title": "ৰিটেইলাৰলৈ ডিভাইচ নিয়োগ কৰক",
+    "fields": {
+      "dealer": "ডিলাৰ",
+      "device": "ডিভাইচ",
+      "shippingRemark": "পাঠোৱাৰ মন্তব্য"
+    },
+    "validation": {
+      "dealerRequired": "ডিলাৰ আৱশ্যক"
+    }
   }
 }

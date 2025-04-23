@@ -510,5 +510,176 @@
         "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
       }
     }
+  },
+  "deviceForm": {
+    "deviceDetails": "Device Details",
+    "fields": {
+      "imei": "IMEI No.",
+      "model": "Model",
+      "test_agency": "Test Agency Name",
+      "device_esn": "Device ESN",
+      "esim_validity": "eSIM Validity",
+      "esim_provider": "eSIM Provider",
+      "tac_no": "TAC Number",
+      "tac_validity": "TAC Validity",
+      "cop_no": "COP Number",
+      "cop_validity": "COP Validity",
+      "iccid": "eSIM No (ICCID)",
+      "telecom_provider1": "eSIM Telecom Service Provider 1",
+      "telecom_provider2": "eSIM Telecom Service Provider 2",
+      "msisdn1": "eSIM Mobile No. MSISDN 1",
+      "msisdn2": "eSIM Mobile No. MSISDN 2",
+      "remarks": "Remarks"
+    },
+    "validation": {
+      "imeiNumber": "IMEI No. must be a number",
+      "imeiRequired": "IMEI No. is required",
+      "modelRequired": "Model is required",
+      "deviceEsnRequired": "Device ESN cannot be blank",
+      "esimValidityRequired": "eSIM Validity is required",
+      "esimProviderRequired": "eSIM Provider is required",
+      "tacNoRequired": "TAC Number is required",
+      "tacValidityRequired": "TAC Validity is required",
+      "copNoRequired": "COP Number is required",
+      "copValidityRequired": "COP Validity is required",
+      "iccidRequired": "eSIM No (ICCID) is required",
+      "telecomProvider1Required": "eSIM Telecom Service Provider 1 is required",
+      "msisdn1Number": "eSIM Mobile No. MSISDN 1 must be a number",
+      "msisdn1Required": "eSIM Mobile No. MSISDN 1 is required",
+      "msisdn2Number": "eSIM Mobile No. MSISDN 2 must be a number"
+    },
+    "submit": "Submit",
+    "submitError": "Unable to Submit",
+    "loading": "Loading..."
+  },
+  "deviceModelForm": {
+    "title": "Device Model Entry",
+    "submitForApproval": "Submit For Approval",
+    "otpValidation": "Please validate your submission by entering the OTP sent to your registered mobile no.",
+    "verifyOTP": "Verify OTP",
+    "otpSent": "An OTP has been sent to your registered mobile number. Please click below to continue to enter the OTP",
+    "formNotSubmitted": "Form Not Submitted",
+    "modelSentForApproval": "Model has been sent successfully for approval to state admin",
+    "internalServerError": "Internal Server Error",
+    "unableToFetchData": "Unable to fetch data. An error occurred while retrieving data from the server. Please contact the server administrator.",
+    "fields": {
+      "m2mServiceProvider": "M2M Service Provider",
+      "select": "Select",
+      "model": "Model",
+      "tacNo": "TAC No",
+      "testAgency": "Test Agency Name",
+      "tacValidity": "TAC Validity",
+      "vendorId": "Vendor ID",
+      "hardwareVersion": "Hardware Version",
+      "uploadTac": "Upload TAC"
+    },
+    "validation": {
+      "m2mServiceProviderRequired": "At least one M2M Service Provider is required",
+      "modelRequired": "Model is required",
+      "tacNoRequired": "TAC No. is required",
+      "testAgencyRequired": "Test Agency is required",
+      "tacValidityRequired": "TAC Validity is required",
+      "vendorIdRequired": "Vendor ID is required",
+      "hardwareVersionRequired": "Hardware Version is required",
+      "tacRequired": "TAC is required"
+    }
+  },
+  "modelExtensionForm": {
+    "title": "Device Model Extension",
+    "submitForApproval": "Submit For Approval",
+    "otpVerified": "Device Model is OTP Verified",
+    "submitError": "Error while submitting data",
+    "dataNotFound": "Data not found",
+    "fetchError": "An error occurred while fetching data",
+    "fields": {
+      "model": "Model",
+      "testAgency": "Test Agency",
+      "tacNo": "TAC No",
+      "tacValidity": "TAC Validity",
+      "copNo": "COP No",
+      "copValidity": "COP Validity",
+      "copFile": "COP File"
+    },
+    "validation": {
+      "modelRequired": "Model is required",
+      "testAgencyRequired": "Test Agency is required",
+      "tacNoRequired": "TAC No is required",
+      "tacValidityRequired": "TAC Validity is required",
+      "copNoRequired": "COP No is required",
+      "copValidityRequired": "COP Validity is required",
+      "copFileRequired": "COP File is required"
+    }
+  },
+  "dtoForm": {
+    "title": "Create DTO/RTO",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "mobile": "Mobile",
+      "state": "State",
+      "districtCode": "District Code",
+      "idProofNo": "ID Proof Number",
+      "dob": "Date of Birth",
+      "expiryDate": "Expiry Date",
+      "dtoRto": "DTO/RTO",
+      "idProof": "ID Proof",
+      "authorisationLetter": "Authorisation Letter"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email format",
+      "mobileRequired": "Mobile number is required",
+      "mobileFormat": "Mobile number must be 10 digits",
+      "stateRequired": "State is required",
+      "districtCodeRequired": "District code is required",
+      "idProofRequired": "ID Proof number is required",
+      "idProofMinLength": "ID Proof number must be at least 5 characters",
+      "dobRequired": "Date of birth is required",
+      "expiryDateRequired": "Expiry date is required",
+      "dtoRtoRequired": "DTO/RTO selection is required",
+      "fileRequired": "File is required",
+      "fileSize": "File size must be less than 512KB",
+      "fileFormat": "Unsupported file format"
+    },
+    "options": {
+      "dto": "DTO",
+      "rto": "RTO"
+    },
+    "messages": {
+      "fileRestrictions": "Supported formats: JPG, JPEG, PNG, PDF. Max size: 512KB"
+    }
+  },
+  "bulkUploadForm": {
+    "title": "Bulk Upload Stocks",
+    "fields": {
+      "model": "Model Name",
+      "esimProvider": "eSIM Provider",
+      "excelFile": "Select the Excel File"
+    },
+    "validation": {
+      "modelRequired": "Model is required",
+      "esimProviderRequired": "eSIM Provider is required",
+      "excelFileRequired": "Excel File is required"
+    },
+    "buttons": {
+      "downloadSample": "Download Sample",
+      "submit": "Submit"
+    },
+    "options": {
+      "waitingForModels": "Waiting for Models",
+      "waitingForProvider": "Waiting for Provider"
+    }
+  },
+  "assignDeviceForm": {
+    "title": "Assign Device to Retailer",
+    "fields": {
+      "dealer": "Dealer",
+      "device": "Device",
+      "shippingRemark": "Shipping Remarks"
+    },
+    "validation": {
+      "dealerRequired": "Dealer is required"
+    }
   }
 }

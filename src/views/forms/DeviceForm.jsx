@@ -11,9 +11,11 @@ import StockServices from "../../services/StockServices";
 import { useNavigate } from "react-router-dom";
 import {deviceInitials,deviceFormField} from "../../formjson/deviceForm";
 import {retriveModelList,retriveCreatedSimProvider,filterModelList} from "../../helper";
+import { useTranslation } from 'react-i18next';
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
 const DeviceForm = ({formTitle }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [updatedFormFields,setUpdatedFormField]=useState(deviceFormField);
@@ -87,7 +89,7 @@ const DeviceForm = ({formTitle }) => {
         console.log(errorString)
         setAlert({
           error: true,
-          message: 'Unable to Submit',
+          message: t('deviceForm.submitError'),
           errorList: errorString
         });
         setOpen(true)
@@ -131,7 +133,7 @@ const DeviceForm = ({formTitle }) => {
         </div>
       )}
       <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out"}}>
-        <MainCard title="Device Details">
+        <MainCard title={t('deviceForm.deviceDetails')}>
           {isFormLoaded && <Formik
             initialValues={deviceInitials}
             validationSchema={validationSchema}
@@ -144,7 +146,10 @@ const DeviceForm = ({formTitle }) => {
                   {Object.keys(updatedFormFields).map((field) => (
                     <Grid key={field} item md={4} sm={12} xs={12}>
                       <FormField
-                        fieldConfig={updatedFormFields[field]}
+                        fieldConfig={{
+                          ...updatedFormFields[field],
+                          label: t(`deviceForm.fields.${field}`)
+                        }}
                         formik={formik}
                         handleFileChange={handleFileChange}
                         handleOptionChange={handleModelChange}
@@ -152,15 +157,13 @@ const DeviceForm = ({formTitle }) => {
                     </Grid>
                   ))}
                   <Grid item xs={12} style={{ marginTop: "20px" }}>
-                    <Button type="submit" variant="contained" color="primary"  disabled={loading}>
-                      Submit
+                    <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                      {t('deviceForm.submit')}
                     </Button>
                   </Grid>
                 </Grid>
               </form>
-              
             )}
-            
           </Formik>
           }
         </MainCard>

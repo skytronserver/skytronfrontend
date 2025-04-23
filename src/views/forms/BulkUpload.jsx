@@ -1,6 +1,7 @@
 import React from "react";
 import * as Yup from "yup";
 import { Grid, Button } from "@mui/material";
+import { useTranslation } from 'react-i18next';
 // project imports
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
@@ -11,6 +12,7 @@ import StockServices from "../../services/StockServices";
 import { useState, useEffect } from "react";
 
 const BulkUpload = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(bulkFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
@@ -87,7 +89,7 @@ const BulkUpload = () => {
     }
   };
   return (
-    <MainCard title="Bulk Upload Stocks">
+    <MainCard title={t('bulkUploadForm.title')}>
       {isFormLoaded && (
         <Formik
           initialValues={bulkInitials}
@@ -115,7 +117,7 @@ const BulkUpload = () => {
                     size="medium"
                     onClick={downloadSample}
                   >
-                    Download Sample
+                    {t('bulkUploadForm.buttons.downloadSample')}
                   </Button>
                 </Grid>
                 <Grid item xs={12} style={{ marginTop: "20px" }}>
@@ -125,7 +127,7 @@ const BulkUpload = () => {
                     color="primary"
                     disabled={loading}
                   >
-                    Submit
+                    {t('bulkUploadForm.buttons.submit')}
                   </Button>
                 </Grid>
               </Grid>

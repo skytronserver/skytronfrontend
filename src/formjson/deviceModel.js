@@ -16,51 +16,51 @@ export const deviceModelFormField = {
   eSimProviders: {
     name: "eSimProviders",
     type: "multiselect",
-    label: "M2M Service Provider",
-    validation: Yup.array().min(1, "At least one M2M Service Provider is required"),
-    options: [{'label':'Select','value':''}]
+    label: "deviceModelForm.fields.m2mServiceProvider",
+    validation: Yup.array().min(1, "deviceModelForm.validation.m2mServiceProviderRequired"),
+    options: [{'label':'deviceModelForm.fields.select','value':''}]
   },
   model_name: {
     name: "model_name",
     type: "text",
-    label: "Model",
-    validation: Yup.string().required("Model is required"),
+    label: "deviceModelForm.fields.model",
+    validation: Yup.string().required("deviceModelForm.validation.modelRequired"),
   },
   tac_no: {
     name: "tac_no",
     type: "text",
-    label: "Tac No",
-    validation: Yup.string().required("TAC No. is required"),
+    label: "deviceModelForm.fields.tacNo",
+    validation: Yup.string().required("deviceModelForm.validation.tacNoRequired"),
   },
   test_agency: {
     name: "test_agency",
     type: "text",
-    label: "Test Agency Name",
-    validation: Yup.string().required("Test Agency is required"),
+    label: "deviceModelForm.fields.testAgency",
+    validation: Yup.string().required("deviceModelForm.validation.testAgencyRequired"),
   },
   tac_validity: {
     name:"tac_validity",
     type: "date",
-    label: "TAC Validity",
-    validation: Yup.date().required("TAC Validity is required"),
+    label: "deviceModelForm.fields.tacValidity",
+    validation: Yup.date().required("deviceModelForm.validation.tacValidityRequired"),
     minDate:today
   },
   vendor_id: {
     name: "vendor_id",
     type: "text",
-    label: "Vendor ID",
-    validation: Yup.string().required("Vendor ID is required"),
+    label: "deviceModelForm.fields.vendorId",
+    validation: Yup.string().required("deviceModelForm.validation.vendorIdRequired"),
   },
   hardware_version: {
     name: "hardware_version",
     type: "text",
-    label: "Hardware Version",
-    validation: Yup.string().required("Hardware Version is required"),
+    label: "deviceModelForm.fields.hardwareVersion",
+    validation: Yup.string().required("deviceModelForm.validation.hardwareVersionRequired"),
   },
   tac_doc_path: {
     name:"tac_doc_path",
     type: "file",
-    label: "Upload TAC",
-    validation: Yup.mixed().required("TAC is required"),
+    label: "deviceModelForm.fields.uploadTac",
+    validation: Yup.mixed().required("deviceModelForm.validation.tacRequired"),
   },
 };

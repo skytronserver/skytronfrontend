@@ -6,36 +6,21 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import DialogComponent from "../../ui-component/DialogComponent";
 import OTPComponent from "../../ui-component/OTPComponent";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import CustomLoader from "../../ui-component/CustomLoader";
-import {modelExtensionInitials,modelExtensionFormField} from "../../formjson/modelExtension";
-import {filterModelList} from "../../helper";
-const ModelExtension = ( {formTitle }) => {
+import { modelExtensionInitials, modelExtensionFormField } from "../../formjson/modelExtension";
+import { filterModelList } from "../../helper";
+import { useTranslation } from 'react-i18next';
+
+const ModelExtension = ({ formTitle }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [deviceId, setDeviceId] = useState("");
-  const [updatedFormFields,setUpdatedFormField]=useState(modelExtensionFormField);
-  const [isFormLoaded,setIsFormLoaded]=useState(false);
-  useEffect(()=>{
-    (async()=>{
-    const modelList=await filterModelList({status:'StateAdminApproved'});
-    if(modelList?.status){
-      console.error('Internal Server Error')
-    }else{
-       setUpdatedFormField(prevConfig =>({
-      ...prevConfig,
-      device_model: {
-        ...prevConfig.device_model,
-        options: modelList,
-      },
-    }))
-    }
-    setIsFormLoaded(true)
-    }
-  )()
-  },[])
+  const [updatedFormFields, setUpdatedFormField] = useState(modelExtensionFormField);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -43,9 +28,31 @@ const ModelExtension = ( {formTitle }) => {
   });
   const [showOTP, setShowOTP] = useState(false);
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    (async () => {
+      const modelList = await filterModelList({ status: 'StateAdminApproved' });
+      if (modelList?.status) {
+        console.error(t('common.internalServerError'));
+      } else {
+        setUpdatedFormField(prevConfig => ({
+          ...prevConfig,
+          device_model: {
+            ...prevConfig.device_model,
+            options: modelList,
+          },
+        }));
+      }
+      setIsFormLoaded(true);
+    })();
+  }, [t]);
+
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
+
   const handleOTPSubmit = async () => {
     const OTPData = {
       otp: otp,
@@ -59,13 +66,14 @@ const ModelExtension = ( {formTitle }) => {
       console.log(response.error);
     }
   };
+
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.sendCopOTP(modelOtpData);
-      console.log("Device Model is OTP Verified");
+      console.log(t('modelExtensionForm.otpVerified'));
       return { code: "200", message: response.data };
     } catch (error) {
-      console.error("Error while submitting data", error.message);
+      console.error(t('modelExtensionForm.submitError'), error.message);
       return {
         code: "400",
         message: error.message,
@@ -73,8 +81,7 @@ const ModelExtension = ( {formTitle }) => {
       };
     }
   };
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+
   const handleClose = () => {
     !alert.error && navigate("/user/registeredUser");
     setOpen(false);
@@ -87,30 +94,30 @@ const ModelExtension = ( {formTitle }) => {
       formik.setFieldValue(fieldName, selectedFile);
     }
   };
+
   const handleModelChange = (event, formik) => {
     const fieldName = event.target.name;
     if (fieldName == "device_model") {
-
       (async () => {
         const getDetailsOf = {
           device_model_id: event.target.value,
         };
         try {
           const retrieveData = await DeviceModelServices.getModel(getDetailsOf);
-
           formik.setFieldValue("testAgency", retrieveData.data.test_agency);
           formik.setFieldValue("tacNo", retrieveData.data.tac_no);
           formik.setFieldValue("tacValidity", retrieveData.data.tac_validity);
         } catch (error) {
           if (error.response && error.response.status === 404) {
-            console.log("Data not found");
+            console.log(t('modelExtensionForm.dataNotFound'));
           } else {
-            console.log("An error occurred while fetching data");
+            console.log(t('modelExtensionForm.fetchError'));
           }
         }
       })();
     }
   };
+
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {
       acc[field] = updatedFormFields[field].validation;
@@ -134,7 +141,7 @@ const ModelExtension = ( {formTitle }) => {
       setLoading(false);
       setShowOTP(true);
     } catch (error) {
-      console.error("Error :", error.message);
+      console.error(t('modelExtensionForm.submitError'), error.message);
     }
   };
 
@@ -157,9 +164,9 @@ const ModelExtension = ( {formTitle }) => {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Device Model Extension">
+          <MainCard title={t('modelExtensionForm.title')}>
             {!showOTP ? (
-             isFormLoaded && <Formik
+              isFormLoaded && <Formik
                 initialValues={modelExtensionInitials}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
@@ -185,14 +192,13 @@ const ModelExtension = ( {formTitle }) => {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit For Approval
+                          {t('modelExtensionForm.submitForApproval')}
                         </Button>
                       </Grid>
                     </Grid>
                   </form>
                 )}
               </Formik>
-              
             ) : (
               <OTPComponent
                 otp={otp}

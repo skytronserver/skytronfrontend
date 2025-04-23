@@ -15,7 +15,10 @@ import {deviceModelInitials,deviceModelFormField} from "../../formjson/deviceMod
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import AutoHideAlert from "../../ui-component/AutoHideAlert"
+import { useTranslation } from 'react-i18next';
+
 const DeviceModelForm = () => {
+  const { t } = useTranslation();
   const [openAlert, setOpenAlert] = useState(false);
   const [alertType,setAlertType]=useState("success");
   const [message, setMessage] = useState('');
@@ -90,12 +93,12 @@ const DeviceModelForm = () => {
       setShowOTP(false);
       setOpenAlert(true);
       setAlertType("success")
-      setMessage('Model has been sent successfully for approval to state admin');
+      setMessage(t('deviceModelForm.modelSentForApproval'));
     } catch (error) {
       console.error("Error while submitting data", error.message);
       setOpenAlert(true);
       setAlertType("error")
-      setMessage('Internal Server Error ! Please try again');
+      setMessage(t('deviceModelForm.internalServerError'));
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -154,8 +157,8 @@ const DeviceModelForm = () => {
       />
       {apiError && (
           <Alert severity="error">
-            <AlertTitle>Internal Server Error</AlertTitle>
-            Unable to fetch data. An error occurred while retrieving data from the server. Please contact the server administrator.
+            <AlertTitle>{t('deviceModelForm.internalServerError')}</AlertTitle>
+            {t('deviceModelForm.unableToFetchData')}
           </Alert>
         )}
       <Grid container spacing={gridSpacing}>
@@ -190,7 +193,7 @@ const DeviceModelForm = () => {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Device Model Entry">
+          <MainCard title={t('deviceModelForm.title')}>
             {!showOTP ? (
               isFormLoaded && (<Formik
                 initialValues={deviceModelInitials}
@@ -217,7 +220,7 @@ const DeviceModelForm = () => {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit For Approval
+                          {t('deviceModelForm.submitForApproval')}
                         </Button>
                       </Grid>
                     </Grid>
@@ -232,7 +235,7 @@ const DeviceModelForm = () => {
                 alignItems="center"
               > 
                 <Grid item xs={12}>
-                  <p>Please validate your submission by entering the OTP sent to your registered mobile no.</p>
+                  <p>{t('deviceModelForm.otpValidation')}</p>
                 </Grid>
                 <Grid item xs={12} md="5">
                   <MuiOtpInput value={otp} onChange={handleChange} length={6} />
@@ -245,7 +248,7 @@ const DeviceModelForm = () => {
                       variant="contained"
                       onClick={handleOTPSubmit}
                     >
-                      Verify OTP
+                      {t('deviceModelForm.verifyOTP')}
                     </Button>
                   </Typography>
                 </Grid>

@@ -8,23 +8,24 @@ export const assignDeviceInitials = {
   device: [],
   shipping_remark: "",
 };
+
 export const assignDeviceFormFields = {
   dealer: {
     name: "dealer",
     type: "select",
-    label: "Dealer",
-    validation: Yup.string().required("Dealer is required"),
+    label: "assignDeviceForm.fields.dealer",
+    validation: Yup.string().required("assignDeviceForm.validation.dealerRequired"),
     options: dealerList,
   },
   device: {
     name: "device",
     type: "multiselect",
-    label: "Device",
+    label: "assignDeviceForm.fields.device",
     options: modelList,
   },
   shipping_remark: {
     name: "shipping_remark",
     type: "text",
-    label: "Remarks",
+    label: "assignDeviceForm.fields.shippingRemark",
   },
 };

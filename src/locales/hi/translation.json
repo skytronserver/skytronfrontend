@@ -510,5 +510,165 @@
         "file_format": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg"
       }
     }
+  },
+  "deviceForm": {
+    "deviceDetails": "डिवाइस विवरण",
+    "fields": {
+      "imei": "आईएमईआई नंबर",
+      "model": "मॉडल",
+      "test_agency": "परीक्षण एजेंसी का नाम",
+      "device_esn": "डिवाइस ईएसएन",
+      "esim_validity": "ईसिम वैधता",
+      "esim_provider": "ईसिम प्रदाता",
+      "tac_no": "टीएसी नंबर",
+      "tac_validity": "टीएसी वैधता",
+      "cop_no": "सीओपी नंबर",
+      "cop_validity": "सीओपी वैधता",
+      "iccid": "ईसिम नंबर (आईसीसीआईडी)",
+      "telecom_provider1": "ईसिम दूरसंचार सेवा प्रदाता 1",
+      "telecom_provider2": "ईसिम दूरसंचार सेवा प्रदाता 2",
+      "msisdn1": "ईसिम मोबाइल नंबर एमएसआईएसडीएन 1",
+      "msisdn2": "ईसिम मोबाइल नंबर एमएसआईएसडीएन 2",
+      "remarks": "टिप्पणियाँ"
+    },
+    "validation": {
+      "imeiNumber": "आईएमईआई नंबर एक संख्या होनी चाहिए",
+      "imeiRequired": "आईएमईआई नंबर आवश्यक है",
+      "modelRequired": "मॉडल आवश्यक है",
+      "deviceEsnRequired": "डिवाइस ईएसएन खाली नहीं हो सकता",
+      "esimValidityRequired": "ईसिम वैधता आवश्यक है",
+      "esimProviderRequired": "ईसिम प्रदाता आवश्यक है",
+      "tacNoRequired": "टीएसी नंबर आवश्यक है",
+      "tacValidityRequired": "टीएसी वैधता आवश्यक है",
+      "copNoRequired": "सीओपी नंबर आवश्यक है",
+      "copValidityRequired": "सीओपी वैधता आवश्यक है",
+      "iccidRequired": "ईसिम नंबर (आईसीसीआईडी) आवश्यक है",
+      "telecomProvider1Required": "ईसिम दूरसंचार सेवा प्रदाता 1 आवश्यक है",
+      "msisdn1Number": "ईसिम मोबाइल नंबर एमएसआईएसडीएन 1 एक संख्या होनी चाहिए",
+      "msisdn1Required": "ईसिम मोबाइल नंबर एमएसआईएसडीएन 1 आवश्यक है",
+      "msisdn2Number": "ईसिम मोबाइल नंबर एमएसआईएसडीएन 2 एक संख्या होनी चाहिए"
+    },
+    "submit": "जमा करें",
+    "submitError": "जमा करने में असमर्थ",
+    "loading": "लोड हो रहा है..."
+  },
+  "deviceModelForm": {
+    "title": "डिवाइस मॉडल प्रविष्टि",
+    "submitForApproval": "अनुमोदन के लिए जमा करें",
+    "otpValidation": "कृपया अपने पंजीकृत मोबाइल नंबर पर भेजे गए ओटीपी को दर्ज करके अपनी प्रस्तुति को सत्यापित करें",
+    "verifyOTP": "ओटीपी सत्यापित करें",
+    "otpSent": "आपके पंजीकृत मोबाइल नंबर पर एक ओटीपी भेजा गया है। कृपया ओटीपी दर्ज करने के लिए नीचे क्लिक करें",
+    "formNotSubmitted": "फॉर्म जमा नहीं किया गया",
+    "modelSentForApproval": "मॉडल सफलतापूर्वक राज्य प्रशासन को अनुमोदन के लिए भेजा गया है",
+    "internalServerError": "आंतरिक सर्वर त्रुटि",
+    "unableToFetchData": "डेटा प्राप्त करने में असमर्थ। सर्वर से डेटा प्राप्त करते समय एक त्रुटि हुई। कृपया सर्वर प्रशासक से संपर्क करें",
+    "fields": {
+      "m2mServiceProvider": "एम2एम सेवा प्रदाता",
+      "select": "चुनें",
+      "model": "मॉडल",
+      "tacNo": "टीएसी नंबर",
+      "testAgency": "परीक्षण एजेंसी का नाम",
+      "tacValidity": "टीएसी वैधता",
+      "vendorId": "विक्रेता आईडी",
+      "hardwareVersion": "हार्डवेयर संस्करण",
+      "uploadTac": "टीएसी अपलोड करें"
+    },
+    "validation": {
+      "m2mServiceProviderRequired": "कम से कम एक एम2एम सेवा प्रदाता आवश्यक है",
+      "modelRequired": "मॉडल आवश्यक है",
+      "tacNoRequired": "टीएसी नंबर आवश्यक है",
+      "testAgencyRequired": "परीक्षण एजेंसी आवश्यक है",
+      "tacValidityRequired": "टीएसी वैधता आवश्यक है",
+      "vendorIdRequired": "विक्रेता आईडी आवश्यक है",
+      "hardwareVersionRequired": "हार्डवेयर संस्करण आवश्यक है",
+      "tacRequired": "टीएसी आवश्यक है"
+    }
+  },
+  "modelExtensionForm": {
+    "title": "डिवाइस मॉडल एक्सटेंशन",
+    "submitForApproval": "अनुमोदन के लिए जमा करें",
+    "otpVerified": "डिवाइस मॉडल ओटीपी सत्यापित है",
+    "submitError": "डेटा जमा करते समय त्रुटि",
+    "dataNotFound": "डेटा नहीं मिला",
+    "fetchError": "डेटा प्राप्त करते समय त्रुटि हुई",
+    "fields": {
+      "model": "मॉडल",
+      "testAgency": "परीक्षण एजेंसी",
+      "tacNo": "टैक नंबर",
+      "tacValidity": "टैक वैधता",
+      "copNo": "सीओपी नंबर",
+      "copValidity": "सीओपी वैधता",
+      "copFile": "सीओपी फाइल"
+    },
+    "validation": {
+      "modelRequired": "मॉडल आवश्यक है",
+      "testAgencyRequired": "परीक्षण एजेंसी आवश्यक है",
+      "tacNoRequired": "टैक नंबर आवश्यक है",
+      "tacValidityRequired": "टैक वैधता आवश्यक है",
+      "copNoRequired": "सीओपी नंबर आवश्यक है",
+      "copValidityRequired": "सीओपी वैधता आवश्यक है",
+      "copFileRequired": "सीओपी फाइल आवश्यक है"
+    }
+  },
+  "dtoForm": {
+    "title": "डीटीओ/आरटीओ बनाएं",
+    "fields": {
+      "name": "नाम",
+      "email": "ईमेल",
+      "mobile": "मोबाइल",
+      "state": "राज्य",
+      "districtCode": "जिला कोड",
+      "idProofNo": "पहचान प्रमाण संख्या",
+      "dob": "जन्म तिथि",
+      "expiryDate": "समाप्ति तिथि",
+      "dtoRto": "डीटीओ/आरटीओ",
+      "idProof": "पहचान प्रमाण",
+      "authorisationLetter": "अधिकार पत्र"
+    },
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "invalidEmail": "अमान्य ईमेल प्रारूप",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "mobileFormat": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+      "stateRequired": "राज्य आवश्यक है",
+      "districtCodeRequired": "जिला कोड आवश्यक है",
+      "idProofRequired": "पहचान प्रमाण संख्या आवश्यक है",
+      "idProofMinLength": "पहचान प्रमाण संख्या कम से कम 5 अक्षरों की होनी चाहिए",
+      "dobRequired": "जन्म तिथि आवश्यक है",
+      "expiryDateRequired": "समाप्ति तिथि आवश्यक है",
+      "dtoRtoRequired": "डीटीओ/आरटीओ चयन आवश्यक है",
+      "fileRequired": "फ़ाइल आवश्यक है",
+      "fileSize": "फ़ाइल का आकार 512KB से कम होना चाहिए",
+      "fileFormat": "असमर्थित फ़ाइल प्रारूप"
+    },
+    "options": {
+      "dto": "डीटीओ",
+      "rto": "आरटीओ"
+    },
+    "messages": {
+      "fileRestrictions": "समर्थित प्रारूप: JPG, JPEG, PNG, PDF। अधिकतम आकार: 512KB"
+    }
+  },
+  "bulkUploadForm": {
+    "title": "स्टॉक का बल्क अपलोड",
+    "fields": {
+      "model": "मॉडल का नाम",
+      "esimProvider": "ईसिम प्रदाता",
+      "excelFile": "एक्सेल फ़ाइल चुनें"
+    },
+    "validation": {
+      "modelRequired": "मॉडल आवश्यक है",
+      "esimProviderRequired": "ईसिम प्रदाता आवश्यक है",
+      "excelFileRequired": "एक्सेल फ़ाइल आवश्यक है"
+    },
+    "buttons": {
+      "downloadSample": "नमूना डाउनलोड करें",
+      "submit": "जमा करें"
+    },
+    "options": {
+      "waitingForModels": "मॉडल की प्रतीक्षा में",
+      "waitingForProvider": "प्रदाता की प्रतीक्षा में"
+    }
   }
 }

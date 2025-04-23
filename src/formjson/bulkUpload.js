@@ -1,6 +1,6 @@
 import * as Yup from "yup";
-let modelList=[{value:'',label:'Waiting for Models'}];
-let providerList=[{value:'',label:'Waitinf for Provider'}];
+let modelList=[{value:'',label:'bulkUploadForm.options.waitingForModels'}];
+let providerList=[{value:'',label:'bulkUploadForm.options.waitingForProvider'}];
 export const bulkInitials = {
     model_id:"",
     esim_provider:"",
@@ -11,21 +11,21 @@ export const bulkFormField = {
   model_id: {
     name: "model_id",
     type: "select",
-    label: "Model Name",
-    validation: Yup.string().required("Model is required"),
+    label: "bulkUploadForm.fields.model",
+    validation: Yup.string().required("bulkUploadForm.validation.modelRequired"),
     options: modelList,
   },
   esim_provider: {
     name:"esim_provider",
     type: "select",
-    label: "eSIM Provider",
-    validation: Yup.string().required("eSIM Provider is required"),
+    label: "bulkUploadForm.fields.esimProvider",
+    validation: Yup.string().required("bulkUploadForm.validation.esimProviderRequired"),
     options: providerList
   },
   excel_file:{
     name:"excel_file",
     type: "file",
-    label: "Select the Excel File",
-    validation: Yup.mixed().required("Excel File is required"),
+    label: "bulkUploadForm.fields.excelFile",
+    validation: Yup.mixed().required("bulkUploadForm.validation.excelFileRequired"),
   }
 }

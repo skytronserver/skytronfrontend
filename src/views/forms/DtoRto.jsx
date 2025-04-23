@@ -14,6 +14,7 @@ import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   convertErrorObjectToArray,
   retriveStateList,
@@ -21,7 +22,9 @@ import {
 } from "../../helper";
 import { dtoInitialsValues, dtoFormFields } from "../../formjson/dtoUserform";
 import "./form.css";
+
 const DtoRto = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
     error: false,
@@ -32,7 +35,6 @@ const DtoRto = () => {
   const [updatedFormFields, setUpdatedFormField] = useState(dtoFormFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const navigate = useNavigate();
-
 
   useEffect(() => {
     (async () => {
@@ -112,9 +114,9 @@ const DtoRto = () => {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = t("validation.fileTooLarge");
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
-        errors[fieldName] = "Unsupported Format";
+        errors[fieldName] = t("validation.unsupportedFormat");
       } else {
         formik.setFieldValue(fieldName, selectedFile);
         return;
@@ -148,12 +150,12 @@ const DtoRto = () => {
     try {
       await UserServices.createDTO(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t("common.formSubmittedSuccessfully"));
       setSubmitting(false);
       resetForm(dtoInitialsValues);
     } catch (error) {
       if (error.message === "Network Error") {
-        handleAlert("Internal Server Error");
+        handleAlert(t("common.internalServerError"));
         return true;
       }
       setAlert((prevAlert) => ({
@@ -161,7 +163,7 @@ const DtoRto = () => {
         error: true,
         errorList: convertErrorObjectToArray(error.response.data),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t("common.formNotSubmitted"));
     } finally {
       setLoading(false);
     }
@@ -183,7 +185,7 @@ const DtoRto = () => {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="Create DTO/RTO">
+          <MainCard title={t("dtoForm.title")}>
             {isFormLoaded && (
               <Formik
                 initialValues={dtoInitialsValues}
@@ -211,7 +213,7 @@ const DtoRto = () => {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit
+                          {t("common.submit")}
                         </Button>
                       </Grid>
                     </Grid>
