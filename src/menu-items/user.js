@@ -14,7 +14,8 @@ import {
   IconUsers,
   IconRoute,
   IconCalendarTime,
-  IconCalculator
+  IconCalculator,
+  IconMapPin
 } from "@tabler/icons";
 
 const icons = {
@@ -32,7 +33,8 @@ const icons = {
   IconBan,
   IconRoute,
   IconCalendarTime,
-  IconCalculator
+  IconCalculator,
+  IconMapPin
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -635,6 +637,15 @@ const user = {
           roles: ["superadmin", "owner"],
         },
       ],
+    },
+    {
+      id: "poi-viewer",
+      title: "POI Viewer",
+      type: "item",
+      url: "/poi-viewer",
+      icon: icons.IconMapPin,
+      breadcrumbs: false,
+      roles: ["superadmin", "stateadmin", "owner", "dto"],
     },
   ],
 };
