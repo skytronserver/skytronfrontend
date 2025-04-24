@@ -31,13 +31,27 @@ const GPSHistoryMap = ({
   const [maxSliderValue, setMaxSliderValue] = useState(0);
   const [streetLevelZoom, setStreetLevelZoom] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(200);
+  const [activeLayers, setActiveLayers] = useState({
+    osm: true,
+    india3: true,
+    indiaBase: true,
+    indiaRoads: true,
+    markers: true
+  });
   const mapRef = useRef(null);
   const overlayRef = useRef(null);
   const markerRef = useRef(null);
-  const animationMarkerRef = useRef(null); // Separate ref for the animation marker
+  const animationMarkerRef = useRef(null);
   const animationIntervalId = useRef(null);
   const featureOverlayRef = useRef(null);
-  const allFeaturesRef = useRef([]); // To store all features and avoid clearing markers
+  const allFeaturesRef = useRef([]);
+  const layersRef = useRef({
+    osm: null,
+    india3: null,
+    indiaBase: null,
+    indiaRoads: null,
+    markers: null
+  });
 
   const STREET_ZOOM_LEVEL = 18;
 
@@ -118,78 +132,100 @@ const GPSHistoryMap = ({
     if (!map) {
       const initialMap = new Map({
         target: mapRef.current,
-        layers: [
-          new TileLayer({
-            source: new OSM(),
-          }),
-          // India3 layer
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'india3',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-          // Admin group layer (basemap)
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'basemap%3Aadmin_group',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-          // Roads layer (mmi_india)
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'mmi:mmi_india',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-        ],
-
-
+        layers: [],
         view: new View({
-          center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
+          center: fromLonLat([91.829437, 26.131644]),
           zoom: 7,
         }),
-
         pixelRatio: 1,
       });
 
+      // Create and store all layers
+      const osmLayer = new TileLayer({
+        source: new OSM(),
+        visible: activeLayers.osm
+      });
+
+      const india3Layer = new TileLayer({
+        source: new TileWMS({
+          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+          params: {
+            'LAYERS': 'india3',
+            'TILED': true,
+            'VERSION': '1.1.1',
+            'FORMAT': 'image/png',
+            'TRANSPARENT': 'true',
+            'SRS': 'EPSG:4326',
+            'WIDTH': 256,
+            'HEIGHT': 256,
+            'pixelRatio': 1,
+          },
+          serverType: 'geoserver',
+          projection: 'EPSG:4326',
+        }),
+        visible: activeLayers.india3
+      });
+
+      const indiaBaseLayer = new TileLayer({
+        source: new TileWMS({
+          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+          params: {
+            'LAYERS': 'basemap%3Aadmin_group',
+            'TILED': true,
+            'VERSION': '1.1.1',
+            'FORMAT': 'image/png',
+            'TRANSPARENT': 'true',
+            'SRS': 'EPSG:4326',
+            'WIDTH': 256,
+            'HEIGHT': 256,
+            'pixelRatio': 1,
+          },
+          serverType: 'geoserver',
+          projection: 'EPSG:4326',
+        }),
+        visible: activeLayers.indiaBase
+      });
+
+      const indiaRoadsLayer = new TileLayer({
+        source: new TileWMS({
+          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+          params: {
+            'LAYERS': 'mmi:mmi_india',
+            'TILED': true,
+            'VERSION': '1.1.1',
+            'FORMAT': 'image/png',
+            'TRANSPARENT': 'true',
+            'SRS': 'EPSG:4326',
+            'WIDTH': 256,
+            'HEIGHT': 256,
+            'pixelRatio': 1,
+          },
+          serverType: 'geoserver',
+          projection: 'EPSG:4326',
+        }),
+        visible: activeLayers.indiaRoads
+      });
+
+      const markersLayer = new VectorLayer({
+        source: new VectorSource(),
+        visible: activeLayers.markers
+      });
+
+      // Store layer references
+      layersRef.current = {
+        osm: osmLayer,
+        india3: india3Layer,
+        indiaBase: indiaBaseLayer,
+        indiaRoads: indiaRoadsLayer,
+        markers: markersLayer
+      };
+
+      // Add layers to map
+      initialMap.addLayer(osmLayer);
+      initialMap.addLayer(india3Layer);
+      initialMap.addLayer(indiaBaseLayer);
+      initialMap.addLayer(indiaRoadsLayer);
+      initialMap.addLayer(markersLayer);
 
       const overlay = new Overlay({
         element: overlayRef.current,
@@ -200,16 +236,8 @@ const GPSHistoryMap = ({
       });
 
       initialMap.addOverlay(overlay);
-
-      const markerSource = new VectorSource();
-      const markerLayer = new VectorLayer({
-        source: markerSource,
-      });
-
-      initialMap.addLayer(markerLayer);
-
       setMap(initialMap);
-      markerRef.current = markerSource;
+      markerRef.current = markersLayer.getSource();
       featureOverlayRef.current = overlay;
     }
   }, [map]);
@@ -395,6 +423,18 @@ const GPSHistoryMap = ({
     }
   }, [mapData]);
 
+  // Function to toggle layer visibility
+  const toggleLayer = (layerName) => {
+    if (layersRef.current[layerName]) {
+      const newVisibility = !layersRef.current[layerName].getVisible();
+      layersRef.current[layerName].setVisible(newVisibility);
+      setActiveLayers(prev => ({
+        ...prev,
+        [layerName]: newVisibility
+      }));
+    }
+  };
+
   return (
     <Box>
       <Typography
@@ -448,6 +488,110 @@ const GPSHistoryMap = ({
 
 
       <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative' }}>
+        {/* Layer Control Panel */}
+        <div style={{
+          position: 'absolute',
+          top: '80px',
+          right: '20px',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          padding: '15px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          zIndex: 1000,
+          minWidth: '200px',
+          backdropFilter: 'blur(5px)',
+          border: '1px solid rgba(0,0,0,0.1)'
+        }}>
+          <h4 style={{ 
+            margin: '0 0 12px 0',
+            color: '#333',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}>Map Layers</h4>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '8px',
+            fontSize: '14px'
+          }}>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.osm}
+                onChange={() => toggleLayer('osm')}
+                style={{ cursor: 'pointer' }}
+              />
+              OpenStreetMap
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.india3}
+                onChange={() => toggleLayer('india3')}
+                style={{ cursor: 'pointer' }}
+              />
+              India3 Layer
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.indiaBase}
+                onChange={() => toggleLayer('indiaBase')}
+                style={{ cursor: 'pointer' }}
+              />
+              India Base Map
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.indiaRoads}
+                onChange={() => toggleLayer('indiaRoads')}
+                style={{ cursor: 'pointer' }}
+              />
+              India Roads
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.markers}
+                onChange={() => toggleLayer('markers')}
+                style={{ cursor: 'pointer' }}
+              />
+              Vehicle Markers
+            </label>
+          </div>
+        </div>
+
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
