@@ -2,6 +2,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import React, { useEffect, useState, useRef } from 'react';
 import { Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { gridSpacing } from '../../store/constant';
 import HomePageService from '../../services/HomePage';
 import { getAllSOSCall } from '../../actions/commonDataActions';
@@ -10,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 const GetAllCall = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [newPendingCall, setNewPendingCall] = useState(null); // Track new pending assignment
   const dispatch = useDispatch();
@@ -70,25 +72,25 @@ const GetAllCall = () => {
   };
 
   const formattedData = callList.map((call) => ({
-    emergencyCallId: call?.id || 'N/A',
-    assignmentId: call?.ex?.id || 'N/A',
-    deviceIMEI: call?.call?.device?.device?.imei || 'N/A',
-    vehicleRegNo: call?.call?.device?.vehicle_reg_no || 'N/A',
-    ownerName: call?.call?.device?.vehicle_owner?.users?.[0]?.name || 'N/A',
-    callStatus: call?.call?.status || 'N/A',
+    emergencyCallId: call?.id || t('sosCallList.notAvailable'),
+    assignmentId: call?.ex?.id || t('sosCallList.notAvailable'),
+    deviceIMEI: call?.call?.device?.device?.imei || t('sosCallList.notAvailable'),
+    vehicleRegNo: call?.call?.device?.vehicle_reg_no || t('sosCallList.notAvailable'),
+    ownerName: call?.call?.device?.vehicle_owner?.users?.[0]?.name || t('sosCallList.notAvailable'),
+    callStatus: call?.call?.status || t('sosCallList.notAvailable'),
     rawCallData: call,
   }));
 
   const columns = [
-    { name: 'emergencyCallId', label: 'Emergency Call ID' },
-    { name: 'assignmentId', label: 'Assignment ID' },
-    { name: 'deviceIMEI', label: 'Device IMEI' },
-    { name: 'vehicleRegNo', label: 'Vehicle Registration No.' },
-    { name: 'ownerName', label: 'Owner Name' },
-    { name: 'callStatus', label: 'Call Status' },
+    { name: 'emergencyCallId', label: t('sosCallList.columns.emergencyCallId') },
+    { name: 'assignmentId', label: t('sosCallList.columns.assignmentId') },
+    { name: 'deviceIMEI', label: t('sosCallList.columns.deviceIMEI') },
+    { name: 'vehicleRegNo', label: t('sosCallList.columns.vehicleRegNo') },
+    { name: 'ownerName', label: t('sosCallList.columns.ownerName') },
+    { name: 'callStatus', label: t('sosCallList.columns.callStatus') },
     {
       name: 'action',
-      label: 'Action',
+      label: t('sosCallList.columns.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -99,7 +101,7 @@ const GetAllCall = () => {
               color="primary"
               onClick={() => handleNavigate(rawCallData)}
             >
-              Go to Emcall
+              {t('sosCallList.buttons.goToEmcall')}
             </Button>
           );
         },
@@ -112,7 +114,7 @@ const GetAllCall = () => {
       <Grid item xs={12}>
         {load && (
           <DynamicDatatables
-            tableTitle="SOS Call List"
+            tableTitle={t('sosCallList.title')}
             rows={formattedData}
             columns={columns}
           />
@@ -121,15 +123,15 @@ const GetAllCall = () => {
 
       {/* Popup Dialog for New Pending Call */}
       <Dialog open={!!newPendingCall} onClose={() => setNewPendingCall(null)}>
-        <DialogTitle>New Pending Assignment</DialogTitle>
+        <DialogTitle>{t('sosCallList.dialog.title')}</DialogTitle>
         <DialogContent>
           <Typography>
-            A new assignment with ID {newPendingCall?.id} is pending. Do you want to accept it?
+            {t('sosCallList.dialog.message', { id: newPendingCall?.id })}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => handleAccept(newPendingCall?.id)} color="primary" variant="contained">
-            Accept
+            {t('sosCallList.dialog.accept')}
           </Button>
         </DialogActions>
       </Dialog>

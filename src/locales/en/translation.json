@@ -36,73 +36,6 @@
     "status": "Status"
   },
   "dashboard": {
-  },
-  "historyPlayback": {
-    "title": "History Playback",
-    "selectVehicle": "Select Vehicle",
-    "noVehicleOptions": "Wait Fetching Vehicle List",
-    "fromDate": "From Date",
-    "toDate": "To Date",
-    "submit": "Submit"
-  },
-  "form": {
-    "accessory": {
-      "title": "Accessory Details",
-      "serialNo": "Serial No.",
-      "model": "Model",
-      "testAgency": "Test Agency Name",
-      "tacNo": "Tac No",
-      "tacValidity": "TAC Validity",
-      "copNo": "COP No",
-      "copValidity": "COP Validity",
-      "quantity": "Quantity",
-      "remarks": "Remarks",
-      "submitError": "Unable to Submit"
-    },
-    "validation": {
-      "serialNoRequired": "Serial No. is required",
-      "modelRequired": "Model is required",
-      "quantityNumber": "Quantity must be a number",
-      "quantityPositive": "Quantity must be positive",
-      "quantityInteger": "Quantity must be an integer",
-      "quantityRequired": "Quantity is required"
-    }
-  },
-  "liveTracking": {
-    "title": "Live Tracking",
-    "vehicleRegistrationNo": "Vehicle Registration No",
-    "searchButton": "Search",
-    "noData": "No data available",
-    "iconLabels": {
-      "emergencyAlert": "Emergency Alert",
-      "otherAlert": "Other Alert",
-      "movingVehicle": "Moving Vehicle",
-      "stationaryVehicle": "Stationary Vehicle",
-      "offlineDevice": "Offline Device",
-      "defaultStatus": "Default Status"
-    }
-  },
-  "routeFixing": {
-    "title": "Route Fixing",
-    "selectVehicle": "Select Vehicle Registration No",
-    "noVehicleOptions": "Enter Vehicle Registration No.",
-    "selectRoute": "Select a route",
-    "routeNumber": "Route #{{number}}",
-    "buttons": {
-      "submit": "Submit",
-      "addRoute": "Add Route",
-      "deleteRoute": "Delete Route"
-    },
-    "alerts": {
-      "minimumPoints": "Please add at least two points to create a route.",
-      "routeAdded": "Route added successfully!",
-      "routeAddFailed": "Failed to add route. Please try again.",
-      "selectRouteDelete": "Please select a route to delete.",
-      "routeDeleted": "Route deleted successfully!",
-      "routeDeleteFailed": "Failed to delete route. Please try again."
-    }
-  },
-  "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome to Skytrack",
     "summary": "Summary",
@@ -193,7 +126,11 @@
       "CallAssignment": "Call Assignment",
       "FalseAssignment": "False Assignment",
       "ClosedAssignment": "Closed Assignment",
-      "Rejected": "Rejected"
+      "Rejected": "Rejected",
+      "averageAcceptanceTime": "Average Acceptance Time",
+      "weekly": "Weekly",
+      "daily": "Daily",
+      "total": "Total"
     },
     "widgets": {
       "user_statistics": "User Statistics",
@@ -227,7 +164,80 @@
       "total_fitment,tagged_device,online_device,offline_device": "Total Fitment,Tagged Device,Online Device,Offline Device",
       "total_alert,this_month,today": "Total Alert,This Month,Today",
       "total_state,active,inactive": "Total State,Active,Inactive",
-      "total_dealer,total_manufacturer,total_dto,total_vehicle_owner": "Total Dealer,Total Manufacturer,Total DTO,Total Vehicle Owner"
+      "total_dealer,total_manufacturer,total_dto,total_vehicle_owner": "Total Dealer,Total Manufacturer,Total DTO,Total Vehicle Owner",
+      "activeCall": "Active Call",
+      "closedCall": "Closed Call",
+      "pendingCall": "Pending Call",
+      "averageCallAccepting": "Average Call Accepting",
+      "averageAcceptanceTime": "Average Acceptance Time",
+      "weeklyInbound": "Weekly Inbound",
+      "todayInbound": "Today's Inbound",
+      "totalInbound": "Total Inbound"
+    }
+  },
+  "historyPlayback": {
+    "title": "History Playback",
+    "selectVehicle": "Select Vehicle",
+    "noVehicleOptions": "Wait Fetching Vehicle List",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "submit": "Submit"
+  },
+  "form": {
+    "accessory": {
+      "title": "Accessory Details",
+      "serialNo": "Serial No.",
+      "model": "Model",
+      "testAgency": "Test Agency Name",
+      "tacNo": "Tac No",
+      "tacValidity": "TAC Validity",
+      "copNo": "COP No",
+      "copValidity": "COP Validity",
+      "quantity": "Quantity",
+      "remarks": "Remarks",
+      "submitError": "Unable to Submit"
+    },
+    "validation": {
+      "serialNoRequired": "Serial No. is required",
+      "modelRequired": "Model is required",
+      "quantityNumber": "Quantity must be a number",
+      "quantityPositive": "Quantity must be positive",
+      "quantityInteger": "Quantity must be an integer",
+      "quantityRequired": "Quantity is required"
+    }
+  },
+  "liveTracking": {
+    "title": "Live Tracking",
+    "vehicleRegistrationNo": "Vehicle Registration No",
+    "searchButton": "Search",
+    "noData": "No data available",
+    "iconLabels": {
+      "emergencyAlert": "Emergency Alert",
+      "otherAlert": "Other Alert",
+      "movingVehicle": "Moving Vehicle",
+      "stationaryVehicle": "Stationary Vehicle",
+      "offlineDevice": "Offline Device",
+      "defaultStatus": "Default Status"
+    }
+  },
+  "routeFixing": {
+    "title": "Route Fixing",
+    "selectVehicle": "Select Vehicle Registration No",
+    "noVehicleOptions": "Enter Vehicle Registration No.",
+    "selectRoute": "Select a route",
+    "routeNumber": "Route #{{number}}",
+    "buttons": {
+      "submit": "Submit",
+      "addRoute": "Add Route",
+      "deleteRoute": "Delete Route"
+    },
+    "alerts": {
+      "minimumPoints": "Please add at least two points to create a route.",
+      "routeAdded": "Route added successfully!",
+      "routeAddFailed": "Failed to add route. Please try again.",
+      "selectRouteDelete": "Please select a route to delete.",
+      "routeDeleted": "Route deleted successfully!",
+      "routeDeleteFailed": "Failed to delete route. Please try again."
     }
   },
   "menu": {
@@ -1036,5 +1046,26 @@
     "errors": {
       "downloadError": "Error downloading receipt"
     }
+  },
+  "sosCallList": {
+    "title": "SOS Call List",
+    "columns": {
+      "emergencyCallId": "Emergency Call ID",
+      "assignmentId": "Assignment ID",
+      "deviceIMEI": "Device IMEI",
+      "vehicleRegNo": "Vehicle Registration No.",
+      "ownerName": "Owner Name",
+      "callStatus": "Call Status",
+      "action": "Action"
+    },
+    "buttons": {
+      "goToEmcall": "Go to Emcall"
+    },
+    "dialog": {
+      "title": "New Pending Assignment",
+      "message": "A new assignment with ID {{id}} is pending. Do you want to accept it?",
+      "accept": "Accept"
+    },
+    "notAvailable": "N/A"
   }
 }

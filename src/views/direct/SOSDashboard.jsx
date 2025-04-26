@@ -17,6 +17,7 @@ import DetailCard from "../../ui-component/DetailCard";
 import { useDispatch } from 'react-redux';
 import { getAllSOSCall } from '../../actions/commonDataActions';
 import { useNavigate } from "react-router";
+import { useTranslation } from 'react-i18next';
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 const SOSDashboard = ({ role, calls, deskCalls }) => {
   const mapElement = useRef();
@@ -34,6 +35,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const [load, setLoad] = useState(false);
   const [newPendingCall, setNewPendingCall] = useState(null);
   const [showDetails, setShowDetails] = useState(false)
+  const { t } = useTranslation();
   // Initialize map
   useEffect(() => {
     const map = new Map({
@@ -235,25 +237,25 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     navigate('/emcall', { state: { call } });
   };
   let data = [
-    { title: "Active Call", value: "0" },
-    { title: "Closed Call", value: "0" },
-    { title: "Pending Call", value: "0" },
-    { title: "Average Call Accepting", value: "0" },
+    { title: t('dashboard.labels.calls').split(',')[0], value: "0" },
+    { title: t('dashboard.labels.calls').split(',')[1], value: "0" },
+    { title: t('dashboard.labels.calls').split(',')[2], value: "0" },
+    { title: t('dashboard.labels.calls').split(',')[3], value: "0" },
   ];
   if (role === 'desk_ex') {
     data = [
-      { title: "Average Acceptance Time", value: deskCalls.averageTime },
-      { title: "Weekly Inbound", value: deskCalls.Total_Assignemnt_thisweek },
-      { title: "Today's Inbound", value: deskCalls.Total_Assignemnt_today },
-      { title: "Total Inbound", value: deskCalls.Total_Assignemnt },
+      { title: t('dashboard.headings.averageAcceptanceTime'), value: deskCalls.averageTime },
+      { title: t('dashboard.headings.weekly'), value: deskCalls.Total_Assignemnt_thisweek },
+      { title: t('dashboard.headings.daily'), value: deskCalls.Total_Assignemnt_today },
+      { title: t('dashboard.headings.total'), value: deskCalls.Total_Assignemnt },
     ];
   }
   if (role === 'teamlead') {
     data = [
-      { title: "Active Call", value: calls.Total_Active_Calls },
-      { title: "Closed Call", value: calls.Total_Closed_Calls },
-      { title: "Pending Call", value: calls.Total_Pending_Calls },
-      { title: "Average Call Accepting", value: calls.Average_time_to_Accept },
+      { title: t('dashboard.labels.calls').split(',')[0], value: calls.Total_Active_Calls },
+      { title: t('dashboard.labels.calls').split(',')[1], value: calls.Total_Closed_Calls },
+      { title: t('dashboard.labels.calls').split(',')[2], value: calls.Total_Pending_Calls },
+      { title: t('dashboard.labels.calls').split(',')[3], value: calls.Average_time_to_Accept },
     ];
   }
   return (
