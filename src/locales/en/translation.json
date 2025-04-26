@@ -786,30 +786,32 @@
     }
   },
   "vehicleOwnerForm": {
-    "title": "Create New Vehicle Owner",
+    "title": "Vehicle Owner Registration",
     "fields": {
-      "name": "Name",
-      "email": "Email",
-      "mobile": "Mobile",
+      "name": "Full Name",
+      "email": "Email Address",
+      "mobile": "Mobile Number",
       "dob": "Date of Birth",
       "address": "Address",
-      "expirydate": "Expiry Date",
-      "idProofno": "ID Proof Number",
-      "file_idProof": "ID Proof Document"
+      "expiryDate": "Expiry Date",
+      "idProofNo": "ID Proof Number",
+      "idProof": "ID Proof Document",
+      "fileMessage": "Only JPG, PNG, PDF files are allowed and size should be less than 512KB"
     },
     "validation": {
       "nameRequired": "Name is required",
       "emailRequired": "Email is required",
-      "invalidEmail": "Invalid email address",
+      "invalidEmail": "Invalid email format",
       "mobileRequired": "Mobile number is required",
-      "invalidMobile": "Invalid mobile number",
+      "mobileFormat": "Mobile number must be 10 digits",
       "dobRequired": "Date of birth is required",
       "addressRequired": "Address is required",
-      "expirydateRequired": "Expiry date is required",
-      "idProofnoRequired": "ID proof number is required",
-      "file_idProofRequired": "ID proof document is required",
-      "fileSize": "File too large. Max size is 512KB",
-      "fileFormat": "Unsupported format. Only JPG, PDF and PNG files are allowed"
+      "expiryDateRequired": "Expiry date is required",
+      "idProofNoRequired": "ID proof number is required",
+      "idProofNoLength": "ID proof number must be at least 5 characters",
+      "idProofRequired": "ID proof document is required",
+      "fileSize": "File size must be less than 512KB",
+      "fileFormat": "Only JPG, PNG, PDF files are allowed"
     }
   },
   "sosUserForm": {
@@ -851,30 +853,20 @@
       "ambulanceControlRoom": "Ambulance Control Room"
     }
   },
-  "emTeamForm": {
-    "title": "Create EM Team",
-    "fields": {
-      "name": "Name",
-      "shiftDetails": "Shift Details",
-      "stateName": "State Name",
-      "teamLead": "Team Lead",
-      "teamMember": "Team Member"
-    },
-    "validation": {
-      "nameRequired": "Name is required",
-      "detailsRequired": "Details is required",
-      "stateRequired": "State Name is required",
-      "teamLeadRequired": "Team Lead is required",
-      "teamMemberRequired": "Team member is required"
-    },
-    "options": {
-      "selectTeamLead": "Select Team Lead",
-      "select": "Select"
-    },
-    "messages": {
-      "teamAdded": "Team added successfully",
-      "teamUpdated": "Team Updated successfully"
-    }
+  "emTeam": {
+    "emTeams": "EM Teams",
+    "action": "Action",
+    "confirmDeleteTeam": "Are you sure you want to delete this team?",
+    "teamDeleteSuccess": "Team deleted successfully!",
+    "teamDeleteError": "Error deleting Team!",
+    "teamDeleteCanceled": "Team deletion canceled.",
+    "confirmActivateTeam": "Are you sure you want to activate this team?",
+    "teamActivateSuccess": "Team activated successfully!",
+    "teamActivateError": "Error activating team!",
+    "teamActivateCanceled": "Team activation canceled.",
+    "activateTeam": "Activate Team",
+    "deleteTeam": "Delete Team",
+    "noDataFound": "No Data Found"
   },
   "notice": {
     "title": "Notice List",
@@ -1013,10 +1005,12 @@
     "actions": {
       "accept": "Accept",
       "reject": "Reject",
-      "action": "Action"
+      "action": "Action",
+      "requestActivation": "Request for Activation"
     },
     "messages": {
       "confirmRequest": "Please confirm your request",
+      "confirmActivation": "Are you sure you want to send for activation?",
       "success": "Request updated successfully",
       "error": "Error updating request"
     }
@@ -1026,6 +1020,21 @@
     "errors": {
       "title": "Internal Server Error",
       "message": "Unable to fetch data. An error occurred while retrieving data from the server. Please contact the server administrator."
+    }
+  },
+  "uploadReceipt": {
+    "title": "Download Tagging Receipt",
+    "fields": {
+      "registrationNo": "Enter Registration No.",
+      "selectRegistrationNo": "Select Registration No.",
+      "imeiNo": "Select IMEI No"
+    },
+    "validation": {
+      "registrationNoRequired": "Registration No. is required",
+      "imeiRequired": "IMEI is required"
+    },
+    "errors": {
+      "downloadError": "Error downloading receipt"
     }
   }
 }

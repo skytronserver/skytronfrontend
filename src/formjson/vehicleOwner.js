@@ -1,20 +1,22 @@
 import * as Yup from "yup";
 const currentDate = new Date();
-const FILE_SIZE = 512 * 1024 ; // 512 KB
+const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
 const today = new Date().toISOString().split('T')[0];
+
 export const ownerInitialValues = {
   name: "",
   mobile: "",
   email: "",
-  dob:"",
+  dob: "",
   address: "",
   expirydate: formattedDate,
   idProofno: "",
   file_idProof: null,
 };
+
 export const vehicleOwnerField = {
   name: {
     name: "name",
@@ -39,11 +41,11 @@ export const vehicleOwnerField = {
       .required("vehicleOwnerForm.validation.mobileRequired"),
   },
   dob: {
-    name:"dob",
+    name: "dob",
     type: "date",
     label: "vehicleOwnerForm.fields.dob",
     validation: Yup.date().required("vehicleOwnerForm.validation.dobRequired"),
-    maxDate:today
+    maxDate: today
   },
   address: {
     name: "address",
@@ -52,30 +54,34 @@ export const vehicleOwnerField = {
     validation: Yup.string().required("vehicleOwnerForm.validation.addressRequired"),
   },
   expirydate: {
-    name:"expirydate",
+    name: "expirydate",
     type: "date",
     label: "vehicleOwnerForm.fields.expiryDate",
-    disabled:true,
+    disabled: true,
     validation: Yup.date().required("vehicleOwnerForm.validation.expiryDateRequired"),
   },
   idProofno: {
     name: "idProofno",
     type: "text",
     label: "vehicleOwnerForm.fields.idProofNo",
-    validation: Yup.string().min(5, "vehicleOwnerForm.validation.idProofNoLength").required("vehicleOwnerForm.validation.idProofNoRequired"),
+    validation: Yup.string()
+      .min(5, "vehicleOwnerForm.validation.idProofNoLength")
+      .required("vehicleOwnerForm.validation.idProofNoRequired"),
   },
   file_idProof: {
     name: "file_idProof",
     type: "file",
     label: "vehicleOwnerForm.fields.idProof",
     message: "vehicleOwnerForm.fields.fileMessage",
-    validation: Yup.mixed().required("vehicleOwnerForm.validation.idProofRequired").test("fileSize", "vehicleOwnerForm.validation.fileSize", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-    .test("fileFormat", "vehicleOwnerForm.validation.fileFormat", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+    validation: Yup.mixed()
+      .required("vehicleOwnerForm.validation.idProofRequired")
+      .test("fileSize", "vehicleOwnerForm.validation.fileSize", value => {
+        if (!value) return false;
+        return value.size <= FILE_SIZE;
+      })
+      .test("fileFormat", "vehicleOwnerForm.validation.fileFormat", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   }
 };

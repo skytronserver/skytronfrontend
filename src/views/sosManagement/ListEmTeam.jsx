@@ -1,18 +1,22 @@
 import React from "react";
 // project imports
-import { Grid,Button } from "@mui/material";
+import { Grid, Button } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
 import SOSManagement from "../../services/SOSManagement";
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 //Datatables
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { emTeamColumns } from "../../datatables/rowsColumn";
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
+
 const ListEmTeam = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [del, setDel] = useState(false);
   const [emTeamList, setEmTeamList] = useState([]);
+
   useEffect(() => {
     const fetchEmTeams = async () => {
       try {
@@ -21,52 +25,55 @@ const ListEmTeam = () => {
         setLoad(true);
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          console.log("No Data Found");
+          console.log(t('emTeam.noDataFound'));
         } else {
-          console.log("No Data Found");
+          console.log(t('emTeam.noDataFound'));
         }
       }
     };
     fetchEmTeams();
-  }, [del]);
+  }, [del, t]);
+
   const handleDelete = async (e, id) => {
     e.preventDefault();
     const confirmed = window.confirm(
-      "Are you sure you want to delete this team?"
+      t('emTeam.confirmDeleteTeam')
     );
     if (confirmed) {
       try {
         await SOSManagement.removeEmTeam({ team_id: id });
-        alert("Team deleted successfully!");
+        alert(t('emTeam.teamDeleteSuccess'));
         setDel((prev) => !prev);
       } catch (error) {
-        alert("Error deleting Team!");
+        alert(t('emTeam.teamDeleteError'));
       }
     } else {
-      alert("Team deletion canceled.");
+      alert(t('emTeam.teamDeleteCanceled'));
     }
   };
+
   const handleActivate = async (e, id) => {
     e.preventDefault();
     const confirmed = window.confirm(
-      "Are you sure you want to activate this team?"
+      t('emTeam.confirmActivateTeam')
     );
     if (confirmed) {
       try {
         await SOSManagement.activateEmTeam({ team_id: id });
-        alert("Team activate successfully!");
+        alert(t('emTeam.teamActivateSuccess'));
         setDel((prev) => !prev);
       } catch (error) {
-        alert("Error activating team!");
+        alert(t('emTeam.teamActivateError'));
       }
     } else {
-      alert("Team activation canceled.");
+      alert(t('emTeam.teamActivateCanceled'));
     }
   };
+
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('emTeam.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -75,6 +82,7 @@ const ListEmTeam = () => {
               {tableMeta.rowData[1]!=='Active' && tableMeta.rowData[1]!=='Removed' && <Button
                 color="primary"
                 onClick={(e) => handleActivate(e, tableMeta.rowData[0])}
+                title={t('emTeam.activateTeam')}
               >
                 <CheckIcon />
               </Button>
@@ -83,6 +91,7 @@ const ListEmTeam = () => {
               <Button
                 color="primary"
                 onClick={(e) => handleDelete(e, tableMeta.rowData[0])}
+                title={t('emTeam.deleteTeam')}
               >
                 <DeleteIcon />
               </Button>
@@ -93,12 +102,13 @@ const ListEmTeam = () => {
       },
     },
   ];
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
         {load && (
           <DynamicDatatables
-            tableTitle="EM Teams"
+            tableTitle={t('emTeam.emTeams')}
             rows={emTeamList}
             columns={emTeamColumns.concat(actionColumn)}
           />

@@ -9,12 +9,15 @@ import {uploadReceiptInitials,uploadReceiptFormFields} from "../../formjson/uplo
 import { useState, useEffect } from "react";
 import TaggingService from "../../services/TaggingService";
 import {fetchTaggedList} from "../../helper";
+import { useTranslation } from 'react-i18next';
+
 const UploadReceipt = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(uploadReceiptFormFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  
   useEffect(() => {
-   
     (async () => {
       const filter={
         is_tagged: "True",
@@ -30,6 +33,7 @@ const UploadReceipt = () => {
           setIsFormLoaded(true);
       })();
   }, []);
+
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];
     const fieldName = event.target.name;
@@ -44,6 +48,7 @@ const UploadReceipt = () => {
       return acc;
     }, {})
   );
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
@@ -52,27 +57,25 @@ const UploadReceipt = () => {
       const blob = new Blob([response.data], {
         type: "application/octet-stream",
       });
-      console.log(blob)
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = "receipt.pdf"; // Specify the filename you want
+      a.download = "receipt.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
 
-      // Release the Blob URL
       window.URL.revokeObjectURL(url);
       setLoading(false);
       resetForm(uploadReceiptInitials);
     } catch (error) {
-      console.error("Error :", error.message);
+      console.error(t('uploadReceipt.errors.downloadError'), error.message);
     }
   };
 
   return (
-    <MainCard title="Download Tagging Receipt">
+    <MainCard title={t('uploadReceipt.title')}>
       {isFormLoaded && (
         <Formik
           initialValues={uploadReceiptInitials}
@@ -99,7 +102,7 @@ const UploadReceipt = () => {
                     color="primary"
                     disabled={loading}
                   >
-                    Submit
+                    {t('common.submit')}
                   </Button>
                 </Grid>
               </Grid>
@@ -110,4 +113,5 @@ const UploadReceipt = () => {
     </MainCard>
   );
 };
+
 export default UploadReceipt;

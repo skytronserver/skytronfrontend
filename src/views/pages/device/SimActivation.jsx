@@ -10,8 +10,10 @@ import {useSelector,useDispatch} from 'react-redux'
 import { getDeviceListAvailable } from '../../../actions/stockActions';
 import DynamicDatatables from '../../../datatables/DynamicDatatables';
 import {availableForSalesColumnForFitment} from '../../../datatables/deviceColumns';
+import { useTranslation } from 'react-i18next';
 
 const SimActivation = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   //Datatables data using redux
   const dispatch=useDispatch();
@@ -32,7 +34,7 @@ const SimActivation = () => {
   const handleMarkDefective=async (e,data)=>{
     e.preventDefault();
     const confirmed = window.confirm(
-      "Are you sure you want to send for activation?"
+      t('simActivation.messages.confirmActivation')
     );
     if (confirmed) {
       const formData = {
@@ -61,7 +63,7 @@ const SimActivation = () => {
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -75,7 +77,7 @@ const SimActivation = () => {
                           size="small"
                           onClick={(event) => handleMarkDefective(event, tableMeta.rowData)}
                         >
-                          Request for Activation
+                          {t('simActivation.actions.requestActivation')}
                         </Button>
              </div>
             </div>
@@ -87,7 +89,7 @@ const SimActivation = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Available for Sales" rows={availableDeviceList} columns={availableForSalesColumnForFitment.concat(actionColumn)}/>}
+        {load && <DynamicDatatables tableTitle={t('simActivation.titles.pending')} rows={availableDeviceList} columns={availableForSalesColumnForFitment.concat(actionColumn)}/>}
         </Grid>
     </Grid>
 );
