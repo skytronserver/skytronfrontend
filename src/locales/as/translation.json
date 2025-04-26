@@ -19,7 +19,7 @@
     "privacyPolicy": "গোপনীয়তা নীতি",
     "contactUs": "আমাৰ লগত যোগাযোগ কৰক",
     "aboutUs": "আমাৰ বিষয়ে",
-    "submit": "দাখিল কৰক",
+    "submit": "জমা কৰক",
     "formSubmittedSuccessfully": "ফৰ্ম সফলভাৱে দাখিল কৰা হ'ল",
     "formNotSubmitted": "ফৰ্ম দাখিল কৰা হোৱা নাই",
     "internalServerError": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি",
@@ -33,7 +33,9 @@
     "rowsPerPage": "প্ৰতি পৃষ্ঠাত শাৰী:",
     "of": "ৰ",
     "pageInfo": "পৃষ্ঠা: {{page}} | প্ৰতি পৃষ্ঠাত শাৰী: {{rowsPerPage}} | মুঠ ফলাফল: {{total}}",
-    "status": "স্থিতি"
+    "status": "স্থিতি",
+    "formSubmitSuccess": "ফৰ্ম সফলভাৱে জমা কৰা হ'ল",
+    "formSubmitError": "ফৰ্ম জমা কৰিব পৰা নগ'ল"
   },
   "dashboard": {
   },
@@ -57,7 +59,95 @@
       "copValidity": "চিঅ'পি বৈধতা",
       "quantity": "পৰিমাণ",
       "remarks": "মন্তব্য",
-      "submitError": "দাখিল কৰিব পৰা নাই"
+      "submitError": "দাখিল কৰিব পৰা নগ'ল"
+    },
+    "deviceModel": {
+      "label": "ডিভাইচ মডেল",
+      "required": "ডিভাইচ মডেল আৱশ্যক"
+    },
+    "frequency": {
+      "label": "এইচপি ফ্ৰিকুৱেন্সি",
+      "required": "এইচপি ফ্ৰিকুৱেন্সি আৱশ্যক"
+    },
+    "firmwareVersion": {
+      "label": "ফাৰ্মৱেৰ সংস্কৰণ",
+      "required": "ফাৰ্মৱেৰ সংস্কৰণ আৱশ্যক"
+    },
+    "selectFile": {
+      "label": "ফাইল নিৰ্বাচন কৰক",
+      "required": "ফাইল আৱশ্যক"
+    },
+    "state": {
+      "label": "ৰাজ্য",
+      "required": "ৰাজ্য আৱশ্যক"
+    },
+    "ipTracking1": {
+      "label": "ট্ৰেকিং আইপি ১",
+      "required": "ট্ৰেকিং আইপি ১ আৱশ্যক"
+    },
+    "ipTracking2": {
+      "label": "ট্ৰেকিং আইপি ২"
+    },
+    "ipSos": {
+      "label": "এছঅ'এছ আইপি",
+      "required": "এছঅ'এছ আইপি আৱশ্যক"
+    },
+    "portTracking1": {
+      "label": "ট্ৰেকিং প'ৰ্ট ১",
+      "required": "ট্ৰেকিং প'ৰ্ট ১ আৱশ্যক"
+    },
+    "portTracking2": {
+      "label": "ট্ৰেকিং প'ৰ্ট ২"
+    },
+    "portSos": {
+      "label": "এছঅ'এছ প'ৰ্ট",
+      "required": "এছঅ'এছ প'ৰ্ট আৱশ্যক"
+    },
+    "smsTracking1": {
+      "label": "এছএমএছ ট্ৰেকিং প'ৰ্ট ১",
+      "required": "এছএমএছ ট্ৰেকিং প'ৰ্ট ১ আৱশ্যক"
+    },
+    "smsTracking2": {
+      "label": "এছএমএছ ট্ৰেকিং প'ৰ্ট ২"
+    },
+    "smsSos": {
+      "label": "এছঅ'এছ এছএমএছ প'ৰ্ট",
+      "required": "এছঅ'এছ এছএমএছ প'ৰ্ট আৱশ্যক"
+    },
+    "stateName": {
+      "label": "ৰাজ্যৰ নাম",
+      "required": "ৰাজ্যৰ নাম আৱশ্যক"
+    },
+    "districtName": {
+      "label": "জিলাৰ নাম",
+      "required": "জিলাৰ নাম আৱশ্যক"
+    },
+    "districtCode": {
+      "label": "জিলা ক'ড",
+      "required": "জিলা ক'ড আৱশ্যক"
+    },
+    "status": {
+      "label": "স্থিতি",
+      "required": "স্থিতি আৱশ্যক",
+      "active": "সক্ৰিয়",
+      "deactive": "নিষ্ক্ৰিয়"
+    },
+    "notice": {
+      "title": {
+        "label": "শিৰোনাম",
+        "required": "শিৰোনাম আৱশ্যক"
+      },
+      "detail": {
+        "label": "বিৱৰণ",
+        "required": "বিৱৰণ আৱশ্যক"
+      },
+      "file": {
+        "label": "জাননী নিৰ্বাচন কৰক",
+        "required": "জাননী ফাইল আৱশ্যক",
+        "message": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু 512KB তলৰ হ'ব লাগিব।",
+        "sizeError": "ফাইল বহুত ডাঙৰ। সৰ্বাধিক আকাৰ 512KB",
+        "formatError": "অসমৰ্থিত ফাইল ফৰ্মেট"
+      }
     }
   },
   "liveTracking": {
@@ -839,7 +929,33 @@
     }
   },
   "notice": {
-    "title": "নোটিছৰ তালিকা"
+    "title": "নোটিছৰ তালিকা",
+    "newTitle": "নতুন জাননী",
+    "editTitle": "জাননী সম্পাদনা",
+    "addSuccess": "জাননী সফলভাৱে যোগ কৰা হ'ল",
+    "updateSuccess": "জাননী সফলভাৱে আপডেট কৰা হ'ল",
+    "error": "কিবা ভুল হৈছে",
+    "title": {
+      "label": "শিৰোনাম",
+      "required": "শিৰোনাম আৱশ্যক"
+    },
+    "detail": {
+      "label": "বিৱৰণ",
+      "required": "বিৱৰণ আৱশ্যক"
+    },
+    "file": {
+      "label": "জাননী নিৰ্বাচন কৰক",
+      "required": "জাননী ফাইল আৱশ্যক",
+      "message": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু 512KB তলৰ হ'ব লাগিব।",
+      "sizeError": "ফাইল বহুত ডাঙৰ। সৰ্বাধিক আকাৰ 512KB",
+      "formatError": "অসমৰ্থিত ফাইল ফৰ্মেট"
+    }
+  },
+  "status": {
+    "label": "স্থিতি",
+    "required": "স্থিতি আৱশ্যক",
+    "live": "লাইভ",
+    "deleted": "মচি পেলোৱা"
   },
   "users": {
     "listTitle": "ব্যৱহাৰকাৰীৰ ৰিপ'ৰ্ট"
@@ -919,5 +1035,32 @@
   },
   "deviceModel": {
     "copListTitle": "ডিভাইচ মডেল তালিকা"
+  },
+  "vehicleCategory": {
+    "addNew": "নতুন শ্ৰেণী যোগ কৰক",
+    "addButton": "যান শ্ৰেণী যোগ কৰক",
+    "listTitle": "যান শ্ৰেণীৰ তালিকা"
+  },
+  "frequency": {
+    "title": "এইচপি ফ্ৰিকুৱেন্সি",
+    "listTitle": "ফ্ৰিকুৱেন্সি তালিকা"
+  },
+  "firmware": {
+    "title": "ফাৰ্মৱেৰ সংস্কৰণ",
+    "listTitle": "ফাৰ্মৱেৰ সংস্কৰণৰ তালিকা"
+  },
+  "ipSetting": {
+    "title": "আইপি ছেটিং",
+    "listTitle": "আইপি ছেটিং প্ৰতিবেদন তালিকা"
+  },
+  "state": {
+    "addTitle": "ৰাজ্যৰ নাম যোগ কৰক",
+    "addButton": "ৰাজ্য যোগ কৰক",
+    "listTitle": "ৰাজ্যৰ তালিকা"
+  },
+  "district": {
+    "addTitle": "জিলাৰ নাম যোগ কৰক",
+    "addButton": "জিলা যোগ কৰক",
+    "listTitle": "জিলাৰ তালিকা"
   }
 }

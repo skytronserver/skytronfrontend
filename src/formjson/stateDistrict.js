@@ -34,47 +34,47 @@ export const stateFields = {
     state: {
     name: "state",
     type: "text",
-    label: "State Name",
-    validation: Yup.string().required("State name is required"),
+    label: "form.stateName.label",
+    validation: Yup.string().required("form.stateName.required"),
   },
   status: {
     name: "status",
     type: "select",
-    label: "Status",
-    validation: Yup.string().required("Status is required"),
+    label: "form.status.label",
+    validation: Yup.string().required("form.status.required"),
     options: [
-        { value: "active", label: "Active" }
+        { value: "active", label: "form.status.active" }
       ],
   },
 };
 export const districtFields = {
   district: {
-  name: "district",
-  type: "text",
-  label: "District Name",
-  validation: Yup.string().required("District name is required"),
-},
-district_code: {
-  name: "district_code",
-  type: "text",
-  label: "District Code",
-  validation: Yup.string().required("District Code is required"),
-},
-state: {
-  name: "state",
-  type: "select",
-  label: "State Name",
-  validation: Yup.string().required("State is required"),
-  options: stateList,
-},
-status: {
-  name: "status",
-  type: "select",
-  label: "Status",
-  validation: Yup.string().required("Status is required"),
-  options: [
-      { value: "active", label: "Active" },
-      { value: "deactive", label: "Deactive" }
+    name: "district",
+    type: "text",
+    label: "form.districtName.label",
+    validation: Yup.string().required("form.districtName.required"),
+  },
+  district_code: {
+    name: "district_code",
+    type: "text",
+    label: "form.districtCode.label",
+    validation: Yup.string().required("form.districtCode.required"),
+  },
+  state: {
+    name: "state",
+    type: "select",
+    label: "form.stateName.label",
+    validation: Yup.string().required("form.stateName.required"),
+    options: stateList,
+  },
+  status: {
+    name: "status",
+    type: "select",
+    label: "form.status.label",
+    validation: Yup.string().required("form.status.required"),
+    options: [
+        { value: "active", label: "form.status.active" },
+        { value: "deactive", label: "form.status.deactive" }
     ],
-},
+  },
 };

@@ -8,13 +8,16 @@ import FormField from "../../ui-component/CustomTextField";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { convertErrorObjectToArray } from "../../helper";
+import { useTranslation } from 'react-i18next';
 
 //Datatables
 import {useSelector,useDispatch} from 'react-redux'
 import { fetchVehicleCategory } from '../../actions/settingAction';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {vehicleColumns} from '../../datatables/settingColumns';
+
 function VehicleCategory({ fieldConfig, initialData }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [load,setLoad]=useState(false)
   const [alert, setAlert] = useState({
@@ -72,7 +75,7 @@ function VehicleCategory({ fieldConfig, initialData }) {
     const response = await createVehicleCategory(values);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t('common.formSubmitSuccess'));
       setSubmitting(false);
       setLoading(false);
       resetForm(initialData);
@@ -83,7 +86,7 @@ function VehicleCategory({ fieldConfig, initialData }) {
         error: true,
         errorList: convertErrorObjectToArray(response.errors),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t('common.formSubmitError'));
       setLoading(false);
     }
   };
@@ -127,7 +130,7 @@ function VehicleCategory({ fieldConfig, initialData }) {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Add New Category">
+          <MainCard title={t('vehicleCategory.addNew')}>
             <Formik
               initialValues={initialData}
               validationSchema={validationSchema}
@@ -152,7 +155,7 @@ function VehicleCategory({ fieldConfig, initialData }) {
                         color="primary"
                         disabled={loading}
                       >
-                        Add Vehicle Category
+                        {t('vehicleCategory.addButton')}
                       </Button>
                     </Grid>
                   </Grid>
@@ -168,8 +171,8 @@ function VehicleCategory({ fieldConfig, initialData }) {
             opacity: loading ? 0.5 : 1,
             transition: "opacity 0.3s ease-in-out",
           }}>
-          <MainCard title="Vehicle Category List">
-        {load && <DynamicDatatables tableTitle="" rows={vehicleCategoryList} columns={vehicleColumns}/>}
+          <MainCard title={t('vehicleCategory.listTitle')}>
+        {load && <DynamicDatatables tableTitle={t('vehicleCategory.listTitle')} rows={vehicleCategoryList} columns={vehicleColumns}/>}
         </MainCard>
         </Grid>
     </Grid>

@@ -14,8 +14,10 @@ import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { formFields, initialValues } from "../../formjson/notice";
 import { useParams } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import "./form.css";
 const NoticeForm = () => {
+  const { t } = useTranslation();
   const params = useParams();
   const parameter= params['*'] && !isNaN(params['*'])
   const [editPage,setEditPage]=useState(false);
@@ -72,9 +74,9 @@ const NoticeForm = () => {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = t('notice.file.sizeError');
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
-        errors[fieldName] = "Unsupported Format";
+        errors[fieldName] = t('notice.file.formatError');
       } else {
         formik.setFieldValue(fieldName, selectedFile);
         return;
@@ -141,11 +143,9 @@ const NoticeForm = () => {
       };
       setSubmitting(true);
       setLoading(true);
-      let message="Notice added successfully"
+      let message = editPage ? t('notice.updateSuccess') : t('notice.addSuccess');
       
       if(editPage){
-        message="Notice Updated successfully"
-        console.log('inside')
         await Notice.update(valuesWithRole);
       }else{
         await Notice.create(valuesWithRole);  
@@ -166,7 +166,7 @@ const NoticeForm = () => {
           errors: error?.response?.data,
         },
       }));
-      handleAlert("Something went wrong");
+      handleAlert(t('notice.error'));
     } finally {
       setSubmitting(false);
       setLoading(false);
@@ -189,7 +189,7 @@ const NoticeForm = () => {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title="New Notice">
+          <MainCard title={editPage ? t('notice.editTitle') : t('notice.newTitle')}>
             <Formik
               initialValues={noticeInitialValues}
               validationSchema={validationSchema}
@@ -215,7 +215,7 @@ const NoticeForm = () => {
                         color="primary"
                         disabled={loading}
                       >
-                        Submit
+                        {t('common.submit')}
                       </Button>
                     </Grid>
                   </Grid>

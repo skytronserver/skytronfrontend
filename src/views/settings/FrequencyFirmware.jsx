@@ -26,7 +26,10 @@ import {
   frequencyColumns,
   firmwareColumns,
 } from "../../datatables/settingColumns";
+import { useTranslation } from 'react-i18next';
+
 function FrequencyFirmware() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState(false);
   const [alert, setAlert] = useState({
@@ -139,7 +142,7 @@ function FrequencyFirmware() {
         error: false,
         errorList: [],
       }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t('common.formSubmitSuccess'));
       setSubmitting(false);
       setLoading(false);
       resetForm(hpFrequencyInitials);
@@ -149,7 +152,7 @@ function FrequencyFirmware() {
         error: true,
         errorList: convertErrorObjectToArray(resp.errors),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t('common.formSubmitError'));
       setLoading(false);
     }
   };
@@ -163,7 +166,7 @@ function FrequencyFirmware() {
         error: false,
         errorList: [],
       }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t('common.formSubmitSuccess'));
       setSubmitting(false);
       setLoading(false);
       resetForm(firmwareInitials);
@@ -173,7 +176,7 @@ function FrequencyFirmware() {
         error: true,
         errorList: convertErrorObjectToArray(response.errors),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t('common.formSubmitError'));
       setLoading(false);
     }
   };
@@ -217,7 +220,7 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="HP Frequency">
+          <MainCard title={t('frequency.title')}>
             {isFormLoaded && <Formik
               initialValues={hpFrequencyInitials}
               validationSchema={validationFrequencySchema}
@@ -242,7 +245,7 @@ function FrequencyFirmware() {
                         color="primary"
                         disabled={loading}
                       >
-                        Submit
+                        {t('common.submit')}
                       </Button>
                     </Grid>
                   </Grid>
@@ -260,7 +263,7 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Firmware Version">
+          <MainCard title={t('firmware.title')}>
            {isFormLoaded &&  <Formik
               initialValues={firmwareInitials}
               validationSchema={validationFirmwareSchema}
@@ -285,7 +288,7 @@ function FrequencyFirmware() {
                         color="primary"
                         disabled={loading}
                       >
-                        Submit
+                        {t('common.submit')}
                       </Button>
                     </Grid>
                   </Grid>
@@ -306,10 +309,10 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Frequency List">
+          <MainCard title={t('frequency.listTitle')}>
             {load && (
               <DynamicDatatables
-                tableTitle=""
+                tableTitle={t('frequency.listTitle')}
                 rows={frequencyList}
                 columns={frequencyColumns}
               />
@@ -324,10 +327,10 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Firmware Version List">
+          <MainCard title={t('firmware.listTitle')}>
             {load && (
               <DynamicDatatables
-                tableTitle=""
+                tableTitle={t('firmware.listTitle')}
                 rows={firmwareList}
                 columns={firmwareColumns}
               />

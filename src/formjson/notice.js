@@ -17,35 +17,35 @@ export const formFields = {
   title: {
     name: "title",
     type: "text",
-    label: "Title",
-    validation: Yup.string().required("Title is required"),
+    label: "notice.title.label",
+    validation: Yup.string().required("notice.title.required"),
   },
   detail: {
     name: "detail",
     type: "text",
-    label: "Details",
-    validation: Yup.string().required("Detail is required"),
+    label: "notice.detail.label",
+    validation: Yup.string().required("notice.detail.required"),
   },
   status: {
     name: "status",
     type: "select",
-    label: "Status",
-    validation: Yup.string().required("Status is required"),
+    label: "status.label",
+    validation: Yup.string().required("status.required"),
     options: [
-      { label: "Live", value: "Live" },
-      { label: "Delete", value: "Deleted" },
+      { label: "status.live", value: "Live" },
+      { label: "status.deleted", value: "Deleted" },
     ],
   },
   file: {
     name: "file",
     type: "file",
-    label: "Select Notice",
-    message: "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+    label: "notice.file.label",
+    message: "notice.file.message",
     validation: Yup.mixed()
-      .required("User ID Document is required")
+      .required("notice.file.required")
       .test(
         "fileSize",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "notice.file.sizeError",
         (value) => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
@@ -53,7 +53,7 @@ export const formFields = {
       )
       .test(
         "fileFormat",
-        "Max size is 520KB and supported files are pdf/png/jpg",
+        "notice.file.formatError",
         (value) => {
           if (!value) return false;
           return SUPPORTED_FORMATS.includes(value.type);

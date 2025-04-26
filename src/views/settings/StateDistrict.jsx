@@ -8,6 +8,7 @@ import FormField from "../../ui-component/CustomTextField";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { convertErrorObjectToArray, retriveStateList, } from "../../helper";
+import { useTranslation } from 'react-i18next';
 
 //Datatables
 import { useSelector, useDispatch } from "react-redux";
@@ -20,6 +21,7 @@ function StateDistrict({
   districtConfig,
   districtInitials,
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState(false);
   const [alert, setAlert] = useState({
@@ -118,7 +120,7 @@ function StateDistrict({
     const resp = await createDistrictName(values);
     if (resp.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t('common.formSubmitSuccess'));
       setSubmitting(false);
       setLoading(false);
       resetForm(districtInitials);
@@ -129,7 +131,7 @@ function StateDistrict({
         error: true,
         errorList: convertErrorObjectToArray(resp.errors),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t('common.formSubmitError'));
       setLoading(false);
     }
   };
@@ -139,7 +141,7 @@ function StateDistrict({
     const response = await createStateName(values);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t('common.formSubmitSuccess'));
       setSubmitting(false);
       setLoading(false);
       resetForm(initialData);
@@ -149,7 +151,7 @@ function StateDistrict({
         error: true,
         errorList: convertErrorObjectToArray(response.errors),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t('common.formSubmitError'));
       setLoading(false);
     }
   };
@@ -193,7 +195,7 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Add State Name">
+          <MainCard title={t('state.addTitle')}>
             <Formik
               initialValues={initialData}
               validationSchema={validationSchema}
@@ -218,7 +220,7 @@ function StateDistrict({
                         color="primary"
                         disabled={loading}
                       >
-                        Add State
+                        {t('state.addButton')}
                       </Button>
                     </Grid>
                   </Grid>
@@ -235,7 +237,7 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="Add District Name">
+          <MainCard title={t('district.addTitle')}>
             {isFormLoaded && <Formik
               initialValues={districtInitials}
               validationSchema={districtValidationSchema}
@@ -260,7 +262,7 @@ function StateDistrict({
                         color="primary"
                         disabled={loading}
                       >
-                        Add District
+                        {t('district.addButton')}
                       </Button>
                     </Grid>
                   </Grid>
@@ -281,10 +283,10 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="State List">
+          <MainCard title={t('state.listTitle')}>
             {load && (
               <DynamicDatatables
-                tableTitle=""
+                tableTitle={t('state.listTitle')}
                 rows={stateList}
                 columns={stateColumns}
               />
@@ -299,10 +301,10 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="District List">
+          <MainCard title={t('district.listTitle')}>
             {load && (
               <DynamicDatatables
-                tableTitle=""
+                tableTitle={t('district.listTitle')}
                 rows={districtList}
                 columns={districtColumns}
               />

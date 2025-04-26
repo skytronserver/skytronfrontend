@@ -61,7 +61,7 @@ const DeviceModelList = () => {
         {load && <DynamicDatatables tableTitle={t('deviceModel.awaitingApprovalTitle')} rows={deviceModelList} columns={actionColumn.concat(deviceModelColumns)}/>}
         </Grid>
     </Grid>
-  );
+);
 }
 
 export default DeviceModelList

@@ -64,13 +64,13 @@ const UnapproveCopList = () => {
       <Grid item xs={12}>
         {load && (
           <div className="datatable">
-            <MUIDataTable
+      <MUIDataTable
               title={t('deviceModel.copListTitle')}
-              data={deviceCOPModelList}
-              columns={actionColumn.concat(deviceCOPModelColumns)}
-              options={options}
-            />
-          </div>
+        data={deviceCOPModelList}
+        columns={actionColumn.concat(deviceCOPModelColumns)}
+        options={options}
+      />
+    </div>
         )}
       </Grid>
     </Grid>

@@ -16,7 +16,10 @@ import { fetchIPSettingList } from "../../actions/settingAction";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { ipSettingColumns } from "../../datatables/settingColumns";
 import { retriveModelList, retriveStateList,convertErrorObjectToArray } from "../../helper";
+import { useTranslation } from 'react-i18next';
+
 function IPSetting() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState(false);
   const [alert, setAlert] = useState({
@@ -99,7 +102,7 @@ function IPSetting() {
         error: false,
         errorList: [],
       }));
-      handleAlert("Form Submitted Successfully");
+      handleAlert(t('common.formSubmitSuccess'));
       setSubmitting(false);
       setLoading(false);
       resetForm(ipSettingInitials);
@@ -109,7 +112,7 @@ function IPSetting() {
         error: true,
         errorList: convertErrorObjectToArray(resp.errors),
       }));
-      handleAlert("Form Not Submitted");
+      handleAlert(t('common.formSubmitError'));
       setLoading(false);
     }
   };
@@ -152,7 +155,7 @@ function IPSetting() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="IP Setting">
+          <MainCard title={t('ipSetting.title')}>
             {isFormLoaded && (
               <Formik
                 initialValues={ipSettingInitials}
@@ -178,7 +181,7 @@ function IPSetting() {
                           color="primary"
                           disabled={loading}
                         >
-                          Submit
+                          {t('common.submit')}
                         </Button>
                       </Grid>
                     </Grid>
@@ -199,10 +202,10 @@ function IPSetting() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title="IP Setting Report List">
+          <MainCard title={t('ipSetting.listTitle')}>
             {load && (
               <DynamicDatatables
-                tableTitle=""
+                tableTitle={t('ipSetting.listTitle')}
                 rows={ipSettingList}
                 columns={ipSettingColumns}
               />

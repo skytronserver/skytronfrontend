@@ -10,24 +10,24 @@ import { useTranslation } from 'react-i18next'
 
 const GpsDataLog = () => {
     const { t } = useTranslation();
-    const gpsDataColumns = [
-        {
-            name: "timestamp",
+const gpsDataColumns = [
+    {
+        name: "timestamp",
             label: t('common.timestamp'),
-            options: {
-                filter: true,
-                sort: true,
-            },
+        options: {
+            filter: true,
+            sort: true,
         },
-        {
-            name: "rawData",
+    },
+    {
+        name: "rawData",
             label: t('gpsData.rawData'),
-            options: {
-                filter: true,
-                sort: false,
-            },
+        options: {
+            filter: true,
+            sort: false,
         },
-    ];
+    },
+];
 
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
