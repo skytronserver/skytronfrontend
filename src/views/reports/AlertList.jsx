@@ -4,8 +4,12 @@ import { Grid } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
 import ReportServices from "../../services/ReportServices";
 import { useEffect} from "react";
+import { useTranslation } from 'react-i18next';
+
 const AlertList = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
+  
   useEffect(() => {
     const fetchAlertList = async () => {
       // const retriveData = await ReportServices.alertList();

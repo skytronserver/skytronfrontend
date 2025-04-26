@@ -10,9 +10,13 @@ import { deviceCOPModelColumns } from "../../datatables/rowsColumn";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import MUIDataTable from "mui-datatables";
+import { useTranslation } from 'react-i18next';
+
 const UnapproveCopList = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const dispatch = useDispatch();
+
   useEffect(() => {
     const retriveDeviceModel = async () => {
       const retriveData = await DeviceModelServices.getAdminAwaitingCOPModels();
@@ -25,14 +29,11 @@ const UnapproveCopList = () => {
   const deviceCOPModelList = useSelector(
     (state) => state.deviceModel.deviceCOPModelList
   );
-  
-
- 
 
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -56,20 +57,20 @@ const UnapproveCopList = () => {
   const options = {
     selectableRows: "none",
     viewColumns: false,
- 
   };
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
         {load && (
           <div className="datatable">
-      <MUIDataTable
-        title="Device Model List"
-        data={deviceCOPModelList}
-        columns={actionColumn.concat(deviceCOPModelColumns)}
-        options={options}
-      />
-    </div>
+            <MUIDataTable
+              title={t('deviceModel.copListTitle')}
+              data={deviceCOPModelList}
+              columns={actionColumn.concat(deviceCOPModelColumns)}
+              options={options}
+            />
+          </div>
         )}
       </Grid>
     </Grid>

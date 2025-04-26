@@ -11,12 +11,16 @@ import { dtoListColumn } from "../../datatables/rowsColumn";
 import {DTOUserList} from "../../actions/commonDataActions";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTranslation } from 'react-i18next';
+
 const SOSUserList = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [updateStore,setUpdateStore]=useState(false)
   const [sosUser, setDTOUser] = useState(""); // here
   const dispatch = useDispatch();
   const dtoUsers=useSelector((state)=>state.listAll.dtoList);
+
   useEffect(() => {
     if(dtoUsers.length<1 && !updateStore){
       const retrieveUser = async () => {
@@ -33,7 +37,7 @@ const SOSUserList = () => {
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -56,12 +60,12 @@ const SOSUserList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="Show DTO List" />
+        <PageHeader title={t('dto.listTitle')} />
       </Grid>
       <Grid item xs={12}>
         {dtoUsers.length >= 1 && (
           <DynamicDatatables
-            tableTitle="DTO List"
+            tableTitle={t('dto.listTitle')}
             rows={dtoUsers}
             columns={dtoListColumn.concat(actionColumn)}
           />

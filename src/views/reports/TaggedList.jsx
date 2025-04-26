@@ -10,11 +10,15 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {taggedColumn} from '../../datatables/deviceColumns';
 import { getRole } from '../../helper';
 import TaggingService from '../../services/TaggingService';
+import { useTranslation } from 'react-i18next';
+
 const TaggedList = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   const [reload,setReload]=useState(false);
   const role=getRole();
   const [tagged,setTagged]=useState([]);
+
   useEffect(()=>{
     const fetchTaggedList = async () => {
       try {
@@ -26,18 +30,18 @@ const TaggedList = () => {
         setLoad(true)
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          console.log("No Data Found");
+          console.log(t('common.noDataFound'));
         } else {
-          console.log("No Data Found");
+          console.log(t('common.noDataFound'));
         }
       }
     };
     fetchTaggedList();
   },[reload])
-  //For actions refer AvailableForSale Component
+
   const handleUntag=async (e,id)=>{
     e.preventDefault();
-    const confirmed = window.confirm('Are you sure you want to untag this device?');
+    const confirmed = window.confirm(t('tagged.confirmUntag'));
     if (confirmed) {
      console.log(id);
      try {
@@ -52,7 +56,7 @@ const TaggedList = () => {
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -66,7 +70,7 @@ const TaggedList = () => {
                           size="small"
                           onClick={(event) => handleUntag(event, tableMeta.rowData[0])}
                         >
-                          Untag
+                          {t('tagged.untag')}
                         </Button>
              </div>
             </div>
@@ -80,10 +84,10 @@ const TaggedList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Tagged Devices" rows={tagged} columns={columns}/>}
+        {load && <DynamicDatatables tableTitle={t('tagged.title')} rows={tagged} columns={columns}/>}
         </Grid>
     </Grid>
-);
+  );
 }
 
 export default TaggedList;

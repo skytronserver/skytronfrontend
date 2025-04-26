@@ -11,12 +11,16 @@ import { sosListColumn } from "../../datatables/rowsColumn";
 import {SOSUsers} from "../../actions/commonDataActions";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTranslation } from 'react-i18next';
+
 const SOSOtherList = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [updateStore,setUpdateStore]=useState(false)
   const [sosUser, setSosUser] = useState(""); // here
   const dispatch = useDispatch();
   const sosUsers=useSelector((state)=>state.listAll.sosUser);
+
   useEffect(() => {
     if(sosUsers.length<1 && !updateStore){
       const retrieveUser = async () => {
@@ -33,7 +37,7 @@ const SOSOtherList = () => {
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -56,12 +60,12 @@ const SOSOtherList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="User List" />
+        <PageHeader title={t('sos.otherListTitle')} />
       </Grid>
       <Grid item xs={12}>
         {sosUsers.length >= 1 && (
           <DynamicDatatables
-            tableTitle="User List"
+            tableTitle={t('sos.otherListTitle')}
             rows={sosUsers}
             columns={sosListColumn.concat(actionColumn)}
           />

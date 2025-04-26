@@ -907,7 +907,8 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "awaiting_approval": "Awaiting Approval"
-    }
+    },
+    "copListTitle": "Device Model List"
   },
   "device": {
     "reportTitle": "Device Report",
@@ -950,5 +951,13 @@
     "confirmDelete": "Are you sure you want to delete this holiday?",
     "deleteSuccess": "Holiday deleted successfully!",
     "deleteError": "Error deleting holiday!"
+  },
+  "dto": {
+    "listTitle": "DTO List"
+  },
+  "tagged": {
+    "title": "Tagged Devices",
+    "untag": "Untag",
+    "confirmUntag": "Are you sure you want to untag this device?"
   }
 }
