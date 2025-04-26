@@ -1,45 +1,50 @@
-
 /* package import sections */
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Grid, Button,Typography, Table,
+import { Grid, Button, Typography, Table,
   TableContainer,
   TableBody,
   TableRow,
   TableCell,
   Paper,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
+import { useTranslation } from "react-i18next";
+import AutoHideAlert from "../../ui-component/AutoHideAlert";
 
 /* project component/helper import sections */
-
 import { getCOPDeviceModel } from "../../actions/deviceModelActions";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import OtpServices from "../../services/OtpServices";
 
 const StateAdminCOPModelView = () => {
-
-/* packages helper functionality */
-
+  const { t } = useTranslation();
+  
+  /* packages helper functionality */
   const { deviceId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-/* define state sections */
+  /* define state sections */
+  const [showOTP, setShowOTP] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openAlert, setOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success");
+  const [message, setMessage] = useState("");
 
-    const [showOTP, setShowOTP] = useState(false);
-    const [otp, setOtp] = useState("");
-
-    const [loading, setLoading] = useState(false);
-
-
-/* custom helper functionality */
- 
+  /* custom helper functionality */
   const handleChange = (newValue) => {
     setOtp(newValue);
+  };
+
+  const handleCloseAlert = () => {
+    setOpenAlert(false);
   };
 
   const handleOTPSubmit = async () => {
@@ -51,8 +56,13 @@ const StateAdminCOPModelView = () => {
     if (response.code === "200") {
       setShowOTP(false);
       navigate("/deviceCOP/list");
+      setOpenAlert(true);
+      setAlertType("success");
+      setMessage(t('copModelView.messages.verificationSuccess'));
     } else {
-      console.log(response.error);
+      setOpenAlert(true);
+      setAlertType("error");
+      setMessage(t('copModelView.messages.internalError'));
     }
   };
 
@@ -63,8 +73,13 @@ const StateAdminCOPModelView = () => {
     const response = await handleSendOTPValidation(deviceOTPData);
     if (response.code === "200") {
       setShowOTP(true);
+      setOpenAlert(true);
+      setAlertType("success");
+      setMessage(t('copModelView.messages.otpSent'));
     } else {
-      console.log(response.error);
+      setOpenAlert(true);
+      setAlertType("error");
+      setMessage(t('copModelView.messages.internalError'));
     }
   };
 
@@ -97,101 +112,127 @@ const StateAdminCOPModelView = () => {
   };
 
   useEffect(() => {
-    const retrieveSingleItem =  () => {
- 
+    const retrieveSingleItem = () => {
+      try {
         dispatch(getCOPDeviceModel(deviceId));
-        setLoading(true);
-
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     };
     retrieveSingleItem();
   }, [dispatch, deviceId]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
+
+  if (loading) {
+    return (
+      <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '400px' }}>
+        <CircularProgress />
+      </Grid>
+    );
+  }
+
+  if (error) {
+    return (
+      <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '400px' }}>
+        <Typography color="error">{error}</Typography>
+      </Grid>
+    );
+  }
+
+  if (!deviceDetails) {
+    return (
+      <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '400px' }}>
+        <Typography>{t('common.noDataFound')}</Typography>
+      </Grid>
+    );
+  }
+
   return (
     <>
+      <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType} />
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          {loading && (
-            <MainCard title={`Model Name : ${deviceDetails.device_model}`}>
-              <Grid container>
-                {!showOTP && (
-                <Grid item xs={12} md={6} lg={6}>
-                 
-                  <TableContainer component={Paper}>
-                    <Table>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell style={{ width: "50%" }}>
-                            <strong>Model Name:</strong>
-                          </TableCell>
-                          <TableCell style={{ width: "50%" }}>
+          <MainCard title={`${t('copModelView.title')}: ${deviceDetails.device_model || ''}`}>
+            <Grid container>
+              {!showOTP && (
+              <Grid item xs={12} md={6} lg={6}>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell style={{ width: "50%" }}>
+                          <strong>{t('copModelView.modelDetails.modelName')}:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "50%" }}>
                           {deviceDetails.cop_no}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>Validity</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.cop_validity}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>COP File:</strong>
-                          </TableCell>
-                          <TableCell> {deviceDetails.cop_file}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>Created By:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.created_by}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <strong>{t('copModelView.modelDetails.validity')}:</strong>
+                        </TableCell>
+                        <TableCell>{deviceDetails.cop_validity}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <strong>{t('copModelView.modelDetails.copFile')}:</strong>
+                        </TableCell>
+                        <TableCell>{deviceDetails.cop_file}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <strong>{t('copModelView.modelDetails.createdBy')}:</strong>
+                        </TableCell>
+                        <TableCell>{deviceDetails.created_by}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
 
-                  <br/>
-              <Typography align="center">
-              <Button
-                color="primary"
-                size="large"
-                type="submit"
-                variant="contained"
-                onClick={handleSendOTP}
-              >
-                Verify & Send OTP
-              </Button>
-              </Typography>
-                </Grid>
-                )}
+                <br/>
+                <Typography align="center">
+                  <Button
+                    color="primary"
+                    size="large"
+                    type="submit"
+                    variant="contained"
+                    onClick={handleSendOTP}
+                  >
+                    {t('copModelView.actions.verifyAndSendOtp')}
+                  </Button>
+                </Typography>
               </Grid>
-              
-              <Grid
-                container
-                spacing={2}
-                justifyContent="center"
-                alignItems="center"
-              >
-                 {showOTP && (
-                <Grid item xs={12} md={5}>
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                  <br />
-                  <Typography align="center">
-                    <Button
-                      color="primary"
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      onClick={handleOTPSubmit}
-                    >
-                      Verify OTP
-                    </Button>
-                  </Typography>
-                </Grid>
-                 )}
+              )}
+            </Grid>
+            
+            <Grid
+              container
+              spacing={2}
+              justifyContent="center"
+              alignItems="center"
+            >
+              {showOTP && (
+              <Grid item xs={12} md={5}>
+                <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                <br />
+                <Typography align="center">
+                  <Button
+                    color="primary"
+                    size="large"
+                    type="submit"
+                    variant="contained"
+                    onClick={handleOTPSubmit}
+                  >
+                    {t('copModelView.actions.verifyOtp')}
+                  </Button>
+                </Typography>
               </Grid>
-            </MainCard>
-          )}
+              )}
+            </Grid>
+          </MainCard>
         </Grid>
       </Grid>
     </>

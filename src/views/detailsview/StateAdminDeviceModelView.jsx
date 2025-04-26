@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
+import { useTranslation } from "react-i18next";
 import SettingService from "../../services/SettingService";
 /* project component/helper import sections */
 import AutoHideAlert from "../../ui-component/AutoHideAlert"
@@ -28,6 +29,7 @@ const docViewStyle={
   padding:"0px"
 }
 const StateAdminDeviceModelView = () => {
+  const { t } = useTranslation();
   /* packages helper functionality */
   const [openAlert, setOpenAlert] = useState(false);
   const [alertType,setAlertType]=useState("success");
@@ -68,11 +70,11 @@ const StateAdminDeviceModelView = () => {
       navigate("/device/list");
       setOpenAlert(true);
       setAlertType("success")
-      setMessage('Model has been successfully verified');
+      setMessage(t('deviceModelView.messages.verificationSuccess'));
     } catch (error) {
       setOpenAlert(true);
       setAlertType("error")
-      setMessage('Internal Server Error ! Please try again');
+      setMessage(t('deviceModelView.messages.internalError'));
     }
   };
 
@@ -85,11 +87,11 @@ const StateAdminDeviceModelView = () => {
       setShowOTP(true);
       setOpenAlert(true);
       setAlertType("success")
-      setMessage('OTP has been successfully send to your registered mobile number please enter in the below form');
+      setMessage(t('deviceModelView.messages.otpSent'));
     } catch (error) {
       setOpenAlert(true);
       setAlertType("error")
-      setMessage('Internal Server Error ! Please try again');
+      setMessage(t('deviceModelView.messages.internalError'));
     }
   };
 
@@ -138,7 +140,7 @@ const StateAdminDeviceModelView = () => {
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           {loading && (
-            <MainCard title={`Model Name : ${deviceDetails.model_name}`}>
+            <MainCard title={`${t('deviceModelView.modelName')}: ${deviceDetails.model_name}`}>
               {!showOTP && ( <>
               <Grid container>
               
@@ -148,7 +150,7 @@ const StateAdminDeviceModelView = () => {
                       <TableBody>
                       <TableRow>
                           <TableCell style={{ width: "50%" }}>
-                            <strong>M2M Provider:</strong>
+                            <strong>{t('deviceModelView.m2mProvider')}:</strong>
                           </TableCell>
                           <TableCell style={{ width: "50%" }}>
                           {deviceDetails.eSimProviders.length>0 && deviceDetails.eSimProviders.map(item=><span>{item.company_name}</span>)}
@@ -156,7 +158,7 @@ const StateAdminDeviceModelView = () => {
                         </TableRow>
                         <TableRow>
                           <TableCell style={{ width: "50%" }}>
-                            <strong>Model Name:</strong>
+                            <strong>{t('deviceModelView.modelName')}:</strong>
                           </TableCell>
                           <TableCell style={{ width: "50%" }}>
                             {deviceDetails.model_name}
@@ -164,25 +166,25 @@ const StateAdminDeviceModelView = () => {
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>Test Agency:</strong>
+                            <strong>{t('deviceModelView.modelDetails.testAgency')}:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.test_agency}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>Vendor ID:</strong>
+                            <strong>{t('deviceModelView.modelDetails.vendorId')}:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.vendor_id}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>TAC No:</strong>
+                            <strong>{t('deviceModelView.modelDetails.tacNo')}:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.tac_no}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>TAC Validity:</strong>
+                            <strong>{t('deviceModelView.modelDetails.tacValidity')}:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.tac_validity}</TableCell>
                         </TableRow>
@@ -196,7 +198,7 @@ const StateAdminDeviceModelView = () => {
                       <TableBody>
                         <TableRow>
                           <TableCell style={{ width: "50%" }}>
-                            <strong>Hardware Version:</strong>
+                            <strong>{t('deviceModelView.modelDetails.hardwareVersion')}:</strong>
                           </TableCell>
                           <TableCell style={{ width: "50%" }}>
                             {deviceDetails.hardware_version}
@@ -204,27 +206,27 @@ const StateAdminDeviceModelView = () => {
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>Manufacturer Name:</strong>
+                            <strong>{t('deviceModelView.modelDetails.manufacturerName')}:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.created_by.name}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>Created:</strong>
+                            <strong>{t('deviceModelView.modelDetails.created')}:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.created}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>Status:</strong>
+                            <strong>{t('deviceModelView.modelDetails.status')}:</strong>
                           </TableCell>
                           <TableCell>{deviceDetails.status.replace(/_/g, ' ')}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>TAC File:</strong>
+                            <strong>{t('deviceModelView.modelDetails.tacFile')}:</strong>
                           </TableCell>
-                          <TableCell><Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,deviceDetails.tac_doc_path)} ><span>View TAC</span></Button></TableCell>
+                          <TableCell><Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,deviceDetails.tac_doc_path)} ><span>{t('deviceModelView.modelDetails.viewTac')}</span></Button></TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -240,7 +242,7 @@ const StateAdminDeviceModelView = () => {
                   variant="contained"
                   onClick={handleSendOTP}
                 >
-                  Verify & Send OTP
+                  {t('deviceModelView.actions.verifyAndSendOtp')}
                 </Button>
               </Typography>
               </>)}
@@ -252,7 +254,7 @@ const StateAdminDeviceModelView = () => {
                 alignItems="center"
               >
                 <Grid item xs={12}>
-                  <p>Please validate your submission by entering the OTP sent to your registered mobile no.</p>
+                  <p>{t('deviceModelView.messages.enterOtp')}</p>
                 </Grid>
                 <Grid item xs={12} md="5">
                   <MuiOtpInput value={otp} onChange={handleChange} length={6} />
@@ -265,7 +267,7 @@ const StateAdminDeviceModelView = () => {
                       variant="contained"
                       onClick={handleOTPSubmit}
                     >
-                      Verify OTP
+                      {t('deviceModelView.actions.verifyOtp')}
                     </Button>
                   </Typography>
                 </Grid>

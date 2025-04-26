@@ -959,5 +959,73 @@
     "title": "Tagged Devices",
     "untag": "Untag",
     "confirmUntag": "Are you sure you want to untag this device?"
+  },
+  "deviceModelView": {
+    "modelName": "Model Name",
+    "m2mProvider": "M2M Provider",
+    "modelDetails": {
+      "hardwareVersion": "Hardware Version",
+      "manufacturerName": "Manufacturer Name",
+      "created": "Created",
+      "status": "Status",
+      "tacFile": "TAC File",
+      "viewTac": "View TAC",
+      "tacNo": "TAC No",
+      "tacValidity": "TAC Validity",
+      "testAgency": "Test Agency",
+      "vendorId": "Vendor ID"
+    },
+    "actions": {
+      "verifyAndSendOtp": "Verify & Send OTP",
+      "verifyOtp": "Verify OTP"
+    },
+    "messages": {
+      "otpSent": "OTP has been successfully send to your registered mobile number please enter in the below form",
+      "verificationSuccess": "Model has been successfully verified",
+      "internalError": "Internal Server Error ! Please try again",
+      "enterOtp": "Please validate your submission by entering the OTP sent to your registered mobile no."
+    }
+  },
+  "copModelView": {
+    "title": "Model Name",
+    "modelDetails": {
+      "modelName": "Model Name",
+      "validity": "Validity",
+      "copFile": "COP File",
+      "createdBy": "Created By"
+    },
+    "actions": {
+      "verifyAndSendOtp": "Verify & Send OTP",
+      "verifyOtp": "Verify OTP"
+    },
+    "messages": {
+      "otpSent": "OTP has been successfully sent to your registered mobile number",
+      "verificationSuccess": "COP Model has been successfully verified",
+      "internalError": "Internal Server Error! Please try again"
+    }
+  },
+  "simActivation": {
+    "titles": {
+      "valid": "Activated eSIM Device",
+      "invalid": "Rejected eSIM Device",
+      "pending": "Activation Request"
+    },
+    "actions": {
+      "accept": "Accept",
+      "reject": "Reject",
+      "action": "Action"
+    },
+    "messages": {
+      "confirmRequest": "Please confirm your request",
+      "success": "Request updated successfully",
+      "error": "Error updating request"
+    }
+  },
+  "showDevice": {
+    "title": "All Device List",
+    "errors": {
+      "title": "Internal Server Error",
+      "message": "Unable to fetch data. An error occurred while retrieving data from the server. Please contact the server administrator."
+    }
   }
 }

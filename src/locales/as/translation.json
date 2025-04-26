@@ -275,6 +275,87 @@
       "CallAssignment": "কল নিয়োগ",
       "FalseAssignment": "ভুল নিয়োগ",
       "ClosedAssignment": "বন্ধ নিয়োগ",
+      "Rejected": "প্ৰত্যাখ্যান কৰা",
+      "UserStatistics": "ব্যৱহাৰকাৰী পৰিসংখ্যা",
+      "FitmentStatistics": "ফিটমেন্ট পৰিসংখ্যা",
+      "OverSpeeding": "অত্যধিক গতি",
+      "EmergencyAlert": "জৰুৰীকালীন এলাৰ্ট",
+      "StateDetails": "ৰাজ্যৰ বিৱৰণ",
+      "UserInfo": "ব্যৱহাৰকাৰী পৰিসংখ্যা",
+      "HealthStatistics": "স্বাস্থ্য পৰিসংখ্যা",
+      "HarshBreakAlert": "কঠোৰ ব্ৰেকিং এলাৰ্ট",
+      "SuddenTurnAlert": "আকস্মিক টাৰ্ণ এলাৰ্ট",
+      "StockStatistics": "ষ্টক পৰিসংখ্যা",
+      "DeviceStatistics": "ডিভাইচ পৰিসংখ্যা",
+      "ESIMStatistics": "ইচিম পৰিসংখ্যা",
+      "AlertStatistics": "এলাৰ্ট পৰিসংখ্যা",
+      "VehicleStatistics": "যানবাহন পৰিসংখ্যা",
+      "DriverBehaviour": "চালকৰ আচৰণ",
+      "ActivationStatistics": "সক্ৰিয়কৰণ পৰিসংখ্যা",
+      "ModelStatistics": "মডেল পৰিসংখ্যা",
+      "UsersTeams": "ব্যৱহাৰকাৰী আৰু দল",
+      "Users": "ব্যৱহাৰকাৰী",
+      "Calls": "কল",
+      "FakeCalls": "ভুৱা কল",
+      "IncomingCalls": "আগমনী কল",
+      "RejectedCalls": "প্ৰত্যাখ্যান কৰা কল",
+      "CallAssignment": "কল নিয়োগ",
+      "FalseAssignment": "ভুল নিয়োগ",
+      "ClosedAssignment": "বন্ধ নিয়োগ",
+      "Rejected": "প্ৰত্যাখ্যান কৰা",
+      "UserStatistics": "ব্যৱহাৰকাৰী পৰিসংখ্যা",
+      "FitmentStatistics": "ফিটমেন্ট পৰিসংখ্যা",
+      "OverSpeeding": "অত্যধিক গতি",
+      "EmergencyAlert": "জৰুৰীকালীন এলাৰ্ট",
+      "StateDetails": "ৰাজ্যৰ বিৱৰণ",
+      "UserInfo": "ব্যৱহাৰকাৰী পৰিসংখ্যা",
+      "HealthStatistics": "স্বাস্থ্য পৰিসংখ্যা",
+      "HarshBreakAlert": "কঠোৰ ব্ৰেকিং এলাৰ্ট",
+      "SuddenTurnAlert": "আকস্মিক টাৰ্ণ এলাৰ্ট",
+      "StockStatistics": "ষ্টক পৰিসংখ্যা",
+      "DeviceStatistics": "ডিভাইচ পৰিসংখ্যা",
+      "ESIMStatistics": "ইচিম পৰিসংখ্যা",
+      "AlertStatistics": "এলাৰ্ট পৰিসংখ্যা",
+      "VehicleStatistics": "যানবাহন পৰিসংখ্যা",
+      "DriverBehaviour": "চালকৰ আচৰণ",
+      "ActivationStatistics": "সক্ৰিয়কৰণ পৰিসংখ্যা",
+      "ModelStatistics": "মডেল পৰিসংখ্যা",
+      "UsersTeams": "ব্যৱহাৰকাৰী আৰু দল",
+      "Users": "ব্যৱহাৰকাৰী",
+      "Calls": "কল",
+      "FakeCalls": "ভুৱা কল",
+      "IncomingCalls": "আগমনী কল",
+      "RejectedCalls": "প্ৰত্যাখ্যান কৰা কল",
+      "CallAssignment": "কল নিয়োগ",
+      "FalseAssignment": "ভুল নিয়োগ",
+      "ClosedAssignment": "বন্ধ নিয়োগ",
+      "Rejected": "প্ৰত্যাখ্যান কৰা",
+      "UserStatistics": "ব্যৱহাৰকাৰী পৰিসংখ্যা",
+      "FitmentStatistics": "ফিটমেন্ট পৰিসংখ্যা",
+      "OverSpeeding": "অত্যধিক গতি",
+      "EmergencyAlert": "জৰুৰীকালীন এলাৰ্ট",
+      "StateDetails": "ৰাজ্যৰ বিৱৰণ",
+      "UserInfo": "ব্যৱহাৰকাৰী পৰিসংখ্যা",
+      "HealthStatistics": "স্বাস্থ্য পৰিসংখ্যা",
+      "HarshBreakAlert": "কঠোৰ ব্ৰেকিং এলাৰ্ট",
+      "SuddenTurnAlert": "আকস্মিক টাৰ্ণ এলাৰ্ট",
+      "StockStatistics": "ষ্টক পৰিসংখ্যা",
+      "DeviceStatistics": "ডিভাইচ পৰিসংখ্যা",
+      "ESIMStatistics": "ইচিম পৰিসংখ্যা",
+      "AlertStatistics": "এলাৰ্ট পৰিসংখ্যা",
+      "VehicleStatistics": "যানবাহন পৰিসংখ্যা",
+      "DriverBehaviour": "চালকৰ আচৰণ",
+      "ActivationStatistics": "সক্ৰিয়কৰণ পৰিসংখ্যা",
+      "ModelStatistics": "মডেল পৰিসংখ্যা",
+      "UsersTeams": "ব্যৱহাৰকাৰী আৰু দল",
+      "Users": "ব্যৱহাৰকাৰী",
+      "Calls": "কল",
+      "FakeCalls": "ভুৱা কল",
+      "IncomingCalls": "আগমনী কল",
+      "RejectedCalls": "প্ৰত্যাখ্যান কৰা কল",
+      "CallAssignment": "কল নিয়োগ",
+      "FalseAssignment": "ভুল নিয়োগ",
+      "ClosedAssignment": "বন্ধ নিয়োগ",
       "Rejected": "প্ৰত্যাখ্যান কৰা"
     },
     "widgets": {
@@ -353,7 +434,7 @@
     "awaitingCopDeviceList": "কপ ডিভাইচ তালিকাৰ বাবে অপেক্ষা কৰা",
     "deviceModel": "ডিভাইচ মডেল",
     "createModel": "মডেল সৃষ্টি কৰক",
-    "tacExtension": "টিএচি এক্সটেনশ্বন",
+    "tacExtension": "টি.এ.চি. এক্সটেনশ্বন",
     "accessoryManagement": "এক্সেচৰি পৰিচালনা",
     "individualAccessory": "স্বতন্ত্ৰ এক্সেচৰি",
     "deviceStock": "ডিভাইচ ষ্টক",
@@ -1062,5 +1143,73 @@
     "addTitle": "জিলাৰ নাম যোগ কৰক",
     "addButton": "জিলা যোগ কৰক",
     "listTitle": "জিলাৰ তালিকা"
+  },
+  "deviceModelView": {
+    "modelName": "মডেল নাম",
+    "m2mProvider": "এম২এম প্ৰদানকাৰী",
+    "modelDetails": {
+      "hardwareVersion": "হাৰ্ডৱেৰ সংস্কৰণ",
+      "manufacturerName": "নিৰ্মাতাৰ নাম",
+      "created": "সৃষ্টি কৰা হৈছে",
+      "status": "স্থিতি",
+      "tacFile": "টি.এ.চি. ফাইল",
+      "viewTac": "টি.এ.চি. চাওক",
+      "tacNo": "টি.এ.চি. নম্বৰ",
+      "tacValidity": "টি.এ.চি. বৈধতা",
+      "testAgency": "পৰীক্ষণ এজেন্সী",
+      "vendorId": "বিক্ৰেতা আই.ডি."
+    },
+    "actions": {
+      "verifyAndSendOtp": "যাচনা কৰক আৰু ও.টি.পি. পঠিয়াওক",
+      "verifyOtp": "ও.টি.পি. যাচনা কৰক"
+    },
+    "messages": {
+      "otpSent": "আপোনাৰ পঞ্জীকৃত মোবাইল নম্বৰত ও.টি.পি. সফলতাৰে পঠোৱা হৈছে, অনুগ্ৰহ কৰি তলত প্ৰৱেশ কৰক",
+      "verificationSuccess": "মডেল সফলতাৰে যাচনা কৰা হৈছে",
+      "internalError": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি! অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক",
+      "enterOtp": "অনুগ্ৰহ কৰি আপোনাৰ পঞ্জীকৃত মোবাইল নম্বৰত পঠোৱা ও.টি.পি. প্ৰৱেশ কৰি আপোনাৰ জমা যাচনা কৰক"
+    }
+  },
+  "copModelView": {
+    "title": "মডেল নাম",
+    "modelDetails": {
+      "modelName": "মডেল নাম",
+      "validity": "বৈধতা",
+      "copFile": "চি.অ'.পি. ফাইল",
+      "createdBy": "সৃষ্টিকৰ্তা"
+    },
+    "actions": {
+      "verifyAndSendOtp": "যাচনা কৰক আৰু ও.টি.পি. পঠিয়াওক",
+      "verifyOtp": "ও.টি.পি. যাচনা কৰক"
+    },
+    "messages": {
+      "otpSent": "আপোনাৰ পঞ্জীকৃত মোবাইল নম্বৰত ও.টি.পি. সফলতাৰে পঠোৱা হৈছে",
+      "verificationSuccess": "চি.অ'.পি. মডেল সফলতাৰে যাচনা কৰা হৈছে",
+      "internalError": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি! অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক"
+    }
+  },
+  "simActivation": {
+    "titles": {
+      "valid": "সক্ৰিয় ই-সিম ডিভাইচ",
+      "invalid": "প্ৰত্যাখ্যাত ই-সিম ডিভাইচ",
+      "pending": "সক্ৰিয়কৰণ অনুৰোধ"
+    },
+    "actions": {
+      "accept": "গ্ৰহণ কৰক",
+      "reject": "প্ৰত্যাখ্যান কৰক",
+      "action": "কাৰ্য"
+    },
+    "messages": {
+      "confirmRequest": "অনুগ্ৰহ কৰি আপোনাৰ অনুৰোধ নিশ্চিত কৰক",
+      "success": "অনুৰোধ সফলতাৰে আপডেট কৰা হৈছে",
+      "error": "অনুৰোধ আপডেট কৰাত ত্ৰুটি হৈছে"
+    }
+  },
+  "showDevice": {
+    "title": "সকলো ডিভাইচৰ তালিকা",
+    "errors": {
+      "title": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি",
+      "message": "তথ্য প্ৰাপ্ত কৰিবলৈ অক্ষম। চাৰ্ভাৰৰ পৰা তথ্য প্ৰাপ্ত কৰাৰ সময়ত এটা ত্ৰুটি হৈছে। অনুগ্ৰহ কৰি চাৰ্ভাৰ প্ৰশাসকৰ সৈতে যোগাযোগ কৰক।"
+    }
   }
 }
