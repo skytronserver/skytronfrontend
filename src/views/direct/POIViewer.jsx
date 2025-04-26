@@ -59,8 +59,11 @@ import {
   Map as MapIcon,
   LocationCity as CityIcon,
   Terrain as TerrainIcon,
+  Satellite as SatelliteIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 import POIService from '../../services/POIService';
+import HomePageService from '../../services/HomePage';
 
 const POIViewer = () => {
   const mapRef = useRef(null);
@@ -120,9 +123,15 @@ const POIViewer = () => {
   const [layersAnchorEl, setLayersAnchorEl] = useState(null);
   const [layers, setLayers] = useState({
     osm: {
-      name: 'OpenStreetMap',
+      name: 'Map View',
       visible: true,
       icon: <MapIcon />,
+      layer: null,
+    },
+    hybrid: {
+      name: 'Hybrid View',
+      visible: false,
+      icon: <SatelliteIcon />,
       layer: null,
     },
     india3: {
@@ -143,8 +152,17 @@ const POIViewer = () => {
       icon: <RouteIcon />,
       layer: null,
     },
+    crowdsourced: {
+      name: 'Crowdsourced POI',
+      visible: false,
+      icon: <PeopleIcon />,
+      layer: null,
+    },
   });
   const theme = useTheme();
+  const [routePoints, setRoutePoints] = useState([]);
+  const [routeLine, setRouteLine] = useState(null);
+  const vectorSourceRef = useRef(new VectorSource());
 
   const markerStyles = {
     Point: new Style({
@@ -191,27 +209,7 @@ const POIViewer = () => {
       zIndex: 0,
     });
 
-    const adminGroupLayer = new TileLayer({
-      source: new TileWMS({
-        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-        params: {
-          LAYERS: 'basemap%3Aadmin_group',
-          TILED: true,
-          VERSION: '1.1.1',
-          FORMAT: 'image/png',
-          TRANSPARENT: 'true',
-          SRS: 'EPSG:4326',
-          WIDTH: 256,
-          HEIGHT: 256,
-          pixelRatio: 1,
-        },
-        serverType: 'geoserver',
-        projection: 'EPSG:4326',
-      }),
-      zIndex: 0,
-    });
-
-    const india3Layer = new TileLayer({
+    const hybridLayer = new TileLayer({
       source: new TileWMS({
         url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
         params: {
@@ -231,6 +229,46 @@ const POIViewer = () => {
       zIndex: 1,
     });
 
+    const india3Layer = new TileLayer({
+      source: new TileWMS({
+        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+        params: {
+          LAYERS: 'india3',
+          TILED: true,
+          VERSION: '1.1.1',
+          FORMAT: 'image/png',
+          TRANSPARENT: 'true',
+          SRS: 'EPSG:4326',
+          WIDTH: 256,
+          HEIGHT: 256,
+          pixelRatio: 1,
+        },
+        serverType: 'geoserver',
+        projection: 'EPSG:4326',
+      }),
+      zIndex: 2,
+    });
+
+    const adminGroupLayer = new TileLayer({
+      source: new TileWMS({
+        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+        params: {
+          LAYERS: 'basemap%3Aadmin_group',
+          TILED: true,
+          VERSION: '1.1.1',
+          FORMAT: 'image/png',
+          TRANSPARENT: 'true',
+          SRS: 'EPSG:4326',
+          WIDTH: 256,
+          HEIGHT: 256,
+          pixelRatio: 1,
+        },
+        serverType: 'geoserver',
+        projection: 'EPSG:4326',
+      }),
+      zIndex: 3,
+    });
+
     const roadsLayer = new TileLayer({
       source: new TileWMS({
         url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
@@ -248,24 +286,42 @@ const POIViewer = () => {
         serverType: 'geoserver',
         projection: 'EPSG:4326',
       }),
-      zIndex: 2,
+      zIndex: 4,
+    });
+
+    const crowdsourcedLayer = new VectorLayer({
+      source: new VectorSource(),
+      zIndex: 5,
+      style: new Style({
+        image: new Icon({
+          src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+          scale: 0.051,
+          anchor: [0.5, 1],
+          anchorXUnits: "fraction",
+          anchorYUnits: "fraction",
+        }),
+      }),
     });
 
     setLayers(prev => ({
       ...prev,
       osm: { ...prev.osm, layer: osmLayer },
-      adminGroup: { ...prev.adminGroup, layer: adminGroupLayer },
+      hybrid: { ...prev.hybrid, layer: hybridLayer },
       india3: { ...prev.india3, layer: india3Layer },
+      adminGroup: { ...prev.adminGroup, layer: adminGroupLayer },
       roads: { ...prev.roads, layer: roadsLayer },
+      crowdsourced: { ...prev.crowdsourced, layer: crowdsourcedLayer },
     }));
 
     const initialMap = new Map({
       target: mapRef.current,
       layers: [
         osmLayer,
-        adminGroupLayer,
+        hybridLayer,
         india3Layer,
+        adminGroupLayer,
         roadsLayer,
+        crowdsourcedLayer,
         vectorLayer,
         drawingLayer,
       ],
@@ -495,8 +551,7 @@ const POIViewer = () => {
       setLoading(true);
       const formDataObj = new FormData();
       formDataObj.append('poi_id', selectedPoi.id);
-
-      await POIService.deletePOI(formDataObj);
+     const res= await POIService.deletePOI(formDataObj);
       showSnackbar('POI deleted successfully', 'success');
 
       setSelectedPoi(null);
@@ -540,6 +595,8 @@ const POIViewer = () => {
     setDrawingMode(newMode);
     setIsEditMode(false);
     setSelectedPoi(null);
+    setRoutePoints([]);
+    vectorSourceRef.current.clear();
 
     if (newMode) {
       let geometryType;
@@ -670,6 +727,199 @@ const POIViewer = () => {
         visible: !prev[layerId].visible,
       },
     }));
+  };
+
+  // Add route vector layer
+  useEffect(() => {
+    if (map) {
+      const vectorLayer = new VectorLayer({
+        source: vectorSourceRef.current,
+      });
+      map.addLayer(vectorLayer);
+    }
+  }, [map]);
+
+  // Handle map click for route points
+  useEffect(() => {
+    if (map && drawingMode === 'road') {
+      const clickHandler = (e) => {
+        const coord = e.coordinate;
+        const lonLat = toLonLat(coord);
+        
+        setRoutePoints(prev => {
+          const newPoints = [...prev, lonLat];
+          
+          // Show visual feedback for selected points
+          const pointFeature = new Feature({
+            geometry: new Point(coord),
+          });
+          
+          pointFeature.setStyle(
+            new Style({
+              image: new Icon({
+                src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+                scale: 0.051,
+                anchor: [0.5, 1],
+                anchorXUnits: "fraction",
+                anchorYUnits: "fraction",
+              }),
+            })
+          );
+          
+          vectorSourceRef.current.addFeature(pointFeature);
+          
+          // If we have two points, fetch the route
+          if (newPoints.length === 2) {
+            // Show loading state
+            showSnackbar('Fetching route...', 'info');
+            fetchRoute(newPoints);
+          } else if (newPoints.length === 1) {
+            showSnackbar('Click another point to complete the route', 'info');
+          }
+          
+          return newPoints;
+        });
+      };
+
+      map.on('click', clickHandler);
+      return () => {
+        map.un('click', clickHandler);
+        // Clear any temporary points when switching modes
+        vectorSourceRef.current.clear();
+        setRoutePoints([]);
+      };
+    }
+  }, [map, drawingMode]);
+
+  const fetchRoute = async (points) => {
+    try {
+      setLoading(true);
+      
+      // Validate points are not too close to each other
+      const distance = Math.sqrt(
+        Math.pow(points[1][0] - points[0][0], 2) + 
+        Math.pow(points[1][1] - points[0][1], 2)
+      );
+      
+      if (distance < 0.0001) { // Points are too close
+        throw new Error('Selected points are too close to each other. Please select points further apart.');
+      }
+
+      const response = await HomePageService.getRoute({ points });
+      
+      if (!response?.data?.paths?.[0]?.points) {
+        throw new Error('No route found between the selected points');
+      }
+
+      const firstPath = response.data.paths[0];
+      let coordinates;
+      
+      if (firstPath.points.type === "LineString" && Array.isArray(firstPath.points.coordinates)) {
+        // Convert coordinates to [lat, lon] format
+        coordinates = firstPath.points.coordinates.map(coord => [coord[1], coord[0]]);
+        
+        // Validate coordinates
+        if (coordinates.length < 2) {
+          throw new Error('Invalid route: Not enough points in the route');
+        }
+        
+        // Check for invalid coordinates
+        if (coordinates.some(coord => !coord || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1]))) {
+          throw new Error('Invalid coordinates in route');
+        }
+      } else {
+        throw new Error('Invalid route data structure');
+      }
+
+      // Display the route
+      displayRoute(coordinates);
+      
+      // Update form data with the route coordinates
+      setFormData(prev => ({
+        ...prev,
+        location: JSON.stringify(coordinates),
+        mark_type: 'Road',
+        use_type: 'PermitRoute',
+        name: `Route ${Date.now()}`,
+        description: 'Generated route',
+        status: 'Active'
+      }));
+
+      // Open the dialog to show the route data
+      setDialogOpen(true);
+      
+      // Reset points
+      setRoutePoints([]);
+    } catch (error) {
+      console.error('Error fetching route:', error);
+      showSnackbar(error.message || 'Error fetching route. Please try again.', 'error');
+      // Clear any temporary points on error
+      vectorSourceRef.current.clear();
+      setRoutePoints([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const displayRoute = (coordinates) => {
+    try {
+      // Clear previous route
+      vectorSourceRef.current.clear();
+
+      // Create start and end points
+      const startPoint = new Feature({
+        geometry: new Point(fromLonLat([coordinates[0][1], coordinates[0][0]])),
+      });
+      const endPoint = new Feature({
+        geometry: new Point(fromLonLat([coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]])),
+      });
+
+      // Style for points
+      [startPoint, endPoint].forEach(point => {
+        point.setStyle(
+          new Style({
+            image: new Icon({
+              src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+              scale: 0.051,
+              anchor: [0.5, 1],
+              anchorXUnits: "fraction",
+              anchorYUnits: "fraction",
+            }),
+          })
+        );
+      });
+
+      // Create route line
+      const lineCoordinates = coordinates.map(coord => fromLonLat([coord[1], coord[0]]));
+      const line = new Feature({
+        geometry: new LineString(lineCoordinates),
+      });
+
+      line.setStyle(
+        new Style({
+          stroke: new Stroke({
+            color: '#0066ff',
+            width: 3,
+          }),
+        })
+      );
+
+      // Add features to the vector source
+      vectorSourceRef.current.addFeatures([startPoint, endPoint, line]);
+
+      // Fit view to the route with animation
+      const extent = line.getGeometry().getExtent();
+      if (extent) {
+        map.getView().fit(extent, {
+          padding: [50, 50, 50, 50],
+          duration: 1000,
+          maxZoom: 18,
+        });
+      }
+    } catch (error) {
+      console.error('Error displaying route:', error);
+      showSnackbar('Error displaying route. Please try again.', 'error');
+    }
   };
 
   return (

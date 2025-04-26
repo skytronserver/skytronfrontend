@@ -10,9 +10,13 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {deviceModelColumns} from '../../datatables/rowsColumn';
 import { Link } from "react-router-dom";
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useTranslation } from 'react-i18next';
+
 const DeviceModelList = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   const dispatch=useDispatch();
+  
   useEffect(()=>{
     const retriveDeviceModel = async () => {
       const retriveData=await DeviceModelServices.getAdminAwaitingModels();
@@ -25,13 +29,14 @@ const DeviceModelList = () => {
   const deviceModelList = useSelector((state) => 
     state.deviceModel.deviceModelList.map((model) => ({
       ...model,
-      status: model.status.replace(/_/g, ' '),
+      status: t(`deviceModel.status.${model.status.toLowerCase().replace(/ /g, '_')}`),
     }))
   );
+
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -49,13 +54,14 @@ const DeviceModelList = () => {
       },
     },
   ];
+
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Awaiting For Approval" rows={deviceModelList} columns={actionColumn.concat(deviceModelColumns)}/>}
+        {load && <DynamicDatatables tableTitle={t('deviceModel.awaitingApprovalTitle')} rows={deviceModelList} columns={actionColumn.concat(deviceModelColumns)}/>}
         </Grid>
     </Grid>
-);
+  );
 }
 
 export default DeviceModelList

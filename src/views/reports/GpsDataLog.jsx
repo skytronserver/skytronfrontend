@@ -6,27 +6,29 @@ import { gridSpacing } from "../../store/constant"
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
-
-const gpsDataColumns = [
-    {
-        name: "timestamp",
-        label: "Timestamp",
-        options: {
-            filter: true,
-            sort: true,
-        },
-    },
-    {
-        name: "rawData",
-        label: "Raw Data",
-        options: {
-            filter: true,
-            sort: false,
-        },
-    },
-];
+import { useTranslation } from 'react-i18next'
 
 const GpsDataLog = () => {
+    const { t } = useTranslation();
+    const gpsDataColumns = [
+        {
+            name: "timestamp",
+            label: t('common.timestamp'),
+            options: {
+                filter: true,
+                sort: true,
+            },
+        },
+        {
+            name: "rawData",
+            label: t('gpsData.rawData'),
+            options: {
+                filter: true,
+                sort: false,
+            },
+        },
+    ];
+
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
@@ -81,7 +83,7 @@ const GpsDataLog = () => {
     
     const options = {
         search: false,
-        searchPlaceholder: "Search GPS Data...",
+        searchPlaceholder: t('gpsData.searchPlaceholder'),
         serverSide: true,
         filter: false,
         sort: false,
@@ -91,13 +93,12 @@ const GpsDataLog = () => {
     return (
         <Grid container spacing={gridSpacing}>
             <Grid item xs={12}>
-
                 <form onSubmit={handleSearch}>
                     <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
-                                label="Search by IMEI"
+                                label={t('gpsData.searchByImei')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 variant="outlined"
@@ -110,7 +111,7 @@ const GpsDataLog = () => {
                                 color="primary"
                                 startIcon={<SearchIcon />}
                             >
-                                Search
+                                {t('common.search')}
                             </Button>
                         </Grid>
                     </Grid>
@@ -119,7 +120,7 @@ const GpsDataLog = () => {
             <Grid item xs={12}>
                 {!loading && (
                     <DynamicDatatables
-                        tableTitle="GPS Data Log"
+                        tableTitle={t('gpsData.title')}
                         rows={data}
                         columns={gpsDataColumns}
                         options={options}

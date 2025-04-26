@@ -22,7 +22,18 @@
     "submit": "Submit",
     "formSubmittedSuccessfully": "Form Submitted Successfully",
     "formNotSubmitted": "Form Not Submitted",
-    "internalServerError": "Internal Server Error"
+    "internalServerError": "Internal Server Error",
+    "action": "Action",
+    "noDataFound": "No Data Found",
+    "timestamp": "Timestamp",
+    "loading": "Loading data...",
+    "noMatchingRecords": "Sorry, no matching records found",
+    "nextPage": "Next Page",
+    "previousPage": "Previous Page",
+    "rowsPerPage": "Rows per page:",
+    "of": "of",
+    "pageInfo": "Page: {{page}} | Rows per page: {{rowsPerPage}} | Total results: {{total}}",
+    "status": "Status"
   },
   "dashboard": {
   },
@@ -371,7 +382,8 @@
       "fileRequired": "File is required",
       "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
       "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
-    }
+    },
+    "listTitle": "State Admin"
   },
   "manufacturer": {
     "title": "Create Manufacturer",
@@ -419,7 +431,8 @@
         "file_size": "Max size is 520KB and supported files are pdf/png/jpg",
         "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
       }
-    }
+    },
+    "listTitle": "Manufacturer"
   },
   "esimUser": {
     "title": "Create M2M Service Provider",
@@ -862,5 +875,80 @@
       "teamAdded": "Team added successfully",
       "teamUpdated": "Team Updated successfully"
     }
+  },
+  "notice": {
+    "title": "Notice List",
+    "file": "File",
+    "view": "View",
+    "action": "Action",
+    "deleteConfirm": "Are you sure you want to delete this notice?",
+    "deleteSuccess": "Notice deleted successfully!",
+    "deleteError": "Error deleting notice!",
+    "deleteCancelled": "Notice deletion cancelled."
+  },
+  "users": {
+    "listTitle": "Users Report"
+  },
+  "sos": {
+    "listTitle": "SOS Admin List",
+    "otherListTitle": "User List"
+  },
+  "esim": {
+    "serviceProviderTitle": "M2M Service Provider"
+  },
+  "dealer": {
+    "reportTitle": "Dealer Report",
+    "listTitle": "Dealer List"
+  },
+  "deviceModel": {
+    "awaitingApprovalTitle": "Awaiting For Approval",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "awaiting_approval": "Awaiting Approval"
+    }
+  },
+  "device": {
+    "reportTitle": "Device Report",
+    "availableDevices": "Available Devices",
+    "defective": "Defective",
+    "return": "Return",
+    "confirmDefective": "Are you sure you want to Mark as Defective?",
+    "confirmReturn": "Are you sure you want to return to manufacturer?"
+  },
+  "vehicleOwner": {
+    "listTitle": "Vehicle Owner List"
+  },
+  "gpsData": {
+    "title": "GPS Data Log",
+    "rawData": "Raw Data",
+    "searchPlaceholder": "Search GPS Data...",
+    "searchByImei": "Search by IMEI"
+  },
+  "emergencyData": {
+    "title": "Emergency Data Logs"
+  },
+  "apiData": {
+    "title": "API Data Log",
+    "requestUrl": "Request URL",
+    "ipAddress": "IP Address",
+    "method": "Method",
+    "requestData": "Request Data",
+    "noData": "No data",
+    "errorDisplayingData": "Error displaying data",
+    "searchLabel": "Search API Logs",
+    "searchPlaceholder": "Type 'Post' to find POST requests",
+    "searchHelperText": "Search by URL, method, or error code"
+  },
+  "holiday": {
+    "listTitle": "School Holidays List",
+    "name": "Holiday Name",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "type": "Type",
+    "confirmDelete": "Are you sure you want to delete this holiday?",
+    "deleteSuccess": "Holiday deleted successfully!",
+    "deleteError": "Error deleting holiday!"
   }
 }

@@ -11,10 +11,13 @@ import { sosListColumn } from "../../datatables/rowsColumn";
 import {SOSAdminList} from "../../actions/commonDataActions";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTranslation } from 'react-i18next';
+
 const SOSUserList = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [updateStore,setUpdateStore]=useState(false)
-  const [sosUser, setSosUser] = useState(""); // here
+  const [sosUser, setSosUser] = useState("");
   const dispatch = useDispatch();
   const sosUsers=useSelector((state)=>state.listAll.sosAdmin);
   useEffect(() => {
@@ -56,12 +59,12 @@ const SOSUserList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="SOS Admin List" />
+        <PageHeader title={t('sos.listTitle')} />
       </Grid>
       <Grid item xs={12}>
         {sosUsers.length >= 1 && (
           <DynamicDatatables
-            tableTitle="SOS Admin List"
+            tableTitle={t('sos.listTitle')}
             rows={sosUsers}
             columns={sosListColumn.concat(actionColumn)}
           />

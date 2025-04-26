@@ -6,7 +6,7 @@
     "users": "ব্যৱহাৰকাৰী",
     "profile": "প্ৰ'ফাইল",
     "settings": "ছেটিংছ",
-    "search": "সন্ধান কৰক",
+    "search": "সন্ধান",
     "allRights": "সৰ্বস্বত্ব সংৰক্ষিত",
     "implementedBy": "অসম ইলেক্ট্ৰনিক্স ডেভেলপমেন্ট কৰ্পোৰেচন লিমিটেড দ্বাৰা কাৰ্যকৰী কৰা হৈছে",
     "error": "ত্ৰুটি",
@@ -22,7 +22,18 @@
     "submit": "দাখিল কৰক",
     "formSubmittedSuccessfully": "ফৰ্ম সফলভাৱে দাখিল কৰা হ'ল",
     "formNotSubmitted": "ফৰ্ম দাখিল কৰা হোৱা নাই",
-    "internalServerError": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি"
+    "internalServerError": "আভ্যন্তৰীণ চাৰ্ভাৰ ত্ৰুটি",
+    "action": "কাৰ্য",
+    "noDataFound": "কোনো তথ্য পোৱা নগ'ল",
+    "timestamp": "সময়",
+    "loading": "ডাটা ল'ড হৈ আছে...",
+    "noMatchingRecords": "দুঃখিত, কোনো মিল থকা তথ্য পোৱা নগ'ল",
+    "nextPage": "পৰৱৰ্তী পৃষ্ঠা",
+    "previousPage": "পূৰ্বৱৰ্তী পৃষ্ঠা",
+    "rowsPerPage": "প্ৰতি পৃষ্ঠাত শাৰী:",
+    "of": "ৰ",
+    "pageInfo": "পৃষ্ঠা: {{page}} | প্ৰতি পৃষ্ঠাত শাৰী: {{rowsPerPage}} | মুঠ ফলাফল: {{total}}",
+    "status": "স্থিতি"
   },
   "dashboard": {
   },
@@ -360,7 +371,8 @@
       "fileRequired": "ফাইলৰ প্ৰয়োজন",
       "fileSize": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি",
       "fileFormat": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি"
-    }
+    },
+    "listTitle": "ৰাজ্য প্ৰশাসক"
   },
   "manufacturer": {
     "title": "নিৰ্মাতা সৃষ্টি কৰক",
@@ -408,7 +420,8 @@
         "file_size": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি",
         "file_format": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি"
       }
-    }
+    },
+    "listTitle": "নিৰ্মাতা"
   },
   "esimUser": {
     "title": "এমটুএম সেৱা প্ৰদানকাৰী সৃষ্টি কৰক",
@@ -824,5 +837,73 @@
       "teamAdded": "দল সফলভাৱে যোগ কৰা হ'ল",
       "teamUpdated": "দল সফলভাৱে আপডেট কৰা হ'ল"
     }
+  },
+  "notice": {
+    "title": "নোটিছৰ তালিকা"
+  },
+  "users": {
+    "listTitle": "ব্যৱহাৰকাৰীৰ ৰিপ'ৰ্ট"
+  },
+  "sos": {
+    "listTitle": "এছঅ'এছ প্ৰশাসকৰ তালিকা",
+    "otherListTitle": "ব্যৱহাৰকাৰীৰ তালিকা"
+  },
+  "esim": {
+    "serviceProviderTitle": "এম২এম সেৱা প্ৰদানকাৰী"
+  },
+  "dealer": {
+    "reportTitle": "ডিলাৰ প্ৰতিবেদন",
+    "listTitle": "ডিলাৰ তালিকা"
+  },
+  "deviceModel": {
+    "awaitingApprovalTitle": "অনুমোদনৰ বাবে অপেক্ষাৰত",
+    "status": {
+      "pending": "পেণ্ডিং",
+      "approved": "অনুমোদিত",
+      "rejected": "প্ৰত্যাখ্যাত",
+      "awaiting_approval": "অনুমোদনৰ বাবে অপেক্ষাৰত"
+    }
+  },
+  "device": {
+    "reportTitle": "ডিভাইচ প্ৰতিবেদন",
+    "availableDevices": "উপলব্ধ ডিভাইচ",
+    "defective": "ত্ৰুটিযুক্ত",
+    "return": "ঘূৰাই দিয়ক",
+    "confirmDefective": "আপুনি নিশ্চিতভাৱে ইয়াক ত্ৰুটিযুক্ত হিচাপে চিহ্নিত কৰিব বিচাৰে নেকি?",
+    "confirmReturn": "আপুনি নিশ্চিতভাৱে নিৰ্মাতালৈ ঘূৰাই দিব বিচাৰে নেকি?"
+  },
+  "vehicleOwner": {
+    "listTitle": "বাহন মালিকৰ তালিকা"
+  },
+  "gpsData": {
+    "title": "জিপিএছ ডাটা লগ",
+    "rawData": "প্ৰাথমিক ডাটা",
+    "searchPlaceholder": "জিপিএছ ডাটা সন্ধান...",
+    "searchByImei": "IMEI দ্বাৰা সন্ধান"
+  },
+  "emergencyData": {
+    "title": "জৰুৰীকালীন ডাটা লগ"
+  },
+  "apiData": {
+    "title": "এপিআই ডাটা লগ",
+    "requestUrl": "অনুৰোধ URL",
+    "ipAddress": "আইপি ঠিকনা",
+    "method": "পদ্ধতি",
+    "requestData": "অনুৰোধ ডাটা",
+    "noData": "কোনো ডাটা নাই",
+    "errorDisplayingData": "ডাটা প্ৰদৰ্শনত ত্ৰুটি",
+    "searchLabel": "এপিআই লগ সন্ধান",
+    "searchPlaceholder": "POST অনুৰোধ বিচাৰিবলৈ 'Post' টাইপ কৰক",
+    "searchHelperText": "URL, পদ্ধতি, বা ত্ৰুটি ক'ড দ্বাৰা সন্ধান কৰক"
+  },
+  "holiday": {
+    "listTitle": "বিদ্যালয়ৰ বন্ধৰ তালিকা",
+    "name": "বন্ধৰ নাম",
+    "startDate": "আৰম্ভণিৰ তাৰিখ",
+    "endDate": "সমাপ্তিৰ তাৰিখ",
+    "type": "প্ৰকাৰ",
+    "confirmDelete": "আপুনি নিশ্চিতভাৱে এই বন্ধ মচিব বিচাৰে নেকি?",
+    "deleteSuccess": "বন্ধ সফলতাৰে মচি পেলোৱা হ'ল!",
+    "deleteError": "বন্ধ মচাত ত্ৰুটি!"
   }
 }

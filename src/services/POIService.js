@@ -42,10 +42,14 @@ const POIService = {
     }
   },
 
-  deletePOI: async () => {
+  deletePOI: async (poiData) => {
     try {
       const http = getAxiosInstance();
-      const response = await http.post(`/api/poi/delete/`);
+      const response = await http.post(`/api/poi/delete/`, poiData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error deleting POI:', error);

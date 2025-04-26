@@ -14,13 +14,16 @@ import CreateIcon from "@mui/icons-material/Create";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {openFile} from "../../helper";
 import Button from '@mui/material/Button';
+import { useTranslation } from 'react-i18next';
+
 const docViewStyle={
   padding:"0px"
 }
 const NoticeList = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [updateStore,setUpdateStore]=useState(false)
-  const [allNotice, setAllNotice] = useState(""); // here
+  const [allNotice, setAllNotice] = useState("");
   const [del,setDel]=useState(false);
   const dispatch = useDispatch();
   const notices=useSelector((state)=>state.listAll.noticeList);
@@ -104,7 +107,7 @@ const NoticeList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="Notice List" />
+        <PageHeader title={t('notice.title')} />
       </Grid>
       <Grid item xs={12}>
         {notices.length >= 1 && (

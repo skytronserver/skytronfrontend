@@ -9,8 +9,10 @@ import SearchIcon from '@mui/icons-material/Search'
 import CircularProgress from '@mui/material/CircularProgress'
 import Chip from '@mui/material/Chip'
 import Box from '@mui/material/Box'
+import { useTranslation } from 'react-i18next'
 
 const ApiDataLog = () => {
+    const { t } = useTranslation();
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
@@ -21,7 +23,7 @@ const ApiDataLog = () => {
     const apiDataColumns = [
         {
             name: "timestamp",
-            label: "Timestamp",
+            label: t('common.timestamp'),
             options: {
                 filter: true,
                 sort: true,
@@ -32,7 +34,7 @@ const ApiDataLog = () => {
         },
         {
             name: "request_url",
-            label: "Request URL",
+            label: t('apiData.requestUrl'),
             options: {
                 filter: true,
                 sort: true,
@@ -47,7 +49,7 @@ const ApiDataLog = () => {
         },
         {
             name: "ip_address",
-            label: "IP Address",
+            label: t('apiData.ipAddress'),
             options: {
                 filter: true,
                 sort: true,
@@ -55,7 +57,7 @@ const ApiDataLog = () => {
         },
         {
             name: "request_type",
-            label: "Method",
+            label: t('apiData.method'),
             options: {
                 filter: true,
                 sort: true,
@@ -63,7 +65,7 @@ const ApiDataLog = () => {
         },
         {
             name: "status",
-            label: "Status",
+            label: t('common.status'),
             options: {
                 filter: true,
                 sort: true,
@@ -76,7 +78,7 @@ const ApiDataLog = () => {
         },
         {
             name: "incoming_data",
-            label: "Request Data",
+            label: t('apiData.requestData'),
             options: {
                 filter: false,
                 sort: false,
@@ -89,7 +91,7 @@ const ApiDataLog = () => {
                         
                         // For empty objects
                         if (value === '{}') {
-                            return 'No data';
+                            return t('apiData.noData');
                         }
                         
                         // Try to parse and pretty print JSON
@@ -110,7 +112,7 @@ const ApiDataLog = () => {
                         );
                     } catch (e) {
                         console.error("Error rendering data:", e);
-                        return <div>Error displaying data</div>;
+                        return <div>{t('apiData.errorDisplayingData')}</div>;
                     }
                 }
             },
@@ -293,14 +295,14 @@ const ApiDataLog = () => {
         textLabels: {
             body: {
                 noMatch: loading ? 
-                    'Loading data...' : 
-                    'Sorry, no matching records found',
+                    t('common.loading') : 
+                    t('common.noMatchingRecords'),
             },
             pagination: {
-                next: "Next Page",
-                previous: "Previous Page",
-                rowsPerPage: "Rows per page:",
-                displayRows: "of",
+                next: t('common.nextPage'),
+                previous: t('common.previousPage'),
+                rowsPerPage: t('common.rowsPerPage'),
+                displayRows: t('common.of'),
             },
         }
     };
@@ -313,12 +315,12 @@ const ApiDataLog = () => {
                         <Grid item xs={12} sm={8} md={6} lg={4}>
                             <TextField
                                 fullWidth
-                                label="Search API Logs"
+                                label={t('apiData.searchLabel')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 variant="outlined"
-                                placeholder="Type 'Post' to find POST requests"
-                                helperText="Search by URL, method, or error code"
+                                placeholder={t('apiData.searchPlaceholder')}
+                                helperText={t('apiData.searchHelperText')}
                             />
                         </Grid>
                         <Grid item xs="auto" style={{ marginTop: '8px' }}>
@@ -331,7 +333,7 @@ const ApiDataLog = () => {
                                 disabled={loading}
                                 style={{ height: '56px' }}
                             >
-                                Search
+                                {t('common.search')}
                             </Button>
                         </Grid>
                     </Grid>
@@ -359,17 +361,17 @@ const ApiDataLog = () => {
                             >
                                 <Box textAlign="center">
                                     <CircularProgress />
-                                    <Box mt={1}>Loading data...</Box>
+                                    <Box mt={1}>{t('common.loading')}</Box>
                                 </Box>
                             </Box>
                         )}
                         <Box mb={2}>
                             <small style={{ color: '#666' }}>
-                                Page: {page + 1} | Rows per page: {rowsPerPage} | Total results: {totalCount}
+                                {t('common.pageInfo', { page: page + 1, rowsPerPage, total: totalCount })}
                             </small>
                         </Box>
                         <DynamicDatatables
-                            tableTitle="API Data Log"
+                            tableTitle={t('apiData.title')}
                             rows={data}
                             columns={apiDataColumns}
                             options={options}

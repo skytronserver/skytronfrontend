@@ -7,10 +7,13 @@ import { useEffect,useState } from 'react';
 //Datatables
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {vehicleOwnerCols} from '../../datatables/rowsColumn';
+import { useTranslation } from 'react-i18next';
 
 const VehicleOwnerList = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   const [ownerList,setOwnerList]=useState([]);
+  
   useEffect(()=>{
     const fetchOwner = async () => {
       try {
@@ -19,22 +22,22 @@ const VehicleOwnerList = () => {
         setLoad(true)
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          console.log("No Data Found");
+          console.log(t('common.noDataFound'));
         } else {
-          console.log("No Data Found");
+          console.log(t('common.noDataFound'));
         }
       }
     };
     fetchOwner();
   },[])
-  //For actions refer AvailableForSale Component
+  
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Manufacturer" rows={ownerList} columns={vehicleOwnerCols}/>}
+        {load && <DynamicDatatables tableTitle={t('vehicleOwner.listTitle')} rows={ownerList} columns={vehicleOwnerCols}/>}
         </Grid>
     </Grid>
-);
+  );
 }
 
 export default VehicleOwnerList;

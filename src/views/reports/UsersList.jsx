@@ -7,8 +7,10 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import ReportServices from '../../services/ReportServices';
 import { IconRefresh, IconDownload } from '@tabler/icons';
 import DialogComponent from '../../ui-component/DialogComponent';
+import { useTranslation } from 'react-i18next';
 
 const UsersList = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [usersData, setUsersData] = useState([]);
   const [alertDialog, setAlertDialog] = useState({
@@ -169,7 +171,7 @@ const UsersList = () => {
     <>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <MainCard title="Users Report" content={false}>
+          <MainCard title={t('users.listTitle')} content={false}>
             <DynamicDatatables
               tableTitle=""
               rows={usersData}

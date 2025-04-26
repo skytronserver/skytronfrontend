@@ -12,7 +12,10 @@ import {dealerList} from "../../actions/commonDataActions";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { getRole } from '../../helper';
+import { useTranslation } from 'react-i18next';
+
 const DealerList = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [updateStore,setUpdateStore]=useState(false)
   const [dealerData, setDealerData] = useState(""); // here
@@ -37,7 +40,7 @@ const DealerList = () => {
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -60,15 +63,16 @@ const DealerList = () => {
   const columns = role === 'superadmin' || role === 'stateadmin' 
   ? dealerListColumn.concat(actionColumn) 
   : dealerListColumn;
+  
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="Dealer Report" />
+        <PageHeader title={t('dealer.reportTitle')} />
       </Grid>
       <Grid item xs={12}>
         {dealers.length >= 1 && (
           <DynamicDatatables
-            tableTitle=""
+            tableTitle={t('dealer.listTitle')}
             rows={dealers}
             columns={columns}
           />

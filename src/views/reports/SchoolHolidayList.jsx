@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import CreateIcon from "@mui/icons-material/Create";
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
+import { useTranslation } from 'react-i18next';
 
 const docViewStyle = {
   padding: "0px"
@@ -99,6 +100,7 @@ const dummyHolidays = [
 ];
 
 const SchoolHolidayList = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [updateStore, setUpdateStore] = useState(false);
   const [allHolidays, setAllHolidays] = useState([]);
@@ -123,16 +125,16 @@ const SchoolHolidayList = () => {
 
   const deleteHoliday = async (e, id) => {
     e.preventDefault();
-    const confirmed = window.confirm("Are you sure you want to delete this holiday?");
+    const confirmed = window.confirm(t('holiday.confirmDelete'));
     if (confirmed) {
       try {
         // Simulating API call with dummy data
         const updatedHolidays = dummyHolidays.filter(holiday => holiday.id !== id);
         setAllHolidays(updatedHolidays);
-        alert("Holiday deleted successfully!");
+        alert(t('holiday.deleteSuccess'));
         setDel(prev => !prev);
       } catch (error) {
-        alert("Error deleting holiday!");
+        alert(t('holiday.deleteError'));
       }
     }
   };
@@ -140,36 +142,36 @@ const SchoolHolidayList = () => {
   const holidayColumns = [
     {
       name: "holidayName",
-      label: "Holiday Name",
+      label: t('holiday.name'),
     },
     {
       name: "startDate",
-      label: "Start Date",
+      label: t('holiday.startDate'),
       options: {
         customBodyRender: (value) => new Date(value).toLocaleDateString(),
       },
     },
     {
       name: "endDate",
-      label: "End Date",
+      label: t('holiday.endDate'),
       options: {
         customBodyRender: (value) => new Date(value).toLocaleDateString(),
       },
     },
     {
       name: "holidayType",
-      label: "Type",
+      label: t('holiday.type'),
     },
     {
       name: "status",
-      label: "Status",
+      label: t('common.status'),
     },
   ];
 
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -199,12 +201,12 @@ const SchoolHolidayList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="School Holidays List" />
+        <PageHeader title={t('holiday.listTitle')} />
       </Grid>
       <Grid item xs={12}>
         {allHolidays.length >= 1 && (
           <DynamicDatatables
-            tableTitle=""
+            tableTitle={t('holiday.listTitle')}
             rows={allHolidays}
             columns={holidayColumns.concat(actionColumn)}
           />

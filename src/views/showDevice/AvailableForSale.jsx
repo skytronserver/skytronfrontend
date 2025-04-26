@@ -11,12 +11,16 @@ import { getDeviceListAvailable } from '../../actions/stockActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {availableForSalesColumn} from '../../datatables/deviceColumns';
 import { getRole } from '../../helper';
+import { useTranslation } from 'react-i18next';
+
 const AvailableForSale = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   //Datatables data using redux
   const role=getRole();
   const dispatch=useDispatch();
   const availableDeviceList=useSelector((state)=>state.stock.availableList);
+  
   useEffect(()=>{
     const retrievePosts = async () => {
       try{
@@ -33,14 +37,14 @@ const AvailableForSale = () => {
 
   const handleMarkDefective=async (e,id)=>{
     e.preventDefault();
-    const confirmed = window.confirm('Are you sure you want to Mark as Defective?');
+    const confirmed = window.confirm(t('device.confirmDefective'));
     if (confirmed) {
      console.log('true')
     }
   }
   const handleReturnManufacturer=(e,id)=>{
     e.preventDefault();
-    const confirmed = window.confirm('Are you sure you want to return to manufacturer?');
+    const confirmed = window.confirm(t('device.confirmReturn'));
     if (confirmed) {
       console.log('true')
     }
@@ -48,7 +52,7 @@ const AvailableForSale = () => {
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -62,7 +66,7 @@ const AvailableForSale = () => {
                           size="small"
                           onClick={(event) => handleMarkDefective(event, tableMeta.rowData[1].id)}
                         >
-                          Defective
+                          {t('device.defective')}
                         </Button>
              </div>
              <div><Button
@@ -72,7 +76,7 @@ const AvailableForSale = () => {
                           size="small"
                           onClick={(event) => handleReturnManufacturer(event, tableMeta.rowData[1].id)}
                         >
-                          Return
+                          {t('device.return')}
                         </Button></div>
             </div>
           );
@@ -85,13 +89,13 @@ const AvailableForSale = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="Device Report" />
+        <PageHeader title={t('device.reportTitle')} />
       </Grid>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="" rows={availableDeviceList} columns={columns}/>}
+        {load && <DynamicDatatables tableTitle={t('device.availableDevices')} rows={availableDeviceList} columns={columns}/>}
         </Grid>
     </Grid>
-);
+  );
 }
 
 export default AvailableForSale;

@@ -9,9 +9,13 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {serviceProviderCol} from '../../datatables/rowsColumn';
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTranslation } from 'react-i18next';
+
 const EsimProviderList = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   const [serviceProvider,setServiceProvider]=useState([]);
+  
   useEffect(()=>{
     const fetchServiceProvider = async () => {
       try {
@@ -20,19 +24,19 @@ const EsimProviderList = () => {
         setLoad(true)
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          console.log("No Data Found");
+          console.log(t('common.noDataFound'));
         } else {
-          console.log("No Data Found");
+          console.log(t('common.noDataFound'));
         }
       }
     };
     fetchServiceProvider();
   },[])
-  //For actions refer AvailableForSale Component
+
   const actionColumn = [
     {
       name: "Action",
-      label: "Action",
+      label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
@@ -52,13 +56,14 @@ const EsimProviderList = () => {
       },
     },
   ];
+  
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="M2M Service Provider" rows={serviceProvider} columns={serviceProviderCol.concat(actionColumn)}/>}
+        {load && <DynamicDatatables tableTitle={t('esim.serviceProviderTitle')} rows={serviceProvider} columns={serviceProviderCol.concat(actionColumn)}/>}
         </Grid>
     </Grid>
-);
+  );
 }
 
 export default EsimProviderList;

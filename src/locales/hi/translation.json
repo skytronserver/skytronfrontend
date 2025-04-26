@@ -22,7 +22,21 @@
     "submit": "जमा करें",
     "formSubmittedSuccessfully": "फॉर्म सफलतापूर्वक जमा किया गया",
     "formNotSubmitted": "फॉर्म जमा नहीं किया गया",
-    "internalServerError": "आंतरिक सर्वर त्रुटि"
+    "internalServerError": "आंतरिक सर्वर त्रुटि",
+    "action": "कार्रवाई",
+    "noDataFound": "कोई डेटा नहीं मिला",
+    "timestamp": "समय",
+    "loading": "डेटा लोड हो रहा है...",
+    "noMatchingRecords": "क्षमा करें, कोई मिलान रिकॉर्ड नहीं मिला",
+    "nextPage": "अगला पृष्ठ",
+    "previousPage": "पिछला पृष्ठ",
+    "rowsPerPage": "प्रति पृष्ठ पंक्तियाँ:",
+    "of": "का",
+    "pageInfo": "पृष्ठ: {{page}} | प्रति पृष्ठ पंक्तियाँ: {{rowsPerPage}} | कुल परिणाम: {{total}}",
+    "status": "स्थिति"
+  },
+  "notice": {
+    "title": "सूचना सूची"
   },
   "dashboard": {
   },
@@ -371,7 +385,8 @@
       "fileRequired": "फ़ाइल आवश्यक है",
       "fileSize": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
       "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं"
-    }
+    },
+    "listTitle": "राज्य प्रशासक"
   },
   "manufacturer": {
     "title": "निर्माता बनाएं",
@@ -419,7 +434,8 @@
         "file_size": "अधिकतम आकार 520KB है और समर्थित फाइलें pdf/png/jpg हैं",
         "file_format": "अधिकतम आकार 520KB है और समर्थित फाइलें pdf/png/jpg हैं"
       }
-    }
+    },
+    "listTitle": "निर्माता"
   },
   "esimUser": {
     "title": "एम2एम सेवा प्रदाता बनाएं",
@@ -851,5 +867,70 @@
       "teamAdded": "टीम सफलतापूर्वक जोड़ी गई",
       "teamUpdated": "टीम सफलतापूर्वक अपडेट की गई"
     }
+  },
+  "users": {
+    "listTitle": "उपयोगकर्ता रिपोर्ट"
+  },
+  "sos": {
+    "listTitle": "एसओएस प्रशासक सूची",
+    "otherListTitle": "उपयोगकर्ता सूची"
+  },
+  "esim": {
+    "serviceProviderTitle": "एम2एम सेवा प्रदाता"
+  },
+  "dealer": {
+    "reportTitle": "डीलर रिपोर्ट",
+    "listTitle": "डीलर सूची"
+  },
+  "deviceModel": {
+    "awaitingApprovalTitle": "स्वीकृति के लिए प्रतीक्षारत",
+    "status": {
+      "pending": "लंबित",
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "awaiting_approval": "स्वीकृति की प्रतीक्षा में"
+    }
+  },
+  "device": {
+    "reportTitle": "डिवाइस रिपोर्ट",
+    "availableDevices": "उपलब्ध डिवाइस",
+    "defective": "दोषपूर्ण",
+    "return": "वापसी",
+    "confirmDefective": "क्या आप वाकई इसे दोषपूर्ण के रूप में चिह्नित करना चाहते हैं?",
+    "confirmReturn": "क्या आप वाकई निर्माता को वापस करना चाहते हैं?"
+  },
+  "vehicleOwner": {
+    "listTitle": "वाहन मालिक सूची"
+  },
+  "gpsData": {
+    "title": "जीपीएस डेटा लॉग",
+    "rawData": "कच्चा डेटा",
+    "searchPlaceholder": "जीपीएस डेटा खोजें...",
+    "searchByImei": "IMEI द्वारा खोजें"
+  },
+  "emergencyData": {
+    "title": "आपातकालीन डेटा लॉग"
+  },
+  "apiData": {
+    "title": "एपीआई डेटा लॉग",
+    "requestUrl": "अनुरोध यूआरएल",
+    "ipAddress": "आईपी पता",
+    "method": "विधि",
+    "requestData": "अनुरोध डेटा",
+    "noData": "कोई डेटा नहीं",
+    "errorDisplayingData": "डेटा प्रदर्शित करने में त्रुटि",
+    "searchLabel": "एपीआई लॉग खोजें",
+    "searchPlaceholder": "POST अनुरोध खोजने के लिए 'Post' टाइप करें",
+    "searchHelperText": "URL, विधि, या त्रुटि कोड द्वारा खोजें"
+  },
+  "holiday": {
+    "listTitle": "स्कूल अवकाश सूची",
+    "name": "अवकाश का नाम",
+    "startDate": "आरंभ तिथि",
+    "endDate": "समाप्ति तिथि",
+    "type": "प्रकार",
+    "confirmDelete": "क्या आप वाकई इस अवकाश को हटाना चाहते हैं?",
+    "deleteSuccess": "अवकाश सफलतापूर्वक हटा दिया गया!",
+    "deleteError": "अवकाश हटाने में त्रुटि!"
   }
 }

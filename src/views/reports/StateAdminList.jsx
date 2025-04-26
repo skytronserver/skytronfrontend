@@ -9,7 +9,10 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {stateAdminColumn} from '../../datatables/rowsColumn';
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTranslation } from 'react-i18next';
+
 const StateAdminList = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   const [stateAdmin,setStateAdmin]=useState([]);
   useEffect(()=>{
@@ -55,7 +58,7 @@ const StateAdminList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="State Admin" rows={stateAdmin} columns={stateAdminColumn.concat(actionColumn)}/>}
+        {load && <DynamicDatatables tableTitle={t('stateAdmin.listTitle')} rows={stateAdmin} columns={stateAdminColumn.concat(actionColumn)}/>}
         </Grid>
     </Grid>
 );

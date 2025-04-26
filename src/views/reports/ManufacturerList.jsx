@@ -9,7 +9,10 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {manufacturerColumns} from '../../datatables/rowsColumn';
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTranslation } from 'react-i18next';
+
 const ManufacturerList = () => {
+  const { t } = useTranslation();
   const [load,setLoad]=useState(false)
   const [manufacturer,setManufacturer]=useState([]);
   useEffect(()=>{
@@ -55,7 +58,7 @@ const ManufacturerList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle="Manufacturer" rows={manufacturer} columns={manufacturerColumns.concat(actionColumn)}/>}
+        {load && <DynamicDatatables tableTitle={t('manufacturer.listTitle')} rows={manufacturer} columns={manufacturerColumns.concat(actionColumn)}/>}
         </Grid>
     </Grid>
 );
