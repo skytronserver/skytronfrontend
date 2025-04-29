@@ -185,6 +185,10 @@ const getSOSExeDashboard=()=>{
     const http=getAxiosInstance();
     return http.get("/api/SOS/SOS_EX_report/");
 }
+const deactivateUser=(data)=>{
+    const http=getAxiosInstance();
+    return http.post(`/api/deactivateUser/`,data);
+}
 
 const UserServices = {
     getStateStats,
@@ -222,6 +226,7 @@ const UserServices = {
     getSOSAdminDashboard,
     getSOSLeadDashboard,
     getSOSExeDashboard,
+    deactivateUser
   };
   
   export default UserServices;

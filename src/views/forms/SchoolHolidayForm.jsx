@@ -7,99 +7,29 @@ import * as Yup from "yup";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { formFields, initialValues } from "../../formjson/schoolHolidays";
+import { getFormFields } from "../../formjson/schoolHolidays";
+import HolidayService from "../../services/HolidayService";
+import { useTranslation } from 'react-i18next';
 import "./form.css";
 
-// Dummy data for holidays
-const dummyHolidays = [
-  {
-    id: 1,
-    holidayName: "Summer Vacation",
-    startDate: "2023-05-15",
-    endDate: "2023-06-30",
-    description: "Annual summer break for all students",
-    holidayType: "school",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 2,
-    holidayName: "Diwali",
-    startDate: "2023-11-12",
-    endDate: "2023-11-14",
-    description: "Festival of lights holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 3,
-    holidayName: "Christmas",
-    startDate: "2023-12-25",
-    endDate: "2023-12-26",
-    description: "Christmas holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 4,
-    holidayName: "Mid-Term Exams",
-    startDate: "2023-09-15",
-    endDate: "2023-09-20",
-    description: "Mid-term examination period",
-    holidayType: "exam",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 5,
-    holidayName: "Republic Day",
-    startDate: "2023-01-26",
-    endDate: "2023-01-26",
-    description: "National holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 6,
-    holidayName: "Winter Break",
-    startDate: "2023-12-20",
-    endDate: "2023-12-31",
-    description: "Winter vacation for all students",
-    holidayType: "school",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 7,
-    holidayName: "Independence Day",
-    startDate: "2023-08-15",
-    endDate: "2023-08-15",
-    description: "National holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 8,
-    holidayName: "Final Exams",
-    startDate: "2023-03-10",
-    endDate: "2023-03-20",
-    description: "Final examination period",
-    holidayType: "exam",
-    status: "Active",
-    createdBy: "admin"
-  }
-];
+// Initial form values matching API field names
+const defaultInitialValues = {
+  holidayName: "",
+  startDate: "",
+  endDate: "",
+  description: "",
+  status: "Active",
+  holidayType: "",
+  vehicles: []
+};
 
 const SchoolHolidayForm = () => {
+  const { t } = useTranslation();
   const params = useParams();
-  const parameter = params['*'] && !isNaN(params['*']);
-  const [editPage, setEditPage] = useState(false);
+  const holidayId = params['*'];
+  const [editMode, setEditMode] = useState(false);
   const [open, setOpen] = useState(false);
-  const [holidayInitialValues, setHolidayInitialValues] = useState(initialValues);
+  const [formValues, setFormValues] = useState(defaultInitialValues);
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -108,93 +38,142 @@ const SchoolHolidayForm = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Get form fields with translations
+  const formFields = getFormFields(t);
+
+  // Fetch holiday data if in edit mode
   useEffect(() => {
-    if (params['*'] && !isNaN(params['*'])) {
-      const id = params['*'];
-      (async () => {
+    const fetchHolidayData = async () => {
+      if (holidayId && !isNaN(holidayId)) {
+        setLoading(true);
         try {
-          // Using dummy data instead of API call
-          const holiday = dummyHolidays.find(h => h.id === parseInt(id));
+          const response = await HolidayService.getAllHolidays();
+          // Check if response has the expected structure
+          if (!response?.data?.data) {
+            throw new Error('Invalid response format from server');
+          }
+
+          const holiday = response.data.data.find(h => h.id === parseInt(holidayId));
           if (holiday) {
-            setHolidayInitialValues({
-              holidayName: holiday.holidayName,
-              startDate: holiday.startDate,
-              endDate: holiday.endDate,
-              description: holiday.description,
-              status: holiday.status,
-              holidayType: holiday.holidayType,
-              id: holiday.id
+            // Transform snake_case to camelCase
+            setFormValues({
+              holidayName: holiday.holiday_name || "",
+              startDate: holiday.start_date || "",
+              endDate: holiday.end_date || "",
+              description: holiday.description || "",
+              status: holiday.status || "Active",
+              holidayType: holiday.holiday_type || "",
+              vehicles: holiday.vehicles || []
             });
-            setEditPage(true);
+            setEditMode(true);
+          } else {
+            handleAlert(t('holiday.form.notFound'), true);
+            navigate("/holiday/all-holiday-list");
           }
         } catch (error) {
-          console.log(error);
+          console.error('Error fetching holiday:', error);
+          handleAlert(error?.response?.data?.message || t('holiday.fetchError'), true);
+        } finally {
+          setLoading(false);
         }
-      })();
-    } else {
-      setHolidayInitialValues(initialValues);
-      setEditPage(false);
-    }
-  }, [parameter]);
+      }
+    };
+
+    fetchHolidayData();
+  }, [holidayId, navigate, t]);
 
   const handleClose = () => {
-    !alert.error && navigate("/holiday/all-holiday-list");
+    if (!alert.error) {
+      navigate("/holiday/all-holiday-list");
+    }
     setOpen(false);
   };
 
-  const handleAlert = (message) => {
-    setAlert((prevAlert) => ({ ...prevAlert, message: message }));
+  const handleAlert = (message, isError = false) => {
+    setAlert((prevAlert) => ({ 
+      ...prevAlert, 
+      message: message,
+      error: isError 
+    }));
     setOpen(true);
   };
 
-  const validationSchema = Yup.object(
-    Object.keys(formFields).reduce((acc, field) => {
-      acc[field] = formFields[field].validation;
-      return acc;
-    }, {})
-  );
+  // Form validation schema with API field names
+  const validationSchema = Yup.object().shape({
+    holidayName: Yup.string().required(t('holiday.form.validation.nameRequired')),
+    startDate: Yup.date().required(t('holiday.form.validation.startDateRequired')),
+    endDate: Yup.date()
+      .required(t('holiday.form.validation.endDateRequired'))
+      .min(
+        Yup.ref('startDate'),
+        t('holiday.form.validation.endDateAfterStart')
+      ),
+    description: Yup.string().required(t('holiday.form.validation.descriptionRequired')),
+    status: Yup.string().required(t('holiday.form.validation.statusRequired')),
+    holidayType: Yup.string().required(t('holiday.form.validation.typeRequired')),
+    vehicles: Yup.array().of(Yup.number())
+  });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    setLoading(true);
     try {
-      const userData = sessionStorage.getItem("cookiesData");
-      const data = userData && userData.split("-");
-      const userId = userData && data.length > 2 && data[3];
-
-      const valuesWithRole = {
-        ...values,
-        createdBy: userId,
+      const formData = {
+        holidayName: values.holidayName,
+        startDate: values.startDate,
+        endDate: values.endDate,
+        description: values.description,
+        status: values.status,
+        holidayType: values.holidayType,
+        vehicles: values.vehicles,
+        created_by_id: 242 // This should come from your auth context or user session
       };
-      setSubmitting(true);
-      setLoading(true);
-      let message = "Holiday added successfully";
 
-      if (editPage) {
-        message = "Holiday updated successfully";
-        // Simulating API call with dummy data
-        console.log("Updating holiday:", valuesWithRole);
+      if (editMode) {
+        await HolidayService.updateHoliday(holidayId, formData);
+        handleAlert(t('holiday.form.updateSuccess'));
       } else {
-        // Simulating API call with dummy data
-        console.log("Creating holiday:", valuesWithRole);
+        await HolidayService.createHoliday(formData);
+        handleAlert(t('holiday.form.createSuccess'));
+        resetForm();
       }
-
-      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert(message);
-      resetForm(holidayInitialValues);
+      navigate("/holiday/all-holiday-list");
     } catch (error) {
-      console.error("Error managing holiday:", error?.message);
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: true,
-        errorList: {
-          code: "400",
-          message: error?.message,
-          errors: error?.response?.data,
-        },
-      }));
-      handleAlert("Something went wrong");
+      console.error("Error managing holiday:", error);
+      handleAlert(
+        error?.response?.data?.message || t('holiday.form.error'),
+        true
+      );
     } finally {
-      setSubmitting(false);
       setLoading(false);
+      setSubmitting(false);
+    }
+  };
+
+  // Updated form fields configuration to match API field names
+  const updatedFormFields = {
+    holidayName: {
+      ...formFields.holidayName,
+      name: 'holidayName'
+    },
+    startDate: {
+      ...formFields.startDate,
+      name: 'startDate'
+    },
+    endDate: {
+      ...formFields.endDate,
+      name: 'endDate'
+    },
+    description: {
+      ...formFields.description,
+      name: 'description'
+    },
+    status: {
+      ...formFields.status,
+      name: 'status'
+    },
+    holidayType: {
+      ...formFields.holidayType,
+      name: 'holidayType'
     }
   };
 
@@ -214,9 +193,9 @@ const SchoolHolidayForm = () => {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title={editPage ? "Edit Holiday" : "New Holiday"}>
+          <MainCard title={editMode ? t('holiday.form.editTitle') : t('holiday.form.title')}>
             <Formik
-              initialValues={holidayInitialValues}
+              initialValues={formValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
               enableReinitialize
@@ -224,10 +203,10 @@ const SchoolHolidayForm = () => {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(formFields).map((field) => (
+                    {Object.keys(updatedFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={formFields[field]}
+                          fieldConfig={updatedFormFields[field]}
                           formik={formik}
                         />
                       </Grid>
@@ -237,9 +216,9 @@ const SchoolHolidayForm = () => {
                         type="submit"
                         variant="contained"
                         color="primary"
-                        disabled={loading}
+                        disabled={loading || formik.isSubmitting}
                       >
-                        Submit
+                        {loading ? t('common.loading') : t('common.submit')}
                       </Button>
                     </Grid>
                   </Grid>

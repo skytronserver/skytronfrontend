@@ -10,131 +10,84 @@ import CreateIcon from "@mui/icons-material/Create";
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import { useTranslation } from 'react-i18next';
+import HolidayService from '../../services/HolidayService';
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 
 const docViewStyle = {
   padding: "0px"
 };
 
-// Dummy data for holidays
-const dummyHolidays = [
-  {
-    id: 1,
-    holidayName: "Summer Vacation",
-    startDate: "2023-05-15",
-    endDate: "2023-06-30",
-    description: "Annual summer break for all students",
-    holidayType: "school",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 2,
-    holidayName: "Diwali",
-    startDate: "2023-11-12",
-    endDate: "2023-11-14",
-    description: "Festival of lights holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 3,
-    holidayName: "Christmas",
-    startDate: "2023-12-25",
-    endDate: "2023-12-26",
-    description: "Christmas holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 4,
-    holidayName: "Mid-Term Exams",
-    startDate: "2023-09-15",
-    endDate: "2023-09-20",
-    description: "Mid-term examination period",
-    holidayType: "exam",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 5,
-    holidayName: "Republic Day",
-    startDate: "2023-01-26",
-    endDate: "2023-01-26",
-    description: "National holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 6,
-    holidayName: "Winter Break",
-    startDate: "2023-12-20",
-    endDate: "2023-12-31",
-    description: "Winter vacation for all students",
-    holidayType: "school",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 7,
-    holidayName: "Independence Day",
-    startDate: "2023-08-15",
-    endDate: "2023-08-15",
-    description: "National holiday",
-    holidayType: "public",
-    status: "Active",
-    createdBy: "admin"
-  },
-  {
-    id: 8,
-    holidayName: "Final Exams",
-    startDate: "2023-03-10",
-    endDate: "2023-03-20",
-    description: "Final examination period",
-    holidayType: "exam",
-    status: "Active",
-    createdBy: "admin"
-  }
-];
-
 const SchoolHolidayList = () => {
   const { t } = useTranslation();
-  const [load, setLoad] = useState(false);
-  const [updateStore, setUpdateStore] = useState(false);
-  const [allHolidays, setAllHolidays] = useState([]);
-  const [del, setDel] = useState(false);
-  const dispatch = useDispatch();
-  const holidays = useSelector((state) => state.listAll.holidayList);
+  const [loading, setLoading] = useState(true);
+  const [holidays, setHolidays] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [error, setError] = useState({ show: false, message: '' });
+
+  // Add debug logging
+  console.log('Edit translation:', t('common.edit'));
+  console.log('Delete translation:', t('common.delete'));
+
+  const handleCloseError = () => {
+    setError({ show: false, message: '' });
+  };
+
+  const showError = (message) => {
+    setError({ show: true, message });
+  };
 
   useEffect(() => {
-    const retrieveHolidays = async () => {
+    const fetchHolidays = async () => {
+      setLoading(true);
       try {
-        // Using dummy data instead of API call
-        setAllHolidays(dummyHolidays);
-        // dispatch(allHolidayList(dummyHolidays));
-        setLoad(true);
-        setUpdateStore(true);
+        const response = await HolidayService.getAllHolidays();
+        console.log('API Response:', response); // Debug log
+
+        // Check if response has the expected structure
+        if (!response?.data?.data) {
+          throw new Error('Invalid response format from server');
+        }
+
+        // Transform the data to match the table column names
+        const transformedData = Array.isArray(response.data.data) ? response.data.data.map(holiday => ({
+          id: holiday.id,
+          holidayName: holiday.holiday_name,
+          startDate: holiday.start_date,
+          endDate: holiday.end_date,
+          description: holiday.description,
+          status: holiday.status,
+          holidayType: holiday.holiday_type,
+          vehicles: holiday.vehicles || []
+        })) : [];
+
+        setHolidays(transformedData);
       } catch (error) {
         console.error('Error fetching holidays:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response,
+          status: error.response?.status
+        });
+        showError(t('holiday.fetchError'));
+      } finally {
+        setLoading(false);
       }
     };
-    retrieveHolidays();
-  }, [del]);
+    fetchHolidays();
+  }, [refreshKey, t]);
 
   const deleteHoliday = async (e, id) => {
     e.preventDefault();
     const confirmed = window.confirm(t('holiday.confirmDelete'));
     if (confirmed) {
       try {
-        // Simulating API call with dummy data
-        const updatedHolidays = dummyHolidays.filter(holiday => holiday.id !== id);
-        setAllHolidays(updatedHolidays);
-        alert(t('holiday.deleteSuccess'));
-        setDel(prev => !prev);
+        await HolidayService.deleteHoliday(id);
+        setRefreshKey(prevKey => prevKey + 1);
+        showError(t('holiday.deleteSuccess')); // Show success message
       } catch (error) {
-        alert(t('holiday.deleteError'));
+        console.error('Error deleting holiday:', error);
+        showError(t('holiday.deleteError'));
       }
     }
   };
@@ -148,14 +101,14 @@ const SchoolHolidayList = () => {
       name: "startDate",
       label: t('holiday.startDate'),
       options: {
-        customBodyRender: (value) => new Date(value).toLocaleDateString(),
+        customBodyRender: (value) => value ? new Date(value).toLocaleDateString() : '',
       },
     },
     {
       name: "endDate",
       label: t('holiday.endDate'),
       options: {
-        customBodyRender: (value) => new Date(value).toLocaleDateString(),
+        customBodyRender: (value) => value ? new Date(value).toLocaleDateString() : '',
       },
     },
     {
@@ -175,21 +128,28 @@ const SchoolHolidayList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          const holidayId = holidays[tableMeta.rowIndex]?.id;
           return (
-            <div className="cellAction" style={{ display: "flex" }}>
+            <div className="cellAction" style={{ display: "flex", gap: "8px" }}>
               <Link
-                to={`/setting/holiday/${tableMeta.rowData[0]}`}
+                to={`/setting/holiday/${holidayId}`}
                 style={{ textDecoration: "none" }}
               >
-                <div className="viewButton" style={docViewStyle}>
-                  <CreateIcon />
-                </div>
+                <Button
+                  color="primary"
+                  size="small"
+                  startIcon={<CreateIcon />}
+                >
+                  {t('common.edit')}
+                </Button>
               </Link>
               <Button
-                color="primary"
-                onClick={(e) => deleteHoliday(e, tableMeta.rowData[0])}
+                color="error"
+                size="small"
+                startIcon={<DeleteIcon />}
+                onClick={(e) => deleteHoliday(e, holidayId)}
               >
-                <DeleteIcon />
+                {t('common.delete')}
               </Button>
             </div>
           );
@@ -199,20 +159,36 @@ const SchoolHolidayList = () => {
   ];
 
   return (
-    <Grid container spacing={gridSpacing}>
-      <Grid item xs={12}>
-        <PageHeader title={t('holiday.listTitle')} />
-      </Grid>
-      <Grid item xs={12}>
-        {allHolidays.length >= 1 && (
+    <>
+      <Snackbar 
+        open={error.show} 
+        autoHideDuration={6000} 
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseError} 
+          severity={error.message === t('holiday.deleteSuccess') ? "success" : "error"} 
+          sx={{ width: '100%' }}
+        >
+          {error.message}
+        </Alert>
+      </Snackbar>
+
+      <Grid container spacing={gridSpacing}>
+        <Grid item xs={12}>
+          <PageHeader title={t('holiday.listTitle')} />
+        </Grid>
+        <Grid item xs={12}>
           <DynamicDatatables
             tableTitle={t('holiday.listTitle')}
-            rows={allHolidays}
+            rows={holidays}
             columns={holidayColumns.concat(actionColumn)}
+            loading={loading}
           />
-        )}
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   );
 };
 

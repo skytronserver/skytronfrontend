@@ -1,199 +1,172 @@
-import React, { useState, useEffect } from 'react';
-import { Grid, Tooltip, IconButton } from '@mui/material';
-import { useDispatch } from 'react-redux';
-import { gridSpacing } from '../../store/constant';
-import MainCard from '../../ui-component/cards/MainCard';
-import DynamicDatatables from '../../datatables/DynamicDatatables';
-import ReportServices from '../../services/ReportServices';
-import { IconRefresh, IconDownload } from '@tabler/icons';
-import DialogComponent from '../../ui-component/DialogComponent';
+import {useDispatch} from 'react-redux'
+import React from 'react';
+// project imports
+import Grid  from "@mui/material/Grid";
+import PageHeader from "../../ui-component/cards/PageHeader";
+import { gridSpacing } from "../../store/constant";
+import UserServices from '../../services/UserServices';
+import { useEffect,useState } from 'react';
+import Datatable from '../../datatables/Datatable';
+import {registeredUserColumns} from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
+import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 
 const UsersList = () => {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
-  const [usersData, setUsersData] = useState([]);
-  const [alertDialog, setAlertDialog] = useState({
+  const [load,setLoad]=useState(false)
+  const dispatch=useDispatch();
+  const [users,setUsers]=useState([]);
+  const [notification, setNotification] = useState({
     open: false,
-    title: '',
     message: '',
-    type: 'info'
+    severity: 'success'
   });
-  
-  const dispatch = useDispatch();
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    userId: null,
+    userName: ''
+  });
 
-  useEffect(() => {
-    fetchUsersData();
-  }, []);
+  useEffect(()=>{
+    const retrievePosts = async () => {
+      const retriveData=await UserServices.getRegisteredUsers();
+      setUsers(retriveData.data);
+      setLoad(true)
+    };
+    retrievePosts();
+  },[dispatch])
 
-  const fetchUsersData = async () => {
-    setLoading(true);
+  const handleDeactivateUser = async (userId) => {
     try {
-      const response = await ReportServices.getUsersList();
-      setUsersData(response.data);
+      const response = await UserServices.deactivateUser({ userid: userId });
+      if (response.status === 200) {
+        // Refresh the user list
+        const updatedData = await UserServices.getRegisteredUsers();
+        setUsers(updatedData.data);
+
+        // Show success message
+        setNotification({
+          open: true,
+          message: 'User deactivated successfully',
+          severity: 'success'
+        });
+      }
     } catch (error) {
-      console.error('Error fetching users data:', error);
-      setAlertDialog({
+      console.error('Error deactivating user:', error);
+      setNotification({
         open: true,
-        title: 'Error',
-        message: 'Failed to fetch users data. Please try again.',
-        type: 'error'
+        message: 'Failed to deactivate user',
+        severity: 'error'
       });
     } finally {
-      setLoading(false);
+      setConfirmDialog({ open: false, userId: null, userName: '' });
     }
   };
 
-  const handleExportCSV = () => {
-    try {
-      // This will be handled by the DynamicDatatables component
-      // We just need to trigger the event
-    } catch (error) {
-      console.error('Error exporting CSV:', error);
-      setAlertDialog({
-        open: true,
-        title: 'Error',
-        message: 'Failed to export CSV. Please try again.',
-        type: 'error'
-      });
-    }
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, open: false }));
   };
 
-  const usersColumns = [
+  const handleOpenConfirmDialog = (userId, userName) => {
+    setConfirmDialog({
+      open: true,
+      userId,
+      userName
+    });
+  };
+
+  const handleCloseConfirmDialog = () => {
+    setConfirmDialog({ open: false, userId: null, userName: '' });
+  };
+
+  // Add deactivate button to columns
+  const columnsWithActions = [
+    ...registeredUserColumns,
     {
-      name: 'id',
-      label: 'ID',
+      name: "actions",
+      label: "Actions",
       options: {
         filter: false,
-        sort: true,
-      },
-    },
-    {
-      name: 'username',
-      label: 'Username',
-      options: {
-        filter: true,
-        sort: true,
-      },
-    },
-    {
-      name: 'email',
-      label: 'Email',
-      options: {
-        filter: true,
-        sort: true,
-      },
-    },
-    {
-      name: 'first_name',
-      label: 'First Name',
-      options: {
-        filter: true,
-        sort: true,
-      },
-    },
-    {
-      name: 'last_name',
-      label: 'Last Name',
-      options: {
-        filter: true,
-        sort: true,
-      },
-    },
-    {
-      name: 'role',
-      label: 'Role',
-      options: {
-        filter: true,
-        sort: true,
-      },
-    },
-    {
-      name: 'last_login',
-      label: 'Last Login',
-      options: {
-        filter: true,
-        sort: true,
-        customBodyRender: (value) => {
-          return value ? new Date(value).toLocaleString() : 'Never';
-        },
-      },
-    },
-    {
-      name: 'is_active',
-      label: 'Status',
-      options: {
-        filter: true,
-        sort: true,
-        customBodyRender: (value) => {
-          return value ? 'Active' : 'Inactive';
-        },
-      },
-    },
-    {
-      name: 'date_joined',
-      label: 'Date Joined',
-      options: {
-        filter: true,
-        sort: true,
-        customBodyRender: (value) => {
-          return value ? new Date(value).toLocaleString() : 'N/A';
-        },
-      },
-    },
+        sort: false,
+        customBodyRender: (value, tableMeta) => {
+          const userId = tableMeta.rowData[0]; // Assuming id is the first column
+          const userName = tableMeta.rowData[2]; // Assuming name is the third column
+          const isActive = tableMeta.rowData[8]; // Assuming is_active is the seventh column
+          
+          return (
+            <button
+              onClick={() => isActive ? handleOpenConfirmDialog(userId, userName) : null}
+              style={{
+                padding: '5px 10px',
+                backgroundColor: isActive ? '#ff4444' : '#cccccc',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: isActive ? 'pointer' : 'not-allowed',
+                opacity: isActive ? 1 : 0.7
+              }}
+              disabled={!isActive}
+            >
+              {isActive ? 'Deactivate' : 'Deactivated'}
+            </button>
+          );
+        }
+      }
+    }
   ];
 
-  const tableOptions = {
-    customToolbar: () => {
-      return (
-        <>
-          <Tooltip title="Refresh">
-            <IconButton onClick={fetchUsersData}>
-              <IconRefresh size={24} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Export CSV">
-            <IconButton onClick={handleExportCSV}>
-              <IconDownload size={24} />
-            </IconButton>
-          </Tooltip>
-        </>
-      );
-    },
-    download: true,
-    downloadOptions: {
-      filename: 'users_report.csv',
-      separator: ',',
-    },
-  };
-
   return (
-    <>
-      <Grid container spacing={gridSpacing}>
-        <Grid item xs={12}>
-          <MainCard title={t('users.listTitle')} content={false}>
-            <DynamicDatatables
-              tableTitle=""
-              rows={usersData}
-              columns={usersColumns}
-              options={tableOptions}
-              loading={loading}
-            />
-          </MainCard>
-        </Grid>
+    <Grid container spacing={gridSpacing}>
+      <Grid item xs={12}>
+        <PageHeader title={t('users.listTitle')} />
       </Grid>
+      <Grid item xs={12}>
+        {load && <Datatable tableTitle="" userRows={users} userColumns={columnsWithActions}/>}
+      </Grid>
+      <Snackbar 
+        open={notification.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseNotification} 
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
 
-      {/* Alert Dialog */}
-      <DialogComponent
-        open={alertDialog.open}
-        title={alertDialog.title}
-        content={alertDialog.message}
-        primaryButtonText="OK"
-        primaryButtonOnClick={() => setAlertDialog(prev => ({ ...prev, open: false }))}
-        handleClose={() => setAlertDialog(prev => ({ ...prev, open: false }))}
-      />
-    </>
+      <Dialog
+        open={confirmDialog.open}
+        onClose={handleCloseConfirmDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Confirm Deactivation
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {t('common.deleteDialog', { userName: confirmDialog.userName })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog} color="primary">
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => handleDeactivateUser(confirmDialog.userId)} 
+            color="error"
+            autoFocus
+          >
+            Deactivate
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Grid>
   );
-};
+}
 
-export default UsersList;
+export default UsersList

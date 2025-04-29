@@ -25,6 +25,7 @@ const GPSHistoryMap = ({
 }) => {
   const [map, setMap] = useState(null);
   const [mapData, setMapData] = useState([]);
+  const [tripData, setTripData] = useState(null);
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
@@ -96,7 +97,116 @@ const GPSHistoryMap = ({
   });
 
 
-  // Fetch map data from the API
+  // Add these new functions before the return statement
+  const haversineDistance = (coord1, coord2) => {
+    const toRad = deg => (deg * Math.PI) / 180;
+    const R = 6371; // Earth's radius in KM
+    const dLat = toRad(coord2.lat - coord1.lat);
+    const dLon = toRad(coord2.lon - coord1.lon);
+    const lat1 = toRad(coord1.lat);
+    const lat2 = toRad(coord2.lat);
+
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // in KM
+  };
+
+  const processTrip = (data) => {
+    if (!data.length) return null;
+
+    const start = data[0];
+    const end = data[data.length - 1];
+
+    const startTime = new Date(start.et);
+    const endTime = new Date(end.et);
+
+    const durationSeconds = (endTime - startTime) / 1000; // in seconds
+
+    // Process points in batches of 100
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < data.length; i += batchSize) {
+      const batch = data.slice(i, i + batchSize);
+      batches.push(batch);
+    }
+
+    // Process each batch
+    const processedBatches = batches.map((batch, batchIndex) => {
+      const batchStart = batch[0];
+      const batchEnd = batch[batch.length - 1];
+      
+      const batchPath = batch.map(item => ({
+        lat: parseFloat(item.lat),
+        lon: parseFloat(item.lon),
+        time: item.et,
+        speed: parseFloat(item.s) || 0,
+        batchIndex: batchIndex
+      }));
+
+      const batchAvgSpeed = batchPath.reduce((sum, point) => sum + point.speed, 0) / batchPath.length;
+
+      // Calculate batch distance
+      let batchDistanceKm = 0;
+      for (let i = 1; i < batchPath.length; i++) {
+        batchDistanceKm += haversineDistance(batchPath[i - 1], batchPath[i]);
+      }
+
+      return {
+        startPoint: { lat: parseFloat(batchStart.lat), lon: parseFloat(batchStart.lon) },
+        endPoint: { lat: parseFloat(batchEnd.lat), lon: parseFloat(batchEnd.lon) },
+        path: batchPath,
+        avgSpeed: batchAvgSpeed,
+        distanceKm: batchDistanceKm,
+        startTime: new Date(batchStart.et),
+        endTime: new Date(batchEnd.et)
+      };
+    });
+
+    // Combine all batches
+    const allPaths = processedBatches.flatMap(batch => batch.path);
+    const totalDistanceKm = processedBatches.reduce((sum, batch) => sum + batch.distanceKm, 0);
+    const avgSpeed = allPaths.reduce((sum, point) => sum + point.speed, 0) / allPaths.length;
+
+    const trip = {
+      startTime,
+      endTime,
+      durationSeconds,
+      startPoint: { lat: parseFloat(start.lat), lon: parseFloat(start.lon) },
+      endPoint: { lat: parseFloat(end.lat), lon: parseFloat(end.lon) },
+      path: allPaths,
+      avgSpeed,
+      totalDistanceKm,
+      batches: processedBatches
+    };
+
+    // Log trip data
+    console.log('Trip Data:', {
+      startTime: trip.startTime.toISOString(),
+      endTime: trip.endTime.toISOString(),
+      duration: `${Math.floor(trip.durationSeconds / 3600)}h ${Math.floor((trip.durationSeconds % 3600) / 60)}m`,
+      distance: `${trip.totalDistanceKm.toFixed(2)} km`,
+      avgSpeed: `${trip.avgSpeed.toFixed(2)} km/h`,
+      totalPoints: trip.path.length,
+      numberOfBatches: trip.batches.length,
+      pointsPerBatch: batchSize
+    });
+
+    // Log each batch
+    trip.batches.forEach((batch, index) => {
+      console.log(`Batch ${index + 1}:`, {
+        points: batch.path.length,
+        distance: `${batch.distanceKm.toFixed(2)} km`,
+        avgSpeed: `${batch.avgSpeed.toFixed(2)} km/h`,
+        startTime: batch.startTime.toISOString(),
+        endTime: batch.endTime.toISOString()
+      });
+    });
+
+    return trip;
+  };
+
+  // Update the fetchMapData function to process trip data
   const fetchMapData = async () => {
     setIsPlaying(false);
     setDownloadStatus("Idle");
@@ -118,6 +228,10 @@ const GPSHistoryMap = ({
         setDownloadStatus("Processing");
         setMapData(data);
         setMaxSliderValue(data.length - 1);
+        
+        // Process trip data
+        const processedTrip = processTrip(data);
+        setTripData(processedTrip);
       }
     } catch (error) {
       console.error("Error fetching map data:", error);

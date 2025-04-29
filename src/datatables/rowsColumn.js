@@ -614,6 +614,20 @@ export const registeredUserColumns = [
       filter: false,
       sort: false,
     },
+  },
+  {
+    name: "is_active",
+    label: "Active Status",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value ? "Active" : "Deactivated"}</p>
+        );
+      }
+    },
   }
 ];
 

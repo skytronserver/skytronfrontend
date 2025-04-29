@@ -9,53 +9,53 @@ export const initialValues = {
   holidayType: "",
 };
 
-export const formFields = {
+export const getFormFields = (t) => ({
   holidayName: {
     name: "holidayName",
     type: "text",
-    label: "Holiday Name",
-    validation: Yup.string().required("Holiday name is required"),
+    label: t('holiday.name'),
+    validation: Yup.string().required(t('holiday.form.validation.nameRequired')),
   },
   startDate: {
     name: "startDate",
     type: "date",
-    label: "Start Date",
-    validation: Yup.date().required("Start date is required"),
+    label: t('holiday.startDate'),
+    validation: Yup.date().required(t('holiday.form.validation.startDateRequired')),
   },
   endDate: {
     name: "endDate",
     type: "date",
-    label: "End Date",
+    label: t('holiday.endDate'),
     validation: Yup.date()
-      .required("End date is required")
-      .min(Yup.ref("startDate"), "End date must be after start date"),
+      .required(t('holiday.form.validation.endDateRequired'))
+      .min(Yup.ref("startDate"), t('holiday.form.validation.endDateAfterStart')),
   },
   description: {
     name: "description",
     type: "text",
-    label: "Description",
-    validation: Yup.string().required("Description is required"),
+    label: t('holiday.form.description'),
+    validation: Yup.string().required(t('holiday.form.validation.descriptionRequired')),
   },
   holidayType: {
     name: "holidayType",
     type: "select",
-    label: "Holiday Type",
-    validation: Yup.string().required("Holiday type is required"),
+    label: t('holiday.type'),
+    validation: Yup.string().required(t('holiday.form.validation.typeRequired')),
     options: [
-      { label: "Public Holiday", value: "public" },
-      { label: "School Holiday", value: "school" },
-      { label: "Exam Holiday", value: "exam" },
-      { label: "Other", value: "other" },
+      { label: t('holiday.form.types.public'), value: "public" },
+      { label: t('holiday.form.types.school'), value: "school" },
+      { label: t('holiday.form.types.exam'), value: "exam" },
+      { label: t('holiday.form.types.other'), value: "other" },
     ],
   },
   status: {
     name: "status",
     type: "select",
-    label: "Status",
-    validation: Yup.string().required("Status is required"),
+    label: t('common.status'),
+    validation: Yup.string().required(t('holiday.form.validation.statusRequired')),
     options: [
-      { label: "Active", value: "Active" },
-      { label: "Inactive", value: "Inactive" },
+      { label: t('holiday.form.status.active'), value: "Active" },
+      { label: t('holiday.form.status.inactive'), value: "Inactive" },
     ],
   },
-}; 
+}); 
