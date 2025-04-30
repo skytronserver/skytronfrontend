@@ -1069,5 +1069,59 @@
       "accept": "গ্ৰহণ কৰক"
     },
     "notAvailable": "উপলব্ধ নহয়"
+  },
+  "tripViewer": {
+    "title": "ভ্ৰমণ দৰ্শক",
+    "selectVehicle": "যানবাহন বাছক",
+    "timeFilters": {
+      "day": "শেষ ২৪ ঘণ্টা",
+      "week": "শেষ ৭ দিন",
+      "month": "শেষ ৩০ দিন",
+      "static": "শেষ ৩ মাহ"
+    },
+    "buttons": {
+      "submit": "দাখিল কৰক",
+      "play": "চলাওক",
+      "pause": "ৰখাওক",
+      "restart": "পুনৰ আৰম্ভ কৰক"
+    },
+    "tripList": "ভ্ৰমণৰ তালিকা",
+    "table": {
+      "startTime": "আৰম্ভণিৰ সময়",
+      "endTime": "শেষৰ সময়",
+      "distance": "দূৰত্ব (কিমি)",
+      "duration": "অৱধি (মিনিট)",
+      "speed": "গড় গতি (কিমি/ঘণ্টা)",
+      "points": "বিন্দু"
+    },
+    "stats": {
+      "distance": "মুঠ দূৰত্ব",
+      "duration": "ভ্ৰমণৰ অৱধি",
+      "averageSpeed": "গড় গতি",
+      "points": "মুঠ বিন্দু"
+    },
+    "mapLayers": {
+      "title": "মানচিত্ৰৰ স্তৰসমূহ",
+      "osm": "অপেনষ্ট্ৰিটমেপ",
+      "india3": "ভাৰত৩ স্তৰ",
+      "indiaBase": "ভাৰতৰ মূল মানচিত্ৰ",
+      "indiaRoads": "ভাৰতৰ ৰাস্তা",
+      "markers": "যানবাহনৰ চিহ্ন"
+    },
+    "locationInfo": {
+      "title": "অৱস্থানৰ তথ্য",
+      "latitude": "অক্ষাংশ",
+      "longitude": "দ্ৰাঘিমাংশ",
+      "speed": "গতি",
+      "heading": "দিশ",
+      "datetime": "তাৰিখ আৰু সময়"
+    },
+    "loading": "ল'ড হৈ আছে...",
+    "noVehicleOptions": "কোনো যানবাহন পোৱা নগ'ল",
+    "noTrips": "বাছনি কৰা সময়ৰ বাবে কোনো ভ্ৰমণ পোৱা নগ'ল",
+    "error": {
+      "fetchVehicles": "যানবাহন প্ৰাপ্ত কৰোতে ত্ৰুটি",
+      "fetchTrips": "ভ্ৰমণ প্ৰাপ্ত কৰোতে ত্ৰুটি"
+    }
   }
 }

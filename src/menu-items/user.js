@@ -195,6 +195,15 @@ const user = {
       breadcrumbs: false,
       roles: ["superadmin", "stateadmin", "owner", "dto"],
     },
+    {
+      id: "trip-viewer",
+      title: "Trip Viewer",
+      type: "item",
+      url: "/trip-viewer",
+      icon: icons.IconMap,
+      breadcrumbs: false,
+      roles: ["superadmin", "stateadmin", "owner", "dto"],
+    },
     // {
     //   id: "sos-tracking",
     //   title: "SOS Admin",
@@ -356,7 +365,7 @@ const user = {
           url: "/device/assign-device",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
-        }
+        },
       ]
     },
     {

@@ -3,12 +3,16 @@ import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
 import { fromLonLat, getCenter } from "ol/proj";
-import { Icon, Style } from "ol/style";
+import { Icon, Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+import Polygon from "ol/geom/Polygon";
+import Circle from "ol/geom/Circle";
+import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import { boundingExtent } from "ol/extent";
+import POIService from '../../services/POIService';
 
 const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
   const mapElement = useRef();
@@ -16,11 +20,14 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
   const [map, setMap] = useState(null);
   const [vectorLayer, setVectorLayer] = useState(null);
   const [dynamicOverlay, setDynamicOverlay] = useState(null);
+  const [pois, setPois] = useState([]);
+  const [poiLayer, setPoiLayer] = useState(null);
   const [activeLayers, setActiveLayers] = useState({
     osm: true,
     indiaBase: true,
     indiaRoads: true,
-    markers: true
+    markers: true,
+    pois: true
   });
 
   const logoOverlays = useRef([]);
@@ -28,7 +35,8 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
     osm: null,
     indiaBase: null,
     indiaRoads: null,
-    markers: null
+    markers: null,
+    pois: null
   });
 
   // Icon styles based on the packet type and conditions
@@ -76,6 +84,60 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
       }),
     }),
   };
+
+  // POI marker styles
+  const poiStyles = {
+    Point: new Style({
+      image: new Icon({
+        src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><path fill="%231976D2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
+        anchor: [0.5, 1],
+        scale: 1.2,
+      }),
+      zIndex: 1000,
+    }),
+    Circle: new Style({
+      fill: new Fill({
+        color: 'rgba(66, 165, 245, 0.2)',
+      }),
+      stroke: new Stroke({
+        color: '#42A5F5',
+        width: 2,
+      }),
+      zIndex: 900,
+    }),
+    Polygon: new Style({
+      fill: new Fill({
+        color: 'rgba(76, 175, 80, 0.2)',
+      }),
+      stroke: new Stroke({
+        color: '#4CAF50',
+        width: 2,
+      }),
+      zIndex: 900,
+    }),
+    Road: new Style({
+      stroke: new Stroke({
+        color: '#FF9800',
+        width: 3,
+      }),
+      zIndex: 900,
+    }),
+  };
+
+  // Fetch POIs
+  useEffect(() => {
+    const fetchPOIs = async () => {
+      try {
+        const response = await POIService.getAllPOIs();
+        if (response && response.data) {
+          setPois(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching POIs:', error);
+      }
+    };
+    fetchPOIs();
+  }, []);
 
   useEffect(() => {
     // Initialize the map on first render
@@ -140,12 +202,18 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
       visible: activeLayers.markers
     });
 
+    const poiVectorLayer = new VectorLayer({
+      source: new VectorSource(),
+      visible: activeLayers.pois
+    });
+
     // Store layer references
     layersRef.current = {
       osm: osmLayer,
       indiaBase: indiaBaseLayer,
       indiaRoads: indiaRoadsLayer,
-      markers: markersLayer
+      markers: markersLayer,
+      pois: poiVectorLayer
     };
 
     // Add layers to map
@@ -153,6 +221,7 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
     initialMap.addLayer(indiaBaseLayer);
     initialMap.addLayer(indiaRoadsLayer);
     initialMap.addLayer(markersLayer);
+    initialMap.addLayer(poiVectorLayer);
 
     // Initialize vector layer for markers
     const initialVectorLayer = markersLayer;
@@ -165,8 +234,97 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
 
     setMap(initialMap);
     setVectorLayer(initialVectorLayer);
+    setPoiLayer(poiVectorLayer);
     setDynamicOverlay(initialOverlay);
   }, []);
+
+  // Update POIs on the map
+  useEffect(() => {
+    if (map && poiLayer && pois.length > 0) {
+      const source = poiLayer.getSource();
+      source.clear();
+
+      pois.forEach((poi) => {
+        try {
+          const location = JSON.parse(poi.location);
+          if (Array.isArray(location) && location.length > 0) {
+            let feature;
+            let style = poiStyles[poi.mark_type];
+
+            switch (poi.mark_type) {
+              case 'Point':
+                if (location[0] && location[0].length === 2) {
+                  const [lat, lon] = location[0];
+                  const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                  feature = new Feature({
+                    geometry: new Point(coordinates),
+                    data: poi,
+                  });
+                }
+                break;
+
+              case 'Circle':
+                if (location[0] && location[0].length === 2) {
+                  const [lat, lon] = location[0];
+                  const center = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                  const radius = parseFloat(poi.radius) || 100;
+                  feature = new Feature({
+                    geometry: new Circle(center, radius),
+                    data: poi,
+                  });
+                }
+                break;
+
+              case 'Polygon':
+                if (location.length >= 3) {
+                  const polygonCoords = location.map(coord => {
+                    if (coord && coord.length === 2) {
+                      const [lat, lon] = coord;
+                      return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                    }
+                    return null;
+                  }).filter(coord => coord !== null);
+
+                  if (polygonCoords.length >= 3) {
+                    feature = new Feature({
+                      geometry: new Polygon([polygonCoords]),
+                      data: poi,
+                    });
+                  }
+                }
+                break;
+
+              case 'Road':
+                if (location.length >= 2) {
+                  const roadCoords = location.map(coord => {
+                    if (coord && coord.length === 2) {
+                      const [lat, lon] = coord;
+                      return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                    }
+                    return null;
+                  }).filter(coord => coord !== null);
+
+                  if (roadCoords.length >= 2) {
+                    feature = new Feature({
+                      geometry: new LineString(roadCoords),
+                      data: poi,
+                    });
+                  }
+                }
+                break;
+            }
+
+            if (feature) {
+              feature.setStyle(style);
+              source.addFeature(feature);
+            }
+          }
+        } catch (error) {
+          console.error('Error processing POI:', poi.id, error);
+        }
+      });
+    }
+  }, [pois, map, poiLayer]);
 
   // Function to toggle layer visibility
   const toggleLayer = (layerName) => {
@@ -366,6 +524,21 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
                 style={{ cursor: 'pointer' }}
               />
               Vehicle Markers
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.pois}
+                onChange={() => toggleLayer('pois')}
+                style={{ cursor: 'pointer' }}
+              />
+              POIs
             </label>
           </div>
         </div>

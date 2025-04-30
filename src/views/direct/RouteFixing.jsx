@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import TaggingService from "../../services/TaggingService";
+import POIService from "../../services/POIService";
 import { useTranslation } from "react-i18next";
 import {
   MenuItem,
@@ -26,6 +27,9 @@ import Overlay from "ol/Overlay";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
 import Stroke from "ol/style/Stroke";
+import Fill from "ol/style/Fill";
+import Circle from "ol/geom/Circle";
+import Polygon from "ol/geom/Polygon";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 
 const RouteFixing = () => {
@@ -43,11 +47,66 @@ const RouteFixing = () => {
   const map = useRef(null);
   const overlayRef = useRef(null);
   const selectedId = useRef("");
+  const layersRef = useRef({
+    osm: null,
+    indiaBase: null,
+    indiaRoads: null,
+    markers: null,
+    pois: null
+  });
   const [alert, setAlert] = useState({
     open: false,
     message: "",
     type: "success"
   });
+  const [pois, setPois] = useState([]);
+  const [poiLayer, setPoiLayer] = useState(null);
+  const [activeLayers, setActiveLayers] = useState({
+    osm: true,
+    indiaBase: true,
+    indiaRoads: true,
+    markers: true,
+    pois: true
+  });
+
+  // POI marker styles
+  const poiStyles = {
+    Point: new Style({
+      image: new Icon({
+        src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><path fill="%231976D2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
+        anchor: [0.5, 1],
+        scale: 1.2,
+      }),
+      zIndex: 1000,
+    }),
+    Circle: new Style({
+      fill: new Fill({
+        color: 'rgba(66, 165, 245, 0.2)',
+      }),
+      stroke: new Stroke({
+        color: '#42A5F5',
+        width: 2,
+      }),
+      zIndex: 900,
+    }),
+    Polygon: new Style({
+      fill: new Fill({
+        color: 'rgba(76, 175, 80, 0.2)',
+      }),
+      stroke: new Stroke({
+        color: '#4CAF50',
+        width: 2,
+      }),
+      zIndex: 900,
+    }),
+    Road: new Style({
+      stroke: new Stroke({
+        color: '#FF9800',
+        width: 3,
+      }),
+      zIndex: 900,
+    }),
+  };
 
   useEffect(() => {
     const fetchDeviceList = async () => {
@@ -117,6 +176,21 @@ const RouteFixing = () => {
       alert('There was an error selecting the route. Please try again.');
     }
   };
+
+  // Fetch POIs
+  useEffect(() => {
+    const fetchPOIs = async () => {
+      try {
+        const response = await POIService.getAllPOIs();
+        if (response && response.data) {
+          setPois(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching POIs:', error);
+      }
+    };
+    fetchPOIs();
+  }, []);
 
   // Initialize map on first render
   useEffect(() => {
@@ -211,6 +285,14 @@ const RouteFixing = () => {
         offset: [0, -15],
       });
       initialMap.addOverlay(overlay);
+
+      const poiVectorLayer = new VectorLayer({
+        source: new VectorSource(),
+        visible: activeLayers.pois
+      });
+
+      initialMap.addLayer(poiVectorLayer);
+      setPoiLayer(poiVectorLayer);
     }
     // Add click event for adding new route points only if vehicle is selected else not allow to select point
     if (deviceId != "") {
@@ -338,6 +420,106 @@ const RouteFixing = () => {
         geometry: new LineString(lineCoordinates),
       });
       vectorSourceRef.current.addFeature(lineFeature);
+    }
+  };
+
+  // Update POIs on the map
+  useEffect(() => {
+    if (map.current && poiLayer && pois.length > 0) {
+      const source = poiLayer.getSource();
+      source.clear();
+
+      pois.forEach((poi) => {
+        try {
+          const location = JSON.parse(poi.location);
+          if (Array.isArray(location) && location.length > 0) {
+            let feature;
+            let style = poiStyles[poi.mark_type];
+
+            switch (poi.mark_type) {
+              case 'Point':
+                if (location[0] && location[0].length === 2) {
+                  const [lat, lon] = location[0];
+                  const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                  feature = new Feature({
+                    geometry: new Point(coordinates),
+                    data: poi,
+                  });
+                }
+                break;
+
+              case 'Circle':
+                if (location[0] && location[0].length === 2) {
+                  const [lat, lon] = location[0];
+                  const center = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                  const radius = parseFloat(poi.radius) || 100;
+                  feature = new Feature({
+                    geometry: new Circle(center, radius),
+                    data: poi,
+                  });
+                }
+                break;
+
+              case 'Polygon':
+                if (location.length >= 3) {
+                  const polygonCoords = location.map(coord => {
+                    if (coord && coord.length === 2) {
+                      const [lat, lon] = coord;
+                      return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                    }
+                    return null;
+                  }).filter(coord => coord !== null);
+
+                  if (polygonCoords.length >= 3) {
+                    feature = new Feature({
+                      geometry: new Polygon([polygonCoords]),
+                      data: poi,
+                    });
+                  }
+                }
+                break;
+
+              case 'Road':
+                if (location.length >= 2) {
+                  const roadCoords = location.map(coord => {
+                    if (coord && coord.length === 2) {
+                      const [lat, lon] = coord;
+                      return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                    }
+                    return null;
+                  }).filter(coord => coord !== null);
+
+                  if (roadCoords.length >= 2) {
+                    feature = new Feature({
+                      geometry: new LineString(roadCoords),
+                      data: poi,
+                    });
+                  }
+                }
+                break;
+            }
+
+            if (feature) {
+              feature.setStyle(style);
+              source.addFeature(feature);
+            }
+          }
+        } catch (error) {
+          console.error('Error processing POI:', poi.id, error);
+        }
+      });
+    }
+  }, [pois, poiLayer]);
+
+  // Function to toggle layer visibility
+  const toggleLayer = (layerName) => {
+    if (layersRef.current[layerName]) {
+      const newVisibility = !layersRef.current[layerName].getVisible();
+      layersRef.current[layerName].setVisible(newVisibility);
+      setActiveLayers(prev => ({
+        ...prev,
+        [layerName]: newVisibility
+      }));
     }
   };
 
@@ -525,6 +707,109 @@ const RouteFixing = () => {
 
 
       <Box ref={mapRef} id="map" sx={{ width: "100%", height: "500px", mt: 4, position: 'relative' }}>
+        {/* Layer Control Panel */}
+        <div style={{
+          position: 'absolute',
+          top: '80px',
+          right: '20px',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          padding: '15px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          zIndex: 1000,
+          minWidth: '200px',
+          backdropFilter: 'blur(5px)',
+          border: '1px solid rgba(0,0,0,0.1)'
+        }}>
+          <h4 style={{ 
+            margin: '0 0 12px 0',
+            color: '#333',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}>Map Layers</h4>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '8px',
+            fontSize: '14px'
+          }}>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.osm}
+                onChange={() => toggleLayer('osm')}
+                style={{ cursor: 'pointer' }}
+              />
+              OSM
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.indiaBase}
+                onChange={() => toggleLayer('indiaBase')}
+                style={{ cursor: 'pointer' }}
+              />
+              India Base
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.indiaRoads}
+                onChange={() => toggleLayer('indiaRoads')}
+                style={{ cursor: 'pointer' }}
+              />
+              India Roads
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.markers}
+                onChange={() => toggleLayer('markers')}
+                style={{ cursor: 'pointer' }}
+              />
+              Markers
+            </label>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '4px 0'
+            }}>
+              <input
+                type="checkbox"
+                checked={activeLayers.pois}
+                onChange={() => toggleLayer('pois')}
+                style={{ cursor: 'pointer' }}
+              />
+              POIs
+            </label>
+          </div>
+        </div>
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png` } style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png` } style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />

@@ -235,13 +235,10 @@
     "vehicleRegistration": "वाहन पंजीकरण",
     "liveTracking": "लाइव ट्रैकिंग",
     "deviceManagement": "उपकरण प्रबंधन",
-    "stateAdmin": "राज्य प्रशासक",
     "m2mServiceProvider": "एम2एम सेवा प्रदाता",
     "manufacturer": "निर्माता",
     "dto": "डीटीओ",
     "dealerAccount": "डीलर खाता",
-    "vehicleOwner": "वाहन मालिक बनाएं",
-    "sosAdmin": "एसओएस प्रशासक",
     "sosUser": "एसओएस उपयोगकर्ता",
     "emTeam": "ईएम टीम",
     "create": "बनाएं",
@@ -1081,5 +1078,59 @@
       "accept": "स्वीकार करें"
     },
     "notAvailable": "उपलब्ध नहीं"
+  },
+  "tripViewer": {
+    "title": "यात्रा दर्शक",
+    "selectVehicle": "वाहन चुनें",
+    "timeFilters": {
+      "day": "पिछले 24 घंटे",
+      "week": "पिछले 7 दिन",
+      "month": "पिछले 30 दिन",
+      "static": "पिछले 3 महीने"
+    },
+    "buttons": {
+      "submit": "जमा करें",
+      "play": "चलाएं",
+      "pause": "रोकें",
+      "restart": "पुनः आरंभ करें"
+    },
+    "tripList": "यात्रा सूची",
+    "table": {
+      "startTime": "प्रारंभ समय",
+      "endTime": "समाप्ति समय",
+      "distance": "दूरी (किमी)",
+      "duration": "अवधि (मिनट)",
+      "speed": "औसत गति (किमी/घंटा)",
+      "points": "बिंदु"
+    },
+    "stats": {
+      "distance": "कुल दूरी",
+      "duration": "यात्रा अवधि",
+      "averageSpeed": "औसत गति",
+      "points": "कुल बिंदु"
+    },
+    "mapLayers": {
+      "title": "मानचित्र परतें",
+      "osm": "ओपनस्ट्रीटमैप",
+      "india3": "भारत3 परत",
+      "indiaBase": "भारत आधार मानचित्र",
+      "indiaRoads": "भारत सड़कें",
+      "markers": "वाहन चिह्न"
+    },
+    "locationInfo": {
+      "title": "स्थान जानकारी",
+      "latitude": "अक्षांश",
+      "longitude": "देशांतर",
+      "speed": "गति",
+      "heading": "दिशा",
+      "datetime": "तिथि और समय"
+    },
+    "loading": "लोड हो रहा है...",
+    "noVehicleOptions": "कोई वाहन नहीं मिला",
+    "noTrips": "चयनित अवधि के लिए कोई यात्रा नहीं मिली",
+    "error": {
+      "fetchVehicles": "वाहन प्राप्त करने में त्रुटि",
+      "fetchTrips": "यात्रा प्राप्त करने में त्रुटि"
+    }
   }
 }

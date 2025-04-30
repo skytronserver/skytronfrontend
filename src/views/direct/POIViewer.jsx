@@ -12,6 +12,7 @@ import LineString from 'ol/geom/LineString';
 import Overlay from 'ol/Overlay';
 import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
+import Zoom from 'ol/control/Zoom';
 import 'ol/ol.css';
 import {
   Box,
@@ -42,6 +43,8 @@ import {
   ListItemText,
   ListItemIcon,
   Switch,
+  Drawer,
+  ListItemButton,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -61,6 +64,7 @@ import {
   Terrain as TerrainIcon,
   Satellite as SatelliteIcon,
   People as PeopleIcon,
+  List as ListIcon,
 } from '@mui/icons-material';
 import POIService from '../../services/POIService';
 import HomePageService from '../../services/HomePage';
@@ -163,6 +167,8 @@ const POIViewer = () => {
   const [routePoints, setRoutePoints] = useState([]);
   const [routeLine, setRouteLine] = useState(null);
   const vectorSourceRef = useRef(new VectorSource());
+  const [poiListOpen, setPoiListOpen] = useState(false);
+  const [selectedPoiId, setSelectedPoiId] = useState(null);
 
   const markerStyles = {
     Point: new Style({
@@ -331,6 +337,12 @@ const POIViewer = () => {
         projection: 'EPSG:3857',
       }),
       pixelRatio: 1,
+      controls: [
+        new Zoom({
+          className: 'custom-zoom-control',
+          target: document.getElementById('zoom-control-container'),
+        }),
+      ],
     });
 
     const overlay = new Overlay({
@@ -922,10 +934,165 @@ const POIViewer = () => {
     }
   };
 
+  const handlePoiClick = (poi) => {
+    setSelectedPoiId(poi.id);
+    // Center map on selected POI
+    if (poi.location) {
+      try {
+        const location = JSON.parse(poi.location);
+        if (Array.isArray(location) && location.length > 0) {
+          const [lat, lon] = location[0];
+          const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+          map.getView().animate({
+            center: coordinates,
+            zoom: 15,
+            duration: 1000
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing POI location:', error);
+      }
+    }
+  };
+
+  const getPoiIcon = (markType) => {
+    switch (markType) {
+      case 'Point':
+        return <LocationOnIcon />;
+      case 'Circle':
+        return <CircleIcon />;
+      case 'Polygon':
+        return <PolylineIcon />;
+      case 'Road':
+        return <RouteIcon />;
+      default:
+        return <LocationOnIcon />;
+    }
+  };
+
   return (
     <Box sx={{ height: '100%', width: '100%', position: 'relative', overflow: 'hidden' }}>
       {/* Main Map Container */}
       <Box ref={mapRef} sx={{ height: '100%', width: '100%' }} />
+
+      {/* Zoom Controls Container */}
+      <Box
+        id="zoom-control-container"
+        sx={{
+          position: 'absolute',
+          bottom: 16,
+          right: 16,
+          backgroundColor: 'background.paper',
+          borderRadius: 1,
+          boxShadow: 1,
+          overflow: 'hidden',
+          zIndex: 1000,
+          '& .custom-zoom-control': {
+            display: 'flex',
+            flexDirection: 'column',
+            '& button': {
+              width: 32,
+              height: 32,
+              padding: 0,
+              backgroundColor: 'background.paper',
+              border: 'none',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              color: 'text.primary',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              },
+              '&:last-child': {
+                borderBottom: 'none',
+              },
+            },
+          },
+        }}
+      />
+
+      {/* POI List Toggle Button */}
+      <IconButton
+        onClick={() => setPoiListOpen(!poiListOpen)}
+        sx={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          backgroundColor: 'background.paper',
+          '&:hover': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          },
+          zIndex: 1000,
+        }}
+      >
+        <ListIcon />
+      </IconButton>
+
+      {/* POI List Drawer */}
+      <Drawer
+        anchor="left"
+        open={poiListOpen}
+        onClose={() => setPoiListOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 300,
+            backgroundColor: 'background.paper',
+            borderRight: '1px solid',
+            borderColor: 'divider',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">POI List</Typography>
+            <IconButton onClick={() => setPoiListOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Stack>
+        </Box>
+        <List sx={{ p: 1 }}>
+          {pois.map((poi) => (
+            <ListItemButton
+              key={poi.id}
+              selected={selectedPoiId === poi.id}
+              onClick={() => handlePoiClick(poi)}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                  },
+                },
+              }}
+            >
+              <ListItemIcon>
+                {getPoiIcon(poi.mark_type)}
+              </ListItemIcon>
+              <ListItemText
+                primary={poi.name}
+                secondary={
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Chip
+                      label={poi.use_type}
+                      size="small"
+                      color="primary"
+                      sx={{ height: 20 }}
+                    />
+                    <Chip
+                      label={poi.status}
+                      size="small"
+                      color={poi.status === 'Active' ? 'success' : 'error'}
+                      sx={{ height: 20 }}
+                    />
+                  </Stack>
+                }
+              />
+            </ListItemButton>
+          ))}
+        </List>
+      </Drawer>
 
       {/* Top Right Controls */}
       <Paper
@@ -1323,6 +1490,10 @@ const POIViewer = () => {
                 <MenuItem value="Other">Other</MenuItem>
                 <MenuItem value="Personal">Personal</MenuItem>
                 <MenuItem value="dealer">Dealer</MenuItem>
+                <MenuItem value="prohibited_area">Prohibited Area</MenuItem>
+                <MenuItem value="no_entry">No Entry</MenuItem>
+                <MenuItem value="parking">Parking</MenuItem>
+                <MenuItem value="no_parking">No Parking</MenuItem>
               </Select>
             </FormControl>
 

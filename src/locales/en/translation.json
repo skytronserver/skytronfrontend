@@ -260,13 +260,10 @@
     "vehicleRegistration": "Vehicle Registration",
     "liveTracking": "Live Tracking",
     "deviceManagement": "Device Management",
-    "stateAdmin": "State Admin",
     "m2mServiceProvider": "M2M Service Provider",
     "manufacturer": "Manufacturer",
     "dto": "DTO",
     "dealerAccount": "Dealer Account",
-    "vehicleOwner": "Create Vehicle Owner",
-    "sosAdmin": "SOS Admin",
     "sosUser": "SOS User",
     "emTeam": "EM Team",
     "create": "Create",
@@ -961,7 +958,6 @@
       "title": "New Holiday",
       "editTitle": "Edit Holiday",
       "description": "Description",
-      "status": "Status",
       "createSuccess": "Holiday created successfully",
       "updateSuccess": "Holiday updated successfully",
       "error": "An error occurred while saving the holiday",
@@ -1100,5 +1096,59 @@
       "accept": "Accept"
     },
     "notAvailable": "N/A"
+  },
+  "tripViewer": {
+    "title": "Trip Viewer",
+    "selectVehicle": "Select Vehicle",
+    "timeFilters": {
+      "day": "Last 24 Hours",
+      "week": "Last 7 Days",
+      "month": "Last 30 Days",
+      "static": "Last 3 Months"
+    },
+    "buttons": {
+      "submit": "Submit",
+      "play": "Play",
+      "pause": "Pause",
+      "restart": "Restart"
+    },
+    "tripList": "Trip List",
+    "table": {
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "distance": "Distance (km)",
+      "duration": "Duration (min)",
+      "speed": "Avg Speed (km/h)",
+      "points": "Points"
+    },
+    "stats": {
+      "distance": "Total Distance",
+      "duration": "Trip Duration",
+      "averageSpeed": "Average Speed",
+      "points": "Total Points"
+    },
+    "mapLayers": {
+      "title": "Map Layers",
+      "osm": "OpenStreetMap",
+      "india3": "India3 Layer",
+      "indiaBase": "India Base Map",
+      "indiaRoads": "India Roads",
+      "markers": "Vehicle Markers"
+    },
+    "locationInfo": {
+      "title": "Location Information",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "speed": "Speed",
+      "heading": "Heading",
+      "datetime": "Date & Time"
+    },
+    "loading": "Loading...",
+    "noVehicleOptions": "No vehicles found",
+    "noTrips": "No trips found for selected period",
+    "error": {
+      "fetchVehicles": "Error fetching vehicles",
+      "fetchTrips": "Error fetching trips"
+    }
   }
 }
