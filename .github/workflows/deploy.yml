@@ -10,17 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: deploy
-      uses: appleboy/ssh-action@v0.1.8
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        port: ${{ secrets.SERVER_PORT }}
-        script: |
-          cd /home/azureuser/gromed
-          chmod +x script.sh
-          ./script.sh
+      - name: Debug environment
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "Secrets:"
+          echo "SERVER_HOST=${{ secrets.SERVER_HOST }}"
+          echo "SERVER_USER=${{ secrets.SERVER_USER }}"
+          echo "SERVER_PORT=${{ secrets.SERVER_PORT }}"
+          echo "DEBUG: enabled"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          debug: true
+          script: |
+            echo "Connected to server ✅"
+            echo "Current directory: $(pwd)"
+            cd /home/azureuser/gromed || { echo "❌ Directory not found"; exit 1; }
+            echo "Directory listing:"
+            ls -la
+            if [ ! -f script.sh ]; then
+              echo "❌ script.sh not found!"
+              exit 1
+            fi
+            chmod +x script.sh
+            echo "Running script.sh..."
+            ./script.sh
