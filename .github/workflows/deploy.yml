@@ -3,11 +3,11 @@ name: deploy
 on:
   push:
     branches:
-      - main
+      - feat/updates
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout Repository
@@ -21,6 +21,6 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         port: ${{ secrets.SERVER_PORT }}
         script: |
-          cd /home/azureuser/mapwala
+          cd /home/azureuser/gromed
           chmod +x script.sh
           ./script.sh
