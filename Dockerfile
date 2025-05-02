@@ -1,42 +1,22 @@
-# Stage 1: Build
-FROM node:18-alpine AS build
+FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies 
+RUN npm ci && \
+    npm cache clean --force
 
-# Copy the rest of the application
+# Copy application
 COPY . .
 
-# Build the application for production
-RUN npm run build
 
-# Stage 2: Serve
-FROM nginx:alpine
+# Build the application (if needed)
+# RUN npm run build
 
-# Install envsubst utility
-RUN apk add --no-cache bash gettext
+EXPOSE 3000
 
-# Copy the build files to the Nginx HTML directory
-COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy the Nginx config as a template
-COPY default.conf /etc/nginx/conf.d/default.template
-
-# Copy the entrypoint script
-COPY entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
-
-# Expose the port Nginx listens on
-EXPOSE 80
-
-# Set the entrypoint
-ENTRYPOINT ["/docker-entrypoint.sh"]
-
-# Start Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "start"] 
