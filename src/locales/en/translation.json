@@ -950,26 +950,32 @@
     "noDataFound": "No Data Found"
   },
   "notice": {
-    "title": "Notice List",
-    "newTitle": "New Notice",
-    "editTitle": "Edit Notice",
-    "addSuccess": "Notice added successfully",
-    "updateSuccess": "Notice updated successfully",
-    "error": "Error occurred while processing notice",
-    "title": {
-      "label": "Title",
-      "required": "Title is required"
+    "title": "Notice",
+    "list": "Notice List",
+    "add": "Add Notice",
+    "edit": "Edit Notice",
+    "delete": "Delete Notice",
+    "form": {
+      "title": "Notice Title",
+      "description": "Notice Description",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "validation": {
+        "titleRequired": "Notice title is required",
+        "descriptionRequired": "Notice description is required",
+        "startDateRequired": "Start date is required",
+        "endDateRequired": "End date is required",
+        "statusRequired": "Status is required"
+      }
     },
-    "detail": {
-      "label": "Detail",
-      "required": "Detail is required"
-    },
-    "file": {
-      "label": "File",
-      "message": "Upload a file (max 512KB)",
-      "required": "File is required",
-      "sizeError": "File size must be less than 512KB",
-      "formatError": "File format must be JPG, JPEG, PNG or PDF"
+    "messages": {
+      "addSuccess": "Notice added successfully",
+      "addError": "Failed to add notice",
+      "editSuccess": "Notice updated successfully",
+      "editError": "Failed to update notice",
+      "deleteSuccess": "Notice deleted successfully",
+      "deleteError": "Failed to delete notice"
     }
   },
   "users": {
