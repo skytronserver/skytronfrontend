@@ -39,7 +39,27 @@
     "deleteDialog": "क्या आप निश्चित हैं कि आप उपयोगकर्ता {{userName}} को हटाना चाहते हैं? यह कार्य वापस नहीं किया जा सकता है।"
   },
   "notice": {
-    "title": "सूचना सूची"
+    "title": "सूचना सूची",
+    "newTitle": "नई सूचना",
+    "editTitle": "सूचना संपादित करें",
+    "addSuccess": "सूचना सफलतापूर्वक जोड़ी गई",
+    "updateSuccess": "सूचना सफलतापूर्वक अपडेट की गई",
+    "error": "सूचना प्रसंस्करण में त्रुटि हुई",
+    "title": {
+      "label": "शीर्षक",
+      "required": "शीर्षक आवश्यक है"
+    },
+    "detail": {
+      "label": "विवरण",
+      "required": "विवरण आवश्यक है"
+    },
+    "file": {
+      "label": "फ़ाइल",
+      "message": "फ़ाइल अपलोड करें (अधिकतम 512KB)",
+      "required": "फ़ाइल आवश्यक है",
+      "sizeError": "फ़ाइल का आकार 512KB से कम होना चाहिए",
+      "formatError": "फ़ाइल प्रारूप JPG, JPEG, PNG या PDF होना चाहिए"
+    }
   },
   "dashboard": {
     "title": "डैशबोर्ड",
@@ -1228,6 +1248,52 @@
       "warnSpeed": {
         "label": "चेतावनी गति",
         "required": "चेतावनी गति आवश्यक है"
+      }
+    }
+  },
+  "state": {
+    "addTitle": "राज्य जोड़ें",
+    "listTitle": "राज्य सूची",
+    "addButton": "राज्य जोड़ें",
+    "formSubmitSuccess": "राज्य सफलतापूर्वक जोड़ा गया",
+    "formSubmitError": "राज्य जोड़ने में त्रुटि",
+    "form": {
+      "stateName": {
+        "label": "राज्य का नाम",
+        "required": "राज्य का नाम आवश्यक है"
+      },
+      "status": {
+        "label": "स्थिति",
+        "required": "स्थिति आवश्यक है",
+        "active": "सक्रिय",
+        "deactive": "निष्क्रिय"
+      }
+    }
+  },
+  "district": {
+    "addTitle": "जिला जोड़ें",
+    "listTitle": "जिला सूची",
+    "addButton": "जिला जोड़ें",
+    "formSubmitSuccess": "जिला सफलतापूर्वक जोड़ा गया",
+    "formSubmitError": "जिला जोड़ने में त्रुटि",
+    "form": {
+      "districtName": {
+        "label": "जिले का नाम",
+        "required": "जिले का नाम आवश्यक है"
+      },
+      "districtCode": {
+        "label": "जिला कोड",
+        "required": "जिला कोड आवश्यक है"
+      },
+      "state": {
+        "label": "राज्य",
+        "required": "राज्य आवश्यक है"
+      },
+      "status": {
+        "label": "स्थिति",
+        "required": "स्थिति आवश्यक है",
+        "active": "सक्रिय",
+        "deactive": "निष्क्रिय"
       }
     }
   }

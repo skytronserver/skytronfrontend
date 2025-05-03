@@ -951,13 +951,26 @@
   },
   "notice": {
     "title": "Notice List",
-    "file": "File",
-    "view": "View",
-    "action": "Action",
-    "deleteConfirm": "Are you sure you want to delete this notice?",
-    "deleteSuccess": "Notice deleted successfully!",
-    "deleteError": "Error deleting notice!",
-    "deleteCancelled": "Notice deletion cancelled."
+    "newTitle": "New Notice",
+    "editTitle": "Edit Notice",
+    "addSuccess": "Notice added successfully",
+    "updateSuccess": "Notice updated successfully",
+    "error": "Error occurred while processing notice",
+    "title": {
+      "label": "Title",
+      "required": "Title is required"
+    },
+    "detail": {
+      "label": "Detail",
+      "required": "Detail is required"
+    },
+    "file": {
+      "label": "File",
+      "message": "Upload a file (max 512KB)",
+      "required": "File is required",
+      "sizeError": "File size must be less than 512KB",
+      "formatError": "File format must be JPG, JPEG, PNG or PDF"
+    }
   },
   "users": {
     "listTitle": "Users Report"
@@ -1240,6 +1253,80 @@
       "warnSpeed": {
         "label": "Warning Speed",
         "required": "Warning Speed is required"
+      }
+    }
+  },
+  "state": {
+    "addTitle": "Add State",
+    "listTitle": "State List",
+    "addButton": "Add State",
+    "formSubmitSuccess": "State added successfully",
+    "formSubmitError": "Error adding state",
+    "form": {
+      "stateName": {
+        "label": "State Name",
+        "required": "State Name is required"
+      },
+      "status": {
+        "label": "Status",
+        "required": "Status is required",
+        "active": "Active",
+        "deactive": "Deactive"
+      }
+    }
+  },
+  "district": {
+    "addTitle": "Add District",
+    "listTitle": "District List",
+    "addButton": "Add District",
+    "formSubmitSuccess": "District added successfully",
+    "formSubmitError": "Error adding district",
+    "form": {
+      "districtName": {
+        "label": "District Name",
+        "required": "District Name is required"
+      },
+      "districtCode": {
+        "label": "District Code",
+        "required": "District Code is required"
+      },
+      "state": {
+        "label": "State",
+        "required": "State is required"
+      },
+      "status": {
+        "label": "Status",
+        "required": "Status is required",
+        "active": "Active",
+        "deactive": "Deactive"
+      }
+    }
+  },
+  "frequency": {
+    "title": "Frequency Settings",
+    "listTitle": "Frequency List",
+    "form": {
+      "deviceModel": "Device Model",
+      "frequency": "Frequency",
+      "status": "Status",
+      "validation": {
+        "deviceModelRequired": "Device model is required",
+        "frequencyRequired": "Frequency is required",
+        "statusRequired": "Status is required"
+      }
+    }
+  },
+  "firmware": {
+    "title": "Firmware Settings",
+    "listTitle": "Firmware List",
+    "form": {
+      "deviceModel": "Device Model",
+      "firmwareVersion": "Firmware Version",
+      "status": "Status",
+      "validation": {
+        "deviceModelRequired": "Device model is required",
+        "firmwareVersionRequired": "Firmware version is required",
+        "statusRequired": "Status is required"
       }
     }
   }
