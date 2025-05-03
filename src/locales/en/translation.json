@@ -950,33 +950,32 @@
     "noDataFound": "No Data Found"
   },
   "notice": {
-    "title": "Notice",
-    "list": "Notice List",
-    "add": "Add Notice",
-    "edit": "Edit Notice",
-    "delete": "Delete Notice",
-    "form": {
-      "title": "Notice Title",
-      "description": "Notice Description",
-      "startDate": "Start Date",
-      "endDate": "End Date",
-      "status": "Status",
-      "validation": {
-        "titleRequired": "Notice title is required",
-        "descriptionRequired": "Notice description is required",
-        "startDateRequired": "Start date is required",
-        "endDateRequired": "End date is required",
-        "statusRequired": "Status is required"
-      }
+    "title": {
+      "label": "Title",
+      "required": "Title is required"
     },
-    "messages": {
-      "addSuccess": "Notice added successfully",
-      "addError": "Failed to add notice",
-      "editSuccess": "Notice updated successfully",
-      "editError": "Failed to update notice",
-      "deleteSuccess": "Notice deleted successfully",
-      "deleteError": "Failed to delete notice"
-    }
+    "detail": {
+      "label": "Detail",
+      "required": "Detail is required"
+    },
+    "file": {
+      "label": "Select File",
+      "required": "File is required",
+      "message": "Only JPG, PDF, PNG files are allowed and must be under 512KB",
+      "sizeError": "File is too large. Maximum size is 512KB",
+      "formatError": "Unsupported file format"
+    },
+    "newTitle": "New Notice",
+    "editTitle": "Edit Notice",
+    "addSuccess": "Notice added successfully",
+    "updateSuccess": "Notice updated successfully",
+    "error": "Something went wrong"
+  },
+  "status": {
+    "label": "Status",
+    "required": "Status is required",
+    "live": "Live",
+    "deleted": "Deleted"
   },
   "users": {
     "listTitle": "Users Report"
