@@ -207,6 +207,77 @@
       "quantityPositive": "Quantity must be positive",
       "quantityInteger": "Quantity must be an integer",
       "quantityRequired": "Quantity is required"
+    },
+    "stateName": {
+      "label": "State Name",
+      "required": "State Name is required"
+    },
+    "districtName": {
+      "label": "District Name",
+      "required": "District Name is required"
+    },
+    "districtCode": {
+      "label": "District Code",
+      "required": "District Code is required"
+    },
+    "status": {
+      "label": "Status",
+      "required": "Status is required",
+      "active": "Active",
+      "deactive": "Deactive"
+    },
+    "deviceModel": {
+      "label": "Device Model",
+      "required": "Device Model is required"
+    },
+    "frequency": {
+      "label": "Frequency",
+      "required": "Frequency is required"
+    },
+    "firmwareVersion": {
+      "label": "Firmware Version",
+      "required": "Firmware Version is required"
+    },
+    "selectFile": {
+      "label": "Select File",
+      "required": "File is required"
+    },
+    "state": {
+      "label": "State",
+      "required": "State is required"
+    },
+    "ipTracking1": {
+      "label": "IP Tracking 1",
+      "required": "IP Tracking 1 is required"
+    },
+    "ipTracking2": {
+      "label": "IP Tracking 2"
+    },
+    "ipSos": {
+      "label": "IP SOS",
+      "required": "IP SOS is required"
+    },
+    "portTracking1": {
+      "label": "Port Tracking 1",
+      "required": "Port Tracking 1 is required"
+    },
+    "portTracking2": {
+      "label": "Port Tracking 2"
+    },
+    "portSos": {
+      "label": "Port SOS",
+      "required": "Port SOS is required"
+    },
+    "smsTracking1": {
+      "label": "SMS Tracking 1",
+      "required": "SMS Tracking 1 is required"
+    },
+    "smsTracking2": {
+      "label": "SMS Tracking 2"
+    },
+    "smsSos": {
+      "label": "SMS SOS",
+      "required": "SMS SOS is required"
     }
   },
   "liveTracking": {
@@ -1149,6 +1220,27 @@
     "error": {
       "fetchVehicles": "Error fetching vehicles",
       "fetchTrips": "Error fetching trips"
+    }
+  },
+  "vehicleCategory": {
+    "addNew": "Add New Vehicle Category",
+    "addButton": "Add",
+    "listTitle": "Vehicle Category List",
+    "formSubmitSuccess": "Form Submitted Successfully",
+    "formSubmitError": "Form Not Submitted",
+    "form": {
+      "category": {
+        "label": "Vehicle Category",
+        "required": "Vehicle Category is required"
+      },
+      "maxSpeed": {
+        "label": "Maximum Speed",
+        "required": "Maximum Speed is required"
+      },
+      "warnSpeed": {
+        "label": "Warning Speed",
+        "required": "Warning Speed is required"
+      }
     }
   }
 }

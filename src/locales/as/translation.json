@@ -210,7 +210,8 @@
     "apiDataLog": "এপিআই ডাটা লগ",
     "schoolHolidays": "বিদ্যালয়ৰ বন্ধ",
     "createHoliday": "বন্ধ সৃষ্টি কৰক",
-    "uploadReceipt": "টেগিং ৰচিদ ডাউনলোড কৰক"
+    "tripViewer": "ভ্ৰমণ দৰ্শক",
+    "poiViewer": "পিঅ'আই দৰ্শক"
   },
   "auth": {
     "login": "লগইন",
@@ -899,9 +900,25 @@
     "copListTitle": "ডিভাইচ মডেল তালিকা"
   },
   "vehicleCategory": {
-    "addNew": "নতুন শ্ৰেণী যোগ কৰক",
-    "addButton": "যান শ্ৰেণী যোগ কৰক",
-    "listTitle": "যান শ্ৰেণীৰ তালিকা"
+    "addNew": "নতুন যান-বাহনৰ শ্ৰেণী যোগ কৰক",
+    "addButton": "যোগ কৰক",
+    "listTitle": "যান-বাহনৰ শ্ৰেণীৰ তালিকা",
+    "formSubmitSuccess": "ফৰ্ম সফলভাৱে জমা কৰা হ'ল",
+    "formSubmitError": "ফৰ্ম জমা কৰা হোৱা নাই",
+    "form": {
+      "category": {
+        "label": "যান-বাহনৰ শ্ৰেণী",
+        "required": "যান-বাহনৰ শ্ৰেণী আৱশ্যক"
+      },
+      "maxSpeed": {
+        "label": "সৰ্বাধিক গতি",
+        "required": "সৰ্বাধিক গতি আৱশ্যক"
+      },
+      "warnSpeed": {
+        "label": "সতৰ্কতা গতি",
+        "required": "সতৰ্কতা গতি আৱশ্যক"
+      }
+    }
   },
   "frequency": {
     "title": "এইচপি ফ্ৰিকুৱেন্সি",
@@ -1122,6 +1139,49 @@
     "error": {
       "fetchVehicles": "যানবাহন প্ৰাপ্ত কৰোতে ত্ৰুটি",
       "fetchTrips": "ভ্ৰমণ প্ৰাপ্ত কৰোতে ত্ৰুটি"
+    }
+  },
+  "form": {
+    "state": {
+      "label": "ৰাজ্য",
+      "required": "ৰাজ্য আৱশ্যক"
+    },
+    "deviceModel": {
+      "label": "ডিভাইচ মডেল",
+      "required": "ডিভাইচ মডেল আৱশ্যক"
+    },
+    "ipTracking1": {
+      "label": "আইপি ট্ৰেকিং 1",
+      "required": "আইপি ট্ৰেকিং 1 আৱশ্যক"
+    },
+    "ipTracking2": {
+      "label": "আইপি ট্ৰেকিং 2"
+    },
+    "ipSos": {
+      "label": "আইপি এছঅ'এছ",
+      "required": "আইপি এছঅ'এছ আৱশ্যক"
+    },
+    "portTracking1": {
+      "label": "প'ৰ্ট ট্ৰেকিং 1",
+      "required": "প'ৰ্ট ট্ৰেকিং 1 আৱশ্যক"
+    },
+    "portTracking2": {
+      "label": "প'ৰ্ট ট্ৰেকিং 2"
+    },
+    "portSos": {
+      "label": "প'ৰ্ট এছঅ'এছ",
+      "required": "প'ৰ্ট এছঅ'এছ আৱশ্যক"
+    },
+    "smsTracking1": {
+      "label": "এছএমএছ ট্ৰেকিং 1",
+      "required": "এছএমএছ ট্ৰেকিং 1 আৱশ্যক"
+    },
+    "smsTracking2": {
+      "label": "এছএমএছ ট্ৰেকিং 2"
+    },
+    "smsSos": {
+      "label": "এছএমএছ এছঅ'এছ",
+      "required": "এছএমএছ এছঅ'এছ আৱশ্যক"
     }
   }
 }

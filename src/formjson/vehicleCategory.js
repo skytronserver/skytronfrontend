@@ -9,19 +9,19 @@ export const vehicleCategoryFormFields = {
     category: {
     name: "category",
     type: "text",
-    label: "Vehicle Category",
-    validation: Yup.string().required("Vehicle Category is required"),
+    label: "vehicleCategory.form.category.label",
+    validation: Yup.string().required("vehicleCategory.form.category.required"),
   },
   maxSpeed: {
     name: "maxSpeed",
     type: "text",
-    label: "Maximum Speed",
-    validation: Yup.number().required("Maximum Speed is required"),
+    label: "vehicleCategory.form.maxSpeed.label",
+    validation: Yup.number().required("vehicleCategory.form.maxSpeed.required"),
   },
   warnSpeed: {
     name: "warnSpeed",
     type: "text",
-    label: "Warning Speed",
-    validation: Yup.number().required("Warning Speed is required"),
+    label: "vehicleCategory.form.warnSpeed.label",
+    validation: Yup.number().required("vehicleCategory.form.warnSpeed.required"),
   }
 };

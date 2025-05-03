@@ -182,6 +182,81 @@
       "quantityPositive": "मात्रा सकारात्मक होनी चाहिए",
       "quantityInteger": "मात्रा एक पूर्णांक होनी चाहिए",
       "quantityRequired": "मात्रा आवश्यक है"
+    },
+    "stateName": {
+      "label": "राज्य का नाम",
+      "required": "राज्य का नाम आवश्यक है"
+    },
+    "districtName": {
+      "label": "जिले का नाम",
+      "required": "जिले का नाम आवश्यक है"
+    },
+    "districtCode": {
+      "label": "जिला कोड",
+      "required": "जिला कोड आवश्यक है"
+    },
+    "status": {
+      "label": "स्थिति",
+      "required": "स्थिति आवश्यक है",
+      "active": "सक्रिय",
+      "deactive": "निष्क्रिय"
+    },
+    "deviceModel": {
+      "label": "डिवाइस मॉडल",
+      "required": "डिवाइस मॉडल आवश्यक है"
+    },
+    "frequency": {
+      "label": "आवृत्ति",
+      "required": "आवृत्ति आवश्यक है"
+    },
+    "firmwareVersion": {
+      "label": "फर्मवेयर संस्करण",
+      "required": "फर्मवेयर संस्करण आवश्यक है"
+    },
+    "selectFile": {
+      "label": "फ़ाइल चुनें",
+      "required": "फ़ाइल आवश्यक है"
+    },
+    "state": {
+      "label": "राज्य",
+      "required": "राज्य आवश्यक है"
+    },
+    "deviceModel": {
+      "label": "डिवाइस मॉडल",
+      "required": "डिवाइस मॉडल आवश्यक है"
+    },
+    "ipTracking1": {
+      "label": "आईपी ट्रैकिंग 1",
+      "required": "आईपी ट्रैकिंग 1 आवश्यक है"
+    },
+    "ipTracking2": {
+      "label": "आईपी ट्रैकिंग 2"
+    },
+    "ipSos": {
+      "label": "आईपी एसओएस",
+      "required": "आईपी एसओएस आवश्यक है"
+    },
+    "portTracking1": {
+      "label": "पोर्ट ट्रैकिंग 1",
+      "required": "पोर्ट ट्रैकिंग 1 आवश्यक है"
+    },
+    "portTracking2": {
+      "label": "पोर्ट ट्रैकिंग 2"
+    },
+    "portSos": {
+      "label": "पोर्ट एसओएस",
+      "required": "पोर्ट एसओएस आवश्यक है"
+    },
+    "smsTracking1": {
+      "label": "एसएमएस ट्रैकिंग 1",
+      "required": "एसएमएस ट्रैकिंग 1 आवश्यक है"
+    },
+    "smsTracking2": {
+      "label": "एसएमएस ट्रैकिंग 2"
+    },
+    "smsSos": {
+      "label": "एसएमएस एसओएस",
+      "required": "एसएमएस एसओएस आवश्यक है"
     }
   },
   "liveTracking": {
@@ -253,7 +328,7 @@
     "accepted": "स्वीकृत",
     "requestEsimActivation": "ई-सिम सक्रियण अनुरोध",
     "modelAwaitingApproval": "अनुमोदन के लिए प्रतीक्षारत मॉडल",
-    "awaitingCopDeviceList": "प्रतीक्षारत COP डिवाइस सूची",
+    "awaitingCopDeviceList": "कप डिवाइस सूची के लिए प्रतीक्षारत",
     "deviceModel": "डिवाइस मॉडल",
     "createModel": "मॉडल बनाएं",
     "tacExtension": "टीएसी एक्सटेंशन",
@@ -261,11 +336,11 @@
     "individualAccessory": "व्यक्तिगत एक्सेसरी",
     "deviceStock": "डिवाइस स्टॉक",
     "individualStock": "व्यक्तिगत स्टॉक",
-    "bulkStock": "थोक स्टॉक",
-    "assignStock": "स्टॉक आवंटित करें",
+    "bulkStock": "बल्क स्टॉक",
+    "assignStock": "स्टॉक असाइन करें",
     "taggingActivation": "टैगिंग और सक्रियण",
-    "tagDeviceToVehicle": "वाहन से डिवाइस टैग करें",
-    "unTaggedDevice": "अनटैग डिवाइस",
+    "tagDeviceToVehicle": "वाहन को डिवाइस टैग करें",
+    "unTaggedDevice": "अनटैग्ड डिवाइस",
     "downloadFitmentReceipt": "फिटमेंट रसीद डाउनलोड करें",
     "sosUsers": "एसओएस उपयोगकर्ता",
     "notices": "सूचनाएं",
@@ -275,7 +350,7 @@
     "deviceList": "डिवाइस सूची",
     "stockReport": "स्टॉक रिपोर्ट",
     "fitmentReport": "फिटमेंट रिपोर्ट",
-    "dealers": "डीलर्स",
+    "dealers": "डीलर",
     "vehicleOwner": "वाहन मालिक",
     "vehicleOwnerReport": "वाहन मालिक रिपोर्ट",
     "dtoUserList": "डीटीओ उपयोगकर्ता सूची",
@@ -283,8 +358,10 @@
     "gpsDataLog": "जीपीएस डेटा लॉग",
     "emergencyDataLogs": "आपातकालीन डेटा लॉग",
     "apiDataLog": "एपीआई डेटा लॉग",
-    "schoolHolidays": "स्कूल अवकाश",
-    "createHoliday": "अवकाश बनाएं"
+    "schoolHolidays": "स्कूल की छुट्टियां",
+    "createHoliday": "छुट्टी बनाएं",
+    "tripViewer": "यात्रा दर्शक",
+    "poiViewer": "पीओआई दर्शक"
   },
   "auth": {
     "login": "लॉगिन",
@@ -1131,6 +1208,27 @@
     "error": {
       "fetchVehicles": "वाहन प्राप्त करने में त्रुटि",
       "fetchTrips": "यात्रा प्राप्त करने में त्रुटि"
+    }
+  },
+  "vehicleCategory": {
+    "addNew": "नई वाहन श्रेणी जोड़ें",
+    "addButton": "जोड़ें",
+    "listTitle": "वाहन श्रेणी सूची",
+    "formSubmitSuccess": "फॉर्म सफलतापूर्वक जमा किया गया",
+    "formSubmitError": "फॉर्म जमा नहीं किया गया",
+    "form": {
+      "category": {
+        "label": "वाहन श्रेणी",
+        "required": "वाहन श्रेणी आवश्यक है"
+      },
+      "maxSpeed": {
+        "label": "अधिकतम गति",
+        "required": "अधिकतम गति आवश्यक है"
+      },
+      "warnSpeed": {
+        "label": "चेतावनी गति",
+        "required": "चेतावनी गति आवश्यक है"
+      }
     }
   }
 }

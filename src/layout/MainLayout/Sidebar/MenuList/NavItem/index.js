@@ -72,7 +72,12 @@ const NavItem = ({ item, level }) => {
     if (title === "Create New") {
       return "menu.register";
     }
-    
+    if (title === "State & District") {
+      return "menu.stateDistrict";
+    }
+    if (title === "HP Frequency & Firmware") {
+      return "menu.frequencyFirmware";
+    }
     // Convert title to camelCase for menu.* keys
     const camelTitle = title
       .replace(/\s+/g, ' ')
