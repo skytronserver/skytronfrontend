@@ -47,7 +47,7 @@ function TagDeviceToVehicle() {
   const [htmlContent, setHtmlContent] = useState("");
   const [mapLoaded, setMapLoaded] = useState(false);
   const [reload, setReload] = useState(false);
-  const [getMap, setGetMap] = useState({ imei: "861850060253610", regno: "TN02372999" });
+  const [getMap, setGetMap] = useState({ imei: "", regno: "" });
   const [loading, setLoading] = useState({
     loader: false,
     form: false,

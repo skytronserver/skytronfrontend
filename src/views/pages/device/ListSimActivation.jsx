@@ -52,7 +52,7 @@ const ListSimActivation = () => {
       }
     };
     retrieveList();
-  }, [deviceStatus, reload, title]);
+  }, []);
 
   const handleRequest = async (e, data, status) => {
     e.preventDefault();
