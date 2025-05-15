@@ -3,7 +3,10 @@ const Datatable = ({ columns, rows, tableTitle, options: userOptions }) => {
   const defaultOptions = {
     selectableRows: "none",
     viewColumns: false,
-    responsive: 'standard',
+    responsive: 'vertical',
+    tableBodyHeight: 'auto',
+    tableBodyMaxHeight: 'auto',
+    enableNestedDataAccess: '.',
     downloadOptions: {
       filename: "exported.csv",
       separator: ",",
@@ -37,7 +40,7 @@ const Datatable = ({ columns, rows, tableTitle, options: userOptions }) => {
   const mergedOptions = { ...defaultOptions, ...userOptions };
   
   return (
-    <div className="datatable">
+    <div className="datatable" style={{ touchAction: 'manipulation' }}>
       <MUIDataTable
         title={tableTitle}
         data={rows}

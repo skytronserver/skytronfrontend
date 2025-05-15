@@ -78,6 +78,10 @@ const getEMCallloc = (data) => {
   const http = getAxiosInstance();
   return http.post("api/EM/DEx/getCallAllLoc/", data);
 }
+const getEmMedia = (data) => {
+  const http = getAxiosInstance();
+  return http.post("api/EM/DEx/getEmMedia/", data);
+}
 
 
 const getPendingSOSCall = () => {
@@ -176,6 +180,7 @@ const HomePageService = {
   getGpsDataLog,
   getEmergencyDataLogs,
   getApiDataLog,
+  getEmMedia,
 };
 
 export default HomePageService;

@@ -52,7 +52,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
     <Box component="nav" sx={{ flexShrink: { md: 0 }, width: matchUpMd ? drawerWidth : 'auto' }} aria-label="mailbox folders">
       <Drawer
         container={container}
-        variant={matchUpMd ? 'persistent' : 'temporary'}
+        variant={matchUpMd ? 'persistent' : 'permanent'}
         anchor="left"
         open={drawerOpen}
         onClose={drawerToggle}
@@ -64,10 +64,25 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             borderRight: 'none',
             [theme.breakpoints.up('md')]: {
               top: '88px'
+            },
+            [theme.breakpoints.down('md')]: {
+              position: 'fixed',
+              top: 0,
+              left: drawerOpen ? 0 : -drawerWidth,
+              transition: theme.transitions.create(['left'], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
             }
           }
         }}
-        ModalProps={{ keepMounted: true }}
+        ModalProps={{
+          keepMounted: true,
+          disableScrollLock: true,
+          disableEnforceFocus: true,
+          disableAutoFocus: true,
+          hideBackdrop: true
+        }}
         color="inherit"
       >
         {drawer}
