@@ -80,7 +80,7 @@ const getEMCallloc = (data) => {
 }
 const getEmMedia = (data) => {
   const http = getAxiosInstance();
-  return http.post("api/EM/DEx/getEmMedia/", data);
+  return http.post("api/EM/DEx/get-media/", data);
 }
 
 
