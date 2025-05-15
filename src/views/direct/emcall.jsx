@@ -9,9 +9,12 @@ import {
   Button,
   Box,
   TextField,
-  Slider,
   Paper,
   IconButton,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { Map, View } from "ol";
@@ -41,6 +44,10 @@ import { alpha } from '@mui/material/styles';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WarningIcon from '@mui/icons-material/Warning';
 import MessageIcon from '@mui/icons-material/Message';
+import VideoPlayer from './components/VideoPlayer';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 const EMCall = () => {
   const { state } = useLocation();
@@ -77,7 +84,8 @@ const EMCall = () => {
   const [isLoadingVideos, setIsLoadingVideos] = useState(false);
 
   // Add new state for video URLs
-  const [videoUrls, setVideoUrls] = useState({});
+  const [mediaUrls, setMediaUrls] = useState({});
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
   // Add new state for volume and mute
   const [volume, setVolume] = useState(1);
@@ -106,6 +114,34 @@ const EMCall = () => {
   const [stitchedVideoUrl, setStitchedVideoUrl] = useState(null);
   const mediaSourceRef = useRef(null);
   const sourceBufferRef = useRef(null);
+
+  // Add filter state
+  const [mediaFilter, setMediaFilter] = useState('all'); // 'all', 'video', 'image'
+
+  // Filtered media for current camera
+  const filteredMedia = selectedCamera && mediaData[selectedCamera]
+    ? mediaData[selectedCamera].filter(item =>
+        mediaFilter === 'all' ? true : item.media_type === mediaFilter
+      )
+    : [];
+  const filteredMediaUrls = selectedCamera && mediaUrls[selectedCamera]
+    ? mediaUrls[selectedCamera].filter((item, idx) =>
+        mediaFilter === 'all' ? true : mediaData[selectedCamera][idx].media_type === mediaFilter
+      )
+    : [];
+  const [filteredMediaIndex, setFilteredMediaIndex] = useState(0);
+
+  // In the Video Grid section, use react-slick Carousel for the cards
+  const carouselSettings = {
+    dots: true,
+    infinite: false,
+    speed: 400,
+    slidesToShow: Math.min(filteredMedia.length, 6),
+    slidesToScroll: 1,
+    arrows: true,
+    initialSlide: filteredMediaIndex,
+    afterChange: (current) => setFilteredMediaIndex(current),
+  };
 
   // Initialize map
   useEffect(() => {
@@ -335,10 +371,10 @@ const EMCall = () => {
       });
       const media = response.data.media || {};
       
-      // Sort videos by timestamp for each camera
+      // Sort by timestamp for each camera
       const sortedMedia = {};
-      for (const [cameraId, videos] of Object.entries(media)) {
-        sortedMedia[cameraId] = videos.sort((a, b) => {
+      for (const [cameraId, items] of Object.entries(media)) {
+        sortedMedia[cameraId] = items.sort((a, b) => {
           const timeA = new Date(a.start_time).getTime();
           const timeB = new Date(b.start_time).getTime();
           return timeA - timeB;
@@ -353,20 +389,22 @@ const EMCall = () => {
         setSelectedCamera(firstCamera);
       }
 
-      // Download videos for each camera
-      const newVideoUrls = {};
-      for (const [cameraId, videos] of Object.entries(sortedMedia)) {
-        newVideoUrls[cameraId] = await Promise.all(
-          videos.map(async (video) => {
-            const url = await createVideoUrl(video.media_link);
+      // Download media for each camera
+      const newMediaUrls = {};
+      for (const [cameraId, items] of Object.entries(sortedMedia)) {
+        newMediaUrls[cameraId] = await Promise.all(
+          items.map(async (item) => {
+            const type = item.media_type === 'image' ? 'image/png' : 'video/mp4';
+            const response = await SettingService.file_Download({ file_path: item.media_link });
+            const blob = new Blob([response.data], { type });
             return {
-              ...video,
-              blobUrl: url
+              ...item,
+              blobUrl: URL.createObjectURL(blob)
             };
           })
         );
       }
-      setVideoUrls(newVideoUrls);
+      setMediaUrls(newMediaUrls);
       setShowVideoSection(true);
     } catch (error) {
       console.error("Fetch Media Error:", error);
@@ -377,27 +415,27 @@ const EMCall = () => {
 
   useEffect(() => {
     return () => {
-      Object.values(videoUrls).forEach(videos => {
-        videos.forEach(video => {
-          if (video.blobUrl) {
-            URL.revokeObjectURL(video.blobUrl);
+      Object.values(mediaUrls).forEach(items => {
+        items.forEach(item => {
+          if (item.blobUrl) {
+            URL.revokeObjectURL(item.blobUrl);
           }
         });
       });
     };
-  }, [videoUrls]);
+  }, [mediaUrls]);
 
   useEffect(() => {
     if (selectedCamera && mediaData[selectedCamera]) {
-      const videos = mediaData[selectedCamera];
-      const total = videos.reduce((acc, video) => acc + video.duration_ms, 0);
+      const items = mediaData[selectedCamera];
+      const total = items.reduce((acc, item) => acc + item.duration_ms, 0);
       setTotalDuration(total);
       
-      if (videos.length > 0) {
-        const firstVideo = videos[0];
-        const lastVideo = videos[videos.length - 1];
-        const startTime = new Date(firstVideo.start_time).getTime();
-        const endTime = new Date(lastVideo.end_time).getTime();
+      if (items.length > 0) {
+        const firstItem = items[0];
+        const lastItem = items[items.length - 1];
+        const startTime = new Date(firstItem.start_time).getTime();
+        const endTime = new Date(lastItem.end_time).getTime();
         setTimeRange([startTime, endTime]);
       }
     }
@@ -405,18 +443,18 @@ const EMCall = () => {
 
   useEffect(() => {
     if (selectedCamera && mediaData[selectedCamera]) {
-      const videos = mediaData[selectedCamera];
-      const sortedVideos = [...videos].sort((a, b) => 
+      const items = mediaData[selectedCamera];
+      const sortedItems = [...items].sort((a, b) => 
         new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
       );
       
-      setAllVideosTimeline(sortedVideos);
+      setAllVideosTimeline(sortedItems);
       
-      if (sortedVideos.length > 0) {
-        const firstVideo = sortedVideos[0];
-        const lastVideo = sortedVideos[sortedVideos.length - 1];
-        const startTime = new Date(firstVideo.start_time).getTime();
-        const endTime = new Date(lastVideo.end_time).getTime();
+      if (sortedItems.length > 0) {
+        const firstItem = sortedItems[0];
+        const lastItem = sortedItems[sortedItems.length - 1];
+        const startTime = new Date(firstItem.start_time).getTime();
+        const endTime = new Date(lastItem.end_time).getTime();
         setTimelineStartTime(startTime);
         setTimelineEndTime(endTime);
         setTotalDuration(endTime - startTime);
@@ -425,24 +463,24 @@ const EMCall = () => {
   }, [selectedCamera, mediaData]);
 
   const findVideoForTime = (timeMs) => {
-    return allVideosTimeline.find((video, index) => {
-      const videoStart = new Date(video.start_time).getTime();
-      const videoEnd = new Date(video.end_time).getTime();
-      return timeMs >= videoStart && timeMs <= videoEnd;
+    return allVideosTimeline.find((item, index) => {
+      const itemStart = new Date(item.start_time).getTime();
+      const itemEnd = new Date(item.end_time).getTime();
+      return timeMs >= itemStart && timeMs <= itemEnd;
     });
   };
 
   useEffect(() => {
     if (selectedCamera && mediaData[selectedCamera] && currentVideoIndex >= 0) {
-      const video = mediaData[selectedCamera][currentVideoIndex];
-      if (video && videoRef.current) {
-        const videoStart = new Date(video.start_time).getTime();
+      const item = mediaData[selectedCamera][currentVideoIndex];
+      if (item && videoRef.current) {
+        const itemStart = new Date(item.start_time).getTime();
         const currentTimeMs = currentTime;
-        const timeInVideo = (currentTimeMs - videoStart) / 1000;
+        const timeInItem = (currentTimeMs - itemStart) / 1000;
         
-        videoRef.current.src = videoUrls[selectedCamera]?.[currentVideoIndex]?.blobUrl;
+        videoRef.current.src = mediaUrls[selectedCamera]?.[currentVideoIndex]?.blobUrl;
         videoRef.current.load();
-        videoRef.current.currentTime = Math.max(0, timeInVideo);
+        videoRef.current.currentTime = Math.max(0, timeInItem);
         
         if (isPlaying) {
           videoRef.current.play().catch(error => {
@@ -459,7 +497,7 @@ const EMCall = () => {
     }
   }, [selectedCamera, mediaData]);
 
-  const createStitchedVideo = async (videos) => {
+  const createStitchedVideo = async (items) => {
     try {
       const mediaSource = new MediaSource();
       mediaSourceRef.current = mediaSource;
@@ -472,8 +510,8 @@ const EMCall = () => {
       const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
       sourceBufferRef.current = sourceBuffer;
 
-      for (const video of videos) {
-        const response = await fetch(video.blobUrl);
+      for (const item of items) {
+        const response = await fetch(item.blobUrl);
         const arrayBuffer = await response.arrayBuffer();
         await new Promise((resolve) => {
           sourceBuffer.addEventListener('updateend', resolve, { once: true });
@@ -504,14 +542,14 @@ const EMCall = () => {
         const nextIndex = currentVideoIndex + 1;
         if (nextIndex < mediaData[selectedCamera].length) {
           setCurrentVideoIndex(nextIndex);
-          const nextVideo = mediaData[selectedCamera][nextIndex];
+          const nextItem = mediaData[selectedCamera][nextIndex];
           
           if (videoRef.current) {
             videoRef.current.pause();
             videoRef.current.removeAttribute('src');
             videoRef.current.load();
             
-            videoRef.current.src = nextVideo.blobUrl;
+            videoRef.current.src = mediaUrls[selectedCamera]?.[nextIndex]?.blobUrl;
             await videoRef.current.load();
             setIsVideoReady(true);
           }
@@ -533,7 +571,7 @@ const EMCall = () => {
 
   const handleTimeChangeCommitted = (event, newValue) => {
     if (!videoRef.current || !isVideoReady) return;
-    const totalDuration = mediaData[selectedCamera].reduce((acc, video) => acc + video.duration_ms, 0);
+    const totalDuration = mediaData[selectedCamera].reduce((acc, item) => acc + item.duration_ms, 0);
     const targetTime = (newValue / totalDuration) * videoRef.current.duration;
     videoRef.current.currentTime = targetTime;
     setCurrentTime(newValue);
@@ -543,10 +581,10 @@ const EMCall = () => {
   const handleVideoTimeUpdate = (event) => {
     if (!isSeeking && selectedCamera && mediaData[selectedCamera] && event.target.duration) {
       const currentDuration = event.target.duration || 0;
-      const currentTimeInVideo = event.target.currentTime || 0;
-      const totalDuration = mediaData[selectedCamera].reduce((acc, video) => acc + (video.duration_ms || 0), 0);
+      const currentTimeInItem = event.target.currentTime || 0;
+      const totalDuration = mediaData[selectedCamera].reduce((acc, item) => acc + (item.duration_ms || 0), 0);
       const currentTimeMs = currentDuration > 0 
-        ? (currentTimeInVideo / currentDuration) * totalDuration 
+        ? (currentTimeInItem / currentDuration) * totalDuration 
         : 0;
       setCurrentTime(currentTimeMs);
     }
@@ -554,7 +592,7 @@ const EMCall = () => {
 
   const calculateTotalDuration = () => {
     if (selectedCamera && mediaData[selectedCamera]) {
-      return mediaData[selectedCamera].reduce((acc, video) => acc + video.duration_ms, 0);
+      return mediaData[selectedCamera].reduce((acc, item) => acc + item.duration_ms, 0);
     }
     return 0;
   };
@@ -565,11 +603,11 @@ const EMCall = () => {
         if (isPlaying) {
           videoRef.current.pause();
         } else {
-          const currentVideo = allVideosTimeline[currentVideoIndex];
-          if (currentVideo) {
-            const videoStart = new Date(currentVideo.start_time).getTime();
-            const timeInVideo = (currentTime - videoStart) / 1000;
-            videoRef.current.currentTime = Math.max(0, timeInVideo);
+          const currentItem = allVideosTimeline[currentVideoIndex];
+          if (currentItem) {
+            const itemStart = new Date(currentItem.start_time).getTime();
+            const timeInItem = (currentTime - itemStart) / 1000;
+            videoRef.current.currentTime = Math.max(0, timeInItem);
           }
           await videoRef.current.play();
         }
@@ -594,9 +632,9 @@ const EMCall = () => {
     setIsInitialized(true);
     
     if (videoRef.current && currentVideo) {
-      const videoStart = new Date(currentVideo.start_time).getTime();
-      const timeInVideo = (currentTime - videoStart) / 1000;
-      videoRef.current.currentTime = Math.max(0, timeInVideo);
+      const itemStart = new Date(currentVideo.start_time).getTime();
+      const timeInItem = (currentTime - itemStart) / 1000;
+      videoRef.current.currentTime = Math.max(0, timeInItem);
     }
   };
 
@@ -606,18 +644,18 @@ const EMCall = () => {
     console.error("Error loading video");
   };
 
-  const handleVideoSelect = async (video, index) => {
+  const handleVideoSelect = async (item, index) => {
     try {
       setIsVideoLoading(true);
       setIsVideoReady(false);
-      setCurrentVideoIndex(index);
+      setCurrentMediaIndex(index);
       setIsPlaying(false);
 
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.removeAttribute('src');
         videoRef.current.load();
-        videoRef.current.src = video.blobUrl;
+        videoRef.current.src = mediaUrls[selectedCamera]?.[index]?.blobUrl;
 
         // Wait for video to be loaded before playing
         await new Promise((resolve, reject) => {
@@ -675,7 +713,7 @@ const EMCall = () => {
   const handleNextVideo = () => {
     if (selectedCamera && mediaData[selectedCamera]) {
       const nextIndex = (currentVideoIndex + 1) % mediaData[selectedCamera].length;
-      const nextVideo = mediaData[selectedCamera][nextIndex];
+      const nextItem = mediaData[selectedCamera][nextIndex];
       
       setIsPlaying(false);
       setCurrentTime(0);
@@ -684,7 +722,7 @@ const EMCall = () => {
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
-        videoRef.current.src = videoUrls[selectedCamera]?.[nextIndex]?.blobUrl;
+        videoRef.current.src = mediaUrls[selectedCamera]?.[nextIndex]?.blobUrl;
         videoRef.current.load();
       }
     }
@@ -693,7 +731,7 @@ const EMCall = () => {
   const handlePreviousVideo = () => {
     if (selectedCamera && mediaData[selectedCamera]) {
       const prevIndex = (currentVideoIndex - 1 + mediaData[selectedCamera].length) % mediaData[selectedCamera].length;
-      const prevVideo = mediaData[selectedCamera][prevIndex];
+      const prevItem = mediaData[selectedCamera][prevIndex];
       
       setIsPlaying(false);
       setCurrentTime(0);
@@ -702,7 +740,7 @@ const EMCall = () => {
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
-        videoRef.current.src = videoUrls[selectedCamera]?.[prevIndex]?.blobUrl;
+        videoRef.current.src = mediaUrls[selectedCamera]?.[prevIndex]?.blobUrl;
         videoRef.current.load();
       }
     }
@@ -738,7 +776,7 @@ const EMCall = () => {
 
   const handleCameraSelect = (cameraId) => {
     setSelectedCamera(cameraId);
-    setCurrentVideoIndex(0); 
+    setCurrentMediaIndex(0); 
     setCurrentTime(0); 
   };
 
@@ -788,6 +826,11 @@ const EMCall = () => {
       };
     }
   }, [selectedCamera, currentVideoIndex]); 
+
+  // Sync filteredMediaIndex with currentMediaIndex when filter changes
+  useEffect(() => {
+    setFilteredMediaIndex(0);
+  }, [mediaFilter, selectedCamera]);
 
   return (
     <>
@@ -950,7 +993,7 @@ const EMCall = () => {
                       }
                     }}
                   >
-                    {isLoadingVideos ? "Loading Videos..." : "View Videos"}
+                    {isLoadingVideos ? "Loading Media..." : "View Media"}
                   </Button>
                 </Box>
               </CardContent>
@@ -1065,43 +1108,50 @@ const EMCall = () => {
                     </Box>
                   </Box>
 
-                  {/* Video Player */}
-                  {selectedCamera && mediaData[selectedCamera] && (
-                    <Box mb={4}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          width: '100%',
-                          aspectRatio: '16/9',
-                          bgcolor: 'black',
-                          borderRadius: 2,
-                          overflow: 'hidden',
-                          boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-                        }}
-                        onMouseMove={handleMouseMove}
-                        onMouseLeave={() => setShowControls(false)}
+                  {/* Filter Section */}
+                  <Box display="flex" alignItems="center" gap={2} mb={2}>
+                    <FormControl size="small" sx={{ minWidth: 160 }}>
+                      <InputLabel id="media-filter-label">Filter</InputLabel>
+                      <Select
+                        labelId="media-filter-label"
+                        value={mediaFilter}
+                        label="Filter"
+                        onChange={e => setMediaFilter(e.target.value)}
                       >
-                        {isVideoLoading && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              bgcolor: 'rgba(0, 0, 0, 0.7)',
-                              zIndex: 1,
-                            }}
-                          >
-                            <Typography color="white">Loading video...</Typography>
-                          </Box>
-                        )}
-                        <video
-                          ref={videoRef}
-                          src={videoUrls[selectedCamera]?.[currentVideoIndex]?.blobUrl}
+                        <MenuItem value="all">All</MenuItem>
+                        <MenuItem value="video">Videos</MenuItem>
+                        <MenuItem value="image">Photos</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Video Player */}
+                  {selectedCamera && filteredMedia.length > 0 && (
+                    <Box mb={4}>
+                      {filteredMedia[filteredMediaIndex]?.media_type === 'video' ? (
+                        <VideoPlayer
+                          videoUrl={filteredMediaUrls[filteredMediaIndex]?.blobUrl}
+                          videoRef={videoRef}
+                          isVideoLoading={isVideoLoading}
+                          isVideoReady={isVideoReady}
+                          isPlaying={isPlaying}
+                          isFullscreen={isFullscreen}
+                          showControls={showControls}
+                          currentTime={currentTime}
+                          seekTime={seekTime}
+                          isSeeking={isSeeking}
+                          volume={volume}
+                          isMuted={isMuted}
+                          onPlayPause={handlePlayPause}
+                          onNext={() => setFilteredMediaIndex((filteredMediaIndex + 1) % filteredMedia.length)}
+                          onPrevious={() => setFilteredMediaIndex((filteredMediaIndex - 1 + filteredMedia.length) % filteredMedia.length)}
+                          onTimeChange={handleTimeChange}
+                          onTimeChangeCommitted={handleTimeChangeCommitted}
+                          onVolumeChange={handleVolumeChange}
+                          onMuteToggle={handleMuteToggle}
+                          onFullscreenToggle={toggleFullscreen}
+                          onMouseMove={handleMouseMove}
+                          onMouseLeave={() => setShowControls(false)}
                           onLoadStart={() => setIsVideoLoading(true)}
                           onLoadedData={handleVideoLoad}
                           onError={handleVideoError}
@@ -1111,227 +1161,90 @@ const EMCall = () => {
                           onSeeking={handleVideoSeeking}
                           onSeeked={handleVideoSeeked}
                           onEnded={handleVideoEnded}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                          }}
+                          minTime={0}
+                          maxTime={calculateTotalDuration()}
+                          formatTime={formatTime}
+                          disabled={!isVideoReady || isVideoLoading}
                         />
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            bgcolor: 'rgba(0, 0, 0, 0.7)',
-                            p: 1.5,
-                            opacity: showControls ? 1 : 0,
-                            transition: 'opacity 0.3s ease-in-out',
-                            backdropFilter: 'blur(4px)',
-                          }}
-                        >
-                          {/* Progress Bar */}
-                          <Box sx={{ mb: 1.5 }}>
-                            <Slider
-                              value={isSeeking ? seekTime : currentTime}
-                              min={0}
-                              max={calculateTotalDuration()}
-                              onChange={handleTimeChange}
-                              onChangeCommitted={handleTimeChangeCommitted}
-                              valueLabelDisplay="auto"
-                              valueLabelFormat={formatTime}
-                              disabled={!isVideoReady || isVideoLoading}
-                              sx={{
-                                color: 'primary.main',
-                                '& .MuiSlider-thumb': {
-                                  width: 12,
-                                  height: 12,
-                                  transition: 'none',
-                                },
-                                '& .MuiSlider-track': {
-                                  transition: 'none',
-                                },
-                                '& .MuiSlider-rail': {
-                                  transition: 'none',
-                                },
-                              }}
-                            />
-                          </Box>
-
-                          {/* Controls */}
-                          <Box display="flex" alignItems="center" gap={2}>
-                            {/* Playback Controls */}
-                            <Box display="flex" alignItems="center" gap={1}>
-                              <IconButton
-                                onClick={handlePreviousVideo}
-                                disabled={!isVideoReady || isVideoLoading}
-                                color="primary"
-                                size="small"
-                                sx={{
-                                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                  '&:hover': {
-                                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                                  }
-                                }}
-                              >
-                                <SkipPreviousIcon />
-                              </IconButton>
-                              <IconButton
-                                onClick={handlePlayPause}
-                                disabled={!isVideoReady || isVideoLoading}
-                                color="primary"
-                                sx={{
-                                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                  '&:hover': {
-                                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                                  }
-                                }}
-                              >
-                                {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-                              </IconButton>
-                              <IconButton
-                                onClick={handleNextVideo}
-                                disabled={!isVideoReady || isVideoLoading}
-                                color="primary"
-                                size="small"
-                                sx={{
-                                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                  '&:hover': {
-                                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                                  }
-                                }}
-                              >
-                                <SkipNextIcon />
-                              </IconButton>
-                            </Box>
-
-                            {/* Time Display */}
-                            <Typography variant="body2" color="white" sx={{ 
-                              minWidth: '100px',
-                              fontFamily: 'monospace',
-                              letterSpacing: '0.5px'
-                            }}>
-                              {formatTime(currentTime)} / {formatTime(calculateTotalDuration())}
-                            </Typography>
-
-                            {/* Volume Controls */}
-                            <Box display="flex" alignItems="center" gap={1} sx={{ ml: 'auto' }}>
-                              <IconButton
-                                onClick={handleMuteToggle}
-                                color="primary"
-                                size="small"
-                                sx={{
-                                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                  '&:hover': {
-                                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                                  }
-                                }}
-                              >
-                                {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
-                              </IconButton>
-                              <Slider
-                                value={volume * 100}
-                                onChange={handleVolumeChange}
-                                min={0}
-                                max={100}
-                                sx={{
-                                  width: '100px',
-                                  color: 'primary.main',
-                                  '& .MuiSlider-thumb': {
-                                    width: 12,
-                                    height: 12,
-                                  },
-                                }}
-                              />
-                            </Box>
-
-                            {/* Fullscreen Toggle */}
-                            <IconButton
-                              onClick={toggleFullscreen}
-                              color="primary"
-                              size="small"
-                              sx={{
-                                bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                '&:hover': {
-                                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                                }
-                              }}
-                            >
-                              {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-                            </IconButton>
-                          </Box>
+                      ) : (
+                        <Box sx={{ width: '100%', aspectRatio: '16/9', bgcolor: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2 }}>
+                          <img
+                            src={filteredMediaUrls[filteredMediaIndex]?.blobUrl}
+                            alt="Snapshot"
+                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                          />
                         </Box>
-                      </Box>
+                      )}
                     </Box>
                   )}
 
                   {/* Video Grid */}
-                  <Grid container spacing={2}>
-                    {selectedCamera && mediaData[selectedCamera]?.map((video, index) => (
-                      <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Paper
-                          elevation={3}
-                          sx={{
-                            p: 2,
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            cursor: 'pointer',
-                            borderRadius: 2,
-                            bgcolor: currentVideoIndex === index ? alpha('#1976d2', 0.08) : 'background.paper',
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              transform: 'translateY(-2px)',
-                              boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
-                            }
-                          }}
-                          onClick={() => handleVideoSelect(video, index)}
-                        >
-                          <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 500 }}>
-                            {new Date(video.start_time).toLocaleString()}
-                          </Typography>
-                          <Box
+                  <Box sx={{ display: 'flex', overflowX: 'auto', gap: 1, py: 1 }}>
+                    <Slider {...carouselSettings} style={{ margin: '0 0 16px 0' }}>
+                      {filteredMedia.map((media, index) => (
+                        <div key={index}>
+                          <Paper
+                            elevation={filteredMediaIndex === index ? 4 : 1}
                             sx={{
-                              flex: 1,
-                              bgcolor: 'black',
-                              borderRadius: 1,
+                              minWidth: 110,
+                              maxWidth: 120,
+                              p: 0.5,
+                              height: 110,
                               display: 'flex',
+                              flexDirection: 'column',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              position: 'relative',
-                              aspectRatio: '16/9',
-                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              borderRadius: 2,
+                              bgcolor: filteredMediaIndex === index ? alpha('#1976d2', 0.18) : 'background.paper',
+                              transition: 'all 0.2s',
+                              boxShadow: filteredMediaIndex === index ? '0 2px 8px rgba(25, 118, 210, 0.18)' : '0 1px 2px rgba(0,0,0,0.04)',
+                              border: filteredMediaIndex === index ? '2px solid #1976d2' : '1px solid #eee',
+                              '&:hover': {
+                                boxShadow: '0 4px 16px rgba(25, 118, 210, 0.12)',
+                              },
                             }}
+                            onClick={() => setFilteredMediaIndex(index)}
                           >
-                            <video
-                              src={videoUrls[selectedCamera]?.[index]?.blobUrl}
-                              style={{
+                            <Typography variant="caption" sx={{ fontWeight: 500, mb: 0.2, fontSize: 10, textAlign: 'center' }}>
+                              {new Date(media.start_time).toLocaleTimeString()}
+                            </Typography>
+                            <Box
+                              sx={{
+                                flex: 1,
                                 width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
+                                bgcolor: 'black',
+                                borderRadius: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                position: 'relative',
+                                aspectRatio: '16/9',
+                                overflow: 'hidden',
+                                mb: 0.2,
                               }}
-                            />
-                          </Box>
-                          <Box mt={1.5} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <AccessTimeIcon sx={{ fontSize: 14 }} />
-                              Duration: {formatTime(video.duration_ms)}
+                            >
+                              {media.media_type === 'image' ? (
+                                <img
+                                  src={filteredMediaUrls[index]?.blobUrl}
+                                  alt="Snapshot"
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }}
+                                />
+                              ) : (
+                                <video
+                                  src={filteredMediaUrls[index]?.blobUrl}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }}
+                                  muted
+                                />
+                              )}
+                            </Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: 9, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <AccessTimeIcon sx={{ fontSize: 10 }} /> {formatTime(media.duration_ms)}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <WarningIcon sx={{ fontSize: 14 }} />
-                              Alert: {video.alert_type}
-                            </Typography>
-                            {video.message && (
-                              <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <MessageIcon sx={{ fontSize: 14 }} />
-                                Message: {video.message}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Paper>
-                      </Grid>
-                    ))}
-                  </Grid>
+                          </Paper>
+                        </div>
+                      ))}
+                    </Slider>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
