@@ -113,6 +113,16 @@ const TripViewer = () => {
         pixelRatio: 1,
       });
 
+      // Initialize overlay for popup
+      const overlay = new Overlay({
+        element: document.createElement('div'),
+        positioning: 'bottom-center',
+        stopEvent: false,
+        offset: [0, -15],
+      });
+      initialMap.addOverlay(overlay);
+      overlayRef.current = overlay;
+
       // Create and store all layers
       const osmLayer = new TileLayer({
         source: new OSM(),
@@ -135,6 +145,7 @@ const TripViewer = () => {
           },
           serverType: 'geoserver',
           projection: 'EPSG:4326',
+          crossOrigin: 'anonymous'
         }),
         visible: activeLayers.india3
       });
@@ -155,6 +166,7 @@ const TripViewer = () => {
           },
           serverType: 'geoserver',
           projection: 'EPSG:4326',
+          crossOrigin: 'anonymous'
         }),
         visible: activeLayers.indiaBase
       });
@@ -175,6 +187,7 @@ const TripViewer = () => {
           },
           serverType: 'geoserver',
           projection: 'EPSG:4326',
+          crossOrigin: 'anonymous'
         }),
         visible: activeLayers.indiaRoads
       });
@@ -367,6 +380,7 @@ const TripViewer = () => {
             src: `${process.env.REACT_APP_BASE_URL}static/start.png`,
             scale: 0.5,
             anchor: [0.5, 1],
+            crossOrigin: 'anonymous'
           })
         }));
       } else if (index === points.length - 1) {
@@ -375,6 +389,7 @@ const TripViewer = () => {
             src: `${process.env.REACT_APP_BASE_URL}static/end.png`,
             scale: 0.5,
             anchor: [0.5, 1],
+            crossOrigin: 'anonymous'
           })
         }));
       } else {
@@ -511,6 +526,18 @@ const TripViewer = () => {
   return (
     <MainCard>
       <Box sx={{ p: 3 }}>
+        {/* Add overlay div for location info */}
+        <div id="overlay-content" style={{
+          position: 'absolute',
+          backgroundColor: 'white',
+          padding: '10px',
+          borderRadius: '4px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+          display: 'none',
+          zIndex: 1000,
+          minWidth: '200px'
+        }}></div>
+        
         <Typography variant="h4" gutterBottom>
           {t('tripViewer.title')}
         </Typography>

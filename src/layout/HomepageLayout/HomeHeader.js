@@ -4,7 +4,7 @@ import { Home as HomeIcon, Menu as MenuIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
-import logo from "../../assets/images/icons/logo_truck.png";
+import logo from "../../assets/images/skytron-logo3.png";
 import WebFont from "webfontloader";
 WebFont.load({
   google: {
@@ -48,13 +48,16 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                   src={logo} 
                   alt={t('common.skytronLogo')} 
                   style={{  
-                    width: '35px',
+                    width: '30px',
                     height: 'auto',
                     marginRight: '8px'
                   }} 
                 />
-                <span style={{ fontFamily: "Bicubik", fontSize: '1.8rem' }}>
-                  SkyTron<sup style={{ fontSize: "12px" }}>®</sup>
+                <span style={{ fontFamily: "Bicubik", fontSize: '1.6rem' }}>
+                  SkyTron<sup style={{fontSize: '18px',
+                  marginLeft: '5px',
+                  position: 'relative',
+                  top: '-2px' }}>®</sup>
                 </span>
               </div>
               <Typography 

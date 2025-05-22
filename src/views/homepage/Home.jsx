@@ -15,7 +15,7 @@ import { Formik, useFormik, Form } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { loginUser } from "../../actions/loginActions";
-import skytronlogo from "../../assets/images/skytron-logo.png";
+import skytronlogo from "../../assets/images/skytron-logo2.png";
 import { Navigate } from "react-router-dom";
 import CaptchaServices from "../../services/CaptchaServices";
 import {

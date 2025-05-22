@@ -48,7 +48,7 @@ const user = {
       title: "Create New",
       type: "collapse",
       icon: icons.IconUser,
-      roles: ["superadmin", "stateadmin", "dealer", "sosadmin"],
+      roles: ["superadmin", "stateadmin", "dealer", "sosadmin","owner"],
       children: [
         {
           id: "state-admin",
@@ -120,8 +120,9 @@ const user = {
           type: "item",
           url: "/setting/holiday/new",
           breadcrumbs: false,
-          roles: ["superadmin", "owner"],
+          roles: ["superadmin", "owner","stateadmin"],
         },
+        
       ],
     },
     {
