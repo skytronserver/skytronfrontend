@@ -169,6 +169,7 @@ const POIViewer = () => {
   const vectorSourceRef = useRef(new VectorSource());
   const [poiListOpen, setPoiListOpen] = useState(false);
   const [selectedPoiId, setSelectedPoiId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const markerStyles = {
     Point: new Style({
@@ -970,6 +971,15 @@ const POIViewer = () => {
     }
   };
 
+  const filteredPois = pois.filter(poi => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      poi.name.toLowerCase().includes(searchLower) ||
+      (poi.description && poi.description.toLowerCase().includes(searchLower)) ||
+      poi.use_type.toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <Box sx={{ height: '100%', width: '100%', position: 'relative', overflow: 'hidden' }}>
       {/* Main Map Container */}
@@ -1043,15 +1053,27 @@ const POIViewer = () => {
         }}
       >
         <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h6">POI List</Typography>
             <IconButton onClick={() => setPoiListOpen(false)} size="small">
               <CloseIcon />
             </IconButton>
           </Stack>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search POIs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+              ),
+            }}
+          />
         </Box>
         <List sx={{ p: 1 }}>
-          {pois.map((poi) => (
+          {filteredPois.map((poi) => (
             <ListItemButton
               key={poi.id}
               selected={selectedPoiId === poi.id}
@@ -1091,6 +1113,13 @@ const POIViewer = () => {
               />
             </ListItemButton>
           ))}
+          {filteredPois.length === 0 && (
+            <Box sx={{ p: 2, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                No POIs found
+              </Typography>
+            </Box>
+          )}
         </List>
       </Drawer>
 

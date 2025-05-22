@@ -178,15 +178,6 @@ const user = {
       roles: ["owner"],
     },
     {
-      id: "trip-planning",
-      title: "Trip Planning",
-      type: "item",
-      url: "/trip-planning",
-      breadcrumbs: false,
-      icon: icons.IconCalendarTime,
-      roles: ["owner", "dto"],
-    },
-    {
       id: "live-tracking",
       title: "Live Tracking",
       type: "item",
