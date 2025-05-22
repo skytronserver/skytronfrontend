@@ -635,7 +635,7 @@ const user = {
           type: "item",
           url: "/holiday/all-holiday-list",
           breadcrumbs: false,
-          roles: ["superadmin", "owner"],
+          roles: ["superadmin", "owner","stateadmin"],
         },
       ],
     },
