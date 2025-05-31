@@ -56,10 +56,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                   }} 
                 />
                 <span style={{ fontFamily: "Bicubik", fontSize: '1.6rem' }}>
-                  SkyTron<sup style={{fontSize: '18px',
+                  SkyTron<sup style={{fontSize: '12px',
                   marginLeft: '5px',
                   position: 'relative',
-                  top: '-2px' }}>®</sup>
+                  top: '-8px' }}>®</sup>
                 </span>
               </div>
               <Typography 
