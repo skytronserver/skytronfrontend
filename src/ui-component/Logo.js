@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import { IconLine } from "@tabler/icons";
 
 import logoDark from "../assets/images/logo-dark.svg";
-import skytronlogo from "../assets/images/skytronlogo.svg";
+import skytronlogo from "../assets/images/skytronlogo.png";
 //import logo from 'assets/images/logo.svg';
 
 /**
@@ -35,12 +35,7 @@ const Logo = () => {
       <img
         src={skytronlogo}
         alt="Berry"
-        // width="20"
-        // , height: isMobile ? '63px' : '40px'
-
-        width={isMobile ? "20" : "20"}
-        height={isMobile ? "40" : "40"}
-        style={{ marginLeft: isMobile ? "40px" : "50px" }}
+        style={{ width: isMobile ? "12%" : "50%", height: isMobile ? "12%" : "50%", marginLeft: isMobile ? "10%" : "50%" }}
       />
 
       <div style={{ display: "flex", alignItems: "center" }}>
