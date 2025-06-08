@@ -120,7 +120,7 @@ const user = {
           type: "item",
           url: "/setting/holiday/new",
           breadcrumbs: false,
-          roles: ["superadmin", "owner","stateadmin"],
+          roles: ["superadmin", "owner"],
         },
         
       ],
@@ -420,6 +420,15 @@ const user = {
       roles: ["dealer"],
     },
     {
+      id: "poi-viewer",
+      title: "POI Viewer",
+      type: "item",
+      url: "/poi-viewer",
+      icon: icons.IconMapPin,
+      breadcrumbs: false,
+      roles: ["superadmin", "stateadmin", "owner", "dto"],
+    },
+    {
       id: "icons-report",
       title: "Reports",
       type: "collapse",
@@ -488,7 +497,7 @@ const user = {
           type: "item",
           url: "/device/show-available-device",
           breadcrumbs: false,
-          roles: ["superadmin", "devicemanufacture"],
+          roles: ["devicemanufacture"],
         },
         {
           id: "all-device",
@@ -635,18 +644,9 @@ const user = {
           type: "item",
           url: "/holiday/all-holiday-list",
           breadcrumbs: false,
-          roles: ["superadmin", "owner","stateadmin"],
+          roles: ["superadmin", "owner"],
         },
       ],
-    },
-    {
-      id: "poi-viewer",
-      title: "POI Viewer",
-      type: "item",
-      url: "/poi-viewer",
-      icon: icons.IconMapPin,
-      breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dto"],
     },
   ],
 };

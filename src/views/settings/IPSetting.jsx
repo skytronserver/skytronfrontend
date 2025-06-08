@@ -155,7 +155,7 @@ function IPSetting() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title={t('ipSetting.title')}>
+          <MainCard title={t('menu.ipSetting')}>
             {isFormLoaded && (
               <Formik
                 initialValues={ipSettingInitials}

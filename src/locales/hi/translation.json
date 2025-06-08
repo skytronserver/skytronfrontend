@@ -321,7 +321,7 @@
     "vehicleCategory": "वाहन श्रेणी",
     "stateDistrict": "राज्य और जिला",
     "frequencyFirmware": "एचपी फ्रीक्वेंसी और फर्मवेयर",
-    "ipSettings": "आईपी सेटिंग्स",
+    "ipSetting": "आईपी सेटिंग्स",
     "register": "नया बनाएं",
     "manageUsers": "उपयोगकर्ता प्रबंधन",
     "userRegistration": "उपयोगकर्ता पंजीकरण",
@@ -381,6 +381,10 @@
     "createHoliday": "छुट्टी बनाएं",
     "tripViewer": "यात्रा दर्शक",
     "poiViewer": "पीओआई दर्शक"
+  },
+  "ipSetting": {
+    "title": "",
+    "listTitle": "आईपी ​​सेटिंग्स सूची"
   },
   "auth": {
     "login": "लॉगिन",

@@ -107,7 +107,7 @@ const NoticeList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title={t('notice.title')} />
+        <PageHeader title={t('menu.notice')} />
       </Grid>
       <Grid item xs={12}>
         {notices.length >= 1 && (
