@@ -433,7 +433,7 @@ const user = {
       title: "Reports",
       type: "collapse",
       icon: icons.IconReport,
-      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","teamlead","superadmin","owner"],
+      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","superadmin","owner"],
       children: [
         {
           id: "sos-other-list",

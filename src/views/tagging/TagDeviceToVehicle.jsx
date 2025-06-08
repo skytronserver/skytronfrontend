@@ -471,7 +471,7 @@ function TagDeviceToVehicle() {
                       variant="contained"
                       onClick={() => handleOtpSubmit("dealer")}
                     >
-                      {t("common.confirm")}
+                      {t("common.Confirm")}
                     </Button>
                   </Typography>
                 </Grid>
@@ -490,7 +490,7 @@ function TagDeviceToVehicle() {
                       variant="contained"
                       onClick={() => sendOwnerOtp("owner")}
                     >
-                      {t("common.request")}
+                      {t("common.Request")}
                     </Button>
                   </Typography>
                 </Grid>
