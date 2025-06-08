@@ -99,18 +99,17 @@ const TripViewer = () => {
     };
     fetchVehicleList();
   }, []);
-
   // Initialize map
   useEffect(() => {
-    if (mapRef.current && !map.current) {
+    if (mapRef.current && !map.current && showMap) {
+      console.log('Initializing map...');
       const initialMap = new Map({
         target: mapRef.current,
         layers: [],
         view: new View({
-          center: fromLonLat([91.829437, 26.131644]),
-          zoom: 7,
+          center: fromLonLat([78.9629, 20.5937]), // Center of India
+          zoom: 5,
         }),
-        pixelRatio: 1,
       });
 
       // Initialize overlay for popup
@@ -211,11 +210,18 @@ const TripViewer = () => {
       initialMap.addLayer(india3Layer);
       initialMap.addLayer(indiaBaseLayer);
       initialMap.addLayer(indiaRoadsLayer);
-      initialMap.addLayer(vectorLayer);
+      initialMap.addLayer(vectorLayer);      map.current = initialMap;
+      
+      // Add load event handler
+      initialMap.once('loadend', () => {
+        console.log('Map loaded successfully');
+      });
 
-      map.current = initialMap;
+      initialMap.on('error', (error) => {
+        console.error('Map loading error:', error);
+      });
     }
-  }, []);
+  }, [showMap]);
 
   // Calculate distance between two points in kilometers
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -678,11 +684,25 @@ const TripViewer = () => {
                   </Grid>
                 </Grid>
               </Paper>
-            )}
-
-            {/* Map Section */}
-            <Paper elevation={2} sx={{ position: 'relative', height: '600px', overflow: 'hidden' }}>
-              <Box ref={mapRef} sx={{ width: "100%", height: "100%" }}>
+            )}            {/* Map Section */}
+            <Paper elevation={2} sx={{ 
+              position: 'relative', 
+              height: '600px',
+              width: '100%',
+              overflow: 'hidden',
+              '& .ol-map': {
+                width: '100%',
+                height: '100%'
+              }
+            }}>
+              <Box 
+                ref={mapRef}
+                className="ol-map" 
+                sx={{ 
+                  width: "100%", 
+                  height: "100%",
+                  visibility: showMap ? 'visible' : 'hidden'
+                }}>
                 {/* Layer Control Panel */}
                 <div style={{
                   position: 'absolute',
