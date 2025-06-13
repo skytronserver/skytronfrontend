@@ -120,7 +120,7 @@ const user = {
           type: "item",
           url: "/setting/holiday/new",
           breadcrumbs: false,
-          roles: ["superadmin", "owner"],
+          roles: ["superadmin", "stateadmin"],
         },
         
       ],
@@ -644,7 +644,7 @@ const user = {
           type: "item",
           url: "/holiday/all-holiday-list",
           breadcrumbs: false,
-          roles: ["superadmin", "owner"],
+          roles: ["superadmin", "owner", "stateadmin"],
         },
       ],
     },
