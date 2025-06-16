@@ -3,7 +3,7 @@ import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListIt
 import { Home as HomeIcon, Menu as MenuIcon } from '@mui/icons-material';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
-import logo from "../../assets/images/icons/logo_truck.png";
+import logo2 from "../../assets/images/skytron-logo2.png";
 import WebFont from "webfontloader";
 WebFont.load({
   google: {
@@ -31,49 +31,35 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             />
           </div>
 
-          {/* Logo section */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            marginRight: '12px'
-          }}>
-            <img 
-              src={logo} 
-              alt="Skytron Logo" 
-              style={{  
-                width: '50px',
-                height: 'auto'
-              }} 
-            />
-          </div>
-
           {/* Title section */}
           <Typography 
             variant="h2" 
             component="div" 
             sx={{ 
               flexGrow: 1, 
-              color: '#FFC94A',
+              color: '#FFC94A', 
+              fontWeight: 'bold', 
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              gap: '12px'
             }}
           >
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'flex-start'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                marginBottom: '4px'
-              }}>
-                <span style={{ 
-                  fontFamily: "Bicubik", 
-                  fontSize: '2rem',
-                  letterSpacing: '0.5px'
-                }}>
-                  SkyTron<sup style={{ fontSize: "12px" }}>®</sup>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                <img 
+                  src={logo2} 
+                  alt="Skytron Logo" 
+                  style={{  
+                    width: '30px',
+                    height: 'auto',
+                    marginRight: '8px'
+                  }} 
+                />
+                <span style={{ fontFamily: "Bicubik", fontSize: '1.6rem' }}>
+                  SkyTron<sup style={{fontSize: '12px',
+                  marginLeft: '5px',
+                  position: 'relative',
+                  top: '-8px' }}>®</sup>
                 </span>
               </div>
               <Typography 
