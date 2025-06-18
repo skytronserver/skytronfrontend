@@ -1,0 +1,27 @@
+{
+  "title": "SKYTRON",
+  "login": {
+    "title": "Login",
+    "mobile": "Mobile",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Login",
+    "waiting": "Waiting",
+    "togglePasswordVisibility": "toggle password visibility",
+    "validation": {
+      "mobileRequired": "Mobile number is required",
+      "mobileInvalid": "Mobile Number must be a 10-digit number",
+      "passwordRequired": "Password is required"
+    }
+  },
+  "captcha": {
+    "title": "Enter the result",
+    "altText": "Captcha Image",
+    "refresh": "Refresh captcha"
+  },
+  "errors": {
+    "loginFailed": "Login failed. Please check your credentials.",
+    "networkError": "Network error. Please try again.",
+    "sessionExpired": "Your session has expired. Please login again."
+  }
+} 

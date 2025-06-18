@@ -1,0 +1,19 @@
+{
+  "dashboard": "Dashboard",
+  "createNew": "Create New",
+  "stateAdmin": "State Admin",
+  "m2mServiceProvider": "M2M Service Provider",
+  "manufacturer": "Manufacturer",
+  "dto": "DTO",
+  "dealerAccount": "Dealer Account",
+  "createVehicleOwner": "Create Vehicle Owner",
+  "sosAdmin": "SOS Admin",
+  "sosUser": "SOS User",
+  "emTeam": "EM Team",
+  "create": "Create",
+  "list": "List",
+  "sosCallList": "SOS Call List",
+  "routeFixing": "Route Fixing",
+  "liveTracking": "Live Tracking",
+  "historyPlayback": "History Playback"
+} 

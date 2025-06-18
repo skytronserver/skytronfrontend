@@ -1,0 +1,261 @@
+{
+  "notAuthorized": {
+    "title": "Not Authorized",
+    "message": "You do not have permission to view this page.",
+    "goBack": "Go Back"
+  },
+  "details": {
+    "email": "Email",
+    "mobile": "Mobile",
+    "dateOfBirth": "Date of Birth",
+    "expiryDate": "Expiry Date",
+    "state": "State",
+    "gstNumber": "GST Number",
+    "companyName": "Company Name",
+    "createdBy": "Created By",
+    "idProofNumber": "ID Proof Number",
+    "idProof": "ID Proof",
+    "registrationCertificate": "Registration Certificate",
+    "gstCertificate": "GST Certificate",
+    "authorizationLetter": "Authorization Letter",
+    "viewIdProof": "View ID Proof",
+    "viewCertificate": "View Certificate",
+    "viewGstCertificate": "View GST Certificate",
+    "viewAuthorizationLetter": "View Authorization Letter",
+    "notAvailable": "NA",
+    "roles": {
+      "devicemanufacture": "Device Manufacturer",
+      "dealer": "Dealer",
+      "stateadmin": "State Admin",
+      "sosadmin": "SOS Admin",
+      "dtorto": "DTO User",
+      "esimprovider": "M2M Service Provider"
+    }
+  },
+  "termsAndConditions": {
+    "title": "SkyTron® Terms & Conditions",
+    "lastUpdated": "Last Updated: 02.04.2025",
+    "welcome": "Welcome to SkyTron®,<br/> SkyTron® is an intelligent vehicle tracking and safety platform developed by AMTRON in collaboration with Skytrack Technologies Private Limited (\"Company,\" \"we,\" \"us,\" or \"our\"). It enables real-time monitoring, safety alerts, and compliance for public transport and emergency services under the Nirbhaya framework.",
+    "agreement": "These Terms and Conditions (\"Terms\") govern your access to and use of the SkyTron®  application (\"App\"). By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not agree, please do not use the App.",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "By accessing and using SkyTron®, you acknowledge that you have read, understood, and agree to comply with these Terms. These Terms apply to all users, including those who register an account or use the App without an account."
+      },
+      "eligibility": {
+        "title": "2. Eligibility",
+        "content": "You must be at least 18 years old to use this App. By using SkyTron®, you represent that you have the legal capacity to enter into this agreement."
+      },
+      "useOfApp": {
+        "title": "3. Use of the App",
+        "items": [
+          "You agree to use the App only for lawful purposes and in accordance with these Terms.",
+          "You shall not misuse, exploit, or interfere with the functionality, security, or integrity of the App.",
+          "Unauthorized access, reverse engineering, or data extraction from the App is strictly prohibited."
+        ]
+      },
+      "permissions": {
+        "title": "4. Permissions Required",
+        "intro": "To provide the best experience, the App may request the following permissions:",
+        "camera": {
+          "title": "Camera Access",
+          "content": "Required for capturing driver photos for identification and verification for vehicle owner."
+        },
+        "location": {
+          "title": "Location Access",
+          "content": "Used for real-time vehicle tracking and navigation:",
+          "items": [
+            "Precise Location (GPS) – Required for accurate tracking of driver and vehicle location by vehicle owner or Police/ambulance.",
+            "Approximate Location – Used for general location-based features.",
+            "Background Location – Needed for tracking even when the app is not in use, ensuring uninterrupted service by Police/Ambulance."
+          ]
+        },
+        "storage": {
+          "title": "Storage Access",
+          "content": "Allows saving and retrieving files and media within the app:",
+          "items": [
+            "Read Storage – To access images and media files for Driver photo.",
+            "Write Storage – To store downloaded alerts."
+          ]
+        },
+        "network": {
+          "title": "Network & Internet Access",
+          "content": "Ensures connectivity for real-time data exchange and MQTT communication:",
+          "items": [
+            "Internet Access – Required for cloud-based operations and data synchronization of Skytron®.",
+            "Network Status Check – Ensures stable network connectivity for uninterrupted service for Vehicle Owner and Police/Ambulance."
+          ]
+        },
+        "bluetooth": {
+          "title": "Bluetooth Access",
+          "content": "Enables communication with external devices, such as vehicle tracking hardware for guest user:",
+          "items": [
+            "Connect to Bluetooth Devices – Required for pairing with IoT and tracking devices by guest user.",
+            "Scan for Bluetooth Devices – To detect and establish connections with Vehicle Tracking devices."
+          ]
+        },
+        "foregroundServices": {
+          "title": "Foreground Services",
+          "content": "Used for critical app functions such as continuous tracking and data sync for vehicle owner alerts and Police/Ambulance to provide emergency assistance to accident vehicle:",
+          "items": [
+            "Data Sync – Ensures real-time MQTT-based location updates and server communication for vehicle owner alerts and Police/Ambulance to provide emergency assistance to accident vehicle.",
+            "Location Services – Enables background and foreground tracking for seamless monitoring of accident vehicles by Police/Ambulance."
+          ]
+        },
+        "notifications": {
+          "title": "Notifications Access",
+          "content": "Allows the app to send important alerts and updates regarding trip status, driver updates, SOS alerts and system messages."
+        },
+        "deviceAccess": {
+          "title": "Device & System Access",
+          "items": [
+            "Auto-start on Reboot – Ensures essential services (such as tracking) resume automatically after a device restart.",
+            "Wake Lock – Prevents the device from sleeping during critical operations, such as continuous location tracking of accident vehicles and alerts.",
+            "App License Verification – Ensures the authenticity of the skytron app and prevents unauthorized usage.",
+            "Internal App Functionality – Supports secure internal communication and processing within the skytron app."
+          ]
+        },
+        "footer": "These permissions will be requested explicitly, and you can manage them via your device settings."
+      },
+      "userRoles": {
+        "title": "5. User Roles",
+        "intro": "SkyTron® supports multiple user roles, each with specific permissions and responsibilities:",
+        "items": [
+          "Vehicle Owner: Can track vehicles history, monitor real-time tracking, check reports and receive alerts.",
+          "Police/ Ambulance: Monitors emergency alerts, accesses accident-related tracking data, and provides emergency assistance.",
+          "DTO/RTO (District Transport Officer/Regional Transport Officer): Regulates vehicle compliance, fitment of tracking devices, and transport safety measures.",
+          "Guest User: Limited access to basic features, Bluetooth connectivity for vehicle hardware, and public safety notifications and create emergency alerts."
+        ]
+      },
+      "privacyPolicy": {
+        "title": "6. Privacy Policy",
+        "content": "Our Privacy Policy governs how we collect, use, and protect your personal information. By using SkyTron®, you acknowledge and accept our Privacy Policy."
+      },
+      "intellectualProperty": {
+        "title": "7. Intellectual Property",
+        "content": "All content, features, and functionality of SkyTron®, including but not limited to text, graphics, logos, icons, images, audio clips, digital downloads, and data compilations, are the exclusive property of the Company or its content suppliers and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws."
+      }
+    }
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "sections": {
+      "introduction": {
+        "title": "1. Introduction",
+        "content": "Welcome to SkyTron®, a vehicle tracking application developed by Skytrack Technologies Pvt Ltd and implemented in collaboration with AMTRON. Your privacy is important to us, and this Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our  application SkyTron®. By using the application, you agree to the terms outlined in this policy."
+      },
+      "informationWeCollect": {
+        "title": "2. Information We Collect",
+        "intro": "We collect various types of information to enhance our service, including:",
+        "personalInfo": {
+          "title": "(a) Personal Information:",
+          "items": [
+            "Name, email address, phone number, and other contact details provided during registration.",
+            "Login credentials to access your SkyTron® account."
+          ]
+        },
+        "vehicleInfo": {
+          "title": "(b) Vehicle and Tracking Information:",
+          "items": [
+            "GPS location of registered vehicles in real time.",
+            "Vehicle registration details, including make, model, and identification numbers.",
+            "Trip history, routes, and movement data."
+          ]
+        },
+        "deviceInfo": {
+          "title": "(c) Device and Usage Information:",
+          "items": [
+            "Device type, operating system, IP address, and mobile network information.",
+            "App usage patterns, interactions, and error logs."
+          ]
+        }
+      },
+      "howWeUse": {
+        "title": "3. How We Use Your Information",
+        "intro": "We use the collected data for the following purposes:",
+        "items": [
+          "To provide real-time vehicle tracking and monitoring services.",
+          "To ensure vehicle security and improve road safety.",
+          "To enable users to access trip history and analytics.",
+          "To send important updates, notifications, and alerts related to vehicle movement.",
+          "To prevent fraudulent activities and unauthorized access.",
+          "To comply with legal obligations and regulatory requirements."
+        ]
+      },
+      "dataSharing": {
+        "title": "4. Data Sharing and Disclosure",
+        "intro": "We do not sell or rent your personal information. However, we may share information in the following cases:",
+        "items": [
+          {
+            "title": "With Government Authorities & Law Enforcement:",
+            "content": "If required by law, we may provide data to government agencies, police, or legal authorities."
+          },
+          {
+            "title": "With Service Providers:",
+            "content": "We may share data with third-party vendors who assist in hosting, analytics, and technical support."
+          },
+          {
+            "title": "With Business Partners:",
+            "content": "If SkyTron® collaborates with authorized fleet management companies or service partners, necessary information may be shared."
+          },
+          {
+            "title": "In Case of Business Transfers:",
+            "content": "In the event of a merger, acquisition, or sale of assets, user data may be transferred as part of business restructuring."
+          }
+        ]
+      },
+      "dataSecurity": {
+        "title": "5. Data Security Measures",
+        "intro": "We take strict security measures to protect user data, including:",
+        "items": [
+          "Encryption of sensitive information, including location data.",
+          "Secure authentication mechanisms for access control.",
+          "Regular security audits to detect vulnerabilities.",
+          "Restricted access to personal data on a need-to-know basis."
+        ]
+      },
+      "userRights": {
+        "title": "6. User Rights & Choices",
+        "intro": "Users have the following rights concerning their data:",
+        "items": [
+          {
+            "title": "Access & Update:",
+            "content": "Users can access and update their profile details."
+          },
+          {
+            "title": "Opt-out:",
+            "content": "Users can disable location tracking through device settings."
+          },
+          {
+            "title": "Data Deletion:",
+            "content": "Users can request the deletion of their data by contacting support."
+          },
+          {
+            "title": "Withdrawal of Consent:",
+            "content": "Users can withdraw consent for data collection by uninstalling the app and notifying us."
+          }
+        ]
+      },
+      "dataRetention": {
+        "title": "7. Retention of Data",
+        "content": "We retain user data only as long as necessary for service provision, legal compliance, or security purposes. Once the data is no longer required, it is securely deleted or anonymized."
+      },
+      "thirdParty": {
+        "title": "8. Third-Party Services & External Links",
+        "content": "SkyTron® may integrate third-party services (such as Bhuvan Maps or payment gateways). We do not control these third-party services, and users should review their respective privacy policies."
+      },
+      "childrenPrivacy": {
+        "title": "9. Children's Privacy",
+        "content": "SkyTron® is not intended for use by children under 13 years old. We do not knowingly collect data from minors. If we become aware of such data collection, we will take steps to delete it."
+      },
+      "changes": {
+        "title": "10. Changes to This Privacy Policy",
+        "content": "We may update this policy periodically. Users will be notified of major changes through in-app notifications or email. Continued use of the app after changes implies acceptance of the updated policy."
+      },
+      "contact": {
+        "title": "11. Contact Us",
+        "intro": "For any questions or concerns regarding this Privacy Policy, contact us at:"
+      }
+    }
+  }
+} 

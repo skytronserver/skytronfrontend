@@ -11,6 +11,10 @@ import themes from "./themes";
 
 // project imports
 import NavigationScroll from "./layout/NavigationScroll";
+import FloatingLanguageSwitch from "./ui-component/FloatingLanguageSwitch";
+
+// i18n initialization
+import './i18n';
 
 // ==============================|| APP ||============================== //
 
@@ -23,6 +27,7 @@ const App = () => {
         <NavigationScroll>
           <Routes />
         </NavigationScroll>
+        <FloatingLanguageSwitch />
       </ThemeProvider>
     </StyledEngineProvider>
   );

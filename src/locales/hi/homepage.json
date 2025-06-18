@@ -1,0 +1,27 @@
+{
+  "title": "स्काईट्रॉन",
+  "login": {
+    "title": "लॉगिन",
+    "mobile": "मोबाइल",
+    "password": "पासवर्ड",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "submit": "लॉगिन",
+    "waiting": "प्रतीक्षा कर रहा है",
+    "togglePasswordVisibility": "पासवर्ड दृश्यता टॉगल करें",
+    "validation": {
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "mobileInvalid": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+      "passwordRequired": "पासवर्ड आवश्यक है"
+    }
+  },
+  "captcha": {
+    "title": "परिणाम दर्ज करें",
+    "altText": "कैप्चा छवि",
+    "refresh": "कैप्चा रिफ्रेश करें"
+  },
+  "errors": {
+    "loginFailed": "लॉगिन विफल। कृपया अपने क्रेडेंशियल्स जांचें।",
+    "networkError": "नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।",
+    "sessionExpired": "आपका सेशन समाप्त हो गया है। कृपया फिर से लॉगिन करें।"
+  }
+} 

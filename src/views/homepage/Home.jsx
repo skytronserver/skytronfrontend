@@ -26,8 +26,14 @@ import {
 } from "./homeStyle";
 import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+<<<<<<< Updated upstream
+=======
+import { cipherEncryption } from "helper";
+import { useTranslation } from "react-i18next";
+>>>>>>> Stashed changes
 
 function Home() {
+  const { t } = useTranslation(['homepage', 'forms']);
   const dispatch = useDispatch();
   const [error, setError] = useState(false);
   const [captcha, setCaptcha] = useState({
@@ -51,9 +57,9 @@ function Home() {
 
   const validationSchema = Yup.object({
     mobile: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile number is required"),
-    password: Yup.string().required("Password is required"),
+      .matches(/^\d{10}$/, t('homepage:login.validation.mobileInvalid'))
+      .required(t('homepage:login.validation.mobileRequired')),
+    password: Yup.string().required(t('homepage:login.validation.passwordRequired')),
     // captcha_reply: Yup.string().required("Required Field"),
   });
 
@@ -134,7 +140,7 @@ function Home() {
                 style={{ height: "auto", width: "36px" }}
               />
               <br />
-              <span style={logoStyle}>SKYTRON</span>
+              <span style={logoStyle}>{t('homepage:title')}</span>
             </Typography>
             <Formik
               initialValues={formik.initialValues}
@@ -144,7 +150,7 @@ function Home() {
               <Form>
                 <TextField
                   id="mobile"
-                  label="Mobile"
+                  label={t('homepage:login.mobile')}
                   name="mobile"
                   variant="outlined"
                   fullWidth
@@ -173,7 +179,7 @@ function Home() {
                 />
                 <TextField
                   id="password"
-                  label="Password"
+                  label={t('homepage:login.password')}
                   variant="outlined"
                   type={showPassword ? "text" : "password"}
                   fullWidth
@@ -188,7 +194,7 @@ function Home() {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label="toggle password visibility"
+                          aria-label={t('homepage:login.togglePasswordVisibility')}
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
                         >
@@ -205,7 +211,7 @@ function Home() {
                       <img
                         id="captcha-image"
                         src={captcha.src}
-                        alt="Captcha Image"
+                        alt={t('homepage:captcha.altText')}
                         style={{ maxHeight: "60px" }}
                       />
                       <input
@@ -227,7 +233,7 @@ function Home() {
                 </section>
                 <TextField
                   id="captcha_reply"
-                  label="Enter the result"
+                  label={t('homepage:captcha.title')}
                   variant="outlined"
                   type="text"
                   fullWidth
@@ -251,7 +257,7 @@ function Home() {
                   // disabled={submitting || !captcha.isLoaded}
                   disabled={submitting}
                 >
-                  {submitting === false ? `Login` : `Waiting`}
+                  {submitting === false ? t('homepage:login.submit') : t('homepage:login.waiting')}
                 </Button>
 
                 <Box sx={{ mt: 2 }}>
@@ -265,7 +271,7 @@ function Home() {
             </Formik>
             <Box sx={{ mt: 1, textAlign: "right" }}>
               <Link href="/forgot-password" variant="body2">
-                Forgot password?
+                {t('homepage:login.forgotPassword')}
               </Link>
             </Box>
           </Paper>

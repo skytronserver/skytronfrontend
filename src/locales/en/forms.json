@@ -1,0 +1,270 @@
+{
+  "user": {
+    "newUser": "New User",
+    "editUser": "Edit User",
+    "userList": "User List",
+    "allUserList": "All User list",
+    "name": "Name",
+    "mobileNumber": "Mobile Number",
+    "email": "Email",
+    "companyName": "Company Name",
+    "gstNo": "GST No.",
+    "idProofNumber": "ID Proof Number",
+    "idProof": "ID Proof",
+    "selectIdProof": "Select ID Proof",
+    "submit": "Submit",
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email address",
+      "mobileRequired": "Mobile Number is required",
+      "mobileInvalid": "Mobile Number must be a 10-digit number",
+      "companyNameRequired": "Company Name is required",
+      "gstRequired": "GTS No is required",
+      "idProofRequired": "ID Proof is required",
+      "idProofNumberRequired": "ID Proof Number is required"
+    }
+  },
+  "device": {
+    "title": "Device Details",
+    "state": "State",
+    "newUser": "New User",
+    "name": "Name",
+    "mobileNumber": "Mobile Number",
+    "email": "Email",
+    "companyName": "Company Name",
+    "gstNo": "GST No.",
+    "deviceModel": "Device Model",
+    "tacNumber": "TAC Number",
+    "tacValidity": "TAC Validity",
+    "esimProvider": "eSIM Provider",
+    "testAgency": "Test Agency",
+    "submit": "Submit",
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email address",
+      "mobileRequired": "Mobile Number is required",
+      "mobileInvalid": "Mobile Number must be a 10-digit number",
+      "companyNameRequired": "Company Name is required",
+      "gstRequired": "GST No is required",
+      "deviceModelRequired": "Device Model is required",
+      "tacNumberRequired": "TAC Number is required",
+      "tacValidityRequired": "TAC Validity is required"
+    },
+    "successMessage": "Form submitted successfully!",
+    "errorMessage": "Unable to Submit"
+  },
+  "vehicleOwner": {
+    "title": "Vehicle Owner Details",
+    "ownerName": "Owner Name",
+    "vehicleNumber": "Vehicle Number",
+    "registrationNumber": "Registration Number",
+    "chassisNumber": "Chassis Number",
+    "engineNumber": "Engine Number",
+    "vehicleType": "Vehicle Type",
+    "manufacturer": "Manufacturer",
+    "model": "Model",
+    "yearOfManufacture": "Year of Manufacture",
+    "fuelType": "Fuel Type",
+    "insuranceNumber": "Insurance Number",
+    "insuranceExpiry": "Insurance Expiry",
+    "pucNumber": "PUC Number",
+    "pucExpiry": "PUC Expiry",
+    "submit": "Submit"
+  },
+  "stateAdmin": {
+    "title": "State Admin Details",
+    "adminName": "Admin Name",
+    "state": "State",
+    "district": "District",
+    "designation": "Designation",
+    "officeAddress": "Office Address",
+    "contactNumber": "Contact Number",
+    "email": "Email",
+    "submit": "Submit"
+  },
+  "sosAdmin": {
+    "title": "SOS Admin Details",
+    "adminName": "Admin Name",
+    "department": "Department",
+    "designation": "Designation",
+    "contactNumber": "Contact Number",
+    "email": "Email",
+    "emergencyContact": "Emergency Contact",
+    "submit": "Submit"
+  },
+  "sosUser": {
+    "title": "SOS User Details",
+    "userName": "User Name",
+    "mobileNumber": "Mobile Number",
+    "email": "Email",
+    "emergencyContact": "Emergency Contact",
+    "vehicleNumber": "Vehicle Number",
+    "submit": "Submit"
+  },
+  "noticeForm": {
+    "title": "Notice Form",
+    "noticeTitle": "Notice Title",
+    "noticeType": "Notice Type",
+    "priority": "Priority",
+    "targetAudience": "Target Audience",
+    "message": "Message",
+    "validFrom": "Valid From",
+    "validTo": "Valid To",
+    "submit": "Submit"
+  },
+  "modelExtension": {
+    "title": "Model Extension",
+    "modelName": "Model Name",
+    "manufacturer": "Manufacturer",
+    "extensionType": "Extension Type",
+    "validityPeriod": "Validity Period",
+    "reason": "Reason",
+    "submit": "Submit"
+  },
+  "manufacturer": {
+    "title": "Manufacturer Details",
+    "manufacturerName": "Manufacturer Name",
+    "companyName": "Company Name",
+    "gstNumber": "GST Number",
+    "address": "Address",
+    "contactPerson": "Contact Person",
+    "contactNumber": "Contact Number",
+    "email": "Email",
+    "website": "Website",
+    "submit": "Submit"
+  },
+  "esimUser": {
+    "title": "eSIM User Details",
+    "userName": "User Name",
+    "provider": "Provider",
+    "simNumber": "SIM Number",
+    "activationDate": "Activation Date",
+    "expiryDate": "Expiry Date",
+    "status": "Status",
+    "submit": "Submit"
+  },
+  "dtoRto": {
+    "title": "DTO/RTO Details",
+    "officerName": "Officer Name",
+    "designation": "Designation",
+    "office": "Office",
+    "jurisdiction": "Jurisdiction",
+    "contactNumber": "Contact Number",
+    "email": "Email",
+    "submit": "Submit"
+  },
+  "dealerAccount": {
+    "title": "Dealer Account Details",
+    "dealerName": "Dealer Name",
+    "companyName": "Company Name",
+    "gstNumber": "GST Number",
+    "address": "Address",
+    "contactPerson": "Contact Person",
+    "contactNumber": "Contact Number",
+    "email": "Email",
+    "authorizedModels": "Authorized Models",
+    "submit": "Submit"
+  },
+  "bulkUpload": {
+    "title": "Bulk Upload",
+    "selectFile": "Select File",
+    "uploadType": "Upload Type",
+    "template": "Template",
+    "downloadTemplate": "Download Template",
+    "upload": "Upload",
+    "validation": {
+      "fileRequired": "Please select a file",
+      "fileType": "Please select a valid file type",
+      "fileSize": "File size should be less than 5MB"
+    }
+  },
+  "assignDevice": {
+    "title": "Assign Device",
+    "deviceId": "Device ID",
+    "vehicleNumber": "Vehicle Number",
+    "ownerName": "Owner Name",
+    "assignDate": "Assign Date",
+    "submit": "Assign Device"
+  },
+  "updateForm": {
+    "title": "Update Form",
+    "currentValue": "Current Value",
+    "newValue": "New Value",
+    "reason": "Reason for Update",
+    "submit": "Update"
+  },
+  "dynamicForm": {
+    "title": "Dynamic Form",
+    "addField": "Add Field",
+    "removeField": "Remove Field",
+    "fieldName": "Field Name",
+    "fieldType": "Field Type",
+    "required": "Required",
+    "submit": "Submit"
+  },
+  "authentication": {
+    "login": {
+      "title": "SKYTRON",
+      "otpMessage": "Enter your OTP sent to your Mobile No",
+      "verifyOtp": "Verify OTP",
+      "resendOtp": "Resend OTP",
+      "resendTimer": "Resend OTP in {{time}} seconds.",
+      "resend": "Resend",
+      "error": "Error"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email address to reset your password",
+      "emailPlaceholder": "Email Address",
+      "sendResetLink": "Send Reset Link",
+      "backToLogin": "Back to Login",
+      "successMessage": "Password reset link has been sent to your email"
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your new password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "resetPassword": "Reset Password",
+      "passwordMismatch": "Passwords do not match",
+      "successMessage": "Password has been reset successfully"
+    },
+    "setPassword": {
+      "title": "Set Password",
+      "subtitle": "Create your new password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "setPassword": "Set Password",
+      "passwordMismatch": "Passwords do not match",
+      "successMessage": "Password has been set successfully"
+    }
+  },
+  "common": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information"
+  }
+} 

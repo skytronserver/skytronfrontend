@@ -5,7 +5,11 @@ import { gridSpacing } from "../../../store/constant";
 import MainCard from "../../../ui-component/cards/MainCard";
 import * as Yup from "yup";
 import { Formik, Form, useFormik } from "formik";
+import { useTranslation } from 'react-i18next';
+
 const CreateNew = () => {
+  const { t } = useTranslation('forms');
+  
   const initialValues = {
     name: "",
     mobile: "",
@@ -17,22 +21,22 @@ const CreateNew = () => {
     tacValidity: "",
   };
   const validationSchema = Yup.object({
-    name: Yup.string().required("Name is required"),
+    name: Yup.string().required(t('device.validation.nameRequired')),
     email: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+      .email(t('device.validation.emailInvalid'))
+      .required(t('device.validation.emailRequired')),
     mobile: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile Number is required"),
-    deviceModel: Yup.string().required("Device Model is required"),
-    companyName: Yup.string().required("Company Name is required"),
-    gstNo: Yup.string().required("GST No is required"),
-    tacNumber: Yup.string().required("TAC Number is required"),
-    tacValidity: Yup.string().required("TAC Validity is required"),
+      .matches(/^\d{10}$/, t('device.validation.mobileInvalid'))
+      .required(t('device.validation.mobileRequired')),
+    deviceModel: Yup.string().required(t('device.validation.deviceModelRequired')),
+    companyName: Yup.string().required(t('device.validation.companyNameRequired')),
+    gstNo: Yup.string().required(t('device.validation.gstRequired')),
+    tacNumber: Yup.string().required(t('device.validation.tacNumberRequired')),
+    tacValidity: Yup.string().required(t('device.validation.tacValidityRequired')),
   });
   const handleSubmit = (values, { setSubmitting }) => {
     setTimeout(() => {
-      alert("Form submitted successfully!");
+      alert(t('device.successMessage'));
       setSubmitting(false);
     }, 1000);
   };
@@ -44,12 +48,12 @@ const CreateNew = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <PageHeader title="State" />
+        <PageHeader title={t('device.state')} />
       </Grid>
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
           <Grid item xs={12}>
-            <MainCard title="New User">
+            <MainCard title={t('device.newUser')}>
               <Formik
                 initialValues={formik.initialValues}
                 onSubmit={formik.handleSubmit}
@@ -58,7 +62,7 @@ const CreateNew = () => {
                   <Grid container spacing={2} className="form-controller">
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="Name"
+                        label={t('device.name')}
                         variant="outlined"
                         fullWidth
                         margin="normal"
@@ -71,7 +75,7 @@ const CreateNew = () => {
                     </Grid>
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="Mobile Number"
+                        label={t('device.mobileNumber')}
                         variant="outlined"
                         fullWidth
                         margin="normal"
@@ -86,7 +90,7 @@ const CreateNew = () => {
                     </Grid>
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="Email"
+                        label={t('device.email')}
                         variant="outlined"
                         fullWidth
                         margin="normal"
@@ -99,7 +103,7 @@ const CreateNew = () => {
                     </Grid>
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="Company Name"
+                        label={t('device.companyName')}
                         variant="outlined"
                         fullWidth
                         margin="normal"
@@ -116,7 +120,7 @@ const CreateNew = () => {
                     </Grid>
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="GST No."
+                        label={t('device.gstNo')}
                         variant="outlined"
                         fullWidth
                         margin="normal"
@@ -129,7 +133,7 @@ const CreateNew = () => {
                     </Grid>
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="Device Model"
+                        label={t('device.deviceModel')}
                         variant="outlined"
                         fullWidth
                         margin="normal"
@@ -142,7 +146,7 @@ const CreateNew = () => {
                     </Grid>
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="TAC Number"
+                        label={t('device.tacNumber')}
                         variant="outlined"
                         fullWidth
                         margin="normal"
@@ -155,7 +159,7 @@ const CreateNew = () => {
                     </Grid>
                     <Grid item md={6} sm={12} xs={12} sx={{ pt: 0 }}>
                       <TextField
-                        label="TAC Validity"
+                        label={t('device.tacValidity')}
                         variant="outlined"
                         fullWidth
                         margin="normal"

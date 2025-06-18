@@ -1,0 +1,19 @@
+{
+  "dashboard": "डैशबोर्ड",
+  "createNew": "नया बनाएं",
+  "stateAdmin": "राज्य प्रशासक",
+  "m2mServiceProvider": "एम2एम सेवा प्रदाता",
+  "manufacturer": "निर्माता",
+  "dto": "डीटीओ",
+  "dealerAccount": "डीलर खाता",
+  "createVehicleOwner": "वाहन मालिक बनाएं",
+  "sosAdmin": "एसओएस प्रशासक",
+  "sosUser": "एसओएस उपयोगकर्ता",
+  "emTeam": "ईएम टीम",
+  "create": "बनाएं",
+  "list": "सूची",
+  "sosCallList": "एसओएस कॉल सूची",
+  "routeFixing": "मार्ग निर्धारण",
+  "liveTracking": "लाइव ट्रैकिंग",
+  "historyPlayback": "इतिहास प्लेबैक"
+} 

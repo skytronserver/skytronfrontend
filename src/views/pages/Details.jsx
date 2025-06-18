@@ -12,11 +12,15 @@ import SettingService from "../../services/SettingService";
 import DescriptionIcon from '@mui/icons-material/Description';
 import UserServices from "../../services/UserServices";
 import Button from '@mui/material/Button';
+import { useTranslation } from 'react-i18next';
+
 const docViewStyle={
   padding:"0px"
 }
+
 const Details = () => {
     const { userId,userType } = useParams();
+    const { t } = useTranslation('pages');
     const [isLoaded,setIsLoaded]=useState(false)
     const [user,setUser]=useState({
         role:"",
@@ -94,14 +98,16 @@ const Details = () => {
 
     retrieveUserDetails();
     },[])
-    const role={
-        devicemanufacture:'Device Manufacturer',
-        dealer:'Dealer',
-        stateadmin:'State Admin',
-        sosadmin:'SOS Admin',
-        dtorto:'DTO User',
-        esimprovider:'M2M Service Provider'
+    
+    const role = {
+        devicemanufacture: t('details.roles.devicemanufacture'),
+        dealer: t('details.roles.dealer'),
+        stateadmin: t('details.roles.stateadmin'),
+        sosadmin: t('details.roles.sosadmin'),
+        dtorto: t('details.roles.dtorto'),
+        esimprovider: t('details.roles.esimprovider')
     }
+    
   return (
     <Card sx={{ margin: 'auto' }}>
       {isLoaded && <CardContent>
@@ -112,75 +118,75 @@ const Details = () => {
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Email: </strong>{user.email}
+              <strong>{t('details.email')}: </strong>{user.email}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Mobile: </strong>{user.mobile}
+              <strong>{t('details.mobile')}: </strong>{user.mobile}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Date of Birth: </strong>{user.dob!=='' ? formatDate(user.dob) :'NA'}
+              <strong>{t('details.dateOfBirth')}: </strong>{user.dob!=='' ? formatDate(user.dob) : t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Expiry Date: </strong>{user.expiryDate!=='' ? user.expiryDate : 'NA'}
+              <strong>{t('details.expiryDate')}: </strong>{user.expiryDate!=='' ? user.expiryDate : t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>State: </strong>{user.state!==''? user.state :'NA'}
+              <strong>{t('details.state')}: </strong>{user.state!==''? user.state : t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>GST Number: </strong>{user.gstNo!==''?user.gstNo:'NA'}
+              <strong>{t('details.gstNumber')}: </strong>{user.gstNo!==''?user.gstNo: t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Company Name: </strong>{user.company_name!=='' ?user.company_name: 'NA'}
+              <strong>{t('details.companyName')}: </strong>{user.company_name!=='' ?user.company_name: t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Created By: </strong>{user.created_by_name}
+              <strong>{t('details.createdBy')}: </strong>{user.created_by_name}
             </Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
-              <strong>ID Proof Number: </strong>{user.idProofno}
+              <strong>{t('details.idProofNumber')}: </strong>{user.idProofno}
             </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>ID Proof: </strong>{user.file_idProof!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_idProof)} >
-              <span><DescriptionIcon/></span>View ID Proof
-              </Button>:'NA'}
+              <strong>{t('details.idProof')}: </strong>{user.file_idProof!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_idProof)} >
+              <span><DescriptionIcon/></span>{t('details.viewIdProof')}
+              </Button>: t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Registration Certificate: </strong>{user.file_companRegCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_companRegCertificate)} >
-              <span><DescriptionIcon/></span>View Certificate
-              </Button>:'NA'}
+              <strong>{t('details.registrationCertificate')}: </strong>{user.file_companRegCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_companRegCertificate)} >
+              <span><DescriptionIcon/></span>{t('details.viewCertificate')}
+              </Button>: t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>GST Certificate: </strong>{user.file_GSTCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_GSTCertificate)} >
-              <span><DescriptionIcon/></span>View GST Certificate
-              </Button>:'NA'}
+              <strong>{t('details.gstCertificate')}: </strong>{user.file_GSTCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_GSTCertificate)} >
+              <span><DescriptionIcon/></span>{t('details.viewGstCertificate')}
+              </Button>: t('details.notAvailable')}
             </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Authorization Letter: </strong>{user.file_authLetter!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_authLetter)} >
-              <span><DescriptionIcon/></span>View Authorization Letter
-              </Button>:'NA'}
+              <strong>{t('details.authorizationLetter')}: </strong>{user.file_authLetter!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_authLetter)} >
+              <span><DescriptionIcon/></span>{t('details.viewAuthorizationLetter')}
+              </Button>: t('details.notAvailable')}
             </Typography>
           </Grid>
         </Grid>

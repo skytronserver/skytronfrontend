@@ -10,6 +10,8 @@ import stockReducer from "../reducers/stockReducer";
 import settingReducer from '../reducers/settingReducer';
 import dealerReducer from '../reducers/dealerReducer';
 import listReducer from '../reducers/listReducer';
+import localizationReducer from './localizationReducer';
+
 // ==============================|| COMBINE REDUCER ||============================== //
 
 const reducer = combineReducers({
@@ -22,6 +24,7 @@ const reducer = combineReducers({
   setting:settingReducer,
   dealer:dealerReducer,
   listAll:listReducer,
+  localization: localizationReducer,
 });
 
 export default reducer;

@@ -1,0 +1,270 @@
+{
+  "user": {
+    "newUser": "नया उपयोगकर्ता",
+    "editUser": "उपयोगकर्ता संपादित करें",
+    "userList": "उपयोगकर्ता सूची",
+    "allUserList": "सभी उपयोगकर्ता सूची",
+    "name": "नाम",
+    "mobileNumber": "मोबाइल नंबर",
+    "email": "ईमेल",
+    "companyName": "कंपनी का नाम",
+    "gstNo": "जीएसटी नंबर",
+    "idProofNumber": "आईडी प्रूफ नंबर",
+    "idProof": "आईडी प्रूफ",
+    "selectIdProof": "आईडी प्रूफ चुनें",
+    "submit": "जमा करें",
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "emailInvalid": "अमान्य ईमेल पता",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "mobileInvalid": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+      "companyNameRequired": "कंपनी का नाम आवश्यक है",
+      "gstRequired": "जीएसटी नंबर आवश्यक है",
+      "idProofRequired": "आईडी प्रूफ आवश्यक है",
+      "idProofNumberRequired": "आईडी प्रूफ नंबर आवश्यक है"
+    }
+  },
+  "device": {
+    "title": "डिवाइस विवरण",
+    "state": "राज्य",
+    "newUser": "नया उपयोगकर्ता",
+    "name": "नाम",
+    "mobileNumber": "मोबाइल नंबर",
+    "email": "ईमेल",
+    "companyName": "कंपनी का नाम",
+    "gstNo": "जीएसटी नंबर",
+    "deviceModel": "डिवाइस मॉडल",
+    "tacNumber": "टीएसी नंबर",
+    "tacValidity": "टीएसी वैधता",
+    "esimProvider": "ईसिम प्रदाता",
+    "testAgency": "परीक्षण एजेंसी",
+    "submit": "जमा करें",
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "emailInvalid": "अमान्य ईमेल पता",
+      "mobileRequired": "मोबाइल नंबर आवश्यक है",
+      "mobileInvalid": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+      "companyNameRequired": "कंपनी का नाम आवश्यक है",
+      "gstRequired": "जीएसटी नंबर आवश्यक है",
+      "deviceModelRequired": "डिवाइस मॉडल आवश्यक है",
+      "tacNumberRequired": "टीएसी नंबर आवश्यक है",
+      "tacValidityRequired": "टीएसी वैधता आवश्यक है"
+    },
+    "successMessage": "फॉर्म सफलतापूर्वक जमा किया गया!",
+    "errorMessage": "जमा करने में असमर्थ"
+  },
+  "vehicleOwner": {
+    "title": "वाहन मालिक विवरण",
+    "ownerName": "मालिक का नाम",
+    "vehicleNumber": "वाहन नंबर",
+    "registrationNumber": "पंजीकरण नंबर",
+    "chassisNumber": "चेसिस नंबर",
+    "engineNumber": "इंजन नंबर",
+    "vehicleType": "वाहन प्रकार",
+    "manufacturer": "निर्माता",
+    "model": "मॉडल",
+    "yearOfManufacture": "निर्माण वर्ष",
+    "fuelType": "ईंधन प्रकार",
+    "insuranceNumber": "बीमा नंबर",
+    "insuranceExpiry": "बीमा समाप्ति",
+    "pucNumber": "पीयूसी नंबर",
+    "pucExpiry": "पीयूसी समाप्ति",
+    "submit": "जमा करें"
+  },
+  "stateAdmin": {
+    "title": "राज्य एडमिन विवरण",
+    "adminName": "एडमिन का नाम",
+    "state": "राज्य",
+    "district": "जिला",
+    "designation": "पद",
+    "officeAddress": "कार्यालय का पता",
+    "contactNumber": "संपर्क नंबर",
+    "email": "ईमेल",
+    "submit": "जमा करें"
+  },
+  "sosAdmin": {
+    "title": "एसओएस एडमिन विवरण",
+    "adminName": "एडमिन का नाम",
+    "department": "विभाग",
+    "designation": "पद",
+    "contactNumber": "संपर्क नंबर",
+    "email": "ईमेल",
+    "emergencyContact": "आपातकालीन संपर्क",
+    "submit": "जमा करें"
+  },
+  "sosUser": {
+    "title": "एसओएस उपयोगकर्ता विवरण",
+    "userName": "उपयोगकर्ता का नाम",
+    "mobileNumber": "मोबाइल नंबर",
+    "email": "ईमेल",
+    "emergencyContact": "आपातकालीन संपर्क",
+    "vehicleNumber": "वाहन नंबर",
+    "submit": "जमा करें"
+  },
+  "noticeForm": {
+    "title": "नोटिस फॉर्म",
+    "noticeTitle": "नोटिस शीर्षक",
+    "noticeType": "नोटिस प्रकार",
+    "priority": "प्राथमिकता",
+    "targetAudience": "लक्षित दर्शक",
+    "message": "संदेश",
+    "validFrom": "वैध से",
+    "validTo": "वैध तक",
+    "submit": "जमा करें"
+  },
+  "modelExtension": {
+    "title": "मॉडल विस्तार",
+    "modelName": "मॉडल नाम",
+    "manufacturer": "निर्माता",
+    "extensionType": "विस्तार प्रकार",
+    "validityPeriod": "वैधता अवधि",
+    "reason": "कारण",
+    "submit": "जमा करें"
+  },
+  "manufacturer": {
+    "title": "निर्माता विवरण",
+    "manufacturerName": "निर्माता का नाम",
+    "companyName": "कंपनी का नाम",
+    "gstNumber": "जीएसटी नंबर",
+    "address": "पता",
+    "contactPerson": "संपर्क व्यक्ति",
+    "contactNumber": "संपर्क नंबर",
+    "email": "ईमेल",
+    "website": "वेबसाइट",
+    "submit": "जमा करें"
+  },
+  "esimUser": {
+    "title": "ईसिम उपयोगकर्ता विवरण",
+    "userName": "उपयोगकर्ता का नाम",
+    "provider": "प्रदाता",
+    "simNumber": "सिम नंबर",
+    "activationDate": "सक्रियता तिथि",
+    "expiryDate": "समाप्ति तिथि",
+    "status": "स्थिति",
+    "submit": "जमा करें"
+  },
+  "dtoRto": {
+    "title": "डीटीओ/आरटीओ विवरण",
+    "officerName": "अधिकारी का नाम",
+    "designation": "पद",
+    "office": "कार्यालय",
+    "jurisdiction": "अधिकार क्षेत्र",
+    "contactNumber": "संपर्क नंबर",
+    "email": "ईमेल",
+    "submit": "जमा करें"
+  },
+  "dealerAccount": {
+    "title": "डीलर खाता विवरण",
+    "dealerName": "डीलर का नाम",
+    "companyName": "कंपनी का नाम",
+    "gstNumber": "जीएसटी नंबर",
+    "address": "पता",
+    "contactPerson": "संपर्क व्यक्ति",
+    "contactNumber": "संपर्क नंबर",
+    "email": "ईमेल",
+    "authorizedModels": "अधिकृत मॉडल",
+    "submit": "जमा करें"
+  },
+  "bulkUpload": {
+    "title": "बल्क अपलोड",
+    "selectFile": "फाइल चुनें",
+    "uploadType": "अपलोड प्रकार",
+    "template": "टेम्पलेट",
+    "downloadTemplate": "टेम्पलेट डाउनलोड करें",
+    "upload": "अपलोड",
+    "validation": {
+      "fileRequired": "कृपया एक फाइल चुनें",
+      "fileType": "कृपया एक वैध फाइल प्रकार चुनें",
+      "fileSize": "फाइल का आकार 5MB से कम होना चाहिए"
+    }
+  },
+  "assignDevice": {
+    "title": "डिवाइस असाइन करें",
+    "deviceId": "डिवाइस आईडी",
+    "vehicleNumber": "वाहन नंबर",
+    "ownerName": "मालिक का नाम",
+    "assignDate": "असाइन तिथि",
+    "submit": "डिवाइस असाइन करें"
+  },
+  "updateForm": {
+    "title": "अपडेट फॉर्म",
+    "currentValue": "वर्तमान मूल्य",
+    "newValue": "नया मूल्य",
+    "reason": "अपडेट का कारण",
+    "submit": "अपडेट"
+  },
+  "dynamicForm": {
+    "title": "डायनामिक फॉर्म",
+    "addField": "फील्ड जोड़ें",
+    "removeField": "फील्ड हटाएं",
+    "fieldName": "फील्ड नाम",
+    "fieldType": "फील्ड प्रकार",
+    "required": "आवश्यक",
+    "submit": "जमा करें"
+  },
+  "authentication": {
+    "login": {
+      "title": "स्काईट्रॉन",
+      "otpMessage": "अपने मोबाइल नंबर पर भेजे गए OTP दर्ज करें",
+      "verifyOtp": "OTP सत्यापित करें",
+      "resendOtp": "OTP पुनः भेजें",
+      "resendTimer": "{{time}} सेकंड में OTP पुनः भेजें।",
+      "resend": "पुनः भेजें",
+      "error": "त्रुटि"
+    },
+    "forgotPassword": {
+      "title": "पासवर्ड भूल गए",
+      "subtitle": "अपना पासवर्ड रीसेट करने के लिए अपना ईमेल पता दर्ज करें",
+      "emailPlaceholder": "ईमेल पता",
+      "sendResetLink": "रीसेट लिंक भेजें",
+      "backToLogin": "लॉगिन पर वापस जाएं",
+      "successMessage": "पासवर्ड रीसेट लिंक आपके ईमेल पर भेज दिया गया है"
+    },
+    "resetPassword": {
+      "title": "पासवर्ड रीसेट करें",
+      "subtitle": "अपना नया पासवर्ड दर्ज करें",
+      "newPassword": "नया पासवर्ड",
+      "confirmPassword": "पासवर्ड की पुष्टि करें",
+      "resetPassword": "पासवर्ड रीसेट करें",
+      "passwordMismatch": "पासवर्ड मेल नहीं खाते",
+      "successMessage": "पासवर्ड सफलतापूर्वक रीसेट किया गया है"
+    },
+    "setPassword": {
+      "title": "पासवर्ड सेट करें",
+      "subtitle": "अपना नया पासवर्ड बनाएं",
+      "newPassword": "नया पासवर्ड",
+      "confirmPassword": "पासवर्ड की पुष्टि करें",
+      "setPassword": "पासवर्ड सेट करें",
+      "passwordMismatch": "पासवर्ड मेल नहीं खाते",
+      "successMessage": "पासवर्ड सफलतापूर्वक सेट किया गया है"
+    }
+  },
+  "common": {
+    "submit": "जमा करें",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "edit": "संपादित करें",
+    "delete": "हटाएं",
+    "view": "देखें",
+    "download": "डाउनलोड",
+    "upload": "अपलोड",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "clear": "साफ़ करें",
+    "back": "वापस",
+    "next": "अगला",
+    "previous": "पिछला",
+    "close": "बंद करें",
+    "confirm": "पुष्टि करें",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "ok": "ठीक है",
+    "loading": "लोड हो रहा है...",
+    "success": "सफलता",
+    "error": "त्रुटि",
+    "warning": "चेतावनी",
+    "info": "जानकारी"
+  }
+} 

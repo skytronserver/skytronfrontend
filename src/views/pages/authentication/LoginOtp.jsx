@@ -1,4 +1,3 @@
-
 import {useState,useEffect} from 'react';
 // material-ui
 import { useTheme } from "@mui/material/styles";
@@ -14,8 +13,11 @@ import { verifyOtp,resendOtp,setError } from "../../../actions/loginActions";
 import { createAxiosInstance } from '../../../services/axiosInstance';
 import MinimalFooter from '../../../ui-component/cards/MinimalFooter';
 import AlertBox from "../../../ui-component/AlertBox";
+import { useTranslation } from 'react-i18next';
+
 const LoginOtp = () => {
   const dispatch = useDispatch();
+  const { t } = useTranslation('forms');
   const [otp, setOtp] = useState("");
   const [isOpen,setIsOpen]=useState(false);
   const theme = useTheme();
@@ -75,7 +77,7 @@ const LoginOtp = () => {
       severity="error"
       isOpen={error.message !== null}
       handleAlertClick={()=>console.log('information of otp verification')}
-      title="Error"
+      title={t('authentication.login.error')}
       message={error.message}
       />
       <Grid
@@ -136,14 +138,14 @@ const LoginOtp = () => {
                               gutterBottom
                               variant={matchDownSM ? "h3" : "h2"}
                             >
-                              SKYTRON
+                              {t('authentication.login.title')}
                             </Typography>
                             <Typography
                               variant="caption"
                               fontSize="16px"
                               textAlign={matchDownSM ? "center" : "inherit"}
                             >
-                              Enter your OTP sent to your Mobile No
+                              {t('authentication.login.otpMessage')}
                             </Typography>
                           </Stack>
                         </Grid>
@@ -165,7 +167,7 @@ const LoginOtp = () => {
                           onClick={handleOTPSubmit}
                           disabled={remainingTime <= 0}
                         >
-                          Verify OTP
+                          {t('authentication.login.verifyOtp')}
                         </Button>
                       </Typography>
                     </Grid>
@@ -178,7 +180,7 @@ const LoginOtp = () => {
                       <Divider />
                       <br/>
                       <Typography className="otp-timer" style={{textAlign:"center"}}>
-                        <span>Resend OTP in {remainingTime} seconds.  &nbsp;</span>
+                        <span>{t('authentication.login.resendTimer', { time: remainingTime })}  &nbsp;</span>
                         <Button
                         color="success"
                         size="small"
@@ -186,7 +188,7 @@ const LoginOtp = () => {
                           disabled={remainingTime > 0}
                           onClick={handleClick}
                         >
-                          Resend
+                          {t('authentication.login.resend')}
                         </Button>
                       </Typography>
                     </Grid>
