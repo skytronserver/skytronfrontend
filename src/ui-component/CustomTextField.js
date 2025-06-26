@@ -1,6 +1,5 @@
 // FormField.js
 import React from "react";
-import { useTranslation } from 'react-i18next';
 import {
   TextField,
   MenuItem,
@@ -14,6 +13,8 @@ import {
   ListItemText,
   Autocomplete
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
 
 const FormField = ({
   fieldConfig,
@@ -21,13 +22,14 @@ const FormField = ({
   handleFileChange,
   handleOptionChange,
 }) => {
-  const { t } = useTranslation();
+    const { t } = useTranslation();
   const inputProps = {
     onKeyDown: (e) => e.preventDefault(), // Prevent typing
     ...(fieldConfig.minDate && { min: fieldConfig.minDate }),
     ...(fieldConfig.maxDate && { max: fieldConfig.maxDate }),
   };
-  const { type, label, options, disabled } = fieldConfig;
+  const { type, label, options,disabled } = fieldConfig;
+  const restrictedFields = ['name', 'title', 'category','company_name', 'companyName'];
   switch (type) {
     case "text":
       return (
@@ -36,7 +38,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
-          disabled={disabled ? true:false}
+          disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
             formik.touched[fieldConfig.name] &&
@@ -45,6 +47,33 @@ const FormField = ({
           helperText={
             formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
+          onChange={(e) => {
+            let value = e.target.value;
+            
+            // Remove potential XSS/script injection attempts
+            value = value.replace(/<[^>]*>/g, ''); // Remove HTML tags
+            value = value.replace(/javascript:/gi, ''); // Remove javascript: protocol
+            value = value.replace(/on\w+\s*=/gi, ''); // Remove event handlers
+            value = value.replace(/script/gi, ''); // Remove the word 'script'
+            
+            // Check if field is email type
+            if (fieldConfig.name.toLowerCase().includes('email')) {
+              const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+              if (value && !emailRegex.test(value)) {
+                formik.setFieldError(fieldConfig.name, 'Please enter a valid email address');
+              }
+              formik.setFieldValue(fieldConfig.name, value);
+            }
+            // Check if field is one of the restricted fields
+            else if (restrictedFields.includes(fieldConfig.name)) {
+              // Only allow letters and single spaces, prevent consecutive spaces
+              const sanitizedValue = value.replace(/\s+/g, ' '); // Replace multiple spaces with single space
+              const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ''); // Remove non-letters
+              formik.setFieldValue(fieldConfig.name, letterOnlyValue);
+            } else {
+              formik.setFieldValue(fieldConfig.name, value);
+            }
+          }}
         />
       );
     case "select":
@@ -70,50 +99,51 @@ const FormField = ({
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
-              {t(option.label)}
+              {option.label}
             </MenuItem>
           ))}
         </TextField>
       );
-    case "multiselect":
-      return (
-        <TextField
-          select
-          label={t(label)}
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          {...formik.getFieldProps(fieldConfig.name)}
-          error={
-            formik.touched[fieldConfig.name] &&
-            Boolean(formik.errors[fieldConfig.name])
-          }
-          helperText={
-            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
-          }
-          onChange={(event) => {
-            formik.handleChange(event);
-            handleOptionChange && handleOptionChange(event, formik);
-          }}
-          SelectProps={{
-            multiple: true,
-            renderValue: (selected) => (
-              <div>
-                {selected.map((value) => (
-                  <Chip key={value} label={t(options.find(option => option.value === value)?.label || value)} />
-                ))}
-              </div>
-            ),
-          }}
-        >
-          {options.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              <Checkbox checked={formik.values[fieldConfig.name].includes(option.value)} />
-              <ListItemText primary={t(option.label)} />
-            </MenuItem>
-          ))}
-        </TextField>
-      );
+      case "multiselect":
+        return (
+          <TextField
+            select
+            label={t(label)}
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            {...formik.getFieldProps(fieldConfig.name)}
+            error={
+              formik.touched[fieldConfig.name] &&
+              Boolean(formik.errors[fieldConfig.name])
+            }
+            helperText={
+              formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
+            }
+            onChange={(event) => {
+              formik.handleChange(event);
+              handleOptionChange && handleOptionChange(event, formik);
+            }}
+            SelectProps={{
+              multiple: true, // Enable multiple selection
+              renderValue: (selected) => (
+                <div>
+                  {selected.map((value) => (
+                    <Chip key={value} label={options.find(option => option.value === value)?.label || value} />
+                  ))}
+                </div>
+              ),
+            }}
+          >
+            {options.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                <Checkbox checked={formik.values[fieldConfig.name].includes(option.value)} />
+                <ListItemText primary={option.label} />
+              </MenuItem>
+            ))}
+          </TextField>
+        );
+      
     case "file":
       return (
         <div style={{ marginTop: "16px" }}>
@@ -121,9 +151,92 @@ const FormField = ({
             id={fieldConfig.name}
             name={fieldConfig.name}
             type="file"
-            onChange={(event) => {
-              formik.handleChange(event);
-              handleFileChange(event, formik);
+            accept={fieldConfig.name === 'excel_file' ? 
+              '.xlsx,.xls,.csv' : 
+              '.pdf,.png,.jpg,.jpeg'}
+            onChange={(originalEvent) => {
+              // Store the original event data before async operations
+              const file = originalEvent?.currentTarget?.files?.[0];
+              const fieldName = originalEvent?.currentTarget?.name;
+
+              if (!file) return;
+
+              // Clear previous errors
+              formik.setFieldError(fieldName, '');
+
+              // Read file header to check signature
+              const reader = new FileReader();
+              reader.onerror = function() {
+                formik.setFieldError(fieldName, 'Error reading file');
+              };
+
+              reader.onload = function(e) {
+                const arr = new Uint8Array(e.target.result).subarray(0, 8);
+                const header = Array.from(arr).map(byte => byte.toString(16).padStart(2, '0')).join('');
+                
+                let isValidType = false;
+                if (fieldConfig.name === 'excel_file') {
+                  // Signatures for Excel and CSV files
+                  const validSignatures = {
+                    'xlsx': '504b34', // XLSX
+                    'xls': 'd0cf11e0', // XLS
+                    'csv': '', // CSV files don't have a specific signature
+                  };
+                  
+                  // For CSV, check if it's a text file
+                  if (file.type === 'text/csv') {
+                    isValidType = true;
+                  } else {
+                    isValidType = Object.values(validSignatures).some(sig => sig && header.startsWith(sig));
+                  }
+                  
+                  if (!isValidType) {
+                    formik.setFieldError(fieldName, 'Only Excel and CSV files are allowed');
+                    formik.setFieldValue(fieldName, ''); // Clear the field value
+                    return;
+                  }
+                } else {
+                  // Signatures for PDF and image files
+                  const validSignatures = {
+                    'pdf': '25504446', // PDF
+                    'png': '89504e47', // PNG
+                    'jpeg': ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8'], // JPEG variants
+                  };
+                  
+                  isValidType = 
+                    header.startsWith(validSignatures.pdf) || 
+                    header.startsWith(validSignatures.png) || 
+                    validSignatures.jpeg.some(sig => header.startsWith(sig));
+                  
+                  if (!isValidType) {
+                    formik.setFieldError(fieldName, 'Only PDF, PNG, and JPG files are allowed');
+                    formik.setFieldValue(fieldName, ''); // Clear the field value
+                    return;
+                  }
+                }
+                
+                // If validation passes, update form and call handler
+                if (isValidType) {
+                  formik.setFieldValue(fieldName, file);
+                  
+                  // Call handleFileChange with a new event object
+                  if (handleFileChange) {
+                    const syntheticEvent = {
+                      currentTarget: {
+                        files: [file],
+                        name: fieldName
+                      },
+                      target: {
+                        files: [file],
+                        name: fieldName
+                      }
+                    };
+                    handleFileChange(syntheticEvent, formik);
+                  }
+                }
+              };
+              
+              reader.readAsArrayBuffer(file);
             }}
             onBlur={() => formik.setFieldTouched(fieldConfig.name, true)}
             style={{ display: "none" }}
@@ -168,7 +281,7 @@ const FormField = ({
             <legend>{t(label)}</legend>
             <RadioGroup
               row
-              aria-label={t(label)}
+              aria-label={label}
               name={fieldConfig.name}
               value={formik.values[fieldConfig.name]}
               onChange={formik.handleChange}
@@ -179,7 +292,7 @@ const FormField = ({
                   key={option.value}
                   value={option.value}
                   control={<Radio />}
-                  label={t(option.label)}
+                  label={option.label}
                 />
               ))}
             </RadioGroup>
@@ -221,6 +334,30 @@ const FormField = ({
           helperText={
             formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
+          onChange={(e) => {
+            const selectedDate = new Date(e.target.value);
+            
+            // Check if the field is date of birth
+            if (fieldConfig.name.toLowerCase().includes('dob') || fieldConfig.name.toLowerCase().includes('dateofbirth')) {
+              const today = new Date();
+              const age = today.getFullYear() - selectedDate.getFullYear();
+              const monthDiff = today.getMonth() - selectedDate.getMonth();
+              
+              // Adjust age if birthday hasn't occurred this year
+              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
+                const actualAge = age - 1;
+                if (actualAge < 18) {
+                  formik.setFieldError(fieldConfig.name, 'Age must be 18 or above');
+                  return;
+                }
+              } else if (age < 18) {
+                formik.setFieldError(fieldConfig.name, 'Age must be 18 or above');
+                return;
+              }
+            }
+            
+            formik.setFieldValue(fieldConfig.name, e.target.value);
+          }}
         />
       );
     case "tel":

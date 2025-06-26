@@ -25,34 +25,19 @@ const GPSHistoryMap = ({
 }) => {
   const [map, setMap] = useState(null);
   const [mapData, setMapData] = useState([]);
-  const [tripData, setTripData] = useState(null);
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
   const [maxSliderValue, setMaxSliderValue] = useState(0);
   const [streetLevelZoom, setStreetLevelZoom] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(200);
-  const [activeLayers, setActiveLayers] = useState({
-    osm: true,
-    india3: true,
-    indiaBase: true,
-    indiaRoads: true,
-    markers: true
-  });
   const mapRef = useRef(null);
   const overlayRef = useRef(null);
   const markerRef = useRef(null);
-  const animationMarkerRef = useRef(null);
+  const animationMarkerRef = useRef(null); // Separate ref for the animation marker
   const animationIntervalId = useRef(null);
   const featureOverlayRef = useRef(null);
-  const allFeaturesRef = useRef([]);
-  const layersRef = useRef({
-    osm: null,
-    india3: null,
-    indiaBase: null,
-    indiaRoads: null,
-    markers: null
-  });
+  const allFeaturesRef = useRef([]); // To store all features and avoid clearing markers
 
   const STREET_ZOOM_LEVEL = 18;
 
@@ -97,116 +82,7 @@ const GPSHistoryMap = ({
   });
 
 
-  // Add these new functions before the return statement
-  const haversineDistance = (coord1, coord2) => {
-    const toRad = deg => (deg * Math.PI) / 180;
-    const R = 6371; // Earth's radius in KM
-    const dLat = toRad(coord2.lat - coord1.lat);
-    const dLon = toRad(coord2.lon - coord1.lon);
-    const lat1 = toRad(coord1.lat);
-    const lat2 = toRad(coord2.lat);
-
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // in KM
-  };
-
-  const processTrip = (data) => {
-    if (!data.length) return null;
-
-    const start = data[0];
-    const end = data[data.length - 1];
-
-    const startTime = new Date(start.et);
-    const endTime = new Date(end.et);
-
-    const durationSeconds = (endTime - startTime) / 1000; // in seconds
-
-    // Process points in batches of 100
-    const batchSize = 100;
-    const batches = [];
-    for (let i = 0; i < data.length; i += batchSize) {
-      const batch = data.slice(i, i + batchSize);
-      batches.push(batch);
-    }
-
-    // Process each batch
-    const processedBatches = batches.map((batch, batchIndex) => {
-      const batchStart = batch[0];
-      const batchEnd = batch[batch.length - 1];
-      
-      const batchPath = batch.map(item => ({
-        lat: parseFloat(item.lat),
-        lon: parseFloat(item.lon),
-        time: item.et,
-        speed: parseFloat(item.s) || 0,
-        batchIndex: batchIndex
-      }));
-
-      const batchAvgSpeed = batchPath.reduce((sum, point) => sum + point.speed, 0) / batchPath.length;
-
-      // Calculate batch distance
-      let batchDistanceKm = 0;
-      for (let i = 1; i < batchPath.length; i++) {
-        batchDistanceKm += haversineDistance(batchPath[i - 1], batchPath[i]);
-      }
-
-      return {
-        startPoint: { lat: parseFloat(batchStart.lat), lon: parseFloat(batchStart.lon) },
-        endPoint: { lat: parseFloat(batchEnd.lat), lon: parseFloat(batchEnd.lon) },
-        path: batchPath,
-        avgSpeed: batchAvgSpeed,
-        distanceKm: batchDistanceKm,
-        startTime: new Date(batchStart.et),
-        endTime: new Date(batchEnd.et)
-      };
-    });
-
-    // Combine all batches
-    const allPaths = processedBatches.flatMap(batch => batch.path);
-    const totalDistanceKm = processedBatches.reduce((sum, batch) => sum + batch.distanceKm, 0);
-    const avgSpeed = allPaths.reduce((sum, point) => sum + point.speed, 0) / allPaths.length;
-
-    const trip = {
-      startTime,
-      endTime,
-      durationSeconds,
-      startPoint: { lat: parseFloat(start.lat), lon: parseFloat(start.lon) },
-      endPoint: { lat: parseFloat(end.lat), lon: parseFloat(end.lon) },
-      path: allPaths,
-      avgSpeed,
-      totalDistanceKm,
-      batches: processedBatches
-    };
-
-    // Log trip data
-    console.log('Trip Data:', {
-      startTime: trip.startTime.toISOString(),
-      endTime: trip.endTime.toISOString(),
-      duration: `${Math.floor(trip.durationSeconds / 3600)}h ${Math.floor((trip.durationSeconds % 3600) / 60)}m`,
-      distance: `${trip.totalDistanceKm.toFixed(2)} km`,
-      avgSpeed: `${trip.avgSpeed.toFixed(2)} km/h`,
-      totalPoints: trip.path.length,
-      numberOfBatches: trip.batches.length,
-      pointsPerBatch: batchSize
-    });
-
-    // Log each batch
-    trip.batches.forEach((batch, index) => {
-      console.log(`Batch ${index + 1}:`, {
-        points: batch.path.length,
-        distance: `${batch.distanceKm.toFixed(2)} km`,
-        avgSpeed: `${batch.avgSpeed.toFixed(2)} km/h`,
-        startTime: batch.startTime.toISOString(),
-        endTime: batch.endTime.toISOString()
-      });
-    });
-
-    return trip;
-  };
-
-  // Update the fetchMapData function to process trip data
+  // Fetch map data from the API
   const fetchMapData = async () => {
     setIsPlaying(false);
     setDownloadStatus("Idle");
@@ -228,10 +104,6 @@ const GPSHistoryMap = ({
         setDownloadStatus("Processing");
         setMapData(data);
         setMaxSliderValue(data.length - 1);
-        
-        // Process trip data
-        const processedTrip = processTrip(data);
-        setTripData(processedTrip);
       }
     } catch (error) {
       console.error("Error fetching map data:", error);
@@ -246,100 +118,43 @@ const GPSHistoryMap = ({
     if (!map) {
       const initialMap = new Map({
         target: mapRef.current,
-        layers: [],
+        layers: [
+          new TileLayer({
+            source: new OSM(),
+          }),
+          new TileLayer({
+            source: new TileWMS({
+              url: process.env.REACT_APP_BHUVAN_URL,
+              params: {
+                'LAYERS': 'basemap%3Aadmin_group',
+                'TILED': true,
+                'VERSION': '1.1.1',
+                'FORMAT': 'image/png',
+                'TRANSPARENT': 'true',
+                'SRS': 'EPSG:4326',
+                'WIDTH': 256,   // Set the tile width to 256 pixels
+                'HEIGHT': 256,   // Set the tile height to 256 pixels
+                'pixelRatio': 1,
+
+              },
+              serverType: 'geoserver',
+              projection: 'EPSG:4326', // Ensure the projection is set:' 
+
+
+
+            })
+          }),
+        ],
+
+
         view: new View({
-          center: fromLonLat([91.829437, 26.131644]),
+          center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
           zoom: 7,
         }),
+
         pixelRatio: 1,
       });
 
-      // Create and store all layers
-      const osmLayer = new TileLayer({
-        source: new OSM(),
-        visible: activeLayers.osm
-      });
-
-      const india3Layer = new TileLayer({
-        source: new TileWMS({
-          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          params: {
-            'LAYERS': 'india3',
-            'TILED': true,
-            'VERSION': '1.1.1',
-            'FORMAT': 'image/png',
-            'TRANSPARENT': 'true',
-            'SRS': 'EPSG:4326',
-            'WIDTH': 256,
-            'HEIGHT': 256,
-            'pixelRatio': 1,
-          },
-          serverType: 'geoserver',
-          projection: 'EPSG:4326',
-        }),
-        visible: activeLayers.india3
-      });
-
-      const indiaBaseLayer = new TileLayer({
-        source: new TileWMS({
-          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          params: {
-            'LAYERS': 'basemap%3Aadmin_group',
-            'TILED': true,
-            'VERSION': '1.1.1',
-            'FORMAT': 'image/png',
-            'TRANSPARENT': 'true',
-            'SRS': 'EPSG:4326',
-            'WIDTH': 256,
-            'HEIGHT': 256,
-            'pixelRatio': 1,
-          },
-          serverType: 'geoserver',
-          projection: 'EPSG:4326',
-        }),
-        visible: activeLayers.indiaBase
-      });
-
-      const indiaRoadsLayer = new TileLayer({
-        source: new TileWMS({
-          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          params: {
-            'LAYERS': 'mmi:mmi_india',
-            'TILED': true,
-            'VERSION': '1.1.1',
-            'FORMAT': 'image/png',
-            'TRANSPARENT': 'true',
-            'SRS': 'EPSG:4326',
-            'WIDTH': 256,
-            'HEIGHT': 256,
-            'pixelRatio': 1,
-          },
-          serverType: 'geoserver',
-          projection: 'EPSG:4326',
-        }),
-        visible: activeLayers.indiaRoads
-      });
-
-      const markersLayer = new VectorLayer({
-        source: new VectorSource(),
-        visible: activeLayers.markers
-      });
-
-      // Store layer references
-      layersRef.current = {
-        osm: osmLayer,
-        india3: india3Layer,
-        indiaBase: indiaBaseLayer,
-        indiaRoads: indiaRoadsLayer,
-        markers: markersLayer
-      };
-
-      // Add layers to map
-      initialMap.addLayer(osmLayer);
-      initialMap.addLayer(india3Layer);
-      initialMap.addLayer(indiaBaseLayer);
-      initialMap.addLayer(indiaRoadsLayer);
-      initialMap.addLayer(markersLayer);
 
       const overlay = new Overlay({
         element: overlayRef.current,
@@ -350,8 +165,16 @@ const GPSHistoryMap = ({
       });
 
       initialMap.addOverlay(overlay);
+
+      const markerSource = new VectorSource();
+      const markerLayer = new VectorLayer({
+        source: markerSource,
+      });
+
+      initialMap.addLayer(markerLayer);
+
       setMap(initialMap);
-      markerRef.current = markersLayer.getSource();
+      markerRef.current = markerSource;
       featureOverlayRef.current = overlay;
     }
   }, [map]);
@@ -537,18 +360,6 @@ const GPSHistoryMap = ({
     }
   }, [mapData]);
 
-  // Function to toggle layer visibility
-  const toggleLayer = (layerName) => {
-    if (layersRef.current[layerName]) {
-      const newVisibility = !layersRef.current[layerName].getVisible();
-      layersRef.current[layerName].setVisible(newVisibility);
-      setActiveLayers(prev => ({
-        ...prev,
-        [layerName]: newVisibility
-      }));
-    }
-  };
-
   return (
     <Box>
       <Typography
@@ -602,110 +413,6 @@ const GPSHistoryMap = ({
 
 
       <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative' }}>
-        {/* Layer Control Panel */}
-        <div style={{
-          position: 'absolute',
-          top: '80px',
-          right: '20px',
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          padding: '15px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          zIndex: 1000,
-          minWidth: '200px',
-          backdropFilter: 'blur(5px)',
-          border: '1px solid rgba(0,0,0,0.1)'
-        }}>
-          <h4 style={{ 
-            margin: '0 0 12px 0',
-            color: '#333',
-            fontSize: '16px',
-            fontWeight: '600'
-          }}>Map Layers</h4>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '8px',
-            fontSize: '14px'
-          }}>
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              cursor: 'pointer',
-              padding: '4px 0'
-            }}>
-              <input
-                type="checkbox"
-                checked={activeLayers.osm}
-                onChange={() => toggleLayer('osm')}
-                style={{ cursor: 'pointer' }}
-              />
-              OpenStreetMap
-            </label>
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              cursor: 'pointer',
-              padding: '4px 0'
-            }}>
-              <input
-                type="checkbox"
-                checked={activeLayers.india3}
-                onChange={() => toggleLayer('india3')}
-                style={{ cursor: 'pointer' }}
-              />
-              India3 Layer
-            </label>
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              cursor: 'pointer',
-              padding: '4px 0'
-            }}>
-              <input
-                type="checkbox"
-                checked={activeLayers.indiaBase}
-                onChange={() => toggleLayer('indiaBase')}
-                style={{ cursor: 'pointer' }}
-              />
-              India Base Map
-            </label>
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              cursor: 'pointer',
-              padding: '4px 0'
-            }}>
-              <input
-                type="checkbox"
-                checked={activeLayers.indiaRoads}
-                onChange={() => toggleLayer('indiaRoads')}
-                style={{ cursor: 'pointer' }}
-              />
-              India Roads
-            </label>
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              cursor: 'pointer',
-              padding: '4px 0'
-            }}>
-              <input
-                type="checkbox"
-                checked={activeLayers.markers}
-                onChange={() => toggleLayer('markers')}
-                style={{ cursor: 'pointer' }}
-              />
-              Vehicle Markers
-            </label>
-          </div>
-        </div>
-
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />

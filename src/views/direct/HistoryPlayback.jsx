@@ -4,10 +4,9 @@ import HomePageService from "../../services/HomePage";
 import GPSHistoryMap from "./HistoryPlaybackMap";
 import {dateTimeUpdate} from "../../helper"
 import { FormControl, Autocomplete,TextField, Button, Grid } from '@mui/material';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 const HistoryPlayback = () => {
-  const { t } = useTranslation();
   const currentDate = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   const [load, setLoad] = useState(false);
@@ -17,6 +16,7 @@ const HistoryPlayback = () => {
   const [vehicleList, setVehicleList] = useState([]);
   const [downloadStatus, setDownloadStatus] = useState("");
   const [showMap, setShowMap] = useState(false); // To control visibility of the map
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchVehicleList = async () => {
