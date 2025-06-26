@@ -49,14 +49,14 @@ const other = {
           breadcrumbs: false,
           roles: ['superadmin', 'devicemanufacture'],
         },
-        {
-          id: 'ip-settings',
-          title: 'IP Settings',
-          type: 'item',
-          url: '/setting/ip-settings',
-          breadcrumbs: false,
-          roles: ['superadmin', 'dealer']
-        }
+        // {
+        //   id: 'ip-settings',
+        //   title: 'IP Settings',
+        //   type: 'item',
+        //   url: '/setting/ip-settings',
+        //   breadcrumbs: false,
+        //   roles: ['superadmin', 'dealer']
+        // }
       ]
     },
   ]

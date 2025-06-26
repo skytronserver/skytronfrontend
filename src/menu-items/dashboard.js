@@ -9,6 +9,7 @@ const icons = { IconDashboard };
 const dashboard = {
   id: 'dashboard',
   type: 'group',
+  roles: ['superadmin', 'stateadmin', 'dealer', 'devicemanufacture', 'owner', 'dtorto', 'sosadmin', 'teamlead', 'desk_ex'],
   children: [
     {
       id: 'default',

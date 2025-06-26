@@ -71,7 +71,12 @@ export const dealerAccountFormField = {
     name: "gstnnumber",
     type: "text",
     label: "dealerAccountForm.fields.gstNo",
-    validation: Yup.string().required("dealerAccountForm.validation.gstNoRequired"),
+    validation: Yup.string()
+      .matches(
+        /^([0][1-9]|[1-2][0-9]|[3][0-7])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$/,
+        "Please enter a valid GST number"
+      )
+      .required("dealerAccountForm.validation.gstNoRequired"),
   },
   address_State: {
     name: "address_State",

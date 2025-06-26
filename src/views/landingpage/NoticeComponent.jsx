@@ -69,7 +69,7 @@ const NoticeComponent = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    href={`${CUSTOM_BASE_URL}${notice.file}`} 
+                    href={`${BASE_URL}${notice.file}`} 
                     target="_blank"
                     rel="noopener noreferrer"
                   >

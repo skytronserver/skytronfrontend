@@ -65,7 +65,12 @@ export const eSIMFormField = {
     name:"gstnnumber",
     type: "text",
     label: "esimUser.form.fields.gst_no",
-    validation: Yup.string().required("esimUser.form.validation.gst_no_required"),
+    validation: Yup.string()
+    .matches(
+      /^([0][1-9]|[1-2][0-9]|[3][0-7])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$/,
+      "Please enter a valid GST number"
+    )
+    .required("esimUser.form.validation.gst_no_required"),
   },
   idProofno: {
     name:"idProofno",

@@ -48,7 +48,7 @@ const user = {
       title: "Create New",
       type: "collapse",
       icon: icons.IconUser,
-      roles: ["superadmin", "stateadmin", "dealer", "sosadmin","owner"],
+      roles: ["superadmin", "stateadmin", "dealer", "sosadmin"],
       children: [
         {
           id: "state-admin",
@@ -114,14 +114,14 @@ const user = {
           breadcrumbs: false,
           roles: ["sosadmin"],
         },
-        {
-          id: "create-holiday",
-          title: "Create Holiday",
-          type: "item",
-          url: "/setting/holiday/new",
-          breadcrumbs: false,
-          roles: ["superadmin", "owner"],
-        },
+        // {
+        //   id: "create-holiday",
+        //   title: "Create Holiday",
+        //   type: "item",
+        //   url: "/setting/holiday/new",
+        //   breadcrumbs: false,
+        //   roles: ["superadmin", "owner"],
+        // },
         
       ],
     },
@@ -638,14 +638,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin']
         },
-        {
-          id: "all-holiday-list",
-          title: "School Holidays",
-          type: "item",
-          url: "/holiday/all-holiday-list",
-          breadcrumbs: false,
-          roles: ["superadmin", "owner"],
-        },
+        // {
+        //   id: "all-holiday-list",
+        //   title: "School Holidays",
+        //   type: "item",
+        //   url: "/holiday/all-holiday-list",
+        //   breadcrumbs: false,
+        //   roles: ["superadmin", "owner"],
+        // },
       ],
     },
   ],

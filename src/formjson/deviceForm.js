@@ -27,7 +27,9 @@ export const deviceFormField = {
     name: "imei",
     type: "text",
     label: "deviceForm.fields.imei",
-    validation: Yup.string().matches(/^[0-9]+$/, "deviceForm.validation.imeiNumber").required("deviceForm.validation.imeiRequired"),
+    validation: Yup.string()
+    .matches(/^[0-9]{15}$/, "deviceForm.validation.imeiNumber")
+    .required("deviceForm.validation.imeiRequired"),
   },
   model: {
     name: "model",
@@ -90,31 +92,44 @@ export const deviceFormField = {
     name: "iccid",
     type: "text",
     label: "deviceForm.fields.iccid",
-    validation: Yup.string().required("deviceForm.validation.iccidRequired"),
+    validation: Yup.string()
+      .matches(/^[0-9]{19,20}$/,"ICCID must be 19 or 20 digits")
+      .required("deviceForm.validation.iccidRequired")
   },
   telecom_provider1: {
     name: "telecom_provider1",
     type: "text",
     label: "deviceForm.fields.telecom_provider1",
-    validation: Yup.string().required("deviceForm.validation.telecomProvider1Required"),
+    validation: Yup.string().required(""),
+    validation: Yup.string()
+      .min(2, "Provider name must be at least 2 characters")
+      .max(50, "Provider name cannot exceed 50 characters")
+      .required("deviceForm.validation.telecomProvider1Required")
   },
   telecom_provider2: {
     name: "telecom_provider2",
     type: "text",
     label: "deviceForm.fields.telecom_provider2",
-    validation:"",
+    validation: Yup.string()
+    .min(2, "Provider name must be at least 2 characters")
+    .max(50, "Provider name cannot exceed 50 characters")
+    .required("deviceForm.validation.telecomProvider2Required"),
   },
   msisdn1: {
     name: "msisdn1",
     type: "text",
     label: "deviceForm.fields.msisdn1",
-    validation: Yup.string().matches(/^[0-9]+$/, "deviceForm.validation.msisdn1Number").required("deviceForm.validation.msisdn1Required"),
+    validation: Yup.string()
+    .matches(/^[0-9]{10,15}$/, "deviceForm.validation.msisdn1Number")
+    .required("deviceForm.validation.msisdn1Required"),
   },
   msisdn2: {
     name: "msisdn2",
     type: "text",
     label: "deviceForm.fields.msisdn2",
-    validation: Yup.string().matches(/^[0-9]+$/, "deviceForm.validation.msisdn2Number"),
+    validation: Yup.string()
+    .matches(/^[0-9]{10,15}$/, "deviceForm.validation.msisdn2Number")
+    .required("deviceForm.validation.msisdn2Required"),
   },  
   remarks: {
     name:"remarks",
