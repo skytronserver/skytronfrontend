@@ -97,73 +97,131 @@ const formatDate = (dateString) => {
   ];
   export const availableForSalesColumn = [
     {
-      name: "id",
-      label: "ID",
-      options: {
-        filter: true,
-        sort: false,
-        display: false,
-      },
-    },
-    {
       name: "device_esn",
-      label: "Device",
-      options: {
-        filter: true,
-        sort: false,
-      },
-    },
-    {
-      name: "iccid",
-      label: "ICCID",
-      options: {
-        filter: true,
-        sort: false,
-      },
+      label: "Device ESN",
+      options: { filter: true, sort: false },
     },
     {
       name: "imei",
       label: "IMEI No.",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "iccid",
+      label: "ICCID",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "msisdn1",
+      label: "MSISDN 1",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "msisdn2",
+      label: "MSISDN 2",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "telecom_provider1",
+      label: "Telecom Provider 1",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "telecom_provider2",
+      label: "Telecom Provider 2",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "esim_provider",
+      label: "ESIM Provider",
       options: {
         filter: true,
         sort: false,
+        customBodyRender: (value) => <p>{Array.isArray(value) ? value.join(", ") : value}</p>,
       },
     },
-      {
-        name: "assigned",
-        label: "Assigned Date",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{formatDate(value)}</p>
-            );
-          }
-        },
+    {
+      name: "esim_status",
+      label: "ESIM Status",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "esim_validity",
+      label: "ESIM Validity",
+      options: {
+        filter: true,
+        sort: false,
+        customBodyRender: (value) => <p>{value ? formatDate(value) : ""}</p>,
       },
-      
-      {
-        name: "stock_status",
-        label: "Status",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value==='Fitted'?'Fitted':'Available'}</p>
-            );
-          }
-        },
+    },
+    {
+      name: "imsi1",
+      label: "IMSI 1",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "imsi2",
+      label: "IMSI 2",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "model",
+      label: "Model",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "stock_status",
+      label: "Stock Status",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "assigned",
+      label: "Assigned Date",
+      options: {
+        filter: true,
+        sort: false,
+        customBodyRender: (value) => <p>{value ? formatDate(value) : ""}</p>,
       },
-      {
-        name: "shipping_remark",
-        label: "Remarks",
-        options: {
-          filter: true,
-          sort: false,
-        },
+    },
+    {
+      name: "assigned_by",
+      label: "Assigned By",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "created",
+      label: "Created Date",
+      options: {
+        filter: true,
+        sort: false,
+        customBodyRender: (value) => <p>{value ? formatDate(value) : ""}</p>,
       },
+    },
+    {
+      name: "created_by",
+      label: "Created By",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "dealer",
+      label: "Dealer",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "remarks",
+      label: "Remarks",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "shipping_remark",
+      label: "Shipping Remark",
+      options: { filter: true, sort: false },
+    },
+    {
+      name: "id",
+      label: "ID",
+      options: { filter: false, sort: false, display: false },
+    },
   ];
   export const requestList = [
     {
@@ -436,4 +494,5 @@ const formatDate = (dateString) => {
       },
     },
   ];
+    
     

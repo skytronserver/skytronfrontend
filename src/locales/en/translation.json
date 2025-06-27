@@ -437,15 +437,15 @@
   "stateAdmin": {
     "createTitle": "Create State Admin",
     "fields": {
-      "name": "Name",
-      "email": "Email",
-      "mobile": "Mobile",
-      "dob": "Date of Birth",
+      "name": "User Name",
+      "email": "User Email",
+      "mobile": "User Mobile Number",
+      "dob": "User Date of Birth",
       "expirydate": "Expiry Date",
       "state": "State Name",
       "idProofno": "ID Proof Number",
-      "file_idProof": "ID Proof",
-      "file_authorisation_letter": "Authorization Letter"
+      "file_idProof": "Upload ID Proof",
+      "file_authorisation_letter": "Upload Authorization Letter"
     },
     "messages": {
       "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
@@ -478,18 +478,18 @@
       "fields": {
         "state": "Select State",
         "m2m_provider": "M2M Provider",
-        "name": "Name",
-        "email": "Email",
-        "mobile": "Mobile",
+        "name": "User Name",
+        "email": "User Email",
+        "mobile": "User Mobile Number",
         "company_name": "Company Name",
-        "dob": "Date of Birth",
+        "dob": "User Date of Birth",
         "expiry_date": "Expiry Date",
         "gst_no": "GST No",
         "id_proof_number": "User ID Proof Number",
-        "auth_letter": "Authorization Letter",
-        "company_reg_certificate": "Company Registration Certificate",
-        "gst_certificate": "GST Certificate",
-        "id_proof": "User ID Proof"
+        "auth_letter": "Upload Authorization Letter",
+        "company_reg_certificate": "Upload Company Registration Certificate",
+        "gst_certificate": "Upload GST Certificate",
+        "id_proof": "Upload User ID Proof"
       },
       "validation": {
         "state_required": "State is required",
@@ -525,18 +525,18 @@
       "error": "Form Not Submitted",
       "fields": {
         "state": "Select State",
-        "name": "Name",
-        "email": "Email",
-        "mobile": "Mobile",
+        "name": "User Name",
+        "email": "User Email",
+        "mobile": "User Mobile Number",
         "company_name": "Company Name",
-        "dob": "Date of Birth",
+        "dob": "User Date of Birth",
         "expiry_date": "Expiry Date",
         "gst_no": "GST Number",
         "id_proof_number": "ID Proof Number",
-        "auth_letter": "Authorization Letter",
-        "company_reg_certificate": "Company Registration Certificate",
-        "gst_certificate": "GST Certificate",
-        "id_proof": "ID Proof"
+        "auth_letter": "Upload Authorization Letter",
+        "company_reg_certificate": "Upload Company Registration Certificate",
+        "gst_certificate": "Upload GST Certificate",
+        "id_proof": "Upload User ID Proof"
       },
       "validation": {
         "state_required": "State is required",
@@ -570,18 +570,18 @@
       "error": "Form Not Submitted",
       "fields": {
         "state": "Select State",
-        "name": "Name",
-        "email": "Email",
-        "mobile": "Mobile",
+        "name": "User Name",
+        "email": "User Email Id",
+        "mobile": "User Mobile Number",
         "company_name": "Company Name",
-        "dob": "Date of Birth",
+        "dob": "User Date of Birth",
         "expiry_date": "Expiry Date",
         "gst_no": "GST No",
         "id_proof_number": "ID Proof Number",
-        "auth_letter": "Authorization Letter",
-        "company_reg_certificate": "Company Registration Certificate",
-        "gst_certificate": "GST Certificate",
-        "id_proof": "ID Proof"
+        "auth_letter": "Upload Authorization Letter",
+        "company_reg_certificate": "Upload Company Registration Certificate",
+        "gst_certificate": "Upload GST Certificate",
+        "id_proof": "Upload User ID Proof"
       },
       "validation": {
         "state_required": "State is required",
@@ -709,17 +709,17 @@
   "dtoForm": {
     "title": "Create DTO/RTO",
     "fields": {
-      "name": "Name",
-      "email": "Email",
-      "mobile": "Mobile",
+      "name": "User Name",
+      "email": "User Email",
+      "mobile": "User Mobile Number",
       "state": "State",
       "districtCode": "District Code",
       "idProofNo": "ID Proof Number",
-      "dob": "Date of Birth",
+      "dob": "User Date of Birth",
       "expiryDate": "Expiry Date",
       "dtoRto": "DTO/RTO",
-      "idProof": "ID Proof",
-      "authorisationLetter": "Authorisation Letter"
+      "idProof": "Upload ID Proof",
+      "authorisationLetter": "Upload Authorisation Letter"
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -782,20 +782,20 @@
     "title": "Create Dealer Account",
     "fields": {
       "manufacturer": "Manufacturer",
-      "name": "Name",
-      "email": "Email",
-      "mobile": "Mobile",
-      "dob": "Date of Birth",
+      "name": "User Name",
+      "email": "User Email",
+      "mobile": "User Mobile Number",
+      "dob": "User Date of Birth",
       "companyName": "Company Name",
       "gstNo": "GST No",
       "state": "State Name",
       "district": "District Name",
       "userIdProofNo": "User ID Proof Number",
       "expirydate": "Expiry Date",
-      "authorizationLetter": "Authorization Letter",
-      "companyRegistrationCertificate": "Company/Shop Registration/Establishment Certificate",
-      "gstCertificate": "GST Certificate",
-      "userIdProof": "User ID Proof"
+      "authorizationLetter": "Upload Authorization Letter",
+      "companyRegistrationCertificate": "Upload Company/Shop Registration/Establishment Certificate",
+      "gstCertificate": "Upload GST Certificate",
+      "userIdProof": "Upload User ID Proof"
     },
     "validation": {
       "manufacturerRequired": "Manufacturer is required",
@@ -871,14 +871,14 @@
   "vehicleOwnerForm": {
     "title": "Vehicle Owner Registration",
     "fields": {
-      "name": "Full Name",
-      "email": "Email Address",
-      "mobile": "Mobile Number",
-      "dob": "Date of Birth",
-      "address": "Address",
+      "name": "User Name",
+      "email": "User Email Address",
+      "mobile": "User Mobile Number",
+      "dob": "User Date of Birth",
+      "address": "User Address",
       "expiryDate": "Expiry Date",
       "idProofNo": "ID Proof Number",
-      "idProof": "ID Proof Document",
+      "idProof": "Upload ID Proof",
       "fileMessage": "Only JPG, PNG, PDF files are allowed and size should be less than 512KB"
     },
     "validation": {
@@ -900,14 +900,14 @@
   "sosUserForm": {
     "title": "Create SOS User",
     "fields": {
-      "name": "Name",
-      "mobile": "Mobile",
-      "email": "Email",
-      "dob": "Date of Birth",
+      "name": "User Name",
+      "mobile": "User Mobile",
+      "email": "User Email",
+      "dob": "User Date of Birth",
       "state": "State",
       "idProofNo": "ID Proof Number",
-      "idProof": "ID Proof Document",
-      "authLetter": "Authorization Letter",
+      "idProof": "Upload ID Proof",
+      "authLetter": "Upload Authorization Letter",
       "userType": "User Type",
       "fileMessage": "Only JPG, PDF, PNG files are allowed and must be below 512KB"
     },
@@ -954,7 +954,7 @@
   "emTeamForm": {
     "title": "Create EM Team",
     "fields": {
-      "name": "Name",
+      "name": "Team Name",
       "shiftDetails": "Shift Details",
       "stateName": "State Name",
       "teamLead": "Team Lead",

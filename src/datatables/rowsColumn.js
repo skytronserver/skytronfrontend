@@ -218,6 +218,34 @@ export const dealerListColumn = [
     },
   },
   {
+    name: "state_info",
+    label: "State",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value?.state}</p>
+        );
+      },
+      csvExportKey: "state",
+    },
+  },
+  {
+    name: "manufacturer",
+    label: "Manufacturer",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value?.company_name}</p>
+        );
+      },
+      csvExportKey: "company_name",
+    },
+  },
+  {
     name: "gstnnumber",
     label: "GST No.",
     options: {
@@ -318,6 +346,20 @@ export const sosListColumn = [
       },
       csvExportKey: "email",
       columnKey:0,
+    },
+  },
+  {
+    name: "state_info",
+    label: "State",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value?.state}</p>
+        );
+      },
+      csvExportKey: "state",
     },
   },
   {
@@ -653,6 +695,21 @@ export const manufacturerColumns = [
   },
   {
     name: "users",
+    label: "Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].name}</p>
+        );
+      },
+      csvExportKey: "name",
+      columnKey:0,
+    },  
+  },
+  {
+    name: "users",
     label: "Email Id",
     options: {
       filter: false,
@@ -682,19 +739,32 @@ export const manufacturerColumns = [
     },  
   },
   {
-    name: "users",
-    label: "Name",
+    name: "esim_provider",
+    label: "ESIM Provider",
     options: {
       filter: false,
       sort: false,
       customBodyRender: (value, tableMeta, updateValue) => {
         return (
-          <p>{value[0].name}</p>
+          <p>{value[0]?.company_name}</p>
         );
       },
-      csvExportKey: "name",
-      columnKey:0,
+      csvExportKey: "company_name",
     },  
+  },
+  {
+    name: "state",
+    label: "State",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value?.state}</p>
+        );
+      },
+      csvExportKey: "state",
+    },
   },
   {
     name: "gstnnumber",
@@ -702,6 +772,21 @@ export const manufacturerColumns = [
     options: {
       filter: true,
       sort: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].created_by_name}</p>
+        );
+      },
+      csvExportKey: "created_by_name",
+      columnKey:0,
     },
   },
   {
@@ -785,11 +870,41 @@ export const serviceProviderCol = [
     },  
   },
   {
+    name: "state_info",
+    label: "State",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        console.log(value,"value");
+        return (
+          <p>{value?.state}</p>
+        );
+      },
+      csvExportKey: "state",
+    },
+  },
+  {
     name: "gstnnumber",
     label: "GSTN No.",
     options: {
       filter: true,
       sort: false,
+    },
+  },
+  {
+    name: "users",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].created_by_name}</p>
+        );
+      },
+      csvExportKey: "created_by_name",
+      columnKey:0,
     },
   },
   {
@@ -901,6 +1016,20 @@ export const stateAdminColumn = [
     options: {
       filter: true,
       sort: false,
+    },
+  },
+  {
+    name: "state_info",
+    label: "State",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value?.state}</p>
+        );
+      },
+      csvExportKey: "state",
     },
   },
 ];
@@ -1319,6 +1448,14 @@ export const vehicleOwnerCols = [
     },  
   },
   {
+    name: "idProofno",
+    label: "ID Proof No",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
     name: "users",
     label: "Status",
     options: {
@@ -1332,6 +1469,21 @@ export const vehicleOwnerCols = [
       csvExportKey: "status",
       columnKey:0,
     },  
+  },
+  {
+    name: "users",
+    label: "Created By",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value[0].created_by_name}</p>
+        );
+      },
+      csvExportKey: "created_by_name",
+      columnKey:0,
+    },
   },
   {
     name: "users",
