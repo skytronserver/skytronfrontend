@@ -1,4 +1,5 @@
 // assets
+import { breadcrumbsClasses } from "@mui/material";
 import {
   IconUser,
   IconBrandChrome,
@@ -433,7 +434,7 @@ const user = {
       title: "Reports",
       type: "collapse",
       icon: icons.IconReport,
-      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","superadmin","owner"],
+      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","superadmin"],
       children: [
         {
           id: "sos-other-list",
@@ -442,6 +443,14 @@ const user = {
           url: "/user/sos-other-list",
           breadcrumbs: false,
           roles: ["sosadmin"],
+        },
+        {
+          id:"sos_timestamp",
+          title:"SOS Timestamp",
+          type:"item",
+          url:"/sosTimestamp",
+          breadcrumbs:false,
+          roles:["sosadmin"]
         },
         {
           id: "all-notice-list",

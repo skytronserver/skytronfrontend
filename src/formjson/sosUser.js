@@ -1,3 +1,4 @@
+import { disable } from "ol/rotationconstraint";
 import * as Yup from "yup";
 let stateList = [];
 const FILE_SIZE = 512 * 1024; // 512 KB
@@ -258,10 +259,11 @@ export const emTeamFormField = {
   },
   state: {
     name: "state",
-    type: "select",
+    type: "text",
     label: "emTeamForm.fields.stateName",
     validation: Yup.string().required("emTeamForm.validation.stateRequired"),
-    options: stateList,
+    disabled:'true'
+    // options: stateList,
   },
   teamlead: {
     name: "teamlead",

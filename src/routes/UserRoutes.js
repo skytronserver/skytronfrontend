@@ -38,6 +38,7 @@ import EsimProviderList from "../views/reports/EsimProviderList";
 import NoticeList from "../views/reports/NoticeList";
 import CreateEMTeam from "../views/sosManagement/CreateEMTeam";
 import ListEmTeam from "../views/sosManagement/ListEmTeam";
+import SOSTimestamp from "views/sosManagement/SOSTimestamp";
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
@@ -141,7 +142,7 @@ const UserRoutes = {
     {
       path: "/user/vehicle-owner-list",
       element: <VehicleOwnerList />,
-      roles: ["dealer", "stateadmin","superadmin"],
+      roles: ["dealer", "stateadmin", "superadmin"],
     },
     {
       path: "/new/otherUser",
@@ -189,7 +190,7 @@ const UserRoutes = {
     {
       path: "/user/detail/:userType/:userId",
       element: <Details />,
-      roles: ["superadmin", "stateadmin", "dealer", "devicemanufacture","sosadmin"],
+      roles: ["superadmin", "stateadmin", "dealer", "devicemanufacture", "sosadmin"],
     },
     {
       path: "/file",
@@ -230,6 +231,11 @@ const UserRoutes = {
       path: "/list/em-team",
       element: <ListEmTeam />,
       roles: ["sosadmin"],
+    },
+    {
+      path: "/sosTimestamp",
+      element: <SOSTimestamp />,
+      roles:["superadmin","sosadmin"]
     },
   ].map((route) => applyPrivateRoute(route)),
 };

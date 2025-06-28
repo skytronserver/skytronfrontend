@@ -96,6 +96,14 @@ export const deviceFormField = {
       .matches(/^[0-9]{19,20}$/,"ICCID must be 19 or 20 digits")
       .required("deviceForm.validation.iccidRequired")
   },
+  iccid2: {
+    name: "iccid2",
+    type: "text",
+    label: "deviceForm.fields.iccid2",
+    validation: Yup.string()
+      .matches(/^[0-9]{19,20}$/,"ICCID must be 19 or 20 digits")
+      .required("deviceForm.validation.iccidRequired")
+  },
   telecom_provider1: {
     name: "telecom_provider1",
     type: "text",

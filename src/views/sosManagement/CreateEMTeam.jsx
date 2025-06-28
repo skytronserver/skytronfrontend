@@ -38,6 +38,8 @@ const CreateEMTeam = () => {
         state: {
           ...prevConfig.state,
           options: stateList,
+          value: stateList?.[0]?.label || '',
+          id: stateList?.[0]?.value || '',
         },
         teamlead:{
           ...prevConfig.teamlead,
@@ -48,6 +50,15 @@ const CreateEMTeam = () => {
           options:sosTeam
         }
       }));
+      
+      // Update initial values to include the prefilled state
+      if (stateList?.[0]) {
+        setEmInitialValues(prev => ({
+          ...prev,
+          state: stateList[0].label
+        }));
+      }
+      
       setIsFormLoaded(true);
     })();
   }, []);
@@ -74,10 +85,18 @@ const CreateEMTeam = () => {
         }
       })();
     } else {
-      setEmInitialValues(emTeamInitialValues);
+      // For new team creation, check if we have state list loaded and prefill
+      if (updatedFormFields.state?.options?.length > 0) {
+        setEmInitialValues(prev => ({
+          ...emTeamInitialValues,
+          state: updatedFormFields.state.options[0].label
+        }));
+      } else {
+        setEmInitialValues(emTeamInitialValues);
+      }
       setEditPage(false);
     }
-  }, [parameter]);
+  }, [parameter, updatedFormFields.state?.options]);
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/new/em-team");

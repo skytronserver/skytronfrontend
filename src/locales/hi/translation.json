@@ -625,6 +625,7 @@
       "cop_no": "सीओपी नंबर",
       "cop_validity": "सीओपी वैधता",
       "iccid": "ईसिम नंबर (आईसीसीआईडी)",
+      "iccid2":"ईसिम नंबर (आईसीसीआईडी)",
       "telecom_provider1": "ईसिम दूरसंचार सेवा प्रदाता 1",
       "telecom_provider2": "ईसिम दूरसंचार सेवा प्रदाता 2",
       "msisdn1": "ईसिम मोबाइल नंबर एमएसआईएसडीएन 1",
@@ -1301,5 +1302,19 @@
         "deactive": "निष्क्रिय"
       }
     }
+  },
+  "sosTimestamp": {
+    "title": "एसओएस कॉल जीवनचक्र रिपोर्ट",
+    "date": "तिथि",
+    "vehicleRegNo": "वाहन पंजीकरण संख्या",
+    "incidentDate": "घटना की तिथि",
+    "sosCallHit": "एसओएस कॉल हिट समय",
+    "sosCallDisplay": "एसओएस कॉल प्रदर्शन समय",
+    "broadArriving": "ब्रॉड आगमन समय",
+    "closerRequest": "क्लोजर अनुरोध समय",
+    "actualCallClose": "वास्तविक कॉल बंद समय",
+    "responseTime": "प्रतिक्रिया समय",
+    "totalDuration": "कुल अवधि",
+    "status": "स्थिति"
   }
 }

@@ -446,39 +446,44 @@ const RouteFixing = () => {
 
       {load && (
         <Box className="button-container" sx={{ mt: 3 }}>
-          <Select
-            id="routeDropdown"
-            value={selectedRoute ? `${selectedRoute.routeId}|${selectedRoute.routeRout}` : ""}
-            onChange={handleRouteSelect}
-            displayEmpty
-            fullWidth
-          >
-            <MenuItem value="" disabled>
-              Select a route
-            </MenuItem>
-            {routeData.map((route) => (
-              <MenuItem 
-                value={`${route.id}|${route.route}`} 
-                key={route.id}
+          <Grid container spacing={2} alignItems="center">
+            <Grid item md={6} sm={12} xs={12}>
+              <Select
+                id="routeDropdown"
+                value={selectedRoute ? `${selectedRoute.routeId}|${selectedRoute.routeRout}` : ""}
+                onChange={handleRouteSelect}
+                displayEmpty
+                fullWidth
               >
-                {`Route #${route.id}`}
-              </MenuItem>
-            ))}
-          </Select>
-
-          <Box sx={{ mt: 2 }}>
-            <Button onClick={addRoute} variant="contained" color="primary">
-              Add Route
-            </Button>
-            <Button
-              onClick={delRoute}
-              variant="contained"
-              color="secondary"
-              sx={{ ml: 2 }}
-            >
-              Delete Route
-            </Button>
-          </Box>
+                <MenuItem value="" disabled>
+                  View route
+                </MenuItem>
+                {routeData.map((route) => (
+                  <MenuItem 
+                    value={`${route.id}|${route.route}`} 
+                    key={route.id}
+                  >
+                    {`Route #${route.id}`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Grid>
+            <Grid item md={3} sm={6} xs={6}>
+              <Button
+                onClick={delRoute}
+                variant="contained"
+                color="secondary"
+                fullWidth
+              >
+                Delete Route
+              </Button>
+            </Grid>
+            <Grid item md={3} sm={6} xs={6}>
+              <Button onClick={addRoute} variant="contained" color="primary" fullWidth>
+                Add Route
+              </Button>
+            </Grid>
+          </Grid>
         </Box>
       )}
 

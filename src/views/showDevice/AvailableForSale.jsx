@@ -85,7 +85,7 @@ const AvailableForSale = () => {
     },
   ];
 
-  const columns = role !== 'devicemanufacture' ? availableForSalesColumn.concat(actionColumn) : availableForSalesColumn;
+  const columns = role !== 'devicemanufacture' ? availableForSalesColumn : availableForSalesColumn;
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>

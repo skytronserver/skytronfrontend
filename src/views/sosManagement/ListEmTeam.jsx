@@ -5,14 +5,17 @@ import { gridSpacing } from "../../store/constant";
 import SOSManagement from "../../services/SOSManagement";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 //Datatables
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { emTeamColumns } from "../../datatables/rowsColumn";
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 const ListEmTeam = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [load, setLoad] = useState(false);
   const [del, setDel] = useState(false);
   const [emTeamList, setEmTeamList] = useState([]);
@@ -70,6 +73,11 @@ const ListEmTeam = () => {
     }
   };
 
+  const handleEdit = (e, id) => {
+    e.preventDefault();
+    navigate(`/new/em-team/${id}`);
+  };
+
   const actionColumn = [
     {
       name: "Action",
@@ -79,6 +87,13 @@ const ListEmTeam = () => {
         customBodyRender: (value, tableMeta) => {
           return (
             <div className="cellAction" style={{ display: "flex" }}>
+              <Button
+                color="primary"
+                onClick={(e) => handleEdit(e, tableMeta.rowData[0])}
+                title={t('emTeam.editTeam')}
+              >
+                <EditIcon />
+              </Button>
               {tableMeta.rowData[1]!=='Active' && tableMeta.rowData[1]!=='Removed' && <Button
                 color="primary"
                 onClick={(e) => handleActivate(e, tableMeta.rowData[0])}

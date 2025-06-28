@@ -9,7 +9,7 @@ const icons = { IconBrandChrome, IconHelp, IconSettings };
 const other = {
   id: 'setting-all-routes',
   type: 'group',
-  roles: ['superadmin', 'dealer', 'devicemanufacture'],
+  roles: ['superadmin', 'devicemanufacture'],
   children: [
     {
       id: 'setting-all',

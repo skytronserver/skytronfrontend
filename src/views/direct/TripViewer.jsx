@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import HomePageService from "../../services/HomePage";
 import { useTranslation } from 'react-i18next';
-import { FormControl, Autocomplete, TextField, Button, Grid, Box, Typography, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Slider, Stack, FormControlLabel, Checkbox } from '@mui/material';
+import { FormControl, Autocomplete, TextField, Button, Grid, Box, Typography, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Slider, Stack, FormControlLabel, Checkbox, Skeleton, CircularProgress } from '@mui/material';
 import { Map, View } from 'ol';
 import { Tile as TileLayer } from 'ol/layer';
 import { OSM, TileWMS } from 'ol/source';
@@ -43,6 +43,8 @@ const TripViewer = () => {
     markers: true
   });
   const [showMap, setShowMap] = useState(false);
+  const [loadingTrips, setLoadingTrips] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
 
   const mapRef = useRef(null);
   const map = useRef(null);
@@ -307,6 +309,9 @@ const TripViewer = () => {
   const fetchTripData = async () => {
     if (!vehicleNo) return;
 
+    setInitialLoading(true);
+    setShowMap(true);
+    
     try {
       const endDate = new Date();
       let startDate = new Date();
@@ -327,6 +332,10 @@ const TripViewer = () => {
         default:
           startDate.setDate(startDate.getDate() - 1);
       }
+
+      // Switch to skeleton loading after initial setup
+      setInitialLoading(false);
+      setLoadingTrips(true);
 
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_URL}api/gps_history_map_data/`,
@@ -353,7 +362,6 @@ const TripViewer = () => {
         console.log('Trip details:', tripDetails);
         
         setTrips(tripDetails);
-        setShowMap(true);
         
         if (tripDetails.length > 0) {
           setSelectedTrip(tripDetails[0]);
@@ -362,6 +370,8 @@ const TripViewer = () => {
       }
     } catch (error) {
       console.error('Error fetching trip data:', error);
+    } finally {
+      setLoadingTrips(false);
     }
   };
 
@@ -597,9 +607,14 @@ const TripViewer = () => {
                 color="primary"
                 fullWidth
                 onClick={fetchTripData}
+                disabled={initialLoading || loadingTrips}
                 sx={{ height: '56px' }}
               >
-                {t('tripViewer.buttons.submit')}
+                {initialLoading || loadingTrips ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  t('tripViewer.buttons.submit')
+                )}
               </Button>
             </Grid>
           </Grid>
@@ -625,31 +640,53 @@ const TripViewer = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {trips.map((trip, index) => (
-                      <TableRow 
-                        key={index}
-                        onClick={() => handleTripClick(trip)}
-                        sx={{ 
-                          cursor: 'pointer',
-                          '&:hover': { backgroundColor: '#f5f5f5' },
-                          backgroundColor: selectedTrip === trip ? '#e3f2fd' : 'inherit'
-                        }}
-                      >
-                        <TableCell>{trip.stats.startTime}</TableCell>
-                        <TableCell>{trip.stats.endTime}</TableCell>
-                        <TableCell>{trip.stats.distance} km</TableCell>
-                        <TableCell>{trip.stats.duration} min</TableCell>
-                        <TableCell>{trip.stats.averageSpeed} km/h</TableCell>
-                        <TableCell>{trip.stats.points}</TableCell>
+                    {loadingTrips ? (
+                      // Show skeleton loading animation
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <TableRow key={`skeleton-${index}`}>
+                          <TableCell><Skeleton animation="wave" /></TableCell>
+                          <TableCell><Skeleton animation="wave" /></TableCell>
+                          <TableCell><Skeleton animation="wave" /></TableCell>
+                          <TableCell><Skeleton animation="wave" /></TableCell>
+                          <TableCell><Skeleton animation="wave" /></TableCell>
+                          <TableCell><Skeleton animation="wave" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : trips.length > 0 ? (
+                      trips.map((trip, index) => (
+                        <TableRow 
+                          key={index}
+                          onClick={() => handleTripClick(trip)}
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:hover': { backgroundColor: '#f5f5f5' },
+                            backgroundColor: selectedTrip === trip ? '#e3f2fd' : 'inherit'
+                          }}
+                        >
+                          <TableCell>{trip.stats.startTime}</TableCell>
+                          <TableCell>{trip.stats.endTime}</TableCell>
+                          <TableCell>{trip.stats.distance} km</TableCell>
+                          <TableCell>{trip.stats.duration} min</TableCell>
+                          <TableCell>{trip.stats.averageSpeed} km/h</TableCell>
+                          <TableCell>{trip.stats.points}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          <Typography variant="body2" color="textSecondary">
+                            {t('tripViewer.noTripsFound') || 'No trips found for the selected criteria'}
+                          </Typography>
+                        </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
             </Paper>
 
             {/* Selected Trip Stats Section */}
-            {selectedTrip && (
+            {selectedTrip && !loadingTrips && (
               <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={4}>
@@ -695,6 +732,233 @@ const TripViewer = () => {
                 height: '100%'
               }
             }}>
+              {initialLoading && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1001,
+                    backdropFilter: 'blur(3px)'
+                  }}
+                >
+                  <Box sx={{ textAlign: 'center', maxWidth: '400px', p: 3 }}>
+                    {/* Animated Route/Map Icon */}
+                    <Box
+                      sx={{
+                        width: '120px',
+                        height: '120px',
+                        margin: '0 auto 20px',
+                        position: 'relative',
+                        animation: 'pulse 2s ease-in-out infinite'
+                      }}
+                    >
+                      {/* Animated Route Line */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '20%',
+                          right: '20%',
+                          height: '4px',
+                          background: 'linear-gradient(90deg, #0066ff, #00ccff, #0066ff)',
+                          borderRadius: '2px',
+                          animation: 'routeFlow 3s linear infinite',
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '-8px',
+                            left: '0%',
+                            width: '16px',
+                            height: '16px',
+                            borderRadius: '50%',
+                            background: '#0066ff',
+                            animation: 'moveDot 3s linear infinite'
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '0%',
+                            width: '16px',
+                            height: '16px',
+                            borderRadius: '50%',
+                            background: '#00ccff',
+                            animation: 'moveDotReverse 3s linear infinite'
+                          }
+                        }}
+                      />
+                      
+                      {/* Map Pin */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '20%',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: '0',
+                          height: '0',
+                          borderLeft: '12px solid transparent',
+                          borderRight: '12px solid transparent',
+                          borderBottom: '20px solid #ff6b35',
+                          animation: 'bounce 1.5s ease-in-out infinite'
+                        }}
+                      />
+                      
+                      {/* Compass */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: '15%',
+                          right: '15%',
+                          width: '30px',
+                          height: '30px',
+                          border: '3px solid #0066ff',
+                          borderRadius: '50%',
+                          animation: 'rotate 4s linear infinite',
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '2px',
+                            height: '20px',
+                            background: '#0066ff'
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '20px',
+                            height: '2px',
+                            background: '#0066ff'
+                          }
+                        }}
+                      />
+                    </Box>
+                    
+                    {/* Loading Text */}
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        mb: 2, 
+                        color: '#2c3e50',
+                        fontWeight: 600,
+                        animation: 'fadeInOut 2s ease-in-out infinite'
+                      }}
+                    >
+                      Please wait while we calculate your trip...
+                    </Typography>
+                    
+                    {/* Progress Dots */}
+                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                      {[0, 1, 2].map((index) => (
+                        <Box
+                          key={index}
+                          sx={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            backgroundColor: '#0066ff',
+                            animation: `dotPulse 1.4s ease-in-out infinite ${index * 0.2}s`
+                          }}
+                        />
+                      ))}
+                    </Box>
+                    
+                    {/* Additional Info */}
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        mt: 2, 
+                        color: '#7f8c8d',
+                        fontStyle: 'italic'
+                      }}
+                    >
+                      Analyzing GPS data and route information
+                    </Typography>
+                  </Box>
+                  
+                  {/* CSS Animations */}
+                  <style>
+                    {`
+                      @keyframes pulse {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                      }
+                      
+                      @keyframes routeFlow {
+                        0% { background-position: -200px 0; }
+                        100% { background-position: 200px 0; }
+                      }
+                      
+                      @keyframes moveDot {
+                        0% { left: 0%; }
+                        100% { left: 100%; }
+                      }
+                      
+                      @keyframes moveDotReverse {
+                        0% { right: 0%; }
+                        100% { right: 100%; }
+                      }
+                      
+                      @keyframes bounce {
+                        0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+                        40% { transform: translateX(-50%) translateY(-10px); }
+                        60% { transform: translateX(-50%) translateY(-5px); }
+                      }
+                      
+                      @keyframes rotate {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                      }
+                      
+                      @keyframes fadeInOut {
+                        0%, 100% { opacity: 0.7; }
+                        50% { opacity: 1; }
+                      }
+                      
+                      @keyframes dotPulse {
+                        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+                        40% { transform: scale(1); opacity: 1; }
+                      }
+                    `}
+                  </style>
+                </Box>
+              )}
+              {loadingTrips && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1001,
+                    backdropFilter: 'blur(2px)'
+                  }}
+                >
+                  <Box sx={{ textAlign: 'center' }}>
+                    <CircularProgress size={60} />
+                    <Typography variant="h6" sx={{ mt: 2, color: 'text.secondary' }}>
+                      Loading trip data...
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
               <Box 
                 ref={mapRef}
                 className="ol-map" 

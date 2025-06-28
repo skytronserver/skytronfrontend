@@ -1433,21 +1433,6 @@ export const vehicleOwnerCols = [
     },  
   },
   {
-    name: "users",
-    label: "DOB",
-    options: {
-      filter: false,
-      sort: false,
-      customBodyRender: (value, tableMeta, updateValue) => {
-        return (
-          <p>{value[0].dob}</p>
-        );
-      },
-      csvExportKey: "dob",
-      columnKey:0,
-    },  
-  },
-  {
     name: "idProofno",
     label: "ID Proof No",
     options: {
