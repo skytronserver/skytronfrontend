@@ -2,6 +2,9 @@
 import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP,BASE_URL } from '../store/constant';
 import { cipherEncryption } from '../helper';
 import axios from 'axios';
+// Import node-forge for RSA encryption
+import forge from 'node-forge';
+
 export const setUser = (user) => ({
   type: SET_USER,
   payload: user,
@@ -27,12 +30,50 @@ export const logoutUser=(user)=>({
   type:"LOGOUT_USER",
   payload:user,
 })
+
+// Function to encrypt password using RSA encryption with node-forge
+const encryptPassword = (password) => {
+  // RSA public key for password encryption
+  const publicKeyPem = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6hUN7F1LHsJu7fCYMd2S
+BOot3n++YPA4I19PJxVvPmNbv2Smm8orCnlp5daNAKy8HtuLHXclSmVSVL6M9J8f
+2E2mUl0zlfs34KycxNs6JBV8+6MZSlsW6SltwKTuhWCcAVA5sK9nL358MclDwKZv
+3Ya4TcNVwDyZlnT/SMJvRwBi/eHtYep4giKB7mnrMeCSL3QdRMoSPX/ohcQBIRsD
+Q/rPeb4epepHB6yy3iQ7d9+jBlxCSv5Kkigu07kcCKzDNKtuO9WbNkg/46cStGLD
+mlnScYUaN7TJLBpzqBHkliMoexKcYlPRG/+ApqiGoB9hztb1gfwBdTlOUhJtnN0y
+UwIDAQAB
+-----END PUBLIC KEY-----`;
+
+  try {
+    // Convert the public key PEM to a forge public key object
+    const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
+
+    // Encrypt the password using RSA-OAEP with SHA-1
+    const encryptedData = publicKey.encrypt(password, "RSA-OAEP", {
+      md: forge.md.sha1.create(),                // Use SHA-1 for hashing
+      mgf1: forge.mgf.mgf1.create(forge.md.sha1.create()), // MGF1 with SHA-1
+    });
+
+    // Encode the encrypted data in base64 for transmission
+    const encryptedPasswordBase64 = forge.util.encode64(encryptedData);
+    
+    return encryptedPasswordBase64;
+  } catch (error) {
+    console.error('Password encryption failed:', error);
+    throw new Error('Password encryption failed');
+  }
+};
+
 export const loginUser = (username, password,captcha_key,captcha_reply) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
+    
+    // Encrypt the password before sending to API
+    const encryptedPassword = encryptPassword(password);
+    
     const response = await axios.post(`${BASE_URL}api/user_login/`, {
       username,
-      password,
+      password: encryptedPassword, // Send encrypted password instead of plain text
       captcha_key,
       captcha_reply
     });

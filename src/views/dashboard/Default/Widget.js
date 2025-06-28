@@ -61,7 +61,7 @@ const Widget = ({
               >
                 {typeof heading === 'string' && heading.startsWith('dashboard.headings.') 
                   ? t(heading)
-                  : t(`${heading.replace(/\s+/g, '')}`)}
+                  : t(heading)}
               </Typography>
               <Box>
                 {labelNew.map((item, index) => (

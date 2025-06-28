@@ -189,7 +189,7 @@ export const dealerListColumn = [
   },
   {
     name: "users",
-    label: "Mobile",
+    label: "User Mobile",
     options: {
       filter: false,
       sort: false,
@@ -204,7 +204,7 @@ export const dealerListColumn = [
   },
   {
     name: "users",
-    label: "Email",
+    label: "User Email",
     options: {
       filter: false,
       sort: false,
@@ -305,7 +305,7 @@ export const sosListColumn = [
   },
   {
     name: "users",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: false,
       sort: false,
@@ -320,7 +320,7 @@ export const sosListColumn = [
   },
   {
     name: "users",
-    label: "Mobile",
+    label: "User Mobile",
     options: {
       filter: false,
       sort: false,
@@ -335,7 +335,7 @@ export const sosListColumn = [
   },
   {
     name: "users",
-    label: "Email",
+    label: "User Email",
     options: {
       filter: false,
       sort: false,
@@ -414,7 +414,7 @@ export const dtoListColumn = [
   },
   {
     name: "users",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: false,
       sort: false,
@@ -429,7 +429,7 @@ export const dtoListColumn = [
   },
   {
     name: "users",
-    label: "Mobile",
+    label: "User Mobile",
     options: {
       filter: false,
       sort: false,
@@ -444,7 +444,7 @@ export const dtoListColumn = [
   },
   {
     name: "users",
-    label: "Email",
+    label: "User Email",
     options: {
       filter: false,
       sort: false,
@@ -600,7 +600,7 @@ export const registeredUserColumns = [
   },
   {
     name: "name",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: false,
       sort: false,
@@ -608,7 +608,7 @@ export const registeredUserColumns = [
   },
   {
     name: "email",
-    label: "Email",
+    label: "User Email",
     options: {
       filter: false,
       sort: false,
@@ -616,7 +616,7 @@ export const registeredUserColumns = [
   },
   {
     name: "mobile",
-    label: "Mobile No",
+    label: "User Mobile Number",
     options: {
       filter: false,
       sort: false,
@@ -695,7 +695,7 @@ export const manufacturerColumns = [
   },
   {
     name: "users",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: false,
       sort: false,
@@ -710,7 +710,7 @@ export const manufacturerColumns = [
   },
   {
     name: "users",
-    label: "Email Id",
+    label: "User Email Id",
     options: {
       filter: false,
       sort: false,
@@ -725,7 +725,7 @@ export const manufacturerColumns = [
   },
   {
     name: "users",
-    label: "Mobile",
+    label: "User Mobile",
     options: {
       filter: false,
       sort: false,
@@ -826,7 +826,7 @@ export const serviceProviderCol = [
   },
   {
     name: "users",
-    label: "Email Id",
+    label: "User Email Id",
     options: {
       filter: false,
       sort: false,
@@ -841,7 +841,7 @@ export const serviceProviderCol = [
   },
   {
     name: "users",
-    label: "Mobile",
+    label: "User Mobile",
     options: {
       filter: false,
       sort: false,
@@ -856,7 +856,7 @@ export const serviceProviderCol = [
   },
   {
     name: "users",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: false,
       sort: false,
@@ -936,7 +936,7 @@ export const stateAdminColumn = [
   },
   {
     name: "users",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: false,
       sort: false,
@@ -951,7 +951,7 @@ export const stateAdminColumn = [
   },
   {
     name: "users",
-    label: "Email Id",
+    label: "User Email Id",
     options: {
       filter: false,
       sort: false,
@@ -966,7 +966,7 @@ export const stateAdminColumn = [
   },
   {
     name: "users",
-    label: "Mobile",
+    label: "User Mobile",
     options: {
       filter: false,
       sort: false,
@@ -1046,7 +1046,7 @@ export const userColumns = [
   },
   {
     name: "name",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: true,
       sort: false,
@@ -1062,7 +1062,7 @@ export const userColumns = [
   },
   {
     name: "email",
-    label: "Email",
+    label: "User Email",
     options: {
       filter: true,
       sort: false,
@@ -1389,7 +1389,7 @@ export const vehicleOwnerCols = [
   },
   {
     name: "users",
-    label: "Name",
+    label: "User Name",
     options: {
       filter: false,
       sort: false,
@@ -1404,7 +1404,7 @@ export const vehicleOwnerCols = [
   },
   {
     name: "users",
-    label: "Email Id",
+    label: "User Email Id",
     options: {
       filter: false,
       sort: false,
@@ -1419,7 +1419,7 @@ export const vehicleOwnerCols = [
   },
   {
     name: "users",
-    label: "Mobile",
+    label: "User Mobile",
     options: {
       filter: false,
       sort: false,
