@@ -160,6 +160,17 @@ const FormField = ({
               const fieldName = originalEvent?.currentTarget?.name;
 
               if (!file) return;
+              
+              const maxSize = 512 * 1024; // 512 KB
+              
+              if (file.size > maxSize) {
+                formik.setFieldValue(fieldName, '');
+                formik.setFieldTouched(fieldName, true, false);
+                setTimeout(() => {
+                  formik.setFieldError(fieldName, 'File size should not exceed 512 KB');
+                }, 0);
+                return;
+              }
 
               // Clear previous errors
               formik.setFieldError(fieldName, '');
@@ -167,7 +178,9 @@ const FormField = ({
               // Read file header to check signature
               const reader = new FileReader();
               reader.onerror = function() {
-                formik.setFieldError(fieldName, 'Error reading file');
+                setTimeout(() => {
+                  formik.setFieldError(fieldName, 'Error reading file');
+                }, 0);
               };
 
               reader.onload = function(e) {
@@ -191,8 +204,11 @@ const FormField = ({
                   }
                   
                   if (!isValidType) {
-                    formik.setFieldError(fieldName, 'Only Excel and CSV files are allowed');
-                    formik.setFieldValue(fieldName, ''); // Clear the field value
+                    formik.setFieldValue(fieldName, '');
+                    formik.setFieldTouched(fieldName, true, false);
+                    setTimeout(() => {
+                      formik.setFieldError(fieldName, 'Invalid format: Only Excel and CSV files are allowed');
+                    }, 0);
                     return;
                   }
                 } else {
@@ -209,8 +225,11 @@ const FormField = ({
                     validSignatures.jpeg.some(sig => header.startsWith(sig));
                   
                   if (!isValidType) {
-                    formik.setFieldError(fieldName, 'Only PDF, PNG, and JPG files are allowed');
-                    formik.setFieldValue(fieldName, ''); // Clear the field value
+                    formik.setFieldValue(fieldName, '');
+                    formik.setFieldTouched(fieldName, true, false);
+                    setTimeout(() => {
+                      formik.setFieldError(fieldName, 'Invalid format: Only PDF, PNG, and JPG files are allowed');
+                    }, 0);
                     return;
                   }
                 }
@@ -218,7 +237,7 @@ const FormField = ({
                 // If validation passes, update form and call handler
                 if (isValidType) {
                   formik.setFieldValue(fieldName, file);
-                  
+                  formik.setFieldError(fieldName, '');
                   // Call handleFileChange with a new event object
                   if (handleFileChange) {
                     const syntheticEvent = {
