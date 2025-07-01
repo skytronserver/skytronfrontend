@@ -158,7 +158,7 @@ const user = {
       url: "/sos-call-list",
       icon: icons.IconUrgent,
       breadcrumbs: false,
-      roles: ["desk_ex", "teamlead"],
+      roles: ["desk_ex", "teamlead", "sosadmin"],
     },
     {
       id: "route-fixing",

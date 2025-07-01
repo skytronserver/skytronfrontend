@@ -332,7 +332,13 @@ function TagDeviceToVehicle() {
     setSubmitting(true);
     setLoading((prev) => ({ ...prev, loader: true }));
     try {
-      const response = await TaggingService.tagDeviceToVehicle(values);
+      const apiValues = {
+        ...values,
+        vehicle_reg_no: `${values.district_code}${values.vehicle_number}`,
+      };
+      delete apiValues.district_code;
+      delete apiValues.vehicle_number;
+      const response = await TaggingService.tagDeviceToVehicle(apiValues);
       resetForm(taggingInitials);
       setDeviceId(response?.data?.data?.device);
       setActiveStep(prevActiveStep => prevActiveStep + 1);
@@ -426,15 +432,46 @@ function TagDeviceToVehicle() {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field) => (
-                        <Grid key={field} item md={6} sm={12} xs={12}>
-                          <FormField
-                            fieldConfig={updatedFormFields[field]}
-                            formik={formik}
-                            handleFileChange={handleFileChange}
-                          />
-                        </Grid>
-                      ))}
+                      {Object.keys(updatedFormFields).map((field, idx, arr) => {
+                        if (field === "vehicle_reg_no") return null; // skip old field
+                        // Custom rendering for district_code + vehicle_number as one row
+                        if (field === "district_code") {
+                          return (
+                            <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
+                              <Grid container spacing={1} alignItems="flex-end">
+                                <Grid item xs={5}>
+                                  <FormField
+                                    fieldConfig={updatedFormFields["district_code"]}
+                                    formik={formik}
+                                    handleOptionChange={(e, formik) => formik.setFieldValue("district_code", e.target.value)}
+                                  />
+                                </Grid>
+                                <Grid item xs={7}>
+                                  <FormField
+                                    fieldConfig={updatedFormFields["vehicle_number"]}
+                                    formik={formik}
+                                    onChange={(e) => {
+                                      let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                                      formik.setFieldValue("vehicle_number", value);
+                                    }}
+                                  />
+                                </Grid>
+                              </Grid>
+                            </Grid>
+                          );
+                        }
+                        // Skip vehicle_number, since it's rendered above
+                        if (field === "vehicle_number") return null;
+                        return (
+                          <Grid key={field} item md={6} sm={12} xs={12}>
+                            <FormField
+                              fieldConfig={updatedFormFields[field]}
+                              formik={formik}
+                              handleFileChange={handleFileChange}
+                            />
+                          </Grid>
+                        );
+                      })}
                       <Grid item xs={12} className="grid-item-button-div">
                         <Button
                           type="submit"

@@ -31,8 +31,8 @@ export const districtInitials={
     district_code:"",
 }
 export const stateFields = {
-    state: {
-    name: "state",
+    state_name: {
+    name: "state_name",
     type: "text",
     label: "form.stateName.label",
     validation: Yup.string().required("form.stateName.required"),
@@ -40,16 +40,16 @@ export const stateFields = {
   status: {
     name: "status",
     type: "select",
-    label: "form.status.label",
-    validation: Yup.string().required("form.status.required"),
+    label: "form.state.status.label",
+    validation: Yup.string().required("form.state.status.required"),
     options: [
-        { value: "active", label: "form.status.active" }
+        { value: "active", label: "form.state.status.active" }
       ],
   },
 };
 export const districtFields = {
-  district: {
-    name: "district",
+  district_name: {
+    name: "district_name",
     type: "text",
     label: "form.districtName.label",
     validation: Yup.string().required("form.districtName.required"),
@@ -70,11 +70,11 @@ export const districtFields = {
   status: {
     name: "status",
     type: "select",
-    label: "form.status.label",
-    validation: Yup.string().required("form.status.required"),
+    label: "form.state.status.label",
+    validation: Yup.string().required("form.state.status.required"),
     options: [
-        { value: "active", label: "form.status.active" },
-        { value: "deactive", label: "form.status.deactive" }
+        { value: "active", label: "form.state.status.active" },
+        { value: "deactive", label: "form.state.status.deactive" }
     ],
   },
 };

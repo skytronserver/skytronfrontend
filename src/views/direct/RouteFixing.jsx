@@ -475,12 +475,12 @@ const RouteFixing = () => {
                 color="secondary"
                 fullWidth
               >
-                Delete Route
+                Delete Existing Route
               </Button>
             </Grid>
             <Grid item md={3} sm={6} xs={6}>
               <Button onClick={addRoute} variant="contained" color="primary" fullWidth>
-                Add Route
+                Add New Route
               </Button>
             </Grid>
           </Grid>
