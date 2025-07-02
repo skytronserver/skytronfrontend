@@ -113,12 +113,12 @@ const formatDate = (dateString) => {
     },
     {
       name: "msisdn1",
-      label: "MSISDN 1",
+      label: "PRIMARY MSISDN",
       options: { filter: true, sort: false },
     },
     {
       name: "msisdn2",
-      label: "MSISDN 2",
+      label: "Fallback MSISDN",
       options: { filter: true, sort: false },
     },
     {
@@ -156,12 +156,13 @@ const formatDate = (dateString) => {
     },
     {
       name: "imsi1",
-      label: "IMSI 1",
+      label: "PRIMARY IMSI",
       options: { filter: true, sort: false },
     },
+    
     {
       name: "imsi2",
-      label: "IMSI 2",
+      label: "FALLBACK IMSI",
       options: { filter: true, sort: false },
     },
     {
@@ -233,34 +234,6 @@ const formatDate = (dateString) => {
         display: false,
       },
     },
-    {
-      name: "ceated_by",
-      label: "Requested By",
-      options: {
-        filter: true,
-        sort: false,
-        customBodyRender: (value, tableMeta, updateValue) => {
-          return (
-            <p>{value.company_name}</p>
-          );
-        },
-        csvExportKey: "company_name",
-      
-      },
-    },
-      {
-        name: "created_at",
-        label: "Requested On",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{formatDate(value)}</p>
-            );
-          }
-        },
-      },
       {
         name: "device",
         label: "Device IMEI No.",
@@ -307,7 +280,7 @@ const formatDate = (dateString) => {
       },
       {
         name: "device",
-        label: "Device MSISDN 1",
+        label: "Device Primary MSISDN",
         options: {
           filter: true,
           sort: false,
@@ -322,7 +295,7 @@ const formatDate = (dateString) => {
       },
       {
         name: "device",
-        label: "Device MSISDN 2",
+        label: "Device Fallback MSISDN",
         options: {
           filter: true,
           sort: false,
@@ -365,6 +338,34 @@ const formatDate = (dateString) => {
       
         },
       },
+      {
+        name: "ceated_by",
+        label: "Requested By",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value, tableMeta, updateValue) => {
+            return (
+              <p>{value.company_name}</p>
+            );
+          },
+          csvExportKey: "company_name",
+        
+        },
+      },
+        {
+          name: "created_at",
+          label: "Requested On",
+          options: {
+            filter: true,
+            sort: false,
+            customBodyRender: (value, tableMeta, updateValue) => {
+              return (
+                <p>{formatDate(value)}</p>
+              );
+            }
+          },
+        },
   ];
   // export const availableForSalesColumn = [
   //   {

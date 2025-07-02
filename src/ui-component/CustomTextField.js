@@ -104,7 +104,7 @@ const FormField = ({
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
-              {option.label}
+             {t(option.label)}
             </MenuItem>
           ))}
         </TextField>

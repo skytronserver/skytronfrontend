@@ -40,10 +40,10 @@ export const stateFields = {
   status: {
     name: "status",
     type: "select",
-    label: "form.state.status.label",
-    validation: Yup.string().required("form.state.status.required"),
+    label: "form.status.label",
+    validation: Yup.string().required("form.tatus.required"),
     options: [
-        { value: "active", label: "form.state.status.active" }
+        { value: "active", label: "form.status.active" }
       ],
   },
 };
@@ -70,11 +70,11 @@ export const districtFields = {
   status: {
     name: "status",
     type: "select",
-    label: "form.state.status.label",
-    validation: Yup.string().required("form.state.status.required"),
+    label: "form.status.label",
+    validation: Yup.string().required("form.status.required"),
     options: [
-        { value: "active", label: "form.state.status.active" },
-        { value: "deactive", label: "form.state.status.deactive" }
+        { value: "active", label: "form.status.active" },
+        { value: "deactive", label: "form.status.deactive" }
     ],
   },
 };

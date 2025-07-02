@@ -752,12 +752,12 @@
     "fields": {
       "model": "Model Name",
       "esimProvider": "eSIM Provider",
-      "excelFile": "Select the Excel File"
+      "excelFile": "Select the CSV FILE"
     },
     "validation": {
       "modelRequired": "Model is required",
       "esimProviderRequired": "eSIM Provider is required",
-      "excelFileRequired": "Excel File is required"
+      "excelFileRequired": "CSV File is required"
     },
     "buttons": {
       "downloadSample": "Download Sample",
