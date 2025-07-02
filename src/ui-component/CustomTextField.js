@@ -56,6 +56,11 @@ const FormField = ({
             value = value.replace(/on\w+\s*=/gi, ''); // Remove event handlers
             value = value.replace(/script/gi, ''); // Remove the word 'script'
             
+            // Special handling for vehicle_number: always uppercase
+            if (fieldConfig.name === 'vehicle_number') {
+              value = value.toUpperCase();
+            }
+            
             // Check if field is email type
             if (fieldConfig.name.toLowerCase().includes('email')) {
               const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -331,6 +336,13 @@ const FormField = ({
         </FormControl>
       );
     case "date":
+      // Calculate max date for 18 years old
+      let maxDate = undefined;
+      if (fieldConfig.name && (fieldConfig.name.toLowerCase().includes('dob') || fieldConfig.name.toLowerCase().includes('dateofbirth'))) {
+        const today = new Date();
+        maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
+          .toISOString().split('T')[0];
+      }
       return (
         <TextField
           label={t(label)}
@@ -344,7 +356,10 @@ const FormField = ({
             shrink: true,
           }}
           InputProps={{
-            inputProps,
+            inputProps: {
+              ...inputProps,
+              ...(maxDate ? { max: maxDate } : {}),
+            },
           }}
           error={
             formik.touched[fieldConfig.name] &&
@@ -355,13 +370,11 @@ const FormField = ({
           }
           onChange={(e) => {
             const selectedDate = new Date(e.target.value);
-            
             // Check if the field is date of birth
             if (fieldConfig.name.toLowerCase().includes('dob') || fieldConfig.name.toLowerCase().includes('dateofbirth')) {
               const today = new Date();
               const age = today.getFullYear() - selectedDate.getFullYear();
               const monthDiff = today.getMonth() - selectedDate.getMonth();
-              
               // Adjust age if birthday hasn't occurred this year
               if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
                 const actualAge = age - 1;
@@ -374,7 +387,6 @@ const FormField = ({
                 return;
               }
             }
-            
             formik.setFieldValue(fieldConfig.name, e.target.value);
           }}
         />

@@ -9,6 +9,8 @@ import AuthFooter from "../../../ui-component/cards/AuthFooter";
 import { useParams } from "react-router-dom";
 import axios from 'axios';
 import { BASE_URL } from "../../../store/constant";
+import { encryptWithPublicKey } from '../../../actions/loginActions';
+
 const SetPassword = () => {
   const { reset_token } = useParams();
   const theme = useTheme();
@@ -53,20 +55,21 @@ const SetPassword = () => {
     setArePasswordsMatch(password === confirmPassword);
   },[password,confirmPassword]);
   const handleMobileNumberChange = (event) => {
-    const value = event.target.value.replace(/\D/g, ''); 
+    let value = event.target.value.replace(/\D/g, ''); // Remove non-digits
+    if (value.length > 10) value = value.slice(0, 10); // Limit to 10 digits
     setMobileNumber(value);
-    if (value.length!== 10) {
-      setIsValidMobile(false);
-    } else {
-      setIsValidMobile(true);
-      setMobileNumber(value);
-    }
+    setIsValidMobile(value.length === 10);
   };
+  const today = new Date();
+  const maxDob = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
+    .toISOString().split('T')[0];
   const handleSetPassword = async () => {
     if(password!=''){
         setLoading(true)
         try {
-            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: password,id_no:idNo,dob:dob },{
+            // Encrypt the password before sending
+            const encryptedPassword = encryptWithPublicKey(password);
+            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob },{
                 headers:{
                     "Content-type": "application/json",
                     "Authorization": "Token "+reset_token,
@@ -172,6 +175,7 @@ const SetPassword = () => {
                           fullWidth
                           error={!isValidMobile}
                           helperText={!isValidMobile? "Invalid mobile number" : ""}
+                          inputProps={{ maxLength: 10 }}
                         />
                         <br/><br/>
                         <TextField
@@ -195,6 +199,7 @@ const SetPassword = () => {
                           required
                           error={!isNotEmpty.dob}
                           helperText={!isNotEmpty.dob? "This is required field" : ""}
+                          inputProps={{ max: maxDob }}
                         />
                         <br/><br/>
                         <TextField

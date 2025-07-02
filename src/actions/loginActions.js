@@ -32,7 +32,7 @@ export const logoutUser=(user)=>({
 })
 
 // Function to encrypt data using RSA encryption with node-forge
-const encryptWithPublicKey = (data) => {
+export const encryptWithPublicKey = (data) => {
   // RSA public key for encryption
   const publicKeyPem = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6hUN7F1LHsJu7fCYMd2S

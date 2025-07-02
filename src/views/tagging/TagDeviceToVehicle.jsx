@@ -451,7 +451,7 @@ function TagDeviceToVehicle() {
                                     fieldConfig={updatedFormFields["vehicle_number"]}
                                     formik={formik}
                                     onChange={(e) => {
-                                      let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                                      let value = e.target.value.toUpperCase();
                                       formik.setFieldValue("vehicle_number", value);
                                     }}
                                   />

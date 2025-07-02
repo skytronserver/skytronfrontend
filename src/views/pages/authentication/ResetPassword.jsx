@@ -13,7 +13,7 @@ import axios from 'axios';
 import { BASE_URL } from "../../../store/constant";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-
+import { encryptWithPublicKey } from '../../../actions/loginActions';
 const ResetPassword = () => {
   const { reset_token } = useParams();
   const theme = useTheme();
@@ -74,7 +74,8 @@ const ResetPassword = () => {
     setArePasswordsMatch(password === confirmPassword);
   },[password,confirmPassword]);
   const handleMobileNumberChange = (event) => {
-    const value = event.target.value.replace(/\D/g, '').slice(0, 10); // Limit to 10 digits
+    let value = event.target.value.replace(/\D/g, ''); // Remove non-digits
+    if (value.length > 10) value = value.slice(0, 10); // Limit to 10 digits
     setMobileNumber(value);
     setIsValidMobile(value.length === 10);
   };
@@ -85,11 +86,15 @@ const ResetPassword = () => {
     setDialog(false);
     window.location.href = "/";
   };
+
   const handleResetPassword = async () => {
     if(password!=''){
         setLoading(true)
         try {
-            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: password,id_no:idNo,dob:dob },{
+            // Encrypt the password before sending
+            const encryptedPassword = encryptWithPublicKey(password);
+            console.log(encryptedPassword,"pppppp");
+            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob },{
                 headers:{
                     "Content-type": "application/json",
                     "Authorization": "Token "+reset_token,
@@ -113,6 +118,10 @@ const ResetPassword = () => {
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
+
+  const today = new Date();
+  const maxDob = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
+    .toISOString().split('T')[0];
 
   return (
     <AuthWrapper1>
@@ -230,6 +239,7 @@ const ResetPassword = () => {
                           required
                           error={!isNotEmpty.dob}
                           helperText={!isNotEmpty.dob? t('auth.requiredField') : ""}
+                          inputProps={{ max: maxDob }}
                         />
                         <br/><br/>
                         <TextField
