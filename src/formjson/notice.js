@@ -32,8 +32,8 @@ export const formFields = {
     label: "status.label",
     validation: Yup.string().required("status.required"),
     options: [
-      { label: "status.live", value: "Live" },
-      { label: "status.deleted", value: "Deleted" },
+      { label: "status.live", value: "live" },
+      { label: "status.deleted", value: "deleted" },
     ],
   },
   file: {
