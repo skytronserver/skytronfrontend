@@ -3,7 +3,7 @@ name: deploy
 on:
   push:
     branches:
-      - feat/updates
+      - nic_prod
 
 jobs:
   run-script:
@@ -34,7 +34,7 @@ jobs:
           script: |
             echo "Connected to server ✅"
             echo "Current directory: $(pwd)"
-            cd /home/azureuser/gromed || { echo "❌ Directory not found"; exit 1; }
+            cd /home/azureuser/projects/skytronfrontend || { echo "❌ Directory not found"; exit 1; }
             echo "Directory listing:"
             ls -la
             if [ ! -f script.sh ]; then

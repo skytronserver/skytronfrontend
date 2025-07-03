@@ -4,9 +4,9 @@ docker-compose down
 echo "Pruning all unused Docker images..."
 docker image prune -a -f
 
-echo "Pulling the latest changes from the main branch..."
-git fetch origin main
-git reset --hard origin/main
+echo "Pulling the latest changes from the nic_prod branch..."
+git fetch origin nic_prod
+git reset --hard origin/nic_prod
 
 echo "Rebuilding Docker images..."
 docker-compose build --no-cache
