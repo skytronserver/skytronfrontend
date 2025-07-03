@@ -93,7 +93,6 @@ const ResetPassword = () => {
         try {
             // Encrypt the password before sending
             const encryptedPassword = encryptWithPublicKey(password);
-            console.log(encryptedPassword,"pppppp");
             await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob },{
                 headers:{
                     "Content-type": "application/json",

@@ -10,6 +10,10 @@ import { useParams } from "react-router-dom";
 import axios from 'axios';
 import { BASE_URL } from "../../../store/constant";
 import { encryptWithPublicKey } from '../../../actions/loginActions';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const SetPassword = () => {
   const { reset_token } = useParams();
@@ -28,6 +32,9 @@ const SetPassword = () => {
     idNo:true,
     dob:true
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const handleIdNo = (event) => {
     setIdNo(event.target.value);
     if (event.target.value!== "") {
@@ -69,13 +76,13 @@ const SetPassword = () => {
         try {
             // Encrypt the password before sending
             const encryptedPassword = encryptWithPublicKey(password);
-            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob },{
+            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob,token:reset_token },{
                 headers:{
                     "Content-type": "application/json",
                     "Authorization": "Token "+reset_token,
                   }
             });
-            window.location.href="https://www.skytrack.tech/"
+            window.location.href="/"
           } catch (err) {
             console.error(err);
             setError('Failed to reset password');
@@ -90,6 +97,9 @@ const SetPassword = () => {
     }
     
   };
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
 
   return (
     <AuthWrapper1>
@@ -204,20 +214,38 @@ const SetPassword = () => {
                         <br/><br/>
                         <TextField
                           label="New Password"
-                          type="password"
+                          type={showPassword ? 'text' : 'password'}
                           value={password}
                           onChange={(e) => handlePasswordChange(e.target.value)}
                           fullWidth
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton onClick={handleClickShowPassword} edge="end">
+                                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
                         />
                         <br/><br/>
                         <TextField
                           label="Confirm New Password"
-                          type="password"
+                          type={showConfirmPassword ? 'text' : 'password'}
                           value={confirmPassword}
                           onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                           fullWidth
-                          error={!arePasswordsMatch} // Set error state based on password match
-                          helperText={!arePasswordsMatch? "Passwords do not match" : ""} // Show error message if passwords do not match
+                          error={!arePasswordsMatch}
+                          helperText={!arePasswordsMatch ? "Passwords do not match" : ""}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton onClick={handleClickShowConfirmPassword} edge="end">
+                                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
                         />
                         <br/><br/>
                         <Button
@@ -226,7 +254,7 @@ const SetPassword = () => {
                           type="button"
                           variant="contained"
                           onClick={handleSetPassword}
-                          disabled={!arePasswordsMatch} // Disable button if passwords don't match
+                          disabled={!arePasswordsMatch}
                         >
                           Reset Password
                         </Button>
