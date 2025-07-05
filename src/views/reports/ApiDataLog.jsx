@@ -311,7 +311,7 @@ const ApiDataLog = () => {
         <Grid container spacing={gridSpacing}>
             <Grid item xs={12}>
                 <form onSubmit={handleSearch}>
-                    <Grid container spacing={2} alignItems="center">
+                    <Grid container spacing={2} alignItems="flex-start">
                         <Grid item xs={12} sm={8} md={6} lg={4}>
                             <TextField
                                 fullWidth
@@ -323,15 +323,13 @@ const ApiDataLog = () => {
                                 helperText={t('apiData.searchHelperText')}
                             />
                         </Grid>
-                        <Grid item xs="auto" style={{ marginTop: '8px' }}>
+                        <Grid item>
                             <Button
                                 type="submit"
                                 variant="contained"
                                 color="primary"
-                                size="large"
                                 startIcon={<SearchIcon />}
                                 disabled={loading}
-                                style={{ height: '56px' }}
                             >
                                 {t('common.search')}
                             </Button>

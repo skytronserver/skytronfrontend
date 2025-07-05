@@ -75,7 +75,7 @@ const DeviceRoutes = {
     {
       path: "/device/list",
       element: <DeviceModelList />,
-      roles: ["stateadmin"],
+      roles: ["stateadmin",],
     },
     {
       path: "/deviceCOP/list",
@@ -100,7 +100,7 @@ const DeviceRoutes = {
     {
       path: "/device/show-device",
       element: <ShowDevice />,
-      roles: ["superadmin", "devicemanufacture", "dealer", "stateadmin"],
+      roles: ["superadmin", "devicemanufacture", "dealer", "stateadmin","dtorto"],
     },
     {
       path: "/device/assign-device",
@@ -115,7 +115,7 @@ const DeviceRoutes = {
     {
       path: "/device/show-available-device",
       element: <AvailableForSale />,
-      roles: ["superadmin", "devicemanufacture", "dealer"],
+      roles: ["superadmin", "devicemanufacture", "dealer","dtorto"],
     },
     {
       path: "/device/show-tagged-device",

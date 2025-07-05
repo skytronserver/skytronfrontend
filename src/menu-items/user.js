@@ -167,7 +167,7 @@ const user = {
       url: "/route-fixing",
       icon: icons.IconMap,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dto"],
+      roles: ["superadmin", "stateadmin", "owner", "dtorto"],
     },
     {
       id: "route-eta",
@@ -185,7 +185,7 @@ const user = {
       url: "/live-tracking",
       icon: icons.IconMap,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dto"],
+      roles: ["superadmin", "stateadmin", "owner", "dtorto"],
     },
     {
       id: "history-playback",
@@ -194,7 +194,7 @@ const user = {
       url: "/history-playback",
       icon: icons.IconMap,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dto"],
+      roles: ["superadmin", "stateadmin", "owner", "dtorto"],
     },
     {
       id: "trip-viewer",
@@ -203,7 +203,7 @@ const user = {
       url: "/trip-viewer",
       icon: icons.IconMap,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dto"],
+      roles: ["superadmin", "stateadmin", "owner", "dtorto"],
     },
     // {
     //   id: "sos-tracking",
@@ -434,7 +434,7 @@ const user = {
       title: "Reports",
       type: "collapse",
       icon: icons.IconReport,
-      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","superadmin"],
+      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","superadmin","dtorto"],
       children: [
         {
           id: "sos-other-list",
@@ -515,7 +515,7 @@ const user = {
           type: "item",
           url: "/device/show-available-device",
           breadcrumbs: false,
-          roles: ["devicemanufacture"],
+          roles: ["devicemanufacture","dtorto"],
         },
         {
           id: "all-device",

@@ -41,17 +41,17 @@ export const taggingFields = {
   district_code: {
     name: "district_code",
     type: "select",
-    label: "District Code",
-    validation: Yup.string().required("District code is required"),
+    label: "tagDeviceForm.fields.districtCode",
+    validation: Yup.string().required("tagDeviceForm.validation.districtCodeRequired"),
     options: demoDistrictCodes,
   },
   vehicle_number: {
     name: "vehicle_number",
     type: "text",
-    label: "Vehicle Number",
+    label: "tagDeviceForm.fields.vehicleNumber",
     validation: Yup.string()
-      .matches(/^[A-Z0-9]+$/, "Only alphanumeric characters allowed, no spaces or special characters.")
-      .required("Vehicle number is required"),
+      .matches(/^[A-Z0-9]+$/, "tagDeviceForm.validation.vehicleNumberFormat")
+      .required("tagDeviceForm.validation.vehicleNumberRequired"),
   },
   engine_no: {
     name: "engine_no",

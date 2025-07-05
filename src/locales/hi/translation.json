@@ -168,6 +168,13 @@
       "closedCall": "बंद कॉल",
       "pendingCall": "लंबित कॉल",
       "averageCallAccepting": "औसत कॉल स्वीकृति",
+      "weeklyInbound": "साप्ताहिक इनबाउंड",
+      "todayInbound": "आज का इनबाउंड",
+      "totalInbound": "कुल इनबाउंड",
+      "activeCall": "सक्रिय कॉल",
+      "closedCall": "बंद कॉल",
+      "pendingCall": "लंबित कॉल",
+      "averageCallAccepting": "औसत कॉल स्वीकृति",
       "averageAcceptanceTime": "औसत स्वीकृति समय",
       "weeklyInbound": "साप्ताहिक इनबाउंड",
       "todayInbound": "आज का इनबाउंड",
@@ -222,11 +229,8 @@
       "active": "सक्रिय",
       "deactive": "निष्क्रिय"
     },
-    "deviceModel": {
-      "label": "डिवाइस मॉडल",
-      "required": "डिवाइस मॉडल आवश्यक है"
-    },
     "frequency": {
+      "title": "आवृत्ति सेटिंग्स",
       "label": "आवृत्ति",
       "required": "आवृत्ति आवश्यक है"
     },
@@ -315,6 +319,7 @@
     }
   },
   "menu": {
+    "createVehicleOwner": "वाहन मालिक बनाएं",
     "dashboard": "डैशबोर्ड",
     "users": "उपयोगकर्ता",
     "reports": "रिपोर्ट",
@@ -359,9 +364,9 @@
     "individualStock": "व्यक्तिगत स्टॉक",
     "bulkStock": "बल्क स्टॉक",
     "assignStock": "स्टॉक असाइन करें",
-    "taggingActivation": "टैगिंग और सक्रियण",
+    "tagging&Activation": "टैगिंग और सक्रियण",
     "tagDeviceToVehicle": "वाहन को डिवाइस टैग करें",
-    "unTaggedDevice": "अनटैग्ड डिवाइस",
+    "untaggedDevice": "अनटैग्ड डिवाइस",
     "downloadFitmentReceipt": "फिटमेंट रसीद डाउनलोड करें",
     "sosUsers": "एसओएस उपयोगकर्ता",
     "notices": "सूचनाएं",
@@ -699,7 +704,7 @@
       "tacValidity": "टैक वैधता",
       "copNo": "सीओपी नंबर",
       "copValidity": "सीओपी वैधता",
-      "copFile": "सीओपी फाइल"
+      "uploadCop": "सीओपी फाइल अपलोड करें"
     },
     "validation": {
       "modelRequired": "मॉडल आवश्यक है",
@@ -772,6 +777,14 @@
       "waitingForProvider": "प्रदाता की प्रतीक्षा में"
     }
   },
+  "assignDeviceForm": {
+    "title": "डिवाइस को डीलर को असाइन करें",
+    "fields": {
+      "dealer": "डीलर",
+      "device": "डिवाइस",
+      "shippingRemark": "शिपिंग रिमार्क"
+    }
+  },
   "dealerAccountForm": {
     "title": "डीलर अकाउंट बनाएं",
     "fields": {
@@ -835,6 +848,8 @@
       "vehicleRegNo": "वाहन पंजीकरण संख्या",
       "engineNo": "इंजन नंबर",
       "chassisNo": "चेसिस नंबर",
+      "districtCode": "जिला कोड",
+      "vehicleNumber": "वाहन नंबर",
       "vehicleMake": "वाहन निर्माता",
       "vehicleModel": "वाहन मॉडल",
       "vehicleCategory": "वाहन श्रेणी",
@@ -845,6 +860,9 @@
       "mobileRequired": "मोबाइल नंबर आवश्यक है",
       "mobileFormat": "मोबाइल नंबर 10 अंकों का होना चाहिए",
       "vehicleRegNoRequired": "वाहन पंजीकरण संख्या आवश्यक है",
+      "vehicleNumberFormat": "केवल अल्फ़ान्युमेरिक अक्षर अनुमत है, कोई स्थान या विशिष्ट अक्षर नहीं है",
+      "districtCodeRequired": "जिला कोड आवश्यक है",
+      "vehicleNumberRequired": "वाहन नंबर आवश्यक है",
       "engineNoRequired": "इंजन नंबर आवश्यक है",
       "chassisNoRequired": "चेसिस नंबर आवश्यक है",
       "vehicleMakeRequired": "वाहन निर्माता आवश्यक है",
@@ -976,7 +994,8 @@
       "approved": "स्वीकृत",
       "rejected": "अस्वीकृत",
       "awaiting_approval": "स्वीकृति की प्रतीक्षा में"
-    }
+    },
+    "copListTitle": "डिवाइस मॉडल सूची"
   },
   "device": {
     "reportTitle": "डिवाइस रिपोर्ट",
@@ -1057,12 +1076,6 @@
     "title": "टैग किए गए उपकरण",
     "untag": "अनटैग",
     "confirmUntag": "क्या आप वाकई इस उपकरण को अनटैग करना चाहते हैं?"
-  },
-  "sos": {
-    "otherListTitle": "उपयोगकर्ता सूची"
-  },
-  "deviceModel": {
-    "copListTitle": "डिवाइस मॉडल सूची"
   },
   "deviceModelView": {
     "modelName": "मॉडल का नाम",

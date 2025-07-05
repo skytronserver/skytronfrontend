@@ -317,6 +317,7 @@
     }
   },
   "menu": {
+    "createVehicleOwner": "Create Vehicle Owner",
     "dashboard": "Dashboard",
     "users": "Users",
     "reports": "Reports",
@@ -363,7 +364,7 @@
     "assignStock": "Assign Stock",
     "taggingActivation": "Tagging & Activation",
     "tagDeviceToVehicle": "Tag Device to Vehicle",
-    "unTaggedDevice": "UnTagged Device",
+    "untaggedDevice": "UnTagged Device",
     "downloadFitmentReceipt": "Download Fitment Receipt",
     "sosUsers": "SOS Users",
     "notices": "Notices",
@@ -695,7 +696,7 @@
       "tacValidity": "TAC Validity",
       "copNo": "COP No",
       "copValidity": "COP Validity",
-      "copFile": "COP File"
+      "uploadCop": "Upload COP File"
     },
     "validation": {
       "modelRequired": "Model is required",
@@ -842,6 +843,8 @@
       "vehicleRegNo": "Vehicle Registration No.",
       "engineNo": "Engine No",
       "chassisNo": "Chassis No.",
+      "districtCode": "District Code",
+      "vehicleNumber": "Vehicle Number",
       "vehicleMake": "Vehicle Make",
       "vehicleModel": "Vehicle Model",
       "vehicleCategory": "Vehicle Category",
@@ -852,6 +855,9 @@
       "mobileRequired": "Mobile Number is required",
       "mobileFormat": "Mobile Number must be a 10-digit number",
       "vehicleRegNoRequired": "Vehicle Registration No. is required",
+      "vehicleNumberFormat": "Only alphanumeric characters allowed, no spaces or special characters.",
+      "districtCodeRequired": "District Code is required",
+      "vehicleNumberRequired": "Vehicle Number is required",
       "engineNoRequired": "Engine No. is required",
       "chassisNoRequired": "Chassis No. is required",
       "vehicleMakeRequired": "Vehicle Make is required",

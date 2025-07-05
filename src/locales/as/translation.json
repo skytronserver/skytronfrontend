@@ -142,10 +142,19 @@
       "total_fitment,tagged_device,online_device,offline_device": "মুঠ ফিটমেন্ট,টেগ কৰা ডিভাইচ,অনলাইন ডিভাইচ,অফলাইন ডিভাইচ",
       "total_alert,this_month,today": "মুঠ এলাৰ্ট,এই মাহত,আজি",
       "total_state,active,inactive": "মুঠ ৰাজ্য,সক্ৰিয়,নিষ্ক্ৰিয়",
-      "total_dealer,total_manufacturer,total_dto,total_vehicle_owner": "মুঠ ডিলাৰ,মুঠ নিৰ্মাতা,মুঠ ডিটিঅ',মুঠ যানবাহনৰ মালিক"
+      "total_dealer,total_manufacturer,total_dto,total_vehicle_owner": "মুঠ ডিলাৰ,মুঠ নিৰ্মাতা,মুঠ ডিটিঅ',মুঠ যানবাহনৰ মালিক",
+      "activeCall": "সক্ৰিয় কল",
+      "closedCall": "বন্ধ কল",
+      "pendingCall": "পেণ্ডিং কল",
+      "averageCallAccepting": "গড় কল গ্ৰহণ",
+      "averageAcceptanceTime": "গড় গ্ৰহণ সময়",
+      "weeklyInbound": "সাপ্তাহিক ইনবাউণ্ড",
+      "todayInbound": "আজিৰ ইনবাউণ্ড",
+      "totalInbound": "মুঠ ইনবাউণ্ড"
     }
   },
   "menu": {
+    "createVehicleOwner": "যানবাহনৰ মালিক সৃষ্টি কৰক",
     "dashboard": "ডেশ্ববোৰ্ড",
     "users": "ব্যৱহাৰকাৰী",
     "reports": "ৰিপ'ৰ্ট",
@@ -193,9 +202,9 @@
     "individualStock": "স্বতন্ত্ৰ ষ্টক",
     "bulkStock": "বাল্ক ষ্টক",
     "assignStock": "ষ্টক নিয়োগ কৰক",
-    "taggingActivation": "টেগিং আৰু সক্ৰিয়কৰণ",
+    "tagging&Activation": "টেগিং আৰু সক্ৰিয়কৰণ",
     "tagDeviceToVehicle": "যানবাহনলৈ ডিভাইচ টেগ কৰক",
-    "unTaggedDevice": "টেগ নকৰা ডিভাইচ",
+    "untaggedDevice": "টেগ নকৰা ডিভাইচ",
     "downloadFitmentReceipt": "ফিটমেন্ট ৰচিট ডাউনলোড কৰক",
     "sosUsers": "এছঅ'এছ ব্যৱহাৰকাৰী",
     "notices": "নোটিছ",
@@ -258,44 +267,44 @@
     "togglePasswordVisibility": "পাছৱৰ্ড দৃশ্যমানতা টগল কৰক"
   },
   "validation": {
-    "mobileNumberFormat": "ম'বাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
-    "mobileRequired": "ম'বাইল নম্বৰৰ প্ৰয়োজন",
-    "passwordRequired": "পাছৱৰ্ডৰ প্ৰয়োজন",
-    "required": "প্ৰয়োজনীয় ক্ষেত্ৰ",
-    "fileTooLarge": "ফাইল বেছি ডাঙৰ। সৰ্বাধিক আকাৰ ৫১২ কেবি",
+    "mobileNumberFormat": "ম'বাইল নম্বৰ ১০টা সংখ্যাৰ হ'ব লাগিব",
+    "mobileRequired": "ম'বাইল নম্বৰ আৱশ্যক",
+    "passwordRequired": "পাছৱৰ্ড আৱশ্যক",
+    "required": "আৱশ্যকীয় ক্ষেত্ৰ",
+    "fileTooLarge": "ফাইল বৰ ডাঙৰ। সৰ্বাধিক আকাৰ ৫১২কেবি",
     "unsupportedFormat": "অসমৰ্থিত ফৰ্মেট"
   },
   "stateAdmin": {
     "createTitle": "ৰাজ্য প্ৰশাসক সৃষ্টি কৰক",
     "fields": {
-      "name": "নাম",
-      "email": "ইমেইল",
-      "mobile": "ম'বাইল",
-      "dob": "জন্ম তাৰিখ",
-      "expirydate": "ম্যাদ শেষ হোৱাৰ তাৰিখ",
+      "name": "ব্যৱহাৰকাৰীৰ নাম",
+      "email": "ব্যৱহাৰকাৰীৰ ইমেইল",
+      "mobile": "ব্যৱহাৰকাৰীৰ ম'বাইল নম্বৰ",
+      "dob": "ব্যৱহাৰকাৰীৰ জন্ম তাৰিখ",
+      "expirydate": "ম্যাদ উকলি যোৱা তাৰিখ",
       "state": "ৰাজ্যৰ নাম",
-      "idProofno": "আইডি প্ৰমাণৰ নম্বৰ",
-      "file_idProof": "আইডি প্ৰমাণ",
-      "file_authorisation_letter": "অধিকাৰ পত্ৰ"
+      "idProofno": "আইডি প্ৰমাণ নম্বৰ",
+      "file_idProof": "আইডি প্ৰমাণ আপল'ড কৰক",
+      "file_authorisation_letter": "অনুমতি পত্ৰ আপল'ড কৰক"
     },
     "messages": {
-      "file_idProof": "কেৱল জেপিজি, পিডিএফ, পিএনজি ফাইল অনুমোদিত আৰু ৫১২ কেবিৰ তলত হ'ব লাগে।",
-      "file_authorisation_letter": "কেৱল জেপিজি, পিডিএফ, পিএনজি ফাইল অনুমোদিত আৰু ৫১২ কেবিৰ তলত হ'ব লাগে।"
+      "file_idProof": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু ৫১২কেবিৰ তলত হ'ব লাগিব।",
+      "file_authorisation_letter": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু ৫১২কেবিৰ তলত হ'ব লাগিব।"
     },
     "validation": {
-      "nameRequired": "নামৰ প্ৰয়োজন",
-      "emailRequired": "ইমেইলৰ প্ৰয়োজন",
+      "nameRequired": "নাম আৱশ্যক",
+      "emailRequired": "ইমেইল আৱশ্যক",
       "invalidEmail": "অবৈধ ইমেইল ঠিকনা",
-      "mobileRequired": "ম'বাইল নম্বৰৰ প্ৰয়োজন",
-      "mobileFormat": "ম'বাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
-      "dobRequired": "জন্ম তাৰিখৰ প্ৰয়োজন",
-      "expiryDateRequired": "ম্যাদ শেষ হোৱাৰ তাৰিখৰ প্ৰয়োজন",
-      "stateRequired": "ৰাজ্যৰ নামৰ প্ৰয়োজন",
-      "idProofRequired": "আইডি প্ৰমাণৰ নম্বৰৰ প্ৰয়োজন",
-      "idProofMinLength": "আইডি প্ৰমাণৰ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগে",
-      "fileRequired": "ফাইলৰ প্ৰয়োজন",
-      "fileSize": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি",
-      "fileFormat": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি"
+      "mobileRequired": "ম'বাইল নম্বৰ আৱশ্যক",
+      "mobileFormat": "ম'বাইল নম্বৰ ১০টা সংখ্যাৰ হ'ব লাগিব",
+      "dobRequired": "জন্ম তাৰিখ আৱশ্যক",
+      "expiryDateRequired": "ম্যাদ উকলি যোৱা তাৰিখ আৱশ্যক",
+      "stateRequired": "ৰাজ্যৰ নাম আৱশ্যক",
+      "idProofRequired": "আইডি প্ৰমাণ নম্বৰ আৱশ্যক",
+      "idProofMinLength": "আইডি প্ৰমাণ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগিব",
+      "fileRequired": "ফাইল আৱশ্যক",
+      "fileSize": "সৰ্বাধিক আকাৰ ৫২০কেবি আৰু সমৰ্থিত ফাইল pdf/png/jpg",
+      "fileFormat": "সৰ্বাধিক আকাৰ ৫২০কেবি আৰু সমৰ্থিত ফাইল pdf/png/jpg"
     },
     "listTitle": "ৰাজ্য প্ৰশাসক"
   },
@@ -304,46 +313,46 @@
     "form": {
       "submit": "দাখিল কৰক",
       "success": "ফৰ্ম সফলভাৱে দাখিল কৰা হ'ল",
-      "error": "ফৰ্ম দাখিল কৰা হোৱা নাই",
+      "error": "ফৰ্ম দাখিল কৰা নহ'ল",
       "select": "বাছনি কৰক",
       "fields": {
         "state": "ৰাজ্য বাছনি কৰক",
         "m2m_provider": "এমটুএম প্ৰদানকাৰী",
-        "name": "নাম",
-        "email": "ইমেইল",
-        "mobile": "ম'বাইল",
+        "name": "ব্যৱহাৰকাৰীৰ নাম",
+        "email": "ব্যৱহাৰকাৰীৰ ইমেইল",
+        "mobile": "ব্যৱহাৰকাৰীৰ ম'বাইল নম্বৰ",
         "company_name": "কোম্পানীৰ নাম",
-        "dob": "জন্ম তাৰিখ",
-        "expiry_date": "ম্যাদ শেষ হোৱাৰ তাৰিখ",
-        "gst_no": "জিএছটি নম্বৰ",
-        "id_proof_number": "ব্যৱহাৰকাৰী আইডি প্ৰমাণৰ নম্বৰ",
-        "auth_letter": "অধিকাৰ পত্ৰ",
-        "company_reg_certificate": "কোম্পানী ৰেজিষ্ট্ৰেচন প্ৰমাণপত্ৰ",
-        "gst_certificate": "জিএছটি প্ৰমাণপত্ৰ",
-        "id_proof": "ব্যৱহাৰকাৰী আইডি প্ৰমাণ"
+        "dob": "ব্যৱহাৰকাৰীৰ জন্ম তাৰিখ",
+        "expiry_date": "ম্যাদ উকলি যোৱা তাৰিখ",
+        "gst_no": "জিএছটি নং",
+        "id_proof_number": "ব্যৱহাৰকাৰীৰ আইডি প্ৰমাণ নম্বৰ",
+        "auth_letter": "অনুমতি পত্ৰ আপল'ড কৰক",
+        "company_reg_certificate": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰ আপল'ড কৰক",
+        "gst_certificate": "জিএছটি প্ৰমাণপত্ৰ আপল'ড কৰক",
+        "id_proof": "ব্যৱহাৰকাৰীৰ আইডি প্ৰমাণ আপল'ড কৰক"
       },
       "validation": {
-        "state_required": "ৰাজ্যৰ প্ৰয়োজন",
-        "esim_provider_required": "ইচিম প্ৰদানকাৰীৰ প্ৰয়োজন",
-        "name_required": "নামৰ প্ৰয়োজন",
+        "state_required": "ৰাজ্য আৱশ্যক",
+        "esim_provider_required": "ইচিম প্ৰদানকাৰী আৱশ্যক",
+        "name_required": "নাম আৱশ্যক",
         "invalid_email": "অবৈধ ইমেইল ঠিকনা",
-        "email_required": "ইমেইলৰ প্ৰয়োজন",
-        "invalid_mobile": "ম'বাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
-        "mobile_required": "ম'বাইল নম্বৰৰ প্ৰয়োজন",
-        "company_name_required": "কোম্পানীৰ নামৰ প্ৰয়োজন",
-        "dob_required": "জন্ম তাৰিখৰ প্ৰয়োজন",
-        "age_restriction": "কমেও ১৮ বছৰ বয়স হ'ব লাগে",
+        "email_required": "ইমেইল আৱশ্যক",
+        "invalid_mobile": "ম'বাইল নম্বৰ ১০টা সংখ্যাৰ হ'ব লাগিব",
+        "mobile_required": "ম'বাইল নম্বৰ আৱশ্যক",
+        "company_name_required": "কোম্পানীৰ নাম আৱশ্যক",
+        "dob_required": "জন্ম তাৰিখ আৱশ্যক",
+        "age_restriction": "কমেও ১৮ বছৰ বয়সৰ হ'ব লাগিব",
         "future_date": "জন্ম তাৰিখ ভৱিষ্যতৰ হ'ব নোৱাৰে",
-        "expiry_date_required": "ম্যাদ শেষ হোৱাৰ তাৰিখৰ প্ৰয়োজন",
-        "gst_no_required": "জিএছটি নম্বৰৰ প্ৰয়োজন",
-        "id_proof_min_length": "আইডি প্ৰমাণৰ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগে",
-        "id_proof_required": "ব্যৱহাৰকাৰী আইডি প্ৰমাণৰ নম্বৰৰ প্ৰয়োজন",
-        "auth_letter_required": "অধিকাৰ পত্ৰৰ প্ৰয়োজন",
-        "company_reg_required": "কোম্পানী ৰেজিষ্ট্ৰেচন প্ৰমাণপত্ৰৰ প্ৰয়োজন",
-        "gst_certificate_required": "জিএছটি প্ৰমাণপত্ৰৰ প্ৰয়োজন",
-        "file_restrictions": "কেৱল জেপিজি, পিডিএফ, পিএনজি ফাইল অনুমোদিত আৰু ৫১২ কেবিৰ তলত হ'ব লাগে",
-        "file_size": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি",
-        "file_format": "সৰ্বাধিক আকাৰ ৫২০ কেবি আৰু সমৰ্থিত ফাইল পিডিএফ/পিএনজি/জেপিজি"
+        "expiry_date_required": "ম্যাদ উকলি যোৱা তাৰিখ আৱশ্যক",
+        "gst_no_required": "জিএছটি নং আৱশ্যক",
+        "id_proof_min_length": "আইডি প্ৰমাণ নম্বৰ কমেও ৫টা আখৰৰ হ'ব লাগিব",
+        "id_proof_required": "ব্যৱহাৰকাৰীৰ আইডি প্ৰমাণ নম্বৰ আৱশ্যক",
+        "auth_letter_required": "অনুমতি পত্ৰ আৱশ্যক",
+        "company_reg_required": "কোম্পানী পঞ্জীয়ন প্ৰমাণপত্ৰ আৱশ্যক",
+        "gst_certificate_required": "জিএছটি প্ৰমাণপত্ৰ আৱশ্যক",
+        "file_restrictions": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু ৫১২কেবিৰ তলত হ'ব লাগিব",
+        "file_size": "সৰ্বাধিক আকাৰ ৫২০কেবি আৰু সমৰ্থিত ফাইল pdf/png/jpg",
+        "file_format": "সৰ্বাধিক আকাৰ ৫২০কেবি আৰু সমৰ্থিত ফাইল pdf/png/jpg"
       }
     },
     "listTitle": "নিৰ্মাতা"
@@ -526,7 +535,7 @@
       "tacValidity": "টেক বৈধতা",
       "copNo": "চিঅ'পি নং",
       "copValidity": "চিঅ'পি বৈধতা",
-      "copFile": "চিঅ'পি ফাইল"
+      "uploadCop": "চিঅ'পি ফাইল আপলোড কৰক"
     },
     "validation": {
       "modelRequired": "মডেলৰ প্ৰয়োজন",
@@ -673,6 +682,8 @@
       "vehicleRegNo": "যানবাহন পঞ্জীয়ন নম্বৰ",
       "engineNo": "ইঞ্জিন নম্বৰ",
       "chassisNo": "চেচিচ নম্বৰ",
+      "districtCode": "জিলা কোড",
+      "vehicleNumber": "যানবাহন নম্বৰ",
       "vehicleMake": "যানবাহন নিৰ্মাতা",
       "vehicleModel": "যানবাহন মডেল",
       "vehicleCategory": "যানবাহনৰ শ্ৰেণী",
@@ -683,6 +694,9 @@
       "mobileRequired": "ম'বাইল নম্বৰ আৱশ্যক",
       "mobileFormat": "ম'বাইল নম্বৰ ১০টা অংকৰ হ'ব লাগে",
       "vehicleRegNoRequired": "যানবাহন পঞ্জীয়ন নম্বৰ আৱশ্যক",
+      "vehicleNumberFormat": "কেৱল অক্ষৰ আৰু সংখ্যা অনুমতি আৱশ্যক",
+      "districtCodeRequired": "জিলা কোড আৱশ্যক",
+      "vehicleNumberRequired": "যানবাহন নম্বৰ আৱশ্যক",
       "engineNoRequired": "ইঞ্জিন নম্বৰ আৱশ্যক",
       "chassisNoRequired": "চেচিচ নম্বৰ আৱশ্যক",
       "vehicleMakeRequired": "যানবাহন নিৰ্মাতা আৱশ্যক",
@@ -795,25 +809,13 @@
   "users": {
     "listTitle": "ব্যৱহাৰকাৰীৰ ৰিপ'ৰ্ট"
   },
-  "sos": {
-    "listTitle": "এছঅ'এছ প্ৰশাসকৰ তালিকা",
-    "otherListTitle": "ব্যৱহাৰকাৰীৰ তালিকা"
-  },
+
   "esim": {
     "serviceProviderTitle": "এম২এম সেৱা প্ৰদানকাৰী"
   },
   "dealer": {
     "reportTitle": "ডিলাৰ প্ৰতিবেদন",
     "listTitle": "ডিলাৰ তালিকা"
-  },
-  "deviceModel": {
-    "awaitingApprovalTitle": "অনুমোদনৰ বাবে অপেক্ষাৰত",
-    "status": {
-      "pending": "পেণ্ডিং",
-      "approved": "অনুমোদিত",
-      "rejected": "প্ৰত্যাখ্যাত",
-      "awaiting_approval": "অনুমোদনৰ বাবে অপেক্ষাৰত"
-    }
   },
   "device": {
     "reportTitle": "ডিভাইচ প্ৰতিবেদন",
@@ -896,9 +898,17 @@
     "confirmUntag": "আপুনি নিশ্চিতভাৱে এই ডিভাইচটো আনটেগ কৰিব বিচাৰে নেকি?"
   },
   "sos": {
+    "listTitle": "এছঅ'এছ প্ৰশাসকৰ তালিকা",
     "otherListTitle": "ব্যৱহাৰকাৰীৰ তালিকা"
   },
   "deviceModel": {
+    "awaitingApprovalTitle": "অনুমোদনৰ বাবে অপেক্ষাৰত",
+    "status": {
+      "pending": "পেণ্ডিং",
+      "approved": "অনুমোদিত",
+      "rejected": "প্ৰত্যাখ্যাত",
+      "awaiting_approval": "অনুমোদনৰ বাবে অপেক্ষাৰত"
+    },
     "copListTitle": "ডিভাইচ মডেল তালিকা"
   },
   "vehicleCategory": {
@@ -923,12 +933,36 @@
     }
   },
   "frequency": {
-    "title": "এইচপি ফ্ৰিকুৱেন্সি",
-    "listTitle": "ফ্ৰিকুৱেন্সি তালিকা"
+    "title": "ফ্ৰিকুৱেন্সি সেটিংস",
+    "listTitle": "ফ্ৰিকুৱেন্সি তালিকা",
+    "form": {
+      "deviceModel": "ডিভাইচ মডেল",
+      "frequency": "ফ্ৰিকুৱেন্সি",
+      "status": "স্থিতি",
+      "validation": {
+        "deviceModelRequired": "ডিভাইচ মডেল আৱশ্যক",
+        "frequencyRequired": "ফ্ৰিকুৱেন্সি আৱশ্যক",
+        "statusRequired": "স্থিতি আৱশ্যক"
+      }
+    }
+  },
+  "firmwareVersion": {
+    "label": "ফাৰ্মৱেৰ সংস্কৰণ",
+    "required": "ফাৰ্মৱেৰ সংস্কৰণ আৱশ্যক"
   },
   "firmware": {
     "title": "ফাৰ্মৱেৰ সংস্কৰণ",
-    "listTitle": "ফাৰ্মৱেৰ সংস্কৰণৰ তালিকা"
+    "listTitle": "ফাৰ্মৱেৰ সংস্কৰণৰ তালিকা",
+    "form": {
+      "deviceModel": "ডিভাইচ মডেল",
+      "firmwareVersion": "ফাৰ্মৱেৰ সংস্কৰণ",
+      "status": "স্থিতি",
+      "validation": {
+        "deviceModelRequired": "ডিভাইচ মডেল আৱশ্যক",
+        "firmwareVersionRequired": "ফাৰ্মৱেৰ সংস্কৰণ আৱশ্যক",
+        "statusRequired": "স্থিতি আৱশ্যক"
+      }
+    }
   },
   "ipSetting": {
     "title": "আইপি ছেটিং",
@@ -997,7 +1031,8 @@
     "actions": {
       "accept": "গ্ৰহণ কৰক",
       "reject": "প্ৰত্যাখ্যান কৰক",
-      "action": "কাৰ্য"
+      "action": "কাৰ্য",
+      "requestActivation": "সক্ৰিয়কৰণ অনুৰোধ"
     },
     "messages": {
       "confirmRequest": "অনুগ্ৰহ কৰি আপোনাৰ অনুৰোধ নিশ্চিত কৰক",
@@ -1153,33 +1188,33 @@
       "required": "ডিভাইচ মডেল আৱশ্যক"
     },
     "ipTracking1": {
-      "label": "আইপি ট্ৰেকিং 1",
-      "required": "আইপি ট্ৰেকিং 1 আৱশ্যক"
+      "label": "আইপি ট্ৰেকিং ১",
+      "required": "আইপি ট্ৰেকিং ১ আৱশ্যক"
     },
     "ipTracking2": {
-      "label": "আইপি ট্ৰেকিং 2"
+      "label": "আইপি ট্ৰেকিং ২"
     },
     "ipSos": {
       "label": "আইপি এছঅ'এছ",
       "required": "আইপি এছঅ'এছ আৱশ্যক"
     },
     "portTracking1": {
-      "label": "প'ৰ্ট ট্ৰেকিং 1",
+      "label": "প'ৰ্ট ট্ৰেকিং ১",
       "required": "প'ৰ্ট ট্ৰেকিং 1 আৱশ্যক"
     },
     "portTracking2": {
-      "label": "প'ৰ্ট ট্ৰেকিং 2"
+      "label": "প'ৰ্ট ট্ৰেকিং ২"
     },
     "portSos": {
       "label": "প'ৰ্ট এছঅ'এছ",
       "required": "প'ৰ্ট এছঅ'এছ আৱশ্যক"
     },
     "smsTracking1": {
-      "label": "এছএমএছ ট্ৰেকিং 1",
+      "label": "এছএমএছ ট্ৰেকিং ১",
       "required": "এছএমএছ ট্ৰেকিং 1 আৱশ্যক"
     },
     "smsTracking2": {
-      "label": "এছএমএছ ট্ৰেকিং 2"
+      "label": "এছএমএছ ট্ৰেকিং ২"
     },
     "smsSos": {
       "label": "এছএমএছ এছঅ'এছ",
@@ -1217,5 +1252,39 @@
     "responseTime": "প্ৰতিক্ৰিয়া সময়",
     "totalDuration": "মুঠ সময়",
     "status": "স্থিতি"
+  },
+  "liveTracking": {
+    "title": "লাইভ ট্ৰেকিং",
+    "vehicleRegistrationNo": "যানবাহন পঞ্জীয়ন নং",
+    "searchButton": "সন্ধান",
+    "noData": "কোনো তথ্য উপলব্ধ নাই",
+    "iconLabels": {
+      "emergencyAlert": "জৰুৰীকালীন এলাৰ্ট",
+      "otherAlert": "অন্য এলাৰ্ট",
+      "movingVehicle": "চলমান যানবাহন",
+      "stationaryVehicle": "স্থিৰ যানবাহন",
+      "offlineDevice": "অফলাইন ডিভাইচ",
+      "defaultStatus": "ডিফল্ট স্থিতি"
+    }
+  },
+  "routeFixing": {
+    "title": "ৰুট ফিক্সিং",
+    "selectVehicle": "যানবাহন পঞ্জীয়ন নং বাছনি কৰক",
+    "noVehicleOptions": "যানবাহন পঞ্জীয়ন নং প্ৰৱিষ্ট কৰক",
+    "selectRoute": "এটা ৰুট বাছনি কৰক",
+    "routeNumber": "ৰুট #{{number}}",
+    "buttons": {
+      "submit": "দাখিল কৰক",
+      "addRoute": "ৰুট যোগ কৰক",
+      "deleteRoute": "ৰুট মচি পেলাওক"
+    },
+    "alerts": {
+      "minimumPoints": "এটা ৰুট সৃষ্টি কৰিবলৈ অনুগ্ৰহ কৰি কমেও দুটা পইণ্ট যোগ কৰক।",
+      "routeAdded": "ৰুট সফলভাৱে যোগ কৰা হ'ল!",
+      "routeAddFailed": "ৰুট যোগ কৰাত বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+      "selectRouteDelete": "অনুগ্ৰহ কৰি মচিবলৈ এটা ৰুট বাছনি কৰক।",
+      "routeDeleted": "ৰুট সফলভাৱে মচা হ'ল!",
+      "routeDeleteFailed": "ৰুট মচাত বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।"
+    }
   }
 }
