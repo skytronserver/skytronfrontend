@@ -195,7 +195,7 @@ export const serviceProviderCol = [
     <p>{value[0].mobile}</p>
   ); }, csvExportKey: "mobile", columnKey:0 } },
   
-  { name: "state_info", label: "State", options: { filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => { console.log(value,"value"); return (
+  { name: "state", label: "State", options: { filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => { console.log(value,"value"); return (
     <p>{value?.state}</p>
   ); }, csvExportKey: "state" } },
   {name:"idProofno",label:"ID Proof Number",options:{filter:true,sort:false}},

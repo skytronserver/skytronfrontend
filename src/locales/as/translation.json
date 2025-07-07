@@ -75,7 +75,24 @@
       "callAssignment": "মাহেকীয়া,সাপ্তাহিক,দৈনিক,মুঠ",
       "falseAssignment": "মাহেকীয়া,সাপ্তাহিক,দৈনিক,মুঠ",
       "closedAssignment": "মাহেকীয়া,সাপ্তাহিক,দৈনিক,মুঠ",
-      "rejected": "মাহেকীয়া,সাপ্তাহিক,দৈনিক,মুঠ"
+      "rejected": "মাহেকীয়া,সাপ্তাহিক,দৈনিক,মুঠ",
+      "esimDevices": {
+        "totalDevices": "মুঠ ডিভাইচ",
+        "validated": "বৈধকৃত",
+        "active": "সক্ৰিয়",
+        "expired": "ম্যাদ উকলি গৈছে",
+        "pending": "পেণ্ডিং",
+        "invalid": "অবৈধ"
+      },
+      "activationStatus": {
+        "requestsSent": "প্ৰেৰণ কৰা অনুৰোধ",
+        "confirmed": "নিশ্চিত কৰা হৈছে",
+        "rejected": "প্ৰত্যাখ্যান কৰা হৈছে",
+        "expiringSoon": "শীঘ্ৰেই ম্যাদ উকলিব",
+        "todayRequests": "আজিৰ অনুৰোধসমূহ",
+        "weeklyRequests": "সাপ্তাহিক অনুৰোধসমূহ",
+        "monthlyRequests": "মাহেকীয়া অনুৰোধসমূহ"
+      }
     },
     "headings": {
       "userStatistics": "ব্যৱহাৰকাৰী পৰিসংখ্যা",
@@ -108,7 +125,9 @@
       "averageAcceptanceTime": "গড় গ্ৰহণ সময়",
       "weekly": "সাপ্তাহিক",
       "daily": "দৈনিক",
-      "total": "মুঠ"
+      "total": "মুঠ",
+      "esimDeviceStatus": "ইচিম ডিভাইচৰ স্থিতি",
+      "activationStatus": "সক্ৰিয়কৰণৰ স্থিতি"
     },
     "widgets": {
       "user_statistics": "ব্যৱহাৰকাৰী পৰিসংখ্যা",

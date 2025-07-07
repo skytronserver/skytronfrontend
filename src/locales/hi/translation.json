@@ -97,7 +97,24 @@
       "callAssignment": "मासिक,साप्ताहिक,दैनिक,कुल",
       "falseAssignment": "मासिक,साप्ताहिक,दैनिक,कुल",
       "closedAssignment": "मासिक,साप्ताहिक,दैनिक,कुल",
-      "rejected": "मासिक,साप्ताहिक,दैनिक,कुल"
+      "rejected": "मासिक,साप्ताहिक,दैनिक,कुल",
+      "esimDevices": {
+        "totalDevices": "कुल डिवाइस",
+        "validated": "मान्य किए गए",
+        "active": "सक्रिय",
+        "expired": "समाप्त",
+        "pending": "लंबित",
+        "invalid": "अमान्य"
+      },
+      "activationStatus": {
+        "requestsSent": "भेजे गए अनुरोध",
+        "confirmed": "पुष्टि की गई",
+        "rejected": "अस्वीकृत",
+        "expiringSoon": "जल्द समाप्त होने वाले",
+        "todayRequests": "आज के अनुरोध",
+        "weeklyRequests": "साप्ताहिक अनुरोध",
+        "monthlyRequests": "मासिक अनुरोध"
+      }
     },
     "headings": {
       "userStatistics": "उपयोगकर्ता सांख्यिकी",
@@ -130,7 +147,9 @@
       "averageAcceptanceTime": "औसत स्वीकृति समय",
       "weekly": "साप्ताहिक",
       "daily": "दैनिक",
-      "total": "कुल"
+      "total": "कुल",
+      "esimDeviceStatus": "ईसिम डिवाइस स्थिति",
+      "activationStatus": "सक्रियण स्थिति"
     },
     "widgets": {
       "user_statistics": "उपयोगकर्ता सांख्यिकी",

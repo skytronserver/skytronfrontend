@@ -65,7 +65,7 @@ const NoticeList = () => {
             return (
               <div className="cellAction" style={{ display: "flex" }}>
                 <Button color="primary" 
-                href={`${CUSTOM_BASE_URL}${tableMeta.rowData[3]}`} 
+                href={`${process.env.REACT_APP_BASE_URL}${tableMeta.rowData[3]}`} 
                 target="_blank"
                 rel="noopener noreferrer"
                 >View</Button>

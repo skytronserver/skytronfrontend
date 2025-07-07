@@ -75,7 +75,24 @@
       "callAssignment": "Monthly,Weekly,Daily,Total",
       "falseAssignment": "Monthly,Weekly,Daily,Total",
       "closedAssignment": "Monthly,Weekly,Daily,Total",
-      "rejected": "Monthly,Weekly,Daily,Total"
+      "rejected": "Monthly,Weekly,Daily,Total",
+      "esimDevices": {
+        "totalDevices": "Total Devices",
+        "validated": "Validated",
+        "active": "Active",
+        "expired": "Expired",
+        "pending": "Pending",
+        "invalid": "Invalid"
+      },
+      "activationStatus": {
+        "requestsSent": "Requests Sent",
+        "confirmed": "Confirmed",
+        "rejected": "Rejected",
+        "expiringSoon": "Expiring Soon",
+        "todayRequests": "Today's Requests",
+        "weeklyRequests": "Weekly Requests",
+        "monthlyRequests": "Monthly Requests"
+      }
     },
     "headings": {
       "userStatistics": "User Statistics",
@@ -135,7 +152,9 @@
       "averageAcceptanceTime": "Average Acceptance Time",
       "weekly": "Weekly",
       "daily": "Daily",
-      "total": "Total"
+      "total": "Total",
+      "esimDeviceStatus": "eSIM Device Status",
+      "activationStatus": "Activation Status"
     },
     "widgets": {
       "user_statistics": "User Statistics",

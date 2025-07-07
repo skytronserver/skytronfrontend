@@ -33,6 +33,10 @@ const getProviderList = () => {
   const http = getAxiosInstance();
   return http.get("/api/devicestock/esim_provider_list/");
 };
+const getCombinedStocks = () => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicestock/combined/");
+};
 const devicePatch = (id,action)=>{
   const http = getAxiosInstance();
   const device = {
@@ -128,6 +132,7 @@ const StockServices = {
   createStock,
   createBulkStock,
   getAvailableDeviceList,
+  getCombinedStocks,
   markAsDefective,
   returnToManufacturer,
   sellFitDevice,

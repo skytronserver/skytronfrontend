@@ -40,6 +40,7 @@ const ActiveState = () => {
   const [dealerFitmentInfo,setDealerFitmentInfo]=useState(dashboardInitialState.dealerFitmentInfo);
   const [dealerDeviceInfo,setDealerDeviceInfo]=useState(dashboardInitialState.dealerDeviceInfo);
   const [eSIMInfo,setESIMInfo]=useState(dashboardInitialState.eSIMInfo);
+  const [eSIMActivationInfo,setESIMActivationInfo]=useState(dashboardInitialState.eSIMActivationInfo);
   const [deviceStatusInfo,setDeviceStatusInfo]=useState(dashboardInitialState.deviceStatusInfo);
   const [deviceHealthInfo,setDeviceHealthInfo]=useState(dashboardInitialState.deviceHealthInfo);
   const [overSpeedInfo,setOverSpeedInfo]=useState(dashboardInitialState.alertInfo);
@@ -115,6 +116,33 @@ const ActiveState = () => {
           sosCalls: data.Total_SOS_calls,
           genuineCalls: data.Genuine_calls,
           fakeCalls: data.Fake_calls,
+        }));
+      })();
+    }
+
+    ////////////////////////////////////////////
+    if(userRoles=='esimprovider') {
+      (async()=>{
+        const response = await UserServices.getESIMProviderDashboard();
+        const data = await response.data;
+        setESIMInfo(prev=>({
+          ...prev,
+          totalDevicesWithESim: data.Total_Devices_With_ESim || 0,
+          validated: data.ESim_Validated || 0,
+          expired: data.ESim_Expired || 0,
+          active: data.ESim_Active || 0,
+          pending: data.ESim_Pending || 0,
+          invalid: data.ESim_Invalid || 0
+        }));
+        setESIMActivationInfo(prev=>({
+          ...prev,
+          activationRequestSent: data.ESim_Activation_Req_Sent || 0,
+          activationConfirmed: data.ESim_Activation_Confirmed || 0,
+          activationRejected: data.ESim_Activation_Rejected || 0,
+          expiringSoon: data.ESim_Expiring_Soon_30_Days || 0,
+          todayRequests: data.Today_Activation_Requests || 0,
+          weeklyRequests: data.This_Week_Activation_Requests || 0,
+          monthlyRequests: data.This_Month_Activation_Requests || 0,
         }));
       })();
     }
@@ -797,6 +825,40 @@ const ActiveState = () => {
             </Grid>
           </Grid>
         );
+      case 'esimprovider':
+        return (
+          <Grid container spacing={2} marginBottom={mar}>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label={`${t('dashboard.labels.esimDevices.totalDevices')},${t('dashboard.labels.esimDevices.validated')},${t('dashboard.labels.esimDevices.active')},${t('dashboard.labels.esimDevices.expired')}`}
+                cardValue={{
+                  total: eSIMInfo.totalDevicesWithESim || 0,
+                  validated: eSIMInfo.validated || 0,
+                  active: eSIMInfo.active || 0,
+                  expired: eSIMInfo.expired || 0
+                }}
+                iconImage={Sim}
+                heading={t('dashboard.headings.esimDeviceStatus')}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                label={`${t('dashboard.labels.activationStatus.requestsSent')},${t('dashboard.labels.activationStatus.confirmed')},${t('dashboard.labels.activationStatus.rejected')},${t('dashboard.labels.activationStatus.expiringSoon')}`}
+                cardValue={{
+                  sent: eSIMActivationInfo.activationRequestSent || 0,
+                  confirmed: eSIMActivationInfo.activationConfirmed || 0,
+                  rejected: eSIMActivationInfo.activationRejected || 0,
+                  expiring: eSIMActivationInfo.expiringSoon || 0
+                }}
+                iconImage={Bell}
+                heading={t('dashboard.headings.activationStatus')}
+              />
+            </Grid>
+          </Grid>
+        );
       case "sosadmin":
       case "teamlead":
         return (
@@ -899,7 +961,7 @@ const ActiveState = () => {
             </Grid>
             </Grid>
           )
-        default:
+      default:
         return (
           <Box
             display="flex"

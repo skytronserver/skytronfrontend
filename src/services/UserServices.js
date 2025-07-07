@@ -189,6 +189,10 @@ const deactivateUser=(data)=>{
     const http=getAxiosInstance();
     return http.post(`/api/deactivateUser/`,data);
 }
+const getESIMProviderDashboard = () => {
+  const http = getAxiosInstance();
+  return http.post("/api/homepageandstat/homepage_esimProvider/");
+};
 
 const UserServices = {
     getStateStats,
@@ -226,7 +230,8 @@ const UserServices = {
     getSOSAdminDashboard,
     getSOSLeadDashboard,
     getSOSExeDashboard,
-    deactivateUser
+    deactivateUser,
+    getESIMProviderDashboard
   };
   
   export default UserServices;

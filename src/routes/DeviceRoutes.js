@@ -20,6 +20,7 @@ import NotAuthorized from "../views/pages/NotAuthorized";
 import TaggedList from "../views/reports/TaggedList";
 import SimActivation from "../views/pages/device/SimActivation";
 import ListSimActivation from "../views/pages/device/ListSimActivation";
+import CombinedStockReport from "../views/showDevice/CombinedStockReport";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -121,6 +122,11 @@ const DeviceRoutes = {
       path: "/device/show-tagged-device",
       element: <TaggedList />,
       roles: ["superadmin", "devicemanufacture", "dealer"],
+    },
+    {
+      path: "/device/combined-stock-report",
+      element: <CombinedStockReport />,
+      roles: ["superadmin", "devicemanufacture"],
     },
     {
       path: "/device/fit-device",

@@ -630,6 +630,14 @@ const user = {
           roles: ["devicemanufacture"],
         },
         {
+          id: "combined-stock",
+          title: "Combined Stock Report",
+          type: "item",
+          url: "/device/combined-stock-report",
+          breadcrumbs: false,
+          roles: ["devicemanufacture", "superadmin"],
+        },
+        {
           id: 'gps-data-log',
           title: 'GPS Data Log',
           type: 'item',
