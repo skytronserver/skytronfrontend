@@ -47,6 +47,14 @@ const getDeviceList=(data)=>{
   const http = getAxiosInstance();         // show device
   return http.post("/api/devicestock/deviceStockFilter/",data)            
 }
+const stateadminApprovedModels=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/stateadmin/reports/approved-models/',data)
+}
+const stateadminApprovedCOPModels=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/stateadmin/reports/approved-cops/',data)
+}
 const DeviceModelServices = {
 getAllModels,
 getAdminAwaitingModels,
@@ -57,7 +65,9 @@ updateModel,
 copUpload,
 deleteModel,
 getDeviceList,
-getFilterModels
+getFilterModels,
+stateadminApprovedModels,
+stateadminApprovedCOPModels
 };
 
 export default DeviceModelServices;

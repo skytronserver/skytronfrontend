@@ -1,6 +1,6 @@
 import React from 'react';
 // project imports
-import { Grid } from "@mui/material";
+import { Grid, Button } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from '../../services/DeviceModelServices';
 import Alert from '@mui/material/Alert';
@@ -35,7 +35,70 @@ const ShowDevice = () => {
       }
     };
     retrievePosts();
-  }, [dispatch])
+  }, [dispatch]);
+
+  const handleMarkDefective = async (e, id) => {
+    e.preventDefault();
+    const confirmed = window.confirm(t('device.confirmDefective'));
+    if (confirmed) {
+      try {
+        // Add your API call to mark device as defective
+        console.log('Marking device as defective:', id);
+      } catch (error) {
+        console.error('Error marking device as defective:', error);
+      }
+    }
+  };
+
+  const handleSell = async (e, id) => {
+    e.preventDefault();
+    const confirmed = window.confirm(t('device.confirmSell'));
+    if (confirmed) {
+      try {
+        // Add your API call to mark device as sold
+        console.log('Marking device as sold:', id);
+      } catch (error) {
+        console.error('Error marking device as sold:', error);
+      }
+    }
+  };
+
+  const actionColumn = [
+    {
+      name: "Action",
+      label: t('common.action'),
+      options: {
+        filter: false,
+        customBodyRender: (value, tableMeta) => {
+          return (
+            <div className="cellAction" style={{display: 'flex', gap: '8px'}}>
+              <Button
+                type="submit"
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={(event) => handleMarkDefective(event, tableMeta.rowData[1])}
+              >
+                {t('device.defective')}
+              </Button>
+              <Button
+                type="submit"
+                variant="outlined"
+                color="primary"
+                size="small"
+                onClick={(event) => handleSell(event, tableMeta.rowData[1])}
+              >
+                {t('device.sell')}
+              </Button>
+            </div>
+          );
+        },
+      },
+    },
+  ];
+
+  const columns = [...showDeviceColumns, ...actionColumn];
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -49,7 +112,7 @@ const ShowDevice = () => {
           <DynamicDatatables
             tableTitle={t('showDevice.title')}
             rows={deviceList}
-            columns={showDeviceColumns}
+            columns={columns}
           />
         )}
       </Grid>

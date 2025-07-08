@@ -448,41 +448,29 @@ export const openFile = async (e, filePath) => {
         fileName = fileNameMatch[1];
       }
     }
-    const contentType =
-      response.headers["content-type"] || "application/octet-stream";
+    const contentType = response.headers["content-type"] || "application/octet-stream";
     const blob = new Blob([response.data], { type: contentType });
     if (blob.size === 0) {
       throw new Error("The downloaded file is empty.");
     }
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = function () {
-      const base64data = reader.result;
-      const newWindow = window.open("", "_blank");
-      const extension = filename.split(".").pop();
-      const validExtensions = /^(png|jpg|jpeg)$/i;
-      if (validExtensions.test(extension)) {
-        newWindow.document.write(
-          `<html><head><title>${fileName}</title></head><body><img src="${base64data}" alt="${fileName}"></body></html>`
-        );
-      } else if (extension === "pdf" || extension === "PDF") {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName; // Specify the filename you want
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } else {
-        newWindow.document.write(
-          `<html><head><title>${fileName}</title></head><body><a href="${base64data}" download="${fileName}">Download ${fileName}</a></body></html>`
-        );
-      }
-      setTimeout(() => window.URL.revokeObjectURL(base64data), 60000); // revoke after 1 minute
-    };
+    
+    // Create URL for the blob
+    const url = window.URL.createObjectURL(blob);
+    
+    // Create temporary link element
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    
+    // Append to body, click and remove
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // Clean up the URL
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000); // revoke after 1 minute
   } catch (error) {
-    console.error("Error viewing file:", error);
+    console.error("Error downloading file:", error);
   }
 };
 

@@ -89,6 +89,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
+          disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
             formik.touched[fieldConfig.name] &&

@@ -12,6 +12,7 @@ import UnapproveCopList from "../views/reports/UnapproveCopList";
 import StateAdminCOPModelView from "../views/detailsview/StateAdminCOPModelView";
 import BulkUpload from "../views/forms/BulkUpload";
 import AssignDevice from "../views/forms/AssignDevice";
+import BulkDeviceAssign from "../views/forms/BulkDeviceAssign";
 import ShowDevice from "../views/showDevice/ShowDevice";
 import AvailableForSale from "../views/showDevice/AvailableForSale";
 import ConfigureDevice from "../views/tagging/ConfigureDevice";
@@ -21,6 +22,9 @@ import TaggedList from "../views/reports/TaggedList";
 import SimActivation from "../views/pages/device/SimActivation";
 import ListSimActivation from "../views/pages/device/ListSimActivation";
 import CombinedStockReport from "../views/showDevice/CombinedStockReport";
+import AllTaggedDevice from "../views/showDevice/AllTaggedDevice";
+import ApprovedModelsList from "../views/reports/ApprovedModelsList";
+import ApprovedCOPsList from "../views/reports/ApprovedCOPsList";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -53,6 +57,11 @@ const DeviceRoutes = {
   path: "/",
   element: <MainLayout />,
   children: [
+    {
+      path: "/device/bulk-assign",
+      element: <BulkDeviceAssign />,
+      roles: ["devicemanufacture"],
+    },
     {
       path: "/device/new",
       element: <DeviceForm formTitle="New Device Form" />,
@@ -132,6 +141,21 @@ const DeviceRoutes = {
       path: "/device/fit-device",
       element: <ConfigureDevice status="Available_for_fitting" />,
       roles: ["dealer"],
+    },
+    {
+      path: '/device/all-tagged-devices',
+      element: <AllTaggedDevice />,
+      roles:['superadmin', 'devicemanufacture', 'stateadmin'],
+    },
+    {
+      path: "/device/approved-models",
+      element: <ApprovedModelsList />,
+      roles: ["stateadmin"],
+    },
+    {
+      path: "/device/approved-cops",
+      element: <ApprovedCOPsList />,
+      roles: ["stateadmin"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };

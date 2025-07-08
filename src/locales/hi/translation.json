@@ -406,7 +406,9 @@
     "schoolHolidays": "स्कूल की छुट्टियां",
     "createHoliday": "छुट्टी बनाएं",
     "tripViewer": "यात्रा दर्शक",
-    "poiViewer": "पीओआई दर्शक"
+    "poiViewer": "पीओआई दर्शक",
+    "approvedModels": "स्वीकृत मॉडल",
+    "approvedCOPs": "स्वीकृत सीओपी"
   },
   "ipSetting": {
     "title": "",
@@ -1014,7 +1016,9 @@
       "rejected": "अस्वीकृत",
       "awaiting_approval": "स्वीकृति की प्रतीक्षा में"
     },
-    "copListTitle": "डिवाइस मॉडल सूची"
+    "copListTitle": "डिवाइस मॉडल सूची",
+    "approvedModelsTitle": "स्वीकृत डिवाइस मॉडल",
+    "approvedCOPsTitle": "स्वीकृत सीओपी मॉडल"
   },
   "device": {
     "reportTitle": "डिवाइस रिपोर्ट",
@@ -1348,5 +1352,23 @@
     "responseTime": "प्रतिक्रिया समय",
     "totalDuration": "कुल अवधि",
     "status": "स्थिति"
+  },
+  "bulkDeviceAssign": {
+    "title": "बल्क डिवाइस असाइनमेंट",
+    "fields": {
+      "dealer": "डीलर चुनें",
+      "excelFile": "एक्सेल फ़ाइल अपलोड करें"
+    },
+    "validation": {
+      "dealerRequired": "कृपया एक डीलर चुनें",
+      "excelFileRequired": "कृपया एक एक्सेल फ़ाइल अपलोड करें"
+    },
+    "options": {
+      "waitingForDealers": "डीलर्स लोड हो रहे हैं..."
+    },
+    "buttons": {
+      "downloadSample": "सैंपल फ़ाइल डाउनलोड करें",
+      "submit": "डिवाइस असाइन करें"
+    }
   }
 }

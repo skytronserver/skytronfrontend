@@ -15,8 +15,9 @@ const assignDeviceToDealer = (data) => {
   const http = getAxiosInstance(); 
   return http.post("/api/devicestock/StockAssignToRetailer/", data);
 };
+
 const DealerServices = {
-    dealerUser,dealerList,assignDeviceToDealer
+    dealerUser,dealerList,assignDeviceToDealer,
   };
   
   export default DealerServices;

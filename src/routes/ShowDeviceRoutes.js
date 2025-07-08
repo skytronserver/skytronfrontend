@@ -31,6 +31,10 @@ const ShowDevice = Loadable(
   lazy(() => import("../views/showDevice/ShowDevice"))
 );
 
+const AllTaggedDevice = Loadable(
+  lazy(() => import("../views/showDevice/AllTaggedDevice"))
+);
+
 const ShowDeviceRoutes = {
   path: "/",
   element: <MainLayout />,
@@ -39,7 +43,7 @@ const ShowDeviceRoutes = {
       path: 'show-device',
       element: <ShowDevice />,
       roles:['superadmin','devicemanufacture'],
-    }
+    },
   ],
 };
 

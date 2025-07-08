@@ -78,6 +78,11 @@ const cancelTagDevice=(deviceId)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/cancelTagDevice2Vehicle/',deviceId)
 }
+const gettaggedDeviceList=(data)=>{
+  const http=getAxiosInstance();
+  return http.post('/api/tag/StateAdmin_view_all_tagging/')
+}
+
 
 const TaggingService = {
     tagDeviceToVehicle,
@@ -97,6 +102,7 @@ const TaggingService = {
     getOwnerList,
     untagDevice,
     cancelTagDevice,
+    gettaggedDeviceList
 
 };
 

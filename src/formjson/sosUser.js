@@ -75,6 +75,7 @@ export const sosUserFormField = {
     label: "sosUserForm.fields.state",
     validation: Yup.string().required("sosUserForm.validation.stateRequired"),
     options: stateList,
+    disabled: true,
   },
   idProofno: {
     name: "idProofno",
@@ -185,6 +186,7 @@ export const sosOtherUserFormField = {
     label: "sosUserForm.fields.state",
     validation: Yup.string().required("sosUserForm.validation.stateRequired"),
     options: stateList,
+    disabled: true,
   },
   idProofno: {
     name: "idProofno",
@@ -262,7 +264,7 @@ export const emTeamFormField = {
     type: "text",
     label: "emTeamForm.fields.stateName",
     validation: Yup.string().required("emTeamForm.validation.stateRequired"),
-    disabled:'true'
+    disabled: true,
     // options: stateList,
   },
   teamlead: {

@@ -292,6 +292,22 @@ const user = {
           breadcrumbs: false,
           roles: ["stateadmin"],
         },
+        {
+          id: "approved-models",
+          title: "Approved Models",
+          type: "item",
+          url: "/device/approved-models",
+          breadcrumbs: false,
+          roles: ["stateadmin"],
+        },
+        {
+          id: "approved-cops",
+          title: "Approved COPs",
+          type: "item",
+          url: "/device/approved-cops",
+          breadcrumbs: false,
+          roles: ["stateadmin"],
+        },
       ]
     },
     {
@@ -364,6 +380,14 @@ const user = {
           title: "Assign Stock",
           type: "item",
           url: "/device/assign-device",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
+        {
+          id: "bulk-assign-device",
+          title: "Bulk Assign Stock",
+          type: "item",
+          url: "/device/bulk-assign",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
@@ -636,6 +660,14 @@ const user = {
           url: "/device/combined-stock-report",
           breadcrumbs: false,
           roles: ["devicemanufacture", "superadmin"],
+        },
+        {
+          id: "all-tagged-devices",
+          title: "All Tagged Devices",
+          type: "item",
+          url: "/device/all-tagged-devices",
+          breadcrumbs: false,
+          roles: ["superadmin","stateadmin","dtorto","devicemanufacture"],
         },
         {
           id: 'gps-data-log',

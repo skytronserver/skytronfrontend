@@ -29,20 +29,26 @@ const SOSUser = () => {
 
   useEffect(() => {
     (async () => {
-      const stateList = await retriveStateList();
-      const districtList = await retriveDistrictList();
-      setUpdatedFormField((prevConfig) => ({
-        ...prevConfig,
-        state: {
-          ...prevConfig.state,
-          options: stateList,
-        },
-        district: {
-          ...prevConfig.district,
-          options: districtList,
-        },
-      }));
-      setIsFormLoaded(true);
+      try {
+        const stateList = await retriveStateList();
+        const districtList = await retriveDistrictList();
+        
+        setUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          state: {
+            ...prevConfig.state,
+            options: stateList,
+          },
+        }));
+
+        if (stateList?.[0]?.value) {
+          sosOtherUserInitialValues.state = stateList[0].value;
+        }
+      } catch (error) {
+        console.error("Failed to retrieve state or district list:", error);
+      } finally {
+        setIsFormLoaded(true);
+      }
     })();
   }, []);
 
@@ -134,23 +140,19 @@ const SOSUser = () => {
         {loading && (
           <div
             style={{
+              position: "fixed",
               top: 0,
               left: 0,
               width: "100%",
               height: "100%",
               zIndex: 9999,
               background: "rgba(255, 255, 255, 0.8)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            <CircularProgress
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-              size={50}
-            />
+            <CircularProgress size={50} />
           </div>
         )}
         <Grid
@@ -172,15 +174,22 @@ const SOSUser = () => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field) => (
-                        <Grid key={field} item md={6} sm={12} xs={12}>
-                          <FormField
-                            fieldConfig={updatedFormFields[field]}
-                            formik={formik}
-                            handleFileChange={handleFileChange}
-                          />
-                        </Grid>
-                      ))}
+                      {Object.keys(updatedFormFields).map((field) => {
+                        const fieldConfig = {
+                          ...updatedFormFields[field],
+                          disabled: field === 'state' ? true : updatedFormFields[field].disabled
+                        };
+                        console.log('Field:', field, 'Config:', fieldConfig);
+                        return (
+                          <Grid key={field} item md={6} sm={12} xs={12}>
+                            <FormField
+                              fieldConfig={fieldConfig}
+                              formik={formik}
+                              handleFileChange={handleFileChange}
+                            />
+                          </Grid>
+                        );
+                      })}
                       <Grid item xs={12} style={{ marginTop: "20px" }}>
                         <Button
                           type="submit"

@@ -1305,5 +1305,23 @@
       "routeDeleted": "ৰুট সফলভাৱে মচা হ'ল!",
       "routeDeleteFailed": "ৰুট মচাত বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।"
     }
+  },
+  "bulkDeviceAssign": {
+    "title": "বাল্ক ডিভাইচ নিয়োগ",
+    "fields": {
+      "dealer": "ডিলাৰ বাছনি কৰক",
+      "excelFile": "এক্সেল ফাইল আপল'ড কৰক"
+    },
+    "validation": {
+      "dealerRequired": "অনুগ্ৰহ কৰি এজন ডিলাৰ বাছনি কৰক",
+      "excelFileRequired": "অনুগ্ৰহ কৰি এখন এক্সেল ফাইল আপল'ড কৰক"
+    },
+    "options": {
+      "waitingForDealers": "ডিলাৰসকল ল'ড হৈ আছে..."
+    },
+    "buttons": {
+      "downloadSample": "নমুনা ফাইল ডাউনল'ড কৰক",
+      "submit": "ডিভাইচ নিয়োগ কৰক"
+    }
   }
 }

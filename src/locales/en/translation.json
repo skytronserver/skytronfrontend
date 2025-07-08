@@ -402,7 +402,9 @@
     "emergencyDataLogs": "Emergency Data Logs",
     "apiDataLog": "API Data Log",
     "schoolHolidays": "School Holidays",
-    "createHoliday": "Create Holiday"
+    "createHoliday": "Create Holiday",
+    "approvedModels": "Approved Models",
+    "approvedCOPs": "Approved COPs"
   },
   "auth": {
     "login": "Login",
@@ -1052,7 +1054,9 @@
       "rejected": "Rejected",
       "awaiting_approval": "Awaiting Approval"
     },
-    "copListTitle": "Device Model List"
+    "copListTitle": "Device Model List",
+    "approvedModelsTitle": "Approved Device Models",
+    "approvedCOPsTitle": "Approved COP Models"
   },
   "device": {
     "reportTitle": "Device Report",
@@ -1405,5 +1409,23 @@
     "responseTime": "Response Time",
     "totalDuration": "Total Duration",
     "status": "Status"
+  },
+  "bulkDeviceAssign": {
+    "title": "Bulk Device Assignment",
+    "fields": {
+      "dealer": "Select Dealer",
+      "excelFile": "Upload Excel File"
+    },
+    "validation": {
+      "dealerRequired": "Please select a dealer",
+      "excelFileRequired": "Please upload an Excel file"
+    },
+    "options": {
+      "waitingForDealers": "Loading dealers..."
+    },
+    "buttons": {
+      "downloadSample": "Download Sample File",
+      "submit": "Assign Devices"
+    }
   }
 }
