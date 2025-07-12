@@ -38,7 +38,10 @@
     "delete": "Delete",
     "deleteDialog": "Are you sure you want to delete user {{userName}}? This action cannot be undone.",
     "Confirm": "Confirm",
-    "Request": "Request"
+    "Request": "Request",
+    "no_results_found": "No results found",
+    "formSubmitSuccess": "Form submitted successfully",
+    "formSubmitError": "Form submission failed"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -556,7 +559,7 @@
         "gst_no": "GST Number",
         "id_proof_number": "ID Proof Number",
         "auth_letter": "Upload Authorization Letter",
-        "company_reg_certificate": "Upload M2M Registration Certificate",
+        "company_reg_certificate": "Upload Company Registration Certificate",
         "gst_certificate": "Upload GST Certificate",
         "id_proof": "Upload User ID Proof"
       },

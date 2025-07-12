@@ -64,9 +64,9 @@ export const dealerListColumn = [
 ];
 export const sosListColumn = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
-  { name: "user_type", label: "Type", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
-    <p>{user_type?.[value] ?? value}</p>
-  ); }, csvExportKey: "Type", columnKey:0 } },
+  // { name: "user_type", label: "Type", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+  //   <p>{user_type?.[value] ?? value}</p>
+  // ); }, csvExportKey: "Type", columnKey:0 } },
   { name: "users", label: "User Name", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value[0].name}</p>
   ); }, csvExportKey: "name", columnKey:0 } },

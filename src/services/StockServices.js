@@ -125,6 +125,7 @@ const updateRequest=(formData)=>{
   const http=getAxiosInstance();
   return http.post("/api/esimActivateReq/update/",formData)
 }
+
 const StockServices = {
   getBulkStocks,
   stockFilter,

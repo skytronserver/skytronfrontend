@@ -19,7 +19,7 @@ export const eSIMInitialValues = {
     file_authLetter: null,
     file_GSTCertificate: null,
     file_idProof:null,
-    file_dot_m2m_registration:null,
+    file_companRegCertificate:null,
 };
 
 export const eSIMFormField = {
@@ -127,8 +127,8 @@ export const eSIMFormField = {
       return SUPPORTED_FORMATS.includes(value.type);
     }),
   },
-  file_dot_m2m_registration:{
-    name:"file_dot_m2m_registration",
+  file_companRegCertificate:{
+    name:"file_companRegCertificate",
     type: "file",
     label: "esimUser.form.fields.company_reg_certificate",
     message: "esimUser.form.validation.file_restrictions",

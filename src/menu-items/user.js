@@ -659,7 +659,7 @@ const user = {
           type: "item",
           url: "/device/combined-stock-report",
           breadcrumbs: false,
-          roles: ["devicemanufacture", "superadmin"],
+          roles: ["devicemanufacture", "dealer",'stateadmin'],
         },
         {
           id: "all-tagged-devices",
@@ -667,7 +667,7 @@ const user = {
           type: "item",
           url: "/device/all-tagged-devices",
           breadcrumbs: false,
-          roles: ["superadmin","stateadmin","dtorto","devicemanufacture"],
+          roles: ["stateadmin"],
         },
         {
           id: 'gps-data-log',

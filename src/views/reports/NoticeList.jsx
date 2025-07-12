@@ -111,12 +111,16 @@ const NoticeList = () => {
         <PageHeader title={t('menu.notice')} />
       </Grid>
       <Grid item xs={12}>
-        {notices.length >= 1 && (
+        {notices.length >= 1 ? (
           <DynamicDatatables
             tableTitle=""
             rows={notices}
             columns={noticeColumn.concat(actionColumn)}
           />
+        ) : (
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            {t('common.no_results_found')}
+          </div>
         )}
       </Grid>
     </Grid>

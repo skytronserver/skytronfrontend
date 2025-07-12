@@ -17,6 +17,7 @@ import TripPlanning from "../views/direct/TripPlanning";
 import GetAllCall from "../views/direct/GetAllCall";
 import CallDetails from "../views/direct/CallDetails";
 import AlertList from "../views/reports/AlertList";
+import AlertLog from "../views/reports/AlertLog";
 import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import GpsDataLog from "../views/reports/GpsDataLog";
@@ -150,6 +151,11 @@ const MainRoutes = {
       path: '/reports/api-data-log',
       element: <ApiDataLog />,
       roles: ['superadmin']
+    },
+    {
+      path: '/reports/alert-log',
+      element: <AlertLog />,
+      roles: ['superadmin', 'stateadmin']
     },
     {
       path: "/camera-feeds",

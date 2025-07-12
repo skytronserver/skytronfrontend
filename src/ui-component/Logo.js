@@ -42,7 +42,7 @@ const Logo = () => {
         <h3
           style={{
             padding: isMobile ? "30px 3px 30px 5px" : "30px 3px 30px 0",
-            marginLeft: isMobile ? "0px" : "5px",
+            marginLeft: isMobile ? "0px" : "0px",
             color: "white",
             backgroundColor: "#86469C",
             fontfamily: "Quantico",
@@ -55,21 +55,23 @@ const Logo = () => {
           }}
         >
           SKYTRON
-        </h3>
-
-        <h5
+          <h5
           style={{
+            marginLeft: "3px",
             marginBottom: "15px",
-            paddingRight: "30px",
+            paddingRight: "2px",
             fontfamily: "Quantico",
             fontSize: "10px",
-            marginRight: "100px",
+            marginRight: isMobile ? "100px" : "10px",
             textAlign: "left",
             color: "white",
           }}
         >
           ®
         </h5>
+        </h3>
+
+       
       </div>
     </div>
   );

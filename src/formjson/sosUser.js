@@ -75,7 +75,6 @@ export const sosUserFormField = {
     label: "sosUserForm.fields.state",
     validation: Yup.string().required("sosUserForm.validation.stateRequired"),
     options: stateList,
-    disabled: true,
   },
   idProofno: {
     name: "idProofno",

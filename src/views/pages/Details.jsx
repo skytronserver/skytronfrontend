@@ -2,7 +2,7 @@ import React from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import { Grid } from '@mui/material';
+import { Grid, Box } from '@mui/material';
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ManufacturerServices from "../../services/ManufacturerServices";
@@ -12,9 +12,64 @@ import SettingService from "../../services/SettingService";
 import DescriptionIcon from '@mui/icons-material/Description';
 import UserServices from "../../services/UserServices";
 import Button from '@mui/material/Button';
-const docViewStyle={
-  padding:"0px"
-}
+
+const styles = {
+  card: {
+    margin: '24px',
+    borderRadius: '12px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    backgroundColor: '#fff'
+  },
+  header: {
+    padding: '24px',
+    backgroundColor: '#f8f9fa',
+    borderTopLeftRadius: '12px',
+    borderTopRightRadius: '12px'
+  },
+  headerTitle: {
+    fontSize: '24px',
+    fontWeight: 600,
+    color: '#333',
+    marginBottom: '4px'
+  },
+  headerSubtitle: {
+    fontSize: '14px',
+    color: '#666'
+  },
+  content: {
+    padding: '24px'
+  },
+  sectionTitle: {
+    fontSize: '16px',
+    fontWeight: 500,
+    color: '#333',
+    marginBottom: '20px'
+  },
+  label: {
+    fontSize: '14px',
+    color: '#666',
+    marginBottom: '4px'
+  },
+  value: {
+    fontSize: '16px',
+    color: '#333',
+    marginBottom: '16px'
+  },
+  documentButton: {
+    textTransform: 'none',
+    color: '#0088ff',
+    backgroundColor: 'transparent',
+    border: 'none',
+    padding: '8px 16px',
+    '&:hover': {
+      backgroundColor: 'rgba(0, 136, 255, 0.04)'
+    },
+    '& .MuiButton-startIcon': {
+      color: '#0088ff'
+    }
+  }
+};
+
 const Details = () => {
     const { userId,userType } = useParams();
     const [isLoaded,setIsLoaded]=useState(false)
@@ -35,8 +90,8 @@ const Details = () => {
         file_companRegCertificate:"",
         file_GSTCertificate:"",
         file_idProof:""
-
     });
+
     useEffect(()=>{
       const retrieveUserDetails = async () => {
         try {
@@ -73,13 +128,13 @@ const Details = () => {
                 gstNo: userData?.gstnnumber || "",
                 company_name: userData?.company_name || "",
                 expiryDate: userData?.expirydate || "",
-                state: userData?.state?.state || "",
+                state: userData?.state?.state || userData?.state_info?.state||"",
                 idProofno: userData?.idProofno || "",
                 created_by_name: userData?.users[0]?.created_by_name || "",
-                file_authLetter: userData?.file_authLetter || "",
-                file_companRegCertificate: userData?.file_companRegCertificate || "",
-                file_GSTCertificate: userData?.file_GSTCertificate || "",
-                file_idProof: userData?.file_idProof || ""
+                file_authLetter: userData?.file_authLetter || userData?.file_authorisation_letter||"",
+                file_companRegCertificate: userData?.file_companRegCertificate || userData?.file_companyRegCertificate||"",
+                file_GSTCertificate: userData?.file_GSTCertificate || userData?.file_gstCertificate||"",
+                file_idProof: userData?.file_idProof || userData?.file_idProof||""
             });
 
             setIsLoaded(true);
@@ -94,6 +149,7 @@ const Details = () => {
 
     retrieveUserDetails();
     },[])
+
     const role={
         devicemanufacture:'Device Manufacturer',
         dealer:'Dealer',
@@ -102,90 +158,113 @@ const Details = () => {
         dtorto:'DTO User',
         esimprovider:'M2M Service Provider'
     }
+
   return (
-    <Card sx={{ margin: 'auto' }}>
-      {isLoaded && <CardContent>
-        <Typography gutterBottom variant="h4" component="div">
-          {(user.name).toUpperCase()}<br/>
-          <strong>{user?.role!=='' && role[user.role]}</strong> <strong>{user?.district!=='' && user?.district}</strong>
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Email: </strong>{user.email}
+    <Card sx={styles.card}>
+      {isLoaded && (
+        <>
+          <Box sx={styles.header}>
+            <Typography sx={styles.headerTitle}>
+              {user.name && user.name.toUpperCase()}
             </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Mobile: </strong>{user.mobile}
+            <Typography sx={styles.headerSubtitle}>
+              {user.role && role[user.role]} {user.district && `- ${user.district}`}
             </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Date of Birth: </strong>{user.dob!=='' ? formatDate(user.dob) :'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Expiry Date: </strong>{user.expiryDate!=='' ? user.expiryDate : 'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>State: </strong>{user.state!==''? user.state :'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>GST Number: </strong>{user.gstNo!==''?user.gstNo:'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Company Name: </strong>{user.company_name!=='' ?user.company_name: 'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Created By: </strong>{user.created_by_name}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>ID Proof Number: </strong>{user.idProofno}
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>ID Proof: </strong>{user.file_idProof!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_idProof)} >
-              <span><DescriptionIcon/></span>View ID Proof
-              </Button>:'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Registration Certificate: </strong>{user.file_companRegCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_companRegCertificate)} >
-              <span><DescriptionIcon/></span>View Certificate
-              </Button>:'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>GST Certificate: </strong>{user.file_GSTCertificate!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_GSTCertificate)} >
-              <span><DescriptionIcon/></span>View GST Certificate
-              </Button>:'NA'}
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Authorization Letter: </strong>{user.file_authLetter!=='' ? <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,user.file_authLetter)} >
-              <span><DescriptionIcon/></span>View Authorization Letter
-              </Button>:'NA'}
-            </Typography>
-          </Grid>
-        </Grid>
-      </CardContent>
-      }
+          </Box>
+
+          <CardContent sx={styles.content}>
+            {/* Personal Information */}
+            <Typography sx={styles.sectionTitle}>Personal Information</Typography>
+            <Grid container spacing={3}>
+              {user.email && (
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={styles.label}>Email</Typography>
+                  <Typography sx={styles.value}>{user.email}</Typography>
+                </Grid>
+              )}
+              {user.mobile && (
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={styles.label}>Mobile</Typography>
+                  <Typography sx={styles.value}>{user.mobile}</Typography>
+                </Grid>
+              )}
+              {user.state && (
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={styles.label}>State</Typography>
+                  <Typography sx={styles.value}>{user.state}</Typography>
+                </Grid>
+              )}
+            </Grid>
+
+            {/* Business Information */}
+            {(user.company_name || user.gstNo || user.expiryDate) && (
+              <>
+                <Typography sx={{...styles.sectionTitle, mt: 4}}>Business Information</Typography>
+                <Grid container spacing={3}>
+                  {user.expiryDate && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography sx={styles.label}>Expiry Date</Typography>
+                      <Typography sx={styles.value}>{user.expiryDate}</Typography>
+                    </Grid>
+                  )}
+                </Grid>
+              </>
+            )}
+
+            {/* Additional Information */}
+            {(user.created_by_name || user.idProofno) && (
+              <>
+                <Typography sx={{...styles.sectionTitle, mt: 4}}>Additional Information</Typography>
+                <Grid container spacing={3}>
+                  {user.created_by_name && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography sx={styles.label}>Created By</Typography>
+                      <Typography sx={styles.value}>{user.created_by_name}</Typography>
+                    </Grid>
+                  )}
+                  {user.idProofno && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography sx={styles.label}>ID Proof Number</Typography>
+                      <Typography sx={styles.value}>{user.idProofno}</Typography>
+                    </Grid>
+                  )}
+                </Grid>
+              </>
+            )}
+
+            {/* Documents */}
+            {(user.file_idProof || user.file_authLetter) && (
+              <>
+                <Typography sx={{...styles.sectionTitle, mt: 4}}>Documents</Typography>
+                <Grid container spacing={2}>
+                  {user.file_idProof && (
+                    <Grid item>
+                      <Button
+                        startIcon={<DescriptionIcon />}
+                        sx={styles.documentButton}
+                        onClick={(e)=>openFile(e,user.file_idProof)}
+                      >
+                        View ID Proof
+                      </Button>
+                    </Grid>
+                  )}
+                  {user.file_authLetter && (
+                    <Grid item>
+                      <Button
+                        startIcon={<DescriptionIcon />}
+                        sx={styles.documentButton}
+                        onClick={(e)=>openFile(e,user.file_authLetter)}
+                      >
+                        View Authorization Letter
+                      </Button>
+                    </Grid>
+                  )}
+                </Grid>
+              </>
+            )}
+          </CardContent>
+        </>
+      )}
     </Card>
   );
 }
