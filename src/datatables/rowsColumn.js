@@ -50,10 +50,14 @@ export const dealerListColumn = [
     <p>{value[0].mobile}</p>
   ); }, csvExportKey: "mobile", columnKey:0 } },
   { name: "company_name", label: "Company Name", options: { filter: true, sort: false } },
-  { name: "state_info", label: "State", options: { filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
-    <p>{value?.state}</p>
+  { name: "districts", label: "State", options: { filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+    <p>{value[0]?.state_info?.state}</p>
   ); }, csvExportKey: "state" } },
- {name :"district",label:"District",options:{filter:true,sort:false}},
+ {name :"districts",label:"District",options:{filter:true,sort:false ,customBodyRender:(value,tableMeta,updateValue)=>{return(
+  <p>{value.map((item)=>{return(
+    <p>{item.district}</p>
+  )})}</p>
+ )}}},
   { name: "gstnnumber", label: "GST No.", options: { filter: true, sort: false } },
   { name: "idProofno", label: "ID Proof Number", options: { filter: true, sort: false, display:role === 'superadmin' || role === 'stateadmin' } },
   {name:"expirydate",label:"Expiry Date",options:{filter:true,sort:false}},

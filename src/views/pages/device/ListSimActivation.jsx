@@ -14,6 +14,7 @@ const ListSimActivation = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const { deviceStatus } = useParams();
+  console.log(deviceStatus,"deviceStatus");
   const [reload, setReload] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
@@ -52,7 +53,7 @@ const ListSimActivation = () => {
       }
     };
     retrieveList();
-  }, []);
+  }, [deviceStatus]);
 
   const handleRequest = async (e, data, status) => {
     e.preventDefault();

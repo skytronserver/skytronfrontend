@@ -15,7 +15,7 @@ export const dealerAccountInitialValues = {
   company_name: "",
   gstnnumber: "",
   address_State: "",
-  district: [],
+  districts: [],
   idProofno: "",
   expirydate: formattedDate,
   file_authLetter: null,
@@ -85,11 +85,11 @@ export const dealerAccountFormField = {
     validation: Yup.string().required("dealerAccountForm.validation.stateRequired"),
     disabled: true
   },
-  district: {
-    name: "district",
+  districts: {
+    name: "districts",
     type: "multiselect",
     label: "dealerAccountForm.fields.district",
-    validation: Yup.array().required("dealerAccountForm.validation.districtRequired"),
+    validation: Yup.array().required("dealerAccountForm.validation.districtsRequired"),
     options: [],
   },
   idProofno: {

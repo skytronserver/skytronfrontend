@@ -59,8 +59,8 @@ function DealerAccount() {
             value: stateList?.[0]?.label || '', 
             id: stateList?.[0]?.value || '',
           },
-          district: {
-            ...prevConfig.district,
+          districts: {
+            ...prevConfig.districts,
             options: [],
           },
         }));
@@ -71,8 +71,8 @@ function DealerAccount() {
           console.log(districtList,'districtList')
           setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
-            district: {
-              ...prevConfig.district,
+            districts: {
+              ...prevConfig.districts,
               options: districtList 
             },
           }));
@@ -157,8 +157,13 @@ function DealerAccount() {
     setSubmitting(true);
     setLoading(true);
     
+    // Format districts as an array if it exists
+    const formattedDistricts = values.districts ? 
+      (Array.isArray(values.districts) ? values.districts : [values.districts]) : [];
+    
     const valuesWithRole = {
       ...values,
+      districts: formattedDistricts,
       role: "devicemanufacturer",
       createdby: userId,
       address_State: updatedFormFields.address_State?.id

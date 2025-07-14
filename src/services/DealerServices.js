@@ -13,7 +13,7 @@ const dealerList = (id) => {
 };
 const assignDeviceToDealer = (data) => {
   const http = getAxiosInstance(); 
-  return http.post("/api/devicestock/StockAssignToRetailer/", data);
+  return http.post("/api/devicestock/StockAssignToDealer/", data);
 };
 
 const DealerServices = {

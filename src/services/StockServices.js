@@ -11,7 +11,7 @@ const stockFilter = (data) => {
 };
 const stockAssignToRetailer = (data) => {
   const http = getAxiosInstance();
-  return http.post("/api/devicestock/StockAssignToRetailer/", data);
+  return http.post("/api/devicestock/StockAssignToDealer/", data);
 };
 const createStock = (data) => {
   const http = getAxiosInstance();
