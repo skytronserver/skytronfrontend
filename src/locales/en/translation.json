@@ -984,6 +984,7 @@
   },
   "emTeamForm": {
     "title": "Create EM Team",
+    "editTitle": "Edit EM Team",
     "fields": {
       "name": "Team Name",
       "shiftDetails": "Shift Details",
@@ -1188,19 +1189,30 @@
     "titles": {
       "valid": "Activated eSIM Device",
       "invalid": "Rejected eSIM Device",
-      "pending": "Activation Request"
+      "pending": "Activation Request",
+      "checkStatus": "Check eSIM Status"
     },
     "actions": {
       "accept": "Accept",
       "reject": "Reject",
       "action": "Action",
-      "requestActivation": "Request for Activation"
+      "requestActivation": "Request for Activation",
+      "checkStatus": "Check Status"
     },
     "messages": {
       "confirmRequest": "Please confirm your request",
       "confirmActivation": "Are you sure you want to send for activation?",
       "success": "Request updated successfully",
-      "error": "Error updating request"
+      "error": "Error updating request",
+      "enterImei": "Please enter IMEI number",
+      "statusSuccess": "Status retrieved successfully",
+      "statusError": "Error checking eSIM status"
+    },
+    "fields": {
+      "imeiNumber": "Enter IMEI Number",
+      "status": "Status",
+      "activationDate": "Activation Date",
+      "expiryDate": "Expiry Date"
     }
   },
   "showDevice": {

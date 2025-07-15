@@ -28,11 +28,12 @@ const CreateEMTeam = () => {
   const [updatedFormFields, setUpdatedFormField] = useState(emTeamFormField);
   const [emInitialValues, setEmInitialValues] = useState(emTeamInitialValues);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  
   useEffect(() => {
     (async () => {
       const stateList = await retriveStateList();
-      const sosLead=await retriveSOSLead();
-      const sosTeam=await retriveSOSMember();
+      const sosLead = await retriveSOSLead();
+      const sosTeam = await retriveSOSMember();
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
         state: {
@@ -41,42 +42,56 @@ const CreateEMTeam = () => {
           value: stateList?.[0]?.label || '',
           id: stateList?.[0]?.value || '',
         },
-        teamlead:{
+        teamlead: {
           ...prevConfig.teamlead,
-          options:sosLead
+          options: sosLead
         },
-        members:{
+        members: {
           ...prevConfig.members,
-          options:sosTeam
+          options: sosTeam
         }
       }));
       
-      // Update initial values to include the prefilled state
+      // Update initial values to include the prefilled state label
       if (stateList?.[0]) {
         setEmInitialValues(prev => ({
           ...prev,
-          state: stateList[0].label
+          state: stateList[0].label,
+          stateId: stateList[0].value // Store ID separately
         }));
       }
       
       setIsFormLoaded(true);
     })();
   }, []);
+
   useEffect(() => {
     if (params["*"] && !isNaN(params["*"])) {
       const id = params["*"];
       (async () => {
         try {
           const responseData = await SOSManagement.viewEmTeam({ team_id: id });
-          if (responseData?.data?.[0]) {
-            const response = responseData?.data?.[0];
+          if (responseData?.data?.team) {
+            const team = responseData.data.team;
+            
+            // Get the team lead user info
+            const teamLeadUser = team.teamlead?.users?.[0];
+            
+            // Get the member users info
+            const memberUsers = team.members?.map(member => ({
+              id: member.id,
+              name: member.users?.[0]?.name,
+              email: member.users?.[0]?.email
+            }));
+
             setEmInitialValues({
-              name: response.name,
-              detail: response.detail,
-              state: response.state,
-              teamlead: response.status,
-              member: response.member,
-              id: response.id,
+              name: team.name || '',
+              detail: team.detail || '',
+              state: team.state?.state || '', // State name from nested state object
+              teamlead: team.teamlead?.id?.toString() || '', // Team lead ID as string
+              members: [team.members?.[0]?.id?.toString()] || [], // Take first member's ID as string
+              team_id: team.id?.toString(), // Add team_id for edit mode
+              id: team.id,
             });
             setEditPage(true);
           }
@@ -89,7 +104,8 @@ const CreateEMTeam = () => {
       if (updatedFormFields.state?.options?.length > 0) {
         setEmInitialValues(prev => ({
           ...emTeamInitialValues,
-          state: updatedFormFields.state.options[0].label
+          state: updatedFormFields.state.options[0].label,
+          stateId: updatedFormFields.state.options[0].value
         }));
       } else {
         setEmInitialValues(emTeamInitialValues);
@@ -97,6 +113,7 @@ const CreateEMTeam = () => {
       setEditPage(false);
     }
   }, [parameter, updatedFormFields.state?.options]);
+
   const navigate = useNavigate();
   const handleClose = () => {
     !alert.error && navigate("/new/em-team");
@@ -114,23 +131,48 @@ const CreateEMTeam = () => {
       return acc;
     }, {})
   );
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       setSubmitting(true);
       setLoading(true);
+      
+      // Find the state ID based on selected state label
+      const selectedState = updatedFormFields.state.options.find(
+        option => option.label === values.state
+      );
+      
+      // Prepare API payload with state ID
+      const payload = {
+        ...values,
+        state: selectedState?.value || values.state, // Use ID for API
+        teamlead: values.teamlead?.toString(), // Ensure teamlead is string
+        members: values.members?.map(id => id.toString()), // Ensure member IDs are strings
+      };
+
       let message = t("emTeamForm.messages.teamAdded");
+      let response;
+
       if (editPage) {
         message = t("emTeamForm.messages.teamUpdated");
+        // Add team_id to payload for edit mode
+        payload.team_id = values.team_id || values.id?.toString();
+        response = await SOSManagement.editEmTeam(payload);
       } else {
-        const response = await SOSManagement.createEmTeam(values);
-        if (response) {
-          setAlert((prevAlert) => ({
-            ...prevAlert,
-            error: false,
-            errorList: [],
-          }));
-          handleAlert(message);
+        response = await SOSManagement.createEmTeam(payload);
+      }
+
+      if (response) {
+        setAlert((prevAlert) => ({
+          ...prevAlert,
+          error: false,
+          errorList: [],
+        }));
+        handleAlert(message);
+        if (!editPage) {
           resetForm(emInitialValues);
+        } else {
+          navigate("/new/em-team");
         }
       }
     } catch (error) {
@@ -167,7 +209,7 @@ const CreateEMTeam = () => {
           </div>
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title={t("emTeamForm.title")}>
+          <MainCard title={editPage ? t("emTeamForm.editTitle") : t("emTeamForm.title")}>
             {isFormLoaded && (
               <Formik
                 initialValues={emInitialValues}

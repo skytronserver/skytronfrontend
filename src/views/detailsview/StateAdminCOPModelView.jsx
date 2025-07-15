@@ -14,12 +14,31 @@ import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { useTranslation } from "react-i18next";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
+import DescriptionIcon from '@mui/icons-material/Description';
 
 /* project component/helper import sections */
 import { getCOPDeviceModel } from "../../actions/deviceModelActions";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import OtpServices from "../../services/OtpServices";
+import { openFile } from "helper";
+
+// Add styles object
+const styles = {
+  documentButton: {
+    textTransform: 'none',
+    color: '#0088ff',
+    backgroundColor: 'transparent',
+    border: 'none',
+    padding: '8px 16px',
+    '&:hover': {
+      backgroundColor: 'rgba(0, 136, 255, 0.04)'
+    },
+    '& .MuiButton-startIcon': {
+      color: '#0088ff'
+    }
+  }
+};
 
 const StateAdminCOPModelView = () => {
   const { t } = useTranslation();
@@ -180,7 +199,15 @@ const StateAdminCOPModelView = () => {
                         <TableCell>
                           <strong>{t('copModelView.modelDetails.copFile')}:</strong>
                         </TableCell>
-                        <TableCell>{deviceDetails.cop_file}</TableCell>
+                        <TableCell>
+                          <Button
+                            startIcon={<DescriptionIcon />}
+                            sx={styles.documentButton}
+                            onClick={(e) => openFile(e, deviceDetails.cop_file)}
+                          >
+                            View COP
+                          </Button>
+                        </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>

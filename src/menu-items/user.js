@@ -260,6 +260,15 @@ const user = {
       roles: ["esimprovider"],
     },
     {
+      id: "check-esim-status",
+      title: "Check eSIM Status",
+      type: "item",
+      url: "/device/esim-status",
+      icon: icons.IconDeviceSim1,
+      breadcrumbs: false,
+      roles: ["dealer"],
+    },
+    {
       id: "activate-esim-device",
       title: "Request eSIM Activation",
       type: "item",
@@ -335,23 +344,23 @@ const user = {
         }
       ]
     },
-    {
-      id: "accessory-management",
-      title: "Accessory Management",
-      type: "collapse",
-      icon: icons.IconDeviceSim1,
-      roles: ["devicemanufacture"],
-      children: [
-        {
-          id: "new-accessory",
-          title: "Individual Accessory",
-          type: "item",
-          url: "/accessory/new",
-          breadcrumbs: false,
-          roles: ["devicemanufacture"],
-        }
-      ]
-    },
+    // {
+    //   id: "accessory-management",
+    //   title: "Accessory Management",
+    //   type: "collapse",
+    //   icon: icons.IconDeviceSim1,
+    //   roles: ["devicemanufacture"],
+    //   children: [
+    //     {
+    //       id: "new-accessory",
+    //       title: "Individual Accessory",
+    //       type: "item",
+    //       url: "/accessory/new",
+    //       breadcrumbs: false,
+    //       roles: ["devicemanufacture"],
+    //     }
+    //   ]
+    // },
     {
       id: "device-stock",
       title: "Device Stock",
@@ -534,14 +543,6 @@ const user = {
           roles: ["superadmin"],
         },
         {
-          id: "view-device",
-          title: "Device List",
-          type: "item",
-          url: "/device/show-available-device",
-          breadcrumbs: false,
-          roles: ["devicemanufacture","dtorto"],
-        },
-        {
           id: "all-device",
           title: "Stock Report",
           type: "item",
@@ -645,21 +646,29 @@ const user = {
         //   breadcrumbs: false,
         //   roles: ["superadmin"],
         // },
-        {
-          id: "all-device",
-          title: "View Stocks",
-          type: "item",
-          url: "/device/show-device",
-          breadcrumbs: false,
-          roles: ["devicemanufacture"],
-        },
+        // {
+        //   id: "all-device",
+        //   title: "View Stocks",
+        //   type: "item",
+        //   url: "/device/show-device",
+        //   breadcrumbs: false,
+        //   roles: ["devicemanufacture"],
+        // },
         {
           id: "combined-stock",
-          title: "Combined Stock Report",
+          title: "Device Report",
           type: "item",
           url: "/device/combined-stock-report",
           breadcrumbs: false,
-          roles: ["devicemanufacture", "dealer",'stateadmin'],
+          roles: ["devicemanufacture","dtorto"],
+        },
+        {
+          id: "device-alert-log",
+          title: "Device Alert Log",
+          type: "item",
+          url: "/reports/alert-log",
+          breadcrumbs: false,
+          roles: ["superadmin","dtorto","stateadmin",'owner'],
         },
         {
           id: "all-tagged-devices",

@@ -12,12 +12,13 @@ import { useSelector, useDispatch } from 'react-redux'
 import { stockFilterAction } from '../../actions/stockActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { showDeviceColumns } from '../../datatables/rowsColumn';
-import { decipherEncryption } from "../../helper";
+import { decipherEncryption, getRole } from "../../helper";
 
 const ShowDevice = () => {
   const [load, setLoad] = useState(false);
   const [error, setError] = useState(false);
   const { t } = useTranslation();
+  const userRole = getRole();
   //Datatables data using redux
 
   const dispatch = useDispatch();
@@ -97,7 +98,8 @@ const ShowDevice = () => {
     },
   ];
 
-  const columns = [...showDeviceColumns, ...actionColumn];
+  // Only include action column if user is not a manufacturer
+  const columns = userRole !== 'devicemanufacture' ? [...showDeviceColumns, ...actionColumn] : showDeviceColumns;
 
   return (
     <Grid container spacing={gridSpacing}>

@@ -60,7 +60,7 @@ export const deviceFormField = {
     name:"esim_provider",
     type: "multiselect",
     label: "deviceForm.fields.esim_provider",
-    validation: Yup.array().required("deviceForm.validation.esimProviderRequired"),
+    validation: Yup.array().min(1, "deviceForm.validation.esimProviderRequired").required("deviceForm.validation.esimProviderRequired"),
     options: providerList
   },
   tac_no: {
@@ -108,7 +108,6 @@ export const deviceFormField = {
     name: "telecom_provider1",
     type: "text",
     label: "deviceForm.fields.telecom_provider1",
-    validation: Yup.string().required(""),
     validation: Yup.string()
       .min(2, "Provider name must be at least 2 characters")
       .max(50, "Provider name cannot exceed 50 characters")

@@ -155,7 +155,7 @@ const MainRoutes = {
     {
       path: '/reports/alert-log',
       element: <AlertLog />,
-      roles: ['superadmin', 'stateadmin']
+      roles: ['superadmin', 'stateadmin','dtorto','owner']
     },
     {
       path: "/camera-feeds",

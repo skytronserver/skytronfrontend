@@ -19,12 +19,17 @@ const listEmTeam = () => {
   const http = getAxiosInstance();
   return http.post("/api/EM/list_EMteam/");
 };
+const editEmTeam = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/edit_EMteam/", data);
+}
 const SOSManagement = {
   createEmTeam,
   activateEmTeam,
   removeEmTeam,
   viewEmTeam,
   listEmTeam,
+  editEmTeam,
 };
 
 export default SOSManagement;

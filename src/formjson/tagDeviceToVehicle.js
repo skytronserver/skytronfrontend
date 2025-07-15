@@ -20,6 +20,12 @@ const demoDistrictCodes = [
   { value: "AS02", label: "AS02" },
   { value: "AS03", label: "AS03" },
   { value: "AS04", label: "AS04" },
+  { value: "AS05", label: "AS05" },
+  { value: "AS06", label: "AS06" },
+  { value: "AS07", label: "AS07" },
+  { value: "AS08", label: "AS08" },
+  { value: "AS09", label: "AS09" },
+  { value: "AS10", label: "AS10" },
 ];
 
 export const taggingFields = {

@@ -974,6 +974,7 @@
   },
   "emTeamForm": {
     "title": "ईएम टीम बनाएं",
+    "editTitle": "ईएम टीम संपादित करें",
     "fields": {
       "name": "नाम",
       "shiftDetails": "शिफ्ट विवरण",

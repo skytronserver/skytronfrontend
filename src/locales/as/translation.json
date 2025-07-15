@@ -777,6 +777,7 @@
   },
   "emTeamForm": {
     "title": "EM দল সৃষ্টি কৰক",
+    "editTitle": "EM দল সম্পাদনা কৰক",
     "fields": {
       "name": "নাম",
       "shiftDetails": "শ্বিফটৰ বিৱৰণ",

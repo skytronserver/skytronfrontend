@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Grid, Chip } from '@mui/material';
 import MainCard from '../../ui-component/cards/MainCard';
 import StockServices from '../../services/StockServices';
-import MUIDataTable from 'mui-datatables';
 import CustomLoader from '../../ui-component/CustomLoader';
+import DynamicDatatables from '../../datatables/DynamicDatatables';
 
 const CombinedStockReport = () => {
   const [loading, setLoading] = useState(true);
@@ -20,12 +20,14 @@ const CombinedStockReport = () => {
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'notassigned':
+      case 'available_for_fitting':
         return 'warning';
       case 'assigned':
         return 'success';
       case 'defective':
         return 'error';
+      case 'esim_active_confirmed':
+        return 'success';
       default:
         return 'default';
     }
@@ -58,33 +60,33 @@ const CombinedStockReport = () => {
       } 
     },
     {
-      name: "model.model_name",
+      name: "model",
       label: "Model Name",
       options: {
         filter: true,
         sort: true,
         customBodyRender: (value, tableMeta) => {
           const rowData = stockData[tableMeta.rowIndex];
-          // Show model name if available, else show '-'
           return rowData?.model?.model_name || '-';
         },
-      }
+      },
+      csvExportKey: 'model_name'
     },
     {
-      name: "dealer.dealer_name",
+      name: "dealer",
       label: "Dealer",
       options: {
         filter: true,
         sort: true,
         customBodyRender: (value, tableMeta) => {
           const rowData = stockData[tableMeta.rowIndex];
-          // Show dealer name if available, else show '-'
-          return rowData?.dealer || 'not assigned';
+          return rowData?.dealer?.company_name || 'Not Assigned';
         }
-      }
+      },
+      csvExportKey: 'company_name'
     },
     {
-      name: "model.tac_no",
+      name: "model",
       label: "TAC No",
       options: {
         filter: true,
@@ -93,10 +95,11 @@ const CombinedStockReport = () => {
           const rowData = stockData[tableMeta.rowIndex];
           return rowData?.model?.tac_no || '-';
         }
-      }
+      },
+      csvExportKey: 'tac_no'
     },
     {
-      name: "model.hardware_version",
+      name: "model",
       label: "Hardware Version",
       options: {
         filter: true,
@@ -105,7 +108,8 @@ const CombinedStockReport = () => {
           const rowData = stockData[tableMeta.rowIndex];
           return rowData?.model?.hardware_version || '-';
         }
-      }
+      },
+      csvExportKey: 'hardware_version'
     },
     {
       name: "stock_status",
@@ -115,7 +119,7 @@ const CombinedStockReport = () => {
         sort: true,
         customBodyRender: (value) => (
           <Chip 
-            label={value || 'Unknown'} 
+            label={value?.replace(/_/g, ' ') || 'Unknown'} 
             color={getStatusColor(value)}
             size="small"
           />
@@ -130,7 +134,7 @@ const CombinedStockReport = () => {
         sort: true,
         customBodyRender: (value) => (
           <Chip 
-            label={value || 'Unknown'} 
+            label={value?.replace(/_/g, ' ') || 'Unknown'} 
             color={getStatusColor(value)}
             size="small"
           />
@@ -178,7 +182,7 @@ const CombinedStockReport = () => {
       }
     },
     {
-      name: "created_by.name",
+      name: "created_by",
       label: "Created By",
       options: {
         filter: true,
@@ -187,20 +191,9 @@ const CombinedStockReport = () => {
           const rowData = stockData[tableMeta.rowIndex];
           return rowData?.created_by?.name || '-';
         }
-      }
-    },
-    {
-      name: "created_by.role",
-      label: "Creator Role",
-      options: {
-        filter: true,
-        sort: true,
-        customBodyRender: (value, tableMeta) => {
-          const rowData = stockData[tableMeta.rowIndex];
-          return rowData?.created_by?.role || '-';
-        }
-      }
-    },
+      },
+      csvExportKey: 'name'
+    },  
     {
       name: "created",
       label: "Created Date",
@@ -249,7 +242,7 @@ const CombinedStockReport = () => {
       if (response.data) {
         const combinedData = [
           ...(response.data.filtered_devices || []),
-          ...(response.data.available_devices || [])
+          // ...(response.data.available_devices || [])
         ];
         setStockData(combinedData);
       }
@@ -260,20 +253,20 @@ const CombinedStockReport = () => {
     }
   };
 
-  if (loading) {
-    return <CustomLoader />;
-  }
-
   return (
-    <MainCard title="Device Stock Report">
+    <MainCard title="Device Report">
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <MUIDataTable
-            title=""
-            data={stockData}
-            columns={columns}
-            options={options}
-          />
+          {loading ? (
+            <CustomLoader />
+          ) : (
+            <DynamicDatatables
+              columns={columns}
+              rows={stockData}
+              options={options}
+              tableTitle=""
+            />
+          )}
         </Grid>
       </Grid>
     </MainCard>

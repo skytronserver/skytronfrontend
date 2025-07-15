@@ -25,6 +25,7 @@ import CombinedStockReport from "../views/showDevice/CombinedStockReport";
 import AllTaggedDevice from "../views/showDevice/AllTaggedDevice";
 import ApprovedModelsList from "../views/reports/ApprovedModelsList";
 import ApprovedCOPsList from "../views/reports/ApprovedCOPsList";
+import EsimStatusReport from "../views/reports/EsimStatusReport";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -135,7 +136,7 @@ const DeviceRoutes = {
     {
       path: "/device/combined-stock-report",
       element: <CombinedStockReport />,
-      roles: ["superadmin", "devicemanufacture"],
+      roles: ["superadmin", "devicemanufacture","dealer","dtorto"],
     },
     {
       path: "/device/fit-device",
@@ -156,6 +157,11 @@ const DeviceRoutes = {
       path: "/device/approved-cops",
       element: <ApprovedCOPsList />,
       roles: ["stateadmin"],
+    },
+    {
+      path: "/device/esim-status",
+      element: <EsimStatusReport />,
+      roles: ["dealer"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };

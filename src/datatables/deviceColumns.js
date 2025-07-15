@@ -495,5 +495,103 @@ const formatDate = (dateString) => {
       },
     },
   ];
+
+export const esimStatusColumns = [
+  {
+    name: "device_esn",
+    label: "ESN",
+    options: {
+      filter: true,
+      sort: true,
+    }
+  },
+  {
+    name: "imei",
+    label: "IMEI",
+    options: {
+      filter: true,
+      sort: true,
+    }
+  },
+  {
+    name: "device_model",
+    label: "Model",
+    options: {
+      filter: true,
+      sort: true,
+      customBodyRender: (value) => value?.model_name || 'N/A'
+    }
+  },
+  {
+    name: "esim_status",
+    label: "Status",
+    options: {
+      filter: true,
+      sort: true,
+      customBodyRender: (value) => {
+        const getStatusColor = (status) => {
+          switch (status) {
+            case 'ESIM_Active_Confirmed':
+              return '#4caf50';
+            case 'expired':
+              return '#f44336';
+            case 'expiring_soon':
+              return '#ff9800';
+            default:
+              return '#757575';
+          }
+        };
+
+        return (
+          <div style={{
+            backgroundColor: getStatusColor(value),
+            padding: '6px 12px',
+            borderRadius: '16px',
+            color: 'white',
+            fontSize: '0.75rem'
+          }}>
+            {value}
+          </div>
+        );
+      }
+    }
+  },
+  {
+    name: "esim_validity",
+    label: "Validity",
+    options: {
+      filter: true,
+      sort: true,
+      customBodyRender: (value) => {
+        const date = new Date(value);
+        return date.toLocaleDateString();
+      }
+    }
+  },
+  {
+    name: "days_until_expiry",
+    label: "Days Until Expiry",
+    options: {
+      filter: true,
+      sort: true,
+    }
+  },
+  {
+    name: "telecom_provider1",
+    label: "Telecom Provider 1",
+    options: {
+      filter: true,
+      sort: true,
+    }
+  },
+  {
+    name: "telecom_provider2",
+    label: "Telecom Provider 2",
+    options: {
+      filter: true,
+      sort: true,
+    }
+  }
+];
     
     

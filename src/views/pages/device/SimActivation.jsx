@@ -11,24 +11,44 @@ import { getDeviceListAvailable } from '../../../actions/stockActions';
 import DynamicDatatables from '../../../datatables/DynamicDatatables';
 import {availableForSalesColumnForFitment} from '../../../datatables/deviceColumns';
 import { useTranslation } from 'react-i18next';
+import AutoHideAlert from '../../../ui-component/AutoHideAlert';
+import CustomLoader from '../../../ui-component/CustomLoader';
 
 const SimActivation = () => {
   const { t } = useTranslation();
-  const [load,setLoad]=useState(false)
+  const [load,setLoad]=useState(false);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({
+    open: false,
+    message: '',
+    type: 'success'
+  });
+  
   //Datatables data using redux
   const dispatch=useDispatch();
   const availableDeviceList=useSelector((state)=>state.stock.availableList);
-  useEffect(()=>{
-    const retrievePosts = async () => {
+
+  const fetchDeviceList = async () => {
+    try {
       const filter={
         "stock_status": "Available_for_fitting",
         "esim_status":	"NotAssigned"
       }
       const retriveData = await DeviceModelServices.getDeviceList(filter); 
-      dispatch(getDeviceListAvailable(retriveData.data.data)) ;   
-      setLoad(true)
-    }; 
-    retrievePosts();
+      dispatch(getDeviceListAvailable(retriveData.data.data));
+      setLoad(true);
+    } catch (error) {
+      console.error('Error fetching device list:', error);
+      setAlert({
+        open: true,
+        message: t('common.errors.fetchError'),
+        type: 'error'
+      });
+    }
+  };
+
+  useEffect(()=>{
+    fetchDeviceList();
   },[dispatch])
 
   const handleMarkDefective=async (e,data)=>{
@@ -37,6 +57,7 @@ const SimActivation = () => {
       t('simActivation.messages.confirmActivation')
     );
     if (confirmed) {
+      setLoading(true);
       const formData = {
         eSim_provider: data[1][0]?.id,
         valid_from: data[5],
@@ -45,21 +66,33 @@ const SimActivation = () => {
       };
       try {
         const status = await StockServices.simActivationReq(formData);
-        console.log(status);
+        setAlert({
+          open: true,
+          message: t('simActivation.messages.activationSuccess'),
+          type: 'success'
+        });
+        // Refresh the device list after successful activation
+        await fetchDeviceList();
       } catch (error) {
-        console.error(error);
+        console.error('Error activating SIM:', error);
+        setAlert({
+          open: true,
+          message: t('simActivation.messages.activationError'),
+          type: 'error'
+        });
+      } finally {
+        setLoading(false);
       }
-      console.log(formData);
     }
   }
-  const handleReturnManufacturer=(e,id)=>{
-    e.preventDefault();
-    const confirmed = window.confirm('Are you sure you want to return to manufacturer?');
-    if (confirmed) {
-      console.log('true')
-      
-    }
-  }
+
+  const handleAlertClose = () => {
+    setAlert({
+      ...alert,
+      open: false
+    });
+  };
+
   const actionColumn = [
     {
       name: "Action",
@@ -71,14 +104,15 @@ const SimActivation = () => {
             <div className="cellAction" style={{display:'flex'}}>
              <div style={{"marginRight":"5px"}}>
              <Button
-                          type="submit"
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          onClick={(event) => handleMarkDefective(event, tableMeta.rowData)}
-                        >
-                          {t('simActivation.actions.requestActivation')}
-                        </Button>
+                type="submit"
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={(event) => handleMarkDefective(event, tableMeta.rowData)}
+                disabled={loading}
+              >
+                {t('simActivation.actions.requestActivation')}
+              </Button>
              </div>
             </div>
           );
@@ -87,12 +121,21 @@ const SimActivation = () => {
     },
   ];
   return (
-    <Grid container spacing={gridSpacing}>
+    <>
+      {loading && <CustomLoader />}
+      <AutoHideAlert
+        open={alert.open}
+        onClose={handleAlertClose}
+        message={alert.message}
+        type={alert.type}
+      />
+      <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={t('simActivation.titles.pending')} rows={availableDeviceList} columns={availableForSalesColumnForFitment.concat(actionColumn)}/>}
+          {load && <DynamicDatatables tableTitle={t('simActivation.titles.pending')} rows={availableDeviceList} columns={availableForSalesColumnForFitment.concat(actionColumn)}/>}
         </Grid>
-    </Grid>
-);
+      </Grid>
+    </>
+  );
 }
 
 export default SimActivation;
