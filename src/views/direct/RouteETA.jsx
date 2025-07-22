@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import TaggingService from "../../services/TaggingService";
+import { createAxiosInstance } from "../../services/axiosInstance";
 import {
   Button,
   Grid,
@@ -95,6 +96,31 @@ const RouteETA = () => {
   useEffect(() => {
     addPointRef.current = addPoint;
     clearPointsRef.current = clearPoints;
+  }, []);
+
+  // Add token verification on component mount
+  useEffect(() => {
+    const token = sessionStorage.getItem("oAuthToken");
+    if (!token) {
+      setAlert({
+        open: true,
+        message: "Please log in to use the route calculator.",
+        type: "error"
+      });
+      return;
+    }
+    
+    // Ensure axios instance is created with the token
+    try {
+      createAxiosInstance(token);
+    } catch (error) {
+      console.error("Error creating axios instance:", error);
+      setAlert({
+        open: true,
+        message: "Error initializing route calculator. Please try logging in again.",
+        type: "error"
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -515,7 +541,7 @@ const RouteETA = () => {
             type: "error"
           });
           return;
-        }
+      }
       }
       
       // Clear previous route
@@ -549,103 +575,107 @@ const RouteETA = () => {
       const routeData = await HomePageService.getRoute({ points: routePoints });
       console.log("Route data from API:", routeData);
       
-      if (routeData?.data?.paths?.[0]) {
-        const path = routeData.data.paths[0];
-        
-        // API returned valid distance
-        const distanceInKm = path.distance / 1000; // Convert from meters to km
-        setDistance(distanceInKm.toFixed(2));
-        
-        // Calculate ETA based on average speed (40 km/h)
-        const timeInHours = distanceInKm / AVG_SPEED_KMH;
-        const hours = Math.floor(timeInHours);
-        const minutes = Math.round((timeInHours - hours) * 60);
-        
-        setEta({ hours, minutes });
+      // Check if we have valid paths data
+      if (!routeData?.data?.data?.paths?.[0]?.points?.coordinates) {
+        throw new Error('Invalid route data received');
+      }
 
-        // Format ETA text for display
-        const etaText = `${hours > 0 ? `${hours}h ` : ''}${minutes}m`;
+      const path = routeData.data.data.paths[0];
+      const coordinates = path.points.coordinates;
+      
+      // API returned valid distance
+      const distanceInKm = path.distance / 1000; // Convert from meters to km
+      setDistance(distanceInKm.toFixed(2));
+      
+      // Calculate ETA based on average speed (40 km/h)
+      const timeInHours = distanceInKm / AVG_SPEED_KMH;
+      const hours = Math.floor(timeInHours);
+      const minutes = Math.round((timeInHours - hours) * 60);
+      
+      setEta({ hours, minutes });
+
+      // Format ETA text for display
+      const etaText = `${hours > 0 ? `${hours}h ` : ''}${minutes}m`;
+      
+      // Draw the actual route
+      const routeCoordinates = coordinates.map(coord => fromLonLat(coord));
+      
+      const routeFeature = new Feature({
+        geometry: new LineString(routeCoordinates),
+      });
+      
+      routeFeature.setStyle(new Style({
+        stroke: new Stroke({
+          color: '#0066ff',
+          width: 4,
+        }),
+      }));
+      
+      vectorSourceRef.current.addFeature(routeFeature);
+      
+      // Add ETA text at the middle of the route
+      if (routeCoordinates.length > 0) {
+        const midPointIndex = Math.floor(routeCoordinates.length / 2);
+        const midPoint = routeCoordinates[midPointIndex];
         
-        // Display the actual route if the API returns it
-        if (path.points && path.points.coordinates && Array.isArray(path.points.coordinates)) {
-          // API returned a LineString with coordinates array - draw the actual route
-          const routeCoordinates = path.points.coordinates.map(coord => fromLonLat(coord));
-          
-          const routeFeature = new Feature({
-            geometry: new LineString(routeCoordinates),
-          });
-          
-          routeFeature.setStyle(new Style({
-            stroke: new Stroke({
-              color: '#0066ff',
-              width: 4,
+        // Create a point feature for the ETA display
+        const etaFeature = new Feature({
+          geometry: new Point(midPoint),
+        });
+        
+        etaFeature.setStyle(new Style({
+          text: new Text({
+            text: `${distanceInKm.toFixed(2)} km (${etaText})`,
+            font: 'bold 14px Arial',
+            padding: [5, 5, 5, 5],
+            backgroundFill: new Fill({
+              color: 'rgba(255, 255, 255, 0.8)',
             }),
-          }));
-          
-          vectorSourceRef.current.addFeature(routeFeature);
-          
-          // Add ETA text at the middle of the route
-          if (routeCoordinates.length > 0) {
-            const midPointIndex = Math.floor(routeCoordinates.length / 2);
-            const midPoint = routeCoordinates[midPointIndex];
-            
-            // Create a point feature for the ETA display
-            const etaFeature = new Feature({
-              geometry: new Point(midPoint),
-            });
-            
-            etaFeature.setStyle(new Style({
-              text: new Text({
-                text: `${distanceInKm.toFixed(2)} km (${etaText})`,
-                font: 'bold 14px Arial',
-                padding: [5, 5, 5, 5],
-                backgroundFill: new Fill({
-                  color: 'rgba(255, 255, 255, 0.8)',
-                }),
-                fill: new Fill({
-                  color: '#0066ff',
-                }),
-                stroke: new Stroke({
-                  color: '#ffffff',
-                  width: 3,
-                }),
-              }),
-            }));
-            
-            vectorSourceRef.current.addFeature(etaFeature);
-          }
-          
-          // Fit the map to show the route
-          const extent = routeFeature.getGeometry().getExtent();
-          if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
-            map.current.getView().fit(extent, {
-              padding: [70, 70, 70, 70],  // Increased padding for better view
-              duration: 1000,
-              maxZoom: 17,  // Limit zoom for better context
-            });
-          }
-          
-          setAlert({
-            open: true,
-            message: "Route calculated successfully!",
-            type: "success"
-          });
-          
-          // Save the route to history if device is selected
-          if (deviceId) {
-            saveRouteToHistory(routeData.data.paths[0]);
-          }
-          
-          return;
-        }
+            fill: new Fill({
+              color: '#0066ff',
+            }),
+            stroke: new Stroke({
+              color: '#ffffff',
+              width: 3,
+            }),
+          }),
+        }));
+        
+        vectorSourceRef.current.addFeature(etaFeature);
       }
       
-      // If we couldn't get a proper route from the API, fall back to straight line
-      throw new Error('No valid route found in API response');
+      // Fit the map to show the route
+      const extent = routeFeature.getGeometry().getExtent();
+      if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
+        map.current.getView().fit(extent, {
+          padding: [70, 70, 70, 70],
+          duration: 1000,
+          maxZoom: 17,
+        });
+      }
+      
+      setAlert({
+        open: true,
+        message: "Route calculated successfully!",
+        type: "success"
+      });
+      
+      // Save the route to history if device is selected
+      if (deviceId) {
+        saveRouteToHistory({
+          ...path,
+          hash: routeData.data.hash
+        });
+      }
     } catch (error) {
       console.error("Error calculating route:", error);
+      setAlert({
+        open: true,
+        message: "Error calculating route. Falling back to straight line distance.",
+        type: "warning"
+      });
       
-      // Fallback: Calculate straight line distance
+      // Fallback to straight line calculation
       calculateStraightLineDistance(routePoints);
       
       // Draw a simple straight line between points
@@ -664,47 +694,44 @@ const RouteETA = () => {
       
       vectorSourceRef.current.addFeature(lineFeature);
       
-      // Calculate midpoint for showing the distance/time
-      const midPoint = [
-        (lineCoordinates[0][0] + lineCoordinates[1][0]) / 2,
-        (lineCoordinates[0][1] + lineCoordinates[1][1]) / 2
-      ];
-      
-      // Create a point feature for the display
-      const etaFeature = new Feature({
-        geometry: new Point(midPoint),
-      });
-      
-      // Format ETA text
-      const etaText = eta ? 
-        `${eta.hours > 0 ? `${eta.hours}h ` : ''}${eta.minutes}m` : 
-        'N/A';
-      
-      etaFeature.setStyle(new Style({
-        text: new Text({
-          text: `${distance.toFixed(2)} km (${etaText}) - Direct`,
-          font: 'bold 14px Arial',
-          padding: [5, 5, 5, 5],
-          backgroundFill: new Fill({
-            color: 'rgba(255, 255, 255, 0.8)',
+      // Only add the distance/time label if we have valid values
+      if (distance !== null && eta !== null) {
+        // Calculate midpoint for showing the distance/time
+        const midPoint = [
+          (lineCoordinates[0][0] + lineCoordinates[1][0]) / 2,
+          (lineCoordinates[0][1] + lineCoordinates[1][1]) / 2
+        ];
+        
+        // Create a point feature for the display
+        const etaFeature = new Feature({
+          geometry: new Point(midPoint),
+        });
+        
+        // Format ETA text
+        const etaText = eta ? 
+          `${eta.hours > 0 ? `${eta.hours}h ` : ''}${eta.minutes}m` : 
+          'N/A';
+        
+        etaFeature.setStyle(new Style({
+          text: new Text({
+            text: `${parseFloat(distance).toFixed(2)} km (${etaText}) - Direct`,
+            font: 'bold 14px Arial',
+            padding: [5, 5, 5, 5],
+            backgroundFill: new Fill({
+              color: 'rgba(255, 255, 255, 0.8)',
+            }),
+            fill: new Fill({
+              color: '#ff6b6b',
+            }),
+            stroke: new Stroke({
+              color: '#ffffff',
+              width: 3,
+            }),
           }),
-          fill: new Fill({
-            color: '#ff6b6b',
-          }),
-          stroke: new Stroke({
-            color: '#ffffff',
-            width: 3,
-          }),
-        }),
-      }));
-      
-      vectorSourceRef.current.addFeature(etaFeature);
-      
-      setAlert({
-        open: true,
-        message: "Using straight line distance for ETA calculation. The actual route may vary.",
-        type: "info"
-      });
+        }));
+        
+        vectorSourceRef.current.addFeature(etaFeature);
+      }
     }
   };
 
@@ -713,6 +740,8 @@ const RouteETA = () => {
     try {
       if (!points || !Array.isArray(points) || points.length !== 2) {
         console.error("Invalid points for straight line calculation:", points);
+        setDistance(null);
+        setEta(null);
         return;
       }
 
@@ -720,6 +749,8 @@ const RouteETA = () => {
       for (const point of points) {
         if (!point || !Array.isArray(point) || point.length < 2) {
           console.error("Invalid coordinate in calculateStraightLineDistance:", point);
+          setDistance(null);
+          setEta(null);
           return;
         }
       }
@@ -730,6 +761,8 @@ const RouteETA = () => {
       
       if (isNaN(lon1) || isNaN(lat1) || isNaN(lon2) || isNaN(lat2)) {
         console.error("Invalid numeric coordinates:", points);
+        setDistance(null);
+        setEta(null);
         return;
       }
       
@@ -742,18 +775,28 @@ const RouteETA = () => {
         Math.sin(dLon/2) * Math.sin(dLon/2);
       
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const distance = R * c;
+      const calculatedDistance = R * c;
       
-      setDistance(distance.toFixed(2));
+      if (isNaN(calculatedDistance)) {
+        console.error("Error: Distance calculation resulted in NaN");
+        setDistance(null);
+        setEta(null);
+        return;
+      }
+      
+      // Set the distance with 2 decimal places
+      setDistance(calculatedDistance.toFixed(2));
       
       // Calculate ETA based on average speed
-      const timeInHours = distance / AVG_SPEED_KMH;
+      const timeInHours = calculatedDistance / AVG_SPEED_KMH;
       const hours = Math.floor(timeInHours);
       const minutes = Math.round((timeInHours - hours) * 60);
       
       setEta({ hours, minutes });
     } catch (error) {
       console.error("Error calculating straight line distance:", error);
+      setDistance(null);
+      setEta(null);
       setAlert({
         open: true,
         message: "Error calculating distance. Please try again.",

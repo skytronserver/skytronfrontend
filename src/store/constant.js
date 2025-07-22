@@ -21,7 +21,6 @@ export const fullText={
   "W":"West"
 }
 export const keyMapping = {
-    "id":"ID",
     "entry_time": "Date & Time",
     "vehicle_registration_number": "Vehicle Reg. No.",
     "odometer": "Odometer (km)",

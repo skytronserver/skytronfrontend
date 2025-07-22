@@ -49,13 +49,39 @@ const LiveTracking = () => {
       const retriveData_table = await HomePageService.getLiveTracking_data(
         data
       );
+      
       if (Array.isArray(retriveData_table.data.data)) {
-        setTableDataTop(retriveData_table.data.data);
-        setFilteredData(retriveData_table.data.data);
+        const newData = retriveData_table.data.data;
+        setTableDataTop(newData);
+        setFilteredData(newData);
+        
+        // If there's exactly one vehicle, select it automatically
+        if (newData.length === 1) {
+          setSelectedId(`vehicle-${newData[0].imei}`);
+        }
+      } else {
+        setTableDataTop([]);
+        setFilteredData([]);
+        setSelectedId(null);
       }
       setLoad(true);
     } catch (error) {
-      console.log(error);
+      setTableDataTop([]);
+      setFilteredData([]);
+      setSelectedId(null);
+    }
+  };
+
+  // Handle button click, update selectedId and filtered data
+  const handleButtonClick = (id) => {
+    const selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === id);
+    
+    if (selectedRow) {
+      setSelectedId(id);
+      setFilteredData([selectedRow]);
+    } else {
+      setSelectedId(null);
+      setFilteredData(tableDataTop);
     }
   };
 
@@ -66,8 +92,8 @@ const LiveTracking = () => {
       imei: imeiNo,
       regno: vehicleNo,
     };
+    setSelectedId(null); // Reset selection when submitting new search
     retriveMapData(params);
-    setSelectedId(null);
   };
 
   useEffect(() => {
@@ -75,26 +101,16 @@ const LiveTracking = () => {
     retriveMapData({});
   }, []);
 
-  // Handle button click, update selectedId and filtered data
-  const handleButtonClick = (id) => {
-    setSelectedId(id); // Update selected ID
-    const selectedRow = tableDataTop.find((row) => row.id === id);
-    setFilteredData(selectedRow ? [selectedRow] : tableDataTop); // Show only selected row's data or all if none selected
-  };
-
   // Helper to calculate time difference in minutes
   const calculateTimeDifference = (startTime, endTime) => {
     const timeDifferenceMillis = endTime - startTime;
     return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
   };
+
   const getIconStyle = (data) => {
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
     const timeDifference = calculateTimeDifference(entryTime, currentTime);
-    console.log("timediff", timeDifference);
-    console.log("data.packet_type ", data.packet_type);
-    console.log("data.ignition_status ", data.ignition_status);
-    console.log("data.speed  ", data.speed);
 
     if (data.packet_type === "EA") {
       return iconStyles.red; // EA Packet - Red Icon
@@ -133,25 +149,26 @@ const LiveTracking = () => {
 
   const filterByType = (data) => {
     setTypeFilter(data);
+    setSelectedId(null); // Reset selection when changing filter
+    
     if (data === "default") {
       setFilteredData(tableDataTop);
     } else {
-      const selectedRow = tableDataTop.find(
-        (row) => getAlartType(row) === data
-      );
-      setFilteredData(selectedRow ? [selectedRow] : tableDataTop);
+      const filteredRows = tableDataTop.filter(row => getAlartType(row) === data);
+      setFilteredData(filteredRows);
+      
+      // If there's exactly one result after filtering, select it automatically
+      if (filteredRows.length === 1) {
+        setSelectedId(`vehicle-${filteredRows[0].imei}`);
+      }
     }
-
-    setSelectedId(null);
   };
 
   const checkType = (type, data) => {
-    if (type === "default" || getAlartType(data) === type) {
-      return true;
-    } else {
-      return false;
-    }
+    const alartType = getAlartType(data);
+    return type === "default" || alartType === type;
   };
+
   return (
     <MainCard>
       <Typography variant="h4">{t('liveTracking.title')}</Typography>
@@ -195,8 +212,8 @@ const LiveTracking = () => {
               </Grid>
             </Grid>
           </form>
-          <TableContainer component={Paper} className="table-container">
-            <Table>
+          <TableContainer component={Paper} className="table-container" sx={{ maxHeight: '80vh' }}>
+            <Table stickyHeader>
               {iconData && <TableHead>
                 <TableRow>
                   {iconData.slice(0, 3).map((item, index) => (
@@ -204,6 +221,7 @@ const LiveTracking = () => {
                       key={index}
                       onClick={() => filterByType(item.key)}
                       className="tracking-icon"
+                      sx={{ backgroundColor: '#f5f5f5' }}
                     >
                       <img src={item.iconUrl} alt={item.text} />
                       <Typography variant="caption" className="icon-text">
@@ -218,6 +236,7 @@ const LiveTracking = () => {
                       key={index}
                       onClick={() => filterByType(item.key)}
                       className="tracking-icon"
+                      sx={{ backgroundColor: '#f5f5f5' }}
                     >
                       <img src={item.iconUrl} alt={item.text} />
                       <Typography variant="caption" className="icon-text">
@@ -231,24 +250,30 @@ const LiveTracking = () => {
               <TableBody>
                 {tableDataTop.length > 0 ? (
                   tableDataTop.map(
-                    (row) =>
+                    (row, index) =>
                       checkType(typeFilter, row) && (
-                        <TableRow key={row.id} className="table-row">
+                        <TableRow 
+                          key={`${row.id || ''}-${index}`} 
+                          className="table-row"
+                          sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
+                        >
                           <TableCell
                             colSpan={6}
-                            onClick={() => handleButtonClick(row.id)}
+                            onClick={() => handleButtonClick(`vehicle-${row.imei}`)}
                             className={`table-cell ${
-                              selectedId === row.id ? "table-cell-selected" : ""
+                              selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
                             }`}
                           >
-                            <img src={getIconStyle(row)} />
-                            <span>{row.vehicle_registration_number}</span>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <img src={getIconStyle(row)} alt="status icon" style={{ width: '24px', height: '24px' }} />
+                              <Typography>{row.vehicle_registration_number}</Typography>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       )
                   )
                 ) : (
-                  <TableRow>
+                  <TableRow key="no-data">
                     <TableCell colSpan={6} style={{textAlign:'center'}}><CircularProgress size="30px" title={t('liveTracking.noData')} /></TableCell>
                   </TableRow>
                 )}
@@ -268,44 +293,51 @@ const LiveTracking = () => {
       </div>
 
       {selectedId && (
-        <TableContainer component={Paper} className="skytron-table-container">
-          
-          <Table className="skytron-table">
-      <TableHead>
-        <TableRow>
-          {/* Dynamically generate headers based on keyMapping order */}
-          {filteredData.length > 0 &&
-            Object.keys(keyMapping).map((key) => (
-              <TableCell key={key} className="skytron-table-header-cell">
-                {keyMapping[key]}
-              </TableCell>
-            ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {filteredData.length > 0 ? (
-          filteredData.map((row, rowIndex) => (
-            <TableRow key={rowIndex} className="skytron-table-row">
-              {/* Dynamically generate table cells based on keyMapping order */}
-              {Object.keys(keyMapping).map((key, cellIndex) => (
-                <TableCell key={cellIndex} className="skytron-table-cell">
-                  {fullText?.[row[key]] || (isoDatePattern.test(row[key]) && formatDateTime(row[key])) || row[key] || ""}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell
-              colSpan={Object.keys(keyMapping).length}
-              className="skytron-no-data-cell"
-            >
-              {t('liveTracking.noData')}
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+        <TableContainer component={Paper} className="skytron-table-container" sx={{ mt: 2, maxHeight: '400px' }}>
+          <Table stickyHeader className="skytron-table">
+            <TableHead>
+              <TableRow>
+                {Object.keys(keyMapping).map((key) => (
+                  <TableCell 
+                    key={key} 
+                    className="skytron-table-header-cell"
+                    sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
+                  >
+                    {keyMapping[key]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredData.length > 0 ? (
+                filteredData.map((row, rowIndex) => (
+                  <TableRow 
+                    key={`filtered-${row.id || ''}-${rowIndex}`} 
+                    className="skytron-table-row"
+                    sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
+                  >
+                    {Object.keys(keyMapping).map((key, cellIndex) => (
+                      <TableCell 
+                        key={`cell-${key}-${cellIndex}`} 
+                        className="skytron-table-cell"
+                      >
+                        {fullText?.[row[key]] || (isoDatePattern.test(row[key]) && formatDateTime(row[key])) || row[key] || ""}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow key="no-filtered-data">
+                  <TableCell
+                    colSpan={Object.keys(keyMapping).length}
+                    className="skytron-no-data-cell"
+                  >
+                    {t('liveTracking.noData')}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </TableContainer>
       )}
     </MainCard>

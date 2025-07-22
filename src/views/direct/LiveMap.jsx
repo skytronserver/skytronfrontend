@@ -354,7 +354,7 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
         <p id="overlay-content"> </p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .dynamic-overlay {
           position: absolute;
           background-color: white;

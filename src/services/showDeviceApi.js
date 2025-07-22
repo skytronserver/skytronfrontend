@@ -16,5 +16,9 @@ const getActivatedDeviceList=(data)=>{
     const http = getAxiosInstance();
     return http.post(`/api/device/activated_device_list/`,data)
 }
-export default {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList};
+const getDeviceTagsSearch=(data)=>{
+    const http = getAxiosInstance();
+    return http.post(`/api/device_tags_search/`,data)
+}
+export default {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList,getDeviceTagsSearch};
 
