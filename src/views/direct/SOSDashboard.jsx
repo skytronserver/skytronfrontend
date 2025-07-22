@@ -190,10 +190,10 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
       console.error('Broadcast Error:', error);
     }
   };
-
+  
   const handleCloseCall = async () => {
     try {
-      await HomePageService.closeCase({ assignment_id: call.id });
+      await HomePageService.closeCase({ assignment_id: call.id });  
       alert('Call closed successfully!');
       setShowDetails(false)
     } catch (error) {

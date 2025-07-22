@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Formik } from 'formik';
 import { Grid, Button, CircularProgress } from '@mui/material';
-import { useTranslation } from 'react-i18next'; // Add this import
+import { useTranslation } from 'react-i18next';
 import MainCard from '../../ui-component/cards/MainCard';
 import { gridSpacing } from '../../store/constant';
 import FormField from '../../ui-component/CustomTextField';
@@ -16,7 +16,7 @@ const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0];
 
 const AccessoryForm = ({ formTitle }) => {
-  const { t } = useTranslation(); // Initialize the hook
+  const { t } = useTranslation(); 
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(accessoryFormField);
@@ -74,7 +74,7 @@ const AccessoryForm = ({ formTitle }) => {
         const errorString = errorObject !== '' ? Object.values(errorObject).flat().join("<br>") : '';
         setAlert({
           error: true,
-          message: t('form.accessory.submitError'), // Use translation key
+          message: t('form.accessory.submitError'), 
           errorList: errorString
         });
         setOpen(true);
@@ -117,7 +117,7 @@ const AccessoryForm = ({ formTitle }) => {
           </div>
         )}
         <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out"}}>
-          <MainCard title={t('form.accessory.title')}> {/* Use translation key */}
+          <MainCard title={t('form.accessory.title')}> 
             {isFormLoaded && (
               <Formik
                 initialValues={accessoryInitials}
@@ -143,7 +143,7 @@ const AccessoryForm = ({ formTitle }) => {
                           color="primary" 
                           disabled={loading}
                         >
-                          {t('common.submit')} {/* Use translation key */}
+                        {t('common.submit')} 
                         </Button>
                       </Grid>
                     </Grid>

@@ -54,7 +54,16 @@ const getRouteFixing = (device_id) => {
 
 }
 
+// status 
+const getStatus = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/DEx/getLiveCallList/", data);
+}
 
+
+
+
+// 
 
 const broadCast = (data) => {
   const http = getAxiosInstance();
@@ -181,6 +190,7 @@ const HomePageService = {
   getEmergencyDataLogs,
   getApiDataLog,
   getEmMedia,
+  getStatus,
 };
 
 export default HomePageService;

@@ -27,42 +27,42 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
       image: new Icon({
         anchor: [0.5, 1],
         src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
-        scale: 0.06,
+        scale: 0.20,
       }),
     }),
     orange: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: `${process.env.REACT_APP_BASE_URL}static/logo/orange-skytron-transparent.png`,
-        scale: 0.06,
+        scale: 0.20,
       }),
     }),
     blue: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: `${process.env.REACT_APP_BASE_URL}static/logo/blue-skytron-transparent.png`,
-        scale: 0.06,
+        scale: 0.20,
       }),
     }),
     green: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: `${process.env.REACT_APP_BASE_URL}static/logo/green-skytron-transparent.png`,
-        scale: 0.06,
+        scale: 0.20,
       }),
     }),
     grey: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: `${process.env.REACT_APP_BASE_URL}static/logo/grey-skytron-transparent.png`,
-        scale: 0.06,
+        scale: 0.20,
       }),
     }),
     default: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
-        scale: 0.06,
+        scale: 0.20,
       }),
     }),
   };

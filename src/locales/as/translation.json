@@ -41,7 +41,8 @@
     "Request": "অনুৰোধ",
     "no_results_found": "কোনো ফলাফল পোৱা নগ'ল",
     "formSubmitSuccess": "ফৰ্ম সফলভাৱে দাখিল কৰা হ'ল",
-    "formSubmitError": "ফৰ্ম দাখিল কৰা হোৱা নাই"
+    "formSubmitError": "ফৰ্ম দাখিল কৰা হোৱা নাই",
+    "Finish": "সমাপ্ত"
   },
   "dashboard": {
     "title": "ডেশ্ববোৰ্ড",
@@ -705,6 +706,7 @@
       "engineNo": "ইঞ্জিন নম্বৰ",
       "chassisNo": "চেচিচ নম্বৰ",
       "districtCode": "জিলা কোড",
+      "district": "জিলা",
       "vehicleNumber": "যানবাহন নম্বৰ",
       "vehicleMake": "যানবাহন নিৰ্মাতা",
       "vehicleModel": "যানবাহন মডেল",

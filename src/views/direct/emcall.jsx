@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import {
   Grid,
   Card,
@@ -15,8 +16,26 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Alert,
+  Snackbar,
 } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
+import { alpha } from '@mui/material/styles';
+import SendIcon from '@mui/icons-material/Send';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import ErrorIcon from '@mui/icons-material/Error';
+import WarningIcon from '@mui/icons-material/Warning';
+import PendingIcon from '@mui/icons-material/Pending';
+import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import VideocamOffIcon from '@mui/icons-material/VideocamOff';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
@@ -26,32 +45,18 @@ import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
-import "./emcall.css";
-import CustomModal from "../../ui-component/CustomModal";
-import { useNavigate } from 'react-router-dom';
-import VideocamIcon from '@mui/icons-material/Videocam';
-import VideocamOffIcon from '@mui/icons-material/VideocamOff';
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import SettingService from "../../services/SettingService";
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import SkipNextIcon from '@mui/icons-material/SkipNext';
-import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import VolumeOffIcon from '@mui/icons-material/VolumeOff';
-import { alpha } from '@mui/material/styles';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import WarningIcon from '@mui/icons-material/Warning';
-import MessageIcon from '@mui/icons-material/Message';
+import CustomModal from "../../ui-component/CustomModal";
 import VideoPlayer from './components/VideoPlayer';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import "./emcall.css";
 
 const EMCall = () => {
   const { state } = useLocation();
   const { call } = state || {};
+  const userRole = call?.type || ''; // Get user role from call object
   const mapElement = useRef();
   const [broadcastDisabled, setBroadcastDisabled] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -229,15 +234,30 @@ const EMCall = () => {
       const response = await HomePageService.getEMCallloc({
         assignment_id: call.id,
       });
-      const locations = response.data.target || [];
+      
+      // Update assignments state with the latest data
+      if (response.data && response.data.assignments) {
+        const prevAssignments = assignments;
+        const newAssignments = response.data.assignments;
+        setAssignments(newAssignments);
 
-      // Clear previous features
+        // Check for status changes and show notifications
+        newAssignments.forEach(newAssignment => {
+          const prevAssignment = prevAssignments.find(a => a.id === newAssignment.id);
+          if (prevAssignment && prevAssignment.status !== newAssignment.status) {
+            setSnackbarMessage(`Assignment ${newAssignment.id} status changed to ${newAssignment.status}`);
+            setSnackbarSeverity(newAssignment.status === 'closed_false_allert' ? 'error' : 'info');
+            setSnackbarOpen(true);
+          }
+        });
+      }
+
+      // Filter and plot location data
+      const locations = response.data.target || [];
       const source = vectorLayer.getSource();
       source.clear();
 
-      // Add new features
       locations.forEach((location) => {
-        console.log(location);
         const { longitude, latitude } = location;
         const coordinates = fromLonLat([longitude, latitude]);
         const feature = new Feature({ geometry: new Point(coordinates) });
@@ -252,11 +272,12 @@ const EMCall = () => {
         );
 
         source.addFeature(feature);
-        //console.log("location updated ");
-        //mapRef.current.getView().setCenter(coordinates);
       });
     } catch (error) {
       console.error("Fetch Locations Error:", error);
+      setSnackbarMessage("Error fetching location data: " + (error.message || "Unknown error"));
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -302,9 +323,120 @@ const EMCall = () => {
     }
   };
 
+  // Add new states for call status and notifications
+  const [assignments, setAssignments] = useState([]);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+
+  // Add function to check call status
+  const fetchCallStatus = async () => {
+    try {
+      const response = await HomePageService.getEMCallloc({
+        assignment_id: call.id,
+      });
+      if (response.data && response.data.assignments) {
+        setAssignments(response.data.assignments);
+      }
+    } catch (error) {
+      console.error("Error fetching call status:", error);
+    }
+  };
+
+  // Add useEffect to initialize assignments
+  useEffect(() => {
+    if (call?.id) {
+      fetchCallStatus();
+    }
+  }, [call?.id]);
+
+  // Add useEffect to fetch call status periodically
+  useEffect(() => {
+    fetchCallStatus();
+    const interval = setInterval(fetchCallStatus, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  // Function to check if call can be closed
+  const canCloseCall = () => {
+    if (!assignments || assignments.length === 0) {
+      return false;
+    }
+    
+    // Only team lead and desk_ex can close calls
+    if (userRole !== 'teamlead' && userRole !== 'desk_ex') {
+      return false;
+    }
+
+    // Find police and ambulance assignments
+    const policeAssignment = assignments.find(assignment => 
+      assignment.type === "police_ex"
+    );
+    const ambulanceAssignment = assignments.find(assignment => 
+      assignment.type === "ambulance_ex"
+    );
+
+    // Helper function to check if status is a closure status
+    const isClosureStatus = (status) => {
+      const isValid = status === "closed" || 
+             status === "closed_false_alert" || 
+             status === "closed_false_allert";
+      return isValid;
+    };
+
+    // For desk_ex, can only close if either police or ambulance has proper status
+    if (userRole === 'desk_ex') {
+      const hasProperEmergencyService = 
+        (policeAssignment && isClosureStatus(policeAssignment.status)) ||
+        (ambulanceAssignment && isClosureStatus(ambulanceAssignment.status));
+
+      if (!hasProperEmergencyService) {
+        return false;
+      }
+    }
+
+    // If we have a police or ambulance assignment with closure status, allow closing
+    if ((policeAssignment && isClosureStatus(policeAssignment.status)) ||
+        (ambulanceAssignment && isClosureStatus(ambulanceAssignment.status))) {   
+      return true;
+    }
+    return false;
+  };
+
+  // Modify handleCloseCall to include more specific error messages
   const handleCloseCall = async () => {
     try {
-      // Cleanup video before showing modal
+      if (!assignments || assignments.length === 0) {
+        setSnackbarMessage("Cannot close call: No assignments found");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      if (userRole !== 'teamlead' && userRole !== 'desk_ex') {
+        setSnackbarMessage("You don't have permission to close this call");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      const policeAssignment = assignments.find(assignment => 
+        assignment.type === "police_ex"
+      );
+      const ambulanceAssignment = assignments.find(assignment => 
+        assignment.type === "ambulance_ex"
+      );
+
+      const canClose = canCloseCall();
+
+      if (!canClose) {
+        setSnackbarMessage("Cannot close call: Waiting for police or ambulance to close their assignment");
+        setSnackbarSeverity("warning");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      // Cleanup video before closing
       if (videoRef.current) {
         videoRef.current.pause();
         setIsPlaying(false);
@@ -312,9 +444,19 @@ const EMCall = () => {
       }
       
       await HomePageService.closeCase({ assignment_id: call.id });
+      
+      // Fetch updated status after closing
+      await fetchCallStatus();
+      
       setModalOpen(true);
+      setSnackbarMessage("Call closed successfully!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Close Call Error:", error);
+      setSnackbarMessage("Error closing call: " + (error.message || "Unknown error"));
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -832,6 +974,162 @@ const EMCall = () => {
     setFilteredMediaIndex(0);
   }, [mediaFilter, selectedCamera]);
 
+  // Add snackbar close handler
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
+  // Add status display in the call details section
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'closed_false_allert':
+        return 'error.main';
+      case 'closed':
+        return 'warning.main';
+      case 'active':
+        return 'success.main';
+      default:
+        return 'text.primary';
+    }
+  };
+
+  // Update status helper functions
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert':
+        return <ReportProblemIcon sx={{ 
+          color: '#f44336',
+          fontSize: '1.5rem',
+          animation: 'pulse 2s infinite',
+          filter: 'drop-shadow(0 2px 4px rgba(244, 67, 54, 0.2))'
+        }} />;
+      case 'closed':
+        return <AssignmentTurnedInIcon sx={{ 
+          color: '#4caf50',
+          fontSize: '1.5rem',
+          filter: 'drop-shadow(0 2px 4px rgba(76, 175, 80, 0.2))'
+        }} />;
+      case 'accepted':
+        return <PhoneInTalkIcon sx={{ 
+          color: '#2196f3',
+          fontSize: '1.5rem',
+          animation: 'bounce 1s infinite',
+          filter: 'drop-shadow(0 2px 4px rgba(33, 150, 243, 0.2))'
+        }} />;
+      case 'pending':
+        return <AssignmentIcon sx={{ 
+          color: '#ff9800',
+          fontSize: '1.5rem',
+          animation: 'spin 2s linear infinite',
+          filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.2))'
+        }} />;
+      default:
+        return <NotificationsActiveIcon sx={{ 
+          color: '#757575',
+          fontSize: '1.5rem',
+          filter: 'drop-shadow(0 2px 4px rgba(117, 117, 117, 0.2))'
+        }} />;
+    }
+  };
+
+  const getStatusBgColor = (status) => {
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert':
+        return alpha('#f44336', 0.08);
+      case 'closed':
+        return alpha('#4caf50', 0.08);
+      case 'accepted':
+        return alpha('#2196f3', 0.08);
+      case 'pending':
+        return alpha('#ff9800', 0.08);
+      default:
+        return alpha('#9e9e9e', 0.08);
+    }
+  };
+
+  const getStatusBorderColor = (status) => {
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert':
+        return '#f44336';
+      case 'closed':
+        return '#4caf50';
+      case 'accepted':
+        return '#2196f3';
+      case 'pending':
+        return '#ff9800';
+      default:
+        return '#9e9e9e';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert':
+        return 'False Alert';
+      case 'closed':
+        return 'Closed';
+      case 'accepted':
+        return 'Accepted';
+      case 'pending':
+        return 'Pending';
+      default:
+        return status;
+    }
+  };
+
+  // Update service icon function
+  const getServiceIcon = (type) => {
+    if (type === "police_ex") {
+      return <LocalPoliceIcon sx={{ 
+        color: '#1976d2',
+        fontSize: '1.8rem',
+        filter: 'drop-shadow(0 2px 4px rgba(25, 118, 210, 0.2))'
+      }} />;
+    }
+    // For desk_ex or other non-police assignments
+    return <SupportAgentIcon sx={{ 
+      color: '#e91e63',
+      fontSize: '1.8rem',
+      filter: 'drop-shadow(0 2px 4px rgba(233, 30, 99, 0.2))'
+    }} />;
+  };
+
+  // Add keyframes for animations
+  const keyframes = `
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+
+  // Add style element for animations
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = keyframes;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
     <>
       <CustomModal
@@ -847,6 +1145,17 @@ const EMCall = () => {
           </>
         }
       />
+      {/* Add Snackbar for notifications */}
+      <Snackbar 
+        open={snackbarOpen} 
+        autoHideDuration={6000} 
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       <Box sx={{ 
         p: 3, 
         minHeight: '100vh',
@@ -901,6 +1210,122 @@ const EMCall = () => {
                       {call?.call?.status || "N/A"}
                     </Typography>
                   </Box>
+                  {assignments.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography 
+                        variant="subtitle2" 
+                        color="text.secondary" 
+                        sx={{
+                          mb: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          fontWeight: 500,
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        Assignment Statuses
+                      </Typography>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: 2 
+                      }}>
+                        {assignments.map((assignment, index) => (
+                          <Box
+                            key={assignment.id}
+                            sx={{
+                              position: 'relative',
+                              display: 'flex',
+                              alignItems: 'center',
+                              p: 2,
+                              bgcolor: getStatusBgColor(assignment.status),
+                              borderRadius: 2,
+                              transition: 'all 0.3s ease',
+                              border: '2px solid',
+                              borderColor: getStatusBorderColor(assignment.status),
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: `0 4px 12px ${alpha(getStatusBorderColor(assignment.status), 0.2)}`,
+                              },
+                            }}
+                          >
+                            <Box sx={{ 
+                              mr: 2,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 44,
+                              height: 44,
+                              borderRadius: '12px',
+                              bgcolor: 'background.paper',
+                              boxShadow: `0 2px 8px ${alpha(getStatusBorderColor(assignment.status), 0.2)}`,
+                              border: '2px solid',
+                              borderColor: getStatusBorderColor(assignment.status)
+                            }}>
+                              {getServiceIcon(assignment.type)}
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2" sx={{ 
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                mb: 0.5,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1
+                              }}>
+                                Assignment #{index + 1} ({assignment.type})
+                              </Typography>
+                              <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                gap: 1
+                              }}>
+                                {getStatusIcon(assignment.status)}
+                                <Typography 
+                                  variant="body2" 
+                                  sx={{ 
+                                    color: getStatusColor(assignment.status),
+                                    fontWeight: 600,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    fontSize: '0.8rem'
+                                  }}
+                                >
+                                  {getStatusText(assignment.status)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Box sx={{
+                              position: 'absolute',
+                              top: 8,
+                              right: 8,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1
+                            }}>
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: 'text.secondary',
+                                  bgcolor: 'background.paper',
+                                  px: 1,
+                                  py: 0.5,
+                                  borderRadius: '8px',
+                                  fontSize: '0.7rem',
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  fontWeight: 500
+                                }}
+                              >
+                                ID: {assignment.id}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               </CardContent>
               <CardContent>
@@ -963,11 +1388,12 @@ const EMCall = () => {
                     variant="contained"
                     color="error"
                     onClick={handleCloseCall}
+                    disabled={!canCloseCall()}
                     sx={{
                       py: 1.5,
                       borderRadius: 2,
                       textTransform: 'none',
-                      fontWeight: 600,
+                      fontWeight: 600, 
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       '&:hover': {
                         boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
@@ -976,7 +1402,7 @@ const EMCall = () => {
                   >
                     Close Call
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="contained"
                     color="secondary"
                     onClick={fetchMediaData}
@@ -994,7 +1420,7 @@ const EMCall = () => {
                     }}
                   >
                     {isLoadingVideos ? "Loading Media..." : "View Media"}
-                  </Button>
+                  </Button> */}
                 </Box>
               </CardContent>
             </Card>
@@ -1025,318 +1451,6 @@ const EMCall = () => {
                   alt="img-skytrack"
                 />
               </div>
-            </Card>
-          </Grid>
-
-          {/* Video Feeds Section */}
-          {showVideoSection && (
-            <Grid item xs={12}>
-              <Card elevation={3} sx={{
-                borderRadius: 2,
-                background: 'linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-              }}>
-                <CardContent>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                    <Typography variant="h5" sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 1,
-                      color: 'primary.main',
-                      fontWeight: 600
-                    }}>
-                      <VideocamIcon /> Video Feeds
-                    </Typography>
-                    <Box display="flex" gap={1}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={fetchMediaData}
-                        disabled={isLoadingVideos}
-                        startIcon={<VideocamIcon />}
-                        sx={{
-                          borderRadius: 2,
-                          textTransform: 'none',
-                          fontWeight: 500
-                        }}
-                      >
-                        Refresh
-                      </Button>
-                      <IconButton 
-                        onClick={toggleFullscreen}
-                        sx={{
-                          borderRadius: 2,
-                          bgcolor: 'background.paper',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                          '&:hover': {
-                            bgcolor: 'background.paper',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                          }
-                        }}
-                      >
-                        {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-                      </IconButton>
-                    </Box>
-                  </Box>
-
-                  {/* Camera Selection */}
-                  <Box mb={3}>
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500 }}>
-                      Select Camera
-                    </Typography>
-                    <Box display="flex" gap={1} flexWrap="wrap">
-                      {Object.keys(mediaData).map((cameraId) => (
-                        <Button
-                          key={cameraId}
-                          variant={selectedCamera === cameraId ? "contained" : "outlined"}
-                          onClick={() => handleCameraSelect(cameraId)}
-                          startIcon={selectedCamera === cameraId ? <VideocamIcon /> : <VideocamOffIcon />}
-                          sx={{
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            fontWeight: 500,
-                            minWidth: '120px',
-                            boxShadow: selectedCamera === cameraId ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                            '&:hover': {
-                              boxShadow: selectedCamera === cameraId ? '0 6px 16px rgba(0,0,0,0.15)' : 'none',
-                            }
-                          }}
-                        >
-                          Camera {cameraId}
-                        </Button>
-                      ))}
-                    </Box>
-                  </Box>
-
-                  {/* Filter Section */}
-                  <Box display="flex" alignItems="center" gap={2} mb={2}>
-                    <FormControl size="small" sx={{ minWidth: 160 }}>
-                      <InputLabel id="media-filter-label">Filter</InputLabel>
-                      <Select
-                        labelId="media-filter-label"
-                        value={mediaFilter}
-                        label="Filter"
-                        onChange={e => setMediaFilter(e.target.value)}
-                      >
-                        <MenuItem value="all">All</MenuItem>
-                        <MenuItem value="video">Videos</MenuItem>
-                        <MenuItem value="image">Photos</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
-
-                  {/* Video Player */}
-                  {selectedCamera && filteredMedia.length > 0 && (
-                    <Box mb={4}>
-                      {filteredMedia[filteredMediaIndex]?.media_type === 'video' ? (
-                        <VideoPlayer
-                          videoUrl={filteredMediaUrls[filteredMediaIndex]?.blobUrl}
-                          videoRef={videoRef}
-                          isVideoLoading={isVideoLoading}
-                          isVideoReady={isVideoReady}
-                          isPlaying={isPlaying}
-                          isFullscreen={isFullscreen}
-                          showControls={showControls}
-                          currentTime={currentTime}
-                          seekTime={seekTime}
-                          isSeeking={isSeeking}
-                          volume={volume}
-                          isMuted={isMuted}
-                          onPlayPause={handlePlayPause}
-                          onNext={() => setFilteredMediaIndex((filteredMediaIndex + 1) % filteredMedia.length)}
-                          onPrevious={() => setFilteredMediaIndex((filteredMediaIndex - 1 + filteredMedia.length) % filteredMedia.length)}
-                          onTimeChange={handleTimeChange}
-                          onTimeChangeCommitted={handleTimeChangeCommitted}
-                          onVolumeChange={handleVolumeChange}
-                          onMuteToggle={handleMuteToggle}
-                          onFullscreenToggle={toggleFullscreen}
-                          onMouseMove={handleMouseMove}
-                          onMouseLeave={() => setShowControls(false)}
-                          onLoadStart={() => setIsVideoLoading(true)}
-                          onLoadedData={handleVideoLoad}
-                          onError={handleVideoError}
-                          onCanPlay={() => setIsVideoReady(true)}
-                          onWaiting={() => setIsVideoReady(false)}
-                          onTimeUpdate={handleVideoTimeUpdate}
-                          onSeeking={handleVideoSeeking}
-                          onSeeked={handleVideoSeeked}
-                          onEnded={handleVideoEnded}
-                          minTime={0}
-                          maxTime={calculateTotalDuration()}
-                          formatTime={formatTime}
-                          disabled={!isVideoReady || isVideoLoading}
-                        />
-                      ) : (
-                        <Box sx={{ width: '100%', aspectRatio: '16/9', bgcolor: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2 }}>
-                          <img
-                            src={filteredMediaUrls[filteredMediaIndex]?.blobUrl}
-                            alt="Snapshot"
-                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                          />
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-
-                  {/* Video Grid */}
-                  <Box sx={{ display: 'flex', overflowX: 'auto', gap: 1, py: 1 }}>
-                    <Slider {...carouselSettings} style={{ margin: '0 0 16px 0' }}>
-                      {filteredMedia.map((media, index) => (
-                        <div key={index}>
-                          <Paper
-                            elevation={filteredMediaIndex === index ? 4 : 1}
-                            sx={{
-                              minWidth: 110,
-                              maxWidth: 120,
-                              p: 0.5,
-                              height: 110,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              borderRadius: 2,
-                              bgcolor: filteredMediaIndex === index ? alpha('#1976d2', 0.18) : 'background.paper',
-                              transition: 'all 0.2s',
-                              boxShadow: filteredMediaIndex === index ? '0 2px 8px rgba(25, 118, 210, 0.18)' : '0 1px 2px rgba(0,0,0,0.04)',
-                              border: filteredMediaIndex === index ? '2px solid #1976d2' : '1px solid #eee',
-                              '&:hover': {
-                                boxShadow: '0 4px 16px rgba(25, 118, 210, 0.12)',
-                              },
-                            }}
-                            onClick={() => setFilteredMediaIndex(index)}
-                          >
-                            <Typography variant="caption" sx={{ fontWeight: 500, mb: 0.2, fontSize: 10, textAlign: 'center' }}>
-                              {new Date(media.start_time).toLocaleTimeString()}
-                            </Typography>
-                            <Box
-                              sx={{
-                                flex: 1,
-                                width: '100%',
-                                bgcolor: 'black',
-                                borderRadius: 1,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                position: 'relative',
-                                aspectRatio: '16/9',
-                                overflow: 'hidden',
-                                mb: 0.2,
-                              }}
-                            >
-                              {media.media_type === 'image' ? (
-                                <img
-                                  src={filteredMediaUrls[index]?.blobUrl}
-                                  alt="Snapshot"
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }}
-                                />
-                              ) : (
-                                <video
-                                  src={filteredMediaUrls[index]?.blobUrl}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }}
-                                  muted
-                                />
-                              )}
-                            </Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: 9, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <AccessTimeIcon sx={{ fontSize: 10 }} /> {formatTime(media.duration_ms)}
-                            </Typography>
-                          </Paper>
-                        </div>
-                      ))}
-                    </Slider>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
-
-          {/* Chat Box */}
-          <Grid item xs={12}>
-            <Card elevation={3} sx={{
-              borderRadius: 2,
-              background: 'linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-            }}>
-              <CardContent>
-                <Typography variant="h5" sx={{ 
-                  mb: 2,
-                  color: 'primary.main',
-                  fontWeight: 600
-                }}>
-                  Chat Box
-                </Typography>
-                <Box className="chat-box" sx={{
-                  height: '300px',
-                  overflowY: 'auto',
-                  mb: 2,
-                  p: 2,
-                  bgcolor: 'background.paper',
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'divider'
-                }}>
-                  {messages.map((msg) => (
-                    <Box key={msg.id} className="chat-message" sx={{
-                      mb: 1.5,
-                      p: 1.5,
-                      bgcolor: 'background.default',
-                      borderRadius: 2,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                    }}>
-                      <Typography variant="body2" className="chat-username" sx={{ 
-                        fontWeight: 600,
-                        color: 'primary.main',
-                        mb: 0.5
-                      }}>
-                        {msg.assignment.admin.users[0].name}:
-                      </Typography>
-                      <Typography variant="body2" className="chat-text">
-                        {msg.message}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-                <Box className="chat-input-container" sx={{
-                  display: 'flex',
-                  gap: 1
-                }}>
-                  <TextField
-                    fullWidth
-                    placeholder="Type your message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                      }
-                    }}
-                  />
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    endIcon={<SendIcon />}
-                    onClick={handleSendMessage}
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      px: 3,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      '&:hover': {
-                        boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
-                      }
-                    }}
-                  >
-                    Send
-                  </Button>
-                </Box>
-              </CardContent>
             </Card>
           </Grid>
         </Grid>

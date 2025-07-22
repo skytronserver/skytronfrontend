@@ -13,7 +13,7 @@ const AuthFooter = () => {
 
   return (
     <div>
-      <Stack direction="row" justifyContent="space-between">
+      <Stack direction="row" justifyContent="center">
         <Typography
           variant="subtitle2"
           href=""

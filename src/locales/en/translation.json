@@ -41,7 +41,8 @@
     "Request": "Request",
     "no_results_found": "No results found",
     "formSubmitSuccess": "Form submitted successfully",
-    "formSubmitError": "Form submission failed"
+    "formSubmitError": "Form submission failed",
+    "Finish": "Finish"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -868,6 +869,7 @@
       "engineNo": "Engine No",
       "chassisNo": "Chassis No.",
       "districtCode": "District Code",
+      "district": "District",
       "vehicleNumber": "Vehicle Number",
       "vehicleMake": "Vehicle Make",
       "vehicleModel": "Vehicle Model",

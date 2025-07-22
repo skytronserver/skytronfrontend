@@ -55,7 +55,7 @@ const Logo = () => {
           }}
         >
           SKYTRON
-          <h5
+          <p
           style={{
             marginLeft: "3px",
             marginBottom: "15px",
@@ -68,7 +68,7 @@ const Logo = () => {
           }}
         >
           ®
-        </h5>
+        </p>
         </h3>
 
        

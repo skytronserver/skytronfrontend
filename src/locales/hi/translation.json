@@ -41,7 +41,8 @@
     "Confirm": "सुनिश्चित करें",
     "no_results_found": "कोई परिणाम नहीं मिला",
     "formSubmitSuccess": "फॉर्म सफलतापूर्वक जमा किया गया",
-    "formSubmitError": "फॉर्म जमा करने में असमर्थ"
+    "formSubmitError": "फॉर्म जमा करने में असमर्थ",
+    "Finish": "समाप्त"
   },
   "notice": {
     "title": {
@@ -873,6 +874,7 @@
       "engineNo": "इंजन नंबर",
       "chassisNo": "चेसिस नंबर",
       "districtCode": "जिला कोड",
+      "district": "जिला",
       "vehicleNumber": "वाहन नंबर",
       "vehicleMake": "वाहन निर्माता",
       "vehicleModel": "वाहन मॉडल",

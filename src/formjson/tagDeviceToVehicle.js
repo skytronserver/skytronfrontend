@@ -6,6 +6,7 @@ export const taggingInitials = {
   device: "",
   vehicle_owner: "",
   district_code: "",
+  district: "",
   vehicle_number: "",
   engine_no: "",
   chassis_no: "",
@@ -50,6 +51,13 @@ export const taggingFields = {
     label: "tagDeviceForm.fields.districtCode",
     validation: Yup.string().required("tagDeviceForm.validation.districtCodeRequired"),
     options: demoDistrictCodes,
+  },
+  district:{
+    name: "district",
+    type: "select",
+    label: "tagDeviceForm.fields.district",
+    validation: Yup.string().required("tagDeviceForm.validation.districtRequired"),
+    options: [],
   },
   vehicle_number: {
     name: "vehicle_number",
@@ -97,3 +105,4 @@ export const taggingFields = {
     validation: Yup.mixed().required("tagDeviceForm.validation.registrationCertificateRequired"),
   },
 };
+ 
