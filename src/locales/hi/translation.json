@@ -894,7 +894,8 @@
       "vehicleMakeRequired": "वाहन निर्माता आवश्यक है",
       "vehicleModelRequired": "वाहन मॉडल आवश्यक है",
       "vehicleCategoryRequired": "वाहन श्रेणी आवश्यक है",
-      "registrationCertificateRequired": "पंजीकरण प्रमाणपत्र आवश्यक है"
+      "registrationCertificateRequired": "पंजीकरण प्रमाणपत्र आवश्यक है",
+      "districtRequired": "जिला आवश्यक है"
     },
     "messages": {
       "allStepsCompleted": "सभी चरण पूरे हो गए हैं - आप डाउनलोड रसीद टैब में वाहन रसीद के साथ टैगिंग डिवाइस को समाप्त कर चुके हैं!",

@@ -56,6 +56,36 @@ function TagDeviceToVehicle() {
     normal: false,
     api: false,
   });
+  const [dealerDistricts, setDealerDistricts] = useState([]);
+
+  useEffect(() => {
+    const dealerDistricts = localStorage.getItem('dealerDistricts');
+    if (dealerDistricts) {
+      const districts = JSON.parse(dealerDistricts);
+      const mappedDistricts = districts.map(district => ({
+        label: district.district,
+        value: district.id
+      }));
+      const mappedDistrictCode = districts.map(district => ({
+        label: district.district_code,
+        value: district.district_code
+      }));
+      setDealerDistricts(mappedDistricts);
+      
+      // Update the form fields with the mapped districts
+      setUpdatedFormField(prevConfig => ({
+        ...prevConfig,
+        district: {
+          ...prevConfig.district,
+          options: mappedDistricts
+        },
+        district_code: {
+          ...prevConfig.district_code,
+          options: mappedDistrictCode
+        }
+      }));
+    }
+  }, []);
 
   const [otp, setOtp] = useState({
     dealer: "",

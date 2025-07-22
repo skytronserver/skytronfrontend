@@ -889,7 +889,8 @@
       "vehicleMakeRequired": "Vehicle Make is required",
       "vehicleModelRequired": "Vehicle Model is required",
       "vehicleCategoryRequired": "Vehicle Category is required",
-      "registrationCertificateRequired": "Registration Certificate is required"
+      "registrationCertificateRequired": "Registration Certificate is required",
+      "districtRequired": "District is required"
     },
     "messages": {
       "allStepsCompleted": "All steps completed - you're finished with Tagging device to the vehicle receipt in the Download Receipt Tab!",

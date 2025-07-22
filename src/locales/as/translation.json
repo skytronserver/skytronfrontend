@@ -726,7 +726,8 @@
       "vehicleMakeRequired": "যানবাহন নিৰ্মাতা আৱশ্যক",
       "vehicleModelRequired": "যানবাহন মডেল আৱশ্যক",
       "vehicleCategoryRequired": "যানবাহনৰ শ্ৰেণী আৱশ্যক",
-      "registrationCertificateRequired": "পঞ্জীয়ন প্ৰমাণপত্ৰ আৱশ্যক"
+      "registrationCertificateRequired": "পঞ্জীয়ন প্ৰমাণপত্ৰ আৱশ্যক",
+      "districtRequired": "জিলা আৱশ্যক"
     },
     "messages": {
       "allStepsCompleted": "সকলো পদক্ষেপ সম্পূৰ্ণ হৈছে - আপুনি ডাউনলোড ৰচিদ টেবত যানবাহন ৰচিদৰ সৈতে টেগিং ডিভাইচ সমাপ্ত কৰিছে!",
