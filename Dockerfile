@@ -1,22 +1,21 @@
-FROM node:18-alpine
+# Stage 1: Build
+FROM node:18-alpine AS builder
 
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies 
-RUN npm ci && \
-    npm cache clean --force
-
-# Copy application
 COPY . .
+RUN npm run build
 
+# Stage 2: Serve with Nginx
+FROM nginx:alpine
 
-# Build the application (if needed)
-# RUN npm run build
+# Clean default nginx page
+RUN rm -rf /usr/share/nginx/html/*
+
+COPY --from=builder /app/build /usr/share/nginx/html
 
 EXPOSE 3000
 
-
-CMD ["npm", "start"] 
+CMD ["nginx", "-g", "daemon off;"]

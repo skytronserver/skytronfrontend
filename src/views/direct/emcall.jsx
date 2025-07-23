@@ -1202,13 +1202,13 @@ const EMCall = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                    <Typography variant="caption" color="text.secondary">Call Status</Typography>
+                    {/* <Typography variant="caption" color="text.secondary">Call Status</Typography>
                     <Typography variant="body1" sx={{ 
                       fontWeight: 500,
                       color: call?.call?.status === 'active' ? 'success.main' : 'error.main'
                     }}>
                       {call?.call?.status || "N/A"}
-                    </Typography>
+                    </Typography> */}
                   </Box>
                   {assignments.length > 0 && (
                     <Box sx={{ mt: 2 }}>
