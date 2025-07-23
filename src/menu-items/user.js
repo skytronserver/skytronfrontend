@@ -705,6 +705,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin']
         },
+        {
+          id: 'activated-device-report',
+          title: 'Activated Device Report',
+          type: 'item',
+          url: '/reports/activated-device-report',
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin', 'dtorto']
+        },
         // {
         //   id: "all-holiday-list",
         //   title: "School Holidays",

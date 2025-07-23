@@ -26,6 +26,7 @@ import ApiDataLog from "../views/reports/ApiDataLog";
 import CameraFeedsView from "../pages/CameraFeedsView";
 import POIViewer from "../views/direct/POIViewer";
 import TripViewer from "views/direct/TripViewer";
+import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 
 
 const PrivateRoute = ({ element, roles }) => {
@@ -171,6 +172,11 @@ const MainRoutes = {
       path: '/trip-viewer',
       element: <TripViewer />,
       roles: ["superadmin", "stateadmin", "owner", "dto"],
+    },
+    {
+      path: '/reports/activated-device-report',
+      element: <ActivatedDeviceReport />,
+      roles: ['superadmin', 'stateadmin', 'dealer', 'dtorto','devicemanufacture']
     }
    
   ].map((route) => applyPrivateRoute(route)),

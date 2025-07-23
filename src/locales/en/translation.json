@@ -1432,7 +1432,7 @@
     "title": "Bulk Device Assignment",
     "fields": {
       "dealer": "Select Dealer",
-      "excelFile": "Upload Excel File"
+      "excelFile": "Upload Csv File"
     },
     "validation": {
       "dealerRequired": "Please select a dealer",

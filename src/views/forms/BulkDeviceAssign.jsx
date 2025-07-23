@@ -20,10 +20,11 @@ const BulkDeviceAssign = () => {
     (async () => {
       try {
         const response = await DealerServices.dealerList({});
-        if (response?.data?.data) {
-          const dealers = response.data.data.map(dealer => ({
+        console.log(response,"response-----");
+        if (response?.data) {
+          const dealers = response?.data?.map(dealer => ({
             value: dealer.id,
-            label: dealer.name
+            label: dealer.company_name
           }));
           
           setUpdatedFormField((prevConfig) => ({
