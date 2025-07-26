@@ -486,14 +486,14 @@ const user = {
           breadcrumbs: false,
           roles: ["sosadmin"],
         },
-        {
-          id:"sos_timestamp",
-          title:"SOS Timestamp",
-          type:"item",
-          url:"/sosTimestamp",
-          breadcrumbs:false,
-          roles:["sosadmin"]
-        },
+        // {
+        //   id:"sos_timestamp",
+        //   title:"SOS Timestamp",
+        //   type:"item",
+        //   url:"/sosTimestamp",
+        //   breadcrumbs:false,
+        //   roles:["sosadmin"]
+        // },
         {
           id: "all-notice-list",
           title: "Notices",
@@ -662,22 +662,22 @@ const user = {
           breadcrumbs: false,
           roles: ["devicemanufacture","dtorto"],
         },
-        {
-          id: "device-alert-log",
-          title: "Device Alert Log",
-          type: "item",
-          url: "/reports/alert-log",
-          breadcrumbs: false,
-          roles: ["superadmin","dtorto","stateadmin",'owner'],
-        },
-        {
-          id: "all-tagged-devices",
-          title: "All Tagged Devices",
-          type: "item",
-          url: "/device/all-tagged-devices",
-          breadcrumbs: false,
-          roles: ["stateadmin"],
-        },
+        // {
+        //   id: "device-alert-log",
+        //   title: "Device Alert Log",
+        //   type: "item",
+        //   url: "/reports/alert-log",
+        //   breadcrumbs: false,
+        //   roles: ["superadmin","dtorto","stateadmin",'owner'],
+        // },
+        // {
+        //   id: "all-tagged-devices",
+        //   title: "All Tagged Devices",
+        //   type: "item",
+        //   url: "/device/all-tagged-devices",
+        //   breadcrumbs: false,
+        //   roles: ["stateadmin"],
+        // },
         {
           id: 'gps-data-log',
           title: 'GPS Data Log',
