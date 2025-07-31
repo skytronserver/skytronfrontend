@@ -474,7 +474,7 @@ const formatDate = (dateString) => {
         sort: false,
         customBodyRender: (value, tableMeta, updateValue) => {
           return (
-            <p>{value[0]?.company_name}</p>
+            <p>{Array.isArray(value) && value[0] ? value[0].company_name : ''}</p>
           );
         },
         csvExportKey: "company_name",

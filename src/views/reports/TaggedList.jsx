@@ -26,6 +26,7 @@ const TaggedList = () => {
           is_tagged: "True",
         };
         const response = await StockServices.stockFilter(filter);
+        console.log(response.data.data,'pplplplplp')
         setTagged(response.data.data) 
         setLoad(true)
       } catch (error) {

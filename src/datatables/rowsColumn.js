@@ -22,7 +22,9 @@ export const showDeviceColumns = [
   { name: "model", label: "Model", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{value.model_name}</p>), csvExportKey: "model_name" } },
   { name: "device_esn", label: "ESN", options: { filter: true, sort: false } },
   { name: "esim_validity", label: "ESIM Validity", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{formatDate(value)}</p>) } },
-  { name: "esim_provider", label: "ESIM Provider", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{value[0]?.company_name}</p>), csvExportKey: "company_name", columnKey:0 } },
+  { name: "esim_provider", label: "ESIM Provider", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (
+  <p>{Array.isArray(value) && value[0] ? value[0].company_name : ''}</p>
+), csvExportKey: "company_name", columnKey:0 } },
   { name: "iccid", label: "Primary ICCID", options: { filter: false, sort: false } },
   { name: "iccid", label: "Fallback ICCID", options: { filter: false, sort: false } },
   { name: "telecom_provider1", label: "Telecom 1", options: { filter: false, sort: false } },

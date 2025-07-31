@@ -1030,6 +1030,7 @@
   "device": {
     "reportTitle": "डिवाइस रिपोर्ट",
     "availableDevices": "उपलब्ध डिवाइस",
+    "sell": "बिक्री",
     "defective": "दोषपूर्ण",
     "return": "वापसी",
     "confirmDefective": "क्या आप वाकई इसे दोषपूर्ण के रूप में चिह्नित करना चाहते हैं?",
