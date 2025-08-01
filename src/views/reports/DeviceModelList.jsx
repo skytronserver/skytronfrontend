@@ -29,7 +29,7 @@ const DeviceModelList = () => {
   const deviceModelList = useSelector((state) => 
     state.deviceModel.deviceModelList.map((model) => ({
       ...model,
-      status: t(`deviceModel.status.${model.status.toLowerCase().replace(/ /g, '_')}`),
+      status: model.status.toLowerCase().replace(/ /g, '_')
     }))
   );
 
@@ -40,10 +40,14 @@ const DeviceModelList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Get the original data object for this row
+          const rowData = deviceModelList[tableMeta.rowIndex];
+          const modelId = rowData?.id;
+          
           return (
             <div className="cellAction" style={{display:'flex'}}>
               <Link
-                to={`/deviceModel/view/${tableMeta.rowData[1]}`}
+                to={`/deviceModel/view/${modelId}`}
                 style={{ textDecoration: "none" }}
               >
                 <div className="viewButton"><VisibilityIcon/></div>
