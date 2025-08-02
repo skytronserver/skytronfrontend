@@ -38,6 +38,8 @@ const ApprovedModelsList = () => {
     retrieveApprovedModels();
   }, []);
 
+
+  console.log(data,'data')
   const actionColumn = [
     {
       name: "Action",
@@ -45,10 +47,11 @@ const ApprovedModelsList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          console.log(tableMeta.rowData[1],'tableMeta.rowData[0]')
           return (
             <div className="cellAction" style={{display:'flex'}}>
               <Link
-                to={`/deviceModel/view/${tableMeta.rowData[0]}`}
+                to={`/deviceModel/view/${tableMeta.rowData[1]}`}
                 style={{ textDecoration: "none" }}
               >
                 <div className="viewButton"><VisibilityIcon/></div>

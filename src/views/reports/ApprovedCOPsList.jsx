@@ -48,7 +48,7 @@ const ApprovedCOPsList = () => {
           return (
             <div className="cellAction" style={{display:'flex'}}>
               <Link
-                to={`/deviceModel/view/${tableMeta.rowData[0]}`}
+                to={`/deviceModel/view/${tableMeta.rowData[1]}`}
                 style={{ textDecoration: "none" }}
               >
                 <div className="viewButton"><VisibilityIcon/></div>

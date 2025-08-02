@@ -139,8 +139,22 @@ const StateAdminDeviceModelView = () => {
     <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType}/>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          {loading && (
-            <MainCard title={`${t('deviceModelView.modelName')}: ${deviceDetails.model_name}`}>
+          {error && (
+            <MainCard>
+              <Typography color="primary" align="center">
+                {error}
+              </Typography>
+            </MainCard>
+          )}
+          {!loading && !deviceDetails && !error && (
+            <MainCard>
+              <Typography align="center">
+                Loading...
+              </Typography>
+            </MainCard>
+          )}
+          {loading && deviceDetails && !error && (
+            <MainCard title={`${t('deviceModelView.modelName')}: ${deviceDetails.model_name || ''}`}>
               {!showOTP && ( <>
               <Grid container>
               
@@ -153,7 +167,7 @@ const StateAdminDeviceModelView = () => {
                             <strong>{t('deviceModelView.m2mProvider')}:</strong>
                           </TableCell>
                           <TableCell style={{ width: "50%" }}>
-                          {deviceDetails.eSimProviders.length>0 && deviceDetails.eSimProviders.map(item=><span>{item.company_name}</span>)}
+                          {deviceDetails.eSimProviders && deviceDetails.eSimProviders.length > 0 && deviceDetails.eSimProviders.map(item=><span key={item.id}>{item.company_name}</span>)}
                           </TableCell>
                         </TableRow>
                         <TableRow>
@@ -208,7 +222,7 @@ const StateAdminDeviceModelView = () => {
                           <TableCell>
                             <strong>{t('deviceModelView.modelDetails.manufacturerName')}:</strong>
                           </TableCell>
-                          <TableCell>{deviceDetails.created_by.name}</TableCell>
+                          <TableCell>{deviceDetails.created_by?.name || 'N/A'}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
@@ -220,13 +234,21 @@ const StateAdminDeviceModelView = () => {
                           <TableCell>
                             <strong>{t('deviceModelView.modelDetails.status')}:</strong>
                           </TableCell>
-                          <TableCell>{deviceDetails.status.replace(/_/g, ' ')}</TableCell>
+                          <TableCell>{deviceDetails.status ? deviceDetails.status.replace(/_/g, ' ') : 'N/A'}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>
                             <strong>{t('deviceModelView.modelDetails.tacFile')}:</strong>
                           </TableCell>
-                          <TableCell><Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,deviceDetails.tac_doc_path)} ><span>{t('deviceModelView.modelDetails.viewTac')}</span></Button></TableCell>
+                          <TableCell>
+                            {deviceDetails.tac_doc_path ? (
+                              <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,deviceDetails.tac_doc_path)} >
+                                <span>{t('deviceModelView.modelDetails.viewTac')}</span>
+                              </Button>
+                            ) : (
+                              <span>No file available</span>
+                            )}
+                          </TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
