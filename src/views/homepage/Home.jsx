@@ -13,9 +13,8 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
 import { useDispatch, useSelector } from "react-redux";
-import { useTranslation } from "react-i18next";
 import { loginUser } from "../../actions/loginActions";
-import skytronlogo from "../../assets/images/skytron-logo2.png";
+import skytronlogo from "../../assets/images/skytron-logo.png";
 import { Navigate } from "react-router-dom";
 import CaptchaServices from "../../services/CaptchaServices";
 import {
@@ -29,7 +28,6 @@ import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 function Home() {
-  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [error, setError] = useState(false);
   const [captcha, setCaptcha] = useState({
@@ -53,10 +51,10 @@ function Home() {
 
   const validationSchema = Yup.object({
     mobile: Yup.string()
-      .matches(/^\d{10}$/, t('validation.mobileNumberFormat'))
-      .required(t('validation.mobileRequired')),
-    password: Yup.string().required(t('validation.passwordRequired')),
-    captcha_reply: Yup.string().required(t('validation.required')),
+      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
+      .required("Mobile number is required"),
+    password: Yup.string().required("Password is required"),
+    // captcha_reply: Yup.string().required("Required Field"),
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
@@ -64,31 +62,31 @@ function Home() {
       loginUser(
         values.mobile,
         values.password,
-        captcha.captcha_key,
-        values.captcha_reply
+        // captcha.captcha_key,
+        // values.captcha_reply
       )
     );
     setSubmitting(false);
     setError(false);
   };
-  const getCaptcha = async () => {
-    setCaptcha((prev) => ({ ...prev, isLoaded: false }));
-    const data = await CaptchaServices.generateCaptcha();
-    if (data?.error) {
-      setCaptcha((prev) => ({ ...prev, isLoaded: true }));
-    } else {
-      setCaptcha((prev) => ({
-        ...prev,
-        captcha_key: data.key,
-        src: "data:image/png;base64," + data.captcha,
-        isLoaded: true,
-      }));
-    }
-  };
-  useEffect(() => {
-    getCaptcha();
-    localStorage.removeItem("skytrackCookiesData");
-  }, []);
+  // const getCaptcha = async () => {
+  //   setCaptcha((prev) => ({ ...prev, isLoaded: false }));
+  //   const data = await CaptchaServices.generateCaptcha();
+  //   if (data?.error) {
+  //     setCaptcha((prev) => ({ ...prev, isLoaded: true }));
+  //   } else {
+  //     setCaptcha((prev) => ({
+  //       ...prev,
+  //       captcha_key: data.key,
+  //       src: "data:image/png;base64," + data.captcha,
+  //       isLoaded: true,
+  //     }));
+  //   }
+  // };
+  // useEffect(() => {
+  //   getCaptcha();
+  //   localStorage.removeItem("skytrackCookiesData");
+  // }, []);
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -97,21 +95,21 @@ function Home() {
   const isAuthenticated = useSelector(
     (state) => state.login.user.isAuthenticated
   );
-  const otpId = useSelector((state) => state.login.user.otpToken);
+  // const otpId = useSelector((state) => state.login.user.otpToken);
   const submitting = useSelector((state) => state.login.loading);
   const errorMessage = useSelector((state) => state.login.error.message);
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
-  if (otpId !== null) {
-    return <Navigate to="/otp-login" replace />;
-  }
-  if (errorMessage !== null && error === false) {
-    setTimeout(() => {
-      getCaptcha();
-    }, 3000);
-    setError(true);
-  }
+  // if (otpId !== null) {
+  //   return <Navigate to="/otp-login" replace />;
+  // }
+  // if (errorMessage !== null && error === false) {
+  //   setTimeout(() => {
+  //     getCaptcha();
+  //   }, 3000);
+  //   setError(true);
+  // }
   return (
     <Container sx={{ mt: 4 }}>
       <Grid
@@ -132,7 +130,7 @@ function Home() {
             <Typography variant="h6" gutterBottom align="center">
               <img
                 src={skytronlogo}
-                alt={t('common.logo')}
+                alt="logo"
                 style={{ height: "auto", width: "36px" }}
               />
               <br />
@@ -146,7 +144,7 @@ function Home() {
               <Form>
                 <TextField
                   id="mobile"
-                  label={t('login.mobile')}
+                  label="Mobile"
                   name="mobile"
                   variant="outlined"
                   fullWidth
@@ -175,7 +173,7 @@ function Home() {
                 />
                 <TextField
                   id="password"
-                  label={t('login.password')}
+                  label="Password"
                   variant="outlined"
                   type={showPassword ? "text" : "password"}
                   fullWidth
@@ -190,7 +188,7 @@ function Home() {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label={t('login.togglePasswordVisibility')}
+                          aria-label="toggle password visibility"
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
                         >
@@ -201,13 +199,13 @@ function Home() {
                   }}
                 />
 
-                <section style={captchaStyle}>
+                {/* <section style={captchaStyle}>
                   {captcha.isLoaded ? (
                     <section>
                       <img
                         id="captcha-image"
                         src={captcha.src}
-                        alt={t('login.captchaImage')}
+                        alt="Captcha Image"
                         style={{ maxHeight: "60px" }}
                       />
                       <input
@@ -229,7 +227,7 @@ function Home() {
                 </section>
                 <TextField
                   id="captcha_reply"
-                  label={t('login.enterCaptcha')}
+                  label="Enter the result"
                   variant="outlined"
                   type="text"
                   fullWidth
@@ -244,15 +242,16 @@ function Home() {
                   helperText={
                     formik.touched.captcha_reply && formik.errors.captcha_reply
                   }
-                />
+                /> */}
                 <Button
                   variant="contained"
                   color="primary"
                   type="submit"
                   fullWidth
-                  disabled={submitting || !captcha.isLoaded}
+                  // disabled={submitting || !captcha.isLoaded}
+                  disabled={submitting}
                 >
-                  {submitting === false ? t('login.loginButton') : t('login.waiting')}
+                  {submitting === false ? `Login` : `Waiting`}
                 </Button>
 
                 <Box sx={{ mt: 2 }}>
@@ -266,7 +265,7 @@ function Home() {
             </Formik>
             <Box sx={{ mt: 1, textAlign: "right" }}>
               <Link href="/forgot-password" variant="body2">
-                {t('login.forgotPassword')}
+                Forgot password?
               </Link>
             </Box>
           </Paper>
