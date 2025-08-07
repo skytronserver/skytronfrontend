@@ -42,21 +42,25 @@ export const loginUser = (username, password) => async (dispatch) => {
     
     if(response?.data?.token) {
       const myCipher = cipherEncryption('skytrack');
+      let cookiesData, skytrack_cookiesData;
+      if(response?.data?.user?.role==='sosexecutive'){
+        cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.mobile)}`;
+        skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.date_joined )}-${myCipher(response.data?.user?.mobile)}`;
+      } else {
+        cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`;
+        skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`;
+      }
       const responseData = {
         isAuthenticated: true,
         token: "Token " + response.data.token,
         email: username,
         otpToken: null
       }
-      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
-      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`
-      
       sessionStorage.setItem('isAuthenticated', true);
       sessionStorage.setItem('sessionID', Date.now());
       sessionStorage.setItem('oAuthToken', response.data.token);
       sessionStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
       localStorage.setItem('skytrackCookiesData', skytrack_cookiesData);
-      
       dispatch(setLoginInfo(cookiesData));
       dispatch(setUser(responseData));
       dispatch(setError({message: null, status: null}));
