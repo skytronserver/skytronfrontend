@@ -13,8 +13,9 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { loginUser } from "../../actions/loginActions";
-import skytronlogo from "../../assets/images/skytron-logo.png";
+import skytronlogo from "../../assets/images/skytron-logo2.png";
 import { Navigate } from "react-router-dom";
 import CaptchaServices from "../../services/CaptchaServices";
 import {
@@ -28,6 +29,7 @@ import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 function Home() {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [error, setError] = useState(false);
   const [captcha, setCaptcha] = useState({
@@ -51,10 +53,10 @@ function Home() {
 
   const validationSchema = Yup.object({
     mobile: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile number is required"),
-    password: Yup.string().required("Password is required"),
-    // captcha_reply: Yup.string().required("Required Field"),
+      .matches(/^\d{10}$/, t('validation.mobileNumberFormat'))
+      .required(t('validation.mobileRequired')),
+    password: Yup.string().required(t('validation.passwordRequired')),
+    // captcha_reply: Yup.string().required(t('validation.required')),
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
@@ -130,7 +132,7 @@ function Home() {
             <Typography variant="h6" gutterBottom align="center">
               <img
                 src={skytronlogo}
-                alt="logo"
+                alt={t('common.logo')}
                 style={{ height: "auto", width: "36px" }}
               />
               <br />
@@ -144,7 +146,7 @@ function Home() {
               <Form>
                 <TextField
                   id="mobile"
-                  label="Mobile"
+                  label={t('login.mobile')}
                   name="mobile"
                   variant="outlined"
                   fullWidth
@@ -173,7 +175,7 @@ function Home() {
                 />
                 <TextField
                   id="password"
-                  label="Password"
+                  label={t('login.password')}
                   variant="outlined"
                   type={showPassword ? "text" : "password"}
                   fullWidth
@@ -188,7 +190,7 @@ function Home() {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label="toggle password visibility"
+                          aria-label={t('login.togglePasswordVisibility')}
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
                         >
@@ -205,7 +207,7 @@ function Home() {
                       <img
                         id="captcha-image"
                         src={captcha.src}
-                        alt="Captcha Image"
+                        alt={t('login.captchaImage')}
                         style={{ maxHeight: "60px" }}
                       />
                       <input
@@ -227,7 +229,7 @@ function Home() {
                 </section>
                 <TextField
                   id="captcha_reply"
-                  label="Enter the result"
+                  label={t('login.enterCaptcha')}
                   variant="outlined"
                   type="text"
                   fullWidth
@@ -248,10 +250,10 @@ function Home() {
                   color="primary"
                   type="submit"
                   fullWidth
-                  // disabled={submitting || !captcha.isLoaded}
                   disabled={submitting}
+                  // disabled={submitting || !captcha.isLoaded}
                 >
-                  {submitting === false ? `Login` : `Waiting`}
+                  {submitting === false ? t('login.loginButton') : t('login.waiting')}
                 </Button>
 
                 <Box sx={{ mt: 2 }}>
@@ -265,7 +267,7 @@ function Home() {
             </Formik>
             <Box sx={{ mt: 1, textAlign: "right" }}>
               <Link href="/forgot-password" variant="body2">
-                Forgot password?
+                {t('login.forgotPassword')}
               </Link>
             </Box>
           </Paper>
