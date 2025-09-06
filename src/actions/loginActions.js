@@ -2,9 +2,6 @@
 import { SET_USER, SET_LOADING, SET_ERROR,VERIFY_OTP,BASE_URL } from '../store/constant';
 import { cipherEncryption } from '../helper';
 import axios from 'axios';
-// Import node-forge for RSA encryption
-import forge from 'node-forge';
-
 export const setUser = (user) => ({
   type: SET_USER,
   payload: user,
@@ -30,96 +27,50 @@ export const logoutUser=(user)=>({
   type:"LOGOUT_USER",
   payload:user,
 })
-
-// Function to encrypt data using RSA encryption with node-forge
-export const encryptWithPublicKey = (data) => {
-  // RSA public key for encryption
-  const publicKeyPem = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6hUN7F1LHsJu7fCYMd2S
-BOot3n++YPA4I19PJxVvPmNbv2Smm8orCnlp5daNAKy8HtuLHXclSmVSVL6M9J8f
-2E2mUl0zlfs34KycxNs6JBV8+6MZSlsW6SltwKTuhWCcAVA5sK9nL358MclDwKZv
-3Ya4TcNVwDyZlnT/SMJvRwBi/eHtYep4giKB7mnrMeCSL3QdRMoSPX/ohcQBIRsD
-Q/rPeb4epepHB6yy3iQ7d9+jBlxCSv5Kkigu07kcCKzDNKtuO9WbNkg/46cStGLD
-mlnScYUaN7TJLBpzqBHkliMoexKcYlPRG/+ApqiGoB9hztb1gfwBdTlOUhJtnN0y
-UwIDAQAB
------END PUBLIC KEY-----`;
-
-  try {
-    // Convert the public key PEM to a forge public key object
-    const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
-
-    // Encrypt the data using RSA-OAEP with SHA-1
-    const encryptedData = publicKey.encrypt(data, "RSA-OAEP", {
-      md: forge.md.sha1.create(),                // Use SHA-1 for hashing
-      mgf1: forge.mgf.mgf1.create(forge.md.sha1.create()), // MGF1 with SHA-1
-    });
-
-    // Encode the encrypted data in base64 for transmission
-    const encryptedBase64 = forge.util.encode64(encryptedData);
-    
-    return encryptedBase64;
-  } catch (error) {
-    console.error('Encryption failed:', error);
-    throw new Error('Encryption failed');
-  }
-};
-
-export const loginUser = (username, password,captcha_key,captcha_reply) => async (dispatch) => {
+export const encryptWithPublicKey=(password)=>{
+  console.log(password, 'password')
+}
+export const loginUser = (username, password) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
-    
-    // Encrypt the password before sending to API
-    const encryptedPassword = encryptWithPublicKey(password);
-    
     const response = await axios.post(`${BASE_URL}api/user_login/`, {
       username,
-      password: encryptedPassword, // Send encrypted password instead of plain text
-      captcha_key,
-      captcha_reply
+      password,
+      captcha_key : "dummy captcha key",
+      captcha_reply : 2,
     });
-    if(response?.data?.token){
-    const myCipher = cipherEncryption('skytrack');
-    const responseData={
-      isAuthenticated:false,
-      token:"Token "+response.data.token,
-      email:username,
-      otpToken:response.data.token,
-    }
-    const cookiesData=`${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
-    const skytrack_cookiesData=`${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined )}-${myCipher(response.data?.user?.mobile)}`
-    const error={
-      message:null,
-      status:null,
-    }
-    sessionStorage.setItem('cookiesData',cookiesData+'-'+response.data?.user?.id);
-    localStorage.setItem('skytrackCookiesData',skytrack_cookiesData);
-    dispatch(setLoginInfo(cookiesData));
-    dispatch(setUser(responseData));
-    dispatch(setError(error));
-  }else{
-    throw new Error(response?.data?.error)
-  }
-  } catch (error) {
-    console.log(error,'error')
-    let message="";
-    if(error?.code==="ERR_BAD_REQUEST"){
-      if(error?.response?.data){
-        message=error?.response?.data?.error
-      }else{
-        message="Internal Server Error"
-      }
     
-    }else{
-      message=error.message
+    if(response?.data?.token) {
+      const myCipher = cipherEncryption('skytrack');
+      let cookiesData, skytrack_cookiesData;
+      if(response?.data?.user?.role==='sosexecutive'){
+        cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.mobile)}`;
+        skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.date_joined )}-${myCipher(response.data?.user?.mobile)}`;
+      } else {
+        cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`;
+        skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`;
+      }
+      const responseData = {
+        isAuthenticated: true,
+        token: "Token " + response.data.token,
+        email: username,
+        otpToken: null
+      }
+      sessionStorage.setItem('isAuthenticated', true);
+      sessionStorage.setItem('sessionID', Date.now());
+      sessionStorage.setItem('oAuthToken', response.data.token);
+      sessionStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
+      localStorage.setItem('skytrackCookiesData', skytrack_cookiesData);
+      dispatch(setLoginInfo(cookiesData));
+      dispatch(setUser(responseData));
+      dispatch(setError({message: null, status: null}));
+    } else {
+      throw new Error(response?.data?.error)
     }
-    if(message==="text is undefined"){
-      message="Whoops! Looks like the math wasn't quite right. Add the numbers in the CAPTCHA and try again."
-    }
-    const errorData={
-      message:message,
-      status:null,
-    }
-    dispatch(setError(errorData));
+  } catch (error) {
+    console.log(error, 'error')
+    const message = error?.response?.data?.error || "Internal Server Error";
+    dispatch(setError({message, status: null}));
   } finally {
     dispatch(setLoading(false));
   }
@@ -128,11 +79,9 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
   try{
     dispatch(setLoading(true));
     const myCipher = cipherEncryption('skytrack');
-    // Encrypt the OTP before sending to API
-    const encryptedOtp = encryptWithPublicKey(otp);
     const response=await axios.post(`${BASE_URL}api/validate_otp/`,{
       token,
-      otp: encryptedOtp
+      otp
     }); 
     const responseData={
       isAuthenticated:true,
