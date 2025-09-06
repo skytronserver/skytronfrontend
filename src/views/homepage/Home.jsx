@@ -56,7 +56,7 @@ function Home() {
       .matches(/^\d{10}$/, t('validation.mobileNumberFormat'))
       .required(t('validation.mobileRequired')),
     password: Yup.string().required(t('validation.passwordRequired')),
-    // captcha_reply: Yup.string().required(t('validation.required')),
+    captcha_reply: Yup.string().required(t('validation.required')),
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
@@ -64,31 +64,31 @@ function Home() {
       loginUser(
         values.mobile,
         values.password,
-        // captcha.captcha_key,
-        // values.captcha_reply
+        captcha.captcha_key,
+        values.captcha_reply
       )
     );
     setSubmitting(false);
     setError(false);
   };
-  // const getCaptcha = async () => {
-  //   setCaptcha((prev) => ({ ...prev, isLoaded: false }));
-  //   const data = await CaptchaServices.generateCaptcha();
-  //   if (data?.error) {
-  //     setCaptcha((prev) => ({ ...prev, isLoaded: true }));
-  //   } else {
-  //     setCaptcha((prev) => ({
-  //       ...prev,
-  //       captcha_key: data.key,
-  //       src: "data:image/png;base64," + data.captcha,
-  //       isLoaded: true,
-  //     }));
-  //   }
-  // };
-  // useEffect(() => {
-  //   getCaptcha();
-  //   localStorage.removeItem("skytrackCookiesData");
-  // }, []);
+  const getCaptcha = async () => {
+    setCaptcha((prev) => ({ ...prev, isLoaded: false }));
+    const data = await CaptchaServices.generateCaptcha();
+    if (data?.error) {
+      setCaptcha((prev) => ({ ...prev, isLoaded: true }));
+    } else {
+      setCaptcha((prev) => ({
+        ...prev,
+        captcha_key: data.key,
+        src: "data:image/png;base64," + data.captcha,
+        isLoaded: true,
+      }));
+    }
+  };
+  useEffect(() => {
+    getCaptcha();
+    localStorage.removeItem("skytrackCookiesData");
+  }, []);
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -97,21 +97,21 @@ function Home() {
   const isAuthenticated = useSelector(
     (state) => state.login.user.isAuthenticated
   );
-  // const otpId = useSelector((state) => state.login.user.otpToken);
+  const otpId = useSelector((state) => state.login.user.otpToken);
   const submitting = useSelector((state) => state.login.loading);
   const errorMessage = useSelector((state) => state.login.error.message);
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
-  // if (otpId !== null) {
-  //   return <Navigate to="/otp-login" replace />;
-  // }
-  // if (errorMessage !== null && error === false) {
-  //   setTimeout(() => {
-  //     getCaptcha();
-  //   }, 3000);
-  //   setError(true);
-  // }
+  if (otpId !== null) {
+    return <Navigate to="/otp-login" replace />;
+  }
+  if (errorMessage !== null && error === false) {
+    setTimeout(() => {
+      getCaptcha();
+    }, 3000);
+    setError(true);
+  }
   return (
     <Container sx={{ mt: 4 }}>
       <Grid
@@ -201,7 +201,7 @@ function Home() {
                   }}
                 />
 
-                {/* <section style={captchaStyle}>
+                <section style={captchaStyle}>
                   {captcha.isLoaded ? (
                     <section>
                       <img
@@ -244,14 +244,13 @@ function Home() {
                   helperText={
                     formik.touched.captcha_reply && formik.errors.captcha_reply
                   }
-                /> */}
+                />
                 <Button
                   variant="contained"
                   color="primary"
                   type="submit"
                   fullWidth
-                  disabled={submitting}
-                  // disabled={submitting || !captcha.isLoaded}
+                  disabled={submitting || !captcha.isLoaded}
                 >
                   {submitting === false ? t('login.loginButton') : t('login.waiting')}
                 </Button>
