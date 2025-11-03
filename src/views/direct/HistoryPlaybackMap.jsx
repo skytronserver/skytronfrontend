@@ -97,6 +97,10 @@ const GPSHistoryMap = ({
               end_datetime: endDateTime,
               vehicle_registration_number: vehicleRegistrationNumber,
             },
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Token ${localStorage.getItem("token")}`,
+            },
           }
         );
 

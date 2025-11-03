@@ -14,6 +14,7 @@ export const deviceInitials = {
     cop_validity:"",
     device_esn:"",
     iccid:"",
+    iccid2:"",
     telecom_provider1:"",
     telecom_provider2:"",
     msisdn1:"",
@@ -43,6 +44,7 @@ export const deviceFormField = {
     type: "text",
     label: "deviceForm.fields.test_agency",
     disabled:true,
+    validation: Yup.string(),
   },
   device_esn: {
     name: "device_esn",
@@ -68,24 +70,28 @@ export const deviceFormField = {
     type: "text",
     disabled:true,
     label: "deviceForm.fields.tac_no",
+    validation: Yup.string(),
   },
   tac_validity: {
     name:"tac_validity",
     type: "date",
     disabled:true,
     label: "deviceForm.fields.tac_validity",
+    validation: Yup.string(),
   },
   cop_no: {
     name: "cop_no",
     type: "text",
     label: "deviceForm.fields.cop_no",
     disabled:true,
+    validation: Yup.string(),
   },
   cop_validity: {
     name:"cop_validity",
     type: "date",
     label: "deviceForm.fields.cop_validity",
     disabled:true,
+    validation: Yup.string(),
   },
   
   iccid: {
@@ -142,6 +148,6 @@ export const deviceFormField = {
     name:"remarks",
     type: "text",
     label: "deviceForm.fields.remarks",
-    validation: "",
+    validation: Yup.string(),
   },
 };

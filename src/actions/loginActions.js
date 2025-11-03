@@ -93,6 +93,12 @@ export const loginUser = (username, password,captcha_key,captcha_reply) => async
     }
     sessionStorage.setItem('cookiesData',cookiesData+'-'+response.data?.user?.id);
     localStorage.setItem('skytrackCookiesData',skytrack_cookiesData);
+    
+    // Store dealer districts if available
+    if(response.data?.info?.districts && Array.isArray(response.data.info.districts)) {
+      localStorage.setItem('dealerDistricts', JSON.stringify(response.data.info.districts));
+    }
+    
     dispatch(setLoginInfo(cookiesData));
     dispatch(setUser(responseData));
     dispatch(setError(error));
@@ -150,6 +156,12 @@ export const verifyOtp=(token,otp,username)=>async(dispatch)=>{
     sessionStorage.setItem('isAuthenticated',true);
     sessionStorage.setItem('sessionID', Date.now());
     sessionStorage.setItem('oAuthToken', response.data.token);
+    
+    // Store dealer districts if available
+    if(response.data?.info?.districts && Array.isArray(response.data.info.districts)) {
+      localStorage.setItem('dealerDistricts', JSON.stringify(response.data.info.districts));
+    }
+    
     const errorData={
       message:null,
       status:null,
