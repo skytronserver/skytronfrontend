@@ -99,7 +99,7 @@ const GPSHistoryMap = ({
             },
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Token ${localStorage.getItem("token")}`,
+              "Authorization": `Token ${sessionStorage.getItem("oAuthToken")}`,
             },
           }
         );

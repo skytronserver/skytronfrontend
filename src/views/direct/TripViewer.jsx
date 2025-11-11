@@ -345,6 +345,10 @@ const TripViewer = () => {
             end_datetime: endDate.toISOString(),
             vehicle_registration_number: vehicleNo,
           },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Token ${sessionStorage.getItem("oAuthToken")}`,
+          },
         }
       );
 
