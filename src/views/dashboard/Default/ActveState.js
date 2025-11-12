@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import React from "react";
-import { Grid,Card, CardContent,Typography, Box } from "@mui/material";
+import { Grid,Card, CardContent,Typography, Box, Fab, Tabs, Tab, Button } from "@mui/material";
+import { Add as AddIcon, BarChart as ChartIcon } from "@mui/icons-material";
 import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
 import { lazy } from "react";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Car from "../../../assets/images/Car.svg";
 import Bell from "../../../assets/images/Bell.svg";
 import Overspeed from "../../../assets/images/Overspeed.svg";
@@ -65,6 +67,10 @@ const ActiveState = () => {
   const [falseAssignment,setFalseAssignment]=useState(dashboardInitialState.falseAssignment);
   const [rejectedAssignment,setRejectedAssignment]=useState(dashboardInitialState.rejectedAssignment);
   const [avgAcceptance,setAvgAcceptance]=useState("");
+  
+  // Chart-related state
+  const [activeTab, setActiveTab] = useState(0);
+  
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
@@ -124,7 +130,7 @@ const ActiveState = () => {
     if(userRoles=='esimprovider') {
       (async()=>{
         const response = await UserServices.getESIMProviderDashboard();
-        const data = await response.data;
+        const data = await response.data.data;
         setESIMInfo(prev=>({
           ...prev,
           totalDevicesWithESim: data.Total_Devices_With_ESim || 0,
@@ -420,6 +426,1074 @@ const ActiveState = () => {
     }
   }, []);
 
+  // Simple chart rendering functions for existing dashboard data
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+  const renderDashboardCharts = (role) => {
+    const charts = [];
+    
+    if (role === 'superadmin') {
+      // User Statistics Pie Chart
+      const userStatsData = [
+        { name: 'State Admin', value: userInfoForAdmin.stateUser || 0 },
+        { name: 'eSIM Provider', value: userInfoForAdmin.eSimUser || 0 },
+        { name: 'Manufacturer', value: userInfoForAdmin.manufacturer || 0 },
+        { name: 'SOS Admin', value: userInfoForAdmin.sosAdmin || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="user-stats">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>User Statistics</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={userStatsData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {userStatsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Device Status Bar Chart
+      const deviceStatusData = [
+        { name: 'Online', count: fitmentInfoForAdmin.onlineDevice || 0 },
+        { name: 'Offline', count: fitmentInfoForAdmin.offlineDevice || 0 },
+        { name: 'Tagged', count: fitmentInfoForAdmin.toggedDevice || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="device-status">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Status</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={deviceStatusData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Super Admin Alert Overview
+      const alertOverviewData = [
+        { name: 'Overspeeding', total: overSpeedInfo.totalAlert || 0, monthly: overSpeedInfo.thisMonthAlert || 0, today: overSpeedInfo.todayAlert || 0 },
+        { name: 'Emergency', total: emergencyInfo.totalAlert || 0, monthly: emergencyInfo.thisMonthAlert || 0, today: emergencyInfo.todayAlert || 0 },
+        { name: 'Harsh Brake', total: harshBreakInfo.totalAlert || 0, monthly: harshBreakInfo.thisMonthAlert || 0, today: harshBreakInfo.todayAlert || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="alert-overview">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Alert Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={alertOverviewData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="total" fill="#8884d8" />
+                <Bar dataKey="monthly" fill="#82ca9d" />
+                <Bar dataKey="today" fill="#ffc658" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Super Admin State Information
+      const stateInfoData = [
+        { name: 'Total States', value: stateInfo.total || 0 },
+        { name: 'Active States', value: stateInfo.active || 0 },
+        { name: 'Inactive States', value: stateInfo.inactive || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="state-info">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>State Information</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={stateInfoData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {stateInfoData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'stateadmin') {
+      // User Distribution Pie Chart
+      const userDistData = [
+        { name: 'Dealers', value: userInfo.dealer || 0 },
+        { name: 'Manufacturers', value: userInfo.manufacturer || 0 },
+        { name: 'DTOs', value: userInfo.dto || 0 },
+        { name: 'Vehicle Owners', value: userInfo.owner || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="user-distribution">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>User Distribution</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={userDistData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {userDistData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Alert Comparison Bar Chart
+      const alertData = [
+        { name: 'Total', overspeeding: overSpeedInfo.totalAlert || 0, emergency: emergencyInfo.totalAlert || 0, harsh_brake: harshBreakInfo.totalAlert || 0 },
+        { name: 'This Month', overspeeding: overSpeedInfo.thisMonthAlert || 0, emergency: emergencyInfo.thisMonthAlert || 0, harsh_brake: harshBreakInfo.thisMonthAlert || 0 },
+        { name: 'Today', overspeeding: overSpeedInfo.todayAlert || 0, emergency: emergencyInfo.todayAlert || 0, harsh_brake: harshBreakInfo.todayAlert || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="alert-comparison">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Alert Comparison</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={alertData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="overspeeding" fill="#8884d8" />
+                <Bar dataKey="emergency" fill="#82ca9d" />
+                <Bar dataKey="harsh_brake" fill="#ffc658" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // State Admin Device Health Overview
+      const stateDeviceHealthData = [
+        { name: 'Total Activated', value: deviceHealthInfo.totalActivatedDevice || 0 },
+        { name: 'Today Active', value: deviceHealthInfo.todayActive || 0 },
+        { name: 'Inactive 7 Days', value: deviceHealthInfo.inActiveFor7Days || 0 },
+        { name: 'Inactive 30 Days', value: deviceHealthInfo.inActiveFor30Days || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="state-device-health">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Health Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={stateDeviceHealthData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {stateDeviceHealthData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // State Admin Fitment Overview
+      const stateFitmentData = [
+        { name: 'Fitted Devices', value: fitmentInfo.fitted || 0 },
+        { name: 'Online Devices', value: fitmentInfo.onlineDevice || 0 },
+        { name: 'Offline Devices', value: fitmentInfo.offlineDevice || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="state-fitment">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Fitment Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={stateFitmentData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#00C49F" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'owner') {
+      // Vehicle Overview Pie Chart
+      const vehicleData = [
+        { name: 'Total Vehicles', value: ownerDashboardInfo.vehicles || 0 },
+        { name: 'Active Devices', value: ownerDashboardInfo.deviceActivated || 0 },
+        { name: 'Offline Devices', value: ownerDashboardInfo.offlineDevice || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="vehicle-overview">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Vehicle Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={vehicleData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {vehicleData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Driver Behavior Bar Chart
+      const behaviorData = [
+        { name: 'Harsh Braking', incidents: ownerDashboardInfo.harshBreaking || 0 },
+        { name: 'Sudden Turn', incidents: ownerDashboardInfo.suddenTurn || 0 },
+        { name: 'Over Speeding', incidents: ownerDashboardInfo.overSpeeding || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="driver-behavior">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Driver Behavior Analysis</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={behaviorData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="incidents" fill="#ff7300" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Owner Alert Trends
+      const ownerAlertTrendsData = [
+        { name: 'Total Alerts', count: ownerDashboardInfo.alert || 0 },
+        { name: 'Monthly Alerts', count: ownerDashboardInfo.monthlyAlert || 0 },
+        { name: 'Daily Alerts', count: ownerDashboardInfo.dailyAlert || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="owner-alert-trends">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Alert Trends</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={ownerAlertTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#FF8042" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Owner Device Status Timeline
+      const ownerDeviceTimelineData = [
+        { period: 'Online', count: ownerDashboardInfo.onlineDevice || 0 },
+        { period: '7 Days Offline', count: ownerDashboardInfo.sevenDaysOffline || 0 },
+        { period: '30 Days Offline', count: ownerDashboardInfo.thirtyDaysOffline || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="owner-device-timeline">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Status Timeline</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={ownerDeviceTimelineData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="period" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#FFBB28" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Owner Call Statistics
+      const ownerCallStatsData = [
+        { name: 'SOS Calls', value: ownerDashboardInfo.sosCalls || 0 },
+        { name: 'Genuine Calls', value: ownerDashboardInfo.genuineCalls || 0 },
+        { name: 'Fake Calls', value: ownerDashboardInfo.fakeCalls || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="owner-call-stats">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Call Statistics</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={ownerCallStatsData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {ownerCallStatsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'esimprovider') {
+      // eSIM Status Distribution Pie Chart
+      const esimStatusData = [
+        { name: 'Validated', value: eSIMInfo.validated || 0 },
+        { name: 'Active', value: eSIMInfo.active || 0 },
+        { name: 'Expired', value: eSIMInfo.expired || 0 },
+        { name: 'Pending', value: eSIMInfo.pending || 0 },
+        { name: 'Invalid', value: eSIMInfo.invalid || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="esim-status">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>eSIM Status Distribution</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={esimStatusData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {esimStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // eSIM Activation Trends Bar Chart (All activation data)
+      const activationTrendsData = [
+        { name: 'Requests Sent', count: eSIMActivationInfo.activationRequestSent || 0 },
+        { name: 'Confirmed', count: eSIMActivationInfo.activationConfirmed || 0 },
+        { name: 'Rejected', count: eSIMActivationInfo.activationRejected || 0 },
+        { name: 'Expiring Soon (30 Days)', count: eSIMActivationInfo.expiringSoon || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="activation-trends">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>eSIM Activation Status</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={activationTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#00C49F" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Activation Requests Timeline Bar Chart
+      const requestTimelineData = [
+        { period: 'Today', requests: eSIMActivationInfo.todayRequests || 0 },
+        { period: 'This Week', requests: eSIMActivationInfo.weeklyRequests || 0 },
+        { period: 'This Month', requests: eSIMActivationInfo.monthlyRequests || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="request-timeline">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Activation Requests Timeline</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={requestTimelineData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="period" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="requests" fill="#FFBB28" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Total Devices Overview
+      const deviceOverviewData = [
+        { name: 'Total Devices', value: eSIMInfo.totalDevicesWithESim || 0 },
+        { name: 'With eSIM Status', value: (eSIMInfo.validated || 0) + (eSIMInfo.active || 0) + (eSIMInfo.expired || 0) + (eSIMInfo.pending || 0) + (eSIMInfo.invalid || 0) }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="device-overview">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={deviceOverviewData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {deviceOverviewData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Provider Information Summary Card
+      charts.push(
+        <Grid item xs={12} md={6} key="provider-info">
+          <Card sx={{ p: 3, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Provider Information</Typography>
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                <strong>Company:</strong> Gobind PVT LTD
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                <strong>State:</strong> Assam
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                <strong>Status:</strong> Created
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                <strong>Created Date:</strong> 2025-07-12
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                <strong>Expiry Date:</strong> 2025-07-12
+              </Typography>
+              <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                <Typography variant="h6" color="primary">
+                  Total Devices: {eSIMInfo.totalDevicesWithESim || 0}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Validated eSIMs: {eSIMInfo.validated || 0}
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+        </Grid>
+      );
+
+      // Complete eSIM Status Breakdown
+      const completeStatusData = [
+        { name: 'Validated', value: eSIMInfo.validated || 0, color: '#00C49F' },
+        { name: 'Active', value: eSIMInfo.active || 0, color: '#0088FE' },
+        { name: 'Expired', value: eSIMInfo.expired || 0, color: '#FF8042' },
+        { name: 'Pending', value: eSIMInfo.pending || 0, color: '#FFBB28' },
+        { name: 'Invalid', value: eSIMInfo.invalid || 0, color: '#8884d8' }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="complete-status">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Complete eSIM Status Breakdown</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={completeStatusData} layout="horizontal">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={80} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'dealer') {
+      // Stock Statistics Pie Chart
+      const stockData = [
+        { name: 'Assigned', value: dealerDeviceInfo.assigned || 0 },
+        { name: 'Returned', value: dealerDeviceInfo.returned || 0 },
+        { name: 'Stocked', value: dealerDeviceInfo.stocked || 0 },
+        { name: 'Faulty', value: dealerDeviceInfo.faulty || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="stock-stats">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Stock Statistics</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={stockData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {stockData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Fitment Trends Bar Chart
+      const fitmentTrendsData = [
+        { name: 'Total', count: dealerFitmentInfo.total || 0 },
+        { name: 'Monthly', count: dealerFitmentInfo.monthly || 0 },
+        { name: 'Daily', count: dealerFitmentInfo.daily || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="fitment-trends">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Fitment Trends</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={fitmentTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Device Statistics Pie Chart
+      const deviceStatsData = [
+        { name: 'Online Devices', value: fitmentInfo.onlineDevice || 0 },
+        { name: 'Offline Devices', value: fitmentInfo.offlineDevice || 0 },
+        { name: 'Fitted Devices', value: fitmentInfo.fitted || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="device-statistics">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Statistics</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={deviceStatsData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {deviceStatsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // eSIM Statistics Bar Chart
+      const esimStatsData = [
+        { name: 'Total with eSIM', count: eSIMInfo.totalDevicesWithESim || 0 },
+        { name: 'Validated', count: eSIMInfo.validated || 0 },
+        { name: 'Active', count: eSIMInfo.active || 0 },
+        { name: 'Expired', count: eSIMInfo.expired || 0 },
+        { name: 'Pending', count: eSIMInfo.pending || 0 },
+        { name: 'Invalid', count: eSIMInfo.invalid || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="esim-statistics">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>eSIM Statistics</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={esimStatsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#00C49F" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Device Health Overview Pie Chart
+      const deviceHealthData = [
+        { name: 'Total Activated', value: deviceHealthInfo.totalActivatedDevice || 0 },
+        { name: 'Today Active', value: deviceHealthInfo.todayActive || 0 },
+        { name: 'Inactive 7 Days', value: deviceHealthInfo.inActiveFor7Days || 0 },
+        { name: 'Inactive 30 Days', value: deviceHealthInfo.inActiveFor30Days || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="device-health">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Health Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={deviceHealthData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {deviceHealthData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Device Status Timeline Bar Chart
+      const deviceStatusData = [
+        { name: 'Online', count: deviceStatusInfo.online || 0 },
+        { name: 'Today Offline', count: deviceStatusInfo.todayOffline || 0 },
+        { name: '7 Days Offline', count: deviceStatusInfo.sevenDaysOffline || 0 },
+        { name: '30 Days Offline', count: deviceStatusInfo.thirtyDaysOffline || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="device-status-timeline">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Status Timeline</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={deviceStatusData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#FF8042" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'dtorto') {
+      // DTO Dashboard Overview Pie Chart
+      const dtoOverviewData = [
+        { name: 'Activated Devices', value: dtoDashboardInfo.activated || 0 },
+        { name: 'Total Vehicles', value: dtoDashboardInfo.vehicles || 0 },
+        { name: 'Online Devices', value: dtoDashboardInfo.onlineDevice || 0 },
+        { name: 'Offline Devices', value: dtoDashboardInfo.offlineDevice || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="dto-overview">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>DTO Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={dtoOverviewData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {dtoOverviewData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // DTO Alerts and Activations Bar Chart
+      const dtoActivityData = [
+        { name: 'Total Alerts', count: dtoDashboardInfo.alert || 0 },
+        { name: 'Monthly Alerts', count: dtoDashboardInfo.monthlyAlert || 0 },
+        { name: 'Daily Alerts', count: dtoDashboardInfo.dailyAlert || 0 },
+        { name: 'Total Activations', count: dtoDashboardInfo.activations || 0 },
+        { name: 'Monthly Activations', count: dtoDashboardInfo.monthlyActivations || 0 },
+        { name: 'Daily Activations', count: dtoDashboardInfo.dailyActivations || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="dto-activity">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>DTO Activity Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={dtoActivityData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#00C49F" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // DTO Call Statistics Pie Chart
+      const dtoCallsData = [
+        { name: 'SOS Calls', value: dtoDashboardInfo.sosCalls || 0 },
+        { name: 'Genuine Calls', value: dtoDashboardInfo.genuineCalls || 0 },
+        { name: 'Fake Calls', value: dtoDashboardInfo.fakeCalls || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="dto-calls">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>DTO Call Statistics</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={dtoCallsData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {dtoCallsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Device Status Timeline Bar Chart
+      const deviceStatusTimelineData = [
+        { period: '7 Days Offline', count: dtoDashboardInfo.sevenDaysOffline || 0 },
+        { period: '30 Days Offline', count: dtoDashboardInfo.thirtyDaysOffline || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="device-timeline">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Device Offline Timeline</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={deviceStatusTimelineData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="period" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#FF8042" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'devicemanufacture') {
+      // Model Information Pie Chart
+      const modelData = [
+        { name: 'Total Models', value: modelInfo.model || 0 },
+        { name: 'M2M Linked', value: modelInfo.m2mLinked || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="model-info">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Model Information</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={modelData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {modelData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Miscellaneous Information Bar Chart
+      const miscData = [
+        { name: 'Dealers', count: miscInfo.dealer || 0 },
+        { name: 'Allocated', count: miscInfo.allocated || 0 },
+        { name: 'Activations', count: miscInfo.activation || 0 },
+        { name: 'Expired', count: miscInfo.expired || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="misc-info">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Miscellaneous Information</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={miscData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#FFBB28" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'desk_ex') {
+      // Assignment Overview Pie Chart
+      const assignmentOverviewData = [
+        { name: 'Total Assignments', value: assignment.Total_Assignemnt || 0 },
+        { name: 'Closed Assignments', value: closedAssignment.Total_Closed_Assignemnt || 0 },
+        { name: 'False Assignments', value: falseAssignment.Total_False_Assignemnt || 0 },
+        { name: 'Rejected Assignments', value: rejectedAssignment.Total_Rejected_Assignemnt || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="assignment-overview">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Assignment Overview</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={assignmentOverviewData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {assignmentOverviewData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Assignment Trends Bar Chart
+      const assignmentTrendsData = [
+        { period: 'Today', assignments: assignment.Total_Assignemnt_today || 0, closed: closedAssignment.Total_Closed_Assignemnt_today || 0, false: falseAssignment.Total_False_Assignemnt_today || 0, rejected: rejectedAssignment.Total_Rejected_Assignemnt_today || 0 },
+        { period: 'This Week', assignments: assignment.Total_Assignemnt_thisweek || 0, closed: closedAssignment.Total_Closed_Assignemnt_thisweek || 0, false: falseAssignment.Total_False_Assignemnt_thisweek || 0, rejected: rejectedAssignment.Total_Rejected_Assignemnt_thisweek || 0 },
+        { period: 'This Month', assignments: assignment.Total_Assignemnt_thistmonth || 0, closed: closedAssignment.Total_Closed_Assignemnt_thistmonth || 0, false: falseAssignment.Total_False_Assignemnt_thistmonth || 0, rejected: rejectedAssignment.Total_Rejected_Assignemnt_thistmonth || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="assignment-trends">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Assignment Trends</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={assignmentTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="period" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="assignments" fill="#8884d8" />
+                <Bar dataKey="closed" fill="#82ca9d" />
+                <Bar dataKey="false" fill="#ffc658" />
+                <Bar dataKey="rejected" fill="#ff7300" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    if (role === 'sosadmin' || role === 'teamlead') {
+      // Call Statistics Pie Chart
+      const callStatsData = [
+        { name: 'Active Calls', value: calls.Total_Active_Calls || 0 },
+        { name: 'Closed Calls', value: calls.Total_Closed_Calls || 0 },
+        { name: 'Pending Calls', value: calls.Total_Pending_Calls || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="call-statistics">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Call Statistics</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={callStatsData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {callStatsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+
+      // Call Trends Bar Chart
+      const callTrendsData = [
+        { name: 'Total', incoming: incomingCall.Total_Incoming_Calls || 0, fake: fakeCall.Total_Fake_Calls || 0, rejected: callRejection.Total_Rejected_Assignemnt || 0 },
+        { name: 'This Month', incoming: incomingCall.Total_Incoming_Calls_thismonth || 0, fake: fakeCall.Total_Fake_Calls_thismonth || 0, rejected: callRejection.Total_Rejected_Assignemnt_thismonth || 0 },
+        { name: 'This Week', incoming: incomingCall.Total_Incoming_Calls_thisweek || 0, fake: fakeCall.Total_Fake_Calls_thisweek || 0, rejected: callRejection.Total_Rejected_Assignemnt_thisweek || 0 },
+        { name: 'Today', incoming: incomingCall.Total_Incoming_Calls_today || 0, fake: fakeCall.Total_Fake_Calls_today || 0, rejected: callRejection.Total_Rejected_Assignemnt_today || 0 }
+      ];
+      
+      charts.push(
+        <Grid item xs={12} md={6} key="call-trends">
+          <Card sx={{ p: 2, height: 400 }}>
+            <Typography variant="h6" gutterBottom>Call Trends</Typography>
+            <ResponsiveContainer width="100%" height="90%">
+              <BarChart data={callTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="incoming" fill="#8884d8" />
+                <Bar dataKey="fake" fill="#82ca9d" />
+                <Bar dataKey="rejected" fill="#ffc658" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+      );
+    }
+    
+    return charts;
+  };
+
+  const TabPanel = ({ children, value, index, ...other }) => {
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`dashboard-tabpanel-${index}`}
+        aria-labelledby={`dashboard-tab-${index}`}
+        {...other}
+      >
+        {value === index && (
+          <Box sx={{ p: 3 }}>
+            {children}
+          </Box>
+        )}
+      </div>
+    );
+  };
+
   const mar = "100px";
 
   const DashboardView = ({ role }) => {
@@ -465,6 +1539,54 @@ const ActiveState = () => {
       );
     }
 
+    return (
+      <Box>
+        {/* Tab Navigation */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+            <Tab label="Dashboard Overview" />
+            <Tab label="Analytics & Charts" />
+          </Tabs>
+        </Box>
+
+        {/* Dashboard Overview Tab */}
+        <TabPanel value={activeTab} index={0}>
+          {renderDashboardContent(role)}
+        </TabPanel>
+
+        {/* Analytics & Charts Tab */}
+        <TabPanel value={activeTab} index={1}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" gutterBottom>Analytics & Charts</Typography>
+            <Typography variant="body1" color="textSecondary">
+              Visual representation of your dashboard data
+            </Typography>
+          </Box>
+
+          {/* Dashboard Charts Grid */}
+          <Grid container spacing={3}>
+            {renderDashboardCharts(role)}
+            
+            {renderDashboardCharts(role).length === 0 && (
+              <Grid item xs={12}>
+                <Card sx={{ p: 4, textAlign: 'center' }}>
+                  <ChartIcon sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
+                  <Typography variant="h6" color="textSecondary" gutterBottom>
+                    No chart data available
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Charts will appear here once dashboard data is loaded
+                  </Typography>
+                </Card>
+              </Grid>
+            )}
+          </Grid>
+        </TabPanel>
+      </Box>
+    );
+  };
+
+  const renderDashboardContent = (role) => {
     switch (role) {
       case "superadmin":
         return (
@@ -857,6 +1979,61 @@ const ActiveState = () => {
                 heading={t('dashboard.headings.activationStatus')}
               />
             </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
+                label="Pending,Invalid,Total Devices"
+                cardValue={{
+                  pending: eSIMInfo.pending || 0,
+                  invalid: eSIMInfo.invalid || 0,
+                  total: eSIMInfo.totalDevicesWithESim || 0
+                }}
+                iconImage={Sim}
+                heading="eSIM Status Overview"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #00C49F 0%, #82ca9d 100%)"
+                label="Today,This Week,This Month"
+                cardValue={{
+                  today: eSIMActivationInfo.todayRequests || 0,
+                  week: eSIMActivationInfo.weeklyRequests || 0,
+                  month: eSIMActivationInfo.monthlyRequests || 0
+                }}
+                iconImage={Activation}
+                heading="Activation Requests Timeline"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
+                label="Company,State,Status"
+                cardValue={{
+                  company: "Gobind PVT LTD",
+                  state: "Assam", 
+                  status: "Created"
+                }}
+                iconImage={User}
+                heading="Provider Information"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #ff7300 0%, #ffcc66 100%)"
+                label="Created Date,Expiry Date"
+                cardValue={{
+                  created: "2025-07-12",
+                  expiry: "2025-07-12"
+                }}
+                iconImage={Alert}
+                heading="Provider Dates"
+              />
+            </Grid>
           </Grid>
         );
       case "sosadmin":
@@ -919,7 +2096,7 @@ const ActiveState = () => {
             />
           </Grid>
           </Grid>
-        )
+        );
         case "desk_ex":
           return (
             <Grid container spacing={2} marginBottom={mar}>
@@ -960,7 +2137,7 @@ const ActiveState = () => {
               />
             </Grid>
             </Grid>
-          )
+          );
       default:
         return (
           <Box
