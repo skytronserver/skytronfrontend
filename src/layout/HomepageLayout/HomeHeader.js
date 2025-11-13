@@ -91,8 +91,6 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
           <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
             <Button color="inherit" startIcon={<HomeIcon />} component={Link} to="/" sx={{ mr: 2 }}>{t('common.home')}</Button>
-            {/* <Button color="inherit" component="a" href="#contact" sx={{ mr: 2 }}>Contact Us</Button>
-            <Button color="inherit" component="a" href="#about" sx={{ mr: 2 }}>About Us</Button> */}
             <Button color="inherit" component={Link} to="/privacy-policy">{t('common.privacyPolicy')}</Button>
           </Grid>
           
@@ -114,6 +112,9 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           <List>
             <ListItem button component={Link} to="/">
               <ListItemText primary={t('common.home')} />
+            </ListItem>
+            <ListItem button component={Link} to="/user-registration-request">
+              <ListItemText primary="Register" />
             </ListItem>
             <ListItem button>
               <ListItemText primary={t('common.contactUs')} />
