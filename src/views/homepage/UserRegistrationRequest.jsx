@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Typography,
   Container,
@@ -6,15 +6,24 @@ import {
   Box,
   Paper,
   Grid,
+  TextField,
+  Alert,
 } from "@mui/material";
-import EmailIcon from "@mui/icons-material/Email";
-import SupportAgentIcon from "@mui/icons-material/SupportAgent";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
 
 const UserRegistrationRequest = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    request: ''
+  });
+  
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const paperStyle = {
-    p: 2,
+    p: 3,
     backdropFilter: "blur(5px)",
     backgroundColor: "rgba(255, 255, 255, 0.3)",
     borderRadius: "8px",
@@ -29,22 +38,41 @@ const UserRegistrationRequest = () => {
     textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Form submission logic would go here
+    console.log('Form submitted:', formData);
+    setShowSuccess(true);
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setShowSuccess(false);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        request: ''
+      });
+    }, 3000);
+  };
+
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container sx={{ mt: 4, mb: 4 }}>
       <Grid
         container
         spacing={3}
         justifyContent="center"
-        alignItems="center"
-        sx={{ height: "70vh" }}
+        alignItems="flex-start"
       >
-        <Grid
-          item
-          xs={12}
-          md={8}
-          sx={{ display: { xs: "none", md: "block" } }}
-        ></Grid>
-        <Grid item xs={12} md={4} justifyContent="center" alignItems="center">
+        <Grid item xs={12} md={8} lg={6}>
           <Paper sx={paperStyle}>
             <Typography variant="h6" gutterBottom align="center">
               <img
@@ -56,8 +84,8 @@ const UserRegistrationRequest = () => {
               <span style={logoStyle}>SKYTRON</span>
             </Typography>
 
-            <Box sx={{ textAlign: 'center', py: 2 }}>
-              <SupportAgentIcon 
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
+              <PersonAddIcon 
                 sx={{ 
                   fontSize: 48, 
                   color: '#800080', 
@@ -66,65 +94,106 @@ const UserRegistrationRequest = () => {
               />
               
               <Typography 
-                variant="h6" 
+                variant="h5" 
                 gutterBottom 
                 sx={{ 
                   fontWeight: 'bold',
                   color: '#800080',
-                  mb: 2
+                  mb: 1
                 }}
               >
-                Account Opening Request
+                Account Registration
               </Typography>
               
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  mb: 3, 
-                  color: 'text.primary',
+                  color: 'text.secondary',
                   lineHeight: 1.5
                 }}
               >
-                Kindly write to <strong style={{ color: '#800080' }}>support@skytrack.in</strong> for account opening request.
+                Fill out the form below to request a new account
               </Typography>
+            </Box>
 
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: 1,
-                  mb: 3,
-                  p: 1,
-                  backgroundColor: '#cdcdcd',
-                  borderRadius: '8px'
-                }}
-              >
-                <AccessTimeIcon sx={{ fontSize: 16, color: '#800080' }} />
-                <Typography variant="body2" sx={{ color: '#800080', fontWeight: 'medium' }}>
-                  2-3 Business Days Response
-                </Typography>
-              </Box>
-              
+            {showSuccess && (
+              <Alert severity="success" sx={{ mb: 3 }}>
+                Registration request submitted successfully! We'll get back to you soon.
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSubmit}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="First Name"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    required
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Last Name"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    required
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Email Address"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Your Request"
+                    name="request"
+                    value={formData.request}
+                    onChange={handleInputChange}
+                    required
+                    multiline
+                    rows={4}
+                    variant="outlined"
+                    placeholder="Please describe your account request and requirements..."
+                  />
+                </Grid>
+              </Grid>
+
               <Button
+                type="submit"
                 variant="contained"
-                color="primary"
-                href="mailto:support@skytrack.in"
-                startIcon={<EmailIcon />}
                 fullWidth
                 sx={{ 
+                  mt: 3,
                   mb: 2,
                   backgroundColor: '#800080',
                   '&:hover': {
                     backgroundColor: '#660066'
-                  }
+                  },
+                  py: 1.5
                 }}
+                startIcon={<PersonAddIcon />}
               >
-                Send Email Request
+                Submit Registration Request
               </Button>
             </Box>
             
-            <Box sx={{ mt: 1, textAlign: 'center' }}>
+            <Box sx={{ textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
                 Already have an account?{' '}
                 <Button 

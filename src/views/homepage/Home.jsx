@@ -277,11 +277,11 @@ function Home() {
         </Grid>
       </Grid>
       
-      {/* STQC Certification Badge - Bottom Left Corner */}
+      {/* STQC Certification Badge - Responsive */}
       <Box sx={{
         position: 'fixed',
-        top: '94px',
-        left: '20px',
+        top: { xs: '75px', sm: '80px', md: '94px' },
+        left: { xs: '10px', sm: '15px', md: '20px' },
         zIndex: 10,
         animation: 'certificationPulse 3s ease-in-out infinite',
         '@keyframes certificationPulse': {
@@ -302,21 +302,25 @@ function Home() {
         <Box sx={{
           background: 'linear-gradient(145deg, #ff6b35 0%, #f7931e 25%, #ffd700 50%, #f7931e 75%, #ff6b35 100%)',
           clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-          width: '90px',
-          height: '90px',
+          width: { xs: '70px', sm: '75px', md: '90px' },
+          height: { xs: '70px', sm: '75px', md: '90px' },
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 8px 25px rgba(255, 107, 53, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)',
+          boxShadow: {
+            xs: '0 4px 15px rgba(255, 107, 53, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2)',
+            sm: '0 6px 20px rgba(255, 107, 53, 0.35), 0 3px 10px rgba(0, 0, 0, 0.25)',
+            md: '0 8px 25px rgba(255, 107, 53, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)'
+          },
           position: 'relative',
           '&::before': {
             content: '""',
             position: 'absolute',
-            top: '3px',
-            left: '3px',
-            right: '3px',
-            bottom: '3px',
+            top: { xs: '2px', sm: '2.5px', md: '3px' },
+            left: { xs: '2px', sm: '2.5px', md: '3px' },
+            right: { xs: '2px', sm: '2.5px', md: '3px' },
+            bottom: { xs: '2px', sm: '2.5px', md: '3px' },
             background: 'linear-gradient(145deg, #0d47a1 0%, #1565c0 50%, #0d47a1 100%)',
             clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
             zIndex: -1,
@@ -324,22 +328,23 @@ function Home() {
           '&::after': {
             content: '""',
             position: 'absolute',
-            top: '6px',
-            left: '6px',
-            right: '6px',
-            bottom: '6px',
+            top: { xs: '4px', sm: '5px', md: '6px' },
+            left: { xs: '4px', sm: '5px', md: '6px' },
+            right: { xs: '4px', sm: '5px', md: '6px' },
+            bottom: { xs: '4px', sm: '5px', md: '6px' },
             background: '#f8f9fa',
             clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
             zIndex: -2,
           }
         }}>
-          <img
+          <Box
+            component="img"
             src={stqclogo}
             alt="STQC Logo"
-            style={{ 
-              height: '30px', 
+            sx={{ 
+              height: { xs: '18px', sm: '24px', md: '30px' },
               width: 'auto',
-              marginBottom: '3px',
+              marginBottom: { xs: '2px', sm: '2.5px', md: '3px' },
               filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4)) contrast(1.2) saturate(1.3)'
             }}
           />
@@ -348,14 +353,14 @@ function Home() {
             sx={{ 
               color: 'white', 
               fontWeight: '900',
-              fontSize: '10px',
-              letterSpacing: '1.2px',
+              fontSize: { xs: '7px', sm: '8.5px', md: '10px' },
+              letterSpacing: { xs: '0.8px', sm: '1px', md: '1.2px' },
               textAlign: 'center',
               fontFamily: 'Arial Black, Impact, sans-serif',
               textTransform: 'uppercase',
               textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(13,71,161,0.5)',
               lineHeight: 1,
-              WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'
+              WebkitTextStroke: { xs: '0.3px rgba(0,0,0,0.3)', sm: '0.4px rgba(0,0,0,0.3)', md: '0.5px rgba(0,0,0,0.3)' }
             }}
           >
             CERTIFIED
