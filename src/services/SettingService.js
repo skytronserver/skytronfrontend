@@ -8,6 +8,16 @@ const filter_settings_hp_freq = (data) => {
   return http.post("/api/Settings/filter_settings_hp_freq/", data);
 };
 
+//OTA Settings
+const create_settings_ota = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/ota/create/", data);
+};
+const filter_settings_ota = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/ota/filter/", data);
+};
+
 //Vehicle Category
 const create_settings_VehicleCategory = (data) => {
   const http = getAxiosInstance();
@@ -66,6 +76,8 @@ const file_Download = (data) => {
 const SettingService = {
     create_settings_hp_freq,
     filter_settings_hp_freq,
+    create_settings_ota,
+    filter_settings_ota,
     create_settings_VehicleCategory,
     filter_settings_VehicleCategory,
     create_settings_State,

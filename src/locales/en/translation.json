@@ -259,6 +259,26 @@
       "label": "Frequency",
       "required": "Frequency is required"
     },
+    "command": {
+      "label": "Command",
+      "required": "Command is required"
+    },
+    "triggeredBy": {
+      "label": "Triggered By",
+      "required": "Triggered By is required"
+    },
+    "triggeredAtFrom": {
+      "label": "Triggered At From",
+      "required": "Triggered At From is required"
+    },
+    "triggeredAtTo": {
+      "label": "Triggered At To",
+      "required": "Triggered At To is required"
+    },
+    "active": {
+      "label": "Active",
+      "required": "Active status is required"
+    },
     "firmwareVersion": {
       "label": "Firmware Version",
       "required": "Firmware Version is required"
@@ -348,7 +368,7 @@
     "notice": "Notice",
     "vehicleCategory": "Vehicle Category",
     "stateDistrict": "State & District",
-    "frequencyFirmware": "HP Frequency & Firmware",
+    "frequencyFirmware": "OTA & Firmware Settings",
     "ipSetting": "IP Settings",
     "register": "Create New",
     "manageUsers": "Manage Users",
@@ -1394,6 +1414,23 @@
         "deviceModelRequired": "Device model is required",
         "frequencyRequired": "Frequency is required",
         "statusRequired": "Status is required"
+      }
+    }
+  },
+  "ota": {
+    "title": "OTA Settings",
+    "listTitle": "OTA List",
+    "form": {
+      "command": "Command",
+      "triggeredBy": "Triggered By",
+      "triggeredAtFrom": "Triggered At From",
+      "triggeredAtTo": "Triggered At To",
+      "active": "Active",
+      "validation": {
+        "commandRequired": "Command is required",
+        "triggeredByRequired": "Triggered By is required",
+        "triggeredAtFromRequired": "Triggered At From is required",
+        "triggeredAtToRequired": "Triggered At To is required"
       }
     }
   },

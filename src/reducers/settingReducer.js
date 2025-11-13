@@ -4,6 +4,7 @@ import {
     FETCH_DISTRICT_LIST,
     FETCH_FIRMWARE_LIST,
     FETCH_HP_FREQUENCY_LIST,
+    FETCH_OTA_LIST,
     FETCH_IP_SETTING_LIST
   } from '../actions/settingAction';
 
@@ -13,6 +14,7 @@ import {
     districtList:[],
     firmwareList:[],
     frequencyList:[],
+    otaList:[],
     ipSettingList:[]
   };
   
@@ -42,6 +44,11 @@ import {
         return {
           ...state,
           frequencyList:action.payload,
+        }
+      case FETCH_OTA_LIST:
+        return {
+          ...state,
+          otaList:action.payload,
         }
       case FETCH_IP_SETTING_LIST:
         return {

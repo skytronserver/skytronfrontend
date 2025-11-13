@@ -4,11 +4,18 @@ export const hpFrequencyInitials = {
   devicemodel: "",
   freq: "",
 };
+
+export const otaInitials = {
+  devicemodel: "",
+  command: "",
+};
+
 export const firmwareInitials = {
   devicemodel: "",
   firmware_vertion: "",
   file_bin: null,
 };
+
 export const hpFrequencyFields = {
   devicemodel: {
     name: "devicemodel",
@@ -22,6 +29,22 @@ export const hpFrequencyFields = {
     type: "text",
     label: "form.frequency.label",
     validation: Yup.string().required("form.frequency.required"),
+  },
+};
+
+export const otaFields = {
+  devicemodel: {
+    name: "devicemodel",
+    type: "select",
+    label: "form.deviceModel.label",
+    validation: Yup.string().required("form.deviceModel.required"),
+    options: modelList,
+  },
+  command: {
+    name: "command",
+    type: "text",
+    label: "form.command.label",
+    validation: Yup.string().required("form.command.required"),
   },
 };
 export const firmwareFields = {

@@ -11,8 +11,10 @@ import { convertErrorObjectToArray } from "../../helper";
 import {retriveModelList} from "../../helper";
 import {
   hpFrequencyFields,
+  otaFields,
   firmwareFields,
   hpFrequencyInitials,
+  otaInitials,
   firmwareInitials,
 } from "../../formjson/hpFrequencyFirmware";
 
@@ -20,10 +22,12 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   fetchFirmwareList,
   fetchFrequencyList,
+  fetchOtaList,
 } from "../../actions/settingAction";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import {
   frequencyColumns,
+  otaColumns,
   firmwareColumns,
 } from "../../datatables/settingColumns";
 import { useTranslation } from 'react-i18next';
@@ -40,6 +44,7 @@ function FrequencyFirmware() {
   const [loading, setLoading] = useState(false);
   const [firmwareFormFields,setFirmwareFormFields]=useState(firmwareFields);
   const [frequencyForm,setFrequencyForm]=useState(hpFrequencyFields);
+  const [otaForm,setOtaForm]=useState(otaFields);
   const [isFormLoaded,setIsFormLoaded]=useState(false);
   useEffect(()=>{
     (async()=>{
@@ -58,6 +63,13 @@ function FrequencyFirmware() {
         options: modelList,
       },
     }))
+    setOtaForm(prevConfig =>({
+      ...prevConfig,
+      devicemodel: {
+        ...prevConfig.devicemodel,
+        options: modelList,
+      },
+    }))
     setIsFormLoaded(true)
     }
   )()
@@ -65,11 +77,16 @@ function FrequencyFirmware() {
   //Fetching Data from store
   const dispatch = useDispatch();
   const frequencyList = useSelector((state) => state.setting.frequencyList);
+  const otaList = useSelector((state) => state.setting.otaList);
   const firmwareList = useSelector((state) => state.setting.firmwareList);
   useEffect(() => {
     const retriveFrequency = async () => {
       const response = await SettingService.filter_settings_hp_freq();
       dispatch(fetchFrequencyList(response.data));
+    };
+    const retriveOta = async () => {
+      const response = await SettingService.filter_settings_ota({});
+      dispatch(fetchOtaList(response.data));
     };
     const retriveFirmware = async () => {
       const res = await SettingService.filter_settings_firmware();
@@ -77,6 +94,7 @@ function FrequencyFirmware() {
       setLoad(true);
     };
     retriveFrequency();
+    retriveOta();
     retriveFirmware();
   }, [dispatch]);
 
@@ -95,6 +113,12 @@ function FrequencyFirmware() {
       return acc;
     }, {})
   );
+  const validationOtaSchema = Yup.object(
+    Object.keys(otaForm).reduce((acc, field) => {
+      acc[field] = otaForm[field].validation;
+      return acc;
+    }, {})
+  );
   const validationFirmwareSchema = Yup.object(
     Object.keys(firmwareFormFields).reduce((acc, field) => {
       acc[field] = firmwareFormFields[field].validation;
@@ -105,6 +129,20 @@ function FrequencyFirmware() {
     try {
       const response = await SettingService.create_settings_hp_freq(formData);
       console.log("HP Frequency added successfully");
+      return { code: "200", message: response.data };
+    } catch (error) {
+      console.error("Error in API Service:", error.message);
+      return {
+        code: "400",
+        message: error.message,
+        errors: error.response.data,
+      };
+    }
+  };
+  const createOta = async (formData) => {
+    try {
+      const response = await SettingService.create_settings_ota(formData);
+      console.log("OTA Settings added successfully");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);
@@ -146,6 +184,38 @@ function FrequencyFirmware() {
       setSubmitting(false);
       setLoading(false);
       resetForm(hpFrequencyInitials);
+    } else {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: true,
+        errorList: convertErrorObjectToArray(resp.errors),
+      }));
+      handleAlert(t('common.formSubmitError'));
+      setLoading(false);
+    }
+  };
+  const handleOtaSubmit = async (
+    values,
+    { setSubmitting, resetForm }
+  ) => {
+    setSubmitting(true);
+    setLoading(true);
+    // Add active: true by default to the form data
+    const otaData = {
+      ...values,
+      active: true
+    };
+    const resp = await createOta(otaData);
+    if (resp.code === "200") {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: false,
+        errorList: [],
+      }));
+      handleAlert(t('common.formSubmitSuccess'));
+      setSubmitting(false);
+      setLoading(false);
+      resetForm(otaInitials);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -220,20 +290,20 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title={t('frequency.title')}>
+          <MainCard title={t('ota.title')}>
             {isFormLoaded && <Formik
-              initialValues={hpFrequencyInitials}
-              validationSchema={validationFrequencySchema}
-              onSubmit={handleFrequencySubmit}
+              initialValues={otaInitials}
+              validationSchema={validationOtaSchema}
+              onSubmit={handleOtaSubmit}
               enableReinitialize
             >
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(frequencyForm).map((field) => (
+                    {Object.keys(otaForm).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={frequencyForm[field]}
+                          fieldConfig={otaForm[field]}
                           formik={formik}
                         />
                       </Grid>
@@ -309,12 +379,12 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title={t('frequency.listTitle')}>
+          <MainCard title={t('ota.listTitle')}>
             {load && (
               <DynamicDatatables
-                tableTitle={t('frequency.listTitle')}
-                rows={frequencyList}
-                columns={frequencyColumns}
+                tableTitle={t('ota.listTitle')}
+                rows={otaList}
+                columns={otaColumns}
               />
             )}
           </MainCard>

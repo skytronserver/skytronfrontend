@@ -145,6 +145,54 @@ export const frequencyColumns=[
     },
   }, 
 ];
+
+export const otaColumns=[
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "devicemodel_info",
+    label: "Device Model",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value?.model_name || "N/A"}</p>
+        );
+      },
+      csvExportKey: "model_name",
+    },
+  },
+  {
+    name: "command",
+    label: "Command",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "active",
+    label: "Active",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value ? "Yes" : "No"}</p>
+        );
+      },
+    },
+  },
+];
+
 export const firmwareColumns=[
   {
     name: "id",
