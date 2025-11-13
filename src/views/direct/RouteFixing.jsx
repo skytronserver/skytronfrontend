@@ -38,6 +38,7 @@ const RouteFixing = () => {
   const [routeData, setRouteData] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [newPoints, setNewPoints] = useState([]); // Store coordinates of points
+  const [routeStats, setRouteStats] = useState({ distance: 0, travelTime: 0 });
   const mapRef = useRef(null);
   const vectorSourceRef = useRef(new VectorSource());
   const map = useRef(null);
@@ -197,6 +198,10 @@ const RouteFixing = () => {
       selectedId.current = routeId;
       vectorSourceRef.current.clear();
 
+      // Calculate route statistics
+      const stats = calculateRouteStats(route);
+      setRouteStats(stats);
+
       // Create point features only for start and end points
       const startPoint = new Feature({
         geometry: new Point(fromLonLat(route[0])),
@@ -303,6 +308,13 @@ const RouteFixing = () => {
         geometry: new LineString(lineCoordinates),
       });
       vectorSourceRef.current.addFeature(lineFeature);
+      
+      // Calculate and update route statistics for new route
+      const stats = calculateRouteStats(points);
+      setRouteStats(stats);
+    } else {
+      // Reset stats if less than 2 points
+      setRouteStats({ distance: 0, travelTime: 0 });
     }
   };
 
@@ -393,6 +405,138 @@ const RouteFixing = () => {
       });
     }
   };
+
+  // Function to calculate distance between two coordinates using Haversine formula
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in kilometers
+  };
+
+  // Function to calculate total route distance and travel time
+  const calculateRouteStats = (coordinates) => {
+    if (!coordinates || coordinates.length < 2) {
+      return { distance: 0, travelTime: 0 };
+    }
+
+    let totalDistance = 0;
+    for (let i = 0; i < coordinates.length - 1; i++) {
+      const [lat1, lon1] = coordinates[i];
+      const [lat2, lon2] = coordinates[i + 1];
+      totalDistance += calculateDistance(lat1, lon1, lat2, lon2);
+    }
+
+    const averageSpeed = 40; // km/hr
+    const travelTimeHours = totalDistance / averageSpeed;
+    const travelTimeMinutes = Math.round(travelTimeHours * 60);
+
+    return {
+      distance: Math.round(totalDistance * 100) / 100, // Round to 2 decimal places
+      travelTime: travelTimeMinutes
+    };
+  };
+
+  // Function to format travel time for display
+  const formatTravelTime = (minutes) => {
+    if (minutes < 60) {
+      return `${minutes} min`;
+    } else {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+    }
+  };
+
+  const exportRoutesToJSON = () => {
+    if (!routeData || routeData.length === 0) {
+      setAlert({
+        open: true,
+        message: "No routes available to export.",
+        type: "error"
+      });
+      return;
+    }
+
+    try {
+      // Get the selected device info
+      const selectedDevice = deviceList.find((item) => item.device.id === deviceId);
+      
+      // Prepare export data
+      const exportData = {
+        device_info: {
+          device_id: deviceId,
+          vehicle_reg_no: selectedDevice?.vehicle_reg_no || "",
+          export_timestamp: new Date().toISOString(),
+        },
+        routes: routeData.map((route) => {
+          // Parse route coordinates
+          let coordinates = [];
+          try {
+            coordinates = route.route
+              .split("],")
+              .map(coord => {
+                return coord
+                  .replace(/[\[\]']/g, '')
+                  .split(',')
+                  .map(num => parseFloat(num.trim()))
+                  .filter(num => !isNaN(num));
+              })
+              .filter(coord => coord && coord.length >= 2);
+          } catch (e) {
+            console.error('Error parsing route coordinates:', e);
+          }
+
+          // Calculate travel statistics for export
+          const stats = calculateRouteStats(coordinates);
+          
+          return {
+            route_id: route.id,
+            coordinates: coordinates,
+            raw_route: route.route,
+            distance_km: stats.distance,
+            travel_time_minutes: stats.travelTime,
+            travel_time_formatted: formatTravelTime(stats.travelTime),
+            average_speed_kmh: 40,
+            created_at: route.created_at || null,
+            updated_at: route.updated_at || null
+          };
+        })
+      };
+
+      // Create and download JSON file
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `routes_${selectedDevice?.vehicle_reg_no || deviceId}_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setAlert({
+        open: true,
+        message: "Routes exported successfully!",
+        type: "success"
+      });
+    } catch (error) {
+      console.error("Error exporting routes:", error);
+      setAlert({
+        open: true,
+        message: "Failed to export routes. Please try again.",
+        type: "error"
+      });
+    }
+  };
+
   return (
     <MainCard>
     <AutoHideAlert 
@@ -458,32 +602,91 @@ const RouteFixing = () => {
                 <MenuItem value="" disabled>
                   View route
                 </MenuItem>
-                {routeData.map((route) => (
-                  <MenuItem 
-                    value={`${route.id}|${route.route}`} 
-                    key={route.id}
-                  >
-                    {`Route #${route.id}`}
-                  </MenuItem>
-                ))}
+                {routeData.map((route) => {
+                  // Calculate stats for each route to show in dropdown
+                  let routePreview = `Route #${route.id}`;
+                  try {
+                    const coordinates = route.route
+                      .split("],")
+                      .map(coord => {
+                        return coord
+                          .replace(/[\[\]']/g, '')
+                          .split(',')
+                          .map(num => parseFloat(num.trim()))
+                          .filter(num => !isNaN(num));
+                      })
+                      .filter(coord => coord && coord.length >= 2);
+                    
+                    if (coordinates.length >= 2) {
+                      const stats = calculateRouteStats(coordinates);
+                      routePreview += ` (${stats.distance}km, ${formatTravelTime(stats.travelTime)})`;
+                    }
+                  } catch (e) {
+                    // If parsing fails, just show route ID
+                  }
+                  
+                  return (
+                    <MenuItem 
+                      value={`${route.id}|${route.route}`} 
+                      key={route.id}
+                    >
+                      {routePreview}
+                    </MenuItem>
+                  );
+                })}
               </Select>
             </Grid>
-            <Grid item md={3} sm={6} xs={6}>
+            <Grid item md={2} sm={6} xs={6}>
               <Button
                 onClick={delRoute}
                 variant="contained"
                 color="secondary"
                 fullWidth
               >
-                Delete Existing Route
+                Delete Route
               </Button>
             </Grid>
-            <Grid item md={3} sm={6} xs={6}>
+            <Grid item md={2} sm={6} xs={6}>
               <Button onClick={addRoute} variant="contained" color="primary" fullWidth>
-                Add New Route
+                Add Route
+              </Button>
+            </Grid>
+            <Grid item md={2} sm={6} xs={6}>
+              <Button 
+                onClick={exportRoutesToJSON} 
+                variant="contained" 
+                color="info" 
+                fullWidth
+              >
+                Export Route
               </Button>
             </Grid>
           </Grid>
+          
+          {/* Route Statistics Display */}
+          {selectedRoute && routeStats.distance > 0 && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <strong>Distance:</strong> 
+                    <span>{routeStats.distance} km</span>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <strong>Estimated Travel Time:</strong> 
+                    <span>{formatTravelTime(routeStats.travelTime)}</span>
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <Box sx={{ fontSize: '0.875rem', color: 'text.secondary', fontStyle: 'italic' }}>
+                    *Time is calculated on average speed of 40 km/hr
+                  </Box>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
         </Box>
       )}
 
