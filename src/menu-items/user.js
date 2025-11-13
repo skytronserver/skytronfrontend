@@ -713,6 +713,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin', 'stateadmin', 'dtorto']
         },
+        {
+          id: 'alert-report',
+          title: 'Alert Report',
+          type: 'item',
+          url: '/reports/alert-report',
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture']
+        },
         // {
         //   id: "all-holiday-list",
         //   title: "School Holidays",

@@ -20,5 +20,13 @@ const getDeviceTagsSearch=(data)=>{
     const http = getAxiosInstance();
     return http.post(`/api/device_tags_search/`,data)
 }
-export default {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList,getDeviceTagsSearch};
+const getAlertLogFilter=(data)=>{
+    const http = getAxiosInstance();
+    return http.post(`/api/alertlog/filter/`,data)
+}
+const getStatesList=(data)=>{
+    const http = getAxiosInstance();
+    return http.post(`/api/Settings/filter_settings_State/`,data)
+}
+export default {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList,getDeviceTagsSearch,getAlertLogFilter,getStatesList};
 
