@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import HomePageService from "../../services/HomePage";
+import TaggingService from "../../services/TaggingService";
 import { useTranslation } from 'react-i18next';
 import { FormControl, Autocomplete, TextField, Button, Grid, Box, Typography, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Slider, Stack, FormControlLabel, Checkbox, Skeleton, CircularProgress } from '@mui/material';
 import { Map, View } from 'ol';
@@ -25,7 +26,7 @@ import axios from 'axios';
 const TripViewer = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false);
-  const [vehicleNo, setVehicleNo] = useState('');
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [vehicleList, setVehicleList] = useState([]);
   const [tripData, setTripData] = useState([]);
   const [selectedTrip, setSelectedTrip] = useState(null);
@@ -64,7 +65,7 @@ const TripViewer = () => {
     const fetchVehicleList = async () => {
       try {
         console.log('Fetching vehicle list...');
-        const response = await HomePageService.getVehicleList();
+        const response = await TaggingService.getOwnerList({});
         console.log('Vehicle list response:', response);
         
         if (response) {
@@ -72,21 +73,16 @@ const TripViewer = () => {
           const vehicles = Array.isArray(response) ? response : response.data || [];
           console.log('Processed vehicles:', vehicles);
           
-          // Transform the vehicles into the required format
+          // Transform the vehicles from tag_ownerlist API format
           const transformedVehicles = vehicles.map(vehicle => {
-            // If vehicle is a string (registration number)
-            if (typeof vehicle === 'string') {
-              return {
-                id: vehicle,
-                vehicle_reg_no: vehicle,
-                label: vehicle
-              };
-            }
-            // If vehicle is an object
             return {
-              id: vehicle.device?.id || vehicle.id || vehicle.vehicle_reg_no,
-              vehicle_reg_no: vehicle.vehicle_reg_no || vehicle,
-              label: vehicle.vehicle_reg_no || vehicle
+              id: vehicle.id, // This is the tag ID
+              device_id: vehicle.device?.id,
+              device_tag_id: vehicle.id, // Use tag ID as device_tag_id
+              vehicle_reg_no: vehicle.vehicle_reg_no,
+              vehicle_owner: vehicle.vehicle_owner,
+              device: vehicle.device,
+              label: `${vehicle.vehicle_reg_no} (${vehicle.device?.device_esn || 'N/A'})`
             };
           });
           
@@ -101,6 +97,7 @@ const TripViewer = () => {
     };
     fetchVehicleList();
   }, []);
+
   // Initialize map
   useEffect(() => {
     if (mapRef.current && !map.current && showMap) {
@@ -225,89 +222,38 @@ const TripViewer = () => {
     }
   }, [showMap]);
 
-  // Calculate distance between two points in kilometers
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  const deg2rad = (deg) => {
-    return deg * (Math.PI / 180);
-  };
-
-  // Group points into trips based on time gaps
-  const groupPointsIntoTrips = (points) => {
-    if (!points || points.length === 0) return [];
-
-    const TRIP_GAP_MINUTES = 30; // Consider points more than 30 minutes apart as separate trips
-    const trips = [];
-    let currentTrip = [];
-    let lastPoint = null;
-
-    points.forEach((point) => {
-      if (!lastPoint) {
-        currentTrip.push(point);
-      } else {
-        const timeDiff = (new Date(point.et) - new Date(lastPoint.et)) / (1000 * 60);
-        if (timeDiff > TRIP_GAP_MINUTES) {
-          if (currentTrip.length > 1) {
-            trips.push([...currentTrip]);
-          }
-          currentTrip = [point];
-        } else {
-          currentTrip.push(point);
-        }
+  // Format trip data from ET API response
+  const formatTripData = (tripResponse) => {
+    if (!tripResponse || !Array.isArray(tripResponse)) return [];
+    
+    return tripResponse.map(trip => ({
+      id: trip.id,
+      points: trip.gps_points || [], // GPS points for visualization
+      stats: {
+        distance: trip.total_distance ? parseFloat(trip.total_distance).toFixed(2) : '0.00',
+        duration: trip.duration ? parseFloat(trip.duration).toFixed(2) : '0.00',
+        averageSpeed: trip.average_speed ? parseFloat(trip.average_speed).toFixed(2) : '0.00',
+        startTime: trip.start_time ? new Date(trip.start_time).toLocaleString() : '',
+        endTime: trip.end_time ? new Date(trip.end_time).toLocaleString() : '',
+        points: trip.gps_points ? trip.gps_points.length : 0
       }
-      lastPoint = point;
-    });
-
-    if (currentTrip.length > 1) {
-      trips.push(currentTrip);
-    }
-
-    return trips;
+    }));
   };
 
-  // Calculate trip statistics
-  const calculateTripStats = (points) => {
-    let totalDistance = 0;
-    let startTime = new Date(points[0].et);
-    let endTime = new Date(points[points.length - 1].et);
-    let duration = (endTime - startTime) / 1000 / 60; // Duration in minutes
-
-    for (let i = 1; i < points.length; i++) {
-      const prevPoint = points[i - 1];
-      const currentPoint = points[i];
-      totalDistance += calculateDistance(
-        parseFloat(prevPoint.lat),
-        parseFloat(prevPoint.lon),
-        parseFloat(currentPoint.lat),
-        parseFloat(currentPoint.lon)
-      );
-    }
-
-    const averageSpeed = (totalDistance / (duration / 60)).toFixed(2); // km/h
-
-    return {
-      distance: totalDistance.toFixed(2),
-      duration: duration.toFixed(2),
-      averageSpeed,
-      startTime: startTime.toLocaleString(),
-      endTime: endTime.toLocaleString(),
-      points: points.length
-    };
-  };
-
-  // Fetch trip data based on filters
+  // Fetch trip data using new ET trip list API
   const fetchTripData = async () => {
-    if (!vehicleNo) return;
+    if (!selectedVehicle) {
+      console.error('No vehicle selected');
+      return;
+    }
+    
+    // Use device_tag_id if available, otherwise use device_id, otherwise use id
+    const deviceIdentifier = selectedVehicle.device_tag_id || selectedVehicle.device_id || selectedVehicle.id;
+    
+    if (!deviceIdentifier) {
+      console.error('No device identifier found for selected vehicle');
+      return;
+    }
 
     setInitialLoading(true);
     setShowMap(true);
@@ -338,12 +284,12 @@ const TripViewer = () => {
       setLoadingTrips(true);
 
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}api/gps_history_map_data/`,
+        `${process.env.REACT_APP_BASE_URL}api/device-trip-details/`,
         {
           params: {
+            device_tag_id: deviceIdentifier,
             start_datetime: startDate.toISOString(),
             end_datetime: endDate.toISOString(),
-            vehicle_registration_number: vehicleNo,
           },
           headers: {
             "Content-Type": "application/json",
@@ -352,28 +298,23 @@ const TripViewer = () => {
         }
       );
 
-      console.log('Trip data response:', response.data);
+      console.log('ET Trip data response:', response.data);
 
-      if (response.data && response.data.data) {
-        const trips = groupPointsIntoTrips(response.data.data);
-        console.log('Grouped trips:', trips);
+      if (response.data) {
+        const formattedTrips = formatTripData(response.data);
+        console.log('Formatted trips:', formattedTrips);
         
-        const tripDetails = trips.map(trip => ({
-          points: trip,
-          stats: calculateTripStats(trip)
-        }));
-
-        console.log('Trip details:', tripDetails);
+        setTrips(formattedTrips);
         
-        setTrips(tripDetails);
-        
-        if (tripDetails.length > 0) {
-          setSelectedTrip(tripDetails[0]);
-          visualizeTrip(tripDetails[0].points);
+        if (formattedTrips.length > 0) {
+          setSelectedTrip(formattedTrips[0]);
+          if (formattedTrips[0].points && formattedTrips[0].points.length > 0) {
+            visualizeTrip(formattedTrips[0].points);
+          }
         }
       }
     } catch (error) {
-      console.error('Error fetching trip data:', error);
+      console.error('Error fetching ET trip data:', error);
     } finally {
       setLoadingTrips(false);
     }
@@ -457,7 +398,12 @@ const TripViewer = () => {
 
   const handleVehicleChange = (event, newValue) => {
     console.log('Vehicle changed:', newValue);
-    setVehicleNo(newValue?.vehicle_reg_no || '');
+    console.log('Available identifiers:', {
+      device_tag_id: newValue?.device_tag_id,
+      device_id: newValue?.device_id,
+      id: newValue?.id
+    });
+    setSelectedVehicle(newValue);
   };
 
   const handleTimeFilterChange = (event) => {
@@ -466,7 +412,9 @@ const TripViewer = () => {
 
   const handleTripClick = (trip) => {
     setSelectedTrip(trip);
-    visualizeTrip(trip.points);
+    if (trip.points && trip.points.length > 0) {
+      visualizeTrip(trip.points);
+    }
   };
 
   const handleSliderChange = (event, value) => {
@@ -568,10 +516,10 @@ const TripViewer = () => {
             <Grid item xs={12} md={5}>
               <FormControl fullWidth>
                 <Autocomplete
-                  value={vehicleList.find((item) => item.vehicle_reg_no === vehicleNo) || null}
+                  value={selectedVehicle}
                   onChange={handleVehicleChange}
                   options={vehicleList}
-                  getOptionLabel={(option) => option.vehicle_reg_no || ''}
+                  getOptionLabel={(option) => option.label || option.vehicle_reg_no || ''}
                   renderInput={(params) => (
                     <TextField 
                       {...params} 

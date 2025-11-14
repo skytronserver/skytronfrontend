@@ -28,6 +28,7 @@ import POIViewer from "../views/direct/POIViewer";
 import TripViewer from "views/direct/TripViewer";
 import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 import AlertReport from "../views/reports/AlertReport";
+import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 
 
 const PrivateRoute = ({ element, roles }) => {
@@ -183,6 +184,11 @@ const MainRoutes = {
       path: '/reports/alert-report',
       element: <AlertReport />,
       roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture']
+    },
+    {
+      path: '/reports/device-health-report',
+      element: <DeviceHealthReport />,
+      roles: ['superadmin']
     }
    
   ].map((route) => applyPrivateRoute(route)),

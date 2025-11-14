@@ -721,6 +721,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture']
         },
+        {
+          id: 'device-health-report',
+          title: 'Device Health Report',
+          type: 'item',
+          url: '/reports/device-health-report',
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
         // {
         //   id: "all-holiday-list",
         //   title: "School Holidays",

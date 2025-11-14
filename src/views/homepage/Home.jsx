@@ -277,94 +277,65 @@ function Home() {
         </Grid>
       </Grid>
       
-      {/* STQC Certification Badge - Responsive */}
-      <Box sx={{
-        position: 'fixed',
-        top: { xs: '75px', sm: '80px', md: '94px' },
-        left: { xs: '10px', sm: '15px', md: '20px' },
-        zIndex: 10,
-        animation: 'certificationPulse 3s ease-in-out infinite',
-        '@keyframes certificationPulse': {
-          '0%': {
-            transform: 'scale(1)',
-            boxShadow: '0 0 0 0 rgba(255, 107, 53, 0.4)',
-          },
-          '50%': {
-            transform: 'scale(1.03)',
-            boxShadow: '0 0 0 8px rgba(255, 107, 53, 0.1)',
-          },
-          '100%': {
-            transform: 'scale(1)',
-            boxShadow: '0 0 0 0 rgba(255, 107, 53, 0)',
-          },
-        },
-      }}>
-        <Box sx={{
-          background: 'linear-gradient(145deg, #ff6b35 0%, #f7931e 25%, #ffd700 50%, #f7931e 75%, #ff6b35 100%)',
-          clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-          width: { xs: '70px', sm: '75px', md: '90px' },
-          height: { xs: '70px', sm: '75px', md: '90px' },
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: {
-            xs: '0 4px 15px rgba(255, 107, 53, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2)',
-            sm: '0 6px 20px rgba(255, 107, 53, 0.35), 0 3px 10px rgba(0, 0, 0, 0.25)',
-            md: '0 8px 25px rgba(255, 107, 53, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)'
-          },
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: { xs: '2px', sm: '2.5px', md: '3px' },
-            left: { xs: '2px', sm: '2.5px', md: '3px' },
-            right: { xs: '2px', sm: '2.5px', md: '3px' },
-            bottom: { xs: '2px', sm: '2.5px', md: '3px' },
-            background: 'linear-gradient(145deg, #0d47a1 0%, #1565c0 50%, #0d47a1 100%)',
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-            zIndex: -1,
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: { xs: '4px', sm: '5px', md: '6px' },
-            left: { xs: '4px', sm: '5px', md: '6px' },
-            right: { xs: '4px', sm: '5px', md: '6px' },
-            bottom: { xs: '4px', sm: '5px', md: '6px' },
-            background: '#f8f9fa',
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-            zIndex: -2,
-          }
-        }}>
+      {/* STQC Certification Badge - Bottom Left, Responsive */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: { xs: '8px', sm: '12px', md: '16px' },
+          left: { xs: '8px', sm: '12px', md: '16px' },
+          zIndex: 10,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: { xs: 1.5, sm: 2 },
+            padding: { xs: '4px 8px', sm: '6px 10px', md: '8px 12px' },
+            maxWidth: { xs: '80vw', sm: '60vw', md: '380px' },
+            backgroundColor: 'rgba(227, 242, 253, 0.95)',
+            borderRadius: { xs: '6px', sm: '8px' },
+            border: '1px solid rgba(13,71,161,0.25)',
+            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.15)',
+          }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography
+              variant="caption"
+              sx={{
+                fontSize: { xs: '12px', sm: '14px', md: '15px' },
+                fontWeight: 800,
+                letterSpacing: { xs: '2px', sm: '3px' },
+                fontFamily: '"Arial Black", "Segoe UI", Arial, sans-serif',
+                color: '#0056a8',
+                lineHeight: 1,
+              }}
+            >
+              STQC
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                mt: { xs: 0.3, sm: 0.4 },
+                fontSize: { xs: '7px', sm: '8px', md: '9px' },
+                letterSpacing: { xs: '3px', sm: '4px' },
+                fontFamily: '"Arial", "Segoe UI", sans-serif',
+                color: '#00a1ff',
+                textTransform: 'uppercase',
+              }}
+            >
+              Certified
+            </Typography>
+          </Box>
           <Box
             component="img"
             src={stqclogo}
             alt="STQC Logo"
-            sx={{ 
-              height: { xs: '18px', sm: '24px', md: '30px' },
+            sx={{
+              height: { xs: '26px', sm: '30px', md: '34px' },
               width: 'auto',
-              marginBottom: { xs: '2px', sm: '2.5px', md: '3px' },
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4)) contrast(1.2) saturate(1.3)'
             }}
           />
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              color: 'white', 
-              fontWeight: '900',
-              fontSize: { xs: '7px', sm: '8.5px', md: '10px' },
-              letterSpacing: { xs: '0.8px', sm: '1px', md: '1.2px' },
-              textAlign: 'center',
-              fontFamily: 'Arial Black, Impact, sans-serif',
-              textTransform: 'uppercase',
-              textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(13,71,161,0.5)',
-              lineHeight: 1,
-              WebkitTextStroke: { xs: '0.3px rgba(0,0,0,0.3)', sm: '0.4px rgba(0,0,0,0.3)', md: '0.5px rgba(0,0,0,0.3)' }
-            }}
-          >
-            CERTIFIED
-          </Typography>
         </Box>
       </Box>
     </Container>
