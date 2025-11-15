@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import React from "react";
-import { Grid,Card, CardContent,Typography, Box, Fab, Tabs, Tab, Button } from "@mui/material";
-import { Add as AddIcon, BarChart as ChartIcon } from "@mui/icons-material";
+import { Grid,Card, CardContent,Typography, Box, Fab, Tabs, Tab, Button, Paper, Divider, TextField, MenuItem, IconButton, Tooltip as MuiTooltip, Chip } from "@mui/material";
+import { Add as AddIcon, BarChart as ChartIcon, DeleteOutline as DeleteIcon, Visibility, VisibilityOff, ContentCopy, KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
 import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
 import { lazy } from "react";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Car from "../../../assets/images/Car.svg";
 import Bell from "../../../assets/images/Bell.svg";
 import Overspeed from "../../../assets/images/Overspeed.svg";
@@ -35,6 +35,31 @@ import { dashboardInitialState } from "./dashboardInitialState";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useTranslation } from "react-i18next";
 const SOSDashboard=lazy(()=>import("../../direct/SOSDashboard"))
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const flattenNumericPaths = (source, prefix = "") => {
+  if (!source || typeof source !== "object") {
+    return {};
+  }
+
+  return Object.entries(source).reduce((acc, [key, value]) => {
+    const path = prefix ? `${prefix}.${key}` : key;
+
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      Object.assign(acc, flattenNumericPaths(value, path));
+    } else if (typeof value === "number" && Number.isFinite(value)) {
+      acc[path] = Number(value);
+    }
+
+    return acc;
+  }, {});
+};
+
+const getNestedValue = (path, source) =>
+  path
+    .split(".")
+    .reduce((accumulator, segment) => (accumulator && accumulator[segment] !== undefined ? accumulator[segment] : undefined), source);
 const ActiveState = () => {
   const { t } = useTranslation();
   const [userInfo,setUserInfo]=useState(dashboardInitialState.userInfo);
@@ -68,7 +93,9 @@ const ActiveState = () => {
   const [rejectedAssignment,setRejectedAssignment]=useState(dashboardInitialState.rejectedAssignment);
   const [avgAcceptance,setAvgAcceptance]=useState("");
   const [vehicleAlertStats,setVehicleAlertStats]=useState(dashboardInitialState.vehicleAlertStatistics);
-  
+  const [reportBuilderState, setReportBuilderState] = useState(dashboardInitialState.reportBuilder);
+  const [fieldSearchTerm, setFieldSearchTerm] = useState("");
+
   // Chart-related state
   const [activeTab, setActiveTab] = useState(0);
   
@@ -76,6 +103,7 @@ const ActiveState = () => {
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+  const isSuperAdmin = userRoles === 'superadmin';
   useEffect(() => {
     //for owner
     if(userRoles=='dtorto'){
@@ -435,6 +463,571 @@ const ActiveState = () => {
       })()
     }
   }, []);
+
+  useEffect(() => {
+    if (!isSuperAdmin && activeTab > 1) {
+      setActiveTab(0);
+    }
+  }, [isSuperAdmin, activeTab]);
+
+  const superAdminData = useMemo(() => ({
+    userStats: userInfoForAdmin,
+    fitmentStats: fitmentInfoForAdmin,
+    alertStats: emergencyInfo,
+    overspeedStats: overSpeedInfo,
+    stateStats: stateInfo,
+    deviceHealth: deviceStatusInfo,
+    vehicleHealth: deviceHealthInfo
+  }), [
+    userInfoForAdmin,
+    fitmentInfoForAdmin,
+    emergencyInfo,
+    overSpeedInfo,
+    stateInfo,
+    deviceStatusInfo,
+    deviceHealthInfo
+  ]);
+
+  const aggregatedData = superAdminData;
+
+  const fieldLabelMap = useMemo(() => ({
+    'userStats.stateUser': 'State Admins',
+    'userStats.eSimUser': 'eSIM Providers',
+    'userStats.manufacturer': 'Manufacturers',
+    'userStats.sosAdmin': 'SOS Admins',
+    'fitmentStats.fitted': 'Total Devices',
+    'fitmentStats.toggedDevice': 'Tagged Devices',
+    'fitmentStats.onlineDevice': 'Online Devices',
+    'fitmentStats.offlineDevice': 'Offline Devices',
+    'alertStats.totalAlert': 'Total Alerts',
+    'alertStats.thisMonthAlert': 'Monthly Alerts',
+    'alertStats.todayAlert': 'Today Alerts',
+    'overspeedStats.totalAlert': 'Overspeed Alerts',
+    'overspeedStats.thisMonthAlert': 'Overspeed Monthly Alerts',
+    'overspeedStats.todayAlert': 'Overspeed Today Alerts',
+    'stateStats.total': 'Total States',
+    'stateStats.active': 'Active States',
+    'stateStats.inactive': 'Inactive States',
+    'deviceHealth.online': 'Devices Online',
+    'deviceHealth.todayOffline': 'Offline Today',
+    'deviceHealth.sevenDaysOffline': 'Offline 7 Days',
+    'deviceHealth.thirtyDaysOffline': 'Offline 30 Days',
+    'vehicleHealth.totalActivatedDevice': 'Activated Devices',
+    'vehicleHealth.todayActive': 'Active Today',
+    'vehicleHealth.inActiveFor7Days': 'Inactive 7 Days',
+    'vehicleHealth.inActiveFor30Days': 'Inactive 30 Days'
+  }), []);
+
+  const numericFields = useMemo(() => flattenNumericPaths(aggregatedData), [aggregatedData]);
+  const numericFieldEntries = useMemo(
+    () => Object.entries(numericFields).filter(([key]) => fieldLabelMap[key]),
+    [numericFields, fieldLabelMap]
+  );
+
+  const filteredFieldEntries = useMemo(() => {
+    if (!fieldSearchTerm) {
+      return numericFieldEntries;
+    }
+
+    const matcher = new RegExp(escapeRegExp(fieldSearchTerm), "i");
+    return numericFieldEntries.filter(([path]) => matcher.test(path));
+  }, [fieldSearchTerm, numericFieldEntries]);
+
+  const updateReportBuilder = useCallback((updater) => {
+    setReportBuilderState((prev) => {
+      const nextState =
+        typeof updater === "function"
+          ? updater(prev)
+          : {
+              ...prev,
+              ...updater
+            };
+
+      return {
+        ...nextState,
+        lastUpdated: new Date().toISOString()
+      };
+    });
+  }, []);
+
+  const formatNumber = useCallback((value, precision = 0) => {
+    if (value === undefined || value === null || Number.isNaN(Number(value))) {
+      return "-";
+    }
+
+    return Number(value).toLocaleString(undefined, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision
+    });
+  }, []);
+
+  const evaluateFormulaValue = useCallback(
+    (expression) => {
+      if (!expression) {
+        return { value: 0, error: null };
+      }
+
+      const tokenRegex = /{{\s*([^}]+)\s*}}/g;
+      const replaced = expression.replace(tokenRegex, (_, path) => {
+        const value = getNestedValue(path.trim(), aggregatedData);
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : 0;
+      });
+
+      if (/[^0-9+\-*/().\s]/.test(replaced)) {
+        return { value: null, error: "Invalid characters in expression" };
+      }
+
+      try {
+        // eslint-disable-next-line no-new-func
+        const result = Function("'use strict'; return (" + (replaced || 0) + ");")();
+        return { value: Number.isFinite(result) ? result : 0, error: null };
+      } catch (error) {
+        return { value: null, error: "Unable to evaluate expression" };
+      }
+    },
+    [aggregatedData]
+  );
+
+  const paletteItems = useMemo(
+    () => [
+      { type: "text", title: "Text Block", description: "Add headings or annotations" },
+      { type: "metric", title: "Metric Card", description: "Highlight a single data point" },
+      { type: "chart", title: "Chart", description: "Visualize multiple metrics" },
+      { type: "formula", title: "Formula", description: "Combine metrics with custom formulas" }
+    ],
+    []
+  );
+
+  const createCanvasItem = useCallback(
+    (itemType) => {
+      const id = `report-item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const numericFieldKeys = Object.keys(numericFields);
+      const defaultField = numericFieldKeys[0] || null;
+
+      switch (itemType) {
+        case "text":
+          return {
+            id,
+            type: "text",
+            text: "New Heading",
+            variant: "h5",
+            align: "left",
+            color: "textPrimary"
+          };
+        case "metric":
+          return {
+            id,
+            type: "metric",
+            label: "Metric Insight",
+            dataField: defaultField,
+            prefix: "",
+            suffix: "",
+            precision: 0,
+            color: "primary"
+          };
+        case "chart":
+          return {
+            id,
+            type: "chart",
+            title: "Performance Chart",
+            chartType: "bar",
+            dataFields: numericFieldKeys.slice(0, 3),
+            showLegend: true
+          };
+        case "formula":
+          return {
+            id,
+            type: "formula",
+            title: "Computed Metric",
+            expression: defaultField ? `{{${defaultField}}}` : "",
+            precision: 2
+          };
+        default:
+          return null;
+      }
+    },
+    [numericFields]
+  );
+
+  const handleAddItem = useCallback(
+    (itemType) => {
+      const newItem = createCanvasItem(itemType);
+      if (!newItem) {
+        return;
+      }
+
+      updateReportBuilder((prev) => ({
+        ...prev,
+        canvasItems: [...prev.canvasItems, newItem],
+        selectedItemId: newItem.id
+      }));
+    },
+    [createCanvasItem, updateReportBuilder]
+  );
+
+  const handlePaletteDragStart = useCallback((event, itemType) => {
+    event.dataTransfer.setData("application/x-report-item", itemType);
+    event.dataTransfer.effectAllowed = "copy";
+  }, []);
+
+  const handleCanvasDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }, []);
+
+  const handleCanvasDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      const itemType = event.dataTransfer.getData("application/x-report-item");
+      if (!itemType) {
+        return;
+      }
+
+      handleAddItem(itemType);
+    },
+    [handleAddItem]
+  );
+
+  const handleSelectCanvasItem = useCallback(
+    (itemId) => {
+      updateReportBuilder((prev) => ({
+        ...prev,
+        selectedItemId: itemId
+      }));
+    },
+    [updateReportBuilder]
+  );
+
+  const handleRemoveItem = useCallback(
+    (itemId) => {
+      updateReportBuilder((prev) => {
+        const updatedItems = prev.canvasItems.filter((item) => item.id !== itemId);
+        const nextSelected = prev.selectedItemId === itemId ? null : prev.selectedItemId;
+        return {
+          ...prev,
+          canvasItems: updatedItems,
+          selectedItemId: nextSelected
+        };
+      });
+    },
+    [updateReportBuilder]
+  );
+
+  const handleDuplicateItem = useCallback(
+    (itemId) => {
+      updateReportBuilder((prev) => {
+        const index = prev.canvasItems.findIndex((item) => item.id === itemId);
+        if (index === -1) {
+          return prev;
+        }
+
+        const source = prev.canvasItems[index];
+        const clone = {
+          ...source,
+          id: `report-item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+        };
+
+        const updatedItems = [
+          ...prev.canvasItems.slice(0, index + 1),
+          clone,
+          ...prev.canvasItems.slice(index + 1)
+        ];
+
+        return {
+          ...prev,
+          canvasItems: updatedItems,
+          selectedItemId: clone.id
+        };
+      });
+    },
+    [updateReportBuilder]
+  );
+
+  const handleMoveItem = useCallback(
+    (itemId, direction) => {
+      updateReportBuilder((prev) => {
+        const index = prev.canvasItems.findIndex((item) => item.id === itemId);
+        if (index === -1) {
+          return prev;
+        }
+
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= prev.canvasItems.length) {
+          return prev;
+        }
+
+        const updatedItems = [...prev.canvasItems];
+        const [movedItem] = updatedItems.splice(index, 1);
+        updatedItems.splice(targetIndex, 0, movedItem);
+
+        return {
+          ...prev,
+          canvasItems: updatedItems,
+          selectedItemId: movedItem.id
+        };
+      });
+    },
+    [updateReportBuilder]
+  );
+
+  const handleItemChange = useCallback(
+    (itemId, changes) => {
+      updateReportBuilder((prev) => ({
+        ...prev,
+        canvasItems: prev.canvasItems.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                ...changes
+              }
+            : item
+        )
+      }));
+    },
+    [updateReportBuilder]
+  );
+
+  const selectedReportItem = useMemo(
+    () =>
+      reportBuilderState.canvasItems.find((item) => item.id === reportBuilderState.selectedItemId) || null,
+    [reportBuilderState.canvasItems, reportBuilderState.selectedItemId]
+  );
+
+  const itemLabels = useMemo(
+    () => ({
+      text: "Text Block",
+      metric: "Metric Card",
+      chart: "Chart",
+      formula: "Formula"
+    }),
+    []
+  );
+
+  const handleReportTitleChange = useCallback(
+    (event) => {
+      updateReportBuilder({ reportTitle: event.target.value });
+    },
+    [updateReportBuilder]
+  );
+
+  const handleTogglePreview = useCallback(() => {
+    updateReportBuilder((prev) => ({
+      ...prev,
+      previewMode: !prev.previewMode
+    }));
+  }, [updateReportBuilder]);
+
+  const handleClearCanvas = useCallback(() => {
+    updateReportBuilder((prev) => ({
+      ...prev,
+      canvasItems: [],
+      selectedItemId: null
+    }));
+  }, [updateReportBuilder]);
+
+  const handleExportJson = useCallback(() => {
+    const payload = {
+      ...reportBuilderState,
+      generatedAt: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${(reportBuilderState.reportTitle || "custom-report").replace(/\s+/g, "-").toLowerCase()}-config.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [reportBuilderState]);
+
+  const handleCopyFieldToken = useCallback((path) => {
+    const token = `{{${path}}}`;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(token);
+    }
+  }, []);
+
+  const handleFieldSearchChange = useCallback((event) => {
+    setFieldSearchTerm(event.target.value);
+  }, []);
+
+  const showConfigurationPanel = !reportBuilderState.previewMode && Boolean(selectedReportItem);
+
+  const renderCanvasItemContent = useCallback(
+    (item) => {
+      switch (item.type) {
+        case "text":
+          return (
+            <Typography
+              variant={item.variant || "h6"}
+              align={item.align || "left"}
+              color={item.color || "textPrimary"}
+              sx={{ whiteSpace: "pre-wrap" }}
+            >
+              {item.text || "Add your text"}
+            </Typography>
+          );
+        case "metric": {
+          const metricValue = getNestedValue(item.dataField, aggregatedData);
+          return (
+            <Box>
+              <Typography variant="subtitle2" color="textSecondary">
+                {item.label || "Metric"}
+              </Typography>
+              <Typography variant="h4" color={`${item.color || "primary"}.main`} sx={{ fontWeight: 600 }}>
+                {(item.prefix || "")}
+                {formatNumber(metricValue, item.precision ?? 0)}
+                {(item.suffix || "")}
+              </Typography>
+              {item.dataField && (
+                <Chip label={item.dataField} size="small" variant="outlined" sx={{ mt: 1 }} />
+              )}
+            </Box>
+          );
+        }
+        case "chart": {
+          const dataFields = item.dataFields && item.dataFields.length
+            ? item.dataFields
+            : Object.keys(numericFields).slice(0, 5);
+          const chartData = dataFields.map((field) => ({
+            name: field.split(".").pop(),
+            field,
+            value: Number(getNestedValue(field, aggregatedData)) || 0
+          }));
+          const palette = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#0088FE", "#00C49F"];
+
+          if (!chartData.length) {
+            return (
+              <Typography variant="body2" color="textSecondary">
+                Select at least one data field to render the chart.
+              </Typography>
+            );
+          }
+
+          const allZeros = chartData.every((entry) => entry.value === 0);
+
+          return (
+            <Box sx={{ height: 280 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                {item.title || "Chart"}
+              </Typography>
+              {allZeros ? (
+                <Box
+                  sx={{
+                    height: 220,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "grey.50",
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography variant="body2" color="textSecondary">
+                    Data points will appear here when values are available.
+                  </Typography>
+                </Box>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  {
+                    {
+                      line: (
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={3} dot={{ r: 4 }} />
+                        </LineChart>
+                      ),
+                      pie: (
+                        <PieChart>
+                          <Tooltip />
+                          <Legend />
+                          <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={80}>
+                            {chartData.map((entry, index) => (
+                              <Cell key={entry.field} fill={palette[index % palette.length]} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      )
+                    }[item.chartType || "bar"] || (
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="value" fill="#8884d8" />
+                      </BarChart>
+                    )
+                  }
+                </ResponsiveContainer>
+              )}
+              <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {chartData.map((entry, index) => (
+                  <Chip
+                    key={entry.field}
+                    label={`${entry.field}: ${formatNumber(entry.value)}`}
+                    size="small"
+                    sx={{ bgcolor: `${palette[index % palette.length]}14` }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          );
+        }
+        case "formula": {
+          const { value, error } = evaluateFormulaValue(item.expression);
+          const referencedFields = Array.from(
+            new Set(
+              (item.expression?.match(/{{\s*([^}]+)\s*}}/g) || []).map((token) =>
+                token.replace(/{{|}}/g, "").trim()
+              )
+            )
+          );
+
+          return (
+            <Box>
+              <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
+                {item.title || "Formula"}
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 600, color: error ? "error.main" : "primary.main" }}>
+                {value !== null && value !== undefined ? formatNumber(value, item.precision ?? 2) : "-"}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                {item.expression || "Use {{metric.path}} tokens and mathematical operators."}
+              </Typography>
+              {error && (
+                <Typography variant="caption" color="error" sx={{ display: "block", mt: 0.5 }}>
+                  {error}
+                </Typography>
+              )}
+              {referencedFields.length > 0 && (
+                <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                  {referencedFields.map((field) => (
+                    <Chip key={field} label={field} size="small" variant="outlined" />
+                  ))}
+                </Box>
+              )}
+            </Box>
+          );
+        }
+        default:
+          return (
+            <Typography variant="body2" color="textSecondary">
+              Unsupported element type.
+            </Typography>
+          );
+      }
+    },
+    [aggregatedData, evaluateFormulaValue, formatNumber, numericFields]
+  );
+
+  const canvasGridColumns = reportBuilderState.previewMode || !showConfigurationPanel ? 9 : 6;
 
   // Simple chart rendering functions for existing dashboard data
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
@@ -1723,6 +2316,7 @@ const ActiveState = () => {
           <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
             <Tab label="Dashboard Overview" />
             <Tab label="Analytics & Charts" />
+            {isSuperAdmin && <Tab label="Custom Reports Builder" />}
           </Tabs>
         </Box>
 
@@ -1759,6 +2353,414 @@ const ActiveState = () => {
             )}
           </Grid>
         </TabPanel>
+
+        {isSuperAdmin && (
+        <TabPanel value={activeTab} index={2}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Card sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'center' } }}>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Custom Report Builder
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Drag items from the palette to craft bespoke dashboards with metrics, charts, and formulas.
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <TextField
+                      label="Report Title"
+                      value={reportBuilderState.reportTitle}
+                      onChange={handleReportTitleChange}
+                      size="small"
+                    />
+                    <Button variant="outlined" onClick={handleTogglePreview} startIcon={reportBuilderState.previewMode ? <VisibilityOff /> : <Visibility />}>
+                      {reportBuilderState.previewMode ? 'Exit Preview' : 'Preview'}
+                    </Button>
+                    <Button variant="outlined" onClick={handleExportJson} startIcon={<ContentCopy />}>
+                      Export JSON
+                    </Button>
+                    <Button variant="outlined" color="error" onClick={handleClearCanvas} startIcon={<DeleteIcon />}>
+                      Clear Canvas
+                    </Button>
+                  </Box>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={3}>
+                    <Card variant="outlined" sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Palette
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                          Drag into the canvas or click to add ready-made widgets.
+                        </Typography>
+                        <Divider sx={{ mb: 2 }} />
+                        <Grid container spacing={2}>
+                          {paletteItems.map((item) => (
+                            <Grid item xs={12} key={item.type}>
+                              <Paper
+                                elevation={reportBuilderState.previewMode ? 0 : 1}
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  border: '1px dashed',
+                                  borderColor: 'grey.300',
+                                  backgroundColor: reportBuilderState.previewMode ? 'grey.100' : 'background.paper',
+                                  opacity: reportBuilderState.previewMode ? 0.6 : 1,
+                                  cursor: reportBuilderState.previewMode ? 'not-allowed' : 'grab'
+                                }}
+                                draggable={!reportBuilderState.previewMode}
+                                onDragStart={(event) => !reportBuilderState.previewMode && handlePaletteDragStart(event, item.type)}
+                                onClick={() => !reportBuilderState.previewMode && handleAddItem(item.type)}
+                              >
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                  {item.title}
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                  {item.description}
+                                </Typography>
+                              </Paper>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                    <Card variant="outlined" sx={{ mt: 3 }}>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="subtitle1">Available Fields</Typography>
+                          <MuiTooltip title="Click a field to copy its token">
+                            <IconButton size="small">
+                              <ContentCopy fontSize="small" />
+                            </IconButton>
+                          </MuiTooltip>
+                        </Box>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="Search"
+                          value={fieldSearchTerm}
+                          onChange={handleFieldSearchChange}
+                          sx={{ mb: 2 }}
+                        />
+                        <Box sx={{ maxHeight: 320, overflowY: 'auto', pr: 1 }}>
+                          {filteredFieldEntries.length === 0 ? (
+                            <Typography variant="body2" color="textSecondary">
+                              No matching fields.
+                            </Typography>
+                          ) : (
+                            filteredFieldEntries.map(([path, value]) => (
+                              <Paper
+                                key={path}
+                                variant="outlined"
+                                sx={{
+                                  p: 1.5,
+                                  mb: 1,
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: 'grey.100'
+                                  }
+                                }}
+                                onClick={() => handleCopyFieldToken(path)}
+                              >
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {path}
+                                </Typography>
+                                <Typography variant="caption" color="textSecondary">
+                                  {formatNumber(value)}
+                                </Typography>
+                              </Paper>
+                            ))
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={canvasGridColumns}>
+                    <Box
+                      onDragOver={handleCanvasDragOver}
+                      onDrop={handleCanvasDrop}
+                      sx={{
+                        minHeight: 400,
+                        p: 2,
+                        border: '2px dashed',
+                        borderColor: reportBuilderState.canvasItems.length ? 'primary.light' : 'grey.400',
+                        borderRadius: 2,
+                        backgroundColor: 'grey.50',
+                        position: 'relative'
+                      }}
+                    >
+                      {reportBuilderState.canvasItems.length === 0 ? (
+                        <Box sx={{ textAlign: 'center', py: 8 }}>
+                          <Typography variant="h6" color="textSecondary">
+                            {reportBuilderState.previewMode ? 'Preview mode active.' : 'Drag items here to start building your report.'}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Grid container spacing={2}>
+                          {reportBuilderState.canvasItems.map((item) => {
+                            const isSelected = reportBuilderState.selectedItemId === item.id;
+                            return (
+                              <Grid item xs={12} key={item.id}>
+                                <Paper
+                                  elevation={isSelected ? 4 : 1}
+                                  sx={{
+                                    p: 2,
+                                    borderRadius: 2,
+                                    position: 'relative',
+                                    border: isSelected ? '2px solid' : '1px solid',
+                                    borderColor: isSelected ? 'primary.main' : 'grey.200',
+                                    cursor: reportBuilderState.previewMode ? 'default' : 'pointer'
+                                  }}
+                                  onClick={() => !reportBuilderState.previewMode && handleSelectCanvasItem(item.id)}
+                                >
+                                  {!reportBuilderState.previewMode && (
+                                    <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
+                                      <MuiTooltip title="Move Up">
+                                        <span>
+                                          <IconButton
+                                            size="small"
+                                            disabled={reportBuilderState.previewMode}
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleMoveItem(item.id, -1);
+                                            }}
+                                          >
+                                            <KeyboardArrowUp fontSize="small" />
+                                          </IconButton>
+                                        </span>
+                                      </MuiTooltip>
+                                      <MuiTooltip title="Move Down">
+                                        <span>
+                                          <IconButton
+                                            size="small"
+                                            disabled={reportBuilderState.previewMode}
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleMoveItem(item.id, 1);
+                                            }}
+                                          >
+                                            <KeyboardArrowDown fontSize="small" />
+                                          </IconButton>
+                                        </span>
+                                      </MuiTooltip>
+                                      <MuiTooltip title="Duplicate">
+                                        <span>
+                                          <IconButton
+                                            size="small"
+                                            disabled={reportBuilderState.previewMode}
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleDuplicateItem(item.id);
+                                            }}
+                                          >
+                                            <ContentCopy fontSize="small" />
+                                          </IconButton>
+                                        </span>
+                                      </MuiTooltip>
+                                      <MuiTooltip title="Delete">
+                                        <span>
+                                          <IconButton
+                                            size="small"
+                                            color="error"
+                                            disabled={reportBuilderState.previewMode}
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleRemoveItem(item.id);
+                                            }}
+                                          >
+                                            <DeleteIcon fontSize="small" />
+                                          </IconButton>
+                                        </span>
+                                      </MuiTooltip>
+                                    </Box>
+                                  )}
+                                  <Typography variant="overline" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
+                                    {itemLabels[item.type] || 'Unknown'}
+                                  </Typography>
+                                  {renderCanvasItemContent(item)}
+                                </Paper>
+                              </Grid>
+                            );
+                          })}
+                        </Grid>
+                      )}
+                    </Box>
+                  </Grid>
+
+                  {showConfigurationPanel && (
+                    <Grid item xs={12} md={3}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle1" gutterBottom>
+                            Configuration
+                          </Typography>
+                          {selectedReportItem ? (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {selectedReportItem.type === 'text' && (
+                                <>
+                                  <TextField
+                                    label="Text"
+                                    multiline
+                                    minRows={3}
+                                    value={selectedReportItem.text}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { text: event.target.value })}
+                                  />
+                                  <TextField
+                                    label="Variant"
+                                    select
+                                    value={selectedReportItem.variant}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { variant: event.target.value })}
+                                  >
+                                    {['h3', 'h4', 'h5', 'h6', 'subtitle1', 'subtitle2', 'body1', 'body2'].map((variant) => (
+                                      <MenuItem key={variant} value={variant}>
+                                        {variant}
+                                      </MenuItem>
+                                    ))}
+                                  </TextField>
+                                  <TextField
+                                    label="Align"
+                                    select
+                                    value={selectedReportItem.align}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { align: event.target.value })}
+                                  >
+                                    {['left', 'center', 'right', 'justify'].map((align) => (
+                                      <MenuItem key={align} value={align}>
+                                        {align}
+                                      </MenuItem>
+                                    ))}
+                                  </TextField>
+                                </>
+                              )}
+
+                              {selectedReportItem.type === 'metric' && (
+                                <>
+                                  <TextField
+                                    label="Label"
+                                    value={selectedReportItem.label}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { label: event.target.value })}
+                                  />
+                                  <TextField
+                                    label="Data Field"
+                                    select
+                                    value={selectedReportItem.dataField || ''}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { dataField: event.target.value })}
+                                  >
+                                    <MenuItem value="">
+                                      <em>Select field</em>
+                                    </MenuItem>
+                                    {Object.keys(numericFields).map((path) => (
+                                      <MenuItem key={path} value={path}>
+                                        {path}
+                                      </MenuItem>
+                                    ))}
+                                  </TextField>
+                                  <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <TextField
+                                      label="Prefix"
+                                      value={selectedReportItem.prefix}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { prefix: event.target.value })}
+                                    />
+                                    <TextField
+                                      label="Suffix"
+                                      value={selectedReportItem.suffix}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { suffix: event.target.value })}
+                                    />
+                                  </Box>
+                                  <TextField
+                                    label="Precision"
+                                    type="number"
+                                    value={selectedReportItem.precision}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
+                                  />
+                                </>
+                              )}
+
+                              {selectedReportItem.type === 'chart' && (
+                                <>
+                                  <TextField
+                                    label="Title"
+                                    value={selectedReportItem.title}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
+                                  />
+                                  <TextField
+                                    label="Chart Type"
+                                    select
+                                    value={selectedReportItem.chartType}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { chartType: event.target.value })}
+                                  >
+                                    <MenuItem value="bar">Bar</MenuItem>
+                                    <MenuItem value="line">Line</MenuItem>
+                                    <MenuItem value="pie">Pie</MenuItem>
+                                  </TextField>
+                                  <TextField
+                                    label="Data Fields"
+                                    select
+                                    SelectProps={{ multiple: true }}
+                                    value={selectedReportItem.dataFields || []}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { dataFields: event.target.value })}
+                                  >
+                                    {Object.keys(numericFields).map((path) => (
+                                      <MenuItem key={path} value={path}>
+                                        {path}
+                                      </MenuItem>
+                                    ))}
+                                  </TextField>
+                                  <TextField
+                                    label="Show Legend"
+                                    select
+                                    value={selectedReportItem.showLegend ? 'true' : 'false'}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { showLegend: event.target.value === 'true' })}
+                                  >
+                                    <MenuItem value="true">Yes</MenuItem>
+                                    <MenuItem value="false">No</MenuItem>
+                                  </TextField>
+                                </>
+                              )}
+
+                              {selectedReportItem.type === 'formula' && (
+                                <>
+                                  <TextField
+                                    label="Title"
+                                    value={selectedReportItem.title}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
+                                  />
+                                  <TextField
+                                    label="Expression"
+                                    multiline
+                                    minRows={3}
+                                    value={selectedReportItem.expression}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { expression: event.target.value })}
+                                    helperText="Use {{metric.path}} placeholders and math operations"
+                                  />
+                                  <TextField
+                                    label="Precision"
+                                    type="number"
+                                    value={selectedReportItem.precision}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
+                                  />
+                                </>
+                              )}
+                            </Box>
+                          ) : (
+                            <Typography variant="body2" color="textSecondary">
+                              Select an element to configure its appearance and data bindings.
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  )}
+                </Grid>
+              </Card>
+            </Grid>
+          </Grid>
+        </TabPanel>
+        )}
       </Box>
     );
   };

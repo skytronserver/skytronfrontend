@@ -217,5 +217,12 @@ export const dashboardInitialState = {
         ExtBatDiscnt: 0
       }
     }
+  },
+  reportBuilder: {
+    reportTitle: "Custom Report",
+    canvasItems: [],
+    selectedItemId: null,
+    previewMode: false,
+    lastUpdated: null
   }
 };
