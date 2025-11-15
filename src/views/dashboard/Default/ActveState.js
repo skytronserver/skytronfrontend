@@ -67,6 +67,7 @@ const ActiveState = () => {
   const [falseAssignment,setFalseAssignment]=useState(dashboardInitialState.falseAssignment);
   const [rejectedAssignment,setRejectedAssignment]=useState(dashboardInitialState.rejectedAssignment);
   const [avgAcceptance,setAvgAcceptance]=useState("");
+  const [vehicleAlertStats,setVehicleAlertStats]=useState(dashboardInitialState.vehicleAlertStatistics);
   
   // Chart-related state
   const [activeTab, setActiveTab] = useState(0);
@@ -343,6 +344,15 @@ const ActiveState = () => {
           Total_Rejected_Assignemnt_thisweek:data.Total_Rejected_Assignemnt_thisweek,
           Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
         }));
+
+        // Fetch vehicle alert statistics
+        try {
+          const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics();
+          const vehicleAlertData = await vehicleAlertResponse.data;
+          setVehicleAlertStats(vehicleAlertData);
+        } catch (error) {
+          console.error('Error fetching vehicle alert statistics:', error);
+        }
 
       })();
     }
@@ -1471,6 +1481,173 @@ const ActiveState = () => {
           </Card>
         </Grid>
       );
+
+      // Vehicle Alert Statistics Charts (SOS Admin only)
+      if (role === 'sosadmin') {
+        // Vehicle Status Pie Chart
+        const vehicleStatusData = [
+          { name: 'Total Tagged', value: vehicleAlertStats.vehicles.total_tagged_vehicles || 0 },
+          { name: 'Online', value: vehicleAlertStats.vehicles.online_vehicles || 0 },
+          { name: 'Offline', value: vehicleAlertStats.vehicles.offline_vehicles || 0 }
+        ];
+        
+        charts.push(
+          <Grid item xs={12} md={6} key="vehicle-status">
+            <Card sx={{ p: 2, height: 400 }}>
+              <Typography variant="h6" gutterBottom>Vehicle Status Distribution</Typography>
+              <ResponsiveContainer width="100%" height="90%">
+                <PieChart>
+                  <Pie
+                    data={vehicleStatusData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {vehicleStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          </Grid>
+        );
+
+        // SOS Calls Timeline Bar Chart
+        const sosCallsTimelineData = [
+          { period: 'Daily', calls: vehicleAlertStats.sos_calls.daily || 0 },
+          { period: 'Weekly', calls: vehicleAlertStats.sos_calls.weekly || 0 },
+          { period: 'Monthly', calls: vehicleAlertStats.sos_calls.monthly || 0 },
+          { period: 'Yearly', calls: vehicleAlertStats.sos_calls.yearly || 0 }
+        ];
+        
+        charts.push(
+          <Grid item xs={12} md={6} key="sos-calls-timeline">
+            <Card sx={{ p: 2, height: 400 }}>
+              <Typography variant="h6" gutterBottom>SOS Calls Timeline</Typography>
+              <ResponsiveContainer width="100%" height="90%">
+                <BarChart data={sosCallsTimelineData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="calls" fill="#FF8042" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </Grid>
+        );
+
+        // SOS Call Status Pie Chart
+        const sosCallStatusData = [
+          { name: 'Closed', value: vehicleAlertStats.sos_calls.by_status.closed || 0 },
+          { name: 'Pending', value: vehicleAlertStats.sos_calls.by_status.pending || 0 }
+        ];
+        
+        charts.push(
+          <Grid item xs={12} md={6} key="sos-call-status">
+            <Card sx={{ p: 2, height: 400 }}>
+              <Typography variant="h6" gutterBottom>SOS Call Status</Typography>
+              <ResponsiveContainer width="100%" height="90%">
+                <PieChart>
+                  <Pie
+                    data={sosCallStatusData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {sosCallStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          </Grid>
+        );
+
+        // Alert Types Distribution Bar Chart
+        const alertTypesData = Object.entries(vehicleAlertStats.alerts.by_type || {}).map(([type, count]) => ({
+          type,
+          count: count || 0
+        }));
+        
+        charts.push(
+          <Grid item xs={12} md={6} key="alert-types">
+            <Card sx={{ p: 2, height: 400 }}>
+              <Typography variant="h6" gutterBottom>Alert Types Distribution</Typography>
+              <ResponsiveContainer width="100%" height="90%">
+                <BarChart data={alertTypesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="type" angle={-45} textAnchor="end" height={80} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#00C49F" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </Grid>
+        );
+
+        // Broadcast Statistics Bar Chart
+        const broadcastData = [
+          { name: 'Total', count: vehicleAlertStats.broadcasts.total || 0 },
+          { name: 'Closed', count: vehicleAlertStats.broadcasts.total_closed || 0 },
+          { name: 'Pending', count: vehicleAlertStats.broadcasts.pending || 0 }
+        ];
+        
+        charts.push(
+          <Grid item xs={12} md={6} key="broadcast-stats">
+            <Card sx={{ p: 2, height: 400 }}>
+              <Typography variant="h6" gutterBottom>Broadcast Statistics</Typography>
+              <ResponsiveContainer width="100%" height="90%">
+                <BarChart data={broadcastData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#FFBB28" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </Grid>
+        );
+
+        // Alert Timeline Bar Chart
+        const alertTimelineData = [
+          { period: 'Daily', alerts: vehicleAlertStats.alerts.daily || 0 },
+          { period: 'Weekly', alerts: vehicleAlertStats.alerts.weekly || 0 },
+          { period: 'Monthly', alerts: vehicleAlertStats.alerts.monthly || 0 },
+          { period: 'Yearly', alerts: vehicleAlertStats.alerts.yearly || 0 }
+        ];
+        
+        charts.push(
+          <Grid item xs={12} md={6} key="alert-timeline">
+            <Card sx={{ p: 2, height: 400 }}>
+              <Typography variant="h6" gutterBottom>Alert Timeline</Typography>
+              <ResponsiveContainer width="100%" height="90%">
+                <BarChart data={alertTimelineData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="alerts" fill="#ff7300" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </Grid>
+        );
+      }
     }
     
     return charts;
@@ -2095,6 +2272,76 @@ const ActiveState = () => {
               heading={t('dashboard.headings.rejectedCalls')}
             />
           </Grid>
+          {role === "sosadmin" && (
+            <>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
+                <Widget
+                  cardColor="linear-gradient(to right, #00C49F 0%, #82ca9d 100%)"
+                  label="Total Tagged,Online,Offline"
+                  cardValue={{
+                    total: vehicleAlertStats.vehicles.total_tagged_vehicles,
+                    online: vehicleAlertStats.vehicles.online_vehicles,
+                    offline: vehicleAlertStats.vehicles.offline_vehicles
+                  }}
+                  iconImage={Vehicle}
+                  heading="Vehicle Statistics"
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
+                <Widget
+                  cardColor="linear-gradient(to right, #FF8042 0%, #ffcc66 100%)"
+                  label="Total,Daily,Weekly,Monthly"
+                  cardValue={{
+                    total: vehicleAlertStats.sos_calls.total,
+                    daily: vehicleAlertStats.sos_calls.daily,
+                    weekly: vehicleAlertStats.sos_calls.weekly,
+                    monthly: vehicleAlertStats.sos_calls.monthly
+                  }}
+                  iconImage={Bell}
+                  heading="SOS Calls Statistics"
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
+                <Widget
+                  cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
+                  label="Closed,Pending"
+                  cardValue={{
+                    closed: vehicleAlertStats.sos_calls.by_status.closed,
+                    pending: vehicleAlertStats.sos_calls.by_status.pending
+                  }}
+                  iconImage={OnCall}
+                  heading="SOS Call Status"
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
+                <Widget
+                  cardColor="linear-gradient(to right, #FFBB28 0%, #ffc658 100%)"
+                  label="Total,Closed,Pending"
+                  cardValue={{
+                    total: vehicleAlertStats.broadcasts.total,
+                    closed: vehicleAlertStats.broadcasts.total_closed,
+                    pending: vehicleAlertStats.broadcasts.pending
+                  }}
+                  iconImage={Alert}
+                  heading="Broadcast Statistics"
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
+                <Widget
+                  cardColor="linear-gradient(to right, #ff7300 0%, #ffcc66 100%)"
+                  label="Total,Daily,Weekly,Monthly"
+                  cardValue={{
+                    total: vehicleAlertStats.alerts.total,
+                    daily: vehicleAlertStats.alerts.daily,
+                    weekly: vehicleAlertStats.alerts.weekly,
+                    monthly: vehicleAlertStats.alerts.monthly
+                  }}
+                  iconImage={Overspeed}
+                  heading="Alert Statistics"
+                />
+              </Grid>
+            </>
+          )}
           </Grid>
         );
         case "desk_ex":

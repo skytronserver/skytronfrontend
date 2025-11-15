@@ -1,6 +1,6 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider,  Grid, Button } from '@mui/material';
-import { Home as HomeIcon, Menu as MenuIcon } from '@mui/icons-material';
+import React, { useState } from 'react';
+import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider, Grid, Button, Menu, MenuItem } from '@mui/material';
+import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
@@ -13,6 +13,16 @@ WebFont.load({
 });
 function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const { t } = useTranslation();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const importantLinksOpen = Boolean(anchorEl);
+
+  const handleImportantLinksClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleImportantLinksClose = () => {
+    setAnchorEl(null);
+  };
   
   return (
     <div>
@@ -76,6 +86,29 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             </div>
           </Typography>
 
+          {/* Important Links Dropdown */}
+          <Button
+            color="inherit"
+            startIcon={<ImportantLinksIcon />}
+            endIcon={<ArrowDownIcon />}
+            onClick={handleImportantLinksClick}
+            sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
+          >
+            Important Links
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={importantLinksOpen}
+            onClose={handleImportantLinksClose}
+            MenuListProps={{
+              'aria-labelledby': 'important-links-button',
+            }}
+          >
+            <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
+              Device Stats
+            </MenuItem>
+          </Menu>
+
           {/* Menu icon */}
           <IconButton
             size="large"
@@ -124,6 +157,15 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             </ListItem>
             <ListItem button component={Link} to="/privacy-policy">
               <ListItemText primary={t('common.privacyPolicy')} />
+            </ListItem>
+          </List>
+          <Divider />
+          <List>
+            <ListItem>
+              <ListItemText primary="Important Links" sx={{ fontWeight: 'bold' }} />
+            </ListItem>
+            <ListItem button component={Link} to="/device-stats">
+              <ListItemText primary="Device Stats" />
             </ListItem>
           </List>
           <Divider />
