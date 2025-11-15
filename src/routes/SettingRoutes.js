@@ -9,6 +9,7 @@ import VehicleCategory from "../views/settings/VehicleCategory";
 import StateDistrict from "../views/settings/StateDistrict";
 import FrequencyFirmware from "../views/settings/FrequencyFirmware";
 import IPSetting from "../views/settings/IPSetting";
+import ArchiveRestore from "../views/settings/ArchiveRestore";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
@@ -72,6 +73,13 @@ const SettingRoutes = {
         <FrequencyFirmware/>
       ),
       roles: ['superadmin','devicemanufacture']
+    },
+    {
+      path: "/setting/archive-restore",
+      element: (
+        <ArchiveRestore/>
+      ),
+      roles: ['superadmin']
     },
     {
       path: "/setting/notice/*",

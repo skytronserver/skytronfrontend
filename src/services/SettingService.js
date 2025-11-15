@@ -73,6 +73,21 @@ const file_Download = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/download/", data,{ responseType: 'blob' });
 };
+
+// Database Archive & Restore
+const archiveDatabase = () => {
+  const http = getAxiosInstance();
+  return http.get("/api/Settings/archive_database/", {
+    responseType: 'blob',
+  });
+};
+
+const restoreDatabase = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/restore_database/", data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 const SettingService = {
     create_settings_hp_freq,
     filter_settings_hp_freq,
@@ -88,7 +103,9 @@ const SettingService = {
     filter_settings_firmware,
     create_settings_ip,
     filter_settings_ip,
-    file_Download
+    file_Download,
+    archiveDatabase,
+    restoreDatabase
 };
 
 export default SettingService;

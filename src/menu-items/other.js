@@ -49,6 +49,14 @@ const other = {
           breadcrumbs: false,
           roles: ['superadmin', 'devicemanufacture'],
         },
+        {
+          id: 'archive-restore',
+          title: 'Archive & Restore',
+          type: 'item',
+          url: '/setting/archive-restore',
+          breadcrumbs: false,
+          roles: ['superadmin']
+        }
         // {
         //   id: 'ip-settings',
         //   title: 'IP Settings',
