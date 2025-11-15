@@ -32,5 +32,9 @@ const getDeviceHealthStatus=(params)=>{
     const http = getAxiosInstance();
     return http.get(`/api/device-health-status/`, { params })
 }
-export default {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList,getDeviceTagsSearch,getAlertLogFilter,getStatesList,getDeviceHealthStatus};
+const getUserStatistics=()=>{
+    const http = getAxiosInstance();
+    return http.get(`/api/Statistics/user_statistics/`)
+}
+export default {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList,getDeviceTagsSearch,getAlertLogFilter,getStatesList,getDeviceHealthStatus,getUserStatistics};
 

@@ -729,6 +729,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin']
         },
+        {
+          id: 'user-statistics-report',
+          title: 'User Statistics Report',
+          type: 'item',
+          url: '/reports/user-statistics-report',
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
         // {
         //   id: "all-holiday-list",
         //   title: "School Holidays",

@@ -29,6 +29,7 @@ import TripViewer from "views/direct/TripViewer";
 import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
+import UserStatisticsReport from "../views/reports/UserStatisticsReport";
 
 
 const PrivateRoute = ({ element, roles }) => {
@@ -188,6 +189,11 @@ const MainRoutes = {
     {
       path: '/reports/device-health-report',
       element: <DeviceHealthReport />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/reports/user-statistics-report',
+      element: <UserStatisticsReport />,
       roles: ['superadmin']
     }
    

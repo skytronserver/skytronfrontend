@@ -956,6 +956,14 @@
       "warnSpeed": {
         "label": "সতৰ্কতা গতি",
         "required": "সতৰ্কতা গতি আৱশ্যক"
+      },
+      "workingHourStartTime": {
+        "label": "কাৰ্য ঘণ্টা আৰম্ভৰ সময়",
+        "required": "কাৰ্য ঘণ্টা আৰম্ভৰ সময় আৱশ্যক"
+      },
+      "workingHourEndTime": {
+        "label": "কাৰ্য ঘণ্টা শেষৰ সময়",
+        "required": "কাৰ্য ঘণ্টা শেষৰ সময় আৱশ্যক"
       }
     }
   },

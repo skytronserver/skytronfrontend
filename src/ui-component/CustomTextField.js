@@ -419,6 +419,31 @@ const FormField = ({
           }}
         />
       );
+    case "time":
+      return (
+        <TextField
+          label={t(label)}
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          type="time"
+          disabled={disabled ? true : false}
+          {...formik.getFieldProps(fieldConfig.name)}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          error={
+            formik.touched[fieldConfig.name] &&
+            Boolean(formik.errors[fieldConfig.name])
+          }
+          helperText={
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
+          }
+          onChange={(e) => {
+            formik.setFieldValue(fieldConfig.name, e.target.value);
+          }}
+        />
+      );
     case "autocomplete":
       const currentValue = options.find(option => option.value === formik.values[fieldConfig.name]);
       return (

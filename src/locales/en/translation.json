@@ -1354,6 +1354,14 @@
       "warnSpeed": {
         "label": "Warning Speed",
         "required": "Warning Speed is required"
+      },
+      "workingHourStartTime": {
+        "label": "Working Hour Start Time",
+        "required": "Working Hour Start Time is required"
+      },
+      "workingHourEndTime": {
+        "label": "Working Hour End Time",
+        "required": "Working Hour End Time is required"
       }
     }
   },

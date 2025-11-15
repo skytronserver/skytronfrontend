@@ -336,6 +336,22 @@ export const vehicleColumns = [
         filter: true,
         sort: false,
       },
+    },
+    {
+      name: "working_hour_start_time",
+      label: "Working Start Time",
+      options: {
+        filter: true,
+        sort: false,
+      },
+    },
+    {
+      name: "working_hour_end_time",
+      label: "Working End Time",
+      options: {
+        filter: true,
+        sort: false,
+      },
     }
   ];
   
