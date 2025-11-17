@@ -54,9 +54,19 @@ function IPSetting() {
   }, []);
   useEffect(() => {
     const retriveIpSetting = async () => {
-      const response = await SettingService.filter_settings_ip();
-      dispatch(fetchIPSettingList(response.data));
-      setLoad(true);
+      try {
+        const response = await SettingService.filter_settings_ip();
+        const data = Array.isArray(response?.data?.results)
+          ? response.data.results
+          : Array.isArray(response?.data)
+          ? response.data
+          : [];
+        dispatch(fetchIPSettingList(data));
+      } catch (error) {
+        console.error("Error fetching IP settings list:", error);
+      } finally {
+        setLoad(true);
+      }
     };
     retriveIpSetting();
   }, [dispatch]);

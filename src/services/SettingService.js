@@ -88,6 +88,18 @@ const restoreDatabase = (data) => {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
+const archiveGpsData = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/gpsdata/archive/", data);
+};
+const getGpsArchivesList = () => {
+  const http = getAxiosInstance();
+  return http.get("/api/gpsdata/archives/list/");
+};
+const restoreGpsArchive = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/gpsdata/restore/", data);
+};
 const SettingService = {
     create_settings_hp_freq,
     filter_settings_hp_freq,
@@ -105,7 +117,10 @@ const SettingService = {
     filter_settings_ip,
     file_Download,
     archiveDatabase,
-    restoreDatabase
+    restoreDatabase,
+    archiveGpsData,
+    getGpsArchivesList,
+    restoreGpsArchive
 };
 
 export default SettingService;

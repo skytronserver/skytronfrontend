@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
   CircularProgress,
   Grid,
   Typography,
+  TextField,
 } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
@@ -17,12 +18,22 @@ const defaultAlertState = {
   errorList: [],
 };
 
+const getDefaultArchiveDate = () => {
+  const archiveDate = new Date();
+  archiveDate.setFullYear(archiveDate.getFullYear() - 2);
+  archiveDate.setDate(archiveDate.getDate() - 1);
+  return archiveDate.toISOString().slice(0, 10);
+};
+
 const ArchiveRestore = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [alert, setAlert] = useState(defaultAlertState);
-  const [archiveLoading, setArchiveLoading] = useState(false);
-  const [restoreLoading, setRestoreLoading] = useState(false);
-  const [restoreFile, setRestoreFile] = useState(null);
+  const [gpsArchives, setGpsArchives] = useState([]);
+  const [gpsArchivesLoading, setGpsArchivesLoading] = useState(false);
+  const [gpsRestoreLoading, setGpsRestoreLoading] = useState(false);
+  const [gpsArchiveCreateLoading, setGpsArchiveCreateLoading] = useState(false);
+  const [selectedArchive, setSelectedArchive] = useState("");
+  const [archiveDate, setArchiveDate] = useState(getDefaultArchiveDate());
 
   const handleDialogClose = () => {
     setDialogOpen(false);
@@ -37,88 +48,85 @@ const ArchiveRestore = () => {
     setDialogOpen(true);
   };
 
-  const extractFilename = (contentDisposition, fallback = "backup.zip") => {
-    if (!contentDisposition) return fallback;
-
-    const filenameMatch = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(
-      contentDisposition
-    );
-
-    const encodedName = filenameMatch?.[1] || filenameMatch?.[2];
-    if (!encodedName) return fallback;
-
+  const fetchGpsArchives = async () => {
+    setGpsArchivesLoading(true);
     try {
-      return decodeURIComponent(encodedName).replace(/['"]/g, "");
-    } catch (error) {
-      return encodedName;
-    }
-  };
-
-  const handleArchiveDatabase = async () => {
-    setArchiveLoading(true);
-    try {
-      const response = await SettingService.archiveDatabase();
-      const blob = new Blob([response.data], {
-        type: response.headers["content-type"] || "application/zip",
-      });
-
-      const filename = extractFilename(
-        response.headers["content-disposition"],
-        `skytron-backup-${new Date()
-          .toISOString()
-          .slice(0, 19)
-          .replace(/[:T]/g, "-")}.zip`
-      );
-
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-
-      openDialog(
-        "Database archive completed successfully. Backup download has started."
-      );
+      const response = await SettingService.getGpsArchivesList();
+      const data = Array.isArray(response?.data?.results)
+        ? response.data.results
+        : Array.isArray(response?.data)
+        ? response.data
+        : [];
+      setGpsArchives(data);
     } catch (error) {
       const message =
-        error?.response?.data?.message || "Failed to archive the database.";
+        error?.response?.data?.message || "Failed to load GPS archives list.";
       openDialog(message, true);
     } finally {
-      setArchiveLoading(false);
+      setGpsArchivesLoading(false);
     }
   };
 
-  const handleRestoreDatabase = async () => {
-    if (!restoreFile) {
-      openDialog("Please choose a backup file before restoring.", true);
-      return;
-    }
+  useEffect(() => {
+    fetchGpsArchives();
+  }, []);
 
-    setRestoreLoading(true);
+  const handleCreateGpsArchive = async () => {
+    setGpsArchiveCreateLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("backup_file", restoreFile);
-
-      const response = await SettingService.restoreDatabase(formData);
+      if (!archiveDate) {
+        openDialog("Please select an archive date.", true);
+        return;
+      }
+      const payload = { archive_date: archiveDate };
+      const response = await SettingService.archiveGpsData(payload);
       const message =
         response?.data?.message ||
-        "Database restore request has been sent successfully.";
+        "GPS data archive request has been sent successfully.";
 
       openDialog(message);
-      setRestoreFile(null);
+      await fetchGpsArchives();
     } catch (error) {
       const message =
-        error?.response?.data?.message || "Failed to restore the database.";
+        error?.response?.data?.message ||
+        "Failed to create GPS data archive.";
       const errorList =
         Array.isArray(error?.response?.data?.errors)
           ? error.response.data.errors
           : [];
       openDialog(message, true, errorList);
     } finally {
-      setRestoreLoading(false);
+      setGpsArchiveCreateLoading(false);
+    }
+  };
+
+  const handleRestoreGpsArchive = async () => {
+    if (!selectedArchive) {
+      openDialog("Please select a GPS data archive before restoring.", true);
+      return;
+    }
+
+    setGpsRestoreLoading(true);
+    try {
+      const payload = { archive_file: selectedArchive };
+      const response = await SettingService.restoreGpsArchive(payload);
+      const message =
+        response?.data?.message ||
+        "GPS data restore request has been sent successfully.";
+
+      openDialog(message);
+      setSelectedArchive("");
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to restore GPS data archive.";
+      const errorList =
+        Array.isArray(error?.response?.data?.errors)
+          ? error.response.data.errors
+          : [];
+      openDialog(message, true, errorList);
+    } finally {
+      setGpsRestoreLoading(false);
     }
   };
 
@@ -134,75 +142,108 @@ const ArchiveRestore = () => {
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           <MainCard
-            title="Archive Database"
+            title="Create GPS Data Archive"
             secondary={
-              archiveLoading ? <CircularProgress size={22} color="inherit" /> : null
+              gpsArchiveCreateLoading ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : null
             }
           >
             <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-              Generate a full system backup. The archive will be downloaded as a
-              compressed file once ready. This action is safe to perform during
-              business hours.
+              Create a new GPS data archive that can be restored later from the
+              list of GPS archives.
             </Typography>
+
+            <Box sx={{ mb: 2, maxWidth: 260 }}>
+              <TextField
+                fullWidth
+                type="date"
+                label="Archive data before"
+                value={archiveDate}
+                onChange={(event) => setArchiveDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ max: getDefaultArchiveDate() }}
+                size="small"
+              />
+            </Box>
+
             <Button
               variant="contained"
               color="primary"
-              onClick={handleArchiveDatabase}
-              disabled={archiveLoading}
+              onClick={handleCreateGpsArchive}
+              disabled={gpsArchiveCreateLoading}
             >
-              Archive & Download
+              Create GPS Archive
             </Button>
           </MainCard>
         </Grid>
 
         <Grid item xs={12}>
           <MainCard
-            title="Restore Database"
+            title="Restore GPS Data Archive"
             secondary={
-              restoreLoading ? <CircularProgress size={22} color="inherit" /> : null
+              gpsArchivesLoading || gpsRestoreLoading ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : null
             }
           >
             <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-              Restore the database from a previously generated backup. This will
-              overwrite the existing data. Ensure you have scheduled downtime and
-              confirmed the backup before proceeding.
+              Restore historical GPS data from an existing GPS data archive file.
             </Typography>
 
-            <Box
-              sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}
-            >
-              <Button
-                variant="outlined"
-                component="label"
-                disabled={restoreLoading}
+            {gpsArchivesLoading ? (
+              <Typography variant="body2" color="textSecondary">
+                Loading available GPS archives...
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 2,
+                }}
               >
-                {restoreFile ? "Change Backup File" : "Choose Backup File"}
-                <input
-                  hidden
-                  type="file"
-                  accept=".zip,.tar,.gz,.tgz,.tar.gz,.tar.tgz"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0] || null;
-                    setRestoreFile(file);
-                  }}
-                />
-              </Button>
-
-              {restoreFile && (
-                <Typography variant="body2" color="textPrimary">
-                  Selected: {restoreFile.name}
-                </Typography>
-              )}
-            </Box>
+                <select
+                  value={selectedArchive}
+                  onChange={(event) => setSelectedArchive(event.target.value)}
+                  disabled={gpsRestoreLoading || gpsArchives.length === 0}
+                  style={{ padding: "8px", minWidth: 260 }}
+                >
+                  <option value="">
+                    {gpsArchives.length === 0
+                      ? "No GPS archives available"
+                      : "Select GPS archive"}
+                  </option>
+                  {gpsArchives.map((archive, index) => {
+                    const value =
+                      typeof archive === "string"
+                        ? archive
+                        : archive?.archive_file ||
+                          archive?.filename ||
+                          archive?.name ||
+                          "";
+                    if (!value) return null;
+                    return (
+                      <option key={index} value={value}>
+                        {value}
+                      </option>
+                    );
+                  })}
+                </select>
+              </Box>
+            )}
 
             <Button
               variant="contained"
-              color="error"
+              color="primary"
               sx={{ mt: 3 }}
-              onClick={handleRestoreDatabase}
-              disabled={restoreLoading}
+              onClick={handleRestoreGpsArchive}
+              disabled={
+                gpsRestoreLoading || !selectedArchive || gpsArchives.length === 0
+              }
             >
-              Restore Database
+              Restore GPS Archive
             </Button>
           </MainCard>
         </Grid>
