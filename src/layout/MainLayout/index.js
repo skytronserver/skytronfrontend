@@ -9,6 +9,8 @@ import {
   CssBaseline,
   Toolbar,
   useMediaQuery,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { IconChevronRight } from "@tabler/icons";
 import { Navigate } from "react-router-dom";
@@ -20,8 +22,9 @@ import navigation from "../../menu-items";
 import { drawerWidth } from "../../store/constant";
 import { SET_MENU } from "../../store/actions";
 import { createAxiosInstance } from "../../services/axiosInstance";
+import showDeviceApi from "../../services/showDeviceApi";
 import { useLocation } from 'react-router-dom';
-import {useEffect} from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from "react-i18next";
 // assets
 import { decipherEncryption } from "../../helper";
@@ -81,6 +84,12 @@ const MainLayout = () => {
   const { t } = useTranslation();
   const matchDownMd = useMediaQuery(theme.breakpoints.down("lg"));
   const location = useLocation();
+  const ownerAlertSessionFlag = "ownerAlertToastShown";
+  const [ownerAlertNotification, setOwnerAlertNotification] = useState({
+    open: false,
+    message: "",
+    type: "info",
+  });
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
   const dispatch = useDispatch();
@@ -110,6 +119,66 @@ const MainLayout = () => {
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = (userData && data.length > 2 && data[1]) || "desk_ex"; 
+
+  useEffect(() => {
+    const shouldFetchOwnerAlerts =
+      userRoles === "owner" && !sessionStorage.getItem(ownerAlertSessionFlag);
+
+    if (!shouldFetchOwnerAlerts) {
+      return;
+    }
+
+    const fetchOwnerAlerts = async () => {
+      try {
+        const response = await showDeviceApi.getAlertLogFilter({
+          type: "OverSpeed",
+          page: 1,
+          page_size: 10,
+        });
+        const alerts = Array.isArray(response?.data?.data)
+          ? response.data.data
+          : [];
+
+        if (alerts.length > 0) {
+          const latestAlert = alerts[0];
+          const timestamp = latestAlert?.timestamp
+            ? new Date(latestAlert.timestamp).toLocaleString("en-IN")
+            : "recently";
+          const vehicleRegNo =
+            latestAlert?.deviceTag?.device?.vehicle_reg_no || "your fleet";
+          const message = `Latest OverSpeed alert for ${vehicleRegNo} at ${timestamp}.`;
+          setOwnerAlertNotification({
+            open: true,
+            message,
+            type: "warning",
+          });
+        } else {
+          setOwnerAlertNotification({
+            open: true,
+            message: "No recent OverSpeed alerts detected for your vehicles.",
+            type: "info",
+          });
+        }
+      } catch (error) {
+        setOwnerAlertNotification({
+          open: true,
+          message: "Unable to load latest alert logs. Please try again later.",
+          type: "error",
+        });
+      } finally {
+        sessionStorage.setItem(ownerAlertSessionFlag, "true");
+      }
+    };
+
+    fetchOwnerAlerts();
+  }, [userRoles]);
+
+  const handleOwnerAlertClose = (_, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOwnerAlertNotification((prev) => ({ ...prev, open: false }));
+  };
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -168,6 +237,28 @@ const MainLayout = () => {
           <div style={{ marginTop: "0px" }}>&copy; {t('common.allRights')}</div>
         </div>
       </Main>
+      <Snackbar
+        open={ownerAlertNotification.open}
+        autoHideDuration={6000}
+        onClose={handleOwnerAlertClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{
+          '& .MuiSnackbar-root': {
+            top: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }
+        }}
+      >
+        <Alert
+          onClose={handleOwnerAlertClose}
+          severity={ownerAlertNotification.type}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {ownerAlertNotification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
