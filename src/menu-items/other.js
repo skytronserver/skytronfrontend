@@ -56,15 +56,15 @@ const other = {
           url: '/setting/archive-restore',
           breadcrumbs: false,
           roles: ['superadmin']
+        },
+        {
+          id: 'ip-settings',
+          title: 'IP Settings',
+          type: 'item',
+          url: '/setting/ip-settings',
+          breadcrumbs: false,
+          roles: ['superadmin', 'dealer']
         }
-        // {
-        //   id: 'ip-settings',
-        //   title: 'IP Settings',
-        //   type: 'item',
-        //   url: '/setting/ip-settings',
-        //   breadcrumbs: false,
-        //   roles: ['superadmin', 'dealer']
-        // }
       ]
     },
   ]
