@@ -156,26 +156,36 @@ export const otaColumns=[
       display: false,
     },
   },
-  {
-    name: "devicemodel_info",
-    label: "Device Model",
-    options: {
-      filter: true,
-      sort: false,
-      customBodyRender: (value, tableMeta, updateValue) => {
-        return (
-          <p>{value?.model_name || "N/A"}</p>
-        );
-      },
-      csvExportKey: "model_name",
-    },
-  },
+  // {
+  //   name: "devicemodel_info",
+  //   label: "Device Model",
+  //   options: {
+  //     filter: true,
+  //     sort: false,
+  //     customBodyRender: (value, tableMeta, updateValue) => {
+  //       return (
+  //         <p>{value?.model_name || "N/A"}</p>
+  //       );
+  //     },
+  //     csvExportKey: "model_name",
+  //   },
+  // },
   {
     name: "command",
     label: "Command",
     options: {
       filter: true,
       sort: false,
+    },
+  },
+  {
+    name: "triggered_by_info.created_by_name",
+    label: "Triggered By",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => <p>{value || "N/A"}</p>,
+      csvExportKey: "created_by_name",
     },
   },
   {
@@ -191,6 +201,7 @@ export const otaColumns=[
       },
     },
   },
+
 ];
 
 export const firmwareColumns=[

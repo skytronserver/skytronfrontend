@@ -85,8 +85,25 @@ function FrequencyFirmware() {
       dispatch(fetchFrequencyList(response.data));
     };
     const retriveOta = async () => {
-      const response = await SettingService.filter_settings_ota({});
-      dispatch(fetchOtaList(response.data));
+      try {
+        const response = await SettingService.filter_settings_ota({
+          page: 1,
+          page_size: 100,
+        });
+
+        const otaData = Array.isArray(response?.data?.data)
+          ? response.data.data
+          : Array.isArray(response?.data?.results)
+          ? response.data.results
+          : Array.isArray(response?.data)
+          ? response.data
+          : [];
+
+        dispatch(fetchOtaList(otaData));
+      } catch (error) {
+        console.error("Failed to fetch OTA settings", error);
+        dispatch(fetchOtaList([]));
+      }
     };
     const retriveFirmware = async () => {
       const res = await SettingService.filter_settings_firmware();

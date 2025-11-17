@@ -105,7 +105,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             }}
           >
             <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
-              Device Stats
+              Manufacturer and Device Uptime Details
             </MenuItem>
           </Menu>
 
@@ -165,7 +165,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <ListItemText primary="Important Links" sx={{ fontWeight: 'bold' }} />
             </ListItem>
             <ListItem button component={Link} to="/device-stats">
-              <ListItemText primary="Device Stats" />
+              <ListItemText primary="Manufacturer and Device Uptime Details" />
             </ListItem>
           </List>
           <Divider />

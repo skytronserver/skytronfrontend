@@ -11,11 +11,11 @@ const filter_settings_hp_freq = (data) => {
 //OTA Settings
 const create_settings_ota = (data) => {
   const http = getAxiosInstance();
-  return http.post("/ota/create/", data);
+  return http.post("/api/ota/create/", data);
 };
 const filter_settings_ota = (data) => {
   const http = getAxiosInstance();
-  return http.post("/ota/filter/", data);
+  return http.post("/api/ota/filter/", data);
 };
 
 //Vehicle Category

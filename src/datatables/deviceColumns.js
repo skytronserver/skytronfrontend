@@ -339,6 +339,46 @@ const formatDate = (dateString) => {
         },
       },
       {
+        name: "whitelisted_phone_numbers.scn2",
+        label: "Whitelisted Number 1",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value) => <p>{value || "-"}</p>,
+          csvExportKey: "scn2",
+        },
+      },
+      {
+        name: "whitelisted_phone_numbers.escn",
+        label: "Whitelisted Number 2",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value) => <p>{value || "-"}</p>,
+          csvExportKey: "escn",
+        },
+      },
+      {
+        name: "whitelisted_ips.eip",
+        label: "Whitelisted IP 1",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value) => <p>{value || "-"}</p>,
+          csvExportKey: "eip",
+        },
+      },
+      {
+        name: "whitelisted_ips.pip",
+        label: "Whitelisted IP 2",
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value) => <p>{value || "-"}</p>,
+          csvExportKey: "pip",
+        },
+      },
+      {
         name: "ceated_by",
         label: "Requested By",
         options: {

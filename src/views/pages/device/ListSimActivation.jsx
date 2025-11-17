@@ -3,6 +3,7 @@ import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import { gridSpacing } from "../../../store/constant";
 import StockServices from '../../../services/StockServices';
+import SettingService from '../../../services/SettingService';
 import { useEffect, useState } from 'react';
 import DynamicDatatables from '../../../datatables/DynamicDatatables';
 import { requestList } from '../../../datatables/deviceColumns';
@@ -19,7 +20,7 @@ const ListSimActivation = () => {
   const [pageTitle, setPageTitle] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
   const [alertType, setAlertType] = useState("success");
-  const [alertMessage, setAlertMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState("")
 
   const title = {
     valid: t('simActivation.titles.valid'),
@@ -27,7 +28,10 @@ const ListSimActivation = () => {
     pending: t('simActivation.titles.pending')
   };
 
+  const [rawList, setRawList] = useState([]);
   const [list, setList] = useState([]);
+  const [whitelistedPhoneNumbers, setWhitelistedPhoneNumbers] = useState({ scn2: "", escn: "" });
+  const [whitelistedIps, setWhitelistedIps] = useState({ eip: "", pip: "" });
 
   const handleCloseAlert = () => {
     setOpenAlert(false);
@@ -42,7 +46,7 @@ const ListSimActivation = () => {
           }
         };
         const retriveData = await StockServices.getListActivationRequest(status);
-        setList(retriveData.data);
+        setRawList(retriveData.data || []);
         setPageTitle(title?.[deviceStatus]);
         setLoad(true);
       } catch (error) {
@@ -54,6 +58,80 @@ const ListSimActivation = () => {
     };
     retrieveList();
   }, [deviceStatus]);
+
+  useEffect(() => {
+    const fetchOtaFilter = async () => {
+      try {
+        const response = await SettingService.filter_settings_ota({
+          page: 1,
+          page_size: 10,
+        });
+
+        const otaData = Array.isArray(response?.data?.data)
+          ? response.data.data
+          : Array.isArray(response?.data)
+          ? response.data
+          : [];
+
+        const phoneNumbers = { scn2: "", escn: "" };
+        const ipAddresses = { eip: "", pip: "" };
+
+        otaData.forEach((item) => {
+          const command = item?.command || "";
+          const [prefix, value] = command.split("-");
+
+          if (!value) {
+            return;
+          }
+
+          switch ((prefix || "").toUpperCase()) {
+            case "SCN2":
+              phoneNumbers.scn2 = value;
+              break;
+            case "ESCN":
+              phoneNumbers.escn = value;
+              break;
+            case "EIP":
+              ipAddresses.eip = value;
+              break;
+            case "PIP":
+              ipAddresses.pip = value;
+              break;
+            default:
+              break;
+          }
+        });
+
+        setWhitelistedPhoneNumbers(phoneNumbers);
+        setWhitelistedIps(ipAddresses);
+      } catch (error) {
+        console.error('Failed to fetch OTA filter data', error);
+      }
+    };
+
+    fetchOtaFilter();
+  }, []);
+
+  useEffect(() => {
+    if (!rawList || rawList.length === 0) {
+      setList([]);
+      return;
+    }
+
+    const mergedList = rawList.map((item) => ({
+      ...item,
+      whitelisted_phone_numbers: {
+        scn2: whitelistedPhoneNumbers.scn2 || item?.whitelisted_phone_numbers?.scn2 || "",
+        escn: whitelistedPhoneNumbers.escn || item?.whitelisted_phone_numbers?.escn || "",
+      },
+      whitelisted_ips: {
+        eip: whitelistedIps.eip || item?.whitelisted_ips?.eip || "",
+        pip: whitelistedIps.pip || item?.whitelisted_ips?.pip || "",
+      },
+    }));
+
+    setList(mergedList);
+  }, [rawList, whitelistedPhoneNumbers, whitelistedIps]);
 
   const handleRequest = async (e, data, status) => {
     e.preventDefault();
