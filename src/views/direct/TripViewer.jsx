@@ -38,14 +38,15 @@ const TripViewer = () => {
   const [animationSpeed, setAnimationSpeed] = useState(200);
   const [activeLayers, setActiveLayers] = useState({
     osm: true,
-    india3: true,
-    indiaBase: true,
-    indiaRoads: true,
-    markers: true
+    india3: false,
+    indiaBase: false,
+    indiaRoads: false,
+    markers: false
   });
   const [showMap, setShowMap] = useState(false);
   const [loadingTrips, setLoadingTrips] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
 
   const mapRef = useRef(null);
   const map = useRef(null);
@@ -221,6 +222,12 @@ const TripViewer = () => {
       });
     }
   }, [showMap]);
+
+  useEffect(() => {
+    if (isMapReady && selectedTrip?.points?.length) {
+      visualizeTrip(selectedTrip.points);
+    }
+  }, [isMapReady, selectedTrip]);
 
   const formatNumber = (value, fractionDigits = 2) => {
     if (value === null || value === undefined || Number.isNaN(Number(value))) {
