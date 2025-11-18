@@ -1298,6 +1298,14 @@
       "restart": "Restart"
     },
     "tripList": "Trip List",
+    "summary": {
+      "title": "Trip Summary",
+      "totalTrips": "Total Trips",
+      "totalDistance": "Total Distance",
+      "totalDuration": "Total Duration",
+      "totalPoints": "Total Points",
+      "timeRange": "Time Range"
+    },
     "table": {
       "startTime": "Start Time",
       "endTime": "End Time",
@@ -1312,6 +1320,7 @@
       "averageSpeed": "Average Speed",
       "points": "Total Points"
     },
+    "noTripsFound": "No trips found for the selected criteria",
     "mapLayers": {
       "title": "Map Layers",
       "osm": "OpenStreetMap",

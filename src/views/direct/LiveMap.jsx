@@ -171,14 +171,14 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
     const initialMap = new Map({
       target: mapElement.current,
       layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
+        // new TileLayer({
+        //   source: new OSM(),
+        // }),
         new TileLayer({
           source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL,
+            url: "https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms",
             params: {
-              'LAYERS': 'basemap%3Aadmin_group',
+              'LAYERS': 'india3',
               'TILED': true,
               'VERSION': '1.1.1',
               'FORMAT': 'image/png',

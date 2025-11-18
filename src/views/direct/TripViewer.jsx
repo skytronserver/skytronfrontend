@@ -28,7 +28,7 @@ const TripViewer = () => {
   const [load, setLoad] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [vehicleList, setVehicleList] = useState([]);
-  const [tripData, setTripData] = useState([]);
+  const [tripSummary, setTripSummary] = useState(null);
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [timeFilter, setTimeFilter] = useState('day');
   const [trips, setTrips] = useState([]);
@@ -222,22 +222,76 @@ const TripViewer = () => {
     }
   }, [showMap]);
 
+  const formatNumber = (value, fractionDigits = 2) => {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return '0.00';
+    }
+    return Number(value).toFixed(fractionDigits);
+  };
+
+  const formatDateTime = (value) => {
+    if (!value) return '--';
+    try {
+      return new Date(value).toLocaleString();
+    } catch (error) {
+      return value;
+    }
+  };
+
+  const normalizePoint = (point = {}) => {
+    const lat = parseFloat(point.lat ?? point.latitude ?? point.Latitude ?? point.latitute);
+    const lon = parseFloat(point.lon ?? point.longitude ?? point.Longitude ?? point.longitute);
+
+    return {
+      ...point,
+      lat,
+      lon,
+      s: point.s ?? point.speed ?? point.Speed ?? 0,
+      h: point.h ?? point.heading ?? point.Heading ?? 0,
+      et: point.et ?? point.timestamp ?? point.time ?? point.event_time ?? ''
+    };
+  };
+
   // Format trip data from ET API response
   const formatTripData = (tripResponse) => {
-    if (!tripResponse || !Array.isArray(tripResponse)) return [];
-    
-    return tripResponse.map(trip => ({
-      id: trip.id,
-      points: trip.gps_points || [], // GPS points for visualization
-      stats: {
-        distance: trip.total_distance ? parseFloat(trip.total_distance).toFixed(2) : '0.00',
-        duration: trip.duration ? parseFloat(trip.duration).toFixed(2) : '0.00',
-        averageSpeed: trip.average_speed ? parseFloat(trip.average_speed).toFixed(2) : '0.00',
-        startTime: trip.start_time ? new Date(trip.start_time).toLocaleString() : '',
-        endTime: trip.end_time ? new Date(trip.end_time).toLocaleString() : '',
-        points: trip.gps_points ? trip.gps_points.length : 0
-      }
-    }));
+    if (!tripResponse || !Array.isArray(tripResponse.trips)) return [];
+
+    return tripResponse.trips.map((trip, index) => {
+      const rawPoints = trip.gps_points || trip.data_points || [];
+      const fallbackPoints = (!rawPoints.length && trip.start_location && trip.end_location) ? [
+        {
+          latitude: trip.start_location.latitude,
+          longitude: trip.start_location.longitude,
+          timestamp: trip.start_time,
+        },
+        {
+          latitude: trip.end_location.latitude,
+          longitude: trip.end_location.longitude,
+          timestamp: trip.end_time,
+        }
+      ] : [];
+
+      const normalizedPoints = (rawPoints.length ? rawPoints : fallbackPoints)
+        .map(normalizePoint)
+        .filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lon));
+
+      const distanceKm = trip.distance_km ?? trip.total_distance ?? 0;
+      const durationMinutes = trip.duration_minutes ?? trip.duration ?? 0;
+      const averageSpeed = trip.average_speed_kmh ?? trip.average_speed ?? 0;
+
+      return {
+        id: trip.trip_id ?? trip.id ?? index,
+        points: normalizedPoints,
+        stats: {
+          distance: formatNumber(distanceKm),
+          duration: formatNumber(durationMinutes),
+          averageSpeed: formatNumber(averageSpeed),
+          startTime: formatDateTime(trip.start_time),
+          endTime: formatDateTime(trip.end_time),
+          points: trip.total_data_points ?? normalizedPoints.length
+        }
+      };
+    });
   };
 
   // Fetch trip data using new ET trip list API
@@ -301,34 +355,72 @@ const TripViewer = () => {
       console.log('ET Trip data response:', response.data);
 
       if (response.data) {
-        const formattedTrips = formatTripData(response.data);
+        const summaryPayload = response.data;
+        setTripSummary({
+          totalTrips: summaryPayload.total_trips ?? summaryPayload.trips?.length ?? 0,
+          totalDistance: formatNumber(summaryPayload.total_distance_km ?? summaryPayload.total_distance ?? 0),
+          totalDuration: formatNumber(summaryPayload.total_duration_minutes ?? summaryPayload.total_duration ?? 0),
+          totalDataPoints: summaryPayload.total_data_points ?? 0,
+          queryStart: summaryPayload.query_start_time ?? startDate.toISOString(),
+          queryEnd: summaryPayload.query_end_time ?? endDate.toISOString(),
+        });
+
+        const formattedTrips = formatTripData(summaryPayload);
         console.log('Formatted trips:', formattedTrips);
         
         setTrips(formattedTrips);
         
         if (formattedTrips.length > 0) {
-          setSelectedTrip(formattedTrips[0]);
-          if (formattedTrips[0].points && formattedTrips[0].points.length > 0) {
-            visualizeTrip(formattedTrips[0].points);
+          const firstTrip = formattedTrips[0];
+          setSelectedTrip(firstTrip);
+          setSliderValue(0);
+          const pointsLength = firstTrip.points?.length || 0;
+          setMaxSliderValue(pointsLength > 0 ? pointsLength - 1 : 0);
+          if (pointsLength > 0) {
+            visualizeTrip(firstTrip.points);
+          } else {
+            vectorSourceRef.current.clear();
           }
+        } else {
+          setSelectedTrip(null);
+          setSliderValue(0);
+          setMaxSliderValue(0);
+          vectorSourceRef.current.clear();
         }
+      } else {
+        setTripSummary(null);
+        setTrips([]);
+        setSelectedTrip(null);
+        vectorSourceRef.current.clear();
       }
     } catch (error) {
       console.error('Error fetching ET trip data:', error);
+      setTripSummary(null);
+      setTrips([]);
+      setSelectedTrip(null);
+      vectorSourceRef.current.clear();
     } finally {
       setLoadingTrips(false);
     }
   };
 
   // Visualize trip on map
-  const visualizeTrip = (points) => {
-    if (!map.current) return;
+  const visualizeTrip = (points = []) => {
+    if (!map.current || !points.length) return;
 
     // Clear existing features
     vectorSourceRef.current.clear();
 
+    const validPoints = points.filter(point =>
+      Number.isFinite(parseFloat(point.lon)) && Number.isFinite(parseFloat(point.lat))
+    );
+
+    if (!validPoints.length) {
+      return;
+    }
+
     // Create point features
-    const pointFeatures = points.map((point, index) => {
+    const pointFeatures = validPoints.map((point, index) => {
       const feature = new Feature({
         geometry: new Point(fromLonLat([parseFloat(point.lon), parseFloat(point.lat)])),
         data: point
@@ -370,7 +462,7 @@ const TripViewer = () => {
     });
 
     // Create line feature
-    const coordinates = points.map(point => 
+    const coordinates = validPoints.map(point => 
       fromLonLat([parseFloat(point.lon), parseFloat(point.lat)])
     );
 
@@ -412,8 +504,13 @@ const TripViewer = () => {
 
   const handleTripClick = (trip) => {
     setSelectedTrip(trip);
+    setSliderValue(0);
+    const pointsLength = trip.points?.length || 0;
+    setMaxSliderValue(pointsLength > 0 ? pointsLength - 1 : 0);
     if (trip.points && trip.points.length > 0) {
       visualizeTrip(trip.points);
+    } else {
+      vectorSourceRef.current.clear();
     }
   };
 
@@ -571,6 +668,66 @@ const TripViewer = () => {
             </Grid>
           </Grid>
         </Paper>
+
+        {tripSummary && (
+          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              {t('tripViewer.summary.title')}
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={3}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    {t('tripViewer.summary.totalTrips')}
+                  </Typography>
+                  <Typography variant="h4" color="primary">
+                    {tripSummary.totalTrips}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    {t('tripViewer.summary.totalDistance')}
+                  </Typography>
+                  <Typography variant="h4" color="primary">
+                    {tripSummary.totalDistance} km
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    {t('tripViewer.summary.totalDuration')}
+                  </Typography>
+                  <Typography variant="h4" color="primary">
+                    {tripSummary.totalDuration} min
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    {t('tripViewer.summary.totalPoints')}
+                  </Typography>
+                  <Typography variant="h4" color="primary">
+                    {tripSummary.totalDataPoints ?? 0}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#e9f2ff', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    {t('tripViewer.summary.timeRange')}
+                  </Typography>
+                  <Typography variant="body1" color="textPrimary">
+                    {`${formatDateTime(tripSummary.queryStart)} - ${formatDateTime(tripSummary.queryEnd)}`}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
 
         {showMap && (
           <>
