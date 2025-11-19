@@ -6,13 +6,17 @@ import {dateTimeUpdate} from "../../helper"
 import { FormControl, Autocomplete,TextField, Button, Grid } from '@mui/material';
 import { useTranslation } from "react-i18next";
 
+const MAX_HISTORY_RANGE_MS = 1000 * 60 * 60 * 24 * 365 * 2; // two years
+
 const HistoryPlayback = () => {
-  const currentDate = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const now = new Date();
+  const currentDateTime = dateTimeUpdate(now);
+  const yesterdayDateTime = dateTimeUpdate(new Date(now.getTime() - 86400000));
+  const maxLookBackDate = dateTimeUpdate(new Date(now.getTime() - MAX_HISTORY_RANGE_MS));
   const [load, setLoad] = useState(false);
   const [vehicleNo, setVehicleNo] = useState('');
-  const [fromDate, setFromDate] = useState(dateTimeUpdate(new Date(Date.now() - 86400000)));
-  const [toDate, setToDate] = useState(dateTimeUpdate(new Date()));
+  const [fromDate, setFromDate] = useState(dateTimeUpdate(new Date(now.getTime() - 86400000)));
+  const [toDate, setToDate] = useState(currentDateTime);
   const [vehicleList, setVehicleList] = useState([]);
   const [downloadStatus, setDownloadStatus] = useState("");
   const [showMap, setShowMap] = useState(false); // To control visibility of the map
@@ -40,14 +44,42 @@ const HistoryPlayback = () => {
 
   const handleFromDateChange = (e) => {
     const selected = new Date(e.target.value);
+    if (Number.isNaN(selected.getTime())) return;
     const today = new Date();
-    selected<=today && setFromDate(e.target.value);    
+    if (selected > today) return;
+
+    let updatedToDate = new Date(toDate);
+    if (updatedToDate < selected) {
+      updatedToDate = selected;
+    }
+
+    if (updatedToDate.getTime() - selected.getTime() > MAX_HISTORY_RANGE_MS) {
+      const maxAllowedEnd = new Date(Math.min(selected.getTime() + MAX_HISTORY_RANGE_MS, today.getTime()));
+      updatedToDate = maxAllowedEnd;
+    }
+
+    setFromDate(dateTimeUpdate(selected));
+    setToDate(dateTimeUpdate(updatedToDate));
   };
 
   const handleToDateChange = (e) => {
     const selected = new Date(e.target.value);
+    if (Number.isNaN(selected.getTime())) return;
     const today = new Date();
-    selected<=today && setToDate(e.target.value); 
+    if (selected > today) return;
+
+    let updatedFromDate = new Date(fromDate);
+    if (selected < updatedFromDate) {
+      updatedFromDate = selected;
+    }
+
+    if (selected.getTime() - updatedFromDate.getTime() > MAX_HISTORY_RANGE_MS) {
+      const minAllowedStart = new Date(selected.getTime() - MAX_HISTORY_RANGE_MS);
+      updatedFromDate = minAllowedStart;
+    }
+
+    setFromDate(dateTimeUpdate(updatedFromDate));
+    setToDate(dateTimeUpdate(selected)); 
   };
 
   return (
@@ -77,7 +109,8 @@ const HistoryPlayback = () => {
               type="datetime-local"
               value={fromDate}
               onChange={handleFromDateChange}
-              inputProps={{ max: yesterday }}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ max: yesterdayDateTime, min: maxLookBackDate }}
             />
           </Grid>
 
@@ -89,7 +122,7 @@ const HistoryPlayback = () => {
               value={toDate}
               onChange={handleToDateChange}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ max: currentDate }}
+              inputProps={{ max: currentDateTime, min: fromDate }}
             />
           </Grid>
 

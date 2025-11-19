@@ -872,12 +872,21 @@ const ActiveState = () => {
           );
         case "metric": {
           const metricValue = getNestedValue(item.dataField, aggregatedData);
+          const colorMap = {
+            primary: "#1976d2",
+            secondary: "#9c27b0",
+            success: "#388e3c",
+            error: "#d32f2f",
+            warning: "#f57c00",
+            info: "#0288d1"
+          };
+          const displayColor = colorMap[item.color || "primary"] || colorMap.primary;
           return (
-            <Box>
-              <Typography variant="subtitle2" color="textSecondary">
+            <Box sx={{ p: 2, bgcolor: "background.paper", borderRadius: 1, border: "1px solid #e0e0e0" }}>
+              <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
                 {item.label || "Metric"}
               </Typography>
-              <Typography variant="h4" color={`${item.color || "primary"}.main`} sx={{ fontWeight: 600 }}>
+              <Typography variant="h4" sx={{ fontWeight: 600, color: displayColor }}>
                 {(item.prefix || "")}
                 {formatNumber(metricValue, item.precision ?? 0)}
                 {(item.suffix || "")}
@@ -2604,16 +2613,20 @@ const ActiveState = () => {
                               {selectedReportItem.type === 'text' && (
                                 <>
                                   <TextField
+                                    fullWidth
                                     label="Text"
                                     multiline
                                     minRows={3}
-                                    value={selectedReportItem.text}
+                                    maxRows={6}
+                                    value={selectedReportItem.text || ''}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { text: event.target.value })}
+                                    placeholder="Enter your text here"
                                   />
                                   <TextField
+                                    fullWidth
                                     label="Variant"
                                     select
-                                    value={selectedReportItem.variant}
+                                    value={selectedReportItem.variant || 'h5'}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { variant: event.target.value })}
                                   >
                                     {['h3', 'h4', 'h5', 'h6', 'subtitle1', 'subtitle2', 'body1', 'body2'].map((variant) => (
@@ -2623,9 +2636,10 @@ const ActiveState = () => {
                                     ))}
                                   </TextField>
                                   <TextField
+                                    fullWidth
                                     label="Align"
                                     select
-                                    value={selectedReportItem.align}
+                                    value={selectedReportItem.align || 'left'}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { align: event.target.value })}
                                   >
                                     {['left', 'center', 'right', 'justify'].map((align) => (
@@ -2640,11 +2654,14 @@ const ActiveState = () => {
                               {selectedReportItem.type === 'metric' && (
                                 <>
                                   <TextField
+                                    fullWidth
                                     label="Label"
-                                    value={selectedReportItem.label}
+                                    value={selectedReportItem.label || ''}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { label: event.target.value })}
+                                    placeholder="e.g., Total Vehicles"
                                   />
                                   <TextField
+                                    fullWidth
                                     label="Data Field"
                                     select
                                     value={selectedReportItem.dataField || ''}
@@ -2661,44 +2678,68 @@ const ActiveState = () => {
                                   </TextField>
                                   <Box sx={{ display: 'flex', gap: 1 }}>
                                     <TextField
+                                      fullWidth
                                       label="Prefix"
-                                      value={selectedReportItem.prefix}
+                                      value={selectedReportItem.prefix || ''}
                                       onChange={(event) => handleItemChange(selectedReportItem.id, { prefix: event.target.value })}
+                                      placeholder="e.g., $"
                                     />
                                     <TextField
+                                      fullWidth
                                       label="Suffix"
-                                      value={selectedReportItem.suffix}
+                                      value={selectedReportItem.suffix || ''}
                                       onChange={(event) => handleItemChange(selectedReportItem.id, { suffix: event.target.value })}
+                                      placeholder="e.g., %"
                                     />
                                   </Box>
                                   <TextField
-                                    label="Precision"
+                                    fullWidth
+                                    label="Precision (Decimal Places)"
                                     type="number"
-                                    value={selectedReportItem.precision}
+                                    inputProps={{ min: 0, max: 10 }}
+                                    value={selectedReportItem.precision ?? 0}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
                                   />
+                                  <TextField
+                                    fullWidth
+                                    label="Color"
+                                    select
+                                    value={selectedReportItem.color || 'primary'}
+                                    onChange={(event) => handleItemChange(selectedReportItem.id, { color: event.target.value })}
+                                  >
+                                    <MenuItem value="primary">Primary (Blue)</MenuItem>
+                                    <MenuItem value="secondary">Secondary (Purple)</MenuItem>
+                                    <MenuItem value="success">Success (Green)</MenuItem>
+                                    <MenuItem value="error">Error (Red)</MenuItem>
+                                    <MenuItem value="warning">Warning (Orange)</MenuItem>
+                                    <MenuItem value="info">Info (Cyan)</MenuItem>
+                                  </TextField>
                                 </>
                               )}
 
                               {selectedReportItem.type === 'chart' && (
                                 <>
                                   <TextField
+                                    fullWidth
                                     label="Title"
-                                    value={selectedReportItem.title}
+                                    value={selectedReportItem.title || ''}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
+                                    placeholder="e.g., Sales Performance"
                                   />
                                   <TextField
+                                    fullWidth
                                     label="Chart Type"
                                     select
-                                    value={selectedReportItem.chartType}
+                                    value={selectedReportItem.chartType || 'bar'}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { chartType: event.target.value })}
                                   >
-                                    <MenuItem value="bar">Bar</MenuItem>
-                                    <MenuItem value="line">Line</MenuItem>
-                                    <MenuItem value="pie">Pie</MenuItem>
+                                    <MenuItem value="bar">Bar Chart</MenuItem>
+                                    <MenuItem value="line">Line Chart</MenuItem>
+                                    <MenuItem value="pie">Pie Chart</MenuItem>
                                   </TextField>
                                   <TextField
-                                    label="Data Fields"
+                                    fullWidth
+                                    label="Data Fields (Select multiple)"
                                     select
                                     SelectProps={{ multiple: true }}
                                     value={selectedReportItem.dataFields || []}
@@ -2711,6 +2752,7 @@ const ActiveState = () => {
                                     ))}
                                   </TextField>
                                   <TextField
+                                    fullWidth
                                     label="Show Legend"
                                     select
                                     value={selectedReportItem.showLegend ? 'true' : 'false'}
@@ -2725,22 +2767,29 @@ const ActiveState = () => {
                               {selectedReportItem.type === 'formula' && (
                                 <>
                                   <TextField
+                                    fullWidth
                                     label="Title"
-                                    value={selectedReportItem.title}
+                                    value={selectedReportItem.title || ''}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
+                                    placeholder="e.g., Growth Rate"
                                   />
                                   <TextField
+                                    fullWidth
                                     label="Expression"
                                     multiline
                                     minRows={3}
-                                    value={selectedReportItem.expression}
+                                    maxRows={6}
+                                    value={selectedReportItem.expression || ''}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { expression: event.target.value })}
-                                    helperText="Use {{metric.path}} placeholders and math operations"
+                                    helperText="Use {{metric.path}} placeholders and math operations. Example: {{vehicles.total}} / {{devices.online}} * 100"
+                                    placeholder="e.g., {{metric1}} + {{metric2}} * 2"
                                   />
                                   <TextField
-                                    label="Precision"
+                                    fullWidth
+                                    label="Precision (Decimal Places)"
                                     type="number"
-                                    value={selectedReportItem.precision}
+                                    inputProps={{ min: 0, max: 10 }}
+                                    value={selectedReportItem.precision ?? 2}
                                     onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
                                   />
                                 </>
