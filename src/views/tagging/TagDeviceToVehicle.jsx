@@ -246,9 +246,16 @@ function TagDeviceToVehicle() {
       const device = response?.data?.Skytrack_data?.device || response?.Skytrack_data?.device;
       const owner = response?.data?.Skytrack_data?.vehicle_owner.users[0] || response?.Skytrack_data?.vehicle_owner.users[0];
       const vehicle = response?.data?.Skytrack_data || response?.Skytrack_data;
-      const vahanStringData = response?.data?.vahan_data;
-      const vahanJSONData = JSON.parse(vahanStringData);
-      const vahanData = vahanJSONData?.VltdDetailsDobj
+      const rawVahanData = response?.data?.vahan_data ?? response?.vahan_data;
+      let vahanPayload = rawVahanData;
+      if (rawVahanData && typeof rawVahanData === "string") {
+        try {
+          vahanPayload = JSON.parse(rawVahanData);
+        } catch (e) {
+          console.error("Failed to parse vahan_data string", e);
+        }
+      }
+      const vahanData = vahanPayload?.VltdDetailsDobj || response?.data?.VltdDetailsDobj || response?.VltdDetailsDobj;
       setGetMap((prev) => ({
         ...prev,
         regno: vehicle.vehicle_reg_no,
