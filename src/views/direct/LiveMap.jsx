@@ -97,24 +97,38 @@ const MapComponent = ({
       }),
     }),
   };
-
   useEffect(() => {
     // Initialize the map on first render
     const initialMap = new Map({
       target: mapElement.current,
       layers: [
-        ...[...DEFAULT_BHUVAN_LAYER_NAMES, ...customBaseLayers]
-          .filter(Boolean)
-          .map(
-            (layerName) =>
-              new TileLayer({
-                source: createBhuvanSource(layerName),
-              })
-          ),
-        new VectorLayer({
-          source: new VectorSource(),
+        new TileLayer({
+          source: new OSM(),
+        }),
+        new TileLayer({
+          source: new TileWMS({
+            url: process.env.REACT_APP_BHUVAN_URL,
+            params: {
+              'LAYERS': 'basemap%3Aadmin_group',
+              'TILED': true,
+              'VERSION': '1.1.1',
+              'FORMAT': 'image/png',
+              'TRANSPARENT': 'true',
+              'SRS': 'EPSG:4326',
+              'WIDTH': 256,   // Set the tile width to 256 pixels
+              'HEIGHT': 256,   // Set the tile height to 256 pixels
+              'pixelRatio': 1,
+
+            },
+            serverType: 'geoserver',
+            projection: 'EPSG:4326', // Ensure the projection is set:' 
+
+
+
+          })
         }),
       ],
+
 
       view: new View({
         center: fromLonLat([91.829437, 26.131644]), // Initial center of the map

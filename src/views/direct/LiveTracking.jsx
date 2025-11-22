@@ -13,14 +13,18 @@ import {
   Paper,
   Typography,
   Box,
+  Collapse,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import MapComponent from "./LiveMap";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
-import { keyMapping, iconData, iconStyles,fullText,isoDatePattern } from "../../store/constant";
-import {formatDateTime} from "../../helper"
+import FilterListIcon from "@mui/icons-material/FilterList";
+import { keyMapping, iconData, iconStyles, fullText, isoDatePattern } from "../../store/constant";
+import { formatDateTime } from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
 const LiveTracking = () => {
@@ -29,10 +33,15 @@ const LiveTracking = () => {
   const [htmlContent, setHtmlContent] = useState("");
   const [vehicleNo, setVehicleNo] = useState("");
   const [imeiNo, setImeiNo] = useState("");
+  const [owner, setOwner] = useState("");
+  const [poi, setPoi] = useState("");
+  const [roads, setRoads] = useState("");
+  const [polygon, setPolygon] = useState("");
   const [typeFilter, setTypeFilter] = useState("default");
   const [tableDataTop, setTableDataTop] = useState([]); // Data for the scrollable table
   const [selectedId, setSelectedId] = useState(null); // Track the selected button ID
   const [filteredData, setFilteredData] = useState([]); // Data for the bottom table
+  const [showFilters, setShowFilters] = useState(false);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -41,6 +50,14 @@ const LiveTracking = () => {
       setVehicleNo(value);
     } else if (name === "imeiNo") {
       setImeiNo(value);
+    } else if (name === "owner") {
+      setOwner(value);
+    } else if (name === "poi") {
+      setPoi(value);
+    } else if (name === "roads") {
+      setRoads(value);
+    } else if (name === "polygon") {
+      setPolygon(value);
     }
   };
 
@@ -49,12 +66,12 @@ const LiveTracking = () => {
       const retriveData_table = await HomePageService.getLiveTracking_data(
         data
       );
-      
+
       if (Array.isArray(retriveData_table.data.data)) {
         const newData = retriveData_table.data.data;
         setTableDataTop(newData);
         setFilteredData(newData);
-        
+
         // If there's exactly one vehicle, select it automatically
         if (newData.length === 1) {
           setSelectedId(`vehicle-${newData[0].imei}`);
@@ -75,7 +92,7 @@ const LiveTracking = () => {
   // Handle button click, update selectedId and filtered data
   const handleButtonClick = (id) => {
     const selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === id);
-    
+
     if (selectedRow) {
       setSelectedId(id);
       setFilteredData([selectedRow]);
@@ -91,6 +108,10 @@ const LiveTracking = () => {
     const params = {
       imei: imeiNo,
       regno: vehicleNo,
+      owner: owner,
+      poi: poi,
+      roads: roads,
+      polygon: polygon,
     };
     setSelectedId(null); // Reset selection when submitting new search
     retriveMapData(params);
@@ -150,13 +171,13 @@ const LiveTracking = () => {
   const filterByType = (data) => {
     setTypeFilter(data);
     setSelectedId(null); // Reset selection when changing filter
-    
+
     if (data === "default") {
       setFilteredData(tableDataTop);
     } else {
       const filteredRows = tableDataTop.filter(row => getAlartType(row) === data);
       setFilteredData(filteredRows);
-      
+
       // If there's exactly one result after filtering, select it automatically
       if (filteredRows.length === 1) {
         setSelectedId(`vehicle-${filteredRows[0].imei}`);
@@ -185,34 +206,104 @@ const LiveTracking = () => {
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2} className="form-grid-container">
               <Grid item className="grid-item">
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="space-between"
-                >
-                  <TextField
-                    fullWidth
-                    label={t('liveTracking.vehicleRegistrationNo')}
-                    type="text"
-                    value={vehicleNo}
-                    name="vehicleNo"
-                    onChange={handleInput}
-                    variant="outlined"
-                    InputProps={{ sx: { borderRadius: 0 } }}
-                  />
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    className="submit-button"
+                <Box display="flex" flexDirection="column" gap={1}>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
                   >
-                    <SearchIcon title={t('liveTracking.searchButton')} className="submit-button-icon" />
-                  </Button>
+                    <TextField
+                      fullWidth
+                      label={t('liveTracking.vehicleRegistrationNo')}
+                      type="text"
+                      value={vehicleNo}
+                      name="vehicleNo"
+                      onChange={handleInput}
+                      variant="outlined"
+                      size="small"
+                      InputProps={{ sx: { borderRadius: 1 } }}
+                    />
+                    <Tooltip title="Toggle Advanced Filters">
+                      <IconButton
+                        onClick={() => setShowFilters(!showFilters)}
+                        color={showFilters ? "primary" : "default"}
+                        sx={{ border: '1px solid #ccc', borderRadius: 1 }}
+                      >
+                        <FilterListIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      sx={{ minWidth: '50px', height: '40px', borderRadius: 1 }}
+                    >
+                      <SearchIcon />
+                    </Button>
+                  </Box>
+
+                  {/* Collapsible Advanced Filters */}
+                  <Collapse in={showFilters}>
+                    <Grid container spacing={1} sx={{ mt: 0.5, p: 1, bgcolor: '#f9f9f9', borderRadius: 1, border: '1px solid #eee' }}>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Vehicle Owner"
+                          type="text"
+                          value={owner}
+                          name="owner"
+                          onChange={handleInput}
+                          variant="outlined"
+                          size="small"
+                          InputProps={{ sx: { bgcolor: 'white' } }}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="POI"
+                          type="text"
+                          value={poi}
+                          name="poi"
+                          onChange={handleInput}
+                          variant="outlined"
+                          size="small"
+                          InputProps={{ sx: { bgcolor: 'white' } }}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Roads"
+                          type="text"
+                          value={roads}
+                          name="roads"
+                          onChange={handleInput}
+                          variant="outlined"
+                          size="small"
+                          InputProps={{ sx: { bgcolor: 'white' } }}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Polygon"
+                          type="text"
+                          value={polygon}
+                          name="polygon"
+                          onChange={handleInput}
+                          variant="outlined"
+                          size="small"
+                          InputProps={{ sx: { bgcolor: 'white' } }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Collapse>
                 </Box>
               </Grid>
             </Grid>
           </form>
-          <TableContainer component={Paper} className="table-container" sx={{ maxHeight: '80vh' }}>
+          <TableContainer component={Paper} className="table-container" sx={{ maxHeight: '80vh', overflow: 'hidden' }}>
             <Table stickyHeader>
               {iconData && <TableHead>
                 <TableRow>
@@ -252,17 +343,16 @@ const LiveTracking = () => {
                   tableDataTop.map(
                     (row, index) =>
                       checkType(typeFilter, row) && (
-                        <TableRow 
-                          key={`${row.id || ''}-${index}`} 
+                        <TableRow
+                          key={`${row.id || ''}-${index}`}
                           className="table-row"
                           sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                         >
                           <TableCell
                             colSpan={6}
                             onClick={() => handleButtonClick(`vehicle-${row.imei}`)}
-                            className={`table-cell ${
-                              selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
-                            }`}
+                            className={`table-cell ${selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
+                              }`}
                           >
                             <Box display="flex" alignItems="center" gap={1}>
                               <img src={getIconStyle(row)} alt="status icon" style={{ width: '24px', height: '24px' }} />
@@ -274,7 +364,7 @@ const LiveTracking = () => {
                   )
                 ) : (
                   <TableRow key="no-data">
-                    <TableCell colSpan={6} style={{textAlign:'center'}}><CircularProgress size="30px" title={t('liveTracking.noData')} /></TableCell>
+                    <TableCell colSpan={6} style={{ textAlign: 'center' }}><CircularProgress size="30px" title={t('liveTracking.noData')} /></TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -298,8 +388,8 @@ const LiveTracking = () => {
             <TableHead>
               <TableRow>
                 {Object.keys(keyMapping).map((key) => (
-                  <TableCell 
-                    key={key} 
+                  <TableCell
+                    key={key}
                     className="skytron-table-header-cell"
                     sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
                   >
@@ -311,14 +401,14 @@ const LiveTracking = () => {
             <TableBody>
               {filteredData.length > 0 ? (
                 filteredData.map((row, rowIndex) => (
-                  <TableRow 
-                    key={`filtered-${row.id || ''}-${rowIndex}`} 
+                  <TableRow
+                    key={`filtered-${row.id || ''}-${rowIndex}`}
                     className="skytron-table-row"
                     sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                   >
                     {Object.keys(keyMapping).map((key, cellIndex) => (
-                      <TableCell 
-                        key={`cell-${key}-${cellIndex}`} 
+                      <TableCell
+                        key={`cell-${key}-${cellIndex}`}
                         className="skytron-table-cell"
                       >
                         {fullText?.[row[key]] || (isoDatePattern.test(row[key]) && formatDateTime(row[key])) || row[key] || ""}
@@ -340,7 +430,7 @@ const LiveTracking = () => {
           </Table>
         </TableContainer>
       )}
-    </MainCard>
+    </MainCard >
   );
 };
 

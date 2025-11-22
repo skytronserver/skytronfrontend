@@ -22,6 +22,10 @@ const GPSHistoryMap = ({
   vehicleRegistrationNumber,
   downloadStatus,
   setDownloadStatus,
+  poi,
+  owner,
+  roads,
+  polygon,
 }) => {
   const [map, setMap] = useState(null);
   const [mapData, setMapData] = useState([]);
@@ -96,6 +100,10 @@ const GPSHistoryMap = ({
               start_datetime: startDateTime,
               end_datetime: endDateTime,
               vehicle_registration_number: vehicleRegistrationNumber,
+              poi: poi,
+              vehicle_owner: owner,
+              roads: roads,
+              polygon: polygon,
             },
             headers: {
               "Content-Type": "application/json",
@@ -116,7 +124,7 @@ const GPSHistoryMap = ({
 
   useEffect(() => {
     fetchMapData(); // Fetch data on prop changes
-  }, [startDateTime, endDateTime, vehicleRegistrationNumber]);
+  }, [startDateTime, endDateTime, vehicleRegistrationNumber, poi, owner, roads, polygon]);
 
   useEffect(() => {
     if (!map) {
