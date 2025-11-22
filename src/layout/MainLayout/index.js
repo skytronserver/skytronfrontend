@@ -96,6 +96,10 @@ const MainLayout = () => {
   const handleLeftDrawerToggle = () => {
     dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
   };
+  const isAuthenticated =
+    useSelector((state) => state.login.user.isAuthenticated) ||
+    sessionStorage.getItem("isAuthenticated");
+
   useEffect(() => {
     if (location.pathname === '/live-tracking') {
       dispatch({ type: SET_MENU, opened: false });
@@ -107,18 +111,13 @@ const MainLayout = () => {
       dispatch({ type: SET_MENU, opened: true });
     }
   }, [location, matchDownMd, dispatch]);
-  const isAuthenticated =
-    useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated");
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
+
   sessionStorage.getItem("oAuthToken") &&
     createAxiosInstance(sessionStorage.getItem("oAuthToken"));
-    const myDecipher = decipherEncryption("skytrack");
+  const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const userRoles = (userData && data.length > 2 && data[1]) || "desk_ex"; 
+  const userRoles = (userData && data.length > 2 && data[1]) || "desk_ex";
 
   useEffect(() => {
     const shouldFetchOwnerAlerts =
@@ -179,6 +178,11 @@ const MainLayout = () => {
     }
     setOwnerAlertNotification((prev) => ({ ...prev, open: false }));
   };
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />

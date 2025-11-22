@@ -281,7 +281,7 @@ export const districtColumns=[
         filter: true,
         sort: false,
         customBodyRender: (value, tableMeta, updateValue) => {
-          let stateName = value.state;
+          let stateName = value?.state ? value.state : '-';
           return (
             <p>{stateName}</p>
           );

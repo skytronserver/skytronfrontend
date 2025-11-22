@@ -878,6 +878,7 @@
       "sendOwnerOtp": "Send Owner OTP",
       "ownerVerification": "Vehicle Owner Verification",
       "readyForActivation": "Ready for Activation",
+      "sosButtonPress": "SOS Button Press",
       "getLocation": "Get Location",
       "confirmLocation": "Confirm Location",
       "ownerOtpConfirmation": "Owner OTP Confirmation"
@@ -919,6 +920,9 @@
       "ownerOtpSent": "An OTP has been sent to vehicle owner mobile number. Please enter the OTP below to continue.",
       "getVahanDetails": "Click below to get details from Vahan",
       "getLocation": "Click below to get location of Vehicle",
+      "sosButtonInstruction": "Please press the SOS button on your device",
+      "sosButtonPressed": "SOS button pressed successfully",
+      "sosButtonProceed": "SOS button pressed! Proceeding to next step...",
       "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 512KB."
     }
   },

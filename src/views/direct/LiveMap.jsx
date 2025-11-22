@@ -10,7 +10,40 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import { boundingExtent } from "ol/extent";
 
-const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
+const BHUVAN_WMS_URL =
+  process.env.REACT_APP_BHUVAN_URL ||
+  "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+
+const DEFAULT_BHUVAN_LAYER_NAMES = [
+  "basemap:admin_group",
+  "india3",
+  "mmi:mmi_india",
+];
+
+const createBhuvanSource = (layerName) =>
+  new TileWMS({
+    url: BHUVAN_WMS_URL,
+    params: {
+      LAYERS: layerName,
+      TILED: true,
+      VERSION: "1.1.1",
+      FORMAT: "image/png",
+      TRANSPARENT: "true",
+      SRS: "EPSG:4326",
+      WIDTH: 256,
+      HEIGHT: 256,
+    },
+    serverType: "geoserver",
+    projection: "EPSG:4326",
+    transition: 0,
+  });
+
+const MapComponent = ({
+  gpsData,
+  width = "100%",
+  height = "400px",
+  customBaseLayers = [],
+}) => {
   const mapElement = useRef();
   const overlayElement = useRef();
   const [map, setMap] = useState(null);
@@ -18,8 +51,6 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
   const [dynamicOverlay, setDynamicOverlay] = useState(null);
 
   const logoOverlays = useRef([]);
-
-
 
   // Icon styles based on the packet type and conditions
   const iconStyles = {
@@ -67,137 +98,23 @@ const MapComponent = ({ gpsData, width = "100%", height = "400px" }) => {
     }),
   };
 
-
-
-
-
-
-
-
-
-
-
-
-  /*
-    new ol.Map({
-      target: 'map',
-      layers: [
-       new ol.layer.Tile({
-            source: new ol.source.TileWMS({
-                url: '',
-                params: {
-                    'LAYERS': 'india3',
-                    'TILED': true,
-                    'VERSION': '1.1.1',
-                    'FORMAT': 'image/png',
-                    'TRANSPARENT': 'true',
-                    'SRS': 'EPSG:4326',
-                    'WIDTH': 256,   // Set the tile width to 256 pixels
-                    'HEIGHT': 256,   // Set the tile height to 256 pixels
-                    'pixelRatio': 1,
-  
-                },
-                serverType: 'geoserver',
-                projection: 'EPSG:4326', // Ensure the projection is set:' 
-  
-  
-  
-            })
-        }),
-  
-        new ol.layer.Tile({
-          source: new ol.source.OSM()
-        }),
-        //indiabasemap 
-        new ol.layer.Tile({
-          source: new ol.source.TileWMS({
-            url:https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms,
-            params: {
-              'LAYERS': 'basemap%3Aadmin_group',
-              'TILED': true,
-              'VERSION': '1.1.1',
-              'FORMAT': 'image/png',
-              'TRANSPARENT': 'true',
-              'SRS': 'EPSG:4326',
-              'WIDTH': 256,   // Set the tile width to 256 pixels
-              'HEIGHT': 256,   // Set the tile height to 256 pixels
-              'pixelRatio': 1,
-  
-            },
-            serverType: 'geoserver',
-            projection: 'EPSG:4326', // Ensure the projection is set:' 
-  
-  
-  
-          })
-        }),
-        //Road etc 
-         new ol.layer.Tile({
-            source: new ol.source.TileWMS({
-                url:https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms,
-                params: {
-                    'LAYERS': 'mmi:mmi_india',
-                    'TILED': true,
-                    'VERSION': '1.1.1',
-                    'FORMAT': 'image/png',
-                    'TRANSPARENT': 'true',
-                    'SRS': 'EPSG:4326',
-                    'WIDTH': 256,   // Set the tile width to 256 pixels
-                    'HEIGHT': 256,   // Set the tile height to 256 pixels
-                    'pixelRatio': 1,
-  
-                },
-                serverType: 'geoserver',
-                projection: 'EPSG:4326', // Ensure the projection is set:' 
-  
-  
-  
-            })
-        }), 
-  
-  
-  
-      ],
-      view: new ol.View({
-        center: ol.proj.fromLonLat([91.829437, 26.131644]),
-        zoom: 7,
-      }),
-  
-      pixelRatio: 1,
-    });
-  */
   useEffect(() => {
     // Initialize the map on first render
     const initialMap = new Map({
       target: mapElement.current,
       layers: [
-        // new TileLayer({
-        //   source: new OSM(),
-        // }),
-        new TileLayer({
-          source: new TileWMS({
-            url: "https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms",
-            params: {
-              'LAYERS': 'india3',
-              'TILED': true,
-              'VERSION': '1.1.1',
-              'FORMAT': 'image/png',
-              'TRANSPARENT': 'true',
-              'SRS': 'EPSG:4326',
-              'WIDTH': 256,   // Set the tile width to 256 pixels
-              'HEIGHT': 256,   // Set the tile height to 256 pixels
-              'pixelRatio': 1,
-
-            },
-            serverType: 'geoserver',
-            projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
-          })
+        ...[...DEFAULT_BHUVAN_LAYER_NAMES, ...customBaseLayers]
+          .filter(Boolean)
+          .map(
+            (layerName) =>
+              new TileLayer({
+                source: createBhuvanSource(layerName),
+              })
+          ),
+        new VectorLayer({
+          source: new VectorSource(),
         }),
       ],
-
 
       view: new View({
         center: fromLonLat([91.829437, 26.131644]), // Initial center of the map

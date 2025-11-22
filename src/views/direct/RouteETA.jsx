@@ -17,8 +17,13 @@ import {
   ListItemButton,
   IconButton,
   Collapse,
+  Card,
+  CardContent,
+  ListItemIcon,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
-import { ExpandLess, ExpandMore, History, Delete, Route } from '@mui/icons-material';
+import { ExpandLess, ExpandMore, History, Delete, Route, Navigation, MyLocation, DirectionsCar } from '@mui/icons-material';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
@@ -49,6 +54,7 @@ register(proj4);
 const RouteETA = () => {
   const [deviceList, setDeviceList] = useState([]);
   const [deviceId, setDeviceId] = useState("");
+  const [selectedVehicleReg, setSelectedVehicleReg] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [points, setPoints] = useState([]);
   const [distance, setDistance] = useState(null);
@@ -56,6 +62,7 @@ const RouteETA = () => {
   const [pointLabels, setPointLabels] = useState(["Start Point", "End Point"]);
   const mapRef = useRef(null);
   const vectorSourceRef = useRef(new VectorSource());
+  const vehicleSourceRef = useRef(new VectorSource());
   const map = useRef(null);
   const AVG_SPEED_KMH = 40; // Average speed in km/h
   const [alert, setAlert] = useState({
@@ -64,243 +71,147 @@ const RouteETA = () => {
     type: "success"
   });
   const [savedRoutes, setSavedRoutes] = useState([]);
-  const [expandHistory, setExpandHistory] = useState(true);
+  const [expandHistory, setExpandHistory] = useState(false);
+  const [expandInstructions, setExpandInstructions] = useState(true);
+  const [instructions, setInstructions] = useState([]);
 
-  // Create stable function references for event handlers
-  const addPointRef = useRef((coord) => {
-    console.log("Adding point via ref:", coord);
-    
-    setPoints(prevPoints => {
-      console.log("Previous points:", prevPoints);
-      const updatedPoints = [...prevPoints, coord];
-      console.log("Updated points:", updatedPoints);
-      
-      // Calculate route if we have 2 points
-      if (updatedPoints.length === 2) {
-        console.log("We have 2 points, calculating route");
-        calculateRoute(updatedPoints);
-      }
-      
-      return updatedPoints;
+  // Live Tracking State
+  const [isTracking, setIsTracking] = useState(false);
+  const [liveLocation, setLiveLocation] = useState(null);
+  const trackingIntervalRef = useRef(null);
+
+  // Icon Styles
+  const iconStyles = {
+    red: new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
+        scale: 0.20,
+      }),
+    }),
+    orange: new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/orange-skytron-transparent.png`,
+        scale: 0.20,
+      }),
+    }),
+    blue: new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/blue-skytron-transparent.png`,
+        scale: 0.20,
+      }),
+    }),
+    green: new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/green-skytron-transparent.png`,
+        scale: 0.20,
+      }),
+    }),
+    grey: new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: `${process.env.REACT_APP_BASE_URL}static/logo/grey-skytron-transparent.png`,
+        scale: 0.20,
+      }),
+    }),
+    default: new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+        scale: 0.05,
+      }),
+    }),
+  };
+
+  // Function Definitions (Ordered by dependency)
+
+  const updateVehicleOnMap = (data) => {
+    if (!data || !data.latitude || !data.longitude) return;
+
+    vehicleSourceRef.current.clear();
+
+    const coordinates = fromLonLat([parseFloat(data.longitude), parseFloat(data.latitude)]);
+
+    const vehicleFeature = new Feature({
+      geometry: new Point(coordinates),
+      name: "Live Vehicle",
+      data: data
     });
-  });
 
-  const clearPointsRef = useRef(() => {
-    console.log("Clearing points");
-    setPoints([]);
-    setDistance(null);
-    setEta(null);
-  });
+    const entryTime = new Date(data.entry_time);
+    const currentTime = new Date();
+    const timeDiffMinutes = (currentTime - entryTime) / (1000 * 60);
 
-  // Update references when functions change
-  useEffect(() => {
-    addPointRef.current = addPoint;
-    clearPointsRef.current = clearPoints;
-  }, []);
+    let selectedStyleBase;
 
-  // Add token verification on component mount
-  useEffect(() => {
-    const token = sessionStorage.getItem("oAuthToken");
-    if (!token) {
-      setAlert({
-        open: true,
-        message: "Please log in to use the route calculator.",
-        type: "error"
-      });
-      return;
+    if (data.packet_type === "EA") {
+      selectedStyleBase = iconStyles.red;
+    } else if (data.packet_type !== "NR") {
+      selectedStyleBase = iconStyles.orange;
+    } else if (String(data.ignition_status) === "1" && data.speed < 1) {
+      selectedStyleBase = iconStyles.blue;
+    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
+      selectedStyleBase = iconStyles.green;
+    } else if (timeDiffMinutes > 5) {
+      selectedStyleBase = iconStyles.grey;
+    } else {
+      selectedStyleBase = iconStyles.default;
     }
-    
-    // Ensure axios instance is created with the token
+
+    // Create a new style combining the selected icon and the text label
+    const finalStyle = new Style({
+      image: selectedStyleBase.getImage(),
+      text: new Text({
+        text: data.vehicle_registration_number,
+        offsetY: -40,
+        font: 'bold 12px Arial',
+        fill: new Fill({ color: '#000' }),
+        stroke: new Stroke({ color: '#fff', width: 3 }),
+        backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.7)' }),
+        padding: [2, 2, 2, 2]
+      })
+    });
+
+    vehicleFeature.setStyle(finalStyle);
+    vehicleSourceRef.current.addFeature(vehicleFeature);
+  };
+
+  const fetchLiveLocation = async () => {
     try {
-      createAxiosInstance(token);
-    } catch (error) {
-      console.error("Error creating axios instance:", error);
-      setAlert({
-        open: true,
-        message: "Error initializing route calculator. Please try logging in again.",
-        type: "error"
-      });
-    }
-  }, []);
+      // We need the IMEI, but we only have reg no in state if selected via autocomplete
+      // Find the full device object
+      const deviceObj = deviceList.find(d => d.vehicle_reg_no === selectedVehicleReg);
 
-  useEffect(() => {
-    const fetchDeviceList = async () => {
-      try {
-        const retriveData = await TaggingService.getOwnerList();
-        setDeviceList(retriveData.data);
-      } catch (error) {
-        console.error("Error fetching device list:", error);
-        setAlert({
-          open: true,
-          message: "Failed to fetch vehicle list. Please try again.",
-          type: "error"
-        });
+      if (!deviceObj) {
+        console.warn("Device not found for tracking");
+        return;
       }
-    };
-    fetchDeviceList();
-  }, []);
 
-  // Initialize map on first render
-  useEffect(() => {
-    if (!map.current) {
-      const initialMap = new Map({
-        target: mapRef.current,
-        layers: [
-          new TileLayer({
-            source: new OSM(),
-          }),
-          // India3 layer
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'india3',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-          // Admin group layer (basemap)
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'basemap%3Aadmin_group',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-          // Roads layer (mmi_india)
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'mmi:mmi_india',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-        ],
-        view: new View({
-          center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
-          zoom: 7,
-          projection: 'EPSG:3857', // WebMercator projection
-        }),
-        pixelRatio: 1,
-      });
+      const params = {
+        imei: deviceObj.device.device_unique_id,
+        regno: selectedVehicleReg
+      };
 
-      const vectorLayer = new VectorLayer({
-        source: vectorSourceRef.current,
-      });
+      const response = await HomePageService.getLiveTracking_data(params);
 
-      initialMap.addLayer(vectorLayer);
-      map.current = initialMap;
-    }
-
-    // Use OpenLayers' proper click event handling
-    // Clean up previous click handlers if any
-    if (map.current) {
-      const mapClickListeners = map.current.getListeners('click');
-      if (mapClickListeners) {
-        mapClickListeners.forEach(listener => {
-          map.current.un('click', listener);
-        });
-      }
-      
-      // Add new click handler
-      map.current.on('click', function(evt) {
-        try {
-          console.log("Map clicked at:", evt.coordinate);
-          
-          // Convert to EPSG:4326 (lon/lat)
-          const lonLatCoord = toLonLat(evt.coordinate);
-          console.log("Converted to lon/lat:", lonLatCoord);
-          
-          // Limit to 2 points for start and end
-          if (points.length < 2) {
-            addPointRef.current(lonLatCoord);
-          } else {
-            // If we already have 2 points, reset and add the new point
-            clearPointsRef.current();
-            // Need setTimeout to ensure state updates before adding new point
-            setTimeout(() => {
-              addPointRef.current(lonLatCoord);
-            }, 0);
-          }
-        } catch (error) {
-          console.error("Error handling map click:", error);
-          setAlert({
-            open: true,
-            message: "Error adding point to map. Please try again.",
-            type: "error"
-          });
-        }
-      });
-    }
-
-    return () => {
-      // Clean up click handlers when component unmounts or dependencies change
-      if (map.current) {
-        const mapClickListeners = map.current.getListeners('click');
-        if (mapClickListeners) {
-          mapClickListeners.forEach(listener => {
-            map.current.un('click', listener);
-          });
-        }
-      }
-    };
-  }, []); // Empty dependency array, only run on mount
-
-  // Update map when points change
-  useEffect(() => {
-    console.log("Points changed, updating map:", points);
-    updateMapPoints(points);
-  }, [points]);
-
-  // Load saved routes from localStorage on component mount
-  useEffect(() => {
-    try {
-      const storedRoutes = localStorage.getItem(`routeETA_${deviceId}`);
-      if (storedRoutes) {
-        setSavedRoutes(JSON.parse(storedRoutes));
+      if (response.data && response.data.data && response.data.data.length > 0) {
+        const vehicleData = response.data.data[0];
+        setLiveLocation(vehicleData);
+        updateVehicleOnMap(vehicleData);
       }
     } catch (error) {
-      console.error("Error loading saved routes:", error);
+      console.error("Error fetching live location:", error);
     }
-  }, [deviceId]);
+  };
 
-  // Save route to history after successful calculation
   const saveRouteToHistory = (route) => {
     try {
       // Create a unique ID for this route
       const routeId = Date.now().toString();
-      
+
       const routeData = {
         id: routeId,
         timestamp: new Date().toISOString(),
@@ -308,19 +219,20 @@ const RouteETA = () => {
         endPoint: points[1],
         distance: distance,
         eta: eta,
-        deviceId: deviceId
+        deviceId: deviceId,
+        instructions: instructions // Save instructions too
       };
-      
+
       setSavedRoutes(prevRoutes => {
         // Add to beginning, keep max 10 routes
         const updatedRoutes = [routeData, ...prevRoutes].slice(0, 10);
-        
+
         // Save to localStorage
         localStorage.setItem(`routeETA_${deviceId}`, JSON.stringify(updatedRoutes));
-        
+
         return updatedRoutes;
       });
-      
+
       setAlert({
         open: true,
         message: "Route saved to history",
@@ -331,99 +243,302 @@ const RouteETA = () => {
     }
   };
 
-  // Delete a saved route
-  const deleteRoute = (routeId) => {
-    setSavedRoutes(prevRoutes => {
-      const updatedRoutes = prevRoutes.filter(route => route.id !== routeId);
-      
-      // Update localStorage
-      localStorage.setItem(`routeETA_${deviceId}`, JSON.stringify(updatedRoutes));
-      
-      return updatedRoutes;
-    });
-  };
-
-  // Load a saved route
-  const loadRoute = (route) => {
+  const calculateStraightLineDistance = (points) => {
     try {
-      setPoints([route.startPoint, route.endPoint]);
-      setDistance(route.distance);
-      setEta(route.eta);
-      
-      // This will trigger a map update via the useEffect that watches points
-      
-      setAlert({
-        open: true,
-        message: "Previous route loaded",
-        type: "info"
-      });
-    } catch (error) {
-      console.error("Error loading saved route:", error);
-      setAlert({
-        open: true,
-        message: "Error loading route. Please try again.",
-        type: "error"
-      });
-    }
-  };
+      if (!points || !Array.isArray(points) || points.length !== 2) {
+        console.error("Invalid points for straight line calculation:", points);
+        setDistance(null);
+        setEta(null);
+        return;
+      }
 
-  const handleAutocompleteChange = (event, newValue) => {
-    if (newValue) {
-      setDeviceId(newValue.device.id);
-    }
-  };
-
-  // Add a point on the map and update state
-  const addPoint = (coord) => {
-    try {
-      console.log("Adding point:", coord);
-      
-      setPoints(prevPoints => {
-        console.log("Previous points:", prevPoints);
-        const updatedPoints = [...prevPoints, coord];
-        console.log("Updated points:", updatedPoints);
-        
-        // Update the map visualization
-        updateMapPoints(updatedPoints);
-        
-        // Calculate route if we have 2 points
-        if (updatedPoints.length === 2) {
-          console.log("We have 2 points, calculating route");
-          calculateRoute(updatedPoints);
+      // Validate each point
+      for (const point of points) {
+        if (!point || !Array.isArray(point) || point.length < 2) {
+          console.error("Invalid coordinate in calculateStraightLineDistance:", point);
+          setDistance(null);
+          setEta(null);
+          return;
         }
-        
-        return updatedPoints;
-      });
+      }
+
+      const R = 6371; // Earth's radius in km
+      const [lon1, lat1] = points[0];
+      const [lon2, lat2] = points[1];
+
+      if (isNaN(lon1) || isNaN(lat1) || isNaN(lon2) || isNaN(lat2)) {
+        console.error("Invalid numeric coordinates:", points);
+        setDistance(null);
+        setEta(null);
+        return;
+      }
+
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const calculatedDistance = R * c;
+
+      if (isNaN(calculatedDistance)) {
+        console.error("Error: Distance calculation resulted in NaN");
+        setDistance(null);
+        setEta(null);
+        return;
+      }
+
+      // Set the distance with 2 decimal places
+      setDistance(calculatedDistance.toFixed(2));
+
+      // Calculate ETA based on average speed
+      const timeInHours = calculatedDistance / AVG_SPEED_KMH;
+      const hours = Math.floor(timeInHours);
+      const minutes = Math.round((timeInHours - hours) * 60);
+
+      setEta({ hours, minutes });
     } catch (error) {
-      console.error("Error adding point:", error);
+      console.error("Error calculating straight line distance:", error);
+      setDistance(null);
+      setEta(null);
       setAlert({
         open: true,
-        message: "Error adding point. Please try again.",
+        message: "Error calculating distance. Please try again.",
         type: "error"
       });
     }
   };
 
-  const clearPoints = () => {
-    console.log("Clearing points from state and map");
-    setPoints([]);
-    setDistance(null);
-    setEta(null);
-    
-    // Ensure vector source is cleared
-    if (vectorSourceRef.current) {
-      console.log("Clearing vector source");
+  const calculateRoute = async (routePoints) => {
+    try {
+      if (!routePoints || !Array.isArray(routePoints) || routePoints.length !== 2) {
+        console.error("Invalid route points:", routePoints);
+        setAlert({
+          open: true,
+          message: "Invalid route points for calculation.",
+          type: "error"
+        });
+        return;
+      }
+
+      // Validate each point
+      for (const point of routePoints) {
+        if (!point || !Array.isArray(point) || point.length < 2) {
+          console.error("Invalid coordinate in calculateRoute:", point);
+          setAlert({
+            open: true,
+            message: "Invalid coordinates for route calculation.",
+            type: "error"
+          });
+          return;
+        }
+      }
+
+      // Clear previous route
       vectorSourceRef.current.clear();
-    } else {
-      console.warn("Vector source ref is undefined");
+      setInstructions([]);
+
+      // Add start and end points to the map
+      routePoints.forEach((coord, index) => {
+        const pointFeature = new Feature({
+          geometry: new Point(fromLonLat(coord)),
+          name: pointLabels[index],
+        });
+
+        const pointStyle = new Style({
+          image: new Circle({
+            radius: 7,
+            fill: new Fill({
+              color: index === 0 ? '#007bff' : '#dc3545',
+            }),
+            stroke: new Stroke({
+              color: '#ffffff',
+              width: 2,
+            }),
+          }),
+        });
+
+        pointFeature.setStyle(pointStyle);
+        vectorSourceRef.current.addFeature(pointFeature);
+      });
+
+      // Try to get route from API
+      const routeData = await HomePageService.getRoute({ points: routePoints });
+      console.log("Route data from API:", routeData);
+
+      // Check if we have valid paths data
+      if (!routeData?.data?.data?.paths?.[0]?.points?.coordinates) {
+        throw new Error('Invalid route data received');
+      }
+
+      const path = routeData.data.data.paths[0];
+      const coordinates = path.points.coordinates;
+
+      // Set instructions if available
+      if (path.instructions) {
+        setInstructions(path.instructions);
+      }
+
+      // API returned valid distance
+      const distanceInKm = path.distance / 1000; // Convert from meters to km
+      setDistance(distanceInKm.toFixed(2));
+
+      // Calculate ETA based on average speed (40 km/h)
+      const timeInHours = distanceInKm / AVG_SPEED_KMH;
+      const hours = Math.floor(timeInHours);
+      const minutes = Math.round((timeInHours - hours) * 60);
+
+      setEta({ hours, minutes });
+
+      // Format ETA text for display
+      const etaText = `${hours > 0 ? `${hours}h ` : ''}${minutes}m`;
+
+      // Draw the actual route
+      const routeCoordinates = coordinates.map(coord => fromLonLat(coord));
+
+      const routeFeature = new Feature({
+        geometry: new LineString(routeCoordinates),
+      });
+
+      routeFeature.setStyle(new Style({
+        stroke: new Stroke({
+          color: '#0066ff',
+          width: 4,
+        }),
+      }));
+
+      vectorSourceRef.current.addFeature(routeFeature);
+
+      // Add ETA text at the middle of the route
+      if (routeCoordinates.length > 0) {
+        const midPointIndex = Math.floor(routeCoordinates.length / 2);
+        const midPoint = routeCoordinates[midPointIndex];
+
+        // Create a point feature for the ETA display
+        const etaFeature = new Feature({
+          geometry: new Point(midPoint),
+        });
+
+        etaFeature.setStyle(new Style({
+          text: new Text({
+            text: `${distanceInKm.toFixed(2)} km (${etaText})`,
+            font: 'bold 14px Arial',
+            padding: [5, 5, 5, 5],
+            backgroundFill: new Fill({
+              color: 'rgba(255, 255, 255, 0.8)',
+            }),
+            fill: new Fill({
+              color: '#0066ff',
+            }),
+            stroke: new Stroke({
+              color: '#ffffff',
+              width: 3,
+            }),
+          }),
+        }));
+
+        vectorSourceRef.current.addFeature(etaFeature);
+      }
+
+      // Fit the map to show the route
+      const extent = routeFeature.getGeometry().getExtent();
+      if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
+        map.current.getView().fit(extent, {
+          padding: [70, 70, 70, 70],
+          duration: 1000,
+          maxZoom: 17,
+        });
+      }
+
+      setAlert({
+        open: true,
+        message: "Route calculated successfully!",
+        type: "success"
+      });
+
+      // Save the route to history if device is selected
+      if (deviceId) {
+        saveRouteToHistory({
+          ...path,
+          hash: routeData.data.hash,
+          instructions: path.instructions
+        });
+      }
+    } catch (error) {
+      console.error("Error calculating route:", error);
+      setAlert({
+        open: true,
+        message: "Error calculating route. Falling back to straight line distance.",
+        type: "warning"
+      });
+
+      // Fallback to straight line calculation
+      calculateStraightLineDistance(routePoints);
+
+      // Draw a simple straight line between points
+      const lineCoordinates = routePoints.map(coord => fromLonLat(coord));
+      const lineFeature = new Feature({
+        geometry: new LineString(lineCoordinates),
+      });
+
+      lineFeature.setStyle(new Style({
+        stroke: new Stroke({
+          color: '#ff6b6b',
+          width: 3,
+          lineDash: [5, 5], // Dashed line to indicate it's an approximate route
+        }),
+      }));
+
+      vectorSourceRef.current.addFeature(lineFeature);
+
+      // Only add the distance/time label if we have valid values
+      if (distance !== null && eta !== null) {
+        // Calculate midpoint for showing the distance/time
+        const midPoint = [
+          (lineCoordinates[0][0] + lineCoordinates[1][0]) / 2,
+          (lineCoordinates[0][1] + lineCoordinates[1][1]) / 2
+        ];
+
+        // Create a point feature for the display
+        const etaFeature = new Feature({
+          geometry: new Point(midPoint),
+        });
+
+        // Format ETA text
+        const etaText = eta ?
+          `${eta.hours > 0 ? `${eta.hours}h ` : ''}${eta.minutes}m` :
+          'N/A';
+
+        etaFeature.setStyle(new Style({
+          text: new Text({
+            text: `${parseFloat(distance).toFixed(2)} km (${etaText}) - Direct`,
+            font: 'bold 14px Arial',
+            padding: [5, 5, 5, 5],
+            backgroundFill: new Fill({
+              color: 'rgba(255, 255, 255, 0.8)',
+            }),
+            fill: new Fill({
+              color: '#ff6b6b',
+            }),
+            stroke: new Stroke({
+              color: '#ffffff',
+              width: 3,
+            }),
+          }),
+        }));
+
+        vectorSourceRef.current.addFeature(etaFeature);
+      }
     }
   };
 
-  // Update map with points and route line
   const updateMapPoints = (points) => {
     try {
       console.log("Updating map with points:", points);
-      
+
       if (!points || !Array.isArray(points) || points.length === 0) {
         console.log("No points to display, clearing vector source");
         vectorSourceRef.current.clear();
@@ -492,7 +607,7 @@ const RouteETA = () => {
         const lineFeature = new Feature({
           geometry: new LineString(lineCoordinates),
         });
-        
+
         lineFeature.setStyle(new Style({
           stroke: new Stroke({
             color: '#cccccc',
@@ -500,9 +615,9 @@ const RouteETA = () => {
             lineDash: [5, 5], // Dashed line for temporary route
           }),
         }));
-        
+
         vectorSourceRef.current.addFeature(lineFeature);
-        
+
         // Fit view to the points
         const extent = lineFeature.getGeometry().getExtent();
         if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
@@ -518,313 +633,453 @@ const RouteETA = () => {
     }
   };
 
-  // Calculate route using the API or direct line distance
-  const calculateRoute = async (routePoints) => {
+  const addPoint = (coord) => {
     try {
-      if (!routePoints || !Array.isArray(routePoints) || routePoints.length !== 2) {
-        console.error("Invalid route points:", routePoints);
-        setAlert({
-          open: true,
-          message: "Invalid route points for calculation.",
-          type: "error"
-        });
-        return;
-      }
+      console.log("Adding point:", coord);
 
-      // Validate each point
-      for (const point of routePoints) {
-        if (!point || !Array.isArray(point) || point.length < 2) {
-          console.error("Invalid coordinate in calculateRoute:", point);
-          setAlert({
-            open: true,
-            message: "Invalid coordinates for route calculation.",
-            type: "error"
-          });
-          return;
-      }
-      }
-      
-      // Clear previous route
-      vectorSourceRef.current.clear();
-      
-      // Add start and end points to the map
-      routePoints.forEach((coord, index) => {
-        const pointFeature = new Feature({
-          geometry: new Point(fromLonLat(coord)),
-          name: pointLabels[index],
-        });
+      setPoints(prevPoints => {
+        console.log("Previous points:", prevPoints);
+        const updatedPoints = [...prevPoints, coord];
+        console.log("Updated points:", updatedPoints);
 
-        const pointStyle = new Style({
-          image: new Circle({
-            radius: 7,
-            fill: new Fill({
-              color: index === 0 ? '#007bff' : '#dc3545',
-            }),
-            stroke: new Stroke({
-              color: '#ffffff',
-              width: 2,
-            }),
-          }),
-        });
+        // Update the map visualization
+        updateMapPoints(updatedPoints);
 
-        pointFeature.setStyle(pointStyle);
-        vectorSourceRef.current.addFeature(pointFeature);
-      });
-      
-      // Try to get route from API
-      const routeData = await HomePageService.getRoute({ points: routePoints });
-      console.log("Route data from API:", routeData);
-      
-      // Check if we have valid paths data
-      if (!routeData?.data?.data?.paths?.[0]?.points?.coordinates) {
-        throw new Error('Invalid route data received');
-      }
-
-      const path = routeData.data.data.paths[0];
-      const coordinates = path.points.coordinates;
-      
-      // API returned valid distance
-      const distanceInKm = path.distance / 1000; // Convert from meters to km
-      setDistance(distanceInKm.toFixed(2));
-      
-      // Calculate ETA based on average speed (40 km/h)
-      const timeInHours = distanceInKm / AVG_SPEED_KMH;
-      const hours = Math.floor(timeInHours);
-      const minutes = Math.round((timeInHours - hours) * 60);
-      
-      setEta({ hours, minutes });
-
-      // Format ETA text for display
-      const etaText = `${hours > 0 ? `${hours}h ` : ''}${minutes}m`;
-      
-      // Draw the actual route
-      const routeCoordinates = coordinates.map(coord => fromLonLat(coord));
-      
-      const routeFeature = new Feature({
-        geometry: new LineString(routeCoordinates),
-      });
-      
-      routeFeature.setStyle(new Style({
-        stroke: new Stroke({
-          color: '#0066ff',
-          width: 4,
-        }),
-      }));
-      
-      vectorSourceRef.current.addFeature(routeFeature);
-      
-      // Add ETA text at the middle of the route
-      if (routeCoordinates.length > 0) {
-        const midPointIndex = Math.floor(routeCoordinates.length / 2);
-        const midPoint = routeCoordinates[midPointIndex];
-        
-        // Create a point feature for the ETA display
-        const etaFeature = new Feature({
-          geometry: new Point(midPoint),
-        });
-        
-        etaFeature.setStyle(new Style({
-          text: new Text({
-            text: `${distanceInKm.toFixed(2)} km (${etaText})`,
-            font: 'bold 14px Arial',
-            padding: [5, 5, 5, 5],
-            backgroundFill: new Fill({
-              color: 'rgba(255, 255, 255, 0.8)',
-            }),
-            fill: new Fill({
-              color: '#0066ff',
-            }),
-            stroke: new Stroke({
-              color: '#ffffff',
-              width: 3,
-            }),
-          }),
-        }));
-        
-        vectorSourceRef.current.addFeature(etaFeature);
-      }
-      
-      // Fit the map to show the route
-      const extent = routeFeature.getGeometry().getExtent();
-      if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
-        map.current.getView().fit(extent, {
-          padding: [70, 70, 70, 70],
-          duration: 1000,
-          maxZoom: 17,
-        });
-      }
-      
-      setAlert({
-        open: true,
-        message: "Route calculated successfully!",
-        type: "success"
-      });
-      
-      // Save the route to history if device is selected
-      if (deviceId) {
-        saveRouteToHistory({
-          ...path,
-          hash: routeData.data.hash
-        });
-      }
-    } catch (error) {
-      console.error("Error calculating route:", error);
-      setAlert({
-        open: true,
-        message: "Error calculating route. Falling back to straight line distance.",
-        type: "warning"
-      });
-      
-      // Fallback to straight line calculation
-      calculateStraightLineDistance(routePoints);
-      
-      // Draw a simple straight line between points
-      const lineCoordinates = routePoints.map(coord => fromLonLat(coord));
-      const lineFeature = new Feature({
-        geometry: new LineString(lineCoordinates),
-      });
-      
-      lineFeature.setStyle(new Style({
-        stroke: new Stroke({
-          color: '#ff6b6b',
-          width: 3,
-          lineDash: [5, 5], // Dashed line to indicate it's an approximate route
-        }),
-      }));
-      
-      vectorSourceRef.current.addFeature(lineFeature);
-      
-      // Only add the distance/time label if we have valid values
-      if (distance !== null && eta !== null) {
-        // Calculate midpoint for showing the distance/time
-        const midPoint = [
-          (lineCoordinates[0][0] + lineCoordinates[1][0]) / 2,
-          (lineCoordinates[0][1] + lineCoordinates[1][1]) / 2
-        ];
-        
-        // Create a point feature for the display
-        const etaFeature = new Feature({
-          geometry: new Point(midPoint),
-        });
-        
-        // Format ETA text
-        const etaText = eta ? 
-          `${eta.hours > 0 ? `${eta.hours}h ` : ''}${eta.minutes}m` : 
-          'N/A';
-        
-        etaFeature.setStyle(new Style({
-          text: new Text({
-            text: `${parseFloat(distance).toFixed(2)} km (${etaText}) - Direct`,
-            font: 'bold 14px Arial',
-            padding: [5, 5, 5, 5],
-            backgroundFill: new Fill({
-              color: 'rgba(255, 255, 255, 0.8)',
-            }),
-            fill: new Fill({
-              color: '#ff6b6b',
-            }),
-            stroke: new Stroke({
-              color: '#ffffff',
-              width: 3,
-            }),
-          }),
-        }));
-        
-        vectorSourceRef.current.addFeature(etaFeature);
-      }
-    }
-  };
-
-  // Fallback method to calculate straight line distance
-  const calculateStraightLineDistance = (points) => {
-    try {
-      if (!points || !Array.isArray(points) || points.length !== 2) {
-        console.error("Invalid points for straight line calculation:", points);
-        setDistance(null);
-        setEta(null);
-        return;
-      }
-
-      // Validate each point
-      for (const point of points) {
-        if (!point || !Array.isArray(point) || point.length < 2) {
-          console.error("Invalid coordinate in calculateStraightLineDistance:", point);
-          setDistance(null);
-          setEta(null);
-          return;
+        // Calculate route if we have 2 points
+        if (updatedPoints.length === 2) {
+          console.log("We have 2 points, calculating route");
+          calculateRoute(updatedPoints);
         }
-      }
-      
-      const R = 6371; // Earth's radius in km
-      const [lon1, lat1] = points[0];
-      const [lon2, lat2] = points[1];
-      
-      if (isNaN(lon1) || isNaN(lat1) || isNaN(lon2) || isNaN(lat2)) {
-        console.error("Invalid numeric coordinates:", points);
-        setDistance(null);
-        setEta(null);
-        return;
-      }
-      
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      
-      const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-      
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const calculatedDistance = R * c;
-      
-      if (isNaN(calculatedDistance)) {
-        console.error("Error: Distance calculation resulted in NaN");
-        setDistance(null);
-        setEta(null);
-        return;
-      }
-      
-      // Set the distance with 2 decimal places
-      setDistance(calculatedDistance.toFixed(2));
-      
-      // Calculate ETA based on average speed
-      const timeInHours = calculatedDistance / AVG_SPEED_KMH;
-      const hours = Math.floor(timeInHours);
-      const minutes = Math.round((timeInHours - hours) * 60);
-      
-      setEta({ hours, minutes });
+
+        return updatedPoints;
+      });
     } catch (error) {
-      console.error("Error calculating straight line distance:", error);
-      setDistance(null);
-      setEta(null);
+      console.error("Error adding point:", error);
       setAlert({
         open: true,
-        message: "Error calculating distance. Please try again.",
+        message: "Error adding point. Please try again.",
         type: "error"
       });
     }
   };
 
+  const clearPoints = () => {
+    console.log("Clearing points from state and map");
+    setPoints([]);
+    setDistance(null);
+    setEta(null);
+    setInstructions([]);
+
+    // Ensure vector source is cleared
+    if (vectorSourceRef.current) {
+      console.log("Clearing vector source");
+      vectorSourceRef.current.clear();
+    } else {
+      console.warn("Vector source ref is undefined");
+    }
+  };
+
+  const setStartToVehicleLocation = async () => {
+    if (!deviceId) {
+      setAlert({
+        open: true,
+        message: "Please select a vehicle first",
+        type: "warning"
+      });
+      return;
+    }
+
+    let location = liveLocation;
+
+    // If we don't have live location yet, try to fetch it
+    if (!location) {
+      try {
+        const deviceObj = deviceList.find(d => d.vehicle_reg_no === selectedVehicleReg);
+        if (deviceObj) {
+          const params = {
+            imei: deviceObj.device.device_unique_id,
+            regno: selectedVehicleReg
+          };
+          const response = await HomePageService.getLiveTracking_data(params);
+          if (response.data && response.data.data && response.data.data.length > 0) {
+            location = response.data.data[0];
+            setLiveLocation(location);
+            updateVehicleOnMap(location);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (location) {
+      const coord = [parseFloat(location.longitude), parseFloat(location.latitude)];
+      // Reset points to just the start point
+      setPoints([coord]);
+      // Clear previous route/distance/eta
+      setDistance(null);
+      setEta(null);
+      setInstructions([]);
+      // Update map
+      updateMapPoints([coord]);
+
+      setAlert({
+        open: true,
+        message: "Start point set to vehicle location. Click on map for End point.",
+        type: "info"
+      });
+    } else {
+      setAlert({
+        open: true,
+        message: "Could not get vehicle location. Ensure device is online.",
+        type: "error"
+      });
+    }
+  };
+
+  // Create stable function references for event handlers
+  // Note: These refs are used in the map click handler which is set up in useEffect
+  const addPointRef = useRef(null);
+  const clearPointsRef = useRef(null);
+
+  // Update references when functions change
+  useEffect(() => {
+    addPointRef.current = addPoint;
+    clearPointsRef.current = clearPoints;
+  }, []); // We can't put addPoint/clearPoints in deps if they are recreated on every render, but here they are defined inside component so they are.
+  // Actually, since we moved addPoint and clearPoints to be defined inside the component body, they will be recreated on every render.
+  // But the useEffect [addPoint, clearPoints] would cause infinite loop if we are not careful.
+  // The previous implementation had them defined as const inside component too.
+  // The refs are used to break the closure in the map click listener.
+
+  // To fix the dependency issue, we should update the refs whenever the component renders.
+  addPointRef.current = addPoint;
+  clearPointsRef.current = clearPoints;
+
+  // Add token verification on component mount
+  useEffect(() => {
+    const token = sessionStorage.getItem("oAuthToken");
+    if (!token) {
+      setAlert({
+        open: true,
+        message: "Please log in to use the route calculator.",
+        type: "error"
+      });
+      return;
+    }
+
+    // Ensure axios instance is created with the token
+    try {
+      createAxiosInstance(token);
+    } catch (error) {
+      console.error("Error creating axios instance:", error);
+      setAlert({
+        open: true,
+        message: "Error initializing route calculator. Please try logging in again.",
+        type: "error"
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchDeviceList = async () => {
+      try {
+        const retriveData = await TaggingService.getOwnerList();
+        setDeviceList(retriveData.data);
+      } catch (error) {
+        console.error("Error fetching device list:", error);
+        setAlert({
+          open: true,
+          message: "Failed to fetch vehicle list. Please try again.",
+          type: "error"
+        });
+      }
+    };
+    fetchDeviceList();
+  }, []);
+
+  // Initialize map on first render
+  useEffect(() => {
+    if (!map.current) {
+      const initialMap = new Map({
+        target: mapRef.current,
+        layers: [
+          new TileLayer({
+            source: new OSM(),
+          }),
+          // India3 layer
+          // new TileLayer({
+          //   source: new TileWMS({
+          //     url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+          //     params: {
+          //       'LAYERS': 'india3',
+          //       'TILED': true,
+          //       'VERSION': '1.1.1',
+          //       'FORMAT': 'image/png',
+          //       'TRANSPARENT': 'true',
+          //       'SRS': 'EPSG:4326',
+          //       'WIDTH': 256,
+          //       'HEIGHT': 256,
+          //       'pixelRatio': 1,
+          //     },
+          //     serverType: 'geoserver',
+          //     projection: 'EPSG:4326',
+          //   })
+          // }),
+          // // Admin group layer (basemap)
+          // new TileLayer({
+          //   source: new TileWMS({
+          //     url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+          //     params: {
+          //       'LAYERS': 'basemap%3Aadmin_group',
+          //       'TILED': true,
+          //       'VERSION': '1.1.1',
+          //       'FORMAT': 'image/png',
+          //       'TRANSPARENT': 'true',
+          //       'SRS': 'EPSG:4326',
+          //       'WIDTH': 256,
+          //       'HEIGHT': 256,
+          //       'pixelRatio': 1,
+          //     },
+          //     serverType: 'geoserver',
+          //     projection: 'EPSG:4326',
+          //   })
+          // }),
+          // // Roads layer (mmi_india)
+          // new TileLayer({
+          //   source: new TileWMS({
+          //     url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+          //     params: {
+          //       'LAYERS': 'mmi:mmi_india',
+          //       'TILED': true,
+          //       'VERSION': '1.1.1',
+          //       'FORMAT': 'image/png',
+          //       'TRANSPARENT': 'true',
+          //       'SRS': 'EPSG:4326',
+          //       'WIDTH': 256,
+          //       'HEIGHT': 256,
+          //       'pixelRatio': 1,
+          //     },
+          //     serverType: 'geoserver',
+          //     projection: 'EPSG:4326',
+          //   })
+          // }),
+        ],
+        view: new View({
+          center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
+          zoom: 7,
+          projection: 'EPSG:3857', // WebMercator projection
+        }),
+        pixelRatio: 1,
+      });
+
+      // Layer for route and points
+      const vectorLayer = new VectorLayer({
+        source: vectorSourceRef.current,
+        zIndex: 10
+      });
+
+      // Layer for live vehicle tracking (on top)
+      const vehicleLayer = new VectorLayer({
+        source: vehicleSourceRef.current,
+        zIndex: 20
+      });
+
+      initialMap.addLayer(vectorLayer);
+      initialMap.addLayer(vehicleLayer);
+      map.current = initialMap;
+    }
+
+    // Add ResizeObserver to handle container resizing
+    const resizeObserver = new ResizeObserver(() => {
+      if (map.current) {
+        map.current.updateSize();
+      }
+    });
+
+    if (mapRef.current) {
+      resizeObserver.observe(mapRef.current);
+    }
+
+    // Use OpenLayers' proper click event handling
+    // Clean up previous click handlers if any
+    if (map.current) {
+      const mapClickListeners = map.current.getListeners('click');
+      if (mapClickListeners) {
+        mapClickListeners.forEach(listener => {
+          map.current.un('click', listener);
+        });
+      }
+
+      // Add new click handler
+      map.current.on('click', function (evt) {
+        try {
+          console.log("Map clicked at:", evt.coordinate);
+
+          // Convert to EPSG:4326 (lon/lat)
+          const lonLatCoord = toLonLat(evt.coordinate);
+          console.log("Converted to lon/lat:", lonLatCoord);
+
+          // Limit to 2 points for start and end
+          if (points.length < 2) {
+            if (addPointRef.current) addPointRef.current(lonLatCoord);
+          } else {
+            // If we already have 2 points, reset and add the new point
+            if (clearPointsRef.current) clearPointsRef.current();
+            // Need setTimeout to ensure state updates before adding new point
+            setTimeout(() => {
+              if (addPointRef.current) addPointRef.current(lonLatCoord);
+            }, 0);
+          }
+        } catch (error) {
+          console.error("Error handling map click:", error);
+          setAlert({
+            open: true,
+            message: "Error adding point to map. Please try again.",
+            type: "error"
+          });
+        }
+      });
+    }
+
+    return () => {
+      // Clean up click handlers when component unmounts or dependencies change
+      if (map.current) {
+        const mapClickListeners = map.current.getListeners('click');
+        if (mapClickListeners) {
+          mapClickListeners.forEach(listener => {
+            map.current.un('click', listener);
+          });
+        }
+      }
+
+      if (mapRef.current) {
+        resizeObserver.unobserve(mapRef.current);
+      }
+    };
+  }, []); // Empty dependency array, only run on mount
+
+  // Update map when points change
+  useEffect(() => {
+    console.log("Points changed, updating map:", points);
+    updateMapPoints(points);
+  }, [points]);
+
+  // Load saved routes from localStorage on component mount
+  useEffect(() => {
+    try {
+      const storedRoutes = localStorage.getItem(`routeETA_${deviceId}`);
+      if (storedRoutes) {
+        setSavedRoutes(JSON.parse(storedRoutes));
+      }
+    } catch (error) {
+      console.error("Error loading saved routes:", error);
+    }
+  }, [deviceId]);
+
+  // Live Tracking Effect
+  useEffect(() => {
+    if (isTracking && selectedVehicleReg) {
+      // Initial fetch
+      fetchLiveLocation();
+
+      // Set up polling interval (every 5 seconds)
+      trackingIntervalRef.current = setInterval(fetchLiveLocation, 5000);
+
+      setAlert({
+        open: true,
+        message: `Live tracking started for ${selectedVehicleReg}`,
+        type: "success"
+      });
+    } else {
+      // Clear interval if tracking is stopped
+      if (trackingIntervalRef.current) {
+        clearInterval(trackingIntervalRef.current);
+        trackingIntervalRef.current = null;
+      }
+
+      // Clear vehicle marker
+      vehicleSourceRef.current.clear();
+      setLiveLocation(null);
+    }
+
+    return () => {
+      if (trackingIntervalRef.current) {
+        clearInterval(trackingIntervalRef.current);
+      }
+    };
+  }, [isTracking, selectedVehicleReg]);
+
+  // Delete a saved route
+  const deleteRoute = (routeId) => {
+    setSavedRoutes(prevRoutes => {
+      const updatedRoutes = prevRoutes.filter(route => route.id !== routeId);
+
+      // Update localStorage
+      localStorage.setItem(`routeETA_${deviceId}`, JSON.stringify(updatedRoutes));
+
+      return updatedRoutes;
+    });
+  };
+
+  // Load a saved route
+  const loadRoute = (route) => {
+    try {
+      setPoints([route.startPoint, route.endPoint]);
+      setDistance(route.distance);
+      setEta(route.eta);
+      if (route.instructions) {
+        setInstructions(route.instructions);
+      } else {
+        setInstructions([]);
+      }
+
+      // This will trigger a map update via the useEffect that watches points
+
+      setAlert({
+        open: true,
+        message: "Previous route loaded",
+        type: "info"
+      });
+    } catch (error) {
+      console.error("Error loading saved route:", error);
+      setAlert({
+        open: true,
+        message: "Error loading route. Please try again.",
+        type: "error"
+      });
+    }
+  };
+
+  const handleAutocompleteChange = (event, newValue) => {
+    if (newValue) {
+      setDeviceId(newValue.device.id);
+      setSelectedVehicleReg(newValue.vehicle_reg_no);
+      // Reset tracking when vehicle changes
+      setIsTracking(false);
+      setLiveLocation(null);
+      vehicleSourceRef.current.clear();
+    }
+  };
+
   return (
-    <MainCard>
-      <AutoHideAlert 
+    <MainCard sx={{ height: '85vh', display: 'flex', flexDirection: 'column', '& .MuiCardContent-root': { height: '100%', display: 'flex', flexDirection: 'column', p: 2 } }}>
+      <AutoHideAlert
         open={alert.open}
-        onClose={() => setAlert({...alert, open: false})}
+        onClose={() => setAlert({ ...alert, open: false })}
         message={alert.message}
         type={alert.type}
       />
-      
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Typography variant="h3" component="h2" gutterBottom>
+
+      {/* Header Section */}
+      <Grid container spacing={2} alignItems="center" sx={{ mb: 2, flexShrink: 0 }}>
+        <Grid item xs={12} md={3}>
+          <Typography variant="h3" component="h2" noWrap>
             Route ETA Calculator
           </Typography>
-          <Typography variant="body1" color="textSecondary" paragraph>
-            Click on the map to set a start point and end point to calculate distance and ETA based on an average speed of 40 km/h.
-          </Typography>
         </Grid>
-        
-        <Grid item xs={12} md={6}>
+
+        <Grid item xs={12} md={3}>
           <Autocomplete
             value={deviceList.find((item) => item.device.id === deviceId) || null}
             onChange={handleAutocompleteChange}
@@ -833,23 +1088,49 @@ const RouteETA = () => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Select Vehicle Registration No"
+                label="Select Vehicle"
                 variant="outlined"
+                size="small"
                 fullWidth
                 onChange={(e) => setInputValue(e.target.value)}
               />
             )}
-            noOptionsText="Enter Vehicle Registration No."
+            noOptionsText="Enter Vehicle Reg No."
             isOptionEqualToValue={(option, value) =>
               option.device.id === value.device.id
             }
             disableClearable
           />
         </Grid>
-        
-        <Grid item xs={12} md={6} sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-          <Button 
-            variant="contained" 
+
+        <Grid item xs={12} md={2}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isTracking}
+                onChange={(e) => setIsTracking(e.target.checked)}
+                disabled={!deviceId}
+                color="primary"
+                size="small"
+              />
+            }
+            label={<Typography variant="body2">{isTracking ? "Tracking ON" : "Tracking OFF"}</Typography>}
+          />
+        </Grid>
+
+        <Grid item xs={12} md={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 1 }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={setStartToVehicleLocation}
+            startIcon={<MyLocation />}
+            disabled={!deviceId}
+            size="small"
+          >
+            Start from Vehicle
+          </Button>
+          <Button
+            variant="contained"
             color="primary"
             onClick={() => {
               if (points.length === 2) {
@@ -862,191 +1143,247 @@ const RouteETA = () => {
                 });
               }
             }}
-            sx={{ mr: 2 }}
             disabled={points.length !== 2}
             startIcon={<Route />}
+            size="small"
           >
-            Calculate Route
+            Calculate
           </Button>
-          <Button 
-            variant="outlined" 
-            color="error" 
+          <Button
+            variant="outlined"
+            color="error"
             onClick={clearPoints}
             startIcon={<Delete />}
+            size="small"
           >
-            Clear Points
+            Clear
           </Button>
         </Grid>
       </Grid>
-      
-      <Box sx={{ mt: 3, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
-        {/* Map container */}
-        <Box sx={{ position: 'relative', flex: 3 }}>
-          <Paper elevation={3} sx={{ overflow: 'hidden', borderRadius: 2 }}>
-            <Box ref={mapRef} id="map" sx={{ width: "100%", height: "550px", position: 'relative' }}>
-              <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
-              <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
-              <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
-            </Box>
-          </Paper>
-          
+
+      {/* Content Section */}
+      <Box sx={{ display: 'flex', flex: 1, gap: 2, overflow: 'hidden', minHeight: 0 }}>
+        {/* Map Container */}
+        <Box sx={{ flex: 1, position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid #eee' }}>
+          <Box ref={mapRef} id="map" sx={{ width: "100%", height: "100%", position: 'relative' }}>
+            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '100px', zIndex: 1000 }} alt="InSpace" />
+            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '60px', zIndex: 1000 }} alt="ISRO" />
+            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '150px', zIndex: 1000, backgroundColor: 'transparent' }} alt="Skytron" />
+          </Box>
+
           {/* Map Legend */}
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              position: 'absolute', 
-              bottom: 15, 
-              left: 15, 
-              p: 1.5, 
+          <Paper
+            elevation={3}
+            sx={{
+              position: 'absolute',
+              bottom: 10,
+              left: 10,
+              p: 1,
               zIndex: 1000,
               backgroundColor: 'rgba(255,255,255,0.9)',
               width: 'auto',
               borderRadius: 1
             }}
           >
-            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Map Legend
+            <Typography variant="caption" gutterBottom sx={{ fontWeight: 'bold', display: 'block' }}>
+              Legend
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#007bff', mr: 1 }} />
-              <Typography variant="body2">Start Point</Typography>
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#007bff', mr: 1 }} />
+              <Typography variant="caption">Start</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#dc3545', mr: 1 }} />
-              <Typography variant="body2">End Point</Typography>
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#dc3545', mr: 1 }} />
+              <Typography variant="caption">End</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{ width: 20, height: 3, bgcolor: '#0066ff', mr: 1 }} />
-              <Typography variant="body2">Actual Route</Typography>
+              <Box sx={{ width: 15, height: 3, bgcolor: '#0066ff', mr: 1 }} />
+              <Typography variant="caption">Route</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ width: 20, height: 3, bgcolor: '#ff6b6b', mr: 1, borderStyle: 'dashed', borderWidth: 1 }} />
-              <Typography variant="body2">Direct Line (Fallback)</Typography>
+              <Box sx={{ width: 15, height: 3, bgcolor: '#ff6b6b', mr: 1, borderStyle: 'dashed', borderWidth: 1 }} />
+              <Typography variant="caption">Direct</Typography>
             </Box>
           </Paper>
         </Box>
-        
-        {/* Right side panel with route details and history */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+        {/* Side Panel */}
+        <Box sx={{ width: 350, display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', pr: 1 }}>
+          {/* Live Tracking Info Card */}
+          {isTracking && liveLocation && (
+            <Card elevation={3} sx={{ bgcolor: '#e3f2fd', flexShrink: 0 }}>
+              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                  <MyLocation sx={{ mr: 1, fontSize: 18 }} color="primary" />
+                  Live Tracking
+                </Typography>
+                <Typography variant="body2" noWrap>
+                  <strong>Vehicle:</strong> {liveLocation.vehicle_registration_number}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Speed:</strong> {liveLocation.speed} km/h
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Updated:</strong> {new Date(liveLocation.entry_time).toLocaleTimeString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Current route details */}
-          <Paper elevation={3} sx={{ p: 3, minWidth: { xs: '100%', md: '300px' }, height: 'fit-content' }}>
-            <Typography variant="h4" gutterBottom>
+          <Paper elevation={3} sx={{ p: 2, flexShrink: 0 }}>
+            <Typography variant="h5" gutterBottom>
               Route Details
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            
+            <Divider sx={{ mb: 1 }} />
+
             {points.length > 0 ? (
               <>
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Start Point:</strong> 
-                  {points.length > 0 ? ` ${points[0][0].toFixed(6)}, ${points[0][1].toFixed(6)}` : ' Not set'}
+                <Typography variant="body2" gutterBottom noWrap>
+                  <strong>Start:</strong>
+                  {points.length > 0 ? ` ${points[0][0].toFixed(5)}, ${points[0][1].toFixed(5)}` : ' -'}
                 </Typography>
-                
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>End Point:</strong>
-                  {points.length > 1 ? ` ${points[1][0].toFixed(6)}, ${points[1][1].toFixed(6)}` : ' Not set'}
+
+                <Typography variant="body2" gutterBottom noWrap>
+                  <strong>End:</strong>
+                  {points.length > 1 ? ` ${points[1][0].toFixed(5)}, ${points[1][1].toFixed(5)}` : ' -'}
                 </Typography>
-                
-                <Divider sx={{ my: 2 }} />
-                
+
+                <Divider sx={{ my: 1 }} />
+
                 {distance && (
-                  <Typography variant="h6" gutterBottom color="primary">
+                  <Typography variant="subtitle2" gutterBottom color="primary">
                     Distance: {distance} km
                   </Typography>
                 )}
-                
+
                 {eta && (
-                  <Typography variant="h6" gutterBottom color="secondary">
-                    Estimated Time: {eta.hours > 0 ? `${eta.hours} hour${eta.hours !== 1 ? 's' : ''} ` : ''}
-                    {eta.minutes} minute{eta.minutes !== 1 ? 's' : ''}
-                  </Typography>
-                )}
-                
-                {distance && (
-                  <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-                    * Based on an average speed of {AVG_SPEED_KMH} km/h
+                  <Typography variant="subtitle2" gutterBottom color="secondary">
+                    ETA: {eta.hours > 0 ? `${eta.hours}h ` : ''}{eta.minutes}m
                   </Typography>
                 )}
               </>
             ) : (
-              <Typography variant="body1" color="textSecondary">
-                Click on the map to set start and end points.
+              <Typography variant="body2" color="textSecondary">
+                Set start/end points on map.
               </Typography>
             )}
           </Paper>
-          
+
+          {/* Turn-by-Turn Navigation */}
+          {instructions.length > 0 && (
+            <Paper elevation={3} sx={{ p: 1, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, py: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Navigation sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
+                  <Typography variant="h5">
+                    Navigation
+                  </Typography>
+                </Box>
+                <IconButton
+                  onClick={() => setExpandInstructions(!expandInstructions)}
+                  size="small"
+                >
+                  {expandInstructions ? <ExpandLess /> : <ExpandMore />}
+                </IconButton>
+              </Box>
+
+              <Collapse in={expandInstructions} timeout="auto">
+                <List sx={{ overflow: 'auto', maxHeight: '250px', bgcolor: 'background.paper' }} dense>
+                  {instructions.map((step, index) => (
+                    <ListItem key={index} divider={index !== instructions.length - 1}>
+                      <ListItemIcon sx={{ minWidth: 30 }}>
+                        {step.sign === 0 ? <DirectionsCar fontSize="small" /> :
+                          step.sign === 2 ? <Navigation sx={{ transform: 'rotate(90deg)' }} fontSize="small" /> : // Right
+                            step.sign === -2 ? <Navigation sx={{ transform: 'rotate(-90deg)' }} fontSize="small" /> : // Left
+                              <Navigation fontSize="small" />}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={step.text}
+                        secondary={`${(step.distance / 1000).toFixed(2)} km`}
+                        primaryTypographyProps={{ variant: 'body2', fontSize: '0.85rem' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Collapse>
+            </Paper>
+          )}
+
           {/* Route history panel */}
-          <Paper elevation={3} sx={{ p: 3, minWidth: { xs: '100%', md: '300px' }, height: 'fit-content' }}>
-            {/* History header with toggle */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Paper elevation={3} sx={{ p: 1, flexGrow: 1, minHeight: '100px', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, py: 0.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <History sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h4">
-                  Route History
+                <History sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
+                <Typography variant="h5">
+                  History
                 </Typography>
               </Box>
-              <IconButton 
+              <IconButton
                 onClick={() => setExpandHistory(!expandHistory)}
                 size="small"
               >
                 {expandHistory ? <ExpandLess /> : <ExpandMore />}
               </IconButton>
             </Box>
-            
-            <Divider sx={{ mb: 2 }} />
-            
-            <Collapse in={expandHistory} timeout="auto" unmountOnExit>
-              {deviceId ? (
-                savedRoutes.length > 0 ? (
-                  <List sx={{ p: 0 }}>
-                    {savedRoutes.map((route) => (
-                      <ListItem 
-                        key={route.id}
-                        disablePadding
-                        secondaryAction={
-                          <IconButton 
-                            edge="end" 
-                            aria-label="delete" 
-                            onClick={() => deleteRoute(route.id)}
-                            size="small"
-                            color="error"
-                          >
-                            <Delete />
-                          </IconButton>
-                        }
-                        sx={{ mb: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
-                      >
-                        <ListItemButton onClick={() => loadRoute(route)} dense>
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Route sx={{ mr: 1, fontSize: 16, color: 'primary.main' }} />
-                                <Typography variant="subtitle2">
-                                  {route.distance} km ({route.eta.hours > 0 ? `${route.eta.hours}h ` : ''}{route.eta.minutes}m)
+
+            <Divider sx={{ mb: 1 }} />
+
+            <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+              <Collapse in={expandHistory} timeout="auto" unmountOnExit>
+                {deviceId ? (
+                  savedRoutes.length > 0 ? (
+                    <List sx={{ p: 0 }} dense>
+                      {savedRoutes.map((route) => (
+                        <ListItem
+                          key={route.id}
+                          disablePadding
+                          secondaryAction={
+                            <IconButton
+                              edge="end"
+                              aria-label="delete"
+                              onClick={() => deleteRoute(route.id)}
+                              size="small"
+                              color="error"
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          }
+                          sx={{ mb: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
+                        >
+                          <ListItemButton onClick={() => loadRoute(route)} dense>
+                            <ListItemText
+                              primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Route sx={{ mr: 1, fontSize: 16, color: 'primary.main' }} />
+                                  <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                                    {new Date(route.timestamp).toLocaleString()}
+                                  </Typography>
+                                </Box>
+                              }
+                              secondary={
+                                <Typography variant="caption" color="textSecondary">
+                                  {route.distance} km • {route.eta ? `${route.eta.hours}h ${route.eta.minutes}m` : 'N/A'}
                                 </Typography>
-                              </Box>
-                            }
-                            secondary={
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                {new Date(route.timestamp).toLocaleString()}
-                              </Typography>
-                            }
-                          />
-                        </ListItemButton>
-                      </ListItem>
-                    ))}
-                  </List>
+                              }
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="caption" color="textSecondary" align="center" display="block" sx={{ mt: 2 }}>
+                      No saved routes.
+                    </Typography>
+                  )
                 ) : (
-                  <Typography variant="body2" color="textSecondary" align="center">
-                    No previous routes yet. Calculate a route to save it here.
+                  <Typography variant="caption" color="textSecondary" align="center" display="block" sx={{ mt: 2 }}>
+                    Select vehicle for history.
                   </Typography>
-                )
-              ) : (
-                <Typography variant="body2" color="textSecondary" align="center">
-                  Select a vehicle to view saved routes.
-                </Typography>
-              )}
-            </Collapse>
+                )}
+              </Collapse>
+            </Box>
           </Paper>
         </Box>
       </Box>
@@ -1054,4 +1391,4 @@ const RouteETA = () => {
   );
 };
 
-export default RouteETA; 
+export default RouteETA;
