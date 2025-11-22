@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
+import IPSetting from "../views/settings/IPSetting";
 import {
   vehicleCategoryInitialsFields,
   vehicleCategoryFormFields,
@@ -8,7 +9,7 @@ import {stateInitials,stateFields,districtFields,districtInitials} from "../form
 import VehicleCategory from "../views/settings/VehicleCategory";
 import StateDistrict from "../views/settings/StateDistrict";
 import FrequencyFirmware from "../views/settings/FrequencyFirmware";
-import IPSetting from "../views/settings/IPSetting";
+import IPSettingc from "../views/settings/IPSetting";
 import ArchiveRestore from "../views/settings/ArchiveRestore";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";

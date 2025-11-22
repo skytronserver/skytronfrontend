@@ -63,6 +63,29 @@ const UsersList = () => {
     }
   };
 
+  const handleReactivateUser = async (userId) => {
+    try {
+      const response = await UserServices.activateUser({ userid: userId });
+      if (response.status === 200) {
+        const updatedData = await UserServices.getRegisteredUsers();
+        setUsers(updatedData.data);
+
+        setNotification({
+          open: true,
+          message: 'User reactivated successfully',
+          severity: 'success'
+        });
+      }
+    } catch (error) {
+      console.error('Error reactivating user:', error);
+      setNotification({
+        open: true,
+        message: 'Failed to reactivate user',
+        severity: 'error'
+      });
+    }
+  };
+
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
   };
@@ -91,23 +114,21 @@ const UsersList = () => {
         customBodyRender: (value, tableMeta) => {
           const userId = tableMeta.rowData[0]; // Assuming id is the first column
           const userName = tableMeta.rowData[2]; // Assuming name is the third column
-          const isActive = tableMeta.rowData[8]; // Assuming is_active is the seventh column
-          
+          const isActive = !!tableMeta.rowData[8]; // is_active hidden column
+
           return (
             <button
-              onClick={() => isActive ? handleOpenConfirmDialog(userId, userName) : null}
+              onClick={() => isActive ? handleOpenConfirmDialog(userId, userName) : handleReactivateUser(userId)}
               style={{
                 padding: '5px 10px',
-                backgroundColor: isActive ? '#ff4444' : '#cccccc',
+                backgroundColor: isActive ? '#ff4444' : '#34c759',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: isActive ? 'pointer' : 'not-allowed',
-                opacity: isActive ? 1 : 0.7
+                cursor: 'pointer'
               }}
-              disabled={!isActive}
             >
-              {isActive ? 'Deactivate' : 'Deactivated'}
+              {isActive ? 'Deactivate' : 'Reactivate'}
             </button>
           );
         }

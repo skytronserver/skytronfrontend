@@ -108,6 +108,14 @@ const user = {
           roles: ["superadmin"],
         },
         {
+          id: "system-admin",
+          title: "System Admin",
+          type: "item",
+          url: "/new/system-admin",
+          breadcrumbs: false,
+          roles: ["superadmin"],
+        },
+        {
           id: "sos-user",
           title: "SOS User",
           type: "item",
