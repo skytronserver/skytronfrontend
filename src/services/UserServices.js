@@ -1,7 +1,11 @@
+import axios from 'axios';
+import { BASE_URL } from '../store/constant';
 import { getAxiosInstance } from './axiosInstance';
+
 const getRegisteredData=()=>{  
     const http = getAxiosInstance();        // show device
     return http.post("/api/devicestock/deviceStockFilter/")            
+
 }
 
 //new
@@ -125,6 +129,10 @@ const createSOSUser=(formData)=>{
         }
       })
 }
+const createSystemAdmin = (data) => {
+    const http = getAxiosInstance();
+    return http.post(`/api/create_systemadmin/`, data);
+}
 const fetchVehicleOwner=(formData)=>{
     const http = getAxiosInstance();
     return http.post("/api/VehicleOwner/filter_VehicleOwner/",formData);
@@ -189,14 +197,27 @@ const deactivateUser=(data)=>{
     const http=getAxiosInstance();
     return http.post(`/api/deactivateUser/`,data);
 }
+const activateUser=(data)=>{
+    const http=getAxiosInstance();
+    return http.post(`/api/activateUser/`,data);
+}
+
 const getESIMProviderDashboard = () => {
   const http = getAxiosInstance();
   return http.post("/api/homepageandstat/homepage_esimProvider/");
 };
 
 const getVehicleAlertStatistics = () => {
-  const http = getAxiosInstance();
-  return http.get("/api/Statistics/vehicle_alert_statistics/");
+    const http = getAxiosInstance();
+    return http.get("/api/Statistics/vehicle_alert_statistics/");
+};
+
+const publicUserRegistration = (data) => {
+	return axios.post(`${BASE_URL}api/public/user_registration/`, data, {
+		headers: {
+			"Content-type": "application/json",
+		},
+	});
 };
 
 const UserServices = {
@@ -204,7 +225,6 @@ const UserServices = {
     getAlertDetails,
     getDeviceStats,
     getTaggedDevices,
-    getRegisteredData,
     getRegisteredUsers,
     getAll,
     getUsers,
@@ -219,6 +239,7 @@ const UserServices = {
     createEsimUser,
     createSOSAdmin,
     createSOSUser,
+    createSystemAdmin,
     fetchVehicleOwner,
     fetchSimProvider,
     fetchSOSAdmin,
@@ -236,8 +257,10 @@ const UserServices = {
     getSOSLeadDashboard,
     getSOSExeDashboard,
     deactivateUser,
+    activateUser,
     getESIMProviderDashboard,
-    getVehicleAlertStatistics
+    getVehicleAlertStatistics,
+    publicUserRegistration
   };
   
   export default UserServices;

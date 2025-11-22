@@ -11,16 +11,23 @@ import {
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
+import UserServices from "../../services/UserServices";
 
 const UserRegistrationRequest = () => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    request: ''
+    firstName: "",
+    lastName: "",
+    org_name: "",
+    user_type: "Business",
+    email: "support@skytron.in",
+    mobile: "",
+    dob: "1990-01-01",
+    request: "",
   });
   
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const paperStyle = {
     p: 3,
@@ -46,22 +53,41 @@ const UserRegistrationRequest = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Form submission logic would go here
-    console.log('Form submitted:', formData);
-    setShowSuccess(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setShowSuccess(false);
+    setSubmitting(true);
+    setErrorMessage("");
+
+    const payload = {
+      name:
+        formData.firstName + (formData.lastName ? ` ${formData.lastName}` : ""),
+      org_name: formData.org_name,
+      user_type: formData.user_type,
+      email: formData.email,
+      mobile: formData.mobile,
+      dob: formData.dob,
+      request_detail: formData.request,
+    };
+
+    try {
+      await UserServices.publicUserRegistration(payload);
+      setShowSuccess(true);
       setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        request: ''
+        firstName: "",
+        lastName: "",
+        org_name: "",
+        user_type: "Business",
+        email: "support@skytron.in",
+        mobile: "",
+        dob: "1990-01-01",
+        request: "",
       });
-    }, 3000);
+    } catch (err) {
+      const msg = err?.response?.data?.detail || "Failed to submit registration request.";
+      setErrorMessage(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -121,6 +147,11 @@ const UserRegistrationRequest = () => {
                 Registration request submitted successfully! We'll get back to you soon.
               </Alert>
             )}
+            {errorMessage && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {errorMessage}
+              </Alert>
+            )}
 
             <Box component="form" onSubmit={handleSubmit}>
               <Grid container spacing={2}>
@@ -146,7 +177,30 @@ const UserRegistrationRequest = () => {
                     variant="outlined"
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Organisation Name"
+                    name="org_name"
+                    value={formData.org_name}
+                    onChange={handleInputChange}
+                    required
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="User Type"
+                    name="user_type"
+                    value={formData.user_type}
+                    onChange={handleInputChange}
+                    required
+                    variant="outlined"
+                    placeholder="Business / Dealer / Individual"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Email Address"
@@ -156,6 +210,39 @@ const UserRegistrationRequest = () => {
                     onChange={handleInputChange}
                     required
                     variant="outlined"
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Mobile Number"
+                    name="mobile"
+                    type="tel"
+                    value={formData.mobile}
+                    onChange={handleInputChange}
+                    required
+                    variant="outlined"
+                    inputProps={{
+                      pattern: '[0-9]{10}',
+                      title: 'Please enter a valid 10-digit mobile number'
+                    }}
+                    placeholder="Enter 10-digit mobile number"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Date of Birth"
+                    name="dob"
+                    type="date"
+                    value={formData.dob}
+                    onChange={handleInputChange}
+                    required
+                    variant="outlined"
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -188,8 +275,9 @@ const UserRegistrationRequest = () => {
                   py: 1.5
                 }}
                 startIcon={<PersonAddIcon />}
+                disabled={submitting}
               >
-                Submit Registration Request
+                {submitting ? "Submitting..." : "Submit Registration Request"}
               </Button>
             </Box>
             

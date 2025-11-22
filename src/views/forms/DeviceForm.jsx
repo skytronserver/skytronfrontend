@@ -148,7 +148,7 @@ const DeviceForm = ({formTitle }) => {
                       <FormField
                         fieldConfig={{
                           ...updatedFormFields[field],
-                          label: t(`deviceForm.fields.${field}`)
+                          label: field === "imsi1" ? "imsi1" : field === "imsi2" ? "imsi2" : t(`deviceForm.fields.${field}`)
                         }}
                         formik={formik}
                         handleFileChange={handleFileChange}

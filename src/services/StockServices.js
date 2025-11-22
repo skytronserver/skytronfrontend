@@ -15,7 +15,26 @@ const stockAssignToRetailer = (data) => {
 };
 const createStock = (data) => {
   const http = getAxiosInstance();
-  return http.post("api/devicestock/deviceStockCreate/", data);
+  const formData = new FormData();
+
+  Object.entries(data || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (Array.isArray(value)) {
+      value.forEach((v) => {
+        if (v !== undefined && v !== null) {
+          formData.append(key, v);
+        }
+      });
+    } else {
+      formData.append(key, value);
+    }
+  });
+
+  return http.post("/api/devicestock/deviceStockCreate/", formData, {
+    headers: {
+      "Content-type": "multipart/form-data",
+    },
+  });
 };
 const createBulkStock = (data) => {
   const http = getAxiosInstance();

@@ -25,6 +25,7 @@ import Manufacturer from "../views/forms/Manufacturer";
 import EsimUser from "../views/forms/EsimUser";
 import SOSAdmin from "../views/forms/SOSAdmin";
 import SOSUser from "../views/forms/SOSUser";
+import SystemAdmin from "../views/forms/SystemAdmin";
 import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import Details from "../views/pages/Details";
@@ -154,6 +155,11 @@ const UserRoutes = {
           userRole="others"
         />
       ),
+      roles: ["superadmin"],
+    },
+    {
+      path: "/new/system-admin",
+      element: <SystemAdmin />,
       roles: ["superadmin"],
     },
     {
