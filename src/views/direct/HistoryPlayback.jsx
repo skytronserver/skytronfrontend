@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import HomePageService from "../../services/HomePage";
 import GPSHistoryMap from "./HistoryPlaybackMap";
-import {dateTimeUpdate} from "../../helper"
-import { FormControl, Autocomplete,TextField, Button, Grid } from '@mui/material';
+import VehicleSelectionMap from "./VehicleSelectionMap";
+import { dateTimeUpdate } from "../../helper"
+import { FormControl, Autocomplete, TextField, Button, Grid, Typography, Box } from '@mui/material';
 import { useTranslation } from "react-i18next";
 
 const MAX_HISTORY_RANGE_MS = 1000 * 60 * 60 * 24 * 365 * 2; // two years
@@ -11,15 +12,15 @@ const MAX_HISTORY_RANGE_MS = 1000 * 60 * 60 * 24 * 365 * 2; // two years
 const HistoryPlayback = () => {
   const now = new Date();
   const currentDateTime = dateTimeUpdate(now);
-  const yesterdayDateTime = dateTimeUpdate(new Date(now.getTime() - 86400000));
-  const maxLookBackDate = dateTimeUpdate(new Date(now.getTime() - MAX_HISTORY_RANGE_MS));
   const [load, setLoad] = useState(false);
   const [vehicleNo, setVehicleNo] = useState('');
   const [fromDate, setFromDate] = useState(dateTimeUpdate(new Date(now.getTime() - 86400000)));
   const [toDate, setToDate] = useState(currentDateTime);
   const [vehicleList, setVehicleList] = useState([]);
+  const [vehicleGpsData, setVehicleGpsData] = useState([]);
   const [downloadStatus, setDownloadStatus] = useState("");
-  const [showMap, setShowMap] = useState(false); // To control visibility of the map
+  const [showHistoryMap, setShowHistoryMap] = useState(false); // To control visibility of the history playback map
+  const [showVehicleMap, setShowVehicleMap] = useState(false); // To control visibility of the vehicle selection map
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -31,11 +32,56 @@ const HistoryPlayback = () => {
     fetchVehicleList();
   }, []);
 
+  // Fetch all vehicles GPS data for the map
+  useEffect(() => {
+    const fetchVehicleGpsData = async () => {
+      try {
+        const retriveData = await HomePageService.getLiveTracking_data({});
+        if (Array.isArray(retriveData.data.data)) {
+          setVehicleGpsData(retriveData.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching vehicle GPS data:", error);
+        setVehicleGpsData([]);
+      }
+    };
+    fetchVehicleGpsData();
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setShowMap(true);
+
+    // Validate that dates are selected
+    if (!fromDate || !toDate) {
+      alert("Please select both From Date and To Date");
+      return;
+    }
+
+    // Validate date range doesn't exceed 2 years
+    const fromDateObj = new Date(fromDate);
+    const toDateObj = new Date(toDate);
+    if (toDateObj.getTime() - fromDateObj.getTime() > MAX_HISTORY_RANGE_MS) {
+      alert("Date range cannot exceed 2 years. Please select a shorter range.");
+      return;
+    }
+
+    if (vehicleNo) {
+      // If vehicle is selected, show history playback directly
+      setShowHistoryMap(true);
+      setShowVehicleMap(false);
+    } else {
+      // If no vehicle selected, show vehicle selection map
+      setShowHistoryMap(false);
+      setShowVehicleMap(true);
+    }
+
     console.log("Submitted data:", { vehicleNo, fromDate, toDate });
-    console.log({load})
+  };
+
+  const handleVehicleSelect = (selectedVehicleNo) => {
+    setVehicleNo(selectedVehicleNo);
+    setShowVehicleMap(false);
+    setShowHistoryMap(true);
   };
 
   const handleVehicleNoChange = (event, newValue) => {
@@ -46,44 +92,36 @@ const HistoryPlayback = () => {
     const selected = new Date(e.target.value);
     if (Number.isNaN(selected.getTime())) return;
     const today = new Date();
-    if (selected > today) return;
-
-    let updatedToDate = new Date(toDate);
-    if (updatedToDate < selected) {
-      updatedToDate = selected;
-    }
-
-    if (updatedToDate.getTime() - selected.getTime() > MAX_HISTORY_RANGE_MS) {
-      const maxAllowedEnd = new Date(Math.min(selected.getTime() + MAX_HISTORY_RANGE_MS, today.getTime()));
-      updatedToDate = maxAllowedEnd;
+    if (selected > today) {
+      alert("From Date cannot be in the future");
+      return;
     }
 
     setFromDate(dateTimeUpdate(selected));
-    setToDate(dateTimeUpdate(updatedToDate));
   };
 
   const handleToDateChange = (e) => {
     const selected = new Date(e.target.value);
     if (Number.isNaN(selected.getTime())) return;
     const today = new Date();
-    if (selected > today) return;
-
-    let updatedFromDate = new Date(fromDate);
-    if (selected < updatedFromDate) {
-      updatedFromDate = selected;
+    if (selected > today) {
+      alert("To Date cannot be in the future");
+      return;
     }
 
-    if (selected.getTime() - updatedFromDate.getTime() > MAX_HISTORY_RANGE_MS) {
-      const minAllowedStart = new Date(selected.getTime() - MAX_HISTORY_RANGE_MS);
-      updatedFromDate = minAllowedStart;
-    }
+    setToDate(dateTimeUpdate(selected));
+  };
 
-    setFromDate(dateTimeUpdate(updatedFromDate));
-    setToDate(dateTimeUpdate(selected)); 
+  const handleBackToVehicleSelection = () => {
+    setShowHistoryMap(false);
+    setShowVehicleMap(true);
+    setVehicleNo('');
   };
 
   return (
     <MainCard>
+      <Typography variant="h4" gutterBottom>{t('historyPlayback.title') || 'History Playback'}</Typography>
+
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2} className="form-controller">
           <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
@@ -94,10 +132,9 @@ const HistoryPlayback = () => {
                 options={vehicleList.length > 0 ? vehicleList : []}
                 getOptionLabel={(option) => option || ''}
                 renderInput={(params) => (
-                  <TextField {...params} label={t('historyPlayback.selectVehicle')} variant="outlined" />
+                  <TextField {...params} label={t('historyPlayback.selectVehicle') || 'Select Vehicle (Optional)'} variant="outlined" />
                 )}
-                noOptionsText={t('historyPlayback.noVehicleOptions')}
-                disableClearable
+                noOptionsText={t('historyPlayback.noVehicleOptions') || 'No vehicles available'}
               />
             </FormControl>
           </Grid>
@@ -105,24 +142,26 @@ const HistoryPlayback = () => {
           <Grid item md={3} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <TextField
               fullWidth
-              label={t('historyPlayback.fromDate')}
+              required
+              label={t('historyPlayback.fromDate') || 'From Date'}
               type="datetime-local"
               value={fromDate}
               onChange={handleFromDateChange}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ max: yesterdayDateTime, min: maxLookBackDate }}
+              inputProps={{ max: currentDateTime }}
             />
           </Grid>
 
           <Grid item md={3} sm={12} xs={12} style={{ marginTop: "20px" }}>
             <TextField
               fullWidth
-              label={t('historyPlayback.toDate')}
+              required
+              label={t('historyPlayback.toDate') || 'To Date'}
               type="datetime-local"
               value={toDate}
               onChange={handleToDateChange}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ max: currentDateTime, min: fromDate }}
+              inputProps={{ max: currentDateTime }}
             />
           </Grid>
 
@@ -133,15 +172,45 @@ const HistoryPlayback = () => {
               color="primary"
               style={{ height: "48px" }}
             >
-              {t('historyPlayback.submit')}
+              {t('historyPlayback.submit') || 'Submit'}
             </Button>
           </Grid>
         </Grid>
       </form>
 
-      {/* Show the map only after the form is submitted */}
-      <div style={{ paddingTop: "20px" }}>
-        {showMap && (
+      {/* Show vehicle selection map */}
+      {showVehicleMap && (
+        <Box style={{ paddingTop: "20px" }}>
+          <Typography variant="h6" gutterBottom>
+            Select a Vehicle from the Map
+          </Typography>
+          <Typography variant="body2" color="textSecondary" gutterBottom>
+            Click on a cluster to zoom in, or click on a vehicle marker to select it for history playback.
+          </Typography>
+          <VehicleSelectionMap
+            gpsData={vehicleGpsData}
+            width="100%"
+            height="600px"
+            onVehicleSelect={handleVehicleSelect}
+          />
+        </Box>
+      )}
+
+      {/* Show the history playback map */}
+      {showHistoryMap && vehicleNo && (
+        <Box style={{ paddingTop: "20px" }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="h6">
+              History Playback for: <strong>{vehicleNo}</strong>
+            </Typography>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleBackToVehicleSelection}
+            >
+              Select Different Vehicle
+            </Button>
+          </Box>
           <GPSHistoryMap
             startDateTime={fromDate}
             endDateTime={toDate}
@@ -149,8 +218,8 @@ const HistoryPlayback = () => {
             downloadStatus={downloadStatus}
             setDownloadStatus={setDownloadStatus}
           />
-        )}
-      </div>
+        </Box>
+      )}
     </MainCard>
   );
 };

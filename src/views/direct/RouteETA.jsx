@@ -29,6 +29,7 @@ import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
 import { OSM, TileWMS } from "ol/source";
 import { fromLonLat, toLonLat, get as getProjection } from "ol/proj";
+import { getDistance } from 'ol/sphere';
 import { register } from 'ol/proj/proj4';
 import proj4 from 'proj4';
 import VectorSource from "ol/source/Vector";
@@ -64,6 +65,7 @@ const RouteETA = () => {
   const vectorSourceRef = useRef(new VectorSource());
   const vehicleSourceRef = useRef(new VectorSource());
   const map = useRef(null);
+  const routeCoordinatesRef = useRef([]);
   const AVG_SPEED_KMH = 40; // Average speed in km/h
   const [alert, setAlert] = useState({
     open: false,
@@ -177,6 +179,59 @@ const RouteETA = () => {
 
     vehicleFeature.setStyle(finalStyle);
     vehicleSourceRef.current.addFeature(vehicleFeature);
+
+    // Dynamic Route Reduction & Trip Ended Logic
+    if (routeCoordinatesRef.current && routeCoordinatesRef.current.length > 0) {
+      const vehicleLoc = coordinates; // Current vehicle location in EPSG:3857
+      const routeCoords = routeCoordinatesRef.current;
+
+      // Find the index of the closest point on the route to the vehicle
+      let closestIndex = -1;
+      let minDistance = Infinity;
+
+      routeCoords.forEach((coord, index) => {
+        const dx = coord[0] - vehicleLoc[0];
+        const dy = coord[1] - vehicleLoc[1];
+        const distSq = dx * dx + dy * dy;
+        if (distSq < minDistance) {
+          minDistance = distSq;
+          closestIndex = index;
+        }
+      });
+
+      if (closestIndex !== -1) {
+        // Slice the route from the closest point onwards
+        const remainingRoute = routeCoords.slice(closestIndex);
+
+        // Update the ref
+        routeCoordinatesRef.current = remainingRoute;
+
+        // Update the route feature on the map
+        const routeFeature = vectorSourceRef.current.getFeatureById('current_route');
+        if (routeFeature) {
+          if (remainingRoute.length > 1) {
+            routeFeature.getGeometry().setCoordinates(remainingRoute);
+          } else {
+            vectorSourceRef.current.removeFeature(routeFeature);
+          }
+        }
+
+        // Check for Trip Ended
+        const lastPoint = routeCoords[routeCoords.length - 1];
+        const vehicleLonLat = toLonLat(vehicleLoc);
+        const endLonLat = toLonLat(lastPoint);
+
+        const distanceToEnd = getDistance(vehicleLonLat, endLonLat); // Result in meters
+
+        if (distanceToEnd < 100) {
+          setAlert({
+            open: true,
+            message: "Trip Ended: You have arrived at your destination.",
+            type: "success"
+          });
+        }
+      }
+    }
   };
 
   const fetchLiveLocation = async () => {
@@ -402,6 +457,9 @@ const RouteETA = () => {
       const routeFeature = new Feature({
         geometry: new LineString(routeCoordinates),
       });
+
+      routeFeature.setId('current_route');
+      routeCoordinatesRef.current = routeCoordinates;
 
       routeFeature.setStyle(new Style({
         stroke: new Stroke({
@@ -669,6 +727,7 @@ const RouteETA = () => {
     setDistance(null);
     setEta(null);
     setInstructions([]);
+    routeCoordinatesRef.current = [];
 
     // Ensure vector source is cleared
     if (vectorSourceRef.current) {
@@ -720,6 +779,7 @@ const RouteETA = () => {
       setDistance(null);
       setEta(null);
       setInstructions([]);
+      routeCoordinatesRef.current = [];
       // Update map
       updateMapPoints([coord]);
 
