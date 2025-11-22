@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
-import { fromLonLat, getCenter } from "ol/proj";
-import { Icon, Style } from "ol/style";
+import { fromLonLat, getCenter, toLonLat } from "ol/proj";
+import { Icon, Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
+import { Draw } from 'ol/interaction';
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import Overlay from "ol/Overlay";
@@ -43,12 +45,15 @@ const MapComponent = ({
   width = "100%",
   height = "400px",
   customBaseLayers = [],
+  onPolygonComplete,
 }) => {
   const mapElement = useRef();
   const overlayElement = useRef();
   const [map, setMap] = useState(null);
   const [vectorLayer, setVectorLayer] = useState(null);
   const [dynamicOverlay, setDynamicOverlay] = useState(null);
+  const [drawVectorLayer, setDrawVectorLayer] = useState(null);
+  const [drawInteraction, setDrawInteraction] = useState(null);
 
   const logoOverlays = useRef([]);
 
@@ -146,6 +151,28 @@ const MapComponent = ({
     // Add vector layer to map
     initialMap.addLayer(initialVectorLayer);
 
+    // Initialize vector layer for drawing
+    const drawSource = new VectorSource();
+    const drawLayer = new VectorLayer({
+      source: drawSource,
+      style: new Style({
+        fill: new Fill({
+          color: 'rgba(255, 255, 255, 0.2)',
+        }),
+        stroke: new Stroke({
+          color: '#ffcc33',
+          width: 2,
+        }),
+        image: new CircleStyle({
+          radius: 7,
+          fill: new Fill({
+            color: '#ffcc33',
+          }),
+        }),
+      }),
+    });
+    initialMap.addLayer(drawLayer);
+
     //initialMap.addLayer(administrativeLayer);
 
     // Create dynamic overlay
@@ -174,6 +201,7 @@ const MapComponent = ({
     setMap(initialMap);
     setVectorLayer(initialVectorLayer);
     setDynamicOverlay(initialOverlay);
+    setDrawVectorLayer(drawLayer);
   }, []);
 
   // Helper to calculate time difference in minutes
@@ -235,7 +263,7 @@ const MapComponent = ({
       map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
 
       // Handle map click to display the overlay and zoom to street level
-      map.on("click", function (event) {
+      const clickHandler = function (event) {
         dynamicOverlay.getElement().style.display = "none";
 
         // Check if a feature is clicked
@@ -243,6 +271,7 @@ const MapComponent = ({
           const coordinates = feature.getGeometry().getCoordinates();
           const entryData = feature.get("entryData");
 
+          if (!entryData) return;
 
           // Set overlay content
           document.getElementById("overlay-content").innerHTML =
@@ -264,15 +293,82 @@ const MapComponent = ({
             duration: 500, // Animate the zoom for 500ms
           });
         });
-      });
+      };
+
+      map.on("click", clickHandler);
+
+      return () => {
+        map.un("click", clickHandler);
+      };
     }
   }, [gpsData, map, vectorLayer, dynamicOverlay]);
+
+  const startDrawing = () => {
+    if (!map || !drawVectorLayer) return;
+
+    // Clear previous drawings
+    drawVectorLayer.getSource().clear();
+
+    // Remove existing interaction if any
+    if (drawInteraction) {
+      map.removeInteraction(drawInteraction);
+    }
+
+    const draw = new Draw({
+      source: drawVectorLayer.getSource(),
+      type: 'Polygon',
+    });
+
+    draw.on('drawend', (event) => {
+      const feature = event.feature;
+      const geometry = feature.getGeometry();
+      const coordinates = geometry.getCoordinates()[0]; // Outer ring
+
+      // Transform to [Lat, Lon]
+      const transformedCoords = coordinates.map(coord => {
+        const lonLat = toLonLat(coord);
+        return [lonLat[1], lonLat[0]];
+      });
+
+      if (onPolygonComplete) {
+        onPolygonComplete(transformedCoords);
+      }
+
+      // Remove interaction after drawing
+      map.removeInteraction(draw);
+      setDrawInteraction(null);
+    });
+
+    map.addInteraction(draw);
+    setDrawInteraction(draw);
+  };
+
+  const clearPolygon = () => {
+    if (drawVectorLayer) {
+      drawVectorLayer.getSource().clear();
+    }
+    if (drawInteraction) {
+      map.removeInteraction(drawInteraction);
+      setDrawInteraction(null);
+    }
+    if (onPolygonComplete) {
+      onPolygonComplete([]);
+    }
+  };
 
   return (
     <div>
       {/* Map container */}
 
       <div ref={mapElement} style={{ width, height, position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '10px', left: '50px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+          <Button variant="contained" size="small" onClick={startDrawing} color={drawInteraction ? "secondary" : "primary"}>
+            {drawInteraction ? "Drawing..." : "Draw Polygon"}
+          </Button>
+          <Button variant="contained" size="small" onClick={clearPolygon} color="error">
+            Clear
+          </Button>
+        </div>
         {/* Position logos using absolute positioning within the map container */}
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />

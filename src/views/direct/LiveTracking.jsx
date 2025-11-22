@@ -378,6 +378,7 @@ const LiveTracking = () => {
             gpsData={filteredData}
             width="100%"
             height={selectedId ? "400px" : "600px"}
+            onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
           />
         </div>
       </div>
