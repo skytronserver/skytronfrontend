@@ -11,6 +11,12 @@ import Point from "ol/geom/Point";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import { boundingExtent } from "ol/extent";
+import redTruck from "../../assets/images/red/truck.png";
+import orangeTruck from "../../assets/images/orange/truck.png";
+import blueTruck from "../../assets/images/blue/truck.png";
+import greenTruck from "../../assets/images/green/truck.png";
+import greyTruck from "../../assets/images/grey/truck.png";
+import defaultTruck from "../../assets/images/default/truck.png";
 
 const BHUVAN_WMS_URL =
   process.env.REACT_APP_BHUVAN_URL ||
@@ -61,47 +67,48 @@ const MapComponent = ({
   const iconStyles = {
     red: new Style({
       image: new Icon({
-        anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
-        scale: 0.20,
+        anchor: [0.5, 0.6],
+        src: redTruck,
+        scale: 0.08,
       }),
     }),
     orange: new Style({
       image: new Icon({
-        anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}static/logo/orange-skytron-transparent.png`,
-        scale: 0.20,
+        anchor: [0.5, 0.6],
+        src: orangeTruck,
+        scale: 0.08,
       }),
     }),
     blue: new Style({
       image: new Icon({
-        anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}static/logo/blue-skytron-transparent.png`,
-        scale: 0.20,
+        anchor: [0.5, 0.6],
+        src: blueTruck,
+        scale: 0.08,
       }),
     }),
     green: new Style({
       image: new Icon({
-        anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}static/logo/green-skytron-transparent.png`,
-        scale: 0.20,
+        anchor: [0.5, 0.6],
+        src: greenTruck,
+        scale: 0.08,
       }),
     }),
     grey: new Style({
       image: new Icon({
-        anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}static/logo/grey-skytron-transparent.png`,
-        scale: 0.20,
+        anchor: [0.5, 0.6],
+        src: greyTruck,
+        scale: 0.08,
       }),
     }),
     default: new Style({
       image: new Icon({
-        anchor: [0.5, 1],
-        src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
-        scale: 0.20,
+        anchor: [0.5, 0.6],
+        src: defaultTruck,
+        scale: 0.08,
       }),
     }),
   };
+
   useEffect(() => {
     // Initialize the map on first render
     const initialMap = new Map({
@@ -120,26 +127,19 @@ const MapComponent = ({
               'FORMAT': 'image/png',
               'TRANSPARENT': 'true',
               'SRS': 'EPSG:4326',
-              'WIDTH': 256,   // Set the tile width to 256 pixels
-              'HEIGHT': 256,   // Set the tile height to 256 pixels
+              'WIDTH': 256,
+              'HEIGHT': 256,
               'pixelRatio': 1,
-
             },
             serverType: 'geoserver',
-            projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
+            projection: 'EPSG:4326',
           })
         }),
       ],
-
-
       view: new View({
         center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
         zoom: 7,
       }),
-
       pixelRatio: 1,
     });
 
@@ -173,30 +173,11 @@ const MapComponent = ({
     });
     initialMap.addLayer(drawLayer);
 
-    //initialMap.addLayer(administrativeLayer);
-
     // Create dynamic overlay
     const initialOverlay = new Overlay({
       element: overlayElement.current,
     });
     initialMap.addOverlay(initialOverlay);
-
-
-
-    // Create overlays for each logo
-    /* logos.forEach(logo => {
-       const element = document.createElement('img');
-       element.src = logo.src;
-       element.style.width = '50px'; // Adjust size as necessary
-       const logoOverlay = new Overlay({
-         element: element,
-         position: fromLonLat(logo.coordinates),
-         positioning: `${logo.position.includes('top') ? 'top' : 'bottom'}-${logo.position.includes('left') ? 'left' : 'right'}`
-       });
-       initialMap.addOverlay(logoOverlay);
-       logoOverlays.current.push(logoOverlay);
-     });
-     */
 
     setMap(initialMap);
     setVectorLayer(initialVectorLayer);
@@ -215,10 +196,6 @@ const MapComponent = ({
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
     const timeDifference = calculateTimeDifference(entryTime, currentTime);
-    console.log("timediff", timeDifference);
-    console.log("data.packet_type ", data.packet_type);
-    console.log("data.ignition_status ", data.ignition_status);
-    console.log("data.speed  ", data.speed);
 
     if (data.packet_type === "EA") {
       return iconStyles.red; // EA Packet - Red Icon
