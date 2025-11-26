@@ -2,26 +2,30 @@ import { Navigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import IPSetting from "../views/settings/IPSetting";
 import {
-  vehicleCategoryInitialsFields,
   vehicleCategoryFormFields,
+  vehicleCategoryInitialsFields,
 } from "../formjson/vehicleCategory";
-import {stateInitials,stateFields,districtFields,districtInitials} from "../formjson/stateDistrict"
+import {
+  notificationPreferencesFormFields,
+  notificationPreferencesInitialsFields,
+} from "../formjson/notificationPreferences";
+import { stateFields, stateInitials, districtFields, districtInitials } from "../formjson/stateDistrict";
 import VehicleCategory from "../views/settings/VehicleCategory";
+import NotificationPreferences from "../views/settings/NotificationPreferences";
 import StateDistrict from "../views/settings/StateDistrict";
 import FrequencyFirmware from "../views/settings/FrequencyFirmware";
-import IPSettingc from "../views/settings/IPSetting";
 import ArchiveRestore from "../views/settings/ArchiveRestore";
-import { decipherEncryption } from '../helper';
-import { useSelector } from "react-redux";
-import NotAuthorized from "../views/pages/NotAuthorized";
 import NoticeForm from "../views/forms/NoticeForm";
 import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
 import SchoolHolidayList from "../views/reports/SchoolHolidayList";
+import { decipherEncryption } from '../helper';
+import { useSelector } from "react-redux";
+import NotAuthorized from "../views/pages/NotAuthorized";
 
-const PrivateRoute = ({ element,roles }) => {
+const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption('skytrack')
-  const userData=sessionStorage.getItem('cookiesData');
-  const data=userData && userData.split("-").map(item=>myDecipher(item))
+  const userData = sessionStorage.getItem('cookiesData');
+  const data = userData && userData.split("-").map(item => myDecipher(item))
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
   const userRoles=data.length > 2 && data[1];
 
@@ -51,6 +55,16 @@ const SettingRoutes = {
           fieldConfig={vehicleCategoryFormFields}
           initialData={vehicleCategoryInitialsFields}
           formTitle="Vehicle Category"
+        />
+      ),
+      roles: ['superadmin']
+    },
+    {
+      path: "/setting/notification-preferences",
+      element: (
+        <NotificationPreferences
+          fieldConfig={notificationPreferencesFormFields}
+          initialData={notificationPreferencesInitialsFields}
         />
       ),
       roles: ['superadmin']

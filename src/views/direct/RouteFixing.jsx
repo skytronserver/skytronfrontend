@@ -329,22 +329,23 @@ const RouteFixing = () => {
     }
 
     try {
-      const routeData = await HomePageService.getRoute({ points: newPoints }); 
-      console.log('Route Data:', routeData?.data)
+      const routeResponse = await HomePageService.getRoute({ points: newPoints }); 
+      const routeData = routeResponse?.data?.data && routeResponse.data.data.paths ? routeResponse.data.data : routeResponse.data;
+      console.log('Route Data:', routeData);
       
-      // Check if we have valid paths data
-      if (!routeData?.data?.data?.paths?.[0]?.points?.coordinates) {
+      // Check if we have valid paths data (API returns data.paths[0].points.coordinates)
+      if (!routeData?.paths?.[0]?.points?.coordinates) {
         throw new Error('Invalid route data received');
       }
 
-      const firstPath = routeData.data.data.paths[0];
+      const firstPath = routeData.paths[0];
       const coordinates = firstPath.points.coordinates;
       
       const response = await HomePageService.addRoute({
         device_id: deviceId,
         route: coordinates,
         routepoints: newPoints,
-        hash: routeData.data.hash
+        hash: routeData.hash
       });
       
       setRouteData(response.data.route);

@@ -81,6 +81,22 @@ const FormField = ({
           }}
         />
       );
+    case "checkbox":
+      return (
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formik.values[fieldConfig.name] || false}
+              onChange={(e) => {
+                formik.setFieldValue(fieldConfig.name, e.target.checked);
+              }}
+              name={fieldConfig.name}
+              color="primary"
+            />
+          }
+          label={t(label)}
+        />
+      );
     case "select":
       return (
         <TextField

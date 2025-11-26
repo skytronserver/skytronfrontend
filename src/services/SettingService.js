@@ -100,6 +100,17 @@ const restoreGpsArchive = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/gpsdata/restore/", data);
 };
+
+// Notification Preferences (global delivery mode for all users)
+const updateNotificationPreferences = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/user/notification-preferences/", data);
+};
+const fetchNotificationPreferences = () => {
+  const http = getAxiosInstance();
+  return http.get("/api/user/notification-preferences/");
+};
+
 const SettingService = {
     create_settings_hp_freq,
     filter_settings_hp_freq,
@@ -120,7 +131,9 @@ const SettingService = {
     restoreDatabase,
     archiveGpsData,
     getGpsArchivesList,
-    restoreGpsArchive
+    restoreGpsArchive,
+    updateNotificationPreferences,
+    fetchNotificationPreferences
 };
 
 export default SettingService;

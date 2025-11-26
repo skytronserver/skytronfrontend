@@ -10,8 +10,18 @@ export const vehicleCategoryInitialsFields = {
 export const vehicleCategoryFormFields = {
     category: {
     name: "category",
-    type: "text",
+    type: "select",
     label: "vehicleCategory.form.category.label",
+    options: [
+      { value: "AMBULANCE", label: "Ambulance" },
+      { value: "BUS", label: "Bus" },
+      { value: "DUMPER", label: "Dumper" },
+      { value: "POLICE", label: "Police" },
+      { value: "SCHOOL_BUS", label: "School bus" },
+      { value: "TANKER", label: "Tanker" },
+      { value: "TAXI", label: "Taxi" },
+      { value: "TRUCK", label: "Truck" },
+    ],
     validation: Yup.string().required("vehicleCategory.form.category.required"),
   },
   maxSpeed: {

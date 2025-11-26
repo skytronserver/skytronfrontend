@@ -30,6 +30,7 @@ import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
+import Help from "../views/pages/Help";
 
 
 const PrivateRoute = ({ element, roles }) => {
@@ -195,6 +196,12 @@ const MainRoutes = {
       path: '/reports/user-statistics-report',
       element: <UserStatisticsReport />,
       roles: ['superadmin']
+    }
+    ,
+    {
+      path: '/help',
+      element: <Help />,
+      roles: ['superadmin','stateadmin','owner','dto','sosadmin','teamlead','desk_ex','dealer','dtorto','devicemanufacture']
     }
    
   ].map((route) => applyPrivateRoute(route)),
