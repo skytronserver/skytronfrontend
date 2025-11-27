@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@mui/material";
 import { Map, View } from "ol";
@@ -8,15 +9,13 @@ import { Icon, Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
 import { Draw } from 'ol/interaction';
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+import Polygon from "ol/geom/Polygon";
+import Circle from "ol/geom/Circle";
+import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import { boundingExtent } from "ol/extent";
-import redTruck from "../../assets/images/red/truck.png";
-import orangeTruck from "../../assets/images/orange/truck.png";
-import blueTruck from "../../assets/images/blue/truck.png";
-import greenTruck from "../../assets/images/green/truck.png";
-import greyTruck from "../../assets/images/grey/truck.png";
-import defaultTruck from "../../assets/images/default/truck.png";
+import POIService from "../../services/POIService";
 
 const BHUVAN_WMS_URL =
   process.env.REACT_APP_BHUVAN_URL ||
@@ -52,6 +51,7 @@ const MapComponent = ({
   height = "400px",
   customBaseLayers = [],
   onPolygonComplete,
+  autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
 }) => {
   const mapElement = useRef();
   const overlayElement = useRef();
@@ -60,52 +60,70 @@ const MapComponent = ({
   const [dynamicOverlay, setDynamicOverlay] = useState(null);
   const [drawVectorLayer, setDrawVectorLayer] = useState(null);
   const [drawInteraction, setDrawInteraction] = useState(null);
-
+  const [poiVectorLayer, setPoiVectorLayer] = useState(null);
+  const [pois, setPois] = useState([]);
   const logoOverlays = useRef([]);
 
-  // Icon styles based on the packet type and conditions
-  const iconStyles = {
-    red: new Style({
+  // Function to create icon style based on color and vehicle type
+  const createIconStyle = (color, vehicleType) => {
+    // Normalize vehicle type to match file names
+    const normalizedVehicleType = vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : 'bus';
+
+    // Available vehicle types based on your folder structure
+    const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
+
+    // Use the vehicle type if available, otherwise default to 'bus'
+    const iconType = availableTypes.includes(normalizedVehicleType) ? normalizedVehicleType : 'bus';
+
+    // Build the icon path: relative to this file (src/views/direct/LiveMap.jsx)
+    // Going up two levels (../../) to reach src, then into assets/images
+    const iconPath = require(`../../assets/images/${color}/${iconType}.png`);
+
+    return new Style({
       image: new Icon({
-        anchor: [0.5, 0.6],
-        src: redTruck,
-        scale: 0.08,
+        anchor: [0.5, 1],
+        src: iconPath,
+        scale: 0.10,
       }),
+    });
+  };
+
+  // POI marker styles
+  const poiMarkerStyles = {
+    Point: new Style({
+      image: new Icon({
+        src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><path fill="%231976D2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
+        anchor: [0.5, 1],
+        scale: 1.0,
+      }),
+      zIndex: 1000,
     }),
-    orange: new Style({
-      image: new Icon({
-        anchor: [0.5, 0.6],
-        src: orangeTruck,
-        scale: 0.08,
+    Circle: new Style({
+      fill: new Fill({
+        color: 'rgba(66, 165, 245, 0.2)',
       }),
+      stroke: new Stroke({
+        color: '#42A5F5',
+        width: 2,
+      }),
+      zIndex: 900,
     }),
-    blue: new Style({
-      image: new Icon({
-        anchor: [0.5, 0.6],
-        src: blueTruck,
-        scale: 0.08,
+    Polygon: new Style({
+      fill: new Fill({
+        color: 'rgba(76, 175, 80, 0.2)',
       }),
+      stroke: new Stroke({
+        color: '#4CAF50',
+        width: 2,
+      }),
+      zIndex: 900,
     }),
-    green: new Style({
-      image: new Icon({
-        anchor: [0.5, 0.6],
-        src: greenTruck,
-        scale: 0.08,
+    Road: new Style({
+      stroke: new Stroke({
+        color: '#FF9800',
+        width: 3,
       }),
-    }),
-    grey: new Style({
-      image: new Icon({
-        anchor: [0.5, 0.6],
-        src: greyTruck,
-        scale: 0.08,
-      }),
-    }),
-    default: new Style({
-      image: new Icon({
-        anchor: [0.5, 0.6],
-        src: defaultTruck,
-        scale: 0.08,
-      }),
+      zIndex: 900,
     }),
   };
 
@@ -127,29 +145,46 @@ const MapComponent = ({
               'FORMAT': 'image/png',
               'TRANSPARENT': 'true',
               'SRS': 'EPSG:4326',
-              'WIDTH': 256,
-              'HEIGHT': 256,
+              'WIDTH': 256,   // Set the tile width to 256 pixels
+              'HEIGHT': 256,   // Set the tile height to 256 pixels
               'pixelRatio': 1,
+
             },
             serverType: 'geoserver',
-            projection: 'EPSG:4326',
+            projection: 'EPSG:4326', // Ensure the projection is set:' 
+
+
+
           })
         }),
       ],
+
+
       view: new View({
-        center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
-        zoom: 7,
+        center: fromLonLat([91.7362, 26.1445]), // Guwahati, Assam (same as SuperAdminDashboard)
+        zoom: 10,
       }),
+
       pixelRatio: 1,
     });
 
     // Initialize vector layer for markers
     const initialVectorLayer = new VectorLayer({
       source: new VectorSource(),
+      zIndex: 200, // Ensure vehicle markers are on top
     });
 
     // Add vector layer to map
     initialMap.addLayer(initialVectorLayer);
+
+    // Initialize POI vector layer
+    const poiSource = new VectorSource();
+    const initialPoiVectorLayer = new VectorLayer({
+      source: poiSource,
+      zIndex: 100, // POI layer below vehicle markers
+    });
+    initialMap.addLayer(initialPoiVectorLayer);
+    setPoiVectorLayer(initialPoiVectorLayer);
 
     // Initialize vector layer for drawing
     const drawSource = new VectorSource();
@@ -173,11 +208,30 @@ const MapComponent = ({
     });
     initialMap.addLayer(drawLayer);
 
+    //initialMap.addLayer(administrativeLayer);
+
     // Create dynamic overlay
     const initialOverlay = new Overlay({
       element: overlayElement.current,
     });
     initialMap.addOverlay(initialOverlay);
+
+
+
+    // Create overlays for each logo
+    /* logos.forEach(logo => {
+       const element = document.createElement('img');
+       element.src = logo.src;
+       element.style.width = '50px'; // Adjust size as necessary
+       const logoOverlay = new Overlay({
+         element: element,
+         position: fromLonLat(logo.coordinates),
+         positioning: `${logo.position.includes('top') ? 'top' : 'bottom'}-${logo.position.includes('left') ? 'left' : 'right'}`
+       });
+       initialMap.addOverlay(logoOverlay);
+       logoOverlays.current.push(logoOverlay);
+     });
+     */
 
     setMap(initialMap);
     setVectorLayer(initialVectorLayer);
@@ -185,31 +239,139 @@ const MapComponent = ({
     setDrawVectorLayer(drawLayer);
   }, []);
 
+  // Fetch POIs on component mount
+  useEffect(() => {
+    const fetchPOIs = async () => {
+      try {
+        const response = await POIService.getAllPOIs();
+        if (response && response.data) {
+          setPois(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching POIs:', error);
+      }
+    };
+
+    fetchPOIs();
+  }, []);
+
+  // Update POI markers when POIs change
+  useEffect(() => {
+    if (!poiVectorLayer || pois.length === 0) return;
+
+    const poiSource = poiVectorLayer.getSource();
+    poiSource.clear();
+
+    pois.forEach((poi) => {
+      try {
+        const location = JSON.parse(poi.location);
+        if (Array.isArray(location) && location.length > 0) {
+          let feature;
+          let style = poiMarkerStyles[poi.mark_type];
+
+          switch (poi.mark_type) {
+            case 'Point':
+              if (location[0] && location[0].length === 2) {
+                const [lat, lon] = location[0];
+                const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                feature = new Feature({
+                  geometry: new Point(coordinates),
+                  data: poi,
+                });
+              }
+              break;
+
+            case 'Circle':
+              if (location[0] && location[0].length === 2) {
+                const [lat, lon] = location[0];
+                const center = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                const radius = parseFloat(poi.radius) || 100;
+                feature = new Feature({
+                  geometry: new Circle(center, radius),
+                  data: poi,
+                });
+              }
+              break;
+
+            case 'Polygon':
+              if (location.length >= 3) {
+                const polygonCoords = location.map(coord => {
+                  if (coord && coord.length === 2) {
+                    const [lat, lon] = coord;
+                    return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                  }
+                  return null;
+                }).filter(coord => coord !== null);
+
+                if (polygonCoords.length >= 3) {
+                  feature = new Feature({
+                    geometry: new Polygon([polygonCoords]),
+                    data: poi,
+                  });
+                }
+              }
+              break;
+
+            case 'Road':
+              if (location.length >= 2) {
+                const roadCoords = location.map(coord => {
+                  if (coord && coord.length === 2) {
+                    const [lat, lon] = coord;
+                    return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                  }
+                  return null;
+                }).filter(coord => coord !== null);
+
+                if (roadCoords.length >= 2) {
+                  feature = new Feature({
+                    geometry: new LineString(roadCoords),
+                    data: poi,
+                  });
+                }
+              }
+              break;
+          }
+
+          if (feature) {
+            feature.setStyle(style);
+            poiSource.addFeature(feature);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing POI:', poi.id, error);
+      }
+    });
+  }, [pois, poiVectorLayer]);
+
   // Helper to calculate time difference in minutes
   const calculateTimeDifference = (startTime, endTime) => {
     const timeDifferenceMillis = endTime - startTime;
     return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
   };
 
-  // Set the correct icon style based on data conditions
-  const getIconStyle = (data) => {
+  // Set the correct icon style based on data conditions and vehicle type
+  const getIconStyle = (data, vehicleType) => {
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
     const timeDifference = calculateTimeDifference(entryTime, currentTime);
 
+    let color;
+
     if (data.packet_type === "EA") {
-      return iconStyles.red; // EA Packet - Red Icon
+      color = 'red'; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
-      return iconStyles.orange; // Any Alert Packet except EA - Orange Icon
+      color = 'orange'; // Any Alert Packet except EA - Orange Icon
     } else if (String(data.ignition_status) === "1" && data.speed < 1) {
-      return iconStyles.blue; // Ignition ON but stationary - Blue Icon
+      color = 'blue'; // Ignition ON but stationary - Blue Icon
     } else if (String(data.ignition_status) === "1" && data.speed > 1) {
-      return iconStyles.green; // Ignition ON and moving - Green Icon
+      color = 'green'; // Ignition ON and moving - Green Icon
     } else if (timeDifference > 5) {
-      return iconStyles.grey; // Offline device (no packets from device for 5+ minutes) - Grey Icon
+      color = 'grey'; // Offline device (no packets from device for 5+ minutes) - Grey Icon
     } else {
-      return iconStyles.default; // Default icon for all other conditions
+      color = 'default'; // Default color
     }
+
+    return createIconStyle(color, vehicleType);
   };
 
   useEffect(() => {
@@ -220,14 +382,19 @@ const MapComponent = ({
       const features = gpsData.map((entry) => {
         const coordinates = fromLonLat([entry.longitude, entry.latitude]);
 
+        // Get vehicle type from entry data
+        const vehicleType = entry?.device_tag_info?.category_info?.category;
+        console.log("entry bus", entry.vehicle_registration_number, "vehicleType:", vehicleType);
+
         // Create the marker feature
         const markerFeature = new Feature({
           geometry: new Point(coordinates),
           entryData: entry, // Store entry data for overlay
+          vehicleType: vehicleType, // Store vehicle type on the feature
         });
 
-        // Set the appropriate style for the marker
-        markerFeature.setStyle(getIconStyle(entry));
+        // Set the appropriate style for the marker with vehicle type
+        markerFeature.setStyle(getIconStyle(entry, vehicleType));
 
         return markerFeature;
       });
@@ -235,9 +402,11 @@ const MapComponent = ({
       // Add all features (markers) to the vector layer
       vectorLayer.getSource().addFeatures(features);
 
-      // Automatically center the map based on the locations of the markers
-      const extent = vectorLayer.getSource().getExtent();
-      map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+      // Only auto-fit if autoFit prop is true and there are markers
+      if (autoFit && features.length > 0) {
+        const extent = vectorLayer.getSource().getExtent();
+        map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+      }
 
       // Handle map click to display the overlay and zoom to street level
       const clickHandler = function (event) {

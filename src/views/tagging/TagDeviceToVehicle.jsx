@@ -34,10 +34,9 @@ const steps = [
   { label: "tagDeviceForm.steps.sendOwnerOtp", name: "Step 3" },
   { label: "tagDeviceForm.steps.ownerVerification", name: "Step 4" },
   { label: "tagDeviceForm.steps.readyForActivation", name: "Step 5" },
-  { label: "tagDeviceForm.steps.sosButtonPress", name: "Step 6" },
-  { label: "tagDeviceForm.steps.getLocation", name: "Step 7" },
-  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 8" },
-  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 9" },
+  { label: "tagDeviceForm.steps.getLocation", name: "Step 6" },
+  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 7" },
+  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 8" },
 ];
 
 function TagDeviceToVehicle() {
@@ -72,7 +71,7 @@ function TagDeviceToVehicle() {
         value: district.district_code
       }));
       setDealerDistricts(mappedDistricts);
-      
+
       // Update the form fields with the mapped districts
       setUpdatedFormField(prevConfig => ({
         ...prevConfig,
@@ -93,7 +92,6 @@ function TagDeviceToVehicle() {
     owner: "",
     finalOwner: "",
   });
-  const [sosButtonPressed, setSosButtonPressed] = useState(false);
   const [dismissibleAlert, setDismissibleAlert] = useState({
     isOpen: false,
     type: "success",
@@ -178,7 +176,7 @@ function TagDeviceToVehicle() {
         }));
       }
     })();
-    setActiveStep(5);
+    setActiveStep(0);
   }, [reload]);
 
   const handleDealerOtp = (otp) => {
@@ -406,15 +404,6 @@ function TagDeviceToVehicle() {
   const handleDismissibleAlert = () => {
     setDismissibleAlert((prev) => ({ ...prev, isOpen: false, message: "" }));
   };
-  const handleSosButtonPress = () => {
-    setSosButtonPressed(true);
-    setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'SOS button pressed successfully', type: 'success' }));
-    // Auto-advance after animation completes (3 seconds)
-    setTimeout(() => {
-      setActiveStep(prevActiveStep => prevActiveStep + 1);
-      setSosButtonPressed(false);
-    }, 3000);
-  };
   const reset = () => {
     setReload((prev) => !prev);
   };
@@ -448,7 +437,7 @@ function TagDeviceToVehicle() {
           className={loading.loader ? "loading" : "not-loading"}
         >
           <MainCard>
-            {activeStep === 9 ? (
+            {activeStep === 8 ? (
               <React.Fragment>
                 <Typography sx={{ mt: 2, mb: 1 }}>
                   {t("tagDeviceForm.messages.allStepsCompleted")}
@@ -630,44 +619,6 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
             {activeStep === 5 && (
-              <Grid container spacing={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
-                <Grid item xs={12} sx={{ textAlign: 'center' }}>
-                  <Typography variant="h5" sx={{ mb: 3 }}>
-                    Please press the SOS button on your device
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <button
-                    onClick={handleSosButtonPress}
-                    disabled={sosButtonPressed}
-                    style={{
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '50%',
-                      border: 'none',
-                      backgroundColor: sosButtonPressed ? '#4caf50' : '#f44336',
-                      color: 'white',
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      cursor: sosButtonPressed ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.3s ease',
-                      boxShadow: sosButtonPressed ? '0 0 30px rgba(76, 175, 80, 0.8)' : '0 4px 15px rgba(244, 67, 54, 0.3)',
-                      animation: sosButtonPressed ? 'pulse 1.5s ease-in-out' : 'none',
-                    }}
-                  >
-                    SOS
-                  </button>
-                </Grid>
-                {sosButtonPressed && (
-                  <Grid item xs={12} sx={{ textAlign: 'center', mt: 2 }}>
-                    <Typography sx={{ color: '#4caf50', fontWeight: 'bold' }}>
-                      ✓ SOS button pressed! Proceeding to next step...
-                    </Typography>
-                  </Grid>
-                )}
-              </Grid>
-            )}
-            {activeStep === 6 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>
@@ -722,7 +673,7 @@ function TagDeviceToVehicle() {
                 </Grid>
               </Grid>
             )}
-            {activeStep === 7 && (
+            {activeStep === 6 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
@@ -741,16 +692,16 @@ function TagDeviceToVehicle() {
                 </Grid>
                 <Grid item xs={12}>
                   {mapLoaded && (
-                      <MapComponent
-                        gpsData={htmlContent?.data}
-                        width="100%"
-                        height="600px"
-                      />
+                    <MapComponent
+                      gpsData={htmlContent?.data}
+                      width="100%"
+                      height="600px"
+                    />
                   )}
                 </Grid>
               </Grid>
             )}
-            {activeStep === 8 && (
+            {activeStep === 7 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>

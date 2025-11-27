@@ -2,12 +2,12 @@
 import { IconDashboard, IconChartBar, IconUsers, IconPhone, IconCar } from '@tabler/icons';
 
 // constant
-const icons = { 
-  IconDashboard, 
-  IconChartBar, 
-  IconUsers, 
-  IconPhone, 
-  IconCar 
+const icons = {
+  IconDashboard,
+  IconChartBar,
+  IconUsers,
+  IconPhone,
+  IconCar
 };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -29,7 +29,7 @@ const dashboard = {
       id: 'superadmin-dashboard',
       title: 'Super Admin Dashboard',
       type: 'item',
-      url: '/dashboard/superadmin',
+      url: '/superadmin-dashboard',
       icon: icons.IconChartBar,
       breadcrumbs: false,
       roles: ['superadmin']

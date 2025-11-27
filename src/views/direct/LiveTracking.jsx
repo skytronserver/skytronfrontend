@@ -27,24 +27,6 @@ import { keyMapping, iconData, iconStyles, fullText, isoDatePattern } from "../.
 import { formatDateTime } from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
-import redTruck from "../../assets/images/red/truck.png";
-import orangeTruck from "../../assets/images/orange/truck.png";
-import blueTruck from "../../assets/images/blue/truck.png";
-import greenTruck from "../../assets/images/green/truck.png";
-import greyTruck from "../../assets/images/grey/truck.png";
-import defaultTruck from "../../assets/images/default/truck.png";
-
-// Add CSS for uniform icon sizing
-const style = document.createElement('style');
-style.textContent = `
-  .truck-icon {
-    width: 32px !important;
-    height: 32px !important;
-    object-fit: contain;
-    display: block;
-  }
-`;
-document.head.appendChild(style);
 const LiveTracking = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false);
@@ -146,6 +128,45 @@ const LiveTracking = () => {
     return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
   };
 
+  const createIconPath = (color, vehicleType) => {
+    const normalizedVehicleType = vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : 'bus';
+    const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
+    const iconType = availableTypes.includes(normalizedVehicleType) ? normalizedVehicleType : 'bus';
+
+    try {
+      return require(`../../assets/images/${color}/${iconType}.png`);
+    } catch (error) {
+      // Fallback to bus icon if specific type not found
+      return require(`../../assets/images/${color}/bus.png`);
+    }
+  };
+
+  const getIconStyle = (data) => {
+    const entryTime = new Date(data.entry_time);
+    const currentTime = new Date();
+    const timeDifference = calculateTimeDifference(entryTime, currentTime);
+
+    // Get vehicle type from data
+    const vehicleType = data?.device_tag_info?.category_info?.category;
+
+    let color;
+    if (data.packet_type === "EA") {
+      color = 'red'; // EA Packet - Red Icon
+    } else if (data.packet_type !== "NR") {
+      color = 'orange'; // Any Alert Packet except EA - Orange Icon
+    } else if (String(data.ignition_status) === "1" && data.speed <= 1) {
+      color = 'blue'; // Ignition ON but stationary - Blue Icon
+    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
+      color = 'green'; // Ignition ON and moving - Green Icon
+    } else if (timeDifference > 5) {
+      color = 'grey'; // Offline device (no packets from device for 5+ minutes) - Grey Icon
+    } else {
+      color = 'default'; // Default icon for all other conditions
+    }
+
+    return createIconPath(color, vehicleType);
+  };
+
   const getAlartType = (data) => {
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
@@ -163,32 +184,6 @@ const LiveTracking = () => {
       return "grey"; // Offline device (no packets from device for 5+ minutes) - Grey Icon
     } else {
       return "default"; // Default icon for all other conditions
-    }
-  };
-
-  // Helper to get the image URL for both filter buttons and vehicle list
-  const getIconStyle = (type, data = null) => {
-    let alertType;
-    if (data) {
-      alertType = getAlartType(data);
-    } else {
-      alertType = type;
-    }
-
-    switch (alertType) {
-      case "red": return redTruck;
-      case "orange": return orangeTruck;
-      case "blue": return blueTruck;
-      case "green": return greenTruck;
-      case "grey": return greyTruck;
-      case "default": return defaultTruck;
-      case "all": return defaultTruck;
-      case "emAlert": return redTruck;
-      case "alert": return orangeTruck;
-      case "engOn": return greenTruck;
-      case "moving": return greenTruck;
-      case "offline": return greyTruck;
-      default: return defaultTruck;
     }
   };
 
@@ -338,7 +333,7 @@ const LiveTracking = () => {
                       className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
-                      <img src={getIconStyle(item.key)} alt={item.text} className="truck-icon" />
+                      <img src={item.iconUrl} alt={item.text} />
                       <Typography variant="caption" className="icon-text">
                         {item.text}
                       </Typography>
@@ -353,7 +348,7 @@ const LiveTracking = () => {
                       className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
-                      <img src={getIconStyle(item.key)} alt={item.text} className="truck-icon" />
+                      <img src={item.iconUrl} alt={item.text} />
                       <Typography variant="caption" className="icon-text">
                         {item.text}
                       </Typography>
@@ -379,7 +374,7 @@ const LiveTracking = () => {
                               }`}
                           >
                             <Box display="flex" alignItems="center" gap={1}>
-                              <img src={getIconStyle(null, row)} alt="status icon" className="truck-icon" />
+                              <img src={getIconStyle(row)} alt="status icon" style={{ width: '24px', height: '24px' }} />
                               <Typography>{row.vehicle_registration_number}</Typography>
                             </Box>
                           </TableCell>

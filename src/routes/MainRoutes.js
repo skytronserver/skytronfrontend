@@ -30,6 +30,8 @@ import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
+import SuperAdminDashboard from "../views/direct/SuperAdminDashboard";
+
 
 
 const PrivateRoute = ({ element, roles }) => {
@@ -77,6 +79,11 @@ const MainRoutes = {
       element: <DashboardDefault />,
     },
     {
+      path: "/superadmin-dashboard",
+      element: <SuperAdminDashboard />,
+      roles: ["superadmin"],
+    },
+    {
       path: "/live-tracking",
       element: <LiveTracking />,
       roles: ["superadmin", "stateadmin", "owner", "dto"],
@@ -119,7 +126,7 @@ const MainRoutes = {
     {
       path: "/sos-call-list",
       element: <GetAllCall />,
-      roles: ["desk_ex", "teamlead","sosadmin"],
+      roles: ["desk_ex", "teamlead", "sosadmin"],
     },
     {
       path: "/emcall",
@@ -159,7 +166,7 @@ const MainRoutes = {
     {
       path: '/reports/alert-log',
       element: <AlertLog />,
-      roles: ['superadmin', 'stateadmin','dtorto','owner']
+      roles: ['superadmin', 'stateadmin', 'dtorto', 'owner']
     },
     {
       path: "/camera-feeds",
@@ -179,7 +186,7 @@ const MainRoutes = {
     {
       path: '/reports/activated-device-report',
       element: <ActivatedDeviceReport />,
-      roles: ['superadmin', 'stateadmin', 'dealer', 'dtorto','devicemanufacture']
+      roles: ['superadmin', 'stateadmin', 'dealer', 'dtorto', 'devicemanufacture']
     },
     {
       path: '/reports/alert-report',
@@ -196,7 +203,7 @@ const MainRoutes = {
       element: <UserStatisticsReport />,
       roles: ['superadmin']
     }
-   
+
   ].map((route) => applyPrivateRoute(route)),
 };
 
