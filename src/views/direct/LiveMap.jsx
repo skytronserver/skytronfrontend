@@ -4,7 +4,7 @@ import { Button } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
-import { fromLonLat, getCenter, toLonLat } from "ol/proj";
+import { fromLonLat, toLonLat } from "ol/proj";
 import { Icon, Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
 import { Draw } from 'ol/interaction';
 import Feature from "ol/Feature";
@@ -17,9 +17,21 @@ import "ol/ol.css";
 import { boundingExtent } from "ol/extent";
 import POIService from "../../services/POIService";
 
-const BHUVAN_WMS_URL =
-  process.env.REACT_APP_BHUVAN_URL ||
-  "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+const resolveBhuvanWmsUrl = () => {
+  const envUrl = process.env.REACT_APP_BHUVAN_URL;
+  if (!envUrl) {
+    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+  }
+
+  const normalizedUrl = envUrl.replace(/\/$/, "");
+  if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+    return normalizedUrl;
+  }
+
+  return `${normalizedUrl}/bhuvan/gwc/service/wms`;
+};
+
+const BHUVAN_WMS_URL = resolveBhuvanWmsUrl();
 
 const DEFAULT_BHUVAN_LAYER_NAMES = [
   "basemap:admin_group",
@@ -27,11 +39,15 @@ const DEFAULT_BHUVAN_LAYER_NAMES = [
   "mmi:mmi_india",
 ];
 
-const createBhuvanSource = (layerName) =>
-  new TileWMS({
+const BHUVAN_CROSS_ORIGIN =
+  process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined;
+
+const createBhuvanSource = (layerName) => {
+  const options = {
     url: BHUVAN_WMS_URL,
     params: {
       LAYERS: layerName,
+      STYLES: "",
       TILED: true,
       VERSION: "1.1.1",
       FORMAT: "image/png",
@@ -43,7 +59,14 @@ const createBhuvanSource = (layerName) =>
     serverType: "geoserver",
     projection: "EPSG:4326",
     transition: 0,
-  });
+  };
+
+  if (BHUVAN_CROSS_ORIGIN) {
+    options.crossOrigin = BHUVAN_CROSS_ORIGIN;
+  }
+
+  return new TileWMS(options);
+};
 
 const MapComponent = ({
   gpsData,
@@ -52,6 +75,7 @@ const MapComponent = ({
   customBaseLayers = [],
   onPolygonComplete,
   autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
+  focusEntry = null,
 }) => {
   const mapElement = useRef();
   const overlayElement = useRef();
@@ -121,40 +145,36 @@ const MapComponent = ({
 
   useEffect(() => {
     // Initialize the map on first render
+    // Create the three WMS layers matching POIViewer.jsx configuration exactly
+    const india3Layer = new TileLayer({
+      source: createBhuvanSource('india3'),
+      zIndex: 1,
+    });
+
+    const adminGroupLayer = new TileLayer({
+      source: createBhuvanSource('basemap%3Aadmin_group'),
+      zIndex: 2,
+    });
+
+    const roadsLayer = new TileLayer({
+      source: createBhuvanSource('mmi:mmi_india'),
+      zIndex: 3,
+    });
+
     const initialMap = new Map({
       target: mapElement.current,
       layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        new TileLayer({
-          source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL,
-            params: {
-              'LAYERS': 'basemap%3Aadmin_group',
-              'TILED': true,
-              'VERSION': '1.1.1',
-              'FORMAT': 'image/png',
-              'TRANSPARENT': 'true',
-              'SRS': 'EPSG:4326',
-              'WIDTH': 256,   // Set the tile width to 256 pixels
-              'HEIGHT': 256,   // Set the tile height to 256 pixels
-              'pixelRatio': 1,
-
-            },
-            serverType: 'geoserver',
-            projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
-          })
-        }),
+        india3Layer,
+        adminGroupLayer,
+        roadsLayer,
       ],
 
 
       view: new View({
         center: fromLonLat([91.7362, 26.1445]), // Guwahati, Assam (same as SuperAdminDashboard)
         zoom: 10,
+        maxZoom: 19,
+        constrainResolution: true,
       }),
 
       pixelRatio: 1,
@@ -440,6 +460,18 @@ const MapComponent = ({
       };
     }
   }, [gpsData, map, vectorLayer, dynamicOverlay]);
+
+  useEffect(() => {
+    if (!map || !focusEntry) return;
+
+    const longitude = Number(focusEntry.longitude);
+    const latitude = Number(focusEntry.latitude);
+
+    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+      const target = fromLonLat([longitude, latitude]);
+      map.getView().animate({ center: target, zoom: 16, duration: 500 });
+    }
+  }, [focusEntry, map]);
 
   const startDrawing = () => {
     if (!map || !drawVectorLayer) return;

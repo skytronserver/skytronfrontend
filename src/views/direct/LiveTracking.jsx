@@ -27,6 +27,7 @@ import { keyMapping, iconData, iconStyles, fullText, isoDatePattern } from "../.
 import { formatDateTime } from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
+
 const LiveTracking = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false);
@@ -41,6 +42,7 @@ const LiveTracking = () => {
   const [tableDataTop, setTableDataTop] = useState([]); // Data for the scrollable table
   const [selectedId, setSelectedId] = useState(null); // Track the selected button ID
   const [filteredData, setFilteredData] = useState([]); // Data for the bottom table
+  const [focusedEntry, setFocusedEntry] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // Handle input changes
@@ -75,17 +77,22 @@ const LiveTracking = () => {
         // If there's exactly one vehicle, select it automatically
         if (newData.length === 1) {
           setSelectedId(`vehicle-${newData[0].imei}`);
+          setFocusedEntry(newData[0]);
+        } else {
+          setFocusedEntry(null);
         }
       } else {
         setTableDataTop([]);
         setFilteredData([]);
         setSelectedId(null);
+        setFocusedEntry(null);
       }
       setLoad(true);
     } catch (error) {
       setTableDataTop([]);
       setFilteredData([]);
       setSelectedId(null);
+      setFocusedEntry(null);
     }
   };
 
@@ -96,9 +103,11 @@ const LiveTracking = () => {
     if (selectedRow) {
       setSelectedId(id);
       setFilteredData([selectedRow]);
+      setFocusedEntry(selectedRow);
     } else {
       setSelectedId(null);
       setFilteredData(tableDataTop);
+      setFocusedEntry(null);
     }
   };
 
@@ -114,6 +123,7 @@ const LiveTracking = () => {
       polygon: polygon,
     };
     setSelectedId(null); // Reset selection when submitting new search
+    setFocusedEntry(null);
     retriveMapData(params);
   };
 
@@ -193,6 +203,7 @@ const LiveTracking = () => {
 
     if (data === "default") {
       setFilteredData(tableDataTop);
+      setFocusedEntry(null);
     } else {
       const filteredRows = tableDataTop.filter(row => getAlartType(row) === data);
       setFilteredData(filteredRows);
@@ -200,6 +211,10 @@ const LiveTracking = () => {
       // If there's exactly one result after filtering, select it automatically
       if (filteredRows.length === 1) {
         setSelectedId(`vehicle-${filteredRows[0].imei}`);
+        setFocusedEntry(filteredRows[0]);
+      } else {
+        setSelectedId(null);
+        setFocusedEntry(null);
       }
     }
   };
@@ -398,7 +413,9 @@ const LiveTracking = () => {
             width="100%"
             height={selectedId ? "400px" : "600px"}
             onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
+            focusEntry={focusedEntry}
           />
+
         </div>
       </div>
 
@@ -450,7 +467,7 @@ const LiveTracking = () => {
           </Table>
         </TableContainer>
       )}
-    </MainCard >
+    </MainCard>
   );
 };
 
