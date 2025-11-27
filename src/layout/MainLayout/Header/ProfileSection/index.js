@@ -30,7 +30,7 @@ import Transitions from '../../../../ui-component/extended/Transitions';
 import User1 from '../../../../assets/images/users/user-round.svg';
 import { decipherEncryption } from "../../../../helper";
 // assets
-import { IconLogout, IconSettings } from '@tabler/icons';
+import { IconLogout, IconSettings, IconHelp } from '@tabler/icons';
 import { logout } from "../../../../actions/loginActions";
 import useIdle from "../../../../hooks/useIdle";
 // ==============================|| PROFILE MENU ||============================== //
@@ -205,6 +205,19 @@ const ProfileSection = () => {
                           }
                         }}
                       >
+                        <ListItemButton
+                          sx={{ borderRadius: `${customization.borderRadius}px` }}
+                          selected={selectedIndex === 3}
+                          onClick={() => {
+                            navigate('/help');
+                            setOpen(false);
+                          }}
+                        >
+                          <ListItemIcon>
+                            <IconHelp stroke={1.5} size="1.3rem" />
+                          </ListItemIcon>
+                          <ListItemText primary={<Typography variant="body2">Help</Typography>} />
+                        </ListItemButton>
                         <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
                           selected={selectedIndex === 4}

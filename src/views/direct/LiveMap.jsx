@@ -64,19 +64,11 @@ const MapComponent = ({
   const [pois, setPois] = useState([]);
   const logoOverlays = useRef([]);
 
-  // Function to create icon style based on color and vehicle type
   const createIconStyle = (color, vehicleType) => {
-    // Normalize vehicle type to match file names
     const normalizedVehicleType = vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : 'bus';
 
-    // Available vehicle types based on your folder structure
     const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
-
-    // Use the vehicle type if available, otherwise default to 'bus'
     const iconType = availableTypes.includes(normalizedVehicleType) ? normalizedVehicleType : 'bus';
-
-    // Build the icon path: relative to this file (src/views/direct/LiveMap.jsx)
-    // Going up two levels (../../) to reach src, then into assets/images
     const iconPath = require(`../../assets/images/${color}/${iconType}.png`);
 
     return new Style({

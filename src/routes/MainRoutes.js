@@ -32,6 +32,7 @@ import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
 import SuperAdminDashboard from "../views/direct/SuperAdminDashboard";
 
+import Help from "../views/pages/Help";
 
 
 const PrivateRoute = ({ element, roles }) => {

@@ -34,6 +34,14 @@ const other = {
           roles: ['superadmin']
         },
         {
+          id: 'notification-preferences',
+          title: 'Notification Delivery Mode',
+          type: 'item',
+          url: '/setting/notification-preferences',
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+        {
           id: 'state-district',
           title: 'State & District',
           type: 'item',

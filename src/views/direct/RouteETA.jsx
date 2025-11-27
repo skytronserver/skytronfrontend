@@ -421,15 +421,16 @@ const RouteETA = () => {
       });
 
       // Try to get route from API
-      const routeData = await HomePageService.getRoute({ points: routePoints });
+      const routeResponse = await HomePageService.getRoute({ points: routePoints });
+      const routeData = routeResponse?.data?.data && routeResponse.data.data.paths ? routeResponse.data.data : routeResponse.data;
       console.log("Route data from API:", routeData);
 
-      // Check if we have valid paths data
-      if (!routeData?.data?.data?.paths?.[0]?.points?.coordinates) {
+      // Check if we have valid paths data (API returns data.paths[0].points.coordinates)
+      if (!routeData?.paths?.[0]?.points?.coordinates) {
         throw new Error('Invalid route data received');
       }
 
-      const path = routeData.data.data.paths[0];
+      const path = routeData.paths[0];
       const coordinates = path.points.coordinates;
 
       // Set instructions if available
@@ -521,7 +522,7 @@ const RouteETA = () => {
       if (deviceId) {
         saveRouteToHistory({
           ...path,
-          hash: routeData.data.hash,
+          hash: routeData.hash,
           instructions: path.instructions
         });
       }

@@ -1378,6 +1378,23 @@
       }
     }
   },
+  "notificationPreferences": {
+    "title": "Notification Delivery Mode",
+    "saveButton": "Save",
+    "formSubmitSuccess": "Preferences saved successfully",
+    "formSubmitError": "Failed to save preferences",
+    "form": {
+      "popup": {
+        "label": "Popup Notifications"
+      },
+      "sms": {
+        "label": "SMS Notifications"
+      },
+      "email": {
+        "label": "Email Notifications"
+      }
+    }
+  },
   "state": {
     "addTitle": "Add State",
     "listTitle": "State List",

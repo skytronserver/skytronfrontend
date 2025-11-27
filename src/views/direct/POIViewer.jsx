@@ -95,6 +95,8 @@ const POIViewer = () => {
     use_type: 'School',
     location: '',
     radius: '100.5',
+    alert_type: '',
+    speed_limit: '',
   });
   const [mapInitialized, setMapInitialized] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
@@ -522,6 +524,8 @@ const POIViewer = () => {
       use_type: poi.use_type,
       location: poi.location,
       radius: poi.radius,
+      alert_type: poi.alert_type || '',
+      speed_limit: poi.speed_limit || '',
     });
     setSelectedPoi(poi);
     setIsEditMode(true);
@@ -729,6 +733,8 @@ const POIViewer = () => {
       use_type: 'School',
       location: '',
       radius: '100.5',
+      alert_type: '',
+      speed_limit: '',
     });
   };
 
@@ -819,12 +825,13 @@ const POIViewer = () => {
       }
 
       const response = await HomePageService.getRoute({ points });
-      
-      if (!response?.data?.paths?.[0]?.points) {
+      const routeData = response?.data?.data && response.data.data.paths ? response.data.data : response.data;
+
+      if (!routeData?.paths?.[0]?.points) {
         throw new Error('No route found between the selected points');
       }
 
-      const firstPath = response.data.paths[0];
+      const firstPath = routeData.paths[0];
       let coordinates;
       
       if (firstPath.points.type === "LineString" && Array.isArray(firstPath.points.coordinates)) {
@@ -855,7 +862,9 @@ const POIViewer = () => {
         use_type: 'PermitRoute',
         name: `Route ${Date.now()}`,
         description: 'Generated route',
-        status: 'Active'
+        status: 'Active',
+        alert_type: prev.alert_type || '',
+        speed_limit: prev.speed_limit || '',
       }));
 
       // Open the dialog to show the route data
@@ -1525,6 +1534,26 @@ const POIViewer = () => {
                 <MenuItem value="no_parking">No Parking</MenuItem>
               </Select>
             </FormControl>
+
+            {formData.mark_type === 'Road' && (
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  fullWidth
+                  label="Alert Type"
+                  value={formData.alert_type}
+                  onChange={(e) => setFormData(prev => ({ ...prev, alert_type: e.target.value }))}
+                  size="small"
+                />
+                <TextField
+                  fullWidth
+                  label="Speed Limit (km/h)"
+                  type="number"
+                  value={formData.speed_limit}
+                  onChange={(e) => setFormData(prev => ({ ...prev, speed_limit: e.target.value }))}
+                  size="small"
+                />
+              </Stack>
+            )}
 
             {formData.mark_type === 'Circle' && (
               <TextField
