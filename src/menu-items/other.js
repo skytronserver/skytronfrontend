@@ -72,6 +72,14 @@ const other = {
           url: '/setting/ip-settings',
           breadcrumbs: false,
           roles: ['superadmin', 'dealer']
+        },
+        {
+          id: 'login-settings',
+          title: 'Login Settings',
+          type: 'item',
+          url: '/setting/login-settings',
+          breadcrumbs: false,
+          roles: ['superadmin']
         }
       ]
     },

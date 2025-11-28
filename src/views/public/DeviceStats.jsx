@@ -13,7 +13,8 @@ import {
   TableRow,
   Button,
   Divider,
-  Card
+  Card,
+  Grid
 } from '@mui/material';
 import { Refresh as RefreshIcon, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import publicApi from '../../services/publicApi';
@@ -154,13 +155,69 @@ const DeviceStats = () => {
         </Typography>
       )}
 
-      <Box mb={2}>
-        <Typography variant="subtitle1">
-          Total Manufacturers: {aggregatedStats.totalManufacturers} | Total Models: {aggregatedStats.totalModels}
-        </Typography>
-        <Typography variant="subtitle2" color="text.secondary">
-          Total Stock: {aggregatedStats.totalStock} | Total Tagged Devices: {aggregatedStats.totalDeviceTags}
-        </Typography>
+      <Box mb={3}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Manufacturers
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {aggregatedStats.totalManufacturers}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Models
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {aggregatedStats.totalModels}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Stock
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {aggregatedStats.totalStock}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Tagged Devices
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {aggregatedStats.totalDeviceTags}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Online Devices
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {aggregatedStats.totalOnlineDevices}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Offline Devices
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {aggregatedStats.totalOfflineDevices}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
       </Box>
 
       <Card variant="outlined">

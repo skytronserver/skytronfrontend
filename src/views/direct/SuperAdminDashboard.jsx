@@ -321,58 +321,61 @@ const SuperAdminDashboard = () => {
     const MetricCard = ({ label, value }) => (
         <Box
             sx={{
-                p: 1.5,
-                bgcolor: alpha('#fff', 0.08),
-                borderRadius: 2,
-                border: `1px solid ${alpha('#fff', 0.12)}`,
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease',
-                '&:hover': { bgcolor: alpha('#fff', 0.12), transform: 'translateY(-2px)' }
+                p: 1,
+                bgcolor: '#ffffff',
+                borderRadius: 1.5,
+                border: `1px solid ${alpha('#0f172a', 0.06)}`,
+                boxShadow: `0 2px 6px ${alpha('#0f172a', 0.06)}`,
+                transition: 'all 0.2s ease',
+                textAlign: 'center',
+                '&:hover': { boxShadow: `0 4px 10px ${alpha('#0f172a', 0.12)}`, transform: 'translateY(-1px)' }
             }}
         >
-            <Typography variant="caption" sx={{ fontSize: '0.7rem', opacity: 0.75, display: 'block', mb: 0.5 }}>
+            <Typography variant="caption" sx={{ fontSize: '0.6rem', color: '#6b7280', display: 'block' }}>
                 {label}
             </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, fontSize: '1.3rem' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem', color: '#111827' }}>
                 {value}
             </Typography>
         </Box>
     );
 
-    const DashboardCard = ({ title, subtitle, children, bgGradient, mapComponent }) => (
+    const DashboardCard = ({ title, subtitle, children, mapComponent }) => (
         <Box
             sx={{
                 height: '100%',
-                minHeight: '600px',
-                borderRadius: 3,
-                background: `linear-gradient(135deg, ${bgGradient[0]} 0%, ${bgGradient[1]} 100%)`,
-                border: `1px solid ${alpha('#fff', 0.18)}`,
-                color: 'white',
-                boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+                borderRadius: 2,
+                backgroundColor: '#ffffff',
+                border: `1px solid ${alpha('#0f172a', 0.06)}`,
+                boxShadow: `0 6px 16px ${alpha('#0f172a', 0.08)}`,
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden'
             }}
         >
-            <Box sx={{ p: 2.5, borderBottom: `1px solid ${alpha('#fff', 0.15)}`, background: alpha('#fff', 0.05) }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem', mb: 0.5 }}>
+            <Box sx={{ p: 1.5, borderBottom: `1px solid ${alpha('#e5e7eb', 1)}`, bgcolor: '#f9fafb' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#111827', mb: 0.25 }}>
                     {title}
                 </Typography>
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', opacity: 0.85 }}>
-                    {subtitle}
-                </Typography>
+                {subtitle && (
+                    <Typography variant="caption" sx={{ fontSize: '0.65rem', color: '#6b7280' }}>
+                        {subtitle}
+                    </Typography>
+                )}
             </Box>
 
-            <Box sx={{ p: 2.5 }}>{children}</Box>
+            {children && (
+                <Box sx={{ p: 1.5, flexShrink: 0 }}>{children}</Box>
+            )}
 
             {mapComponent && (
                 <Box
                     sx={{
                         flex: 1,
-                        minHeight: '400px',
+                        minHeight: 0,
                         width: '100%',
                         position: 'relative',
-                        borderTop: `1px solid ${alpha('#fff', 0.1)}`,
+                        borderTop: children ? `1px solid ${alpha('#e5e7eb', 1)}` : 'none',
                         '& canvas': { display: 'block !important' }
                     }}
                 >
@@ -383,33 +386,29 @@ const SuperAdminDashboard = () => {
     );
 
     return (
-        <MainCard sx={{ bgcolor: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)', minHeight: '100vh' }}>
-            <Box sx={{ mb: 3 }}>
+        <MainCard sx={{ bgcolor: '#f3f4f6', height: '100vh', p: 2, overflow: 'hidden' }}>
+            <Box sx={{ mb: 2 }}>
                 <Typography
-                    variant="h3"
+                    variant="h4"
                     sx={{
                         fontWeight: 700,
-                        fontSize: { xs: '1.5rem', md: '2rem', lg: '2.5rem' },
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 0.5
+                        fontSize: { xs: '1.2rem', md: '1.5rem' },
+                        color: '#111827',
+                        mb: 0.25
                     }}
                 >
                     SuperAdmin Dashboard
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#8b92b0', fontSize: '0.9rem' }}>
+                <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '0.8rem' }}>
                     Real-time monitoring across all emergency services • Auto-refresh enabled
                 </Typography>
             </Box>
 
-            <Grid container spacing={3}>
-                <Grid item xs={12} lg={6}>
+            <Grid container spacing={1.5} sx={{ height: 'calc(100vh - 80px)' }}>
+                <Grid item xs={12} sm={6} sx={{ height: '50%' }}>
                     <DashboardCard
                         title="Statewide Public Transport Live View"
                         subtitle="Real-time vehicle monitoring"
-                        bgGradient={['rgba(99, 102, 241, 0.8)', 'rgba(139, 92, 246, 0.8)']}
                         mapComponent={
                             <DashboardMap
                                 data={vehicleData}
@@ -417,28 +416,27 @@ const SuperAdminDashboard = () => {
                             />
                         }
                     >
-                        <Grid container spacing={1.5}>
-                            <Grid item xs={6} sm={3}>
+                        <Grid container spacing={0.75}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Total" value={loading ? '...' : vehicleStats.total} />
                             </Grid>
-                            <Grid item xs={6} sm={3}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Online" value={loading ? '...' : vehicleStats.online} />
                             </Grid>
-                            <Grid item xs={6} sm={3}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Emergency" value={loading ? '...' : vehicleStats.emergency} />
                             </Grid>
-                            <Grid item xs={6} sm={3}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Offline" value={loading ? '...' : vehicleStats.offline} />
                             </Grid>
                         </Grid>
                     </DashboardCard>
                 </Grid>
 
-                <Grid item xs={12} lg={6}>
+                <Grid item xs={12} sm={6} sx={{ height: '50%' }}>
                     <DashboardCard
                         title="Live Police Patrol Deployment Map"
                         subtitle="On-duty metrics and assignments"
-                        bgGradient={['rgba(16, 185, 129, 0.8)', 'rgba(5, 150, 105, 0.8)']}
                         mapComponent={
                             <DashboardMap
                                 data={policeMarkers}
@@ -446,28 +444,27 @@ const SuperAdminDashboard = () => {
                             />
                         }
                     >
-                        <Grid container spacing={1.5}>
-                            <Grid item xs={6}>
+                        <Grid container spacing={0.75}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Total Vehicles" value={policeStats.totalVehicles} />
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={3}>
                                 <MetricCard label="On Duty" value={policeStats.onDuty} />
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Incidents" value={policeStats.assignedToIncidents} />
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Patrolling" value={policeStats.patrolling} />
                             </Grid>
                         </Grid>
                     </DashboardCard>
                 </Grid>
 
-                <Grid item xs={12} lg={6}>
+                <Grid item xs={12} sm={6} sx={{ height: '50%' }}>
                     <DashboardCard
                         title="Real-Time Ambulance Availability Map"
                         subtitle="Fleet status and availability"
-                        bgGradient={['rgba(236, 72, 153, 0.8)', 'rgba(219, 39, 119, 0.8)']}
                         mapComponent={
                             <DashboardMap
                                 data={ambulanceMarkers}
@@ -475,32 +472,31 @@ const SuperAdminDashboard = () => {
                             />
                         }
                     >
-                        <Grid container spacing={1.5}>
-                            <Grid item xs={6}>
+                        <Grid container spacing={0.75}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Total Fleet" value={ambulanceStats.totalAmbulances} />
                             </Grid>
-                            <Grid item xs={6}>
-                                <MetricCard label="Available" value={`${ambulanceStats.available} (65%)`} />
+                            <Grid item xs={3}>
+                                <MetricCard label="Available" value={ambulanceStats.available} />
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Occupied" value={ambulanceStats.occupied} />
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={3}>
                                 <MetricCard label="Emergency" value={ambulanceStats.emergencyMode} />
                             </Grid>
                         </Grid>
                     </DashboardCard>
                 </Grid>
 
-                <Grid item xs={12} lg={6}>
+                <Grid item xs={12} sm={6} sx={{ height: '50%' }}>
                     <DashboardCard
                         title="SOS Alerts & Emergency Response"
                         subtitle="Active incidents and call management"
-                        bgGradient={['rgba(239, 68, 68, 0.8)', 'rgba(220, 38, 38, 0.8)']}
                     >
-                        <Grid container spacing={1.5} sx={{ mb: 2 }}>
+                        <Grid container spacing={0.5} sx={{ mb: 0.75 }}>
                             <Grid item xs={4}>
-                                <MetricCard label="Active SOS" value={sosLoading ? '...' : sosData.activeSOS} />
+                                <MetricCard label="Active" value={sosLoading ? '...' : sosData.activeSOS} />
                             </Grid>
                             <Grid item xs={4}>
                                 <MetricCard label="Pending" value={sosLoading ? '...' : sosData.pendingSOS} />
@@ -513,27 +509,25 @@ const SuperAdminDashboard = () => {
                         <Box
                             sx={{
                                 overflow: 'auto',
-                                bgcolor: alpha('#000', 0.2),
                                 borderRadius: 2,
-                                border: `1px solid ${alpha('#fff', 0.12)}`,
-                                backdropFilter: 'blur(10px)',
-                                minHeight: '400px'
+                                border: `1px solid ${alpha('#e5e7eb', 1)}`,
+                                height: 'calc(100% - 90px)'
                             }}
                         >
-                            <TableContainer sx={{ maxHeight: 400 }}>
+                            <TableContainer sx={{ height: '100%' }}>
                                 <Table stickyHeader size="small">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f3f4f6', color: '#111827', fontWeight: 600, fontSize: '0.7rem', py: 0.5 }}>
                                                 ID
                                             </TableCell>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f3f4f6', color: '#111827', fontWeight: 600, fontSize: '0.7rem', py: 0.5 }}>
                                                 Status
                                             </TableCell>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f3f4f6', color: '#111827', fontWeight: 600, fontSize: '0.7rem', py: 0.5 }}>
                                                 Location
                                             </TableCell>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f3f4f6', color: '#111827', fontWeight: 600, fontSize: '0.7rem', py: 0.5 }}>
                                                 Time
                                             </TableCell>
                                         </TableRow>
@@ -541,34 +535,34 @@ const SuperAdminDashboard = () => {
                                     <TableBody>
                                         {sosLoading ? (
                                             <TableRow>
-                                                <TableCell colSpan={4} align="center" sx={{ color: '#fff', py: 3 }}>
-                                                    <CircularProgress size={24} sx={{ color: '#fff' }} />
+                                                <TableCell colSpan={4} align="center" sx={{ color: '#6b7280', py: 2 }}>
+                                                    <CircularProgress size={20} />
                                                 </TableCell>
                                             </TableRow>
                                         ) : sosCalls.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={4} align="center" sx={{ color: '#8b92b0', py: 3, fontSize: '0.8rem' }}>
+                                                <TableCell colSpan={4} align="center" sx={{ color: '#6b7280', py: 2, fontSize: '0.75rem' }}>
                                                     No active SOS calls
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             sosCalls.map((call, index) => (
-                                                <TableRow key={call.id || index} hover sx={{ '&:hover': { bgcolor: alpha('#fff', 0.05) } }}>
-                                                    <TableCell sx={{ color: '#fff', fontSize: '0.75rem', py: 1 }}>#{call.id || index + 1}</TableCell>
-                                                    <TableCell sx={{ py: 1 }}>
+                                                <TableRow key={call.id || index} hover>
+                                                    <TableCell sx={{ color: '#111827', fontSize: '0.7rem', py: 0.5 }}>#{call.id || index + 1}</TableCell>
+                                                    <TableCell sx={{ py: 0.5 }}>
                                                         <Chip
                                                             label={call.status || 'pending'}
                                                             size="small"
                                                             sx={{
-                                                                fontSize: '0.65rem',
-                                                                height: 20,
-                                                                bgcolor: call.status === 'active' ? '#4caf50' : call.status === 'pending' ? '#ff9800' : '#f44336',
+                                                                fontSize: '0.6rem',
+                                                                height: 18,
+                                                                bgcolor: call.status === 'active' ? '#4caf50' : call.status === 'pending' ? '#f59e0b' : '#ef4444',
                                                                 color: '#fff'
                                                             }}
                                                         />
                                                     </TableCell>
-                                                    <TableCell sx={{ color: '#8b92b0', fontSize: '0.75rem', py: 1 }}>{call.location || 'Unknown'}</TableCell>
-                                                    <TableCell sx={{ color: '#8b92b0', fontSize: '0.75rem', py: 1 }}>
+                                                    <TableCell sx={{ color: '#4b5563', fontSize: '0.7rem', py: 0.5 }}>{call.location || 'Unknown'}</TableCell>
+                                                    <TableCell sx={{ color: '#4b5563', fontSize: '0.7rem', py: 0.5 }}>
                                                         {call.created_at ? new Date(call.created_at).toLocaleTimeString() : 'N/A'}
                                                     </TableCell>
                                                 </TableRow>

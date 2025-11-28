@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import IPSetting from "../views/settings/IPSetting";
+import LoginSettings from "../views/settings/LoginSettings";
 import {
   vehicleCategoryFormFields,
   vehicleCategoryInitialsFields,
@@ -123,6 +124,13 @@ const SettingRoutes = {
         <SchoolHolidayForm/>
       ),
       roles: ['superadmin', 'owner']
+    },
+    {
+      path: "/setting/login-settings",
+      element: (
+        <LoginSettings/>
+      ),
+      roles: ['superadmin']
     },
     {
       path: "/holiday/all-holiday-list",

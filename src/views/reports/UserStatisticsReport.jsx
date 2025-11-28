@@ -22,6 +22,9 @@ import showDeviceApi from '../../services/showDeviceApi';
 const UserStatisticsReport = () => {
   // Component states
   const [statisticsData, setStatisticsData] = useState([]);
+  const [loggedInStatisticsData, setLoggedInStatisticsData] = useState([]);
+  const [onlineStatisticsData, setOnlineStatisticsData] = useState([]);
+  const [activeSessionStatisticsData, setActiveSessionStatisticsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
@@ -39,7 +42,10 @@ const UserStatisticsReport = () => {
     total_logins: 0,
     total_registered_users: 0,
     total_temporary_users: 0,
-    users_by_role: {}
+    users_by_role: {},
+    logged_in_users_by_role: {},
+    online_users_by_role: {},
+    active_sessions_by_role: {}
   });
 
   // Data Grid columns for role statistics
@@ -81,6 +87,16 @@ const UserStatisticsReport = () => {
     }
   ];
 
+  const createRoleData = (roleMap, totalBase) => {
+    const safeTotal = totalBase || 0;
+    return Object.entries(roleMap || {}).map(([role, count], index) => ({
+      id: index,
+      role: role,
+      count: count,
+      percentage: safeTotal > 0 ? ((count / safeTotal) * 100).toFixed(1) : '0.0'
+    }));
+  };
+
   // Fetch statistics data on component mount
   useEffect(() => {
     fetchUserStatistics();
@@ -106,24 +122,30 @@ const UserStatisticsReport = () => {
           total_logins: response.data.total_logins || 0,
           total_registered_users: response.data.total_registered_users || 0,
           total_temporary_users: response.data.total_temporary_users || 0,
-          users_by_role: response.data.users_by_role || {}
+          users_by_role: response.data.users_by_role || {},
+          logged_in_users_by_role: response.data.logged_in_users_by_role || {},
+          online_users_by_role: response.data.online_users_by_role || {},
+          active_sessions_by_role: response.data.active_sessions_by_role || {}
         };
         
         setUserStats(stats);
         
-        // Create data for the grid from users_by_role
-        const roleData = Object.entries(stats.users_by_role).map(([role, count], index) => ({
-          id: index,
-          role: role,
-          count: count,
-          percentage: ((count / stats.total_registered_users) * 100).toFixed(1)
-        }));
-        
+        const roleData = createRoleData(stats.users_by_role, stats.total_registered_users);
+        const loggedInRoleData = createRoleData(stats.logged_in_users_by_role, stats.currently_logged_in_registered_users);
+        const onlineRoleData = createRoleData(stats.online_users_by_role, stats.online_registered_users);
+        const activeSessionRoleData = createRoleData(stats.active_sessions_by_role, stats.currently_logged_in_registered_users);
+
         setStatisticsData(roleData);
+        setLoggedInStatisticsData(loggedInRoleData);
+        setOnlineStatisticsData(onlineRoleData);
+        setActiveSessionStatisticsData(activeSessionRoleData);
         setTotalRows(roleData.length);
       } else {
         setError('Failed to fetch user statistics');
         setStatisticsData([]);
+        setLoggedInStatisticsData([]);
+        setOnlineStatisticsData([]);
+        setActiveSessionStatisticsData([]);
         setTotalRows(0);
         setUserStats({
           currently_logged_in_registered_users: 0,
@@ -137,7 +159,10 @@ const UserStatisticsReport = () => {
           total_logins: 0,
           total_registered_users: 0,
           total_temporary_users: 0,
-          users_by_role: {}
+          users_by_role: {},
+          logged_in_users_by_role: {},
+          online_users_by_role: {},
+          active_sessions_by_role: {}
         });
       }
     } catch (error) {
@@ -288,7 +313,31 @@ const UserStatisticsReport = () => {
                   {userStats.offline_registered_users}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Offline Users
+                  Offline Registered Users
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" color="error.main">
+                  {userStats.offline_temporary_users}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Offline Temporary Users
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" color="info.main">
+                  {userStats.online_temporary_users}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Online Temporary Users
                 </Typography>
               </CardContent>
             </Card>
@@ -320,15 +369,18 @@ const UserStatisticsReport = () => {
           <Grid item xs={12} sm={6} md={2}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" color="success.main">
-                  {userStats.total_logins}
+                <Typography variant="h6" color="secondary.main">
+                  {userStats.recent_temp_users_24h}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Total Logins
+                  Temp Users (24h)
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
+        </Grid>
+
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6} md={4}>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Button
@@ -354,35 +406,135 @@ const UserStatisticsReport = () => {
           </Grid>
         </Grid>
 
-        {/* Data Grid */}
-        <Paper sx={{ height: 600, width: '100%' }}>
-          {loading && <CustomLoader />}
-          <DataGrid
-            rows={statisticsData}
-            columns={columns}
-            pageSize={pageSize}
-            rowsPerPageOptions={[10, 25, 50, 100]}
-            pagination
-            paginationMode="client"
-            page={page}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            loading={loading}
-            disableSelectionOnClick
-            sx={{
-              '& .MuiDataGrid-root': {
-                border: 'none',
-              },
-              '& .MuiDataGrid-cell': {
-                borderBottom: '1px solid #f0f0f0',
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#fafafa',
-                borderBottom: '1px solid #d0d0d0',
-              },
-            }}
-          />
-        </Paper>
+        {/* Role-wise statistics tables */}
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Users by Role (Registered)
+            </Typography>
+            <Paper sx={{ height: 400, width: '100%' }}>
+              {loading && <CustomLoader />}
+              <DataGrid
+                rows={statisticsData}
+                columns={columns}
+                pageSize={pageSize}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                pagination
+                paginationMode="client"
+                page={page}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                loading={loading}
+                disableSelectionOnClick
+                sx={{
+                  '& .MuiDataGrid-root': {
+                    border: 'none',
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: '1px solid #f0f0f0',
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: '#fafafa',
+                    borderBottom: '1px solid #d0d0d0',
+                  },
+                }}
+              />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Logged-in Users by Role
+            </Typography>
+            <Paper sx={{ height: 400, width: '100%' }}>
+              {loading && <CustomLoader />}
+              <DataGrid
+                rows={loggedInStatisticsData}
+                columns={columns}
+                pageSize={pageSize}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                pagination
+                paginationMode="client"
+                loading={loading}
+                disableSelectionOnClick
+                sx={{
+                  '& .MuiDataGrid-root': {
+                    border: 'none',
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: '1px solid #f0f0f0',
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: '#fafafa',
+                    borderBottom: '1px solid #d0d0d0',
+                  },
+                }}
+              />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 1, mt: 2 }}>
+              Online Users by Role
+            </Typography>
+            <Paper sx={{ height: 400, width: '100%' }}>
+              {loading && <CustomLoader />}
+              <DataGrid
+                rows={onlineStatisticsData}
+                columns={columns}
+                pageSize={pageSize}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                pagination
+                paginationMode="client"
+                loading={loading}
+                disableSelectionOnClick
+                sx={{
+                  '& .MuiDataGrid-root': {
+                    border: 'none',
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: '1px solid #f0f0f0',
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: '#fafafa',
+                    borderBottom: '1px solid #d0d0d0',
+                  },
+                }}
+              />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 1, mt: 2 }}>
+              Active Sessions by Role
+            </Typography>
+            <Paper sx={{ height: 400, width: '100%' }}>
+              {loading && <CustomLoader />}
+              <DataGrid
+                rows={activeSessionStatisticsData}
+                columns={columns}
+                pageSize={pageSize}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                pagination
+                paginationMode="client"
+                loading={loading}
+                disableSelectionOnClick
+                sx={{
+                  '& .MuiDataGrid-root': {
+                    border: 'none',
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: '1px solid #f0f0f0',
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: '#fafafa',
+                    borderBottom: '1px solid #d0d0d0',
+                  },
+                }}
+              />
+            </Paper>
+          </Grid>
+        </Grid>
       </Box>
     </MainCard>
   );

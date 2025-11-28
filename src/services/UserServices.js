@@ -220,6 +220,11 @@ const publicUserRegistration = (data) => {
 	});
 };
 
+const setLoginSettings = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/set_login_settings/', data);
+};
+
 const UserServices = {
     getStateStats,
     getAlertDetails,
@@ -260,7 +265,8 @@ const UserServices = {
     activateUser,
     getESIMProviderDashboard,
     getVehicleAlertStatistics,
-    publicUserRegistration
+    publicUserRegistration,
+    setLoginSettings
   };
   
   export default UserServices;
