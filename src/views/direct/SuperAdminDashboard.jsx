@@ -12,9 +12,11 @@ import {
     TableHead,
     TableRow,
     Chip,
-    CircularProgress
+    CircularProgress,
+    useTheme
 } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
 // OpenLayers imports
 import 'ol/ol.css';
@@ -139,6 +141,226 @@ const DashboardMap = ({ data, getStyle, center = [91.7362, 26.1445], zoom = 10 }
         />
     );
 };
+
+// --- Chart Components ---
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <Box sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.95)',
+                border: '1px solid rgba(0, 0, 0, 0.05)',
+                p: 2,
+                borderRadius: 3,
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                backdropFilter: 'blur(10px)'
+            }}>
+                <Typography variant="subtitle2" sx={{ color: '#1e293b', fontWeight: 700, mb: 0.5 }}>{label || payload[0].name}</Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.85rem' }}>
+                    {`${payload[0].value} Units`}
+                </Typography>
+            </Box>
+        );
+    }
+    return null;
+};
+
+const StatPieChart = ({ data }) => (
+    <ResponsiveContainer width="100%" height={240}>
+        <PieChart>
+            <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={4}
+                dataKey="value"
+                stroke="none"
+            >
+                {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+            </Pie>
+            <RechartsTooltip content={<CustomTooltip />} />
+            <Legend
+                verticalAlign="bottom"
+                align="center"
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: '12px', color: '#475569', paddingTop: '20px', fontFamily: 'Inter, sans-serif' }}
+            />
+        </PieChart>
+    </ResponsiveContainer>
+);
+
+const StatBarChart = ({ data }) => (
+    <ResponsiveContainer width="100%" height={240}>
+        <BarChart data={data} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+            <XAxis
+                dataKey="name"
+                tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Inter, sans-serif' }}
+                axisLine={false}
+                tickLine={false}
+                interval={0}
+                dy={10}
+            />
+            <YAxis
+                tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Inter, sans-serif' }}
+                axisLine={false}
+                tickLine={false}
+            />
+            <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={24}>
+                {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+            </Bar>
+        </BarChart>
+    </ResponsiveContainer>
+);
+
+const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, chartComponent }) => (
+    <Box
+        sx={{
+            height: '100%',
+            minHeight: '600px',
+            borderRadius: 4,
+            bgcolor: '#ffffff',
+            border: '1px solid',
+            borderColor: alpha(accentColor, 0.1),
+            boxShadow: `0 4px 20px 0 ${alpha(accentColor, 0.05)}`,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: `0 20px 40px -4px ${alpha(accentColor, 0.1)}`,
+                borderColor: alpha(accentColor, 0.3)
+            }
+        }}
+    >
+        <Box sx={{
+            p: 3,
+            borderBottom: `1px solid ${alpha(accentColor, 0.1)}`,
+            background: `linear-gradient(135deg, ${alpha(accentColor, 0.12)} 0%, ${alpha(accentColor, 0.02)} 100%)`,
+            position: 'relative'
+        }}>
+            <Box sx={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: '4px',
+                bgcolor: accentColor
+            }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem', mb: 0.5, color: '#1e293b', letterSpacing: '0.5px' }}>
+                {title}
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>
+                {subtitle}
+            </Typography>
+        </Box>
+
+        {mapComponent ? (
+            <>
+                <Box sx={{ p: 3 }}>
+                    {children}
+                </Box>
+                <Box
+                    sx={{
+                        flex: 1,
+                        minHeight: '400px',
+                        width: '100%',
+                        display: 'flex',
+                        position: 'relative',
+                        borderTop: `1px solid ${alpha(accentColor, 0.1)}`
+                    }}
+                >
+                    <Box sx={{ flex: 1, position: 'relative', '& canvas': { display: 'block !important' } }}>
+                        {mapComponent}
+                    </Box>
+                    <Box sx={{
+                        width: '35%',
+                        maxWidth: '320px',
+                        borderLeft: `1px solid ${alpha(accentColor, 0.1)}`,
+                        p: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        bgcolor: alpha(accentColor, 0.02)
+                    }}>
+                        {chartComponent}
+                    </Box>
+                </Box>
+            </>
+        ) : (
+            <Box sx={{ p: 3, flex: 1 }}>
+                <Grid container spacing={3} sx={{ height: '100%' }}>
+                    <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
+                        {children}
+                    </Grid>
+                    <Grid item xs={12} md={5} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {chartComponent}
+                    </Grid>
+                </Grid>
+            </Box>
+        )}
+    </Box>
+);
+
+const MetricCard = ({ label, value, color }) => (
+    <Box
+        sx={{
+            p: 2.5,
+            borderRadius: 3,
+            bgcolor: '#fff',
+            border: '1px solid',
+            borderColor: alpha(color, 0.15),
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            boxShadow: `0 2px 8px ${alpha(color, 0.05)}`,
+            '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: `0 8px 16px ${alpha(color, 0.1)}`,
+                borderColor: alpha(color, 0.4)
+            }
+        }}
+    >
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="caption" sx={{
+                color: color,
+                fontWeight: 700,
+                fontSize: '0.7rem',
+                textTransform: 'uppercase',
+                letterSpacing: '1.2px',
+                mb: 1,
+                display: 'block'
+            }}>
+                {label}
+            </Typography>
+            <Typography variant="h4" sx={{
+                fontWeight: 800,
+                fontSize: '1.75rem',
+                color: '#0f172a',
+                letterSpacing: '-0.5px'
+            }}>
+                {value}
+            </Typography>
+        </Box>
+        <Box sx={{
+            position: 'absolute',
+            right: -20,
+            top: -20,
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${alpha(color, 0.15)} 0%, transparent 70%)`,
+            zIndex: 0
+        }} />
+    </Box>
+);
 
 const SuperAdminDashboard = () => {
     // Data states
@@ -317,99 +539,66 @@ const SuperAdminDashboard = () => {
         };
     }, []);
 
-    // Small UI components
-    const MetricCard = ({ label, value }) => (
-        <Box
-            sx={{
-                p: 1.5,
-                bgcolor: alpha('#fff', 0.08),
-                borderRadius: 2,
-                border: `1px solid ${alpha('#fff', 0.12)}`,
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease',
-                '&:hover': { bgcolor: alpha('#fff', 0.12), transform: 'translateY(-2px)' }
-            }}
-        >
-            <Typography variant="caption" sx={{ fontSize: '0.7rem', opacity: 0.75, display: 'block', mb: 0.5 }}>
-                {label}
-            </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, fontSize: '1.3rem' }}>
-                {value}
-            </Typography>
-        </Box>
-    );
+    // Chart Data Preparation
+    const transportChartData = useMemo(() => [
+        { name: 'Online', value: vehicleStats.online, color: '#10b981' }, // Emerald
+        { name: 'Offline', value: vehicleStats.offline, color: '#64748b' }, // Slate
+        { name: 'Emergency', value: vehicleStats.emergency, color: '#ef4444' } // Red
+    ], [vehicleStats]);
 
-    const DashboardCard = ({ title, subtitle, children, bgGradient, mapComponent }) => (
-        <Box
-            sx={{
-                height: '100%',
-                minHeight: '600px',
-                borderRadius: 3,
-                background: `linear-gradient(135deg, ${bgGradient[0]} 0%, ${bgGradient[1]} 100%)`,
-                border: `1px solid ${alpha('#fff', 0.18)}`,
-                color: 'white',
-                boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden'
-            }}
-        >
-            <Box sx={{ p: 2.5, borderBottom: `1px solid ${alpha('#fff', 0.15)}`, background: alpha('#fff', 0.05) }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem', mb: 0.5 }}>
-                    {title}
-                </Typography>
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', opacity: 0.85 }}>
-                    {subtitle}
-                </Typography>
-            </Box>
+    const policeChartData = useMemo(() => [
+        { name: 'On Duty', value: policeStats.onDuty, color: '#3b82f6' }, // Blue
+        { name: 'Patrolling', value: policeStats.patrolling, color: '#8b5cf6' }, // Violet
+        { name: 'Incidents', value: policeStats.assignedToIncidents, color: '#f59e0b' } // Amber
+    ], [policeStats]);
 
-            <Box sx={{ p: 2.5 }}>{children}</Box>
+    const ambulanceChartData = useMemo(() => [
+        { name: 'Available', value: ambulanceStats.available, color: '#ec4899' }, // Pink
+        { name: 'Occupied', value: ambulanceStats.occupied, color: '#d946ef' }, // Fuchsia
+        { name: 'Emergency', value: ambulanceStats.emergencyMode, color: '#f43f5e' } // Rose
+    ], [ambulanceStats]);
 
-            {mapComponent && (
-                <Box
-                    sx={{
-                        flex: 1,
-                        minHeight: '400px',
-                        width: '100%',
-                        position: 'relative',
-                        borderTop: `1px solid ${alpha('#fff', 0.1)}`,
-                        '& canvas': { display: 'block !important' }
-                    }}
-                >
-                    {mapComponent}
-                </Box>
-            )}
-        </Box>
-    );
+    const sosChartData = useMemo(() => [
+        { name: 'Active', value: sosData.activeSOS, color: '#ef4444' }, // Red
+        { name: 'Pending', value: sosData.pendingSOS, color: '#f97316' }, // Orange
+        { name: 'Closed', value: sosData.closedSOS, color: '#22c55e' } // Green
+    ], [sosData]);
 
     return (
-        <MainCard sx={{ bgcolor: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)', minHeight: '100vh' }}>
-            <Box sx={{ mb: 3 }}>
+        <MainCard sx={{
+            bgcolor: '#f8fafc', // Slate 50
+            backgroundImage: `
+                radial-gradient(circle at 0% 0%, ${alpha('#6366f1', 0.03)} 0%, transparent 50%), 
+                radial-gradient(circle at 100% 100%, ${alpha('#ec4899', 0.03)} 0%, transparent 50%)
+            `,
+            minHeight: '100vh',
+            border: 'none'
+        }}>
+            <Box sx={{ mb: 4 }}>
                 <Typography
-                    variant="h3"
+                    variant="h2"
                     sx={{
-                        fontWeight: 700,
-                        fontSize: { xs: '1.5rem', md: '2rem', lg: '2.5rem' },
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 0.5
+                        fontWeight: 800,
+                        fontSize: { xs: '1.75rem', md: '2.5rem' },
+                        color: '#1e293b',
+                        mb: 1,
+                        letterSpacing: '-1px'
                     }}
                 >
                     SuperAdmin Dashboard
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#8b92b0', fontSize: '0.9rem' }}>
-                    Real-time monitoring across all emergency services • Auto-refresh enabled
+                <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1rem', maxWidth: '600px' }}>
+                    Real-time monitoring command center for statewide emergency services.
                 </Typography>
             </Box>
 
             <Grid container spacing={3}>
                 <Grid item xs={12} lg={6}>
                     <DashboardCard
-                        title="Statewide Public Transport Live View"
-                        subtitle="Real-time vehicle monitoring"
-                        bgGradient={['rgba(99, 102, 241, 0.8)', 'rgba(139, 92, 246, 0.8)']}
+                        title="Public Transport"
+                        subtitle="Live Fleet Monitoring"
+                        accentColor="#8b5cf6" // Violet
+                        chartComponent={<StatPieChart data={transportChartData} />}
                         mapComponent={
                             <DashboardMap
                                 data={vehicleData}
@@ -417,18 +606,18 @@ const SuperAdminDashboard = () => {
                             />
                         }
                     >
-                        <Grid container spacing={1.5}>
+                        <Grid container spacing={2}>
                             <Grid item xs={6} sm={3}>
-                                <MetricCard label="Total" value={loading ? '...' : vehicleStats.total} />
+                                <MetricCard label="Total" value={loading ? '...' : vehicleStats.total} color="#8b5cf6" />
                             </Grid>
                             <Grid item xs={6} sm={3}>
-                                <MetricCard label="Online" value={loading ? '...' : vehicleStats.online} />
+                                <MetricCard label="Online" value={loading ? '...' : vehicleStats.online} color="#10b981" />
                             </Grid>
                             <Grid item xs={6} sm={3}>
-                                <MetricCard label="Emergency" value={loading ? '...' : vehicleStats.emergency} />
+                                <MetricCard label="Emergency" value={loading ? '...' : vehicleStats.emergency} color="#ef4444" />
                             </Grid>
                             <Grid item xs={6} sm={3}>
-                                <MetricCard label="Offline" value={loading ? '...' : vehicleStats.offline} />
+                                <MetricCard label="Offline" value={loading ? '...' : vehicleStats.offline} color="#64748b" />
                             </Grid>
                         </Grid>
                     </DashboardCard>
@@ -436,9 +625,10 @@ const SuperAdminDashboard = () => {
 
                 <Grid item xs={12} lg={6}>
                     <DashboardCard
-                        title="Live Police Patrol Deployment Map"
-                        subtitle="On-duty metrics and assignments"
-                        bgGradient={['rgba(16, 185, 129, 0.8)', 'rgba(5, 150, 105, 0.8)']}
+                        title="Police Patrol"
+                        subtitle="Deployment & Incidents"
+                        accentColor="#3b82f6" // Blue
+                        chartComponent={<StatBarChart data={policeChartData} />}
                         mapComponent={
                             <DashboardMap
                                 data={policeMarkers}
@@ -446,18 +636,18 @@ const SuperAdminDashboard = () => {
                             />
                         }
                     >
-                        <Grid container spacing={1.5}>
+                        <Grid container spacing={2}>
                             <Grid item xs={6}>
-                                <MetricCard label="Total Vehicles" value={policeStats.totalVehicles} />
+                                <MetricCard label="Total Vehicles" value={policeStats.totalVehicles} color="#3b82f6" />
                             </Grid>
                             <Grid item xs={6}>
-                                <MetricCard label="On Duty" value={policeStats.onDuty} />
+                                <MetricCard label="On Duty" value={policeStats.onDuty} color="#10b981" />
                             </Grid>
                             <Grid item xs={6}>
-                                <MetricCard label="Incidents" value={policeStats.assignedToIncidents} />
+                                <MetricCard label="Incidents" value={policeStats.assignedToIncidents} color="#f59e0b" />
                             </Grid>
                             <Grid item xs={6}>
-                                <MetricCard label="Patrolling" value={policeStats.patrolling} />
+                                <MetricCard label="Patrolling" value={policeStats.patrolling} color="#8b5cf6" />
                             </Grid>
                         </Grid>
                     </DashboardCard>
@@ -465,9 +655,10 @@ const SuperAdminDashboard = () => {
 
                 <Grid item xs={12} lg={6}>
                     <DashboardCard
-                        title="Real-Time Ambulance Availability Map"
-                        subtitle="Fleet status and availability"
-                        bgGradient={['rgba(236, 72, 153, 0.8)', 'rgba(219, 39, 119, 0.8)']}
+                        title="Ambulance Fleet"
+                        subtitle="Availability & Response"
+                        accentColor="#ec4899" // Pink
+                        chartComponent={<StatPieChart data={ambulanceChartData} />}
                         mapComponent={
                             <DashboardMap
                                 data={ambulanceMarkers}
@@ -475,18 +666,18 @@ const SuperAdminDashboard = () => {
                             />
                         }
                     >
-                        <Grid container spacing={1.5}>
+                        <Grid container spacing={2}>
                             <Grid item xs={6}>
-                                <MetricCard label="Total Fleet" value={ambulanceStats.totalAmbulances} />
+                                <MetricCard label="Total Fleet" value={ambulanceStats.totalAmbulances} color="#ec4899" />
                             </Grid>
                             <Grid item xs={6}>
-                                <MetricCard label="Available" value={`${ambulanceStats.available} (65%)`} />
+                                <MetricCard label="Available" value={`${ambulanceStats.available}`} color="#10b981" />
                             </Grid>
                             <Grid item xs={6}>
-                                <MetricCard label="Occupied" value={ambulanceStats.occupied} />
+                                <MetricCard label="Occupied" value={ambulanceStats.occupied} color="#d946ef" />
                             </Grid>
                             <Grid item xs={6}>
-                                <MetricCard label="Emergency" value={ambulanceStats.emergencyMode} />
+                                <MetricCard label="Emergency" value={ambulanceStats.emergencyMode} color="#f43f5e" />
                             </Grid>
                         </Grid>
                     </DashboardCard>
@@ -494,29 +685,29 @@ const SuperAdminDashboard = () => {
 
                 <Grid item xs={12} lg={6}>
                     <DashboardCard
-                        title="SOS Alerts & Emergency Response"
-                        subtitle="Active incidents and call management"
-                        bgGradient={['rgba(239, 68, 68, 0.8)', 'rgba(220, 38, 38, 0.8)']}
+                        title="SOS & Emergency"
+                        subtitle="Incident Management"
+                        accentColor="#ef4444" // Red
+                        chartComponent={<StatBarChart data={sosChartData} />}
                     >
-                        <Grid container spacing={1.5} sx={{ mb: 2 }}>
+                        <Grid container spacing={2} sx={{ mb: 3 }}>
                             <Grid item xs={4}>
-                                <MetricCard label="Active SOS" value={sosLoading ? '...' : sosData.activeSOS} />
+                                <MetricCard label="Active SOS" value={sosLoading ? '...' : sosData.activeSOS} color="#ef4444" />
                             </Grid>
                             <Grid item xs={4}>
-                                <MetricCard label="Pending" value={sosLoading ? '...' : sosData.pendingSOS} />
+                                <MetricCard label="Pending" value={sosLoading ? '...' : sosData.pendingSOS} color="#f97316" />
                             </Grid>
                             <Grid item xs={4}>
-                                <MetricCard label="Closed" value={sosLoading ? '...' : sosData.closedSOS} />
+                                <MetricCard label="Closed" value={sosLoading ? '...' : sosData.closedSOS} color="#22c55e" />
                             </Grid>
                         </Grid>
 
                         <Box
                             sx={{
                                 overflow: 'auto',
-                                bgcolor: alpha('#000', 0.2),
-                                borderRadius: 2,
-                                border: `1px solid ${alpha('#fff', 0.12)}`,
-                                backdropFilter: 'blur(10px)',
+                                bgcolor: '#ffffff',
+                                borderRadius: 3,
+                                border: `1px solid #e2e8f0`,
                                 minHeight: '400px'
                             }}
                         >
@@ -524,16 +715,16 @@ const SuperAdminDashboard = () => {
                                 <Table stickyHeader size="small">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f8fafc', color: '#64748b', fontWeight: 600, fontSize: '0.75rem', py: 1.5, borderBottom: '1px solid #e2e8f0' }}>
                                                 ID
                                             </TableCell>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f8fafc', color: '#64748b', fontWeight: 600, fontSize: '0.75rem', py: 1.5, borderBottom: '1px solid #e2e8f0' }}>
                                                 Status
                                             </TableCell>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f8fafc', color: '#64748b', fontWeight: 600, fontSize: '0.75rem', py: 1.5, borderBottom: '1px solid #e2e8f0' }}>
                                                 Location
                                             </TableCell>
-                                            <TableCell sx={{ bgcolor: alpha('#000', 0.5), color: '#fff', fontWeight: 600, fontSize: '0.75rem', py: 1 }}>
+                                            <TableCell sx={{ bgcolor: '#f8fafc', color: '#64748b', fontWeight: 600, fontSize: '0.75rem', py: 1.5, borderBottom: '1px solid #e2e8f0' }}>
                                                 Time
                                             </TableCell>
                                         </TableRow>
@@ -541,34 +732,36 @@ const SuperAdminDashboard = () => {
                                     <TableBody>
                                         {sosLoading ? (
                                             <TableRow>
-                                                <TableCell colSpan={4} align="center" sx={{ color: '#fff', py: 3 }}>
-                                                    <CircularProgress size={24} sx={{ color: '#fff' }} />
+                                                <TableCell colSpan={4} align="center" sx={{ color: '#1e293b', py: 4 }}>
+                                                    <CircularProgress size={24} sx={{ color: '#1e293b' }} />
                                                 </TableCell>
                                             </TableRow>
                                         ) : sosCalls.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={4} align="center" sx={{ color: '#8b92b0', py: 3, fontSize: '0.8rem' }}>
+                                                <TableCell colSpan={4} align="center" sx={{ color: '#64748b', py: 4, fontSize: '0.875rem' }}>
                                                     No active SOS calls
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             sosCalls.map((call, index) => (
-                                                <TableRow key={call.id || index} hover sx={{ '&:hover': { bgcolor: alpha('#fff', 0.05) } }}>
-                                                    <TableCell sx={{ color: '#fff', fontSize: '0.75rem', py: 1 }}>#{call.id || index + 1}</TableCell>
-                                                    <TableCell sx={{ py: 1 }}>
+                                                <TableRow key={call.id || index} hover sx={{ '&:hover': { bgcolor: '#f1f5f9' } }}>
+                                                    <TableCell sx={{ color: '#1e293b', fontSize: '0.8rem', py: 1.5, borderBottom: '1px solid #f1f5f9' }}>#{call.id || index + 1}</TableCell>
+                                                    <TableCell sx={{ py: 1.5, borderBottom: '1px solid #f1f5f9' }}>
                                                         <Chip
                                                             label={call.status || 'pending'}
                                                             size="small"
                                                             sx={{
-                                                                fontSize: '0.65rem',
-                                                                height: 20,
-                                                                bgcolor: call.status === 'active' ? '#4caf50' : call.status === 'pending' ? '#ff9800' : '#f44336',
-                                                                color: '#fff'
+                                                                fontSize: '0.7rem',
+                                                                height: 22,
+                                                                fontWeight: 600,
+                                                                bgcolor: call.status === 'active' ? alpha('#ef4444', 0.1) : call.status === 'pending' ? alpha('#f97316', 0.1) : alpha('#22c55e', 0.1),
+                                                                color: call.status === 'active' ? '#ef4444' : call.status === 'pending' ? '#f97316' : '#22c55e',
+                                                                border: `1px solid ${call.status === 'active' ? alpha('#ef4444', 0.2) : call.status === 'pending' ? alpha('#f97316', 0.2) : alpha('#22c55e', 0.2)}`
                                                             }}
                                                         />
                                                     </TableCell>
-                                                    <TableCell sx={{ color: '#8b92b0', fontSize: '0.75rem', py: 1 }}>{call.location || 'Unknown'}</TableCell>
-                                                    <TableCell sx={{ color: '#8b92b0', fontSize: '0.75rem', py: 1 }}>
+                                                    <TableCell sx={{ color: '#64748b', fontSize: '0.8rem', py: 1.5, borderBottom: '1px solid #f1f5f9' }}>{call.location || 'Unknown'}</TableCell>
+                                                    <TableCell sx={{ color: '#64748b', fontSize: '0.8rem', py: 1.5, borderBottom: '1px solid #f1f5f9' }}>
                                                         {call.created_at ? new Date(call.created_at).toLocaleTimeString() : 'N/A'}
                                                     </TableCell>
                                                 </TableRow>

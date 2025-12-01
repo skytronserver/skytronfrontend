@@ -35,9 +35,23 @@ const steps = [
   { label: "tagDeviceForm.steps.ownerVerification", name: "Step 4" },
   { label: "tagDeviceForm.steps.readyForActivation", name: "Step 5" },
   { label: "tagDeviceForm.steps.getLocation", name: "Step 6" },
-  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 7" },
-  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 8" },
+  { label: "tagDeviceForm.steps.otCommandConfiguration", name: "Step 7" },
+  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 8" },
+  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 9" },
 ];
+
+const rawOtCommands = [
+  "@SETPIP-135.235.166.209*",
+  "@SETPPORT-6000*",
+  "@SETEIP-135.235.166.209*",
+  "@SETEPORT-5001*",
+  "@SETESCN-9101109854*",
+  "@SETAPN-airtelgprs.com*",
+];
+
+const formattedOtCommands = rawOtCommands.map((command) =>
+  command.replace(/^@SET/i, "")
+);
 
 function TagDeviceToVehicle() {
   const { t } = useTranslation();
@@ -437,7 +451,7 @@ function TagDeviceToVehicle() {
           className={loading.loader ? "loading" : "not-loading"}
         >
           <MainCard>
-            {activeStep === 8 ? (
+            {activeStep === steps.length ? (
               <React.Fragment>
                 <Typography sx={{ mt: 2, mb: 1 }}>
                   {t("tagDeviceForm.messages.allStepsCompleted")}
@@ -676,6 +690,50 @@ function TagDeviceToVehicle() {
             {activeStep === 6 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
+                  <Typography sx={{ mb: 1 }}>
+                    {t(
+                      "tagDeviceForm.messages.executeOtCommands",
+                      "Before proceeding, execute the following OT commands for the device."
+                    )}
+                  </Typography>
+                  <Typography sx={{ mb: 2 }} variant="subtitle1">
+                    {ownerDetails?.model
+                      ? t(
+                          "tagDeviceForm.messages.deviceModelOtCommands",
+                          `Device model: ${ownerDetails.model}`
+                        )
+                      : t(
+                          "tagDeviceForm.messages.deviceModelUnavailable",
+                          "Device model information is unavailable."
+                        )}
+                  </Typography>
+                  <ul style={{ paddingLeft: 24 }}>
+                    {formattedOtCommands.map((command) => (
+                      <li key={command}>
+                        <Typography variant="body1" component="span">
+                          {command}
+                        </Typography>
+                      </li>
+                    ))}
+                  </ul>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="button"
+                      variant="contained"
+                      onClick={() => setActiveStep((prevActiveStep) => prevActiveStep + 1)}
+                    >
+                      {t("common.continue", "Continue")}
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 7 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
                   <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
                 </Grid>
                 <Grid item xs={12} md={5}>
@@ -701,7 +759,7 @@ function TagDeviceToVehicle() {
                 </Grid>
               </Grid>
             )}
-            {activeStep === 7 && (
+            {activeStep === 8 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>

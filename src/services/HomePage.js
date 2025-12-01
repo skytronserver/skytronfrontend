@@ -58,6 +58,13 @@ const getRouteFixing = (device_id) => {
 
 }
 
+const getEmergencyUserLocations = (params = {}) => {
+  const http = getAxiosInstance();
+  return http.get("/api/emuser-locations/", {
+    params,
+  });
+};
+
 // status 
 const getStatus = (data) => {
   const http = getAxiosInstance();
@@ -195,6 +202,7 @@ const HomePageService = {
   getApiDataLog,
   getEmMedia,
   getStatus,
+  getEmergencyUserLocations,
 };
 
 export default HomePageService;

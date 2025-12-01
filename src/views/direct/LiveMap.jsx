@@ -69,12 +69,14 @@ const createBhuvanSource = (layerName) => {
 
 const MapComponent = ({
   gpsData,
+  policeData = [],
   width = "100%",
   height = "400px",
   customBaseLayers = [],
   onPolygonComplete,
   autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
   focusEntry = null,
+  markerLabelMode = 'vehicle',
 }) => {
   const mapElement = useRef();
   const overlayElement = useRef();
@@ -132,7 +134,7 @@ const MapComponent = ({
     return USE_TYPE_COLORS[key] || '#1E88E5';
   };
 
-  const createIconStyle = (color, vehicleType) => {
+  const createIconStyle = (color, vehicleType, labelText) => {
     const normalizedVehicleType = vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : 'bus';
 
     const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
@@ -145,7 +147,62 @@ const MapComponent = ({
         src: iconPath,
         scale: 0.10,
       }),
+      text: labelText
+        ? new Text({
+            text: labelText,
+            font: '12px "Roboto", sans-serif',
+            fill: new Fill({ color: '#0D47A1' }),
+            stroke: new Stroke({ color: '#ffffff', width: 3 }),
+            backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
+            padding: [2, 4, 2, 4],
+            offsetY: -25,
+          })
+        : undefined,
     });
+  };
+
+  const getMarkerLabel = (entry, mode) => {
+    if (!entry) return '';
+
+    switch (mode) {
+      case 'block': {
+        return (
+          entry.block_name ||
+          entry.block ||
+          entry.blockName ||
+          entry.area_name ||
+          entry.area ||
+          entry.device_tag_info?.block?.name ||
+          entry.device_tag_info?.block_name ||
+          entry.device_tag_info?.device?.block_name ||
+          entry.device_tag_info?.device?.district ||
+          entry.district ||
+          ''
+        );
+      }
+      case 'route': {
+        return (
+          entry.route_name ||
+          entry.route ||
+          entry.route_id ||
+          entry.route_info ||
+          entry.routeInformation ||
+          entry.route_ref?.name ||
+          (entry.route_ref?.id ? `Route ${entry.route_ref.id}` : '')
+        );
+      }
+      case 'vehicle':
+      default: {
+        return (
+          entry.vehicle_registration_number ||
+          entry.vehicle_reg_no ||
+          entry.device_tag_info?.device?.vehicle_reg_no ||
+          entry.device_tag_info?.vehicle?.vehicle_reg_no ||
+          entry.imei ||
+          ''
+        );
+      }
+    }
   };
 
   const getPoiStyles = (poi) => {
@@ -488,14 +545,17 @@ const MapComponent = ({
   };
 
   // Set the correct icon style based on data conditions and vehicle type
-  const getIconStyle = (data, vehicleType) => {
+  const getIconStyle = (data, vehicleType, labelMode) => {
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
     const timeDifference = calculateTimeDifference(entryTime, currentTime);
 
+    const isPoliceMarker = data.markerCategory === 'police';
     let color;
 
-    if (data.packet_type === "EA") {
+    if (isPoliceMarker) {
+      color = 'blue';
+    } else if (data.packet_type === "EA") {
       color = 'red'; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
@@ -509,15 +569,23 @@ const MapComponent = ({
       color = 'default'; // Default color
     }
 
-    return createIconStyle(color, vehicleType);
+    const labelText = getMarkerLabel(data, labelMode);
+    const iconVehicleType = isPoliceMarker ? 'police' : vehicleType;
+    return createIconStyle(color, iconVehicleType, labelText);
   };
 
   useEffect(() => {
-    if (map && vectorLayer && gpsData.length > 0) {
+    if (!map || !vectorLayer) {
+      return;
+    }
+
+    const allMarkers = [...gpsData, ...policeData];
+
+    if (allMarkers.length > 0) {
       // Clear the previous markers
       vectorLayer.getSource().clear();
 
-      const features = gpsData
+      const features = allMarkers
         .map((entry) => {
           const longitude = Number(entry.longitude);
           const latitude = Number(entry.latitude);
@@ -538,7 +606,7 @@ const MapComponent = ({
           });
 
           // Set the appropriate style for the marker with vehicle type
-          markerFeature.setStyle(getIconStyle(entry, vehicleType));
+          markerFeature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode));
 
           return markerFeature;
         })
@@ -591,8 +659,10 @@ const MapComponent = ({
       return () => {
         map.un("click", clickHandler);
       };
+    } else {
+      vectorLayer.getSource().clear();
     }
-  }, [gpsData, map, vectorLayer, dynamicOverlay]);
+  }, [gpsData, policeData, map, vectorLayer, dynamicOverlay, markerLabelMode, autoFit]);
 
   useEffect(() => {
     if (!map || !focusEntry) return;
