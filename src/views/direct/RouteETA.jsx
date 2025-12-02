@@ -1227,9 +1227,9 @@ const RouteETA = () => {
         {/* Map Container */}
         <Box sx={{ flex: 1, position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid #eee' }}>
           <Box ref={mapRef} id="map" sx={{ width: "100%", height: "100%", position: 'relative' }}>
-            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '100px', zIndex: 1000 }} alt="InSpace" />
-            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '60px', zIndex: 1000 }} alt="ISRO" />
-            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '150px', zIndex: 1000, backgroundColor: 'transparent' }} alt="Skytron" />
+            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }} alt="InSpace" />
+            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }} alt="ISRO" />
+            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }} alt="Skytron" />
           </Box>
 
           {/* Map Legend */}

@@ -249,16 +249,46 @@ const LiveTracking = () => {
       polygon: polygon,
     };
 
+    // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon]);
+
+  const refreshSelectedVehicle = async () => {
+    if (!selectedId) return;
+
+    const selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === selectedId);
+    if (!selectedRow) return;
+
+    const params = {
+      imei: selectedRow.imei,
+      regno: '',
+      owner: '',
+      poi: '',
+      roads: '',
+      polygon: '',
+    };
+
+    try {
+      const response = await HomePageService.getLiveTracking_data(params);
+      if (Array.isArray(response?.data?.data) && response.data.data.length > 0) {
+        const updated = response.data.data[0];
+        setFilteredData([updated]);
+        setFocusedEntry(updated);
+      }
+    } catch (error) {
+      // Ignore refresh errors for selected vehicle
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedId) return;
 
     const intervalId = setInterval(() => {
-      retriveMapData(params);
+      refreshSelectedVehicle();
     }, 5000);
 
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon]);
+    return () => clearInterval(intervalId);
+  }, [selectedId, tableDataTop]);
 
   // Helper to calculate time difference in minutes
   const calculateTimeDifference = (startTime, endTime) => {

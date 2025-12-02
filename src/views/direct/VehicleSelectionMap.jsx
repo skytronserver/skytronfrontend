@@ -313,17 +313,17 @@ const VehicleSelectionMap = ({
                 <img
                     src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
                     alt="InSpace Logo"
-                    style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }}
+                    style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }}
                 />
                 <img
                     src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
                     alt="ISRO Logo"
-                    style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }}
+                    style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }}
                 />
                 <img
                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                     alt="Skytron Logo"
-                    style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }}
+                    style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }}
                 />
             </div>
 

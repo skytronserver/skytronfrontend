@@ -141,11 +141,22 @@ const MapComponent = ({
     const iconType = availableTypes.includes(normalizedVehicleType) ? normalizedVehicleType : 'bus';
     const iconPath = require(`../../assets/images/${color}/${iconType}.png`);
 
+    const scaleByColor = {
+      blue: 0.08,
+      green: 0.10,
+      red: 0.10,
+      orange: 0.10,
+      grey: 0.10,
+      default: 0.10,
+    };
+
+    const iconScale = scaleByColor[color] || scaleByColor.default;
+
     return new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: iconPath,
-        scale: 0.10,
+        scale: iconScale,
       }),
       text: labelText
         ? new Text({
@@ -742,9 +753,9 @@ const MapComponent = ({
           </Button>
         </div>
         {/* Position logos using absolute positioning within the map container */}
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '120px', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '120px', zIndex: 1000, backgroundColor: 'transparent' }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }} />
 
       </div>
 
