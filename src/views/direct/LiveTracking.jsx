@@ -240,9 +240,25 @@ const LiveTracking = () => {
   };
 
   useEffect(() => {
-    // Automatically load the data when the page initially loads
-    retriveMapData({});
-  }, []);
+    const params = {
+      imei: imeiNo,
+      regno: vehicleNo,
+      owner: owner,
+      poi: poi,
+      roads: roads,
+      polygon: polygon,
+    };
+
+    retriveMapData(params);
+
+    const intervalId = setInterval(() => {
+      retriveMapData(params);
+    }, 5000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon]);
 
   // Helper to calculate time difference in minutes
   const calculateTimeDifference = (startTime, endTime) => {
