@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+
 import { useTranslation } from 'react-i18next';
 import {
   TextField,
@@ -16,7 +17,12 @@ import {
   Collapse,
   IconButton,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
+
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import MapComponent from "./LiveMap";
@@ -27,6 +33,7 @@ import { keyMapping, iconData, iconStyles, fullText, isoDatePattern } from "../.
 import { formatDateTime } from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
+
 const LiveTracking = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false);
@@ -41,7 +48,10 @@ const LiveTracking = () => {
   const [tableDataTop, setTableDataTop] = useState([]); // Data for the scrollable table
   const [selectedId, setSelectedId] = useState(null); // Track the selected button ID
   const [filteredData, setFilteredData] = useState([]); // Data for the bottom table
+  const [focusedEntry, setFocusedEntry] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [markerLabelMode, setMarkerLabelMode] = useState('vehicle');
+  const [policeLocations, setPoliceLocations] = useState([]);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -61,6 +71,106 @@ const LiveTracking = () => {
     }
   };
 
+  const computeSearchCenter = useCallback((entries = []) => {
+    const coords = entries
+      .map((item) => {
+        const latitude = Number(item.latitude);
+        const longitude = Number(item.longitude);
+        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+          return { latitude, longitude };
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    if (coords.length === 0) {
+      return { latitude: 26.1445, longitude: 91.7362 }; // Guwahati default
+    }
+
+    const totals = coords.reduce(
+      (acc, point) => {
+        acc.latitude += point.latitude;
+        acc.longitude += point.longitude;
+        return acc;
+      },
+      { latitude: 0, longitude: 0 }
+    );
+
+    return {
+      latitude: totals.latitude / coords.length,
+      longitude: totals.longitude / coords.length,
+    };
+  }, []);
+
+  const fetchPoliceLocations = useCallback(async (entries = []) => {
+    try {
+      const center = computeSearchCenter(entries);
+      const response = await HomePageService.getEmergencyUserLocations({
+        user_type: 'police',
+        lat: center.latitude,
+        lon: center.longitude,
+        radius_km: 10,
+      });
+
+      const payload = response?.data ?? [];
+      let records = [];
+
+      if (Array.isArray(payload)) {
+        records = payload;
+      } else if (Array.isArray(payload?.data)) {
+        records = payload.data;
+      } else if (Array.isArray(payload?.results)) {
+        records = payload.results;
+      } else if (Array.isArray(payload?.data?.results)) {
+        records = payload.data.results;
+      }
+
+      const normalized = records
+        .map((item, index) => {
+          const latitude = Number(
+            item?.latitude ?? item?.lat ?? item?.location?.lat ?? item?.geo_lat
+          );
+          const longitude = Number(
+            item?.longitude ?? item?.lon ?? item?.location?.lon ?? item?.location?.lng ?? item?.geo_lon
+          );
+
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return null;
+          }
+
+          const lastUpdatedRaw = item?.updated_at || item?.last_updated || item?.timestamp;
+          const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw).toISOString() : new Date().toISOString();
+
+          const labelFallback = item?.name || item?.vehicle_reg_no || item?.vehicle_id || `Police #${index + 1}`;
+
+          return {
+            id: item?.id || item?.device_id || item?.em_ex_id || `police-${index}`,
+            vehicle_registration_number: item?.vehicle_reg_no || item?.vehicle_registration_number || labelFallback,
+            block_name: item?.block_name || item?.area_name || item?.station_name || item?.police_station || '',
+            route_name: item?.route_name || item?.route || '',
+            markerLabel: labelFallback,
+            markerCategory: 'police',
+            packet_type: 'POLICE',
+            ignition_status: item?.ignition_status ?? 0,
+            speed: Number(item?.speed) || 0,
+            entry_time: lastUpdated,
+            date: lastUpdated.split('T')[0] ?? '',
+            time: lastUpdated.split('T')[1]?.split('Z')[0] ?? '',
+            internal_battery_voltage: item?.internal_battery_voltage || '--',
+            main_input_voltage: item?.main_input_voltage || '--',
+            latitude,
+            longitude,
+          };
+        })
+        .filter(Boolean);
+
+      setPoliceLocations(normalized);
+    } catch (error) {
+      console.error('Error fetching police locations:', error);
+      setPoliceLocations([]);
+    }
+  }, [computeSearchCenter]);
+
   const retriveMapData = async (data) => {
     try {
       const retriveData_table = await HomePageService.getLiveTracking_data(
@@ -75,17 +185,26 @@ const LiveTracking = () => {
         // If there's exactly one vehicle, select it automatically
         if (newData.length === 1) {
           setSelectedId(`vehicle-${newData[0].imei}`);
+          setFocusedEntry(newData[0]);
+        } else {
+          setFocusedEntry(null);
         }
+
+        fetchPoliceLocations(newData);
       } else {
         setTableDataTop([]);
         setFilteredData([]);
         setSelectedId(null);
+        setFocusedEntry(null);
+        fetchPoliceLocations();
       }
       setLoad(true);
     } catch (error) {
       setTableDataTop([]);
       setFilteredData([]);
       setSelectedId(null);
+      setFocusedEntry(null);
+      fetchPoliceLocations();
     }
   };
 
@@ -96,9 +215,11 @@ const LiveTracking = () => {
     if (selectedRow) {
       setSelectedId(id);
       setFilteredData([selectedRow]);
+      setFocusedEntry(selectedRow);
     } else {
       setSelectedId(null);
       setFilteredData(tableDataTop);
+      setFocusedEntry(null);
     }
   };
 
@@ -114,6 +235,7 @@ const LiveTracking = () => {
       polygon: polygon,
     };
     setSelectedId(null); // Reset selection when submitting new search
+    setFocusedEntry(null);
     retriveMapData(params);
   };
 
@@ -193,6 +315,7 @@ const LiveTracking = () => {
 
     if (data === "default") {
       setFilteredData(tableDataTop);
+      setFocusedEntry(null);
     } else {
       const filteredRows = tableDataTop.filter(row => getAlartType(row) === data);
       setFilteredData(filteredRows);
@@ -200,6 +323,10 @@ const LiveTracking = () => {
       // If there's exactly one result after filtering, select it automatically
       if (filteredRows.length === 1) {
         setSelectedId(`vehicle-${filteredRows[0].imei}`);
+        setFocusedEntry(filteredRows[0]);
+      } else {
+        setSelectedId(null);
+        setFocusedEntry(null);
       }
     }
   };
@@ -395,12 +522,31 @@ const LiveTracking = () => {
 
         {/* HTML Content (iframe) */}
         <div style={{ width: "80%", height: "100%" }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+            <FormControl size="small" sx={{ minWidth: 220 }}>
+              <InputLabel id="marker-label-mode-label">Marker Label</InputLabel>
+              <Select
+                labelId="marker-label-mode-label"
+                value={markerLabelMode}
+                label="Marker Label"
+                onChange={(event) => setMarkerLabelMode(event.target.value)}
+              >
+                <MenuItem value="vehicle">Vehicle ID / Registration</MenuItem>
+                <MenuItem value="block">Block / Area</MenuItem>
+                <MenuItem value="route">Route Information</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
           <MapComponent
             gpsData={filteredData}
+            policeData={policeLocations}
             width="100%"
             height={selectedId ? "400px" : "600px"}
             onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
+            focusEntry={focusedEntry}
+            markerLabelMode={markerLabelMode}
           />
+
         </div>
       </div>
 
@@ -452,7 +598,7 @@ const LiveTracking = () => {
           </Table>
         </TableContainer>
       )}
-    </MainCard >
+    </MainCard>
   );
 };
 

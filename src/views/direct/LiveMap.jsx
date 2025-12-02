@@ -4,8 +4,7 @@ import { Button } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
-import { fromLonLat, getCenter, toLonLat } from "ol/proj";
-import { Icon, Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
+import { Icon, Style, Fill, Stroke, Circle as CircleStyle, Text } from "ol/style";
 import { Draw } from 'ol/interaction';
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
@@ -17,9 +16,21 @@ import "ol/ol.css";
 import { boundingExtent } from "ol/extent";
 import POIService from "../../services/POIService";
 
-const BHUVAN_WMS_URL =
-  process.env.REACT_APP_BHUVAN_URL ||
-  "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+const resolveBhuvanWmsUrl = () => {
+  const envUrl = process.env.REACT_APP_BHUVAN_URL;
+  if (!envUrl) {
+    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+  }
+
+  const normalizedUrl = envUrl.replace(/\/$/, "");
+  if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+    return normalizedUrl;
+  }
+
+  return `${normalizedUrl}/bhuvan/gwc/service/wms`;
+};
+
+const BHUVAN_WMS_URL = resolveBhuvanWmsUrl();
 
 const DEFAULT_BHUVAN_LAYER_NAMES = [
   "basemap:admin_group",
@@ -27,11 +38,15 @@ const DEFAULT_BHUVAN_LAYER_NAMES = [
   "mmi:mmi_india",
 ];
 
-const createBhuvanSource = (layerName) =>
-  new TileWMS({
+const BHUVAN_CROSS_ORIGIN =
+  process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined;
+
+const createBhuvanSource = (layerName) => {
+  const options = {
     url: BHUVAN_WMS_URL,
     params: {
       LAYERS: layerName,
+      STYLES: "",
       TILED: true,
       VERSION: "1.1.1",
       FORMAT: "image/png",
@@ -43,15 +58,25 @@ const createBhuvanSource = (layerName) =>
     serverType: "geoserver",
     projection: "EPSG:4326",
     transition: 0,
-  });
+  };
+
+  if (BHUVAN_CROSS_ORIGIN) {
+    options.crossOrigin = BHUVAN_CROSS_ORIGIN;
+  }
+
+  return new TileWMS(options);
+};
 
 const MapComponent = ({
   gpsData,
+  policeData = [],
   width = "100%",
   height = "400px",
   customBaseLayers = [],
   onPolygonComplete,
   autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
+  focusEntry = null,
+  markerLabelMode = 'vehicle',
 }) => {
   const mapElement = useRef();
   const overlayElement = useRef();
@@ -64,7 +89,52 @@ const MapComponent = ({
   const [pois, setPois] = useState([]);
   const logoOverlays = useRef([]);
 
-  const createIconStyle = (color, vehicleType) => {
+  const USE_TYPE_COLORS = {
+    school: '#1E88E5',
+    hospital: '#E53935',
+    dealership: '#8E24AA',
+    dealer: '#8E24AA',
+    personal: '#43A047',
+    prohibited_area: '#D81B60',
+    permitroute: '#FB8C00',
+    tollgate: '#6D4C41',
+    parking: '#00897B',
+    no_parking: '#C62828',
+    villageboundary: '#5E35B1',
+    cityboundary: '#3949AB',
+    districtboundary: '#00838F',
+    stateboundary: '#00695C',
+    fuelstation: '#FDD835',
+    busstop: '#7CB342',
+    railwaystation: '#5C6BC0',
+    airport: '#039BE5',
+    other: '#546E7A',
+  };
+
+  const hexToRgba = (hex, alpha) => {
+    if (!hex) {
+      return `rgba(30, 136, 229, ${alpha})`;
+    }
+
+    let normalized = hex.replace('#', '');
+    if (normalized.length === 3) {
+      normalized = normalized.split('').map((char) => char + char).join('');
+    }
+
+    const bigint = parseInt(normalized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const getUseTypeColor = (poi) => {
+    const key = poi?.use_type?.toLowerCase();
+    return USE_TYPE_COLORS[key] || '#1E88E5';
+  };
+
+  const createIconStyle = (color, vehicleType, labelText) => {
     const normalizedVehicleType = vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : 'bus';
 
     const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
@@ -77,84 +147,198 @@ const MapComponent = ({
         src: iconPath,
         scale: 0.10,
       }),
+      text: labelText
+        ? new Text({
+            text: labelText,
+            font: '12px "Roboto", sans-serif',
+            fill: new Fill({ color: '#0D47A1' }),
+            stroke: new Stroke({ color: '#ffffff', width: 3 }),
+            backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
+            padding: [2, 4, 2, 4],
+            offsetY: -25,
+          })
+        : undefined,
     });
   };
 
-  // POI marker styles
-  const poiMarkerStyles = {
-    Point: new Style({
-      image: new Icon({
-        src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><path fill="%231976D2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
-        anchor: [0.5, 1],
-        scale: 1.0,
-      }),
-      zIndex: 1000,
-    }),
-    Circle: new Style({
-      fill: new Fill({
-        color: 'rgba(66, 165, 245, 0.2)',
-      }),
-      stroke: new Stroke({
-        color: '#42A5F5',
-        width: 2,
-      }),
-      zIndex: 900,
-    }),
-    Polygon: new Style({
-      fill: new Fill({
-        color: 'rgba(76, 175, 80, 0.2)',
-      }),
-      stroke: new Stroke({
-        color: '#4CAF50',
-        width: 2,
-      }),
-      zIndex: 900,
-    }),
-    Road: new Style({
-      stroke: new Stroke({
-        color: '#FF9800',
-        width: 3,
-      }),
-      zIndex: 900,
-    }),
+  const getMarkerLabel = (entry, mode) => {
+    if (!entry) return '';
+
+    switch (mode) {
+      case 'block': {
+        return (
+          entry.block_name ||
+          entry.block ||
+          entry.blockName ||
+          entry.area_name ||
+          entry.area ||
+          entry.device_tag_info?.block?.name ||
+          entry.device_tag_info?.block_name ||
+          entry.device_tag_info?.device?.block_name ||
+          entry.device_tag_info?.device?.district ||
+          entry.district ||
+          ''
+        );
+      }
+      case 'route': {
+        return (
+          entry.route_name ||
+          entry.route ||
+          entry.route_id ||
+          entry.route_info ||
+          entry.routeInformation ||
+          entry.route_ref?.name ||
+          (entry.route_ref?.id ? `Route ${entry.route_ref.id}` : '')
+        );
+      }
+      case 'vehicle':
+      default: {
+        return (
+          entry.vehicle_registration_number ||
+          entry.vehicle_reg_no ||
+          entry.device_tag_info?.device?.vehicle_reg_no ||
+          entry.device_tag_info?.vehicle?.vehicle_reg_no ||
+          entry.imei ||
+          ''
+        );
+      }
+    }
+  };
+
+  const getPoiStyles = (poi) => {
+    const baseColor = getUseTypeColor(poi);
+    const fillColor = hexToRgba(baseColor, 0.18);
+
+    const primaryLabel = poi?.name?.trim();
+    const secondaryLabel = poi?.use_type?.trim();
+    const fallbackLabel = poi?.description?.trim();
+    const displayText = primaryLabel || secondaryLabel || fallbackLabel || `POI ${poi?.id ?? ""}`;
+
+    const createText = (overrides = {}) => new Text({
+      text: displayText,
+      font: '12px "Roboto", sans-serif',
+      fill: new Fill({ color: '#0D47A1' }),
+      stroke: new Stroke({ color: '#ffffff', width: 3 }),
+      backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
+      padding: [2, 4, 2, 4],
+      ...overrides,
+    });
+
+    switch (poi?.mark_type) {
+      case 'Point':
+        return [
+          new Style({
+            image: new CircleStyle({
+              radius: 7,
+              fill: new Fill({ color: baseColor }),
+              stroke: new Stroke({ color: '#ffffff', width: 2 }),
+            }),
+            text: createText({ offsetY: -20 }),
+            zIndex: 1000,
+          }),
+        ];
+
+      case 'Circle':
+        return [
+          new Style({
+            fill: new Fill({ color: fillColor }),
+            stroke: new Stroke({ color: baseColor, width: 2 }),
+            zIndex: 900,
+          }),
+          new Style({
+            text: createText(),
+            geometry: (feature) => {
+              const geometry = feature.getGeometry();
+              if (!geometry || !geometry.getCenter) return null;
+              return new Point(geometry.getCenter());
+            },
+            zIndex: 950,
+          }),
+        ];
+
+      case 'Polygon':
+        return [
+          new Style({
+            fill: new Fill({ color: fillColor }),
+            stroke: new Stroke({ color: baseColor, width: 2 }),
+            zIndex: 900,
+          }),
+          new Style({
+            text: createText(),
+            geometry: (feature) => {
+              const geometry = feature.getGeometry();
+              return geometry && geometry.getInteriorPoint ? geometry.getInteriorPoint() : null;
+            },
+            zIndex: 950,
+          }),
+        ];
+
+      case 'Road':
+        return [
+          new Style({
+            stroke: new Stroke({ color: baseColor, width: 3 }),
+            zIndex: 900,
+          }),
+          new Style({
+            text: createText(),
+            geometry: (feature) => {
+              const geometry = feature.getGeometry();
+              if (!geometry || !geometry.getCoordinateAt) return null;
+              const coordinate = geometry.getCoordinateAt(0.5);
+              return coordinate ? new Point(coordinate) : null;
+            },
+            zIndex: 950,
+          }),
+        ];
+
+      default:
+        return [
+          new Style({
+            image: new CircleStyle({
+              radius: 7,
+              fill: new Fill({ color: baseColor }),
+              stroke: new Stroke({ color: '#ffffff', width: 2 }),
+            }),
+            text: createText({ offsetY: -20 }),
+            zIndex: 1000,
+          }),
+        ];
+    }
   };
 
   useEffect(() => {
     // Initialize the map on first render
+    // Create the three WMS layers matching POIViewer.jsx configuration exactly
+    const india3Layer = new TileLayer({
+      source: createBhuvanSource('india3'),
+      zIndex: 1,
+    });
+
+    const adminGroupLayer = new TileLayer({
+      source: createBhuvanSource('basemap%3Aadmin_group'),
+      zIndex: 2,
+    });
+
+    const roadsLayer = new TileLayer({
+      source: createBhuvanSource('mmi:mmi_india'),
+      zIndex: 3,
+    });
+
     const initialMap = new Map({
       target: mapElement.current,
       layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        new TileLayer({
-          source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL,
-            params: {
-              'LAYERS': 'basemap%3Aadmin_group',
-              'TILED': true,
-              'VERSION': '1.1.1',
-              'FORMAT': 'image/png',
-              'TRANSPARENT': 'true',
-              'SRS': 'EPSG:4326',
-              'WIDTH': 256,   // Set the tile width to 256 pixels
-              'HEIGHT': 256,   // Set the tile height to 256 pixels
-              'pixelRatio': 1,
-
-            },
-            serverType: 'geoserver',
-            projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
-          })
-        }),
+        india3Layer,
+        adminGroupLayer,
+        roadsLayer,
       ],
 
 
       view: new View({
-        center: fromLonLat([91.7362, 26.1445]), // Guwahati, Assam (same as SuperAdminDashboard)
+        projection: "EPSG:4326",
+        center: [91.7362, 26.1445], // Guwahati, Assam (same as SuperAdminDashboard)
         zoom: 10,
+        maxZoom: 19,
+        constrainResolution: true,
       }),
 
       pixelRatio: 1,
@@ -174,6 +358,7 @@ const MapComponent = ({
     const initialPoiVectorLayer = new VectorLayer({
       source: poiSource,
       zIndex: 100, // POI layer below vehicle markers
+      declutter: true,
     });
     initialMap.addLayer(initialPoiVectorLayer);
     setPoiVectorLayer(initialPoiVectorLayer);
@@ -259,29 +444,38 @@ const MapComponent = ({
         const location = JSON.parse(poi.location);
         if (Array.isArray(location) && location.length > 0) {
           let feature;
-          let style = poiMarkerStyles[poi.mark_type];
 
           switch (poi.mark_type) {
             case 'Point':
               if (location[0] && location[0].length === 2) {
                 const [lat, lon] = location[0];
-                const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
-                feature = new Feature({
-                  geometry: new Point(coordinates),
-                  data: poi,
-                });
+                const longitude = Number(lon);
+                const latitude = Number(lat);
+                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                  const coordinates = [longitude, latitude];
+                  feature = new Feature({
+                    geometry: new Point(coordinates),
+                    data: poi,
+                  });
+                }
               }
               break;
 
             case 'Circle':
               if (location[0] && location[0].length === 2) {
                 const [lat, lon] = location[0];
-                const center = fromLonLat([parseFloat(lon), parseFloat(lat)]);
-                const radius = parseFloat(poi.radius) || 100;
-                feature = new Feature({
-                  geometry: new Circle(center, radius),
-                  data: poi,
-                });
+                const longitude = Number(lon);
+                const latitude = Number(lat);
+                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                  const center = [longitude, latitude];
+                  const radiusMeters = parseFloat(poi.radius) || 100;
+                  const metersPerDegree = 111320 * Math.cos((latitude * Math.PI) / 180) || 111320;
+                  const radiusDegrees = radiusMeters / metersPerDegree;
+                  feature = new Feature({
+                    geometry: new Circle(center, radiusDegrees),
+                    data: poi,
+                  });
+                }
               }
               break;
 
@@ -290,7 +484,11 @@ const MapComponent = ({
                 const polygonCoords = location.map(coord => {
                   if (coord && coord.length === 2) {
                     const [lat, lon] = coord;
-                    return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                    const longitude = Number(lon);
+                    const latitude = Number(lat);
+                    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                      return [longitude, latitude];
+                    }
                   }
                   return null;
                 }).filter(coord => coord !== null);
@@ -309,7 +507,11 @@ const MapComponent = ({
                 const roadCoords = location.map(coord => {
                   if (coord && coord.length === 2) {
                     const [lat, lon] = coord;
-                    return fromLonLat([parseFloat(lon), parseFloat(lat)]);
+                    const longitude = Number(lon);
+                    const latitude = Number(lat);
+                    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                      return [longitude, latitude];
+                    }
                   }
                   return null;
                 }).filter(coord => coord !== null);
@@ -325,7 +527,8 @@ const MapComponent = ({
           }
 
           if (feature) {
-            feature.setStyle(style);
+            const styles = getPoiStyles(poi);
+            feature.setStyle(styles);
             poiSource.addFeature(feature);
           }
         }
@@ -342,14 +545,17 @@ const MapComponent = ({
   };
 
   // Set the correct icon style based on data conditions and vehicle type
-  const getIconStyle = (data, vehicleType) => {
+  const getIconStyle = (data, vehicleType, labelMode) => {
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
     const timeDifference = calculateTimeDifference(entryTime, currentTime);
 
+    const isPoliceMarker = data.markerCategory === 'police';
     let color;
 
-    if (data.packet_type === "EA") {
+    if (isPoliceMarker) {
+      color = 'blue';
+    } else if (data.packet_type === "EA") {
       color = 'red'; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
@@ -363,33 +569,48 @@ const MapComponent = ({
       color = 'default'; // Default color
     }
 
-    return createIconStyle(color, vehicleType);
+    const labelText = getMarkerLabel(data, labelMode);
+    const iconVehicleType = isPoliceMarker ? 'police' : vehicleType;
+    return createIconStyle(color, iconVehicleType, labelText);
   };
 
   useEffect(() => {
-    if (map && vectorLayer && gpsData.length > 0) {
+    if (!map || !vectorLayer) {
+      return;
+    }
+
+    const allMarkers = [...gpsData, ...policeData];
+
+    if (allMarkers.length > 0) {
       // Clear the previous markers
       vectorLayer.getSource().clear();
 
-      const features = gpsData.map((entry) => {
-        const coordinates = fromLonLat([entry.longitude, entry.latitude]);
+      const features = allMarkers
+        .map((entry) => {
+          const longitude = Number(entry.longitude);
+          const latitude = Number(entry.latitude);
 
-        // Get vehicle type from entry data
-        const vehicleType = entry?.device_tag_info?.category_info?.category;
-        console.log("entry bus", entry.vehicle_registration_number, "vehicleType:", vehicleType);
+          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+            return null;
+          }
 
-        // Create the marker feature
-        const markerFeature = new Feature({
-          geometry: new Point(coordinates),
-          entryData: entry, // Store entry data for overlay
-          vehicleType: vehicleType, // Store vehicle type on the feature
-        });
+          // Get vehicle type from entry data
+          const vehicleType = entry?.device_tag_info?.category_info?.category;
+          console.log("entry bus", entry.vehicle_registration_number, "vehicleType:", vehicleType);
 
-        // Set the appropriate style for the marker with vehicle type
-        markerFeature.setStyle(getIconStyle(entry, vehicleType));
+          // Create the marker feature
+          const markerFeature = new Feature({
+            geometry: new Point([longitude, latitude]),
+            entryData: entry, // Store entry data for overlay
+            vehicleType: vehicleType, // Store vehicle type on the feature
+          });
 
-        return markerFeature;
-      });
+          // Set the appropriate style for the marker with vehicle type
+          markerFeature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode));
+
+          return markerFeature;
+        })
+        .filter(Boolean);
 
       // Add all features (markers) to the vector layer
       vectorLayer.getSource().addFeatures(features);
@@ -438,8 +659,21 @@ const MapComponent = ({
       return () => {
         map.un("click", clickHandler);
       };
+    } else {
+      vectorLayer.getSource().clear();
     }
-  }, [gpsData, map, vectorLayer, dynamicOverlay]);
+  }, [gpsData, policeData, map, vectorLayer, dynamicOverlay, markerLabelMode, autoFit]);
+
+  useEffect(() => {
+    if (!map || !focusEntry) return;
+
+    const longitude = Number(focusEntry.longitude);
+    const latitude = Number(focusEntry.latitude);
+
+    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+      map.getView().animate({ center: [longitude, latitude], zoom: 16, duration: 500 });
+    }
+  }, [focusEntry, map]);
 
   const startDrawing = () => {
     if (!map || !drawVectorLayer) return;
@@ -464,8 +698,8 @@ const MapComponent = ({
 
       // Transform to [Lat, Lon]
       const transformedCoords = coordinates.map(coord => {
-        const lonLat = toLonLat(coord);
-        return [lonLat[1], lonLat[0]];
+        const [longitude, latitude] = coord;
+        return [latitude, longitude];
       });
 
       if (onPolygonComplete) {
