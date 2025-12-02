@@ -26,15 +26,6 @@ const dashboard = {
       breadcrumbs: false
     },
     {
-      id: 'superadmin-dashboard',
-      title: 'Super Admin Dashboard',
-      type: 'item',
-      url: '/superadmin-dashboard',
-      icon: icons.IconChartBar,
-      breadcrumbs: false,
-      roles: ['superadmin']
-    },
-    {
       id: 'owner-dashboard',
       title: 'Vehicle Owner Dashboard',
       type: 'item',

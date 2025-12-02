@@ -333,7 +333,8 @@ const LiveTracking = () => {
                       className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
-                      <img src={item.iconUrl} alt={item.text} />
+                      <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
+
                       <Typography variant="caption" className="icon-text">
                         {item.text}
                       </Typography>
@@ -348,7 +349,8 @@ const LiveTracking = () => {
                       className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
-                      <img src={item.iconUrl} alt={item.text} />
+                      <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
+
                       <Typography variant="caption" className="icon-text">
                         {item.text}
                       </Typography>

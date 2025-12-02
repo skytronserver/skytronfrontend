@@ -30,7 +30,6 @@ import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
-import SuperAdminDashboard from "../views/direct/SuperAdminDashboard";
 
 import Help from "../views/pages/Help";
 
@@ -78,11 +77,6 @@ const MainRoutes = {
     {
       path: "dashboard",
       element: <DashboardDefault />,
-    },
-    {
-      path: "/superadmin-dashboard",
-      element: <SuperAdminDashboard />,
-      roles: ["superadmin"],
     },
     {
       path: "/live-tracking",
@@ -138,6 +132,10 @@ const MainRoutes = {
       path: "/sos-call-details/:call_id",
       element: <CallDetails />,
       roles: ["superadmin", "sosadmin", "desk_ex", "teamlead"],
+    },
+    {
+      path: "/help",
+      element: <Help />,
     },
     {
       path: "sample-page",
