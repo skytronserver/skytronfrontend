@@ -219,8 +219,8 @@ export const fetchDeviceListForSale = async () => {
 export const fetchDeviceListForTagging = async () => {
     try {
       const filter = {
-        esim_status:"ESIM_Active_Confirmed",
-        stock_status:"Available_for_fitting"
+        esim_status: "ESIM_Active_Confirmed",
+        stock_status: "Available_for_fitting"
       };
       const response = await StockServices.stockFilter(filter);
       const list = response.data.data.map((device) => ({
@@ -232,11 +232,9 @@ export const fetchDeviceListForTagging = async () => {
       ];
       return uniqueList;
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("No Data Found");
-      } else {
-        console.log("No Data Found");
-      }
+      console.error("fetchDeviceListForTagging error:", error.response?.data || error.message);
+      // Return empty fallback so the dropdown doesn’t crash
+      return [];
     }
   };
   export const fetchEsimProvider = async () => {

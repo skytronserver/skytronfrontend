@@ -110,7 +110,7 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
           new Style({
             image: new Icon({
               anchor: [0.5, 1],
-              src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
+              src: require("../../assets/images/red/bus.png"),
               scale: 0.06,
             }),
           })

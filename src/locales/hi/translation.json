@@ -194,14 +194,24 @@
       "weeklyInbound": "साप्ताहिक इनबाउंड",
       "todayInbound": "आज का इनबाउंड",
       "totalInbound": "कुल इनबाउंड",
-      "activeCall": "सक्रिय कॉल",
-      "closedCall": "बंद कॉल",
-      "pendingCall": "लंबित कॉल",
-      "averageCallAccepting": "औसत कॉल स्वीकृति",
       "averageAcceptanceTime": "औसत स्वीकृति समय",
-      "weeklyInbound": "साप्ताहिक इनबाउंड",
-      "todayInbound": "आज का इनबाउंड",
-      "totalInbound": "कुल इनबाउंड"
+      "esimDevices": {
+        "totalDevices": "कुल डिवाइस",
+        "validated": "मान्य किए गए",
+        "active": "सक्रिय",
+        "expired": "समाप्त",
+        "pending": "लंबित",
+        "invalid": "अमान्य"
+      },
+      "activationStatus": {
+        "requestsSent": "भेजे गए अनुरोध",
+        "confirmed": "पुष्टि की गई",
+        "rejected": "अस्वीकृत",
+        "expiringSoon": "जल्द समाप्त होने वाले",
+        "todayRequests": "आज के अनुरोध",
+        "weeklyRequests": "साप्ताहिक अनुरोध",
+        "monthlyRequests": "मासिक अनुरोध"
+      }
     }
   },
   "historyPlayback": {
@@ -390,7 +400,7 @@
     "tagging&Activation": "टैगिंग और सक्रियण",
     "tagDeviceToVehicle": "वाहन को डिवाइस टैग करें",
     "untaggedDevice": "अनटैग्ड डिवाइस",
-    "downloadFitmentReceipt": "फिटमेंट रसीद डाउनलोड करें",
+    "downloadFitmentReceipt": "टैगिंग और सक्रियण प्रमाणपत्र डाउनलोड करें",
     "sosUsers": "एसओएस उपयोगकर्ता",
     "notices": "सूचनाएं",
     "stateAdmin": "राज्य प्रशासक",
@@ -1198,7 +1208,7 @@
     "noDataFound": "कोई डेटा नहीं मिला"
   },
   "uploadReceipt": {
-    "title": "टैगिंग रसीद डाउनलोड करें",
+    "title": "टैगिंग और सक्रियण प्रमाणपत्र डाउनलोड करें",
     "fields": {
       "imeiNo": "IMEI नंबर चुनें"
     },
@@ -1206,7 +1216,7 @@
       "imeiRequired": "IMEI नंबर आवश्यक है"
     },
     "errors": {
-      "downloadError": "रसीद डाउनलोड करने में त्रुटि"
+      "downloadError": "प्रमाणपत्र डाउनलोड करने में त्रुटि"
     }
   },
   "sosCallList": {

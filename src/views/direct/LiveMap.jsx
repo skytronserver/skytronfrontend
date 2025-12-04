@@ -142,12 +142,12 @@ const MapComponent = ({
     const iconPath = require(`../../assets/images/${color}/${iconType}.png`);
 
     const scaleByColor = {
-      blue: 0.08,
-      green: 0.10,
-      red: 0.10,
-      orange: 0.10,
-      grey: 0.10,
-      default: 0.10,
+      blue: 0.055,
+      green: 0.065,
+      red: 0.065,
+      orange: 0.065,
+      grey: 0.065,
+      default: 0.065,
     };
 
     const iconScale = scaleByColor[color] || scaleByColor.default;
@@ -580,9 +580,9 @@ const MapComponent = ({
       color = 'default'; // Default color
     }
 
-    const labelText = getMarkerLabel(data, labelMode);
     const iconVehicleType = isPoliceMarker ? 'police' : vehicleType;
-    return createIconStyle(color, iconVehicleType, labelText);
+    // Do not show any text label below/around the marker icon
+    return createIconStyle(color, iconVehicleType, '');
   };
 
   useEffect(() => {
@@ -768,13 +768,17 @@ const MapComponent = ({
         .dynamic-overlay {
           position: absolute;
           background-color: white;
-          padding: 10px;
+          padding: 8px 12px;
           border: 1px solid #ccc;
-          border-radius: 5px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
           display: none;
-          max-height: 200px;
-          overflow-y: auto;
+          width: 190px;
+          max-width: 190px;
+          max-height: 260px;
+          overflow: hidden;
+          font-size: 12px;
+          line-height: 1.4;
         }
       `}</style>
     </div>

@@ -285,7 +285,7 @@ const LiveTracking = () => {
 
     const intervalId = setInterval(() => {
       refreshSelectedVehicle();
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(intervalId);
   }, [selectedId, tableDataTop]);

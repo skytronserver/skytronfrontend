@@ -208,7 +208,7 @@ const TripPlanningMap = ({
         point.setStyle(
           new Style({
             image: new Icon({
-              src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+              src: require("../../assets/images/grey/bus.png"),
               scale: 0.051,
               anchor: [0.5, 1],
               anchorXUnits: "fraction",
@@ -350,15 +350,15 @@ const TripPlanningMap = ({
       geometry: new Point(currentCoordinates),
     });
 
-    marker.setStyle(
-      new Style({
-        image: new Icon({
-          src: `${process.env.REACT_APP_BASE_URL}static/logo/blue-skytron-transparent.png`,
-          scale: 0.06,
-          anchor: [0.5, 1],
-        }),
-      })
-    );
+    const markerStyle = new Style({
+      image: new Icon({
+        src: require("../../assets/images/blue/bus.png"),
+        scale: 0.06,
+        anchor: [0.5, 1],
+      }),
+    });
+
+    marker.setStyle(markerStyle);
 
     markerRef.current.addFeature(marker);
     animationMarkerRef.current = marker;

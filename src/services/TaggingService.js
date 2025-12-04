@@ -1,4 +1,4 @@
-import { getAxiosInstance } from './axiosInstance'; 
+ import { getAxiosInstance } from './axiosInstance'; 
 const tagDeviceToVehicle = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/tag/TagDevice2Vehicle/",data,{

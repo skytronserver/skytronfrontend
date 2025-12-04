@@ -378,35 +378,35 @@ const SuperAdminDashboard = () => {
         green: new Style({
             image: new Icon({
                 anchor: [0.5, 1],
-                src: `${process.env.REACT_APP_BASE_URL}static/logo/green-skytron-transparent.png`,
+                src: require("../../assets/images/green/bus.png"),
                 scale: 0.20
             })
         }),
         red: new Style({
             image: new Icon({
                 anchor: [0.5, 1],
-                src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
+                src: require("../../assets/images/red/bus.png"),
                 scale: 0.20
             })
         }),
         blue: new Style({
             image: new Icon({
                 anchor: [0.5, 1],
-                src: `${process.env.REACT_APP_BASE_URL}static/logo/blue-skytron-transparent.png`,
+                src: require("../../assets/images/blue/bus.png"),
                 scale: 0.20
             })
         }),
         yellow: new Style({ // Using Orange icon for alerts/yellow status
             image: new Icon({
                 anchor: [0.5, 1],
-                src: `${process.env.REACT_APP_BASE_URL}static/logo/orange-skytron-transparent.png`,
+                src: require("../../assets/images/orange/bus.png"),
                 scale: 0.20
             })
         }),
         grey: new Style({
             image: new Icon({
                 anchor: [0.5, 1],
-                src: `${process.env.REACT_APP_BASE_URL}static/logo/grey-skytron-transparent.png`,
+                src: require("../../assets/images/grey/bus.png"),
                 scale: 0.20
             })
         })

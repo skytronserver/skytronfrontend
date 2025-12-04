@@ -454,7 +454,7 @@ const user = {
     },
     {
       id: "download-tagging-receipt",
-      title: "Download Fitment Receipt",
+      title: "Download Tagging and Activation Certificate",
       type: "item",
       url: "/tag/download-receipt",
       icon: icons.IconChecks,

@@ -408,7 +408,7 @@
     "taggingActivation": "Tagging & Activation",
     "tagDeviceToVehicle": "Tag Device to Vehicle",
     "untaggedDevice": "UnTagged Device",
-    "downloadFitmentReceipt": "Download Fitment Receipt",
+    "downloadFitmentReceipt": "Download Tagging and Activation Certificate",
     "sosUsers": "SOS Users",
     "notices": "Notices",
     "stateAdmin": "State Admin",
@@ -1251,7 +1251,7 @@
     }
   },
   "uploadReceipt": {
-    "title": "Download Tagging Receipt",
+    "title": "Download Tagging and Activation Certificate",
     "fields": {
       "registrationNo": "Enter Registration No.",
       "selectRegistrationNo": "Select Registration No.",
@@ -1262,7 +1262,7 @@
       "imeiRequired": "IMEI is required"
     },
     "errors": {
-      "downloadError": "Error downloading receipt"
+      "downloadError": "Error downloading certificate"
     }
   },
   "sosCallList": {

@@ -265,7 +265,8 @@ const EMCall = () => {
           new Style({
             image: new Icon({
               anchor: [0.5, 1],
-              src: `${process.env.REACT_APP_BASE_URL}static/logo/red-skytron-transparent.png`,
+              // Use same asset pattern as LiveTracking map icons
+              src: require("../../assets/images/red/bus.png"),
               scale: 0.06,
             }),
           })
@@ -286,8 +287,8 @@ const EMCall = () => {
     fetchMessages();
     fetchAndPlotLocations();
 
-    // Set interval to update locations every 30 seconds
-    const interval = setInterval(fetchAndPlotLocations, 30000);
+    // Set interval to update locations every 10 seconds
+    const interval = setInterval(fetchAndPlotLocations, 10000);
 
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);

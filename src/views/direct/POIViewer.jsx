@@ -303,7 +303,7 @@ const POIViewer = () => {
       zIndex: 5,
       style: new Style({
         image: new Icon({
-          src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+          src: require("../../assets/images/grey/bus.png"),
           scale: 0.051,
           anchor: [0.5, 1],
           anchorXUnits: "fraction",
@@ -776,7 +776,7 @@ const POIViewer = () => {
           pointFeature.setStyle(
             new Style({
               image: new Icon({
-                src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+                src: require("../../assets/images/grey/bus.png"),
                 scale: 0.051,
                 anchor: [0.5, 1],
                 anchorXUnits: "fraction",
@@ -901,7 +901,7 @@ const POIViewer = () => {
         point.setStyle(
           new Style({
             image: new Icon({
-              src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+              src: require("../../assets/images/grey/bus.png"),
               scale: 0.051,
               anchor: [0.5, 1],
               anchorXUnits: "fraction",
