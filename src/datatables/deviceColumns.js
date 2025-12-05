@@ -168,7 +168,11 @@ const formatDate = (dateString) => {
     {
       name: "model",
       label: "Model",
-      options: { filter: true, sort: false },
+      options: {
+        filter: true,
+        sort: false,
+        customBodyRender: (value) => <p>{value?.model_name || ""}</p>,
+      },
     },
     {
       name: "stock_status",
@@ -201,12 +205,20 @@ const formatDate = (dateString) => {
     {
       name: "created_by",
       label: "Created By",
-      options: { filter: true, sort: false },
+      options: {
+        filter: true,
+        sort: false,
+        customBodyRender: (value) => <p>{value?.name || value?.created_by_name || ""}</p>,
+      },
     },
     {
       name: "dealer",
       label: "Dealer",
-      options: { filter: true, sort: false },
+      options: {
+        filter: true,
+        sort: false,
+        customBodyRender: (value) => <p>{value?.company_name || ""}</p>,
+      },
     },
     {
       name: "remarks",
