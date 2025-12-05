@@ -1,4 +1,4 @@
-export const ipSettingColumns=[
+export const ipSettingColumns = [
   {
     name: "id",
     label: "ID",
@@ -20,7 +20,7 @@ export const ipSettingColumns=[
         );
       },
       csvExportKey: "state",
- 
+
     },
   },
   {
@@ -35,12 +35,12 @@ export const ipSettingColumns=[
         );
       },
       csvExportKey: "model_name",
-      
+
     },
   },
   {
     name: "ip_tracking",
-    label: "Tracking IP",
+    label: "Tracking IP1",
     options: {
       filter: true,
       sort: false,
@@ -48,7 +48,7 @@ export const ipSettingColumns=[
   },
   {
     name: "ip_tracking2",
-    label: "Tracking IP",
+    label: "Tracking IP2",
     options: {
       filter: true,
       sort: false,
@@ -64,7 +64,7 @@ export const ipSettingColumns=[
   },
   {
     name: "port_tracking",
-    label: "Tracking Port",
+    label: "Tracking Port1",
     options: {
       filter: true,
       sort: false,
@@ -72,7 +72,7 @@ export const ipSettingColumns=[
   },
   {
     name: "port_tracking2",
-    label: "Tracking Port",
+    label: "Tracking Port2",
     options: {
       filter: true,
       sort: false,
@@ -88,7 +88,7 @@ export const ipSettingColumns=[
   },
   {
     name: "sms_tracking",
-    label: "SMS Tracking Port",
+    label: "SMS Tracking Port1",
     options: {
       filter: true,
       sort: false,
@@ -96,7 +96,7 @@ export const ipSettingColumns=[
   },
   {
     name: "sms_tracking2",
-    label: "SMS Tracking Port",
+    label: "SMS Tracking Port2",
     options: {
       filter: true,
       sort: false,
@@ -112,7 +112,7 @@ export const ipSettingColumns=[
   },
 ]
 
-export const frequencyColumns=[
+export const frequencyColumns = [
   {
     name: "id",
     label: "ID",
@@ -143,10 +143,10 @@ export const frequencyColumns=[
       filter: true,
       sort: false,
     },
-  }, 
+  },
 ];
 
-export const otaColumns=[
+export const otaColumns = [
   {
     name: "id",
     label: "ID",
@@ -204,7 +204,7 @@ export const otaColumns=[
 
 ];
 
-export const firmwareColumns=[
+export const firmwareColumns = [
   {
     name: "id",
     label: "ID",
@@ -235,134 +235,126 @@ export const firmwareColumns=[
       filter: true,
       sort: false,
     },
-  }, 
+  },
 ]
-export const stateColumns=[
-    {
-        name: "id",
-        label: "ID",
-        options: {
-          filter: false,
-          sort: false,
-          display: false,
-        },
-      },
-      {
-        name: "state",
-        label: "Name",
-        options: {
-          filter: true,
-          sort: false,
-        },
-      },
-      {
-        name: "status",
-        label: "Status",
-        options: {
-          filter: true,
-          sort: false,
-        },
-      }, 
-];
-export const districtColumns=[
+export const stateColumns = [
   {
-      name: "id",
-      label: "ID",
-      options: {
-        filter: false,
-        sort: false,
-        display: false,
-      },
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
     },
-    {
-      name: "state_info",
-      label: "State",
-      options: {
-        filter: true,
-        sort: false,
-        customBodyRender: (value, tableMeta, updateValue) => {
-          let stateName = value?.state ? value.state : '-';
-          return (
-            <p>{stateName}</p>
-          );
-        },
-        csvExportKey: "state",
-      },
+  },
+  {
+    name: "state",
+    label: "Name",
+    options: {
+      filter: true,
+      sort: false,
     },
-    {
-      name: "district_code",
-      label: "District Code",
-      options: {
-        filter: true,
-        sort: false,
-      },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      filter: true,
+      sort: false,
     },
-    {
-      name: "district",
-      label: "District",
-      options: {
-        filter: true,
-        sort: false,
-      },
+  },
+];
+export const districtColumns = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
     },
-    {
-      name: "status",
-      label: "Status",
-      options: {
-        filter: true,
-        sort: false,
+  },
+  {
+    name: "state",
+    label: "State",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        // value is the state object with state_name property
+        let stateName = value?.state_name || '-';
+        return (
+          <p>{stateName}</p>
+        );
       },
-    }, 
+      csvExportKey: "state_name",
+    },
+  },
+  {
+    name: "district_code",
+    label: "District Code",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "district",
+    label: "District",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
 ];
 export const vehicleColumns = [
-    {
-      name: "id",
-      label: "ID",
-      options: {
-        filter: false,
-        sort: false,
-        display: false,
-      },
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
     },
-    {
-      name: "category",
-      label: "Category",
-      options: {
-        filter: true,
-        sort: false,
-      },
+  },
+  {
+    name: "category",
+    label: "Category",
+    options: {
+      filter: true,
+      sort: false,
     },
-    {
-      name: "maxSpeed",
-      label: "Maximum Speed",
-      options: {
-        filter: true,
-        sort: false,
-      },
+  },
+  {
+    name: "maxSpeed",
+    label: "Maximum Speed",
+    options: {
+      filter: true,
+      sort: false,
     },
-    {
-      name: "warnSpeed",
-      label: "Speed Warning",
-      options: {
-        filter: true,
-        sort: false,
-      },
+  },
+  {
+    name: "warnSpeed",
+    label: "Speed Warning",
+    options: {
+      filter: true,
+      sort: false,
     },
-    {
-      name: "working_hour_start_time",
-      label: "Working Start Time",
-      options: {
-        filter: true,
-        sort: false,
-      },
+  },
+  {
+    name: "working_hour_start_time",
+    label: "Working Start Time",
+    options: {
+      filter: true,
+      sort: false,
     },
-    {
-      name: "working_hour_end_time",
-      label: "Working End Time",
-      options: {
-        filter: true,
-        sort: false,
-      },
-    }
-  ];
-  
+  },
+  {
+    name: "working_hour_end_time",
+    label: "Working End Time",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  }
+];

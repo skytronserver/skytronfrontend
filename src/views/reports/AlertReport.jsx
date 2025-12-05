@@ -52,8 +52,8 @@ const AlertReport = () => {
 
   // Alert type options
   const alertTypes = [
-    'Route', 'Em', 'Eng', 'OverSpeed', 'LowIntBat', 'LowExtBat', 
-    'ExtBatDiscnt', 'BoxTemp', 'EmTemp', 'Tilt', 'HarshBreak', 
+    'Route', 'Em', 'Eng', 'OverSpeed', 'LowIntBat', 'LowExtBat',
+    'ExtBatDiscnt', 'BoxTemp', 'EmTemp', 'Tilt', 'HarshBreak',
     'HarshTurn', 'HarshAccileration'
   ];
 
@@ -71,7 +71,7 @@ const AlertReport = () => {
         setStatesList([]);
       }
     };
-    
+
     const fetchInitialAlerts = async () => {
       try {
         setLoading(true);
@@ -79,7 +79,7 @@ const AlertReport = () => {
           page: 1,
           page_size: pageSize
         });
-        
+
         if (response.data && response.data.status === 'success') {
           const alerts = response.data.data.map((alert) => ({
             ...alert,
@@ -128,9 +128,9 @@ const AlertReport = () => {
       width: 130,
       flex: 1,
       renderCell: (params) => (
-        <Chip 
-          label={params.value} 
-          size="small" 
+        <Chip
+          label={params.value}
+          size="small"
           color={params.value === 'OverSpeed' ? 'error' : 'default'}
         />
       )
@@ -141,9 +141,9 @@ const AlertReport = () => {
       width: 100,
       flex: 0.5,
       renderCell: (params) => (
-        <Chip 
-          label={params.value} 
-          size="small" 
+        <Chip
+          label={params.value}
+          size="small"
           color={params.value === 'in' ? 'success' : 'warning'}
         />
       )
@@ -153,7 +153,10 @@ const AlertReport = () => {
       headerName: 'Vehicle Reg No',
       width: 150,
       flex: 1,
-      valueGetter: (params) => params.row.deviceTag?.device?.vehicle_reg_no || 'N/A'
+      valueGetter: (params) => {
+        // Vehicle reg no is at deviceTag level, not device level
+        return params.row.deviceTag?.vehicle_reg_no || params.row.deviceTag?.device?.vehicle_reg_no || 'N/A';
+      }
     },
     {
       field: 'device_esn',
@@ -183,7 +186,19 @@ const AlertReport = () => {
       headerName: 'District',
       width: 120,
       flex: 1,
-      valueGetter: (params) => params.row.deviceTag?.device?.district || 'N/A'
+      valueGetter: (params) => {
+        // District is in device.dealer.districts array
+        if (params.row.deviceTag?.device?.dealer?.districts &&
+          params.row.deviceTag.device.dealer.districts.length > 0) {
+          return params.row.deviceTag.device.dealer.districts[0].district;
+        }
+        // Fallback to deviceTag.districts if it exists
+        if (params.row.deviceTag?.districts && params.row.deviceTag.districts.length > 0) {
+          return params.row.deviceTag.districts[0].district;
+        }
+        // Last fallback
+        return 'N/A';
+      }
     },
     {
       field: 'state_name',
@@ -215,7 +230,14 @@ const AlertReport = () => {
       headerName: 'Vehicle Owner',
       width: 150,
       flex: 1,
-      valueGetter: (params) => params.row.deviceTag?.vehicle_owner?.name || 'N/A'
+      valueGetter: (params) => {
+        // Try to get owner name from the users array in vehicle_owner
+        if (params.row.deviceTag?.vehicle_owner?.users && params.row.deviceTag.vehicle_owner.users.length > 0) {
+          return params.row.deviceTag.vehicle_owner.users[0].name;
+        }
+        // Fallback to direct name property if it exists
+        return params.row.deviceTag?.vehicle_owner?.name || 'N/A';
+      }
     }
   ];
 
@@ -267,7 +289,7 @@ const AlertReport = () => {
       filterData.page_size = pageSize;
 
       const response = await showDeviceApi.getAlertLogFilter(filterData);
-      
+
       if (response.data && response.data.status === 'success') {
         const alerts = response.data.data.map((alert) => ({
           ...alert,
@@ -307,11 +329,11 @@ const AlertReport = () => {
 
   // Count active filters
   const getActiveFiltersCount = () => {
-    return Object.keys(filters).filter(key => 
-      filters[key] !== '' && 
-      filters[key] !== null && 
+    return Object.keys(filters).filter(key =>
+      filters[key] !== '' &&
+      filters[key] !== null &&
       filters[key] !== undefined &&
-      key !== 'page' && 
+      key !== 'page' &&
       key !== 'page_size' &&
       !(key === 'radius' && filters[key] === 10) // Don't count default radius
     ).length;
@@ -333,15 +355,23 @@ const AlertReport = () => {
       row.id,
       row.type,
       row.status,
-      row.deviceTag?.device?.vehicle_reg_no || 'N/A',
+      row.deviceTag?.vehicle_reg_no || row.deviceTag?.device?.vehicle_reg_no || 'N/A',
       row.deviceTag?.device?.device_esn || 'N/A',
       row.gps_ref?.latitude || 'N/A',
       row.gps_ref?.longitude || 'N/A',
-      row.deviceTag?.device?.district || 'N/A',
+      // Get district from device.dealer.districts array
+      (row.deviceTag?.device?.dealer?.districts && row.deviceTag.device.dealer.districts.length > 0)
+        ? row.deviceTag.device.dealer.districts[0].district
+        : ((row.deviceTag?.districts && row.deviceTag.districts.length > 0)
+          ? row.deviceTag.districts[0].district
+          : 'N/A'),
       row.state?.state || 'N/A',
       formatDate(row.timestamp),
       row.route_ref ? `Route ID: ${row.route_ref.id}` : 'No Route',
-      row.deviceTag?.vehicle_owner?.name || 'N/A'
+      // Get vehicle owner from users array
+      (row.deviceTag?.vehicle_owner?.users && row.deviceTag.vehicle_owner.users.length > 0)
+        ? row.deviceTag.vehicle_owner.users[0].name
+        : (row.deviceTag?.vehicle_owner?.name || 'N/A')
     ]);
 
     const csvContent = [headers, ...csvData]
@@ -373,10 +403,10 @@ const AlertReport = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent sx={{ pb: 1 }}>
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
                   cursor: 'pointer'
                 }}
@@ -386,11 +416,11 @@ const AlertReport = () => {
                   <FilterList sx={{ mr: 1 }} />
                   Filter Options
                   {!filtersExpanded && getActiveFiltersCount() > 0 && (
-                    <Chip 
-                      label={`${getActiveFiltersCount()} active`} 
-                      size="small" 
-                      color="primary" 
-                      sx={{ ml: 2 }} 
+                    <Chip
+                      label={`${getActiveFiltersCount()} active`}
+                      size="small"
+                      color="primary"
+                      sx={{ ml: 2 }}
                     />
                   )}
                 </Typography>
@@ -398,186 +428,186 @@ const AlertReport = () => {
                   {filtersExpanded ? <ExpandLess /> : <ExpandMore />}
                 </IconButton>
               </Box>
-              
+
               <Collapse in={filtersExpanded}>
                 <Box sx={{ mt: 2 }}>
-            
-            <Grid container spacing={2}>
-              {/* Alert Type */}
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Alert Type</InputLabel>
-                  <Select
-                    value={filters.type}
-                    label="Alert Type"
-                    onChange={(e) => handleFilterChange('type', e.target.value)}
-                  >
-                    <MenuItem value="">All Types</MenuItem>
-                    {alertTypes.map(type => (
-                      <MenuItem key={type} value={type}>{type}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
 
-              {/* Alert Status */}
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Alert Status</InputLabel>
-                  <Select
-                    value={filters.status}
-                    label="Alert Status"
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
-                  >
-                    <MenuItem value="">All Status</MenuItem>
-                    {alertStatuses.map(status => (
-                      <MenuItem key={status} value={status}>{status.toUpperCase()}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+                  <Grid container spacing={2}>
+                    {/* Alert Type */}
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel>Alert Type</InputLabel>
+                        <Select
+                          value={filters.type}
+                          label="Alert Type"
+                          onChange={(e) => handleFilterChange('type', e.target.value)}
+                        >
+                          <MenuItem value="">All Types</MenuItem>
+                          {alertTypes.map(type => (
+                            <MenuItem key={type} value={type}>{type}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-              {/* Vehicle Registration */}
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Vehicle Reg No"
-                  value={filters.vehicle_reg_no}
-                  onChange={(e) => handleFilterChange('vehicle_reg_no', e.target.value)}
-                  placeholder="Partial match supported"
-                />
-              </Grid>
+                    {/* Alert Status */}
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel>Alert Status</InputLabel>
+                        <Select
+                          value={filters.status}
+                          label="Alert Status"
+                          onChange={(e) => handleFilterChange('status', e.target.value)}
+                        >
+                          <MenuItem value="">All Status</MenuItem>
+                          {alertStatuses.map(status => (
+                            <MenuItem key={status} value={status}>{status.toUpperCase()}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-              {/* State */}
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>State</InputLabel>
-                  <Select
-                    value={filters.state_id}
-                    label="State"
-                    onChange={(e) => handleFilterChange('state_id', e.target.value)}
-                  >
-                    <MenuItem value="">All States</MenuItem>
-                    {statesList.map(state => (
-                      <MenuItem key={state.value} value={state.value}>{state.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+                    {/* Vehicle Registration */}
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Vehicle Reg No"
+                        value={filters.vehicle_reg_no}
+                        onChange={(e) => handleFilterChange('vehicle_reg_no', e.target.value)}
+                        placeholder="Partial match supported"
+                      />
+                    </Grid>
 
-              {/* District */}
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="District"
-                  value={filters.district}
-                  onChange={(e) => handleFilterChange('district', e.target.value)}
-                  placeholder="Partial match from device tag"
-                />
-              </Grid>
+                    {/* State */}
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel>State</InputLabel>
+                        <Select
+                          value={filters.state_id}
+                          label="State"
+                          onChange={(e) => handleFilterChange('state_id', e.target.value)}
+                        >
+                          <MenuItem value="">All States</MenuItem>
+                          {statesList.map(state => (
+                            <MenuItem key={state.value} value={state.value}>{state.label}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-              {/* Start Date */}
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Start Date"
-                  type="date"
-                  value={filters.start_date}
-                  onChange={(e) => handleFilterChange('start_date', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
+                    {/* District */}
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="District"
+                        value={filters.district}
+                        onChange={(e) => handleFilterChange('district', e.target.value)}
+                        placeholder="Partial match from device tag"
+                      />
+                    </Grid>
 
-              {/* End Date */}
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="End Date"
-                  type="date"
-                  value={filters.end_date}
-                  onChange={(e) => handleFilterChange('end_date', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
+                    {/* Start Date */}
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Start Date"
+                        type="date"
+                        value={filters.start_date}
+                        onChange={(e) => handleFilterChange('start_date', e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
 
-              {/* Latitude */}
-              <Grid item xs={12} md={2}>
-                <TextField
-                  fullWidth
-                  label="Latitude"
-                  type="number"
-                  value={filters.latitude}
-                  onChange={(e) => handleFilterChange('latitude', e.target.value)}
-                  inputProps={{ step: 'any' }}
-                />
-              </Grid>
+                    {/* End Date */}
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="End Date"
+                        type="date"
+                        value={filters.end_date}
+                        onChange={(e) => handleFilterChange('end_date', e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
 
-              {/* Longitude */}
-              <Grid item xs={12} md={2}>
-                <TextField
-                  fullWidth
-                  label="Longitude"
-                  type="number"
-                  value={filters.longitude}
-                  onChange={(e) => handleFilterChange('longitude', e.target.value)}
-                  inputProps={{ step: 'any' }}
-                />
-              </Grid>
+                    {/* Latitude */}
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        label="Latitude"
+                        type="number"
+                        value={filters.latitude}
+                        onChange={(e) => handleFilterChange('latitude', e.target.value)}
+                        inputProps={{ step: 'any' }}
+                      />
+                    </Grid>
 
-              {/* Radius */}
-              <Grid item xs={12} md={2}>
-                <TextField
-                  fullWidth
-                  label="Radius (km)"
-                  type="number"
-                  value={filters.radius}
-                  onChange={(e) => handleFilterChange('radius', e.target.value)}
-                  inputProps={{ min: 1, max: 100 }}
-                />
-              </Grid>
+                    {/* Longitude */}
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        label="Longitude"
+                        type="number"
+                        value={filters.longitude}
+                        onChange={(e) => handleFilterChange('longitude', e.target.value)}
+                        inputProps={{ step: 'any' }}
+                      />
+                    </Grid>
 
-              {/* Action Buttons */}
-              <Grid item xs={12} md={6}>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSearch}
-                    startIcon={<FilterList />}
-                    sx={{ minWidth: 120 }}
-                  >
-                    Apply Filters
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={clearFilters}
-                    startIcon={<Clear />}
-                  >
-                    Clear Filters
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="info"
-                    onClick={() => {
-                      setPage(0);
-                      fetchAlertData();
-                    }}
-                  >
-                    Show All
-                  </Button>
-                  <Tooltip title="Export to CSV">
-                    <IconButton
-                      color="primary"
-                      onClick={exportToCSV}
-                      disabled={alertData.length === 0}
-                    >
-                      <Download />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Grid>
-            </Grid>
+                    {/* Radius */}
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        label="Radius (km)"
+                        type="number"
+                        value={filters.radius}
+                        onChange={(e) => handleFilterChange('radius', e.target.value)}
+                        inputProps={{ min: 1, max: 100 }}
+                      />
+                    </Grid>
+
+                    {/* Action Buttons */}
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={handleSearch}
+                          startIcon={<FilterList />}
+                          sx={{ minWidth: 120 }}
+                        >
+                          Apply Filters
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={clearFilters}
+                          startIcon={<Clear />}
+                        >
+                          Clear Filters
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="info"
+                          onClick={() => {
+                            setPage(0);
+                            fetchAlertData();
+                          }}
+                        >
+                          Show All
+                        </Button>
+                        <Tooltip title="Export to CSV">
+                          <IconButton
+                            color="primary"
+                            onClick={exportToCSV}
+                            disabled={alertData.length === 0}
+                          >
+                            <Download />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </Box>
               </Collapse>
             </CardContent>
@@ -607,8 +637,8 @@ const AlertReport = () => {
             {loading ? (
               <CustomLoader />
             ) : (
-              <Box sx={{ 
-                height: 600, 
+              <Box sx={{
+                height: 600,
                 width: '100%',
                 '& .MuiDataGrid-root': {
                   border: 'none',

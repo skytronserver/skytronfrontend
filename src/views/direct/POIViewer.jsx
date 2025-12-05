@@ -96,7 +96,7 @@ const POIViewer = () => {
     location: '',
     radius: '100.5',
     alert_type: '',
-    speed_limit: '',
+    speed_limit: 0,
   });
   const [mapInitialized, setMapInitialized] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
@@ -361,7 +361,7 @@ const POIViewer = () => {
     // Configure map interactions
     initialMap.on('click', (evt) => {
       const feature = initialMap.forEachFeatureAtPixel(evt.pixel, (feature) => feature, { hitTolerance: 5 });
-      
+
       if (feature) {
         const poi = feature.get('data');
         if (poi) {
@@ -378,12 +378,12 @@ const POIViewer = () => {
     // Remove hover effect
     initialMap.on('pointermove', (evt) => {
       if (evt.dragging) return;
-      
-      const hit = initialMap.hasFeatureAtPixel(evt.pixel, { 
+
+      const hit = initialMap.hasFeatureAtPixel(evt.pixel, {
         hitTolerance: 5,
-        layerFilter: (layer) => layer === vectorLayer 
+        layerFilter: (layer) => layer === vectorLayer
       });
-      
+
       initialMap.getTargetElement().style.cursor = hit ? 'pointer' : '';
     });
 
@@ -524,8 +524,8 @@ const POIViewer = () => {
       use_type: poi.use_type,
       location: poi.location,
       radius: poi.radius,
-      alert_type: poi.alert_type || '',
-      speed_limit: poi.speed_limit || '',
+      alert_type: poi.alert_type || 'None',
+      speed_limit: poi.speed_limit || 0,
     });
     setSelectedPoi(poi);
     setIsEditMode(true);
@@ -568,7 +568,7 @@ const POIViewer = () => {
       setLoading(true);
       const formDataObj = new FormData();
       formDataObj.append('poi_id', selectedPoi.id);
-     const res= await POIService.deletePOI(formDataObj);
+      const res = await POIService.deletePOI(formDataObj);
       showSnackbar('POI deleted successfully', 'success');
 
       setSelectedPoi(null);
@@ -734,7 +734,7 @@ const POIViewer = () => {
       location: '',
       radius: '100.5',
       alert_type: '',
-      speed_limit: '',
+      speed_limit: 0,
     });
   };
 
@@ -764,15 +764,15 @@ const POIViewer = () => {
       const clickHandler = (e) => {
         const coord = e.coordinate;
         const lonLat = toLonLat(coord);
-        
+
         setRoutePoints(prev => {
           const newPoints = [...prev, lonLat];
-          
+
           // Show visual feedback for selected points
           const pointFeature = new Feature({
             geometry: new Point(coord),
           });
-          
+
           pointFeature.setStyle(
             new Style({
               image: new Icon({
@@ -784,9 +784,9 @@ const POIViewer = () => {
               }),
             })
           );
-          
+
           vectorSourceRef.current.addFeature(pointFeature);
-          
+
           // If we have two points, fetch the route
           if (newPoints.length === 2) {
             // Show loading state
@@ -795,7 +795,7 @@ const POIViewer = () => {
           } else if (newPoints.length === 1) {
             showSnackbar('Click another point to complete the route', 'info');
           }
-          
+
           return newPoints;
         });
       };
@@ -813,13 +813,13 @@ const POIViewer = () => {
   const fetchRoute = async (points) => {
     try {
       setLoading(true);
-      
+
       // Validate points are not too close to each other
       const distance = Math.sqrt(
-        Math.pow(points[1][0] - points[0][0], 2) + 
+        Math.pow(points[1][0] - points[0][0], 2) +
         Math.pow(points[1][1] - points[0][1], 2)
       );
-      
+
       if (distance < 0.0001) { // Points are too close
         throw new Error('Selected points are too close to each other. Please select points further apart.');
       }
@@ -833,16 +833,16 @@ const POIViewer = () => {
 
       const firstPath = routeData.paths[0];
       let coordinates;
-      
+
       if (firstPath.points.type === "LineString" && Array.isArray(firstPath.points.coordinates)) {
         // Convert coordinates to [lat, lon] format
         coordinates = firstPath.points.coordinates.map(coord => [coord[1], coord[0]]);
-        
+
         // Validate coordinates
         if (coordinates.length < 2) {
           throw new Error('Invalid route: Not enough points in the route');
         }
-        
+
         // Check for invalid coordinates
         if (coordinates.some(coord => !coord || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1]))) {
           throw new Error('Invalid coordinates in route');
@@ -853,7 +853,7 @@ const POIViewer = () => {
 
       // Display the route
       displayRoute(coordinates);
-      
+
       // Update form data with the route coordinates
       setFormData(prev => ({
         ...prev,
@@ -864,12 +864,12 @@ const POIViewer = () => {
         description: 'Generated route',
         status: 'Active',
         alert_type: prev.alert_type || '',
-        speed_limit: prev.speed_limit || '',
+        speed_limit: prev.speed_limit || 0,
       }));
 
       // Open the dialog to show the route data
       setDialogOpen(true);
-      
+
       // Reset points
       setRoutePoints([]);
     } catch (error) {
@@ -1164,11 +1164,11 @@ const POIViewer = () => {
           </Button>
 
           <Divider />
-          
+
           <Typography variant="subtitle2" color="text.secondary" sx={{ pl: 1 }}>
             Drawing Tools
           </Typography>
-          
+
           <Stack direction="row" spacing={1} sx={{ pb: 0.5 }}>
             <Tooltip title="Point">
               <IconButton
@@ -1281,8 +1281,8 @@ const POIViewer = () => {
             },
           }}
         >
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               position: 'relative',
               backgroundColor: 'background.paper',
               zIndex: 1,
@@ -1441,8 +1441,8 @@ const POIViewer = () => {
           },
         }}
       >
-        <Box sx={{ 
-          p: 2, 
+        <Box sx={{
+          p: 2,
           backgroundColor: 'background.paper',
           borderBottom: '1px solid',
           borderColor: 'divider',
@@ -1582,8 +1582,8 @@ const POIViewer = () => {
           </Stack>
         </DialogContent>
 
-        <Box sx={{ 
-          p: 2, 
+        <Box sx={{
+          p: 2,
           backgroundColor: 'background.paper',
           borderTop: '1px solid',
           borderColor: 'divider',
@@ -1664,7 +1664,7 @@ const POIViewer = () => {
               <ListItemIcon sx={{ minWidth: 40 }}>
                 {layerData.icon}
               </ListItemIcon>
-              <ListItemText 
+              <ListItemText
                 primary={layerData.name}
                 sx={{
                   '& .MuiListItemText-primary': {

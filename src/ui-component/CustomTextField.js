@@ -175,7 +175,9 @@ const FormField = ({
             type="file"
             accept={fieldConfig.name === 'excel_file' ?
               '.xlsx,.xls,.csv' :
-              '.pdf,.png,.jpg,.jpeg'}
+              fieldConfig.name === 'file_bin' ?
+                '.bin,.pac' :
+                '.pdf,.png,.jpg,.jpeg'}
             onChange={(originalEvent) => {
               // Store the original event data before async operations
               const file = originalEvent?.currentTarget?.files?.[0];
@@ -241,6 +243,24 @@ const FormField = ({
                     formik.setFieldTouched(fieldName, true, false);
                     setTimeout(() => {
                       formik.setFieldError(fieldName, 'Invalid format: Only Excel (.xlsx, .xls) and CSV files are allowed');
+                    }, 0);
+                    return;
+                  }
+                } else if (fieldConfig.name === 'file_bin') {
+                  // Validation for .bin and .pac firmware files
+                  const fileName = file.name.toLowerCase();
+                  const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
+                  // Check if the file has .bin or .pac extension
+                  if (fileExtension === '.bin' || fileExtension === '.pac') {
+                    isValidType = true;
+                  }
+
+                  if (!isValidType) {
+                    formik.setFieldValue(fieldName, '');
+                    formik.setFieldTouched(fieldName, true, false);
+                    setTimeout(() => {
+                      formik.setFieldError(fieldName, 'Invalid format: Only .bin and .pac firmware files are allowed');
                     }, 0);
                     return;
                   }
