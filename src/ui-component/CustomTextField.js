@@ -22,14 +22,14 @@ const FormField = ({
   handleFileChange,
   handleOptionChange,
 }) => {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
   const inputProps = {
     onKeyDown: (e) => e.preventDefault(), // Prevent typing
     ...(fieldConfig.minDate && { min: fieldConfig.minDate }),
     ...(fieldConfig.maxDate && { max: fieldConfig.maxDate }),
   };
-  const { type, label, options,disabled } = fieldConfig;
-  const restrictedFields = ['name', 'title', 'category','company_name', 'companyName'];
+  const { type, label, options, disabled } = fieldConfig;
+  const restrictedFields = ['name', 'title', 'category', 'company_name', 'companyName'];
   switch (type) {
     case "text":
       return (
@@ -49,18 +49,18 @@ const FormField = ({
           }
           onChange={(e) => {
             let value = e.target.value;
-            
+
             // Remove potential XSS/script injection attempts
             value = value.replace(/<[^>]*>/g, ''); // Remove HTML tags
             value = value.replace(/javascript:/gi, ''); // Remove javascript: protocol
             value = value.replace(/on\w+\s*=/gi, ''); // Remove event handlers
             value = value.replace(/script/gi, ''); // Remove the word 'script'
-            
+
             // Special handling for vehicle_number: always uppercase
             if (fieldConfig.name === 'vehicle_number') {
               value = value.toUpperCase();
             }
-            
+
             // Check if field is email type
             if (fieldConfig.name.toLowerCase().includes('email')) {
               const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -121,51 +121,51 @@ const FormField = ({
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
-             {t(option.label)}
+              {t(option.label)}
             </MenuItem>
           ))}
         </TextField>
       );
-      case "multiselect":
-        return (
-          <TextField
-            select
-            label={t(label)}
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            {...formik.getFieldProps(fieldConfig.name)}
-            error={
-              formik.touched[fieldConfig.name] &&
-              Boolean(formik.errors[fieldConfig.name])
-            }
-            helperText={
-              formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
-            }
-            onChange={(event) => {
-              formik.handleChange(event);
-              handleOptionChange && handleOptionChange(event, formik);
-            }}
-            SelectProps={{
-              multiple: true, // Enable multiple selection
-              renderValue: (selected) => (
-                <div>
-                  {selected.map((value) => (
-                    <Chip key={value} label={options.find(option => option.value === value)?.label || value} />
-                  ))}
-                </div>
-              ),
-            }}
-          >
-            {options.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                <Checkbox checked={formik.values[fieldConfig.name].includes(option.value)} />
-                <ListItemText primary={option.label} />
-              </MenuItem>
-            ))}
-          </TextField>
-        );
-      
+    case "multiselect":
+      return (
+        <TextField
+          select
+          label={t(label)}
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          {...formik.getFieldProps(fieldConfig.name)}
+          error={
+            formik.touched[fieldConfig.name] &&
+            Boolean(formik.errors[fieldConfig.name])
+          }
+          helperText={
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
+          }
+          onChange={(event) => {
+            formik.handleChange(event);
+            handleOptionChange && handleOptionChange(event, formik);
+          }}
+          SelectProps={{
+            multiple: true, // Enable multiple selection
+            renderValue: (selected) => (
+              <div>
+                {selected.map((value) => (
+                  <Chip key={value} label={options.find(option => option.value === value)?.label || value} />
+                ))}
+              </div>
+            ),
+          }}
+        >
+          {options.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              <Checkbox checked={formik.values[fieldConfig.name].includes(option.value)} />
+              <ListItemText primary={option.label} />
+            </MenuItem>
+          ))}
+        </TextField>
+      );
+
     case "file":
       return (
         <div style={{ marginTop: "16px" }}>
@@ -173,8 +173,8 @@ const FormField = ({
             id={fieldConfig.name}
             name={fieldConfig.name}
             type="file"
-            accept={fieldConfig.name === 'excel_file' ? 
-              '.xlsx,.xls,.csv' : 
+            accept={fieldConfig.name === 'excel_file' ?
+              '.xlsx,.xls,.csv' :
               '.pdf,.png,.jpg,.jpeg'}
             onChange={(originalEvent) => {
               // Store the original event data before async operations
@@ -182,9 +182,9 @@ const FormField = ({
               const fieldName = originalEvent?.currentTarget?.name;
 
               if (!file) return;
-              
+
               const maxSize = 512 * 1024; // 512 KB
-              
+
               if (file.size > maxSize) {
                 formik.setFieldValue(fieldName, '');
                 formik.setFieldTouched(fieldName, true, false);
@@ -199,37 +199,48 @@ const FormField = ({
 
               // Read file header to check signature
               const reader = new FileReader();
-              reader.onerror = function() {
+              reader.onerror = function () {
                 setTimeout(() => {
                   formik.setFieldError(fieldName, 'Error reading file');
                 }, 0);
               };
 
-              reader.onload = function(e) {
+              reader.onload = function (e) {
                 const arr = new Uint8Array(e.target.result).subarray(0, 8);
                 const header = Array.from(arr).map(byte => byte.toString(16).padStart(2, '0')).join('');
-                
+
                 let isValidType = false;
                 if (fieldConfig.name === 'excel_file') {
                   // Signatures for Excel and CSV files
+                  // Get file extension
+                  const fileName = file.name.toLowerCase();
+                  const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
                   const validSignatures = {
-                    'xlsx': '504b34', // XLSX
+                    'xlsx': '504b0304', // XLSX
                     'xls': 'd0cf11e0', // XLS
                     'csv': '', // CSV files don't have a specific signature
                   };
-                  
-                  // For CSV, check if it's a text file
-                  if (file.type === 'text/csv') {
+
+                  // Check file type, signature, and extension
+                  if (file.type === 'text/csv' || fileExtension === '.csv') {
                     isValidType = true;
-                  } else {
-                    isValidType = Object.values(validSignatures).some(sig => sig && header.startsWith(sig));
+                  } else if (fileExtension === '.xlsx' && header.startsWith('504b0304')) {
+                    // XLSX files with correct ZIP signature
+                    isValidType = true;
+                  } else if (fileExtension === '.xls' && header.startsWith('d0cf11e0')) {
+                    // XLS files with correct OLE2 signature
+                    isValidType = true;
+                  } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel') {
+                    // Accept based on MIME type as fallback
+                    isValidType = true;
                   }
-                  
+
                   if (!isValidType) {
                     formik.setFieldValue(fieldName, '');
                     formik.setFieldTouched(fieldName, true, false);
                     setTimeout(() => {
-                      formik.setFieldError(fieldName, 'Invalid format: Only Excel and CSV files are allowed');
+                      formik.setFieldError(fieldName, 'Invalid format: Only Excel (.xlsx, .xls) and CSV files are allowed');
                     }, 0);
                     return;
                   }
@@ -240,12 +251,12 @@ const FormField = ({
                     'png': '89504e47', // PNG
                     'jpeg': ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8'], // JPEG variants
                   };
-                  
-                  isValidType = 
-                    header.startsWith(validSignatures.pdf) || 
-                    header.startsWith(validSignatures.png) || 
+
+                  isValidType =
+                    header.startsWith(validSignatures.pdf) ||
+                    header.startsWith(validSignatures.png) ||
                     validSignatures.jpeg.some(sig => header.startsWith(sig));
-                  
+
                   if (!isValidType) {
                     formik.setFieldValue(fieldName, '');
                     formik.setFieldTouched(fieldName, true, false);
@@ -255,7 +266,7 @@ const FormField = ({
                     return;
                   }
                 }
-                
+
                 // If validation passes, update form and call handler
                 if (isValidType) {
                   formik.setFieldValue(fieldName, file);
@@ -276,7 +287,7 @@ const FormField = ({
                   }
                 }
               };
-              
+
               reader.readAsArrayBuffer(file);
             }}
             onBlur={() => formik.setFieldTouched(fieldConfig.name, true)}
@@ -315,9 +326,8 @@ const FormField = ({
       return (
         <FormControl style={{ width: "100%", marginBottom: "16px" }}>
           <fieldset
-            className={`custom-fieldset ${
-              formik.errors[fieldConfig.name] && "custom-fieldset-error"
-            }`}
+            className={`custom-fieldset ${formik.errors[fieldConfig.name] && "custom-fieldset-error"
+              }`}
           >
             <legend>{t(label)}</legend>
             <RadioGroup
@@ -366,7 +376,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
-          disabled={disabled ? true:false}
+          disabled={disabled ? true : false}
           type="date"
           {...formik.getFieldProps(fieldConfig.name)}
           InputLabelProps={{
@@ -416,7 +426,7 @@ const FormField = ({
           fullWidth
           margin="normal"
           type="tel"
-          disabled={disabled ? true:false}
+          disabled={disabled ? true : false}
           inputProps={{
             maxLength: 10,
             pattern: "[0-9]*"
@@ -466,7 +476,7 @@ const FormField = ({
         <Autocomplete
           options={options}
           getOptionLabel={(option) => option.label}
-          value={currentValue || null} 
+          value={currentValue || null}
           isOptionEqualToValue={(option, value) => option.value === value.value}
           onChange={(event, value) => {
             formik.setFieldValue(fieldConfig.name, value ? value.value : '');

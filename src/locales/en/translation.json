@@ -666,8 +666,8 @@
       "tac_validity": "TAC Validity",
       "cop_no": "COP Number",
       "cop_validity": "COP Validity",
-      "iccid":"Primary ICCID",
-      "iccid2":"Fallback ICCID",
+      "iccid": "Primary ICCID",
+      "iccid2": "Fallback ICCID",
       "telecom_provider1": "eSIM Telecom Service Provider 1",
       "telecom_provider2": "eSIM Telecom Service Provider 2",
       "msisdn1": "Primary MSISDN",
@@ -798,12 +798,12 @@
     "fields": {
       "model": "Model Name",
       "esimProvider": "eSIM Provider",
-      "excelFile": "Select the CSV FILE"
+      "excelFile": "Select the Excel file"
     },
     "validation": {
       "modelRequired": "Model is required",
       "esimProviderRequired": "eSIM Provider is required",
-      "excelFileRequired": "CSV File is required"
+      "excelFileRequired": "Excel File is required"
     },
     "buttons": {
       "downloadSample": "Download Sample",

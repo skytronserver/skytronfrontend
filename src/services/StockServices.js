@@ -1,4 +1,4 @@
-import { getAxiosInstance } from './axiosInstance'; 
+import { getAxiosInstance } from './axiosInstance';
 const getBulkStocks = () => {
   const http = getAxiosInstance();
   return http.get("/api/devicestock/deviceStockBulkSample/", {
@@ -38,7 +38,22 @@ const createStock = (data) => {
 };
 const createBulkStock = (data) => {
   const http = getAxiosInstance();
-  return http.post("/api/devicestock/deviceStockCreateBulk/", data, {
+  const formData = new FormData();
+
+  Object.entries(data || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (Array.isArray(value)) {
+      value.forEach((v) => {
+        if (v !== undefined && v !== null) {
+          formData.append(key, v);
+        }
+      });
+    } else {
+      formData.append(key, value);
+    }
+  });
+
+  return http.post("/api/devicestock/deviceStockCreateBulk/", formData, {
     headers: {
       "Content-type": "multipart/form-data",
     },
@@ -46,7 +61,7 @@ const createBulkStock = (data) => {
 };
 const getAvailableDeviceList = (data) => {
   const http = getAxiosInstance();
-  return http.get("/api/sell/SellListAvailableDeviceStock/",data);
+  return http.get("/api/sell/SellListAvailableDeviceStock/", data);
 };
 const getProviderList = () => {
   const http = getAxiosInstance();
@@ -56,21 +71,21 @@ const getCombinedStocks = () => {
   const http = getAxiosInstance();
   return http.post("/api/devicestock/combined/");
 };
-const devicePatch = (id,action)=>{
+const devicePatch = (id, action) => {
   const http = getAxiosInstance();
   const device = {
     device_id: id,
   };
-  switch (action){
-    case 'defective' : return http.patch("/api/sell/mark_device_defective/", device);
-    case 'return':return http.patch("/api/sell/return_to_manufacturer/", device);
+  switch (action) {
+    case 'defective': return http.patch("/api/sell/mark_device_defective/", device);
+    case 'return': return http.patch("/api/sell/return_to_manufacturer/", device);
     case 'fitment': return http.patch("/api/sell/SellFitDevice/", device);
-    case 'configSMS':return http.patch("/api/sell/configure_sms_gateway/", device);
-    case 'configSOS':return http.patch("/api/sell/configure_sos_gateway/", device);
-    case 'configIP':return http.patch("/api/sell/configure_ip_port/", device);
-    case 'eSimActivated':return http.patch("/api/sell/confirm_esim_activation/", device);
+    case 'configSMS': return http.patch("/api/sell/configure_sms_gateway/", device);
+    case 'configSOS': return http.patch("/api/sell/configure_sos_gateway/", device);
+    case 'configIP': return http.patch("/api/sell/configure_ip_port/", device);
+    case 'eSimActivated': return http.patch("/api/sell/confirm_esim_activation/", device);
     case 'eSimActivate': return http.patch("/api/sell/activate_esim_request/", device);
-    default : return http.get("/api/sell/SellListAvailableDeviceStock/",device);
+    default: return http.get("/api/sell/SellListAvailableDeviceStock/", device);
   }
 }
 const markAsDefective = (id) => {
@@ -132,17 +147,17 @@ const activateEsimReq = (id) => {
   };
   return http.patch("/api/sell/activate_esim_request/", device);
 };
-const simActivationReq=(formData)=>{
-  const http=getAxiosInstance();
-  return http.post("/api/esimActivateReq/create/",formData)
+const simActivationReq = (formData) => {
+  const http = getAxiosInstance();
+  return http.post("/api/esimActivateReq/create/", formData)
 }
-const getListActivationRequest=(data)=>{
-  const http=getAxiosInstance();
-  return http.post("/api/esimActivateReq/filter/",data);
+const getListActivationRequest = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/esimActivateReq/filter/", data);
 }
-const updateRequest=(formData)=>{
-  const http=getAxiosInstance();
-  return http.post("/api/esimActivateReq/update/",formData)
+const updateRequest = (formData) => {
+  const http = getAxiosInstance();
+  return http.post("/api/esimActivateReq/update/", formData)
 }
 
 const StockServices = {
