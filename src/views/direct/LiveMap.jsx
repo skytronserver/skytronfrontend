@@ -643,15 +643,37 @@ const MapComponent = ({
 
           if (!entryData) return;
 
-          // Set overlay content
-          document.getElementById("overlay-content").innerHTML =
-            "<strong>" + entryData.vehicle_registration_number + "</strong> <br>" + ""
-            + "<strong>Date:</strong> " + entryData.date + ".<br>" +
-            "" + "<strong>Time:</strong> " + entryData.time + ".<br>" +
-            "" + "<strong>Allert:</strong> " + entryData.packet_type + ".<br>" +
-            "" + "<strong>Speed:</strong> " + (entryData.speed > 2 ? entryData.speed : 0) + "km/h.<br>" +
-            "" + "<strong>Battery:</strong> " + entryData.internal_battery_voltage + "-" + entryData.main_input_voltage + ".<br>" +
-            "";
+          const speedValue = entryData.speed > 2 ? entryData.speed : 0;
+          const alertType = entryData.packet_type || "NR";
+          const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
+
+          // Set overlay content with styled card layout
+          document.getElementById("overlay-content").innerHTML = `
+            <div class="overlay-card">
+              <div class="overlay-header">
+                <div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
+                <div class="overlay-pill ${alertClass}">${alertType}</div>
+              </div>
+              <div class="overlay-body">
+                <div class="overlay-row">
+                  <span class="overlay-label">Date</span>
+                  <span class="overlay-value">${entryData.date || "-"}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Time</span>
+                  <span class="overlay-value">${entryData.time || "-"}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Speed</span>
+                  <span class="overlay-value">${speedValue} km/h</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Battery</span>
+                  <span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
+                </div>
+              </div>
+            </div>
+          `;
 
           dynamicOverlay.setPosition(coordinates);
           dynamicOverlay.getElement().style.display = "block";
@@ -761,24 +783,94 @@ const MapComponent = ({
 
       {/* Overlay for displaying marker details */}
       <div ref={overlayElement} className="dynamic-overlay">
-        <p id="overlay-content"> </p>
+        <div id="overlay-content"></div>
       </div>
 
       <style>{`
         .dynamic-overlay {
           position: absolute;
-          background-color: white;
-          padding: 8px 12px;
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
           display: none;
-          width: 190px;
-          max-width: 190px;
-          max-height: 260px;
+          transform: translate(-5%, 0%);
+          z-index: 1001; /* above logos */
+        }
+
+        .overlay-card {
+          background-color: #ffffff;
+          border-radius: 10px;
+          padding: 6px 8px;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          min-width: 160px;
+          max-width: 180px;
+          font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-size: 10px;
+          color: #1f2933;
+        }
+
+        .overlay-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 6px;
+          gap: 8px;
+        }
+
+        .overlay-title {
+          font-weight: 600;
+          font-size: 13px;
+          color: #111827;
+          white-space: nowrap;
           overflow: hidden;
-          font-size: 12px;
-          line-height: 1.4;
+          text-overflow: ellipsis;
+        }
+
+        .overlay-pill {
+          padding: 2px 8px;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+          border: 1px solid transparent;
+        }
+
+        .overlay-pill--normal {
+          background-color: #ecfdf3;
+          color: #15803d;
+          border-color: #bbf7d0;
+        }
+
+        .overlay-pill--alert {
+          background-color: #fef2f2;
+          color: #b91c1c;
+          border-color: #fecaca;
+        }
+
+        .overlay-body {
+          border-top: 1px solid #f1f5f9;
+          padding-top: 6px;
+          margin-top: 4px;
+          display: grid;
+          row-gap: 4px;
+        }
+
+        .overlay-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 8px;
+        }
+
+        .overlay-label {
+          font-size: 11px;
+          color: #6b7280;
+        }
+
+        .overlay-value {
+          font-size: 11px;
+          font-weight: 500;
+          color: #111827;
+          white-space: nowrap;
         }
       `}</style>
     </div>

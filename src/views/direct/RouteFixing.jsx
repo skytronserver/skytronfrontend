@@ -60,6 +60,14 @@ const RouteFixing = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!deviceId) {
+      setAlert({
+        open: true,
+        message: "Please select a vehicle before loading routes.",
+        type: "error",
+      });
+      return;
+    }
     retriveRouteData(deviceId);
   };
 
@@ -555,7 +563,7 @@ const RouteFixing = () => {
               deviceList.find((item) => item.device.id === deviceId) || null
             }
             onChange={handleAutocompleteChange}
-            options={inputValue ? deviceList : []} // Show options only when inputValue is not empty
+            options={deviceList}
             getOptionLabel={(option) => option.vehicle_reg_no || ""}
             renderInput={(params) => (
               <TextField
@@ -564,7 +572,6 @@ const RouteFixing = () => {
                 variant="outlined"
                 fullWidth
                 margin="normal"
-                onChange={(e) => setInputValue(e.target.value)} // Update inputValue on change
               />
             )}
             noOptionsText={t('routeFixing.noVehicleOptions')}

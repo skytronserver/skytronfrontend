@@ -34,15 +34,15 @@ const dashboard = {
       breadcrumbs: false,
       roles: ['superadmin']
     },
-    {
-      id: 'owner-dashboard',
-      title: 'Vehicle Owner Dashboard',
-      type: 'item',
-      url: '/dashboard/owner',
-      icon: icons.IconCar,
-      breadcrumbs: false,
-      roles: ['owner']
-    },
+    // {
+    //   id: 'owner-dashboard',
+    //   title: 'Vehicle Owner Dashboard',
+    //   type: 'item',
+    //   url: '/dashboard/owner',
+    //   icon: icons.IconCar,
+    //   breadcrumbs: false,
+    //   roles: ['owner']
+    // },
     {
       id: 'desk-executive-dashboard',
       title: 'Desk Executive Dashboard',
@@ -52,15 +52,15 @@ const dashboard = {
       breadcrumbs: false,
       roles: ['desk_ex']
     },
-    {
-      id: 'team-lead-dashboard',
-      title: 'Team Lead Dashboard',
-      type: 'item',
-      url: '/dashboard/team-lead',
-      icon: icons.IconUsers,
-      breadcrumbs: false,
-      roles: ['teamlead']
-    }
+    // {
+    //   id: 'team-lead-dashboard',
+    //   title: 'Team Lead Dashboard',
+    //   type: 'item',
+    //   url: '/dashboard/team-lead',
+    //   icon: icons.IconUsers,
+    //   breadcrumbs: false,
+    //   roles: ['teamlead']
+    // }
   ]
 };
 

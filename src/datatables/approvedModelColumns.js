@@ -2,8 +2,8 @@ import { formatDate } from '../helper';
 
 export const approvedModelColumns = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
-  { name: "device_model_name", label: "Model Name", options: { filter: true, sort: false } },
-  { name: "test_agency", label: "Test Agency", options: { filter: true, sort: false } },
+  { name: "model_name", label: "Model Name", options: { filter: true, sort: false } },
+  { name: "test_agency2", label: "Test Agency", options: { filter: true, sort: false } },
   { name: "vendor_id", label: "Vendor ID", options: { filter: false, sort: false } },
   { name: "tac_no", label: "TAC No", options: { filter: false, sort: false } },
   { name: "tac_validity", label: "TAC Validity", options: { filter: false, sort: false, customBodyRender: (value) => formatDate(value) } },
