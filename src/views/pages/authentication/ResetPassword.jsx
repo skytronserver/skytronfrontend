@@ -93,10 +93,10 @@ const ResetPassword = () => {
         try {
             // Encrypt the password before sending
             const encryptedPassword = encryptWithPublicKey(password);
-            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob },{
+            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob,token2:reset_token},{
                 headers:{
                     "Content-type": "application/json",
-                    "Authorization": "Token "+reset_token,
+                    // "Authorization": "Token "+reset_token,
                   }
             });
             setDialog(true);
