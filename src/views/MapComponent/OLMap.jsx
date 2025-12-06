@@ -14,12 +14,16 @@ const OLMap = () => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // Create Bhuvan layer
+    // Create Bhuvan layer - remove crossOrigin to avoid CORS issues
     const bhuvanLayer = new TileLayer({
+      title: 'Bhuvan Assam (assam_carto1s)',
+      opacity: 0.9,
       source: new XYZ({
         url: 'https://bhuvan-ras2.nrsc.gov.in/tilecache/tilecache.py/1.0.0/assam_carto1s/{z}/{x}/{y}.png',
         attributions: '&copy; <a href="https://bhuvan.nrsc.gov.in/">NRSC Bhuvan</a>',
-        crossOrigin: 'anonymous',
+        tileSize: 256,
+        maxZoom: 18,
+        minZoom: 0,
       }),
     });
 
