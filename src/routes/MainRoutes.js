@@ -31,6 +31,7 @@ import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
 import SuperAdminDashboard from "../views/direct/SuperAdminDashboard";
+import NewMap from "../views/MapComponent/Index";
 
 import Help from "../views/pages/Help";
 
@@ -206,6 +207,11 @@ const MainRoutes = {
     {
       path: '/reports/user-statistics-report',
       element: <UserStatisticsReport />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/map',
+      element: <NewMap />,
       roles: ['superadmin']
     }
 
