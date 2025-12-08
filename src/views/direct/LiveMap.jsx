@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
+import { XYZ, Vector as VectorSource, TileWMS } from "ol/source";
 import { Icon, Style, Fill, Stroke, Circle as CircleStyle, Text } from "ol/style";
 import { Draw } from 'ol/interaction';
 import Feature from "ol/Feature";
@@ -14,7 +14,14 @@ import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import { boundingExtent } from "ol/extent";
+import { fromLonLat } from 'ol/proj';
 import POIService from "../../services/POIService";
+
+// Mappls Tile Layer API Configuration
+const MAPPLS_TILE_API = {
+  baseUrl: "https://apis.mappls.com/advancedmaps/v1",
+  token: "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus",
+};
 
 const resolveBhuvanWmsUrl = () => {
   const envUrl = process.env.REACT_APP_BHUVAN_URL;
@@ -65,6 +72,14 @@ const createBhuvanSource = (layerName) => {
   }
 
   return new TileWMS(options);
+};
+
+/**
+ * Get Mappls Tile Layer URL
+ * @returns {string} Mappls tile layer URL template
+ */
+const getMapplsTileLayerUrl = () => {
+  return `${MAPPLS_TILE_API.baseUrl}/{z}/{x}/{y}.png?access_token=${MAPPLS_TILE_API.accessToken}`;
 };
 
 const MapComponent = ({
@@ -319,34 +334,27 @@ const MapComponent = ({
 
   useEffect(() => {
     // Initialize the map on first render
-    // Create the three WMS layers matching POIViewer.jsx configuration exactly
-    const india3Layer = new TileLayer({
-      source: createBhuvanSource('india3'),
-      zIndex: 1,
+    // Using Mappls Tile Layer API with OpenLayers
+    
+    // Create Mappls tile layer using v1 tiles endpoint
+    const mapplsTileLayer = new TileLayer({
+      source: new XYZ({
+        url: `${MAPPLS_TILE_API.baseUrl}/${MAPPLS_TILE_API.token}/tiles/{z}/{x}/{y}.png`,
+        crossOrigin: 'anonymous',
+        maxZoom: 18,
+      }),
+      zIndex: 0,
     });
-
-    const adminGroupLayer = new TileLayer({
-      source: createBhuvanSource('basemap%3Aadmin_group'),
-      zIndex: 2,
-    });
-
-    const roadsLayer = new TileLayer({
-      source: createBhuvanSource('mmi:mmi_india'),
-      zIndex: 3,
-    });
+    console.log("Mappls Tile Layer URL:", `${MAPPLS_TILE_API.baseUrl}/${MAPPLS_TILE_API.token}/tiles/{z}/{x}/{y}.png`);
 
     const initialMap = new Map({
       target: mapElement.current,
       layers: [
-        india3Layer,
-        adminGroupLayer,
-        roadsLayer,
+        mapplsTileLayer,
       ],
 
-
       view: new View({
-        projection: "EPSG:4326",
-        center: [91.7362, 26.1445], // Guwahati, Assam (same as SuperAdminDashboard)
+        center: fromLonLat([91.7362, 26.1445]), // Guwahati, Assam [longitude, latitude]
         zoom: 10,
         maxZoom: 19,
         constrainResolution: true,
