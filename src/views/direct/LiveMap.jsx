@@ -1,71 +1,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "@mui/material";
-import { Map, View } from "ol";
-import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { OSM, Vector as VectorSource, TileWMS } from "ol/source";
-import { Icon, Style, Fill, Stroke, Circle as CircleStyle, Text } from "ol/style";
-import { Draw } from 'ol/interaction';
-import Feature from "ol/Feature";
-import Point from "ol/geom/Point";
-import Polygon from "ol/geom/Polygon";
-import Circle from "ol/geom/Circle";
-import LineString from "ol/geom/LineString";
-import Overlay from "ol/Overlay";
-import "ol/ol.css";
-import { boundingExtent } from "ol/extent";
+import { Button, Box } from "@mui/material";
 import POIService from "../../services/POIService";
 
-const resolveBhuvanWmsUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/bhuvan/gwc/service/wms`;
-};
-
-const BHUVAN_WMS_URL = resolveBhuvanWmsUrl();
-
-const DEFAULT_BHUVAN_LAYER_NAMES = [
-  "basemap:admin_group",
-  "india3",
-  "mmi:mmi_india",
-];
-
-const BHUVAN_CROSS_ORIGIN =
-  process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined;
-
-const createBhuvanSource = (layerName) => {
-  const options = {
-    url: BHUVAN_WMS_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  if (BHUVAN_CROSS_ORIGIN) {
-    options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  }
-
-  return new TileWMS(options);
-};
 
 const MapComponent = ({
   gpsData,
@@ -74,20 +11,16 @@ const MapComponent = ({
   height = "400px",
   customBaseLayers = [],
   onPolygonComplete,
-  autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
+  autoFit = false,
   focusEntry = null,
   markerLabelMode = 'vehicle',
 }) => {
-  const mapElement = useRef();
-  const overlayElement = useRef();
-  const [map, setMap] = useState(null);
-  const [vectorLayer, setVectorLayer] = useState(null);
-  const [dynamicOverlay, setDynamicOverlay] = useState(null);
-  const [drawVectorLayer, setDrawVectorLayer] = useState(null);
-  const [drawInteraction, setDrawInteraction] = useState(null);
-  const [poiVectorLayer, setPoiVectorLayer] = useState(null);
+  const mapplsContainerRef = useRef();
+  const mapplsClassRef = useRef();
+  const mapplsMapRef = useRef();
+  const markersRef = useRef([]);
+  const [mapplsLoaded, setMapplsLoaded] = useState(false);
   const [pois, setPois] = useState([]);
-  const logoOverlays = useRef([]);
 
   const USE_TYPE_COLORS = {
     school: '#1E88E5',
@@ -134,42 +67,16 @@ const MapComponent = ({
     return USE_TYPE_COLORS[key] || '#1E88E5';
   };
 
-  const createIconStyle = (color, vehicleType, labelText) => {
+  const getMarkerIcon = (color, vehicleType) => {
     const normalizedVehicleType = vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : 'bus';
-
     const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
     const iconType = availableTypes.includes(normalizedVehicleType) ? normalizedVehicleType : 'bus';
-    const iconPath = require(`../../assets/images/${color}/${iconType}.png`);
-
-    const scaleByColor = {
-      blue: 0.055,
-      green: 0.065,
-      red: 0.065,
-      orange: 0.065,
-      grey: 0.065,
-      default: 0.065,
-    };
-
-    const iconScale = scaleByColor[color] || scaleByColor.default;
-
-    return new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: iconPath,
-        scale: iconScale,
-      }),
-      text: labelText
-        ? new Text({
-            text: labelText,
-            font: '12px "Roboto", sans-serif',
-            fill: new Fill({ color: '#0D47A1' }),
-            stroke: new Stroke({ color: '#ffffff', width: 3 }),
-            backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
-            padding: [2, 4, 2, 4],
-            offsetY: -25,
-          })
-        : undefined,
-    });
+    
+    try {
+      return require(`../../assets/images/${color}/${iconType}.png`);
+    } catch (e) {
+      return require(`../../assets/images/blue/bus.png`);
+    }
   };
 
   const getMarkerLabel = (entry, mode) => {
@@ -216,215 +123,168 @@ const MapComponent = ({
     }
   };
 
-  const getPoiStyles = (poi) => {
-    const baseColor = getUseTypeColor(poi);
-    const fillColor = hexToRgba(baseColor, 0.18);
 
-    const primaryLabel = poi?.name?.trim();
-    const secondaryLabel = poi?.use_type?.trim();
-    const fallbackLabel = poi?.description?.trim();
-    const displayText = primaryLabel || secondaryLabel || fallbackLabel || `POI ${poi?.id ?? ""}`;
-
-    const createText = (overrides = {}) => new Text({
-      text: displayText,
-      font: '12px "Roboto", sans-serif',
-      fill: new Fill({ color: '#0D47A1' }),
-      stroke: new Stroke({ color: '#ffffff', width: 3 }),
-      backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
-      padding: [2, 4, 2, 4],
-      ...overrides,
-    });
-
-    switch (poi?.mark_type) {
-      case 'Point':
-        return [
-          new Style({
-            image: new CircleStyle({
-              radius: 7,
-              fill: new Fill({ color: baseColor }),
-              stroke: new Stroke({ color: '#ffffff', width: 2 }),
-            }),
-            text: createText({ offsetY: -20 }),
-            zIndex: 1000,
-          }),
-        ];
-
-      case 'Circle':
-        return [
-          new Style({
-            fill: new Fill({ color: fillColor }),
-            stroke: new Stroke({ color: baseColor, width: 2 }),
-            zIndex: 900,
-          }),
-          new Style({
-            text: createText(),
-            geometry: (feature) => {
-              const geometry = feature.getGeometry();
-              if (!geometry || !geometry.getCenter) return null;
-              return new Point(geometry.getCenter());
-            },
-            zIndex: 950,
-          }),
-        ];
-
-      case 'Polygon':
-        return [
-          new Style({
-            fill: new Fill({ color: fillColor }),
-            stroke: new Stroke({ color: baseColor, width: 2 }),
-            zIndex: 900,
-          }),
-          new Style({
-            text: createText(),
-            geometry: (feature) => {
-              const geometry = feature.getGeometry();
-              return geometry && geometry.getInteriorPoint ? geometry.getInteriorPoint() : null;
-            },
-            zIndex: 950,
-          }),
-        ];
-
-      case 'Road':
-        return [
-          new Style({
-            stroke: new Stroke({ color: baseColor, width: 3 }),
-            zIndex: 900,
-          }),
-          new Style({
-            text: createText(),
-            geometry: (feature) => {
-              const geometry = feature.getGeometry();
-              if (!geometry || !geometry.getCoordinateAt) return null;
-              const coordinate = geometry.getCoordinateAt(0.5);
-              return coordinate ? new Point(coordinate) : null;
-            },
-            zIndex: 950,
-          }),
-        ];
-
-      default:
-        return [
-          new Style({
-            image: new CircleStyle({
-              radius: 7,
-              fill: new Fill({ color: baseColor }),
-              stroke: new Stroke({ color: '#ffffff', width: 2 }),
-            }),
-            text: createText({ offsetY: -20 }),
-            zIndex: 1000,
-          }),
-        ];
-    }
-  };
-
+  // Initialize Mappls map
   useEffect(() => {
-    // Initialize the map on first render
-    // Create the three WMS layers matching POIViewer.jsx configuration exactly
-    const india3Layer = new TileLayer({
-      source: createBhuvanSource('india3'),
-      zIndex: 1,
-    });
+    if (!mapplsContainerRef.current) return;
 
-    const adminGroupLayer = new TileLayer({
-      source: createBhuvanSource('basemap%3Aadmin_group'),
-      zIndex: 2,
-    });
+    // Use setTimeout to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (!mapplsContainerRef.current) return;
 
-    const roadsLayer = new TileLayer({
-      source: createBhuvanSource('mmi:mmi_india'),
-      zIndex: 3,
-    });
+      try {
+        // Clear any existing content
+        mapplsContainerRef.current.innerHTML = '';
 
-    const initialMap = new Map({
-      target: mapElement.current,
-      layers: [
-        india3Layer,
-        adminGroupLayer,
-        roadsLayer,
-      ],
+        // Create the map div
+        const mapDiv = document.createElement('div');
+        mapDiv.id = 'mappls-map-container';
+        mapDiv.style.width = '100%';
+        mapDiv.style.height = '100%';
+        mapplsContainerRef.current.appendChild(mapDiv);
 
+        // Check if mappls is available - with retry logic
+        if (typeof window.mappls === 'undefined') {
+          console.warn('Mappls library not loaded, retrying...');
+          // Retry after a delay
+          setTimeout(() => {
+            if (typeof window.mappls !== 'undefined') {
+              console.log('Mappls loaded on retry');
+              // Trigger re-initialization
+              mapplsContainerRef.current.innerHTML = '';
+            } else {
+              console.error('Mappls library failed to load after retries');
+              setMapplsLoaded(true);
+            }
+          }, 2000);
+          return;
+        }
 
-      view: new View({
-        projection: "EPSG:4326",
-        center: [91.7362, 26.1445], // Guwahati, Assam (same as SuperAdminDashboard)
-        zoom: 10,
-        maxZoom: 19,
-        constrainResolution: true,
-      }),
+        // Initialize Mappls - check the actual structure
+        try {
+          console.log('window.mappls type:', typeof window.mappls);
+          console.log('window.mappls:', window.mappls);
 
-      pixelRatio: 1,
-    });
+          // Store the mappls class object for later use with marker()
+          mapplsClassRef.current = window.mappls;
+          
+          // Create an instance for initialization
+          let mapplsInstance;
+          
+          if (typeof window.mappls === 'object' && window.mappls !== null) {
+            // If mappls is an object, use it directly
+            mapplsInstance = window.mappls;
+          } else if (typeof window.mappls === 'function') {
+            // If mappls is a function, call it
+            mapplsInstance = window.mappls();
+          } else {
+            throw new Error('Mappls library format not recognized');
+          }
 
-    // Initialize vector layer for markers
-    const initialVectorLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 200, // Ensure vehicle markers are on top
-    });
+          console.log('Mappls instance ready');
 
-    // Add vector layer to map
-    initialMap.addLayer(initialVectorLayer);
+          // Check if initialize method exists
+          if (typeof mapplsInstance.initialize === 'function') {
+            mapplsInstance.initialize("01fe4d61e103cc49905b05a2d9cd440f", { map: true }, () => {
+              if (!mapDiv || !document.body.contains(mapDiv)) {
+                console.log('Map container no longer in DOM, skipping initialization');
+                return;
+              }
 
-    // Initialize POI vector layer
-    const poiSource = new VectorSource();
-    const initialPoiVectorLayer = new VectorLayer({
-      source: poiSource,
-      zIndex: 100, // POI layer below vehicle markers
-      declutter: true,
-    });
-    initialMap.addLayer(initialPoiVectorLayer);
-    setPoiVectorLayer(initialPoiVectorLayer);
+              try {
+                // Create the map
+                const mapInstance = mapplsInstance.Map({
+                  id: "mappls-map-container",
+                  properties: {
+                    center: [28.544, 77.5454],
+                    draggable: true,
+                    zoom: 5,
+                    minZoom: 4,
+                    maxZoom: 18,
+                    backgroundColor: "#fff",
+                    traffic: false,
+                    geolocation: true,
+                    disableDoubleClickZoom: false,
+                    fullscreenControl: true,
+                    scrollWheel: true,
+                    scrollZoom: true,
+                    rotateControl: true,
+                    scaleControl: true,
+                    zoomControl: true,
+                    clickableIcons: true,
+                  },
+                });
 
-    // Initialize vector layer for drawing
-    const drawSource = new VectorSource();
-    const drawLayer = new VectorLayer({
-      source: drawSource,
-      style: new Style({
-        fill: new Fill({
-          color: 'rgba(255, 255, 255, 0.2)',
-        }),
-        stroke: new Stroke({
-          color: '#ffcc33',
-          width: 2,
-        }),
-        image: new CircleStyle({
-          radius: 7,
-          fill: new Fill({
-            color: '#ffcc33',
-          }),
-        }),
-      }),
-    });
-    initialMap.addLayer(drawLayer);
+                mapplsMapRef.current = mapInstance;
+                console.log('✓ Mappls map initialized successfully');
+                setMapplsLoaded(true);
+              } catch (mapError) {
+                console.error('Error creating Mappls map:', mapError);
+                setMapplsLoaded(true);
+              }
+            });
+          } else if (typeof mapplsInstance.Map === 'function') {
+            // If Map method exists directly, use it
+            const mapInstance = mapplsInstance.Map({
+              id: "mappls-map-container",
+              properties: {
+                center: [28.544, 77.5454],
+                draggable: true,
+                zoom: 5,
+                minZoom: 4,
+                maxZoom: 18,
+                backgroundColor: "#fff",
+                traffic: false,
+                geolocation: true,
+                disableDoubleClickZoom: false,
+                fullscreenControl: true,
+                scrollWheel: true,
+                scrollZoom: true,
+                rotateControl: true,
+                scaleControl: true,
+                zoomControl: true,
+                clickableIcons: true,
+              },
+            });
 
-    //initialMap.addLayer(administrativeLayer);
+            mapplsMapRef.current = mapInstance;
+            console.log('✓ Mappls map initialized successfully');
+            setMapplsLoaded(true);
+          } else {
+            throw new Error('Mappls initialize or Map method not found');
+          }
+        } catch (initError) {
+          console.error('Error initializing Mappls instance:', initError);
+          console.log('Available Mappls methods:', Object.keys(window.mappls || {}));
+          setMapplsLoaded(true);
+        }
+      } catch (error) {
+        console.error('Error initializing Mappls:', error);
+        setMapplsLoaded(true);
+      }
+    }, 100);
 
-    // Create dynamic overlay
-    const initialOverlay = new Overlay({
-      element: overlayElement.current,
-    });
-    initialMap.addOverlay(initialOverlay);
-
-
-
-    // Create overlays for each logo
-    /* logos.forEach(logo => {
-       const element = document.createElement('img');
-       element.src = logo.src;
-       element.style.width = '50px'; // Adjust size as necessary
-       const logoOverlay = new Overlay({
-         element: element,
-         position: fromLonLat(logo.coordinates),
-         positioning: `${logo.position.includes('top') ? 'top' : 'bottom'}-${logo.position.includes('left') ? 'left' : 'right'}`
-       });
-       initialMap.addOverlay(logoOverlay);
-       logoOverlays.current.push(logoOverlay);
-     });
-     */
-
-    setMap(initialMap);
-    setVectorLayer(initialVectorLayer);
-    setDynamicOverlay(initialOverlay);
-    setDrawVectorLayer(drawLayer);
+    return () => {
+      clearTimeout(timer);
+      if (mapplsMapRef.current) {
+        try {
+          if (typeof mapplsMapRef.current.remove === 'function') {
+            mapplsMapRef.current.remove();
+          }
+          mapplsMapRef.current = null;
+        } catch (e) {
+          console.log('Cleanup error:', e);
+        }
+      }
+      // Clear the container to prevent React DOM mismatch
+      if (mapplsContainerRef.current) {
+        try {
+          mapplsContainerRef.current.innerHTML = '';
+        } catch (e) {
+          console.log('Container clear error:', e);
+        }
+      }
+    };
   }, []);
 
   // Fetch POIs on component mount
@@ -443,436 +303,221 @@ const MapComponent = ({
     fetchPOIs();
   }, []);
 
-  // Update POI markers when POIs change
-  useEffect(() => {
-    if (!poiVectorLayer || pois.length === 0) return;
-
-    const poiSource = poiVectorLayer.getSource();
-    poiSource.clear();
-
-    pois.forEach((poi) => {
-      try {
-        const location = JSON.parse(poi.location);
-        if (Array.isArray(location) && location.length > 0) {
-          let feature;
-
-          switch (poi.mark_type) {
-            case 'Point':
-              if (location[0] && location[0].length === 2) {
-                const [lat, lon] = location[0];
-                const longitude = Number(lon);
-                const latitude = Number(lat);
-                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                  const coordinates = [longitude, latitude];
-                  feature = new Feature({
-                    geometry: new Point(coordinates),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-
-            case 'Circle':
-              if (location[0] && location[0].length === 2) {
-                const [lat, lon] = location[0];
-                const longitude = Number(lon);
-                const latitude = Number(lat);
-                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                  const center = [longitude, latitude];
-                  const radiusMeters = parseFloat(poi.radius) || 100;
-                  const metersPerDegree = 111320 * Math.cos((latitude * Math.PI) / 180) || 111320;
-                  const radiusDegrees = radiusMeters / metersPerDegree;
-                  feature = new Feature({
-                    geometry: new Circle(center, radiusDegrees),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-
-            case 'Polygon':
-              if (location.length >= 3) {
-                const polygonCoords = location.map(coord => {
-                  if (coord && coord.length === 2) {
-                    const [lat, lon] = coord;
-                    const longitude = Number(lon);
-                    const latitude = Number(lat);
-                    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                      return [longitude, latitude];
-                    }
-                  }
-                  return null;
-                }).filter(coord => coord !== null);
-
-                if (polygonCoords.length >= 3) {
-                  feature = new Feature({
-                    geometry: new Polygon([polygonCoords]),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-
-            case 'Road':
-              if (location.length >= 2) {
-                const roadCoords = location.map(coord => {
-                  if (coord && coord.length === 2) {
-                    const [lat, lon] = coord;
-                    const longitude = Number(lon);
-                    const latitude = Number(lat);
-                    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                      return [longitude, latitude];
-                    }
-                  }
-                  return null;
-                }).filter(coord => coord !== null);
-
-                if (roadCoords.length >= 2) {
-                  feature = new Feature({
-                    geometry: new LineString(roadCoords),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-          }
-
-          if (feature) {
-            const styles = getPoiStyles(poi);
-            feature.setStyle(styles);
-            poiSource.addFeature(feature);
-          }
-        }
-      } catch (error) {
-        console.error('Error processing POI:', poi.id, error);
-      }
-    });
-  }, [pois, poiVectorLayer]);
 
   // Helper to calculate time difference in minutes
   const calculateTimeDifference = (startTime, endTime) => {
     const timeDifferenceMillis = endTime - startTime;
-    return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
+    return timeDifferenceMillis / (1000 * 60);
   };
 
-  // Set the correct icon style based on data conditions and vehicle type
-  const getIconStyle = (data, vehicleType, labelMode) => {
+  // Get marker color based on vehicle status
+  const getMarkerColor = (data) => {
     const entryTime = new Date(data.entry_time);
     const currentTime = new Date();
     const timeDifference = calculateTimeDifference(entryTime, currentTime);
 
     const isPoliceMarker = data.markerCategory === 'police';
-    let color;
 
     if (isPoliceMarker) {
-      color = 'blue';
+      return 'blue';
     } else if (data.packet_type === "EA") {
-      color = 'red'; // EA Packet - Red Icon
+      return 'red';
     } else if (data.packet_type !== "NR") {
-      color = 'orange'; // Any Alert Packet except EA - Orange Icon
+      return 'orange';
     } else if (String(data.ignition_status) === "1" && data.speed < 1) {
-      color = 'blue'; // Ignition ON but stationary - Blue Icon
+      return 'blue';
     } else if (String(data.ignition_status) === "1" && data.speed > 1) {
-      color = 'green'; // Ignition ON and moving - Green Icon
+      return 'green';
     } else if (timeDifference > 5) {
-      color = 'grey'; // Offline device (no packets from device for 5+ minutes) - Grey Icon
+      return 'grey';
     } else {
-      color = 'default'; // Default color
+      return 'blue';
     }
-
-    const iconVehicleType = isPoliceMarker ? 'police' : vehicleType;
-    // Do not show any text label below/around the marker icon
-    return createIconStyle(color, iconVehicleType, '');
   };
 
+  // Add markers to Mappls map
   useEffect(() => {
-    if (!map || !vectorLayer) {
-      return;
-    }
+    if (!mapplsMapRef.current || !mapplsLoaded) return;
 
     const allMarkers = [...gpsData, ...policeData];
 
-    if (allMarkers.length > 0) {
-      // Clear the previous markers
-      vectorLayer.getSource().clear();
+    // Remove old markers
+    if (markersRef.current.length > 0) {
+      markersRef.current.forEach(marker => {
+        try {
+          mapplsMapRef.current.removeMarker(marker);
+        } catch (e) {
+          console.log('Error removing marker:', e);
+        }
+      });
+      markersRef.current = [];
+    }
 
-      const features = allMarkers
-        .map((entry) => {
-          const longitude = Number(entry.longitude);
-          const latitude = Number(entry.latitude);
+    // Add new markers using Mappls API
+    // Use mapplsClassObject.marker() to create markers
+    allMarkers.forEach((entry) => {
+      const longitude = Number(entry.longitude);
+      const latitude = Number(entry.latitude);
 
-          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-            return null;
-          }
-
-          // Get vehicle type from entry data
-          const vehicleType = entry?.device_tag_info?.category_info?.category;
-          console.log("entry bus", entry.vehicle_registration_number, "vehicleType:", vehicleType);
-
-          // Create the marker feature
-          const markerFeature = new Feature({
-            geometry: new Point([longitude, latitude]),
-            entryData: entry, // Store entry data for overlay
-            vehicleType: vehicleType, // Store vehicle type on the feature
-          });
-
-          // Set the appropriate style for the marker with vehicle type
-          markerFeature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode));
-
-          return markerFeature;
-        })
-        .filter(Boolean);
-
-      // Add all features (markers) to the vector layer
-      vectorLayer.getSource().addFeatures(features);
-
-      // Only auto-fit if autoFit prop is true and there are markers
-      if (autoFit && features.length > 0) {
-        const extent = vectorLayer.getSource().getExtent();
-        map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+      if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+        return;
       }
 
-      // Handle map click to display the overlay and zoom to street level
-      const clickHandler = function (event) {
-        dynamicOverlay.getElement().style.display = "none";
-
-        // Check if a feature is clicked
-        map.forEachFeatureAtPixel(event.pixel, function (feature) {
-          const coordinates = feature.getGeometry().getCoordinates();
-          const entryData = feature.get("entryData");
-
-          if (!entryData) return;
-
-          const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-          const alertType = entryData.packet_type || "NR";
-          const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
-
-          // Set overlay content with styled card layout
-          document.getElementById("overlay-content").innerHTML = `
-            <div class="overlay-card">
-              <div class="overlay-header">
-                <div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
-                <div class="overlay-pill ${alertClass}">${alertType}</div>
+      try {
+        const color = getMarkerColor(entry);
+        const vehicleType = entry?.device_tag_info?.category_info?.category;
+        const iconUrl = getMarkerIcon(color, vehicleType);
+        
+        const markerLabel = getMarkerLabel(entry, markerLabelMode);
+        
+        // Mappls marker configuration
+        const markerConfig = {
+          map: mapplsMapRef.current,
+          position: {
+            lat: latitude,
+            lng: longitude,
+          },
+          icon: iconUrl,
+          width: 35,
+          height: 45,
+          offset: [0, -22], // Center the icon on the position
+          popupHtml: `
+            <div style="padding: 12px; font-size: 13px; min-width: 160px; font-family: Arial, sans-serif;">
+              <div style="font-weight: bold; color: #1a1a1a; margin-bottom: 8px; font-size: 14px;">
+                ${entry.vehicle_registration_number || 'N/A'}
               </div>
-              <div class="overlay-body">
-                <div class="overlay-row">
-                  <span class="overlay-label">Date</span>
-                  <span class="overlay-value">${entryData.date || "-"}</span>
+              <div style="border-top: 1px solid #e0e0e0; padding-top: 8px;">
+                <div style="margin-bottom: 4px;">
+                  <span style="color: #666;">Speed:</span> <strong>${entry.speed || 0} km/h</strong>
                 </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Time</span>
-                  <span class="overlay-value">${entryData.time || "-"}</span>
+                <div style="margin-bottom: 4px;">
+                  <span style="color: #666;">Status:</span> <strong>${entry.packet_type || 'NR'}</strong>
                 </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Speed</span>
-                  <span class="overlay-value">${speedValue} km/h</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Battery</span>
-                  <span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
+                <div>
+                  <span style="color: #666;">Time:</span> <strong>${entry.time || 'N/A'}</strong>
                 </div>
               </div>
             </div>
-          `;
+          `,
+          popupOptions: {
+            openPopup: false,
+            autoClose: true,
+            maxWidth: 250,
+          },
+        };
 
-          dynamicOverlay.setPosition(coordinates);
-          dynamicOverlay.getElement().style.display = "block";
+        // Create marker using the stored mapplsClassRef
+        try {
+          // Use addMarker method which is available
+          if (mapplsClassRef.current && typeof mapplsClassRef.current.addMarker === 'function') {
+            const markerObject = mapplsClassRef.current.addMarker(markerConfig);
+            if (markerObject) {
+              markersRef.current.push(markerObject);
+              console.log('✓ Marker added:', markerLabel);
+            }
+          } else {
+            console.error('mapplsClassRef.current.addMarker is not available');
+          }
+        } catch (markerError) {
+          console.error('Error creating marker:', markerError);
+        }
+      } catch (error) {
+        console.error('Error adding marker:', error);
+      }
+    });
 
-          // Zoom to street level when clicked (zoom level 18)
-          map.getView().animate({
-            center: coordinates,
-            zoom: 18,
-            duration: 500, // Animate the zoom for 500ms
-          });
-        });
-      };
-
-      map.on("click", clickHandler);
-
-      return () => {
-        map.un("click", clickHandler);
-      };
-    } else {
-      vectorLayer.getSource().clear();
+    // Auto-fit if needed
+    if (autoFit && allMarkers.length > 0) {
+      try {
+        const bounds = allMarkers
+          .filter(m => Number.isFinite(m.latitude) && Number.isFinite(m.longitude))
+          .map(m => [m.latitude, m.longitude]);
+        
+        if (bounds.length > 0) {
+          // Try different fit methods
+          if (typeof mapplsMapRef.current.fitBounds === 'function') {
+            mapplsMapRef.current.fitBounds(bounds);
+          } else if (typeof mapplsMapRef.current.fitBoundingBox === 'function') {
+            mapplsMapRef.current.fitBoundingBox(bounds);
+          } else if (typeof mapplsMapRef.current.setView === 'function') {
+            // Fallback: set center to first marker
+            mapplsMapRef.current.setView([bounds[0][0], bounds[0][1]], 10);
+          }
+        }
+      } catch (e) {
+        console.log('Error fitting bounds:', e);
+      }
     }
-  }, [gpsData, policeData, map, vectorLayer, dynamicOverlay, markerLabelMode, autoFit]);
+  }, [gpsData, policeData, mapplsLoaded, autoFit, markerLabelMode]);
 
+  // Focus on entry
   useEffect(() => {
-    if (!map || !focusEntry) return;
+    if (!mapplsMapRef.current || !focusEntry || !mapplsLoaded) return;
 
     const longitude = Number(focusEntry.longitude);
     const latitude = Number(focusEntry.latitude);
 
     if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-      map.getView().animate({ center: [longitude, latitude], zoom: 16, duration: 500 });
-    }
-  }, [focusEntry, map]);
+      try {
+        // Use Mappls setCenter method with {lat, lng} format
+        mapplsMapRef.current.setCenter({
+          lat: latitude,
+          lng: longitude,
+        });
 
-  const startDrawing = () => {
-    if (!map || !drawVectorLayer) return;
+        // Set zoom level
+        if (typeof mapplsMapRef.current.setZoom === 'function') {
+          mapplsMapRef.current.setZoom(16);
+        }
 
-    // Clear previous drawings
-    drawVectorLayer.getSource().clear();
-
-    // Remove existing interaction if any
-    if (drawInteraction) {
-      map.removeInteraction(drawInteraction);
-    }
-
-    const draw = new Draw({
-      source: drawVectorLayer.getSource(),
-      type: 'Polygon',
-    });
-
-    draw.on('drawend', (event) => {
-      const feature = event.feature;
-      const geometry = feature.getGeometry();
-      const coordinates = geometry.getCoordinates()[0]; // Outer ring
-
-      // Transform to [Lat, Lon]
-      const transformedCoords = coordinates.map(coord => {
-        const [longitude, latitude] = coord;
-        return [latitude, longitude];
-      });
-
-      if (onPolygonComplete) {
-        onPolygonComplete(transformedCoords);
+        console.log('✓ Focused on entry:', focusEntry.vehicle_registration_number);
+      } catch (e) {
+        console.log('Error focusing on entry:', e);
       }
-
-      // Remove interaction after drawing
-      map.removeInteraction(draw);
-      setDrawInteraction(null);
-    });
-
-    map.addInteraction(draw);
-    setDrawInteraction(draw);
-  };
-
-  const clearPolygon = () => {
-    if (drawVectorLayer) {
-      drawVectorLayer.getSource().clear();
     }
-    if (drawInteraction) {
-      map.removeInteraction(drawInteraction);
-      setDrawInteraction(null);
-    }
-    if (onPolygonComplete) {
-      onPolygonComplete([]);
-    }
-  };
+  }, [focusEntry, mapplsLoaded]);
 
   return (
-    <div>
-      {/* Map container */}
+    <div style={{ position: 'relative', width, height }}>
+      {/* Mappls Map Container */}
+      <div
+        ref={mapplsContainerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          backgroundColor: '#f0f0f0',
+        }}
+      />
 
-      <div ref={mapElement} style={{ width, height, position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '10px', left: '50px', zIndex: 1000, display: 'flex', gap: '10px' }}>
-          <Button variant="contained" size="small" onClick={startDrawing} color={drawInteraction ? "secondary" : "primary"}>
-            {drawInteraction ? "Drawing..." : "Draw Polygon"}
-          </Button>
-          <Button variant="contained" size="small" onClick={clearPolygon} color="error">
-            Clear
-          </Button>
+      {!mapplsLoaded && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            padding: "20px 40px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            zIndex: 999,
+            textAlign: "center",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "16px", color: "#333" }}>
+            Loading Mappls Map...
+          </p>
         </div>
-        {/* Position logos using absolute positioning within the map container */}
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }} />
+      )}
 
-      </div>
+      {/* Position logos using absolute positioning within the map container */}
+      <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }} />
+      <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }} />
+      <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }} />
 
-      {/* Overlay for displaying marker details */}
-      <div ref={overlayElement} className="dynamic-overlay">
-        <div id="overlay-content"></div>
-      </div>
-
-      <style>{`
-        .dynamic-overlay {
-          position: absolute;
-          display: none;
-          transform: translate(-5%, 0%);
-          z-index: 1001; /* above logos */
-        }
-
-        .overlay-card {
-          background-color: #ffffff;
-          border-radius: 10px;
-          padding: 6px 8px;
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          min-width: 160px;
-          max-width: 180px;
-          font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          font-size: 10px;
-          color: #1f2933;
-        }
-
-        .overlay-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 6px;
-          gap: 8px;
-        }
-
-        .overlay-title {
-          font-weight: 600;
-          font-size: 13px;
-          color: #111827;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .overlay-pill {
-          padding: 2px 8px;
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.03em;
-          text-transform: uppercase;
-          border: 1px solid transparent;
-        }
-
-        .overlay-pill--normal {
-          background-color: #ecfdf3;
-          color: #15803d;
-          border-color: #bbf7d0;
-        }
-
-        .overlay-pill--alert {
-          background-color: #fef2f2;
-          color: #b91c1c;
-          border-color: #fecaca;
-        }
-
-        .overlay-body {
-          border-top: 1px solid #f1f5f9;
-          padding-top: 6px;
-          margin-top: 4px;
-          display: grid;
-          row-gap: 4px;
-        }
-
-        .overlay-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          gap: 8px;
-        }
-
-        .overlay-label {
-          font-size: 11px;
-          color: #6b7280;
-        }
-
-        .overlay-value {
-          font-size: 11px;
-          font-weight: 500;
-          color: #111827;
-          white-space: nowrap;
-        }
-      `}</style>
     </div>
   );
 };

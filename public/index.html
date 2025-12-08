@@ -16,7 +16,21 @@
     }
   </style>
   <!-- Mappls Web Maps SDK -->
-  <script src="https://apis.mappls.com/advancedmaps/api/hbetrqpnyaoqssztkakwzjjmoxkowalvbwus/map_sdk?layer=vector&v=3.0"></script>
+  <script src="https://apis.mappls.com/advancedmaps/api/01fe4d61e103cc49905b05a2d9cd440f/map_sdk?layer=vector&v=3.0"></script>
+  <script>
+    // Fallback: Check if Mappls loaded and retry if needed
+    window.mapplsLoadAttempts = 0;
+    window.checkMapplsLoaded = function() {
+      if (typeof window.mappls === 'undefined' && window.mapplsLoadAttempts < 3) {
+        window.mapplsLoadAttempts++;
+        console.log('Mappls not loaded, retrying... (attempt ' + window.mapplsLoadAttempts + ')');
+        setTimeout(window.checkMapplsLoaded, 1000);
+      } else if (typeof window.mappls !== 'undefined') {
+        console.log('✓ Mappls library loaded successfully');
+      }
+    };
+    setTimeout(window.checkMapplsLoaded, 500);
+  </script>
   <title>Skytron Tracking</title>
 </head>
 
