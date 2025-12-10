@@ -943,9 +943,9 @@ const BhuvanMapComponent = ({
     };
 
     return (
-        <div>
+        <div style={{ width, height, position: 'relative' }}>
             {/* Map container */}
-            <div style={{ width, height, position: "relative" }}>
+            <div style={{ width: "100%", height: "100%", position: "relative" }}>
                 {/* Map Type Toggle Buttons */}
                 {showMapTypeToggle && (
                     <Box
