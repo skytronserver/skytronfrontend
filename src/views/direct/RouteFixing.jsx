@@ -14,7 +14,7 @@ import {
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
-import { OSM, TileWMS } from "ol/source";
+import { TileWMS, XYZ } from "ol/source";
 import { fromLonLat, toLonLat } from "ol/proj";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -27,6 +27,46 @@ import Style from "ol/style/Style";
 import Stroke from "ol/style/Stroke";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 import { useTranslation } from "react-i18next";
+
+const resolveBhuvanWmsUrl = () => {
+  const envUrl = process.env.REACT_APP_BHUVAN_URL;
+  if (!envUrl) {
+    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+  }
+
+  const normalizedUrl = envUrl.replace(/\/$/, "");
+  if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+    return normalizedUrl;
+  }
+
+  return `${normalizedUrl}/bhuvan/gwc/service/wms`;
+};
+
+const createBhuvanSource = (layerName) => {
+  const options = {
+    url: resolveBhuvanWmsUrl(),
+    params: {
+      LAYERS: layerName,
+      STYLES: "",
+      TILED: true,
+      VERSION: "1.1.1",
+      FORMAT: "image/png",
+      TRANSPARENT: "true",
+      SRS: "EPSG:4326",
+      WIDTH: 256,
+      HEIGHT: 256,
+    },
+    serverType: "geoserver",
+    projection: "EPSG:4326",
+    transition: 0,
+  };
+
+  if (process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true") {
+    options.crossOrigin = "anonymous";
+  }
+
+  return new TileWMS(options);
+};
 
 const RouteFixing = () => {
   const { t } = useTranslation();
@@ -44,6 +84,12 @@ const RouteFixing = () => {
   const map = useRef(null);
   const overlayRef = useRef(null);
   const selectedId = useRef("");
+
+  // Map Layers Refs
+  const normalLayersRef = useRef([]);
+  const satelliteLayerRef = useRef(null);
+  const [mapType, setMapType] = useState("normal"); // 'normal' or 'satellite'
+
   const [alert, setAlert] = useState({
     open: false,
     message: "",
@@ -90,7 +136,7 @@ const RouteFixing = () => {
   const handleRouteSelect = (event) => {
     try {
       const [routeId, routeRout] = event.target.value.split("|");
-      
+
       const coordinates = routeRout
         .split("],")
         .map(coord => {
@@ -115,10 +161,10 @@ const RouteFixing = () => {
         throw new Error('Not enough valid coordinates to create a route');
       }
 
-      setSelectedRoute({ 
-        routeId, 
+      setSelectedRoute({
+        routeId,
         coordinates, // Store the parsed coordinates
-        routeRout 
+        routeRout
       });
       loadRoute(coordinates, routeId);
     } catch (error) {
@@ -130,37 +176,44 @@ const RouteFixing = () => {
   // Initialize map on first render
   useEffect(() => {
     if (!map.current) {
+      // Create Bhuvan Layers (Normal)
+      const india3Layer = new TileLayer({
+        source: createBhuvanSource("india3"),
+        visible: true,
+      });
+
+      const adminGroupLayer = new TileLayer({
+        source: createBhuvanSource("basemap:admin_group"),
+        visible: true,
+      });
+
+      const mmiLayer = new TileLayer({
+        source: createBhuvanSource("mmi:mmi_india"),
+        visible: true,
+      });
+
+      // Create Satellite Layer
+      const satelliteLayer = new TileLayer({
+        source: new XYZ({
+          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          attributions: "© Esri",
+          maxZoom: 18,
+        }),
+        visible: false,
+      });
+
+      // Store refs
+      normalLayersRef.current = [india3Layer, adminGroupLayer, mmiLayer];
+      satelliteLayerRef.current = satelliteLayer;
+
       const initialMap = new Map({
         target: mapRef.current,
         layers: [
-          new TileLayer({
-            source: new OSM(),
-          }),
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL,
-              params: {
-                'LAYERS': 'basemap%3Aadmin_group',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,   // Set the tile width to 256 pixels
-                'HEIGHT': 256,   // Set the tile height to 256 pixels
-                'pixelRatio': 1,
-
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
-            })
-          }),
+          india3Layer,
+          adminGroupLayer,
+          mmiLayer,
+          satelliteLayer
         ],
-
-
         view: new View({
           center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
           zoom: 7,
@@ -194,6 +247,16 @@ const RouteFixing = () => {
       });
     }
   }, [deviceId]);
+
+  // Handle Map Type Toggle
+  useEffect(() => {
+    if (map.current) {
+      const isNormal = mapType === "normal";
+
+      normalLayersRef.current.forEach(layer => layer.setVisible(isNormal));
+      satelliteLayerRef.current.setVisible(!isNormal);
+    }
+  }, [mapType]);
 
   // Function to load route on the map
   const loadRoute = (route, routeId) => {
@@ -237,7 +300,7 @@ const RouteFixing = () => {
 
       // Create and add the route line
       const coordinates = route.map(coords => fromLonLat(coords));
-      
+
       if (coordinates.some(coord => !coord || coord.length < 2)) {
         throw new Error('Invalid coordinates in route');
       }
@@ -245,14 +308,14 @@ const RouteFixing = () => {
       const line = new Feature({
         geometry: new LineString(coordinates),
       });
-      
+
       line.setStyle(new Style({
         stroke: new Stroke({
           color: '#0066ff',
           width: 3
         })
       }));
-      
+
       vectorSourceRef.current.addFeature(line);
 
       // Get the extent and verify it's valid before fitting
@@ -297,8 +360,8 @@ const RouteFixing = () => {
           image: new Icon({
             src: require("../../assets/images/grey/bus.png"),
             scale: 0.051,
-            anchor: [0.5, 1], 
-            anchorXUnits: "fraction", 
+            anchor: [0.5, 1],
+            anchorXUnits: "fraction",
             anchorYUnits: "fraction",
           }),
         })
@@ -316,7 +379,7 @@ const RouteFixing = () => {
         geometry: new LineString(lineCoordinates),
       });
       vectorSourceRef.current.addFeature(lineFeature);
-      
+
       // Calculate and update route statistics for new route
       const stats = calculateRouteStats(points);
       setRouteStats(stats);
@@ -337,10 +400,10 @@ const RouteFixing = () => {
     }
 
     try {
-      const routeResponse = await HomePageService.getRoute({ points: newPoints }); 
+      const routeResponse = await HomePageService.getRoute({ points: newPoints });
       const routeData = routeResponse?.data?.data && routeResponse.data.data.paths ? routeResponse.data.data : routeResponse.data;
       console.log('Route Data:', routeData);
-      
+
       // Check if we have valid paths data (API returns data.paths[0].points.coordinates)
       if (!routeData?.paths?.[0]?.points?.coordinates) {
         throw new Error('Invalid route data received');
@@ -348,16 +411,16 @@ const RouteFixing = () => {
 
       const firstPath = routeData.paths[0];
       const coordinates = firstPath.points.coordinates;
-      
+
       const response = await HomePageService.addRoute({
         device_id: deviceId,
         route: coordinates,
         routepoints: newPoints,
         hash: routeData.hash
       });
-      
+
       setRouteData(response.data.route);
-      setNewPoints([]); 
+      setNewPoints([]);
       vectorSourceRef.current.clear();
       setAlert({
         open: true,
@@ -420,11 +483,11 @@ const RouteFixing = () => {
     const R = 6371; // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in kilometers
   };
 
@@ -475,7 +538,7 @@ const RouteFixing = () => {
     try {
       // Get the selected device info
       const selectedDevice = deviceList.find((item) => item.device.id === deviceId);
-      
+
       // Prepare export data
       const exportData = {
         device_info: {
@@ -503,7 +566,7 @@ const RouteFixing = () => {
 
           // Calculate travel statistics for export
           const stats = calculateRouteStats(coordinates);
-          
+
           return {
             route_id: route.id,
             coordinates: coordinates,
@@ -522,7 +585,7 @@ const RouteFixing = () => {
       const jsonString = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `routes_${selectedDevice?.vehicle_reg_no || deviceId}_${new Date().toISOString().split('T')[0]}.json`;
@@ -548,52 +611,52 @@ const RouteFixing = () => {
 
   return (
     <MainCard>
-    <AutoHideAlert 
-      open={alert.open}
-      onClose={() => setAlert({...alert, open: false})}
-      message={alert.message}
-      type={alert.type}
-    />
-    <p>{t('routeFixing.title')}</p>
-    <form onSubmit={handleSubmit}>
-      <Grid container spacing={2} className="form-controller">
-        <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
-          <Autocomplete
-            value={
-              deviceList.find((item) => item.device.id === deviceId) || null
-            }
-            onChange={handleAutocompleteChange}
-            options={deviceList}
-            getOptionLabel={(option) => option.vehicle_reg_no || ""}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label={t('routeFixing.selectVehicle')}
-                variant="outlined"
-                fullWidth
-                margin="normal"
-              />
-            )}
-            noOptionsText={t('routeFixing.noVehicleOptions')}
-            isOptionEqualToValue={(option, value) =>
-              option.device.id === value.device.id
-            }
-            disableClearable
-          />
-        </Grid>
+      <AutoHideAlert
+        open={alert.open}
+        onClose={() => setAlert({ ...alert, open: false })}
+        message={alert.message}
+        type={alert.type}
+      />
+      <p>{t('routeFixing.title')}</p>
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={2} className="form-controller">
+          <Grid item md={4} sm={12} xs={12} style={{ marginTop: "20px" }}>
+            <Autocomplete
+              value={
+                deviceList.find((item) => item.device.id === deviceId) || null
+              }
+              onChange={handleAutocompleteChange}
+              options={deviceList}
+              getOptionLabel={(option) => option.vehicle_reg_no || ""}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t('routeFixing.selectVehicle')}
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                />
+              )}
+              noOptionsText={t('routeFixing.noVehicleOptions')}
+              isOptionEqualToValue={(option, value) =>
+                option.device.id === value.device.id
+              }
+              disableClearable
+            />
+          </Grid>
 
-        <Grid item md={2} sm={12} xs={12} style={{ marginTop: "38px" }}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            style={{ height: "48px" }}
-          >
-            {t('routeFixing.buttons.submit')}
-          </Button>
+          <Grid item md={2} sm={12} xs={12} style={{ marginTop: "38px" }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              style={{ height: "48px" }}
+            >
+              {t('routeFixing.buttons.submit')}
+            </Button>
+          </Grid>
         </Grid>
-      </Grid>
-    </form>
+      </form>
 
 
       {load && (
@@ -624,7 +687,7 @@ const RouteFixing = () => {
                           .filter(num => !isNaN(num));
                       })
                       .filter(coord => coord && coord.length >= 2);
-                    
+
                     if (coordinates.length >= 2) {
                       const stats = calculateRouteStats(coordinates);
                       routePreview += ` (${stats.distance}km, ${formatTravelTime(stats.travelTime)})`;
@@ -632,10 +695,10 @@ const RouteFixing = () => {
                   } catch (e) {
                     // If parsing fails, just show route ID
                   }
-                  
+
                   return (
-                    <MenuItem 
-                      value={`${route.id}|${route.route}`} 
+                    <MenuItem
+                      value={`${route.id}|${route.route}`}
                       key={route.id}
                     >
                       {routePreview}
@@ -660,30 +723,48 @@ const RouteFixing = () => {
               </Button>
             </Grid>
             <Grid item md={2} sm={6} xs={6}>
-              <Button 
-                onClick={exportRoutesToJSON} 
-                variant="contained" 
-                color="info" 
+              <Button
+                onClick={exportRoutesToJSON}
+                variant="contained"
+                color="info"
                 fullWidth
               >
                 Export Route
               </Button>
+
+            </Grid>
+            <Grid item md={2} sm={6} xs={6}>
+              <Button
+                onClick={() => setMapType(prev => prev === "normal" ? "satellite" : "normal")}
+                variant="contained"
+                color="inherit" // Use a neutral color or customize
+                fullWidth
+                sx={{
+                  bgcolor: mapType === "normal" ? 'grey.300' : 'grey.800',
+                  color: mapType === "normal" ? 'black' : 'white',
+                  '&:hover': {
+                    bgcolor: mapType === "normal" ? 'grey.400' : 'grey.900',
+                  }
+                }}
+              >
+                {mapType === "normal" ? "Satellite View" : "Normal View"}
+              </Button>
             </Grid>
           </Grid>
-          
+
           {/* Route Statistics Display */}
           {selectedRoute && routeStats.distance > 0 && (
             <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <strong>Distance:</strong> 
+                    <strong>Distance:</strong>
                     <span>{routeStats.distance} km</span>
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <strong>Estimated Travel Time:</strong> 
+                    <strong>Estimated Travel Time:</strong>
                     <span>{formatTravelTime(routeStats.travelTime)}</span>
                   </Box>
                 </Grid>
@@ -700,9 +781,9 @@ const RouteFixing = () => {
 
 
       <Box ref={mapRef} id="map" sx={{ width: "100%", height: "500px", mt: 4, position: 'relative' }}>
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png` } style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png` } style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
       </Box>
 
       <div
@@ -722,7 +803,7 @@ const RouteFixing = () => {
           <div id="cancel">Cancel</div>
         </div>
       </div>
-    </MainCard>
+    </MainCard >
   );
 };
 

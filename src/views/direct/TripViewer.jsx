@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { FormControl, Autocomplete, TextField, Button, Grid, Box, Typography, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Slider, Stack, FormControlLabel, Checkbox, Skeleton, CircularProgress } from '@mui/material';
 import { Map, View } from 'ol';
 import { Tile as TileLayer } from 'ol/layer';
-import { OSM, TileWMS } from 'ol/source';
+import { TileWMS, XYZ } from 'ol/source';
 import { fromLonLat } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
@@ -22,6 +22,47 @@ import Text from 'ol/style/Text';
 import Overlay from 'ol/Overlay';
 import "ol/ol.css";
 import axios from 'axios';
+import { useTheme } from '@mui/material/styles';
+
+const resolveBhuvanWmsUrl = () => {
+  const envUrl = process.env.REACT_APP_BHUVAN_URL;
+  if (!envUrl) {
+    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+  }
+
+  const normalizedUrl = envUrl.replace(/\/$/, "");
+  if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+    return normalizedUrl;
+  }
+
+  return `${normalizedUrl}/bhuvan/gwc/service/wms`;
+};
+
+const createBhuvanSource = (layerName) => {
+  const options = {
+    url: resolveBhuvanWmsUrl(),
+    params: {
+      LAYERS: layerName,
+      STYLES: "",
+      TILED: true,
+      VERSION: "1.1.1",
+      FORMAT: "image/png",
+      TRANSPARENT: "true",
+      SRS: "EPSG:4326",
+      WIDTH: 256,
+      HEIGHT: 256,
+    },
+    serverType: "geoserver",
+    projection: "EPSG:4326",
+    transition: 0,
+  };
+
+  if (process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true") {
+    options.crossOrigin = "anonymous";
+  }
+
+  return new TileWMS(options);
+};
 
 const TripViewer = () => {
   const { t } = useTranslation();
@@ -36,13 +77,7 @@ const TripViewer = () => {
   const [sliderValue, setSliderValue] = useState(0);
   const [maxSliderValue, setMaxSliderValue] = useState(0);
   const [animationSpeed, setAnimationSpeed] = useState(200);
-  const [activeLayers, setActiveLayers] = useState({
-    osm: true,
-    india3: false,
-    indiaBase: false,
-    indiaRoads: false,
-    markers: false
-  });
+  const [mapType, setMapType] = useState('normal');
   const [showMap, setShowMap] = useState(false);
   const [loadingTrips, setLoadingTrips] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
@@ -53,13 +88,9 @@ const TripViewer = () => {
   const vectorSourceRef = useRef(new VectorSource());
   const overlayRef = useRef(null);
   const animationIntervalId = useRef(null);
-  const layersRef = useRef({
-    osm: null,
-    india3: null,
-    indiaBase: null,
-    indiaRoads: null,
-    markers: null
-  });
+  // Map Layers Refs
+  const normalLayersRef = useRef([]);
+  const satelliteLayerRef = useRef(null);
 
   // Fetch vehicle list on component mount
   useEffect(() => {
@@ -68,12 +99,12 @@ const TripViewer = () => {
         console.log('Fetching vehicle list...');
         const response = await TaggingService.getOwnerList({});
         console.log('Vehicle list response:', response);
-        
+
         if (response) {
           // Handle both array and object responses
           const vehicles = Array.isArray(response) ? response : response.data || [];
           console.log('Processed vehicles:', vehicles);
-          
+
           // Transform the vehicles from tag_ownerlist API format
           const transformedVehicles = vehicles.map(vehicle => {
             return {
@@ -86,7 +117,7 @@ const TripViewer = () => {
               label: `${vehicle.vehicle_reg_no} (${vehicle.device?.device_esn || 'N/A'})`
             };
           });
-          
+
           console.log('Transformed vehicles:', transformedVehicles);
           setVehicleList(transformedVehicles);
           setLoad(true);
@@ -122,96 +153,50 @@ const TripViewer = () => {
       initialMap.addOverlay(overlay);
       overlayRef.current = overlay;
 
-      // Create and store all layers
-      const osmLayer = new TileLayer({
-        source: new OSM(),
-        visible: activeLayers.osm
-      });
-
+      // Create Bhuvan Layers (Normal)
       const india3Layer = new TileLayer({
-        source: new TileWMS({
-          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          params: {
-            'LAYERS': 'india3',
-            'TILED': true,
-            'VERSION': '1.1.1',
-            'FORMAT': 'image/png',
-            'TRANSPARENT': 'true',
-            'SRS': 'EPSG:4326',
-            'WIDTH': 256,
-            'HEIGHT': 256,
-            'pixelRatio': 1,
-          },
-          serverType: 'geoserver',
-          projection: 'EPSG:4326',
-          crossOrigin: 'anonymous'
-        }),
-        visible: activeLayers.india3
+        source: createBhuvanSource("india3"),
+        visible: true,
       });
 
-      const indiaBaseLayer = new TileLayer({
-        source: new TileWMS({
-          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          params: {
-            'LAYERS': 'basemap%3Aadmin_group',
-            'TILED': true,
-            'VERSION': '1.1.1',
-            'FORMAT': 'image/png',
-            'TRANSPARENT': 'true',
-            'SRS': 'EPSG:4326',
-            'WIDTH': 256,
-            'HEIGHT': 256,
-            'pixelRatio': 1,
-          },
-          serverType: 'geoserver',
-          projection: 'EPSG:4326',
-          crossOrigin: 'anonymous'
-        }),
-        visible: activeLayers.indiaBase
+      const adminGroupLayer = new TileLayer({
+        source: createBhuvanSource("basemap:admin_group"),
+        visible: true,
       });
 
-      const indiaRoadsLayer = new TileLayer({
-        source: new TileWMS({
-          url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          params: {
-            'LAYERS': 'mmi:mmi_india',
-            'TILED': true,
-            'VERSION': '1.1.1',
-            'FORMAT': 'image/png',
-            'TRANSPARENT': 'true',
-            'SRS': 'EPSG:4326',
-            'WIDTH': 256,
-            'HEIGHT': 256,
-            'pixelRatio': 1,
-          },
-          serverType: 'geoserver',
-          projection: 'EPSG:4326',
-          crossOrigin: 'anonymous'
+      const mmiLayer = new TileLayer({
+        source: createBhuvanSource("mmi:mmi_india"),
+        visible: true,
+      });
+
+      // Create Satellite Layer
+      const satelliteLayer = new TileLayer({
+        source: new XYZ({
+          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          attributions: "© Esri",
+          maxZoom: 18,
         }),
-        visible: activeLayers.indiaRoads
+        visible: false,
       });
 
       const vectorLayer = new VectorLayer({
         source: vectorSourceRef.current,
-        visible: true
+        visible: true,
+        zIndex: 100 // Ensure vector layer is always above tiles
       });
 
-      // Store layer references
-      layersRef.current = {
-        osm: osmLayer,
-        india3: india3Layer,
-        indiaBase: indiaBaseLayer,
-        indiaRoads: indiaRoadsLayer,
-        markers: vectorLayer
-      };
+      // Store refs
+      normalLayersRef.current = [india3Layer, adminGroupLayer, mmiLayer];
+      satelliteLayerRef.current = satelliteLayer;
 
-      // Add layers to map
-      initialMap.addLayer(osmLayer);
       initialMap.addLayer(india3Layer);
-      initialMap.addLayer(indiaBaseLayer);
-      initialMap.addLayer(indiaRoadsLayer);
-      initialMap.addLayer(vectorLayer);      map.current = initialMap;
-      
+      initialMap.addLayer(adminGroupLayer);
+      initialMap.addLayer(mmiLayer);
+      initialMap.addLayer(satelliteLayer);
+      initialMap.addLayer(vectorLayer);
+
+      map.current = initialMap;
+
       // Add load event handler
       initialMap.once('loadend', () => {
         console.log('Map loaded successfully');
@@ -222,6 +207,16 @@ const TripViewer = () => {
       });
     }
   }, [showMap]);
+
+  // Handle Map Type Toggle
+  useEffect(() => {
+    if (map.current) {
+      const isNormal = mapType === "normal";
+
+      normalLayersRef.current.forEach(layer => layer.setVisible(isNormal));
+      satelliteLayerRef.current.setVisible(!isNormal);
+    }
+  }, [mapType, showMap]);
 
   useEffect(() => {
     if (isMapReady && selectedTrip?.points?.length) {
@@ -307,10 +302,10 @@ const TripViewer = () => {
       console.error('No vehicle selected');
       return;
     }
-    
+
     // Use device_tag_id if available, otherwise use device_id, otherwise use id
     const deviceIdentifier = selectedVehicle.device_tag_id || selectedVehicle.device_id || selectedVehicle.id;
-    
+
     if (!deviceIdentifier) {
       console.error('No device identifier found for selected vehicle');
       return;
@@ -318,7 +313,7 @@ const TripViewer = () => {
 
     setInitialLoading(true);
     setShowMap(true);
-    
+
     try {
       const endDate = new Date();
       let startDate = new Date();
@@ -374,9 +369,9 @@ const TripViewer = () => {
 
         const formattedTrips = formatTripData(summaryPayload);
         console.log('Formatted trips:', formattedTrips);
-        
+
         setTrips(formattedTrips);
-        
+
         if (formattedTrips.length > 0) {
           const firstTrip = formattedTrips[0];
           setSelectedTrip(firstTrip);
@@ -469,7 +464,7 @@ const TripViewer = () => {
     });
 
     // Create line feature
-    const coordinates = validPoints.map(point => 
+    const coordinates = validPoints.map(point =>
       fromLonLat([parseFloat(point.lon), parseFloat(point.lat)])
     );
 
@@ -584,16 +579,7 @@ const TripViewer = () => {
   };
 
   // Function to toggle layer visibility
-  const toggleLayer = (layerName) => {
-    if (layersRef.current[layerName]) {
-      const newVisibility = !layersRef.current[layerName].getVisible();
-      layersRef.current[layerName].setVisible(newVisibility);
-      setActiveLayers(prev => ({
-        ...prev,
-        [layerName]: newVisibility
-      }));
-    }
-  };
+
 
   return (
     <MainCard>
@@ -609,11 +595,11 @@ const TripViewer = () => {
           zIndex: 1000,
           minWidth: '200px'
         }}></div>
-        
+
         <Typography variant="h4" gutterBottom>
           {t('tripViewer.title')}
         </Typography>
-        
+
         {/* Search and Filter Section */}
         <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
           <Grid container spacing={3} alignItems="center">
@@ -625,9 +611,9 @@ const TripViewer = () => {
                   options={vehicleList}
                   getOptionLabel={(option) => option.label || option.vehicle_reg_no || ''}
                   renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      label={t('tripViewer.selectVehicle')} 
+                    <TextField
+                      {...params}
+                      label={t('tripViewer.selectVehicle')}
                       variant="outlined"
                       error={!load}
                       helperText={!load ? t('tripViewer.loading') : ''}
@@ -770,10 +756,10 @@ const TripViewer = () => {
                       ))
                     ) : trips.length > 0 ? (
                       trips.map((trip, index) => (
-                        <TableRow 
+                        <TableRow
                           key={index}
                           onClick={() => handleTripClick(trip)}
-                          sx={{ 
+                          sx={{
                             cursor: 'pointer',
                             '&:hover': { backgroundColor: '#f5f5f5' },
                             backgroundColor: selectedTrip === trip ? '#e3f2fd' : 'inherit'
@@ -838,8 +824,8 @@ const TripViewer = () => {
                 </Grid>
               </Paper>
             )}            {/* Map Section */}
-            <Paper elevation={2} sx={{ 
-              position: 'relative', 
+            <Paper elevation={2} sx={{
+              position: 'relative',
               height: '600px',
               width: '100%',
               overflow: 'hidden',
@@ -910,7 +896,7 @@ const TripViewer = () => {
                           }
                         }}
                       />
-                      
+
                       {/* Map Pin */}
                       <Box
                         sx={{
@@ -926,7 +912,7 @@ const TripViewer = () => {
                           animation: 'bounce 1.5s ease-in-out infinite'
                         }}
                       />
-                      
+
                       {/* Compass */}
                       <Box
                         sx={{
@@ -961,12 +947,12 @@ const TripViewer = () => {
                         }}
                       />
                     </Box>
-                    
+
                     {/* Loading Text */}
-                    <Typography 
-                      variant="h5" 
-                      sx={{ 
-                        mb: 2, 
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
                         color: '#2c3e50',
                         fontWeight: 600,
                         animation: 'fadeInOut 2s ease-in-out infinite'
@@ -974,7 +960,7 @@ const TripViewer = () => {
                     >
                       Please wait while we calculate your trip...
                     </Typography>
-                    
+
                     {/* Progress Dots */}
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                       {[0, 1, 2].map((index) => (
@@ -990,12 +976,12 @@ const TripViewer = () => {
                         />
                       ))}
                     </Box>
-                    
+
                     {/* Additional Info */}
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        mt: 2, 
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mt: 2,
                         color: '#7f8c8d',
                         fontStyle: 'italic'
                       }}
@@ -1003,7 +989,7 @@ const TripViewer = () => {
                       Analyzing GPS data and route information
                     </Typography>
                   </Box>
-                  
+
                   {/* CSS Animations */}
                   <style>
                     {`
@@ -1075,74 +1061,36 @@ const TripViewer = () => {
                   </Box>
                 </Box>
               )}
-              <Box 
+              <Box
                 ref={mapRef}
-                className="ol-map" 
-                sx={{ 
-                  width: "100%", 
+                className="ol-map"
+                sx={{
+                  width: "100%",
                   height: "100%",
                   visibility: showMap ? 'visible' : 'hidden'
                 }}>
                 {/* Layer Control Panel */}
-                <div style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  padding: '15px',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                  zIndex: 1000,
-                  minWidth: '200px',
-                  backdropFilter: 'blur(5px)',
-                  border: '1px solid rgba(0,0,0,0.1)'
-                }}>
-                  <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
-                    Map Layers
-                  </Typography>
-                  <Stack spacing={1}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={activeLayers.osm}
-                          onChange={() => toggleLayer('osm')}
-                          size="small"
-                        />
-                      }
-                      label="OpenStreetMap"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={activeLayers.india3}
-                          onChange={() => toggleLayer('india3')}
-                          size="small"
-                        />
-                      }
-                      label="India3 Layer"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={activeLayers.indiaBase}
-                          onChange={() => toggleLayer('indiaBase')}
-                          size="small"
-                        />
-                      }
-                      label="India Base Map"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={activeLayers.indiaRoads}
-                          onChange={() => toggleLayer('indiaRoads')}
-                          size="small"
-                        />
-                      }
-                      label="India Roads"
-                    />
-                  </Stack>
-                </div>
+                <Button
+                  onClick={() => setMapType(prev => prev === "normal" ? "satellite" : "normal")}
+                  variant="contained"
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    top: '20px',
+                    left: '20px',
+                    zIndex: 1000,
+                    bgcolor: mapType === "normal" ? 'white' : '#333',
+                    color: mapType === "normal" ? 'black' : 'white',
+                    fontFamily: '"Roboto", sans-serif',
+                    textTransform: 'none',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                    '&:hover': {
+                      bgcolor: mapType === "normal" ? '#f5f5f5' : '#444',
+                    }
+                  }}
+                >
+                  {mapType === "normal" ? "Satellite View" : "Normal View"}
+                </Button>
 
                 <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
                 <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />

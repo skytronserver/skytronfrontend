@@ -1,20 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Map, View } from 'ol';
-import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
-import { OSM, Vector as VectorSource, TileWMS } from 'ol/source';
-import { fromLonLat, toLonLat } from 'ol/proj';
-import { Icon, Style, Fill, Stroke, Circle as CircleStyle } from 'ol/style';
-import Feature from 'ol/Feature';
-import Point from 'ol/geom/Point';
-import Polygon from 'ol/geom/Polygon';
-import Circle from 'ol/geom/Circle';
-import LineString from 'ol/geom/LineString';
-import Overlay from 'ol/Overlay';
-import Draw from 'ol/interaction/Draw';
-import Modify from 'ol/interaction/Modify';
-import Zoom from 'ol/control/Zoom';
-import 'ol/ol.css';
+
+
 import {
+  ButtonGroup,
   Box,
   Paper,
   IconButton,
@@ -69,17 +57,163 @@ import {
 import POIService from '../../services/POIService';
 import HomePageService from '../../services/HomePage';
 
+const MAPPLS_TOKEN_ENV_KEYS = [
+  "REACT_APP_MAPPLS_TOKEN",
+  "REACT_APP_MAPPLS_REST_KEY",
+  "REACT_APP_MAPPLS_MAP_KEY",
+  "REACT_APP_MAPPLS_API_KEY",
+];
+
+const DEFAULT_HD_CENTER = { lat: 26.1445, lng: 91.7362 };
+
+const resolveMapplsToken = () => {
+  if (typeof process !== "undefined" && process?.env) {
+    for (const key of MAPPLS_TOKEN_ENV_KEYS) {
+      const value = process.env[key];
+      if (value) {
+        return value;
+      }
+    }
+  }
+
+  if (typeof document !== "undefined") {
+    const scripts = Array.from(document.getElementsByTagName("script"));
+    const sdkScript = scripts.find((script) =>
+      script.src && script.src.includes("mappls.com/advancedmaps/api/")
+    );
+
+    if (sdkScript) {
+      const match = sdkScript.src.match(/api\/([^/]+)\/map_sdk/i);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+  }
+
+  return null;
+};
+
+const resolveBhuvanWmsUrl = () => {
+  const envUrl = process.env.REACT_APP_BHUVAN_URL;
+  if (!envUrl) {
+    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+  }
+
+  const normalizedUrl = envUrl.replace(/\/$/, "");
+  if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+    return normalizedUrl;
+  }
+
+  return `${normalizedUrl}/bhuvan/gwc/service/wms`;
+};
+
+const BHUVAN_WMS_URL = resolveBhuvanWmsUrl();
+
+const MAPPLS_HD_POPUP_STYLE_ID = "mappls-hd-popup-styles";
+
+const ensureHdPopupStyles = () => {
+  if (typeof document === "undefined") return;
+
+  if (document.getElementById(MAPPLS_HD_POPUP_STYLE_ID)) {
+    return;
+  }
+
+  const styleElement = document.createElement("style");
+  styleElement.id = MAPPLS_HD_POPUP_STYLE_ID;
+  styleElement.textContent = `
+    .mappls-hd-popup-card {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      min-width: 170px;
+      max-width: 200px;
+      font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 11px;
+      color: #1f2933;
+    }
+    /* ... truncated styles for brevity, using LiveMap styles ... */
+    .mappls-hd-popup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 8px; }
+    .mappls-hd-popup-title { font-weight: 600; font-size: 13px; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mappls-hd-popup-pill { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; border: 1px solid transparent; }
+    .mappls-hd-popup-pill--normal { background-color: #ecfdf3; color: #15803d; border-color: #bbf7d0; }
+    
+    /* Cursor Override for Drawing Modes */
+    .drawing-mode-active, 
+    .drawing-mode-active * {
+      cursor: crosshair !important;
+    }
+  `;
+  document.head.appendChild(styleElement);
+};
+
+const hexToRgba = (hex, alpha) => {
+  if (!hex) return `rgba(30, 136, 229, ${alpha})`;
+  let normalized = hex.replace("#", "");
+  if (normalized.length === 3) normalized = normalized.split("").map((char) => char + char).join("");
+  const bigint = parseInt(normalized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const USE_TYPE_COLORS = {
+  school: "#1E88E5",
+  hospital: "#E53935",
+  dealership: "#8E24AA",
+  dealer: "#8E24AA",
+  personal: "#43A047",
+  prohibited_area: "#D81B60",
+  permitroute: "#FB8C00",
+  tollgate: "#6D4C41",
+  parking: "#00897B",
+  no_parking: "#C62828",
+  villageboundary: "#5E35B1",
+  cityboundary: "#3949AB",
+  districtboundary: "#00838F",
+  stateboundary: "#00695C",
+  fuelstation: "#FDD835",
+  busstop: "#7CB342",
+  railwaystation: "#5C6BC0",
+  airport: "#039BE5",
+  other: "#546E7A",
+};
+
+const getUseTypeColor = (poi) => {
+  const key = poi?.use_type?.toLowerCase();
+  return USE_TYPE_COLORS[key] || "#1E88E5";
+};
+
+const getPoiMarkerIcon = (color) => {
+  const safeColor = color || "#1E88E5";
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <g fill="none" fill-rule="evenodd">
+        <path d="M0 0h24v24H0z"/>
+        <path fill="${safeColor}" d="M12 2c4.418 0 8 3.134 8 7 0 5.25-8 13-8 13S4 14.25 4 9c0-3.866 3.582-7 8-7Zm0 4a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 6Z"/>
+      </g>
+    </svg>`;
+  if (typeof window !== "undefined" && typeof window.btoa === "function") {
+    return `data:image/svg+xml;base64,${window.btoa(svg)}`;
+  }
+  return null;
+};
+
 const POIViewer = () => {
-  const mapRef = useRef(null);
-  const overlayRef = useRef(null);
-  const [map, setMap] = useState(null);
-  const [vectorSource] = useState(new VectorSource());
-  const [vectorLayer] = useState(
-    new VectorLayer({
-      source: vectorSource,
-      zIndex: 100, // Ensure POI layer is on top
-    })
-  );
+  // Map References
+  const hdMapContainerRef = useRef(null);
+  const hdMapInnerRef = useRef(null);
+  const hdPoiMarkersRef = useRef([]);
+  const mapplsMapRef = useRef(null);
+  const mapplsInstanceRef = useRef(null);
+  const mapplsInitializedRef = useRef(false);
+  const mapplsInitInProgressRef = useRef(false);
+  const mapplsLibraryPollRef = useRef(null);
+  const hdMapContainerIdRef = useRef(null);
+
+
   const [pois, setPois] = useState([]);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -100,420 +234,420 @@ const POIViewer = () => {
   });
   const [mapInitialized, setMapInitialized] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
-  const [drawingSource] = useState(new VectorSource());
-  const [drawingLayer] = useState(
-    new VectorLayer({
-      source: drawingSource,
-      style: new Style({
-        fill: new Fill({
-          color: 'rgba(255, 255, 255, 0.2)',
-        }),
-        stroke: new Stroke({
-          color: '#ffcc33',
-          width: 2,
-        }),
-        image: new CircleStyle({
-          radius: 7,
-          fill: new Fill({
-            color: '#ffcc33',
-          }),
-        }),
-      }),
-      zIndex: 101, // Ensure drawing layer is above POI layer
-    })
-  );
-  const [drawInteraction, setDrawInteraction] = useState(null);
-  const [modifyInteraction, setModifyInteraction] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [layersAnchorEl, setLayersAnchorEl] = useState(null);
-  const [layers, setLayers] = useState({
-    osm: {
-      name: 'Map View',
-      visible: true,
-      icon: <MapIcon />,
-      layer: null,
-    },
-    hybrid: {
-      name: 'Hybrid View',
-      visible: false,
-      icon: <SatelliteIcon />,
-      layer: null,
-    },
-    india3: {
-      name: 'Terrain',
-      visible: true,
-      icon: <TerrainIcon />,
-      layer: null,
-    },
-    adminGroup: {
-      name: 'Administrative',
-      visible: true,
-      icon: <CityIcon />,
-      layer: null,
-    },
-    roads: {
-      name: 'Roads',
-      visible: true,
-      icon: <RouteIcon />,
-      layer: null,
-    },
-    crowdsourced: {
-      name: 'Crowdsourced POI',
-      visible: false,
-      icon: <PeopleIcon />,
-      layer: null,
-    },
-  });
+  // Removed old layers state
   const theme = useTheme();
   const [routePoints, setRoutePoints] = useState([]);
-  const [routeLine, setRouteLine] = useState(null);
-  const vectorSourceRef = useRef(new VectorSource());
   const [poiListOpen, setPoiListOpen] = useState(false);
   const [selectedPoiId, setSelectedPoiId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [drawingPoints, setDrawingPoints] = useState([]);
+  const tempPolyRef = useRef(null);
+  const tempMarkersRef = useRef([]);
 
-  const markerStyles = {
-    Point: new Style({
-      image: new Icon({
-        src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><path fill="%231976D2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
-        anchor: [0.5, 1],
-        scale: 1.2,
-      }),
-      zIndex: 1000,
-    }),
-    Circle: new Style({
-      fill: new Fill({
-        color: 'rgba(66, 165, 245, 0.2)',
-      }),
-      stroke: new Stroke({
-        color: '#42A5F5',
-        width: 2,
-      }),
-      zIndex: 900,
-    }),
-    Polygon: new Style({
-      fill: new Fill({
-        color: 'rgba(76, 175, 80, 0.2)',
-      }),
-      stroke: new Stroke({
-        color: '#4CAF50',
-        width: 2,
-      }),
-      zIndex: 900,
-    }),
-    Road: new Style({
-      stroke: new Stroke({
-        color: '#FF9800',
-        width: 3,
-      }),
-      zIndex: 900,
-    }),
-  };
 
-  // Initialize the map
+
+  // Initialize HD Map (Mappls)
   useEffect(() => {
-    const osmLayer = new TileLayer({
-      source: new OSM(),
-      zIndex: 0,
-    });
+    ensureHdPopupStyles(); // Inject CSS styles including cursor overrides
+    if (!hdMapContainerRef.current) return;
 
-    const hybridLayer = new TileLayer({
-      source: new TileWMS({
-        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-        params: {
-          LAYERS: 'india3',
-          TILED: true,
-          VERSION: '1.1.1',
-          FORMAT: 'image/png',
-          TRANSPARENT: 'true',
-          SRS: 'EPSG:4326',
-          WIDTH: 256,
-          HEIGHT: 256,
-          pixelRatio: 1,
-        },
-        serverType: 'geoserver',
-        projection: 'EPSG:4326',
-      }),
-      zIndex: 1,
-    });
-
-    const india3Layer = new TileLayer({
-      source: new TileWMS({
-        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-        params: {
-          LAYERS: 'india3',
-          TILED: true,
-          VERSION: '1.1.1',
-          FORMAT: 'image/png',
-          TRANSPARENT: 'true',
-          SRS: 'EPSG:4326',
-          WIDTH: 256,
-          HEIGHT: 256,
-          pixelRatio: 1,
-        },
-        serverType: 'geoserver',
-        projection: 'EPSG:4326',
-      }),
-      zIndex: 2,
-    });
-
-    const adminGroupLayer = new TileLayer({
-      source: new TileWMS({
-        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-        params: {
-          LAYERS: 'basemap%3Aadmin_group',
-          TILED: true,
-          VERSION: '1.1.1',
-          FORMAT: 'image/png',
-          TRANSPARENT: 'true',
-          SRS: 'EPSG:4326',
-          WIDTH: 256,
-          HEIGHT: 256,
-          pixelRatio: 1,
-        },
-        serverType: 'geoserver',
-        projection: 'EPSG:4326',
-      }),
-      zIndex: 3,
-    });
-
-    const roadsLayer = new TileLayer({
-      source: new TileWMS({
-        url: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-        params: {
-          LAYERS: 'mmi:mmi_india',
-          TILED: true,
-          VERSION: '1.1.1',
-          FORMAT: 'image/png',
-          TRANSPARENT: 'true',
-          SRS: 'EPSG:4326',
-          WIDTH: 256,
-          HEIGHT: 256,
-          pixelRatio: 1,
-        },
-        serverType: 'geoserver',
-        projection: 'EPSG:4326',
-      }),
-      zIndex: 4,
-    });
-
-    const crowdsourcedLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 5,
-      style: new Style({
-        image: new Icon({
-          src: require("../../assets/images/grey/bus.png"),
-          scale: 0.051,
-          anchor: [0.5, 1],
-          anchorXUnits: "fraction",
-          anchorYUnits: "fraction",
-        }),
-      }),
-    });
-
-    setLayers(prev => ({
-      ...prev,
-      osm: { ...prev.osm, layer: osmLayer },
-      hybrid: { ...prev.hybrid, layer: hybridLayer },
-      india3: { ...prev.india3, layer: india3Layer },
-      adminGroup: { ...prev.adminGroup, layer: adminGroupLayer },
-      roads: { ...prev.roads, layer: roadsLayer },
-      crowdsourced: { ...prev.crowdsourced, layer: crowdsourcedLayer },
-    }));
-
-    const initialMap = new Map({
-      target: mapRef.current,
-      layers: [
-        osmLayer,
-        hybridLayer,
-        india3Layer,
-        adminGroupLayer,
-        roadsLayer,
-        crowdsourcedLayer,
-        vectorLayer,
-        drawingLayer,
-      ],
-      view: new View({
-        center: fromLonLat([91.829437, 26.131644]),
-        zoom: 13,
-        projection: 'EPSG:3857',
-      }),
-      pixelRatio: 1,
-      controls: [
-        new Zoom({
-          className: 'custom-zoom-control',
-          target: document.getElementById('zoom-control-container'),
-        }),
-      ],
-    });
-
-    const overlay = new Overlay({
-      element: overlayRef.current,
-      positioning: 'bottom-center',
-      offset: [0, -10],
-      stopEvent: false,
-    });
-    initialMap.addOverlay(overlay);
-    setMap(initialMap);
     setMapInitialized(true);
 
-    // Configure map interactions
-    initialMap.on('click', (evt) => {
-      const feature = initialMap.forEachFeatureAtPixel(evt.pixel, (feature) => feature, { hitTolerance: 5 });
-
-      if (feature) {
-        const poi = feature.get('data');
-        if (poi) {
-          setSelectedPoi(poi);
-          setPopoverAnchor(evt.pixel);
-          setPopoverOpen(true);
-        }
-      } else {
-        setPopoverOpen(false);
-        setSelectedPoi(null);
+    let isMounted = true;
+    const cleanup = () => {
+      if (mapplsLibraryPollRef.current) {
+        clearInterval(mapplsLibraryPollRef.current);
+        mapplsLibraryPollRef.current = null;
       }
-    });
-
-    // Remove hover effect
-    initialMap.on('pointermove', (evt) => {
-      if (evt.dragging) return;
-
-      const hit = initialMap.hasFeatureAtPixel(evt.pixel, {
-        hitTolerance: 5,
-        layerFilter: (layer) => layer === vectorLayer
+      hdPoiMarkersRef.current.forEach((marker) => {
+        try { marker?.remove?.(); } catch (e) { }
       });
+      if (mapplsMapRef.current) {
+        try {
+          if (typeof mapplsMapRef.current.remove === "function") mapplsMapRef.current.remove();
+        } catch (e) { console.warn("Error removing HD map:", e); }
+      }
+      if (hdMapInnerRef.current) hdMapInnerRef.current.innerHTML = "";
+      hdMapContainerIdRef.current = null;
+      mapplsMapRef.current = null;
+      hdPoiMarkersRef.current = [];
+    };
 
-      initialMap.getTargetElement().style.cursor = hit ? 'pointer' : '';
-    });
+    const instantiateHdMap = () => {
+      if (!isMounted || !hdMapInnerRef.current) return;
+      if (mapplsMapRef.current) return;
+      if (typeof window.mappls === 'undefined') {
+        console.log('Mappls library not loaded yet');
+        return;
+      }
 
-    return () => {
-      if (initialMap) {
-        initialMap.setTarget(null);
+      const hostElement = hdMapInnerRef.current;
+      hostElement.innerHTML = "";
+      const mapElement = document.createElement("div");
+      mapElement.style.width = "100%";
+      mapElement.style.height = "100%";
+      const containerId = `mappls-hd-map-${Date.now()}`;
+      mapElement.id = containerId;
+      hdMapContainerIdRef.current = containerId;
+      hostElement.appendChild(mapElement);
+
+      try {
+        console.log('Creating Mappls map with ID:', containerId);
+        // Use correct Mappls API syntax from documentation
+        const hdMap = new window.mappls.Map(containerId, {
+          center: { lat: 26.1445, lng: 91.7362 },
+          zoom: 12,
+          draggable: true,
+          zoomControl: true,
+          location: true
+        });
+        mapplsMapRef.current = hdMap;
+        console.log('Mappls map created successfully', hdMap);
+
+        // Add a test marker to verify Mappls marker API works
+        setTimeout(() => {
+          try {
+            console.log('Creating test marker...');
+            const testMarker = new window.mappls.Marker({
+              map: hdMap,
+              position: { lat: 26.1445, lng: 91.7362 },
+              title: 'Test Marker - Center of Guwahati'
+            });
+            console.log('Test marker created:', testMarker);
+          } catch (testError) {
+            console.error('Failed to create test marker:', testError);
+          }
+        }, 2000);
+
+      } catch (e) {
+        console.error("Failed to create Mappls HD map instance", e);
       }
     };
-  }, [vectorLayer, drawingLayer]);
 
-  // Add effect to handle layer visibility
-  useEffect(() => {
-    if (!map) return;
+    const ensureMapplsInitialized = () => {
+      if (!isMounted) return;
 
-    Object.entries(layers).forEach(([key, layerData]) => {
-      if (layerData.layer) {
-        layerData.layer.setVisible(layerData.visible);
+      // Check if Mappls is available
+      if (typeof window.mappls === 'undefined') {
+        console.log('Mappls not available yet');
+        return;
       }
-    });
-  }, [layers, map]);
 
-  // Fetch POIs once map is initialized
-  useEffect(() => {
-    if (mapInitialized) {
-      fetchPOIs();
+      console.log('Mappls library is available, creating map...');
+      instantiateHdMap();
+    };
+
+    if (window.mappls) {
+      ensureMapplsInitialized();
+    } else {
+      mapplsLibraryPollRef.current = setInterval(() => {
+        if (window.mappls) {
+          clearInterval(mapplsLibraryPollRef.current);
+          mapplsLibraryPollRef.current = null;
+          ensureMapplsInitialized();
+        }
+      }, 400);
     }
-  }, [mapInitialized]);
+
+    return () => { isMounted = false; cleanup(); };
+  }, []);
 
   const fetchPOIs = async () => {
     try {
       setLoading(true);
       const response = await POIService.getAllPOIs();
+      console.log('POI Response:', response);
       if (response && response.data) {
+        console.log('POIs fetched:', response.data.length, 'items');
         setPois(response.data);
-        updateMapMarkers(response.data);
       } else {
         showSnackbar('Invalid response format from server', 'error');
       }
     } catch (error) {
+      console.error('Error fetching POIs:', error);
       showSnackbar('Error fetching POIs. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateMapMarkers = (poiList) => {
-    if (!vectorSource) return;
+  useEffect(() => {
+    if (!mapInitialized) return;
+    fetchPOIs();
+  }, [mapInitialized]);
 
-    vectorSource.clear();
+  // Handle Map Clicks for Point, Circle, Polygon, Road
+  useEffect(() => {
+    const hdMap = mapplsMapRef.current;
 
-    poiList.forEach((poi) => {
-      try {
-        const location = JSON.parse(poi.location);
-        if (Array.isArray(location) && location.length > 0) {
-          let feature;
-          let style = markerStyles[poi.mark_type];
-
-          switch (poi.mark_type) {
-            case 'Point':
-              if (location[0] && location[0].length === 2) {
-                const [lat, lon] = location[0];
-                const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
-                feature = new Feature({
-                  geometry: new Point(coordinates),
-                  data: poi,
-                });
-              }
-              break;
-
-            case 'Circle':
-              if (location[0] && location[0].length === 2) {
-                const [lat, lon] = location[0];
-                const center = fromLonLat([parseFloat(lon), parseFloat(lat)]);
-                const radius = parseFloat(poi.radius) || 100;
-                feature = new Feature({
-                  geometry: new Circle(center, radius),
-                  data: poi,
-                });
-              }
-              break;
-
-            case 'Polygon':
-              if (location.length >= 3) {
-                const polygonCoords = location.map(coord => {
-                  if (coord && coord.length === 2) {
-                    const [lat, lon] = coord;
-                    return fromLonLat([parseFloat(lon), parseFloat(lat)]);
-                  }
-                  return null;
-                }).filter(coord => coord !== null);
-
-                if (polygonCoords.length >= 3) {
-                  feature = new Feature({
-                    geometry: new Polygon([polygonCoords]),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-
-            case 'Road':
-              if (location.length >= 2) {
-                const roadCoords = location.map(coord => {
-                  if (coord && coord.length === 2) {
-                    const [lat, lon] = coord;
-                    return fromLonLat([parseFloat(lon), parseFloat(lat)]);
-                  }
-                  return null;
-                }).filter(coord => coord !== null);
-
-                if (roadCoords.length >= 2) {
-                  feature = new Feature({
-                    geometry: new LineString(roadCoords),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-          }
-
-          if (feature) {
-            feature.setStyle(style);
-            vectorSource.addFeature(feature);
-          }
+    // Manage Cursor with CSS Class
+    if (hdMapContainerIdRef.current) {
+      const container = document.getElementById(hdMapContainerIdRef.current);
+      if (container) {
+        if (['point', 'circle', 'polygon', 'road'].includes(drawingMode)) {
+          container.classList.add('drawing-mode-active');
+        } else {
+          container.classList.remove('drawing-mode-active');
         }
-      } catch (error) {
-        console.error('Error processing POI:', poi.id, error);
+      }
+    }
+
+    if (!['point', 'circle', 'polygon', 'road'].includes(drawingMode) || !hdMap) return;
+
+    const clickHandler = (e) => {
+      let lat, lng;
+      if (e.lngLat) { lat = e.lngLat.lat; lng = e.lngLat.lng; }
+      else if (e.latLng) { lat = e.latLng.lat; lng = e.latLng.lng; }
+
+      if (lat && lng) {
+        if (drawingMode === 'point') {
+          setFormData(prev => ({
+            ...prev,
+            location: JSON.stringify([[lat, lng]]),
+            mark_type: 'Point',
+            radius: '100.5'
+          }));
+          setDialogOpen(true);
+          setDrawingMode(null);
+        }
+        else if (drawingMode === 'circle') {
+          setFormData(prev => ({
+            ...prev,
+            location: JSON.stringify([[lat, lng]]),
+            mark_type: 'Circle',
+            radius: '100'
+          }));
+          setDialogOpen(true);
+          setDrawingMode(null);
+        }
+        else if (drawingMode === 'polygon' || drawingMode === 'road') {
+          setDrawingPoints(prev => [...prev, [lat, lng]]);
+        }
+      }
+    };
+
+    if (hdMap.addListener) hdMap.addListener('click', clickHandler);
+    else if (hdMap.on) hdMap.on('click', clickHandler);
+
+    return () => {
+      if (hdMap.removeListener) hdMap.removeListener('click', clickHandler);
+      else if (hdMap.off) hdMap.off('click', clickHandler);
+
+      // Reset cursor on cleanup
+      if (hdMapContainerIdRef.current) {
+        const container = document.getElementById(hdMapContainerIdRef.current);
+        if (container) container.classList.remove('drawing-mode-active');
+      }
+    };
+  }, [drawingMode]);
+
+  // Visualize Polygon/Road drawing
+  useEffect(() => {
+    if (!mapplsMapRef.current) return;
+    const hdMap = mapplsMapRef.current;
+
+    // Cleanup temp poly
+    if (tempPolyRef.current) {
+      try { tempPolyRef.current.remove(); } catch (e) { }
+      tempPolyRef.current = null;
+    }
+
+    // Cleanup temp markers
+    if (tempMarkersRef.current) {
+      tempMarkersRef.current.forEach(m => {
+        try { m.remove(); } catch (e) { }
+      });
+      tempMarkersRef.current = [];
+    }
+
+    if ((drawingMode === 'polygon' || drawingMode === 'road') && drawingPoints.length > 0) {
+      // Mappls SDK expects paths like [{lat, lng}]
+      const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
+
+      // Draw markers for each point to give feedback
+      paths.forEach(pt => {
+        // Create a small dot icon
+        const dotSvg = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
+                  <circle cx="6" cy="6" r="4" fill="#333" stroke="#fff" stroke-width="2"/>
+                </svg>`;
+        const iconUrl = `data:image/svg+xml;base64,${window.btoa(dotSvg)}`;
+
+        try {
+          const marker = new window.mappls.Marker({
+            map: hdMap,
+            position: pt,
+            icon: iconUrl,
+            width: 12,
+            height: 12
+          });
+          tempMarkersRef.current.push(marker);
+        } catch (e) {
+          console.error("Error creating temp marker", e);
+        }
+      });
+
+      if (drawingPoints.length > 1) {
+        try {
+          const tempPoly = new window.mappls.Polyline({
+            map: hdMap,
+            paths: paths,
+            strokeColor: '#333333',
+            strokeWeight: 2,
+            strokeOpacity: 0.8,
+            strokeStyle: 'dashed'
+          });
+          tempPolyRef.current = tempPoly;
+        } catch (e) {
+          console.error("Error drawing temp polyline", e);
+        }
+      }
+    }
+  }, [drawingPoints, drawingMode]);
+
+  // Sync POIs to HD Map
+  useEffect(() => {
+    if (!mapplsMapRef.current) {
+      console.log('HD Map not ready yet');
+      return;
+    }
+    const hdMap = mapplsMapRef.current;
+    console.log('Syncing POIs to HD Map, total POIs:', pois.length);
+
+    // Clear existing markers
+    hdPoiMarkersRef.current.forEach(m => {
+      try {
+        if (m && typeof m.remove === 'function') {
+          m.remove();
+        }
+      } catch (e) {
+        console.error('Error removing marker:', e);
       }
     });
-  };
+    hdPoiMarkersRef.current = [];
+
+    // Check if mappls is available
+    if (typeof window.mappls === 'undefined') {
+      console.log('Mappls library not available');
+      return;
+    }
+
+    const handleMarkerClick = (poi, marker) => {
+      console.log('Marker clicked for POI:', poi.name);
+      setSelectedPoi(poi);
+
+      // Create info window for the marker
+      const infoContent = `
+        <div style="padding: 10px; min-width: 150px;">
+          <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">${poi.name}</h3>
+          <p style="margin: 0; font-size: 12px; color: #666;">${poi.description || 'No description'}</p>
+          <p style="margin: 4px 0 0 0; font-size: 11px; color: #999;">Type: ${poi.use_type}</p>
+        </div>
+      `;
+
+      // Show popup on marker
+      marker.setPopup(infoContent);
+    };
+
+    let markersCreated = 0;
+    pois.forEach(poi => {
+      try {
+        const location = JSON.parse(poi.location);
+        // console.log('Processing POI:', poi.name, 'Type:', poi.mark_type);
+
+        // Define colors based on use_type
+        const poiColor = getUseTypeColor(poi);
+
+        // Handle different mark types
+        if (poi.mark_type === "Point") {
+          if (!Array.isArray(location) || location.length === 0 || !location[0]) return;
+          const [lat, lon] = location[0];
+          const latNum = Number(lat);
+          const lonNum = Number(lon);
+
+          if (Number.isFinite(latNum) && Number.isFinite(lonNum)) {
+            const iconUrl = getPoiMarkerIcon(poiColor);
+            const markerOptions = {
+              map: hdMap,
+              position: { lat: latNum, lng: lonNum },
+              title: poi.name,
+              icon: iconUrl,
+              width: 28,
+              height: 36
+            };
+
+            const marker = new window.mappls.Marker(markerOptions);
+            marker.addListener('click', () => handleMarkerClick(poi, marker));
+            hdPoiMarkersRef.current.push(marker);
+            markersCreated++;
+          }
+        }
+        else if (poi.mark_type === "Circle") {
+          if (!Array.isArray(location) || location.length === 0 || !location[0]) return;
+          const [lat, lon] = location[0];
+          const radius = Number(poi.radius) || 100;
+
+          const circle = new window.mappls.Circle({
+            map: hdMap,
+            center: { lat: Number(lat), lng: Number(lon) },
+            radius: radius,
+            fillColor: poiColor,
+            fillOpacity: 0.3,
+            strokeColor: poiColor,
+            strokeWeight: 2
+          });
+          // Bind popup mechanism if supported by Circle, otherwise click event
+          // Note: Mappls Circle might not support setPopup directly safely, better to use click
+          /* 
+            // circle.addListener('click', (e) => handleMarkerClick(poi, circle)); 
+            // Error handling strictly for safe implementation
+          */
+          hdPoiMarkersRef.current.push(circle);
+          markersCreated++;
+        }
+        else if (poi.mark_type === "Polygon") {
+          if (!Array.isArray(location) || location.length < 3) return;
+
+          // Convert format [[lat, lng], ...] to [{lat, lng}, ...] if needed by SDK or leave as array of objects?
+          // Mappls Polygon paths expects [{lat:.., lng:..}] or [[lat,lng]] depending on version. 
+          // Standard Mappls usually accepts objects.
+          const paths = location.map(pt => ({ lat: Number(pt[0]), lng: Number(pt[1]) }));
+
+          const polygon = new window.mappls.Polygon({
+            map: hdMap,
+            paths: paths,
+            fillColor: poiColor,
+            fillOpacity: 0.3,
+            strokeColor: poiColor,
+            strokeWeight: 2
+          });
+          hdPoiMarkersRef.current.push(polygon);
+          markersCreated++;
+        }
+        else if (poi.mark_type === "Road") {
+          // Road is a Polyline
+          if (!Array.isArray(location) || location.length < 2) return;
+
+          const paths = location.map(pt => ({ lat: Number(pt[0]), lng: Number(pt[1]) }));
+
+          const polyline = new window.mappls.Polyline({
+            map: hdMap,
+            paths: paths,
+            strokeColor: poiColor,
+            strokeWeight: 4
+          });
+          hdPoiMarkersRef.current.push(polyline);
+          markersCreated++;
+        }
+
+      } catch (e) {
+        console.error('Error processing POI:', poi.name, e);
+      }
+    });
+    console.log('Total markers created:', markersCreated);
+  }, [pois]);
 
   const handleEditClick = (poi) => {
     setFormData({
@@ -591,139 +725,31 @@ const POIViewer = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (map) {
-        map.updateSize();
+      if (mapplsMapRef.current && mapplsMapRef.current.resize) {
+        mapplsMapRef.current.resize();
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [map]);
+  }, []);
 
   const handleDrawingModeChange = (event, newMode) => {
-    if (drawInteraction) {
-      map.removeInteraction(drawInteraction);
-      setDrawInteraction(null);
-    }
-    if (modifyInteraction) {
-      map.removeInteraction(modifyInteraction);
-      setModifyInteraction(null);
-    }
-
     setDrawingMode(newMode);
     setIsEditMode(false);
     setSelectedPoi(null);
     setRoutePoints([]);
-    vectorSourceRef.current.clear();
+    setDrawingPoints([]);
 
-    if (newMode) {
-      let geometryType;
-      let minPoints;
-      let style;
-
-      switch (newMode) {
-        case 'point':
-          geometryType = 'Point';
-          style = markerStyles.Point;
-          break;
-        case 'circle':
-          geometryType = 'Circle';
-          style = markerStyles.Circle;
-          break;
-        case 'polygon':
-          geometryType = 'Polygon';
-          minPoints = 3;
-          style = markerStyles.Polygon;
-          break;
-        case 'road':
-          geometryType = 'LineString';
-          minPoints = 2;
-          style = markerStyles.Road;
-          break;
-      }
-
-      const draw = new Draw({
-        source: drawingSource,
-        type: geometryType,
-        minPoints: minPoints,
-        style: style,
-      });
-
-      draw.on('drawstart', () => {
-        drawingSource.clear();
-      });
-
-      draw.on('drawend', (event) => {
-        const feature = event.feature;
-        const geometry = feature.getGeometry();
-        let coordinates;
-        let markType;
-        let radius = '100.5';
-
-        try {
-          if (geometry instanceof Point) {
-            const [lon, lat] = toLonLat(geometry.getCoordinates());
-            coordinates = [[lat, lon]];
-            markType = 'Point';
-          } else if (geometry instanceof Circle) {
-            const center = toLonLat(geometry.getCenter());
-            radius = Math.round(geometry.getRadius());
-            coordinates = [[center[1], center[0]]];
-            markType = 'Circle';
-          } else if (geometry instanceof Polygon) {
-            coordinates = geometry.getCoordinates()[0].map(coord => {
-              const [lon, lat] = toLonLat(coord);
-              return [lat, lon];
-            });
-            markType = 'Polygon';
-          } else if (geometry instanceof LineString) {
-            coordinates = geometry.getCoordinates().map(coord => {
-              const [lon, lat] = toLonLat(coord);
-              return [lat, lon];
-            });
-            markType = 'Road';
-          }
-
-          if (coordinates) {
-            setFormData(prev => ({
-              ...prev,
-              location: JSON.stringify(coordinates),
-              mark_type: markType,
-              radius: radius,
-            }));
-            setDialogOpen(true);
-          }
-        } catch (error) {
-          showSnackbar('Error processing drawn geometry. Please try again.', 'error');
-        } finally {
-          setDrawingMode(null);
-          drawingSource.clear();
-        }
-      });
-
-      const modify = new Modify({
-        source: drawingSource,
-      });
-
-      map.addInteraction(draw);
-      map.addInteraction(modify);
-      setDrawInteraction(draw);
-      setModifyInteraction(modify);
-    }
+    // Clear any temporary drawing state if needed
+    // For Mappls, 'point' mode is handled by map click listener
+    // ensure other modes don't break things
   };
+
 
   const handleCancel = () => {
     setDialogOpen(false);
     setIsEditMode(false);
     setSelectedPoi(null);
-    if (drawInteraction) {
-      map.removeInteraction(drawInteraction);
-      setDrawInteraction(null);
-    }
-    if (modifyInteraction) {
-      map.removeInteraction(modifyInteraction);
-      setModifyInteraction(null);
-    }
-    drawingSource.clear();
     setDrawingMode(null);
     setFormData({
       name: '',
@@ -738,77 +764,12 @@ const POIViewer = () => {
     });
   };
 
-  const handleLayerToggle = (layerId) => {
-    setLayers(prev => ({
-      ...prev,
-      [layerId]: {
-        ...prev[layerId],
-        visible: !prev[layerId].visible,
-      },
-    }));
-  };
+
 
   // Add route vector layer
   useEffect(() => {
-    if (map) {
-      const vectorLayer = new VectorLayer({
-        source: vectorSourceRef.current,
-      });
-      map.addLayer(vectorLayer);
-    }
-  }, [map]);
-
-  // Handle map click for route points
-  useEffect(() => {
-    if (map && drawingMode === 'road') {
-      const clickHandler = (e) => {
-        const coord = e.coordinate;
-        const lonLat = toLonLat(coord);
-
-        setRoutePoints(prev => {
-          const newPoints = [...prev, lonLat];
-
-          // Show visual feedback for selected points
-          const pointFeature = new Feature({
-            geometry: new Point(coord),
-          });
-
-          pointFeature.setStyle(
-            new Style({
-              image: new Icon({
-                src: require("../../assets/images/grey/bus.png"),
-                scale: 0.051,
-                anchor: [0.5, 1],
-                anchorXUnits: "fraction",
-                anchorYUnits: "fraction",
-              }),
-            })
-          );
-
-          vectorSourceRef.current.addFeature(pointFeature);
-
-          // If we have two points, fetch the route
-          if (newPoints.length === 2) {
-            // Show loading state
-            showSnackbar('Fetching route...', 'info');
-            fetchRoute(newPoints);
-          } else if (newPoints.length === 1) {
-            showSnackbar('Click another point to complete the route', 'info');
-          }
-
-          return newPoints;
-        });
-      };
-
-      map.on('click', clickHandler);
-      return () => {
-        map.un('click', clickHandler);
-        // Clear any temporary points when switching modes
-        vectorSourceRef.current.clear();
-        setRoutePoints([]);
-      };
-    }
-  }, [map, drawingMode]);
+    // Route layer logic for Mappls would go here
+  }, []);
 
   const fetchRoute = async (points) => {
     try {
@@ -852,7 +813,7 @@ const POIViewer = () => {
       }
 
       // Display the route
-      displayRoute(coordinates);
+      // displayRoute(coordinates); // Mappls route display pending implementation
 
       // Update form data with the route coordinates
       setFormData(prev => ({
@@ -875,89 +836,33 @@ const POIViewer = () => {
     } catch (error) {
       console.error('Error fetching route:', error);
       showSnackbar(error.message || 'Error fetching route. Please try again.', 'error');
-      // Clear any temporary points on error
-      vectorSourceRef.current.clear();
       setRoutePoints([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const displayRoute = (coordinates) => {
-    try {
-      // Clear previous route
-      vectorSourceRef.current.clear();
-
-      // Create start and end points
-      const startPoint = new Feature({
-        geometry: new Point(fromLonLat([coordinates[0][1], coordinates[0][0]])),
-      });
-      const endPoint = new Feature({
-        geometry: new Point(fromLonLat([coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]])),
-      });
-
-      // Style for points
-      [startPoint, endPoint].forEach(point => {
-        point.setStyle(
-          new Style({
-            image: new Icon({
-              src: require("../../assets/images/grey/bus.png"),
-              scale: 0.051,
-              anchor: [0.5, 1],
-              anchorXUnits: "fraction",
-              anchorYUnits: "fraction",
-            }),
-          })
-        );
-      });
-
-      // Create route line
-      const lineCoordinates = coordinates.map(coord => fromLonLat([coord[1], coord[0]]));
-      const line = new Feature({
-        geometry: new LineString(lineCoordinates),
-      });
-
-      line.setStyle(
-        new Style({
-          stroke: new Stroke({
-            color: '#0066ff',
-            width: 3,
-          }),
-        })
-      );
-
-      // Add features to the vector source
-      vectorSourceRef.current.addFeatures([startPoint, endPoint, line]);
-
-      // Fit view to the route with animation
-      const extent = line.getGeometry().getExtent();
-      if (extent) {
-        map.getView().fit(extent, {
-          padding: [50, 50, 50, 50],
-          duration: 1000,
-          maxZoom: 18,
-        });
-      }
-    } catch (error) {
-      console.error('Error displaying route:', error);
-      showSnackbar('Error displaying route. Please try again.', 'error');
-    }
-  };
-
   const handlePoiClick = (poi) => {
     setSelectedPoiId(poi.id);
-    // Center map on selected POI
-    if (poi.location) {
+    // Center map on selected POI (Mappls HD Map)
+    if (poi.location && mapplsMapRef.current) {
       try {
         const location = JSON.parse(poi.location);
         if (Array.isArray(location) && location.length > 0) {
           const [lat, lon] = location[0];
-          const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
-          map.getView().animate({
-            center: coordinates,
-            zoom: 15,
-            duration: 1000
-          });
+          // Use Mappls API to pan/zoom
+          const mapInstance = mapplsMapRef.current;
+          const targetPos = { lat: Number(lat), lng: Number(lon) };
+
+          if (mapInstance.panTo) {
+            mapInstance.panTo(targetPos);
+          } else if (mapInstance.setCenter) {
+            mapInstance.setCenter(targetPos);
+          }
+
+          if (mapInstance.setZoom) {
+            mapInstance.setZoom(15);
+          }
         }
       } catch (error) {
         console.error('Error parsing POI location:', error);
@@ -991,8 +896,15 @@ const POIViewer = () => {
 
   return (
     <Box sx={{ height: '100%', width: '100%', position: 'relative', overflow: 'hidden' }}>
-      {/* Main Map Container */}
-      <Box ref={mapRef} sx={{ height: '100%', width: '100%' }} />
+
+
+      {/* Main Map Container (HD) */}
+      <Box ref={hdMapContainerRef} sx={{ height: '100%', width: '100%', display: 'block', position: 'relative' }}>
+        <div ref={hdMapInnerRef} style={{ width: "100%", height: "100%", position: "absolute" }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: "absolute", bottom: 0, left: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: "absolute", top: 0, right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
+        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: "absolute", bottom: "20px", right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
+      </Box>
 
       {/* Zoom Controls Container */}
       <Box
@@ -1134,14 +1046,18 @@ const POIViewer = () => {
 
       {/* Top Right Controls */}
       <Paper
-        elevation={3}
+        elevation={0}
         sx={{
           position: 'absolute',
           top: 16,
           right: 16,
-          borderRadius: 2,
+          borderRadius: 3,
           overflow: 'hidden',
-          backgroundColor: 'background.paper',
+          backgroundColor: alpha(theme.palette.background.paper, 0.8),
+          backdropFilter: 'blur(12px)',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         }}
       >
         <Stack spacing={1} p={1.5}>
@@ -1151,13 +1067,11 @@ const POIViewer = () => {
             onClick={() => setDialogOpen(true)}
             fullWidth
             sx={{
-              backgroundColor: 'background.paper',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              },
-              boxShadow: 'none',
+              // backgroundColor: 'background.paper', // Use primary button styles instead?
+              // Standard contained button looks better
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               px: 2,
+              borderRadius: 2
             }}
           >
             Add POI
@@ -1171,62 +1085,72 @@ const POIViewer = () => {
 
           <Stack direction="row" spacing={1} sx={{ pb: 0.5 }}>
             <Tooltip title="Point">
-              <IconButton
-                color={drawingMode === 'point' ? 'primary' : 'default'}
-                onClick={() => handleDrawingModeChange(null, 'point')}
-                sx={{
-                  backgroundColor: drawingMode === 'point' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  },
-                }}
-              >
-                <LocationOnIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color={drawingMode === 'point' ? 'primary' : 'default'}
+                  onClick={() => handleDrawingModeChange(null, 'point')}
+                  sx={{
+                    backgroundColor: drawingMode === 'point' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    },
+                  }}
+                >
+                  <LocationOnIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Circle">
-              <IconButton
-                color={drawingMode === 'circle' ? 'primary' : 'default'}
-                onClick={() => handleDrawingModeChange(null, 'circle')}
-                sx={{
-                  backgroundColor: drawingMode === 'circle' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  },
-                }}
-              >
-                <CircleIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color={drawingMode === 'circle' ? 'primary' : 'default'}
+                  onClick={() => handleDrawingModeChange(null, 'circle')}
+                  sx={{
+                    backgroundColor: drawingMode === 'circle' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    },
+                  }}
+                >
+                  <CircleIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Polygon">
-              <IconButton
-                color={drawingMode === 'polygon' ? 'primary' : 'default'}
-                onClick={() => handleDrawingModeChange(null, 'polygon')}
-                sx={{
-                  backgroundColor: drawingMode === 'polygon' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  },
-                }}
-              >
-                <PolylineIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color={drawingMode === 'polygon' ? 'primary' : 'default'}
+                  onClick={() => handleDrawingModeChange(null, 'polygon')}
+                  sx={{
+                    backgroundColor: drawingMode === 'polygon' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    },
+                  }}
+                >
+                  <PolylineIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Road">
-              <IconButton
-                color={drawingMode === 'road' ? 'primary' : 'default'}
-                onClick={() => handleDrawingModeChange(null, 'road')}
-                sx={{
-                  backgroundColor: drawingMode === 'road' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  },
-                }}
-              >
-                <RouteIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color={drawingMode === 'road' ? 'primary' : 'default'}
+                  onClick={() => handleDrawingModeChange(null, 'road')}
+                  disabled={false}
+                  sx={{
+                    backgroundColor: drawingMode === 'road' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    },
+                  }}
+                >
+                  <RouteIcon />
+                </IconButton>
+              </span>
             </Tooltip>
           </Stack>
+
 
           <Divider />
 
@@ -1240,11 +1164,7 @@ const POIViewer = () => {
                 <SearchIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Layers">
-              <IconButton onClick={(e) => setLayersAnchorEl(e.currentTarget)}>
-                <LayersIcon />
-              </IconButton>
-            </Tooltip>
+
             <Tooltip title="My Location">
               <IconButton>
                 <MyLocationIcon />
@@ -1253,6 +1173,49 @@ const POIViewer = () => {
           </Stack>
         </Stack>
       </Paper>
+
+      {/* Floating Finish Drawing Button */}
+      <Fade in={['polygon', 'road'].includes(drawingMode) && drawingPoints.length > 2}>
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 40,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1100,
+          }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<CloseIcon sx={{ transform: 'rotate(45deg)' }} />} // Check mark
+            onClick={() => {
+              setFormData(prev => ({
+                ...prev,
+                location: JSON.stringify(drawingPoints),
+                mark_type: drawingMode === 'road' ? 'Road' : 'Polygon',
+                radius: '0'
+              }));
+              setDialogOpen(true);
+              setDrawingMode(null);
+              setDrawingPoints([]);
+            }}
+            sx={{
+              borderRadius: 28,
+              px: 4,
+              py: 1.5,
+              textTransform: 'none',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              fontWeight: 600,
+              fontSize: '1rem',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            {drawingMode === 'road' ? 'Finish Road' : 'Finish Polygon'}
+          </Button>
+        </Box>
+      </Fade>
 
       {/* POI Info Tooltip */}
       {selectedPoi && popoverOpen && (
@@ -1628,60 +1591,7 @@ const POIViewer = () => {
         </Alert>
       </Snackbar>
 
-      {/* Add Layers Popover */}
-      <Popover
-        open={Boolean(layersAnchorEl)}
-        anchorEl={layersAnchorEl}
-        onClose={() => setLayersAnchorEl(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        PaperProps={{
-          sx: {
-            width: 250,
-            mt: 1,
-            borderRadius: 1,
-          },
-        }}
-      >
-        <List sx={{ p: 0 }}>
-          {Object.entries(layers).map(([layerId, layerData]) => (
-            <ListItem
-              key={layerId}
-              sx={{
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                '&:last-child': {
-                  borderBottom: 'none',
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                {layerData.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={layerData.name}
-                sx={{
-                  '& .MuiListItemText-primary': {
-                    fontSize: '0.9rem',
-                  },
-                }}
-              />
-              <Switch
-                edge="end"
-                size="small"
-                checked={layerData.visible}
-                onChange={() => handleLayerToggle(layerId)}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Popover>
+
     </Box>
   );
 };
