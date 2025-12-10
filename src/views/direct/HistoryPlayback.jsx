@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import HomePageService from "../../services/HomePage";
 import GPSHistoryMap from "./HistoryPlaybackMap";
-import VehicleSelectionMap from "./VehicleSelectionMap";
+import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 import { dateTimeUpdate } from "../../helper";
 import { FormControl, Autocomplete, TextField, Button, Grid, Typography, Box, CircularProgress, Collapse, IconButton, Tooltip } from '@mui/material';
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -328,7 +328,8 @@ const HistoryPlayback = () => {
             Select a Vehicle from the Map
           </Typography>
           <Typography variant="body2" color="textSecondary" gutterBottom>
-            Click on a cluster to zoom in, or click on a vehicle marker to select it for history playback.
+            Click on a vehicle marker to view details, then click "Select Vehicle" to load history playback.
+            Use the map type toggle to switch between Normal (Bhuvan) and Satellite views.
           </Typography>
 
           {isLoadingGpsData ? (
@@ -336,11 +337,26 @@ const HistoryPlayback = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <VehicleSelectionMap
+            <BhuvanMapComponent
               gpsData={vehicleGpsData}
               width="100%"
               height="600px"
-              onVehicleSelect={handleVehicleSelect}
+              autoFit={true}
+              showMapTypeToggle={true}
+              showDrawControls={false}
+              showLogos={true}
+              defaultMapType="normal"
+              markerLabelMode="vehicle"
+              onMarkerClick={(entryData) => {
+                // Extract vehicle registration number and trigger selection
+                const vehicleRegNo = entryData.vehicle_registration_number ||
+                  entryData.vehicle_reg_no ||
+                  entryData.device_tag_info?.device?.vehicle_reg_no ||
+                  entryData.device_tag_info?.vehicle?.vehicle_reg_no;
+                if (vehicleRegNo) {
+                  handleVehicleSelect(vehicleRegNo);
+                }
+              }}
             />
           )}
         </Box>

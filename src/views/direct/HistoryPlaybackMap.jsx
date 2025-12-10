@@ -8,7 +8,7 @@ import html2canvas from 'html2canvas';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
-import { OSM, TileWMS } from "ol/source";
+import { TileWMS } from "ol/source";
 import { fromLonLat } from "ol/proj";
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
@@ -60,7 +60,7 @@ const GPSHistoryMap = ({
       anchor: [0.5, 1],
       crossOrigin: 'anonymous',
       src: require("../../assets/images/red/bus.png"),
-      scale: 0.20,
+      scale: 0.07,
     }),
   });
   const orangeM = new Style({
@@ -68,7 +68,7 @@ const GPSHistoryMap = ({
       anchor: [0.5, 1],
       crossOrigin: 'anonymous',
       src: require("../../assets/images/orange/bus.png"),
-      scale: 0.20,
+      scale: 0.07,
     }),
   });
 
@@ -77,7 +77,7 @@ const GPSHistoryMap = ({
       anchor: [0.5, 1],
       crossOrigin: 'anonymous',
       src: require("../../assets/images/blue/bus.png"),
-      scale: 0.20,
+      scale: 0.07,
     }),
   });
 
@@ -86,7 +86,7 @@ const GPSHistoryMap = ({
       anchor: [0.5, 1],
       crossOrigin: 'anonymous',
       src: require("../../assets/images/green/bus.png"),
-      scale: 0.20,
+      scale: 0.07,
     }),
   });
 
@@ -95,7 +95,7 @@ const GPSHistoryMap = ({
       anchor: [0.5, 1],
       crossOrigin: 'anonymous',
       src: require("../../assets/images/grey/bus.png"),
-      scale: 0.20,
+      scale: 0.07,
     }),
   });
 
@@ -141,45 +141,87 @@ const GPSHistoryMap = ({
 
   useEffect(() => {
     if (!map) {
+      const resolveBhuvanWmsUrl = () => {
+        const envUrl = process.env.REACT_APP_BHUVAN_URL;
+        if (!envUrl) {
+          return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+        }
+        const normalizedUrl = envUrl.replace(/\/$/, "");
+        if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+          return normalizedUrl;
+        }
+        return `${normalizedUrl}/bhuvan/gwc/service/wms`;
+      };
+
+      const createBhuvanSource = (layerName) => {
+        const bhuvanUrl = resolveBhuvanWmsUrl();
+        const opts = {
+          url: bhuvanUrl,
+          params: {
+            'LAYERS': layerName,
+            'STYLES': "",
+            'TILED': true,
+            'VERSION': '1.1.1',
+            'FORMAT': 'image/png',
+            'TRANSPARENT': 'true',
+            'SRS': 'EPSG:4326',
+            'WIDTH': 256,
+            'HEIGHT': 256,
+          },
+          serverType: 'geoserver',
+          projection: 'EPSG:4326',
+          transition: 0,
+        };
+
+        // Note: Bhuvan servers often reject CORS requests, so we default to no crossOrigin.
+        // This restores map visibility but may prevent direct video recording of the map tiles.
+        if (process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true") {
+          opts.crossOrigin = "anonymous";
+        }
+
+        console.log(`[Bhuvan] Creating layer: ${layerName} with URL: ${opts.url}`);
+
+        const source = new TileWMS(opts);
+
+        source.on('tileloadstart', () => {
+          // console.log(`[Bhuvan] Tile load start for ${layerName}`);
+        });
+
+        source.on('tileloadend', () => {
+          // console.log(`[Bhuvan] Tile load success for ${layerName}`);
+        });
+
+        source.on('tileloaderror', (event) => {
+          console.error(`[Bhuvan] Tile load ERROR for ${layerName}`, event);
+        });
+
+        return source;
+      };
+
+      // Debug container
+      if (mapRef.current) {
+        console.log(`[Map] Container Size: ${mapRef.current.clientWidth}x${mapRef.current.clientHeight}`);
+      }
+
       const initialMap = new Map({
         target: mapRef.current,
         layers: [
           new TileLayer({
-            source: new OSM(),
+            source: createBhuvanSource("india3"),
           }),
           new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL,
-              params: {
-                'LAYERS': 'basemap%3Aadmin_group',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,   // Set the tile width to 256 pixels
-                'HEIGHT': 256,   // Set the tile height to 256 pixels
-                'pixelRatio': 1,
-
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326', // Ensure the projection is set:' 
-
-
-
-            })
+            source: createBhuvanSource("basemap:admin_group"),
+          }),
+          new TileLayer({
+            source: createBhuvanSource("mmi:mmi_india"),
           }),
         ],
-
-
         view: new View({
           center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
           zoom: 7,
         }),
-
         pixelRatio: 1,
       });
-
 
       const overlay = new Overlay({
         element: overlayRef.current,
@@ -317,27 +359,42 @@ const GPSHistoryMap = ({
     }
   };
 
-  const updateEmergencyPointer = (lon, lat) => {
+  const updateEmergencyPointer = (entry) => {
+    if (!entry) return;
+    const { lon, lat, h, ps, s } = entry;
     const currentCoordinates = fromLonLat([lon, lat]);
 
-    // Remove the previous animation marker if it exists
-    if (animationMarkerRef.current) {
-      markerRef.current.removeFeature(animationMarkerRef.current);
-    }
+    let iconSrc;
+    if (ps === "EM") iconSrc = require("../../assets/images/red/bus.png");
+    else if (s < 1) iconSrc = require("../../assets/images/blue/bus.png");
+    else if (ps === "NR") iconSrc = require("../../assets/images/green/bus.png");
+    else iconSrc = require("../../assets/images/grey/bus.png");
 
-    // Add the new animation marker
-    const marker = new Feature({
-      geometry: new Point(currentCoordinates),
+    const iconStyle = new Style({
+      image: new Icon({
+        anchor: [0.5, 0.5], // Center the icon rotation
+        crossOrigin: 'anonymous',
+        src: iconSrc,
+        scale: 0.07,
+        rotation: h ? (h * Math.PI) / 180 : 0, // Rotate based on heading
+      }),
     });
 
-    marker.setStyle(
-      greenM
-    );
-
-    markerRef.current.addFeature(marker);
-    animationMarkerRef.current = marker; // Store the reference to the animation marker
+    // Update existing marker or create new one
+    if (animationMarkerRef.current) {
+      animationMarkerRef.current.getGeometry().setCoordinates(currentCoordinates);
+      animationMarkerRef.current.setStyle(iconStyle);
+    } else {
+      const marker = new Feature({
+        geometry: new Point(currentCoordinates),
+      });
+      marker.setStyle(iconStyle);
+      markerRef.current.addFeature(marker);
+      animationMarkerRef.current = marker;
+    }
 
     setCurrentCoordinates(currentCoordinates);
+    // Optional: Only center if users wants to follow (current behavior: always follows)
     map.getView().setCenter(currentCoordinates);
   };
 
@@ -345,7 +402,7 @@ const GPSHistoryMap = ({
     setSliderValue(value);
     const entry = mapData[value];
     if (entry) {
-      updateEmergencyPointer(entry.lon, entry.lat);
+      updateEmergencyPointer(entry);
     }
   };
 
@@ -360,7 +417,7 @@ const GPSHistoryMap = ({
         setSliderValue(currentIndex);
         const entry = mapData[currentIndex];
         if (entry) {
-          updateEmergencyPointer(entry.lon, entry.lat);
+          updateEmergencyPointer(entry);
         }
       } else {
         clearInterval(animationIntervalId.current);
@@ -376,7 +433,7 @@ const GPSHistoryMap = ({
 
   const restartAnimation = () => {
     setSliderValue(0);
-    updateEmergencyPointer(mapData[0]?.lon, mapData[0]?.lat);
+    if (mapData[0]) updateEmergencyPointer(mapData[0]);
   };
 
   // Video recording functions
@@ -404,84 +461,26 @@ const GPSHistoryMap = ({
     return 'webm';
   };
 
-  const startRecording = () => {
-    if (!mapRef.current) return;
-
-    // Find all canvases (layers) in the map
-    const canvases = mapRef.current.querySelectorAll('canvas');
-    if (canvases.length === 0) {
-      alert('Unable to find map canvas for recording');
-      return;
-    }
-
+  const startRecording = async () => {
     try {
-      // Get supported mime type
-      const mimeType = getSupportedMimeType();
-
-      if (!mimeType) {
-        alert('Your browser does not support video recording. Please use Chrome, Firefox, or Edge.');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        alert("Screen recording is not supported in this browser. Please use a modern browser like Chrome, Edge, or Firefox.");
         return;
       }
 
+      // Prompt user to select the tab to record
+      // Ideally they should select "This Tab" for the best experience.
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          displaySurface: "browser",
+        },
+        audio: false,
+        preferCurrentTab: true,
+      });
+
+      const mimeType = getSupportedMimeType();
       console.log('Starting recording with format:', mimeType);
 
-      // Create a compositor canvas to combine all layers
-      const width = canvases[0].width;
-      const height = canvases[0].height;
-      const compositor = document.createElement('canvas');
-      compositor.width = width;
-      compositor.height = height;
-      const ctx = compositor.getContext('2d');
-
-      // Function to render all layers to the compositor
-      const renderFrame = () => {
-        if (!isRecordingRef.current) return; // Stop if recording stopped
-
-        ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = '#FFFFFF'; // Set white background
-        ctx.fillRect(0, 0, width, height);
-
-        // Draw each canvas layer onto the compositor
-        canvases.forEach(canvas => {
-          if (canvas.width > 0 && canvas.height > 0) {
-            const style = window.getComputedStyle(canvas);
-            const transform = style.transform;
-            const opacity = style.opacity;
-
-            if (opacity === '0') return; // Skip invisible layers
-
-            ctx.save();
-
-            // Apply CSS transform if it exists (e.g. "matrix(1, 0, 0, 1, -50, -50)")
-            if (transform && transform !== 'none') {
-              const matrix = transform.match(/^matrix\((.+)\)$/);
-              if (matrix) {
-                const values = matrix[1].split(',').map(parseFloat);
-                // Canvas setTransform takes (a, b, c, d, e, f)
-                // matrix is (a, b, c, d, tx, ty)
-                ctx.setTransform(values[0], values[1], values[2], values[3], values[4], values[5]);
-              }
-            }
-
-            // Also handle left/top if used instead of transform
-            const left = parseFloat(style.left) || 0;
-            const top = parseFloat(style.top) || 0;
-            if (left || top) {
-              ctx.translate(left, top);
-            }
-
-            ctx.drawImage(canvas, 0, 0);
-            ctx.restore();
-          }
-        });
-
-        requestAnimationFrame(renderFrame);
-      };
-
-      // Create a stream from the COMPOSITOR canvas
-      const stream = compositor.captureStream(30);
-
-      // Create media recorder
       const recorder = new MediaRecorder(stream, {
         mimeType: mimeType,
         videoBitsPerSecond: 5000000 // 5 Mbps
@@ -497,11 +496,13 @@ const GPSHistoryMap = ({
       };
 
       recorder.onstop = () => {
-        isRecordingRef.current = false; // Ensure loop stops
+        // Stop all tracks to release the screen/tab capture
+        stream.getTracks().forEach(track => track.stop());
 
         if (chunks.length === 0) {
           console.warn("No video data recorded.");
-          alert("Recording failed: No video data was captured. Please try again.");
+          // This might happen if user stops immediately or cancels
+          // alert("Recording failed: No video data was captured.");
           setRecordedChunks([]);
           return;
         }
@@ -522,37 +523,33 @@ const GPSHistoryMap = ({
         }, 100);
 
         setRecordedChunks([]);
-        // alert(`Video exported successfully! Check your downloads folder for the ${extension.toUpperCase()} file.`);
       };
 
       recorder.onerror = (event) => {
         console.error('Recording error:', event);
-        alert('An error occurred during recording. Please try again.');
+        alert('An error occurred during recording.');
         setIsRecording(false);
         setMediaRecorder(null);
-        isRecordingRef.current = false;
       };
-
-      // Use a ref to control the render loop since state updates might be slow
-      isRecordingRef.current = true;
 
       recorder.start(1000);
       setMediaRecorder(recorder);
       setIsRecording(true);
 
-      // Start the composition loop
-      requestAnimationFrame(renderFrame);
-
-      // Auto-start playback
+      // Auto-start playback if not already playing
       if (!isPlaying) {
         playAnimation();
       }
 
       console.log('Recording started successfully');
+
     } catch (error) {
       console.error('Error starting recording:', error);
-      alert(`Failed to start recording: ${error.message}\n\nPlease ensure you're using a modern browser (Chrome, Firefox, or Edge).`);
-      isRecordingRef.current = false;
+      // Don't alert if user cancelled (NotAllowedError is common when user clicks Cancel)
+      if (error.name !== 'NotAllowedError') {
+        alert(`Failed to start recording: ${error.message}`);
+      }
+      setIsRecording(false);
     }
   };
 
@@ -611,33 +608,87 @@ const GPSHistoryMap = ({
       pdf.text(`Report Generated: ${new Date().toLocaleString()}`, 20, yPosition);
       yPosition += 12;
 
-      // Capture the map canvas
-      const canvas = mapRef.current.querySelector('canvas');
-      if (canvas) {
-        try {
-          const mapImage = await html2canvas(mapRef.current, {
-            useCORS: true,
-            backgroundColor: '#ffffff',
-            scale: 2
-          });
-
-          const imgData = mapImage.toDataURL('image/jpeg', 0.8);
-          const imgWidth = pageWidth - 40;
-          const imgHeight = (mapImage.height * imgWidth) / mapImage.width;
-
-          // Check if we need a new page for the map
-          if (yPosition + imgHeight > pageHeight - 20) {
-            pdf.addPage();
-            yPosition = 20;
-          }
-
-          pdf.addImage(imgData, 'JPEG', 20, yPosition, imgWidth, imgHeight);
-          yPosition += imgHeight + 10;
-        } catch (error) {
-          console.error('Error capturing map:', error);
-          pdf.text('Map image could not be captured', 20, yPosition);
-          yPosition += 10;
+      // Capture the map image using Screen Capture API to bypass CORS issues
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          alert("To export the map with the route, please use a modern browser (Chrome/Edge/Firefox) that supports screen capture.");
+          throw new Error("Screen capture not supported");
         }
+
+        // Alert the user to select the current tab
+        alert("Please select 'This Tab' (or 'Current Tab') in the sharing prompt to capture the map for the PDF.");
+
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: "browser" },
+          audio: false,
+          preferCurrentTab: true,
+        });
+
+        const video = document.createElement("video");
+        video.srcObject = stream;
+        video.muted = true;
+        video.playsInline = true;
+        await video.play();
+
+        // Wait a moment for the video to stabilize
+        await new Promise(r => setTimeout(r, 500));
+
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, width, height);
+
+        // Stop the stream
+        stream.getTracks().forEach(track => track.stop());
+
+        // Crop the image to the map area
+        let finalCanvas = canvas;
+        if (mapRef.current) {
+          const rect = mapRef.current.getBoundingClientRect();
+          // Calculate scale in case the video resolution differs from window resolution (e.g. retina)
+          const scaleX = width / window.innerWidth;
+          const scaleY = height / window.innerHeight;
+
+          // Note: Screen capture captures the visible viewport. 
+          // getBoundingClientRect is relative to viewport.
+          // We apply the scale factor.
+
+          // Ensure we don't crop outside bounds
+          const cropX = Math.max(0, rect.left * scaleX);
+          const cropY = Math.max(0, rect.top * scaleY);
+          const cropWidth = Math.min(width - cropX, rect.width * scaleX);
+          const cropHeight = Math.min(height - cropY, rect.height * scaleY);
+
+          if (cropWidth > 0 && cropHeight > 0) {
+            const croppedCanvas = document.createElement("canvas");
+            croppedCanvas.width = cropWidth;
+            croppedCanvas.height = cropHeight;
+            const croppedCtx = croppedCanvas.getContext("2d");
+            croppedCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            finalCanvas = croppedCanvas;
+          }
+        }
+
+        const imgData = finalCanvas.toDataURL('image/jpeg', 0.8);
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (finalCanvas.height * imgWidth) / finalCanvas.width;
+
+        // Check if we need a new page for the map
+        if (yPosition + imgHeight > pageHeight - 20) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        pdf.addImage(imgData, 'JPEG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 10;
+
+      } catch (error) {
+        console.error('Error capturing map:', error);
+        pdf.text('Map image could not be captured (Screen capture cancelled or failed).', 20, yPosition);
+        yPosition += 10;
       }
 
       // Add new page for route data table
