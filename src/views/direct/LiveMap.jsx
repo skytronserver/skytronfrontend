@@ -200,6 +200,11 @@ const ensureHdPopupStyles = () => {
       color: #111827;
       white-space: nowrap;
     }
+
+    .drawing-mode-active, 
+    .drawing-mode-active * {
+      cursor: crosshair !important;
+    }
   `;
 
   document.head.appendChild(styleElement);
@@ -404,6 +409,12 @@ const MapComponent = ({
   const mapplsInitInProgressRef = useRef(false);
   const mapplsLibraryPollRef = useRef(null);
   const hdMapContainerIdRef = useRef(null);
+
+  // HD Map Drawing State & Refs
+  const [drawingMode, setDrawingMode] = useState(null); // 'polygon' or null
+  const [drawingPoints, setDrawingPoints] = useState([]);
+  const tempPolyRef = useRef(null);
+  const tempMarkersRef = useRef([]);
 
   const USE_TYPE_COLORS = {
     school: "#1E88E5",
@@ -1355,6 +1366,186 @@ const MapComponent = ({
     };
   }, [mapType, gpsData, policeData, pois]);
 
+  // HD Map Drawing Logic - Handle Clicks
+  useEffect(() => {
+    if (mapType !== 'hd' || !mapplsMapRef.current) return;
+
+    const hdMap = mapplsMapRef.current;
+
+    // Manage Cursor with CSS Class
+    if (hdMapContainerIdRef.current) {
+      const container = document.getElementById(hdMapContainerIdRef.current);
+      if (container) {
+        if (drawingMode === 'polygon') {
+          container.classList.add('drawing-mode-active');
+        } else {
+          container.classList.remove('drawing-mode-active');
+        }
+      }
+    }
+
+    if (drawingMode !== 'polygon') return;
+
+    const clickHandler = (e) => {
+      let lat, lng;
+      if (e.lngLat) { lat = e.lngLat.lat; lng = e.lngLat.lng; }
+      else if (e.latLng) { lat = e.latLng.lat; lng = e.latLng.lng; }
+
+      if (lat && lng) {
+        setDrawingPoints(prev => [...prev, [lat, lng]]);
+      }
+    };
+
+    if (hdMap.addListener) hdMap.addListener('click', clickHandler);
+    else if (hdMap.on) hdMap.on('click', clickHandler);
+
+    return () => {
+      if (hdMap.removeListener) hdMap.removeListener('click', clickHandler);
+      else if (hdMap.off) hdMap.off('click', clickHandler);
+
+      // Cleanup cursor class
+      if (hdMapContainerIdRef.current) {
+        const container = document.getElementById(hdMapContainerIdRef.current);
+        if (container) container.classList.remove('drawing-mode-active');
+      }
+    };
+  }, [mapType, drawingMode]);
+
+  // HD Map Drawing Logic - Visualization
+  useEffect(() => {
+    if (mapType !== 'hd' || !mapplsMapRef.current) return;
+    const hdMap = mapplsMapRef.current;
+
+    // Cleanup temp poly
+    if (tempPolyRef.current) {
+      try { tempPolyRef.current.remove(); } catch (e) { }
+      tempPolyRef.current = null;
+    }
+
+    // Cleanup temp markers
+    if (tempMarkersRef.current) {
+      tempMarkersRef.current.forEach(m => {
+        try { m.remove(); } catch (e) { }
+      });
+      tempMarkersRef.current = [];
+    }
+
+    if (drawingMode === 'polygon' && drawingPoints.length > 0) {
+      const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
+
+      // Draw markers for each point to give feedback
+      paths.forEach(pt => {
+        // Create a small dot icon
+        const dotSvg = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
+                  <circle cx="6" cy="6" r="4" fill="#333" stroke="#fff" stroke-width="2"/>
+                </svg>`;
+        const iconUrl = `data:image/svg+xml;base64,${window.btoa(dotSvg)}`;
+
+        try {
+          if (window.mappls && window.mappls.Marker) {
+            const marker = new window.mappls.Marker({
+              map: hdMap,
+              position: pt,
+              icon: iconUrl,
+              width: 12,
+              height: 12
+            });
+            tempMarkersRef.current.push(marker);
+          }
+        } catch (e) {
+          console.error("Error creating temp marker", e);
+        }
+      });
+
+      if (drawingPoints.length > 1) {
+        try {
+          if (window.mappls && window.mappls.Polyline) {
+            const tempPoly = new window.mappls.Polyline({
+              map: hdMap,
+              paths: paths,
+              strokeColor: '#333333',
+              strokeWeight: 2,
+              strokeOpacity: 0.8,
+              strokeStyle: 'dashed'
+            });
+            tempPolyRef.current = tempPoly;
+          }
+        } catch (e) {
+          console.error("Error drawing temp polyline", e);
+        }
+      }
+    }
+  }, [mapType, drawingMode, drawingPoints]);
+
+  const startHdDrawing = () => {
+    setDrawingMode('polygon');
+    setDrawingPoints([]);
+    if (onPolygonComplete) onPolygonComplete([]);
+  };
+
+  const clearHdDrawing = () => {
+    setDrawingMode(null);
+    setDrawingPoints([]);
+
+    // Cleanup temp elements immediately
+    if (tempPolyRef.current) {
+      try { tempPolyRef.current.remove(); } catch (e) { }
+      tempPolyRef.current = null;
+    }
+    if (tempMarkersRef.current) {
+      tempMarkersRef.current.forEach(m => {
+        try { m.remove(); } catch (e) { }
+      });
+      tempMarkersRef.current = [];
+    }
+
+    if (onPolygonComplete) onPolygonComplete([]);
+  };
+
+  const finishHdDrawing = () => {
+    setDrawingMode(null);
+    if (onPolygonComplete && drawingPoints.length >= 3) {
+      onPolygonComplete(drawingPoints);
+
+      // We keep the drawing visualized until cleared? 
+      // Or maybe we change style to closed polygon?
+      // For now, let's just leave the temp drawing or clear it?
+      // Usually "Finish" implies committing. 
+      // The calling component might use these points to filter.
+      // But we should probably visualize the closed polygon if we want to be nice.
+      // However, LiveMap seems to use 'drawVectorLayer' for OL. 
+      // Let's create a "closed" polygon visualization if needed or just leave it.
+      // Modifying behavior: we will clear temp drawing and let the parent component handle it?
+      // Actually, if onPolygonComplete is used for filtering, maybe we should keep the polygon visible.
+      // But let's stick to simple "Finish" -> Callback flow.
+      // We will create a closed polygon to show "it is done" if we want, 
+      // but simplistic approach is fine.
+
+      // Let's create a closed polygon visualization for persistency until cleared
+      if (mapplsMapRef.current && window.mappls && window.mappls.Polygon) {
+        // Clear temp lines/dots
+        if (tempPolyRef.current) try { tempPolyRef.current.remove(); } catch (e) { }
+        tempMarkersRef.current.forEach(m => { try { m.remove(); } catch (e) { } });
+        tempMarkersRef.current = [];
+
+        // Draw closed polygon
+        const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
+        try {
+          const finalPoly = new window.mappls.Polygon({
+            map: mapplsMapRef.current,
+            paths: paths,
+            fillColor: 'rgba(255, 255, 255, 0.2)',
+            strokeColor: '#ffcc33',
+            strokeWeight: 2
+          });
+          // Store it in tempPolyRef so "Clear" can remove it
+          tempPolyRef.current = finalPoly;
+        } catch (e) { console.error("Error drawing final polygon", e); }
+      }
+    }
+  };
+
   // Fetch POIs on component mount
   useEffect(() => {
     const fetchPOIs = async () => {
@@ -1747,7 +1938,7 @@ const MapComponent = ({
       <div style={{ width, height, position: "relative" }}>
         {/* Map Type Toggle Buttons */}
         <Box
-          sx={{ position: "absolute", top: "10px", left: "10px", zIndex: 10000 }}
+          sx={{ position: "absolute", top: "10px", left: "40px", zIndex: 10000 }}
         >
           <ButtonGroup variant="outlined" size="small">
             <Tooltip title="Normal Map - Bhuvan Layers">
@@ -1942,6 +2133,66 @@ const MapComponent = ({
               ref={hdMapInnerRef}
               style={{ width: "100%", height: "100%", position: "absolute" }}
             />
+
+            {/* HD Map Controls */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50px",
+                left: "10px",
+                zIndex: 1000,
+                display: "flex",
+                gap: "10px",
+              }}
+            >
+              <Button
+                variant="contained"
+                size="small"
+                onClick={startHdDrawing}
+                color={drawingMode === 'polygon' ? "secondary" : "primary"}
+              >
+                {drawingMode === 'polygon' ? "Drawing..." : "Draw Polygon"}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={clearHdDrawing}
+                color="error"
+              >
+                Clear
+              </Button>
+            </div>
+
+            {/* Finish Polygon Button */}
+            {drawingMode === 'polygon' && drawingPoints.length > 2 && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 40,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 1100,
+                }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={finishHdDrawing}
+                  sx={{
+                    borderRadius: 28,
+                    px: 4,
+                    py: 1.5,
+                    textTransform: 'none',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                  }}
+                >
+                  Finish Polygon
+                </Button>
+              </Box>
+            )}
 
 
             {/* Logos - outside the inner map div so they persist */}

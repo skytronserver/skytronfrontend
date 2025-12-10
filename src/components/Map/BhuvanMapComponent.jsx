@@ -949,7 +949,7 @@ const BhuvanMapComponent = ({
                 {/* Map Type Toggle Buttons */}
                 {showMapTypeToggle && (
                     <Box
-                        sx={{ position: "absolute", top: "10px", left: "10px", zIndex: 10000 }}
+                        sx={{ position: "absolute", top: "10px", left: "40px", zIndex: 10000 }}
                     >
                         <ButtonGroup variant="outlined" size="small">
                             <Tooltip title="Normal Map - Bhuvan Layers">

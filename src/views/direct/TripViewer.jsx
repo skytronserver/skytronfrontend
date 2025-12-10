@@ -1077,7 +1077,7 @@ const TripViewer = () => {
                   sx={{
                     position: 'absolute',
                     top: '20px',
-                    left: '20px',
+                    left: '40px',
                     zIndex: 1000,
                     bgcolor: mapType === "normal" ? 'white' : '#333',
                     color: mapType === "normal" ? 'black' : 'white',

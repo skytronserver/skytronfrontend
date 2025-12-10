@@ -21,13 +21,15 @@ import {
   CardContent,
   ListItemIcon,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  ButtonGroup,
+  Tooltip,
 } from "@mui/material";
 import { ExpandLess, ExpandMore, History, Delete, Route, Navigation, MyLocation, DirectionsCar } from '@mui/icons-material';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
-import { OSM, TileWMS } from "ol/source";
+import { OSM, TileWMS, XYZ } from "ol/source";
 import { fromLonLat, toLonLat, get as getProjection } from "ol/proj";
 import { getDistance } from 'ol/sphere';
 import { register } from 'ol/proj/proj4';
@@ -80,7 +82,13 @@ const RouteETA = () => {
   // Live Tracking State
   const [isTracking, setIsTracking] = useState(false);
   const [liveLocation, setLiveLocation] = useState(null);
+
   const trackingIntervalRef = useRef(null);
+
+  // Map Type State
+  const [mapType, setMapType] = useState('normal');
+  const normalLayersRef = useRef([]);
+  const satelliteLayerRef = useRef(null);
 
   // Icon Styles
   const iconStyles = {
@@ -859,73 +867,28 @@ const RouteETA = () => {
     fetchDeviceList();
   }, []);
 
+  const resolveBhuvanWmsUrl = () => {
+    const envUrl = process.env.REACT_APP_BHUVAN_URL;
+    if (!envUrl) {
+      return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+    }
+
+    const normalizedUrl = envUrl.replace(/\/$/, "");
+    if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+      return normalizedUrl;
+    }
+
+    return `${normalizedUrl}/bhuvan/gwc/service/wms`;
+  };
+
   // Initialize map on first render
   useEffect(() => {
     if (!map.current) {
+      const bhuvanUrl = resolveBhuvanWmsUrl();
+
       const initialMap = new Map({
         target: mapRef.current,
-        layers: [
-          new TileLayer({
-            source: new OSM(),
-          }),
-          // India3 layer
-          // new TileLayer({
-          //   source: new TileWMS({
-          //     url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          //     params: {
-          //       'LAYERS': 'india3',
-          //       'TILED': true,
-          //       'VERSION': '1.1.1',
-          //       'FORMAT': 'image/png',
-          //       'TRANSPARENT': 'true',
-          //       'SRS': 'EPSG:4326',
-          //       'WIDTH': 256,
-          //       'HEIGHT': 256,
-          //       'pixelRatio': 1,
-          //     },
-          //     serverType: 'geoserver',
-          //     projection: 'EPSG:4326',
-          //   })
-          // }),
-          // // Admin group layer (basemap)
-          // new TileLayer({
-          //   source: new TileWMS({
-          //     url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          //     params: {
-          //       'LAYERS': 'basemap%3Aadmin_group',
-          //       'TILED': true,
-          //       'VERSION': '1.1.1',
-          //       'FORMAT': 'image/png',
-          //       'TRANSPARENT': 'true',
-          //       'SRS': 'EPSG:4326',
-          //       'WIDTH': 256,
-          //       'HEIGHT': 256,
-          //       'pixelRatio': 1,
-          //     },
-          //     serverType: 'geoserver',
-          //     projection: 'EPSG:4326',
-          //   })
-          // }),
-          // // Roads layer (mmi_india)
-          // new TileLayer({
-          //   source: new TileWMS({
-          //     url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-          //     params: {
-          //       'LAYERS': 'mmi:mmi_india',
-          //       'TILED': true,
-          //       'VERSION': '1.1.1',
-          //       'FORMAT': 'image/png',
-          //       'TRANSPARENT': 'true',
-          //       'SRS': 'EPSG:4326',
-          //       'WIDTH': 256,
-          //       'HEIGHT': 256,
-          //       'pixelRatio': 1,
-          //     },
-          //     serverType: 'geoserver',
-          //     projection: 'EPSG:4326',
-          //   })
-          // }),
-        ],
+        layers: [], // Layers will be added below
         view: new View({
           center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
           zoom: 7,
@@ -933,6 +896,87 @@ const RouteETA = () => {
         }),
         pixelRatio: 1,
       });
+
+      // --- Normal Layers (Bhuvan) ---
+      const india3Layer = new TileLayer({
+        source: new TileWMS({
+          url: bhuvanUrl,
+          params: {
+            'LAYERS': 'india3',
+            'TILED': true,
+            'VERSION': '1.1.1',
+            'FORMAT': 'image/png',
+            'TRANSPARENT': 'true',
+            'SRS': 'EPSG:4326',
+            'WIDTH': 256,
+            'HEIGHT': 256,
+          },
+          serverType: 'geoserver',
+          projection: 'EPSG:4326',
+          crossOrigin: process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined,
+        }),
+        visible: true
+      });
+
+      const adminGroupLayer = new TileLayer({
+        source: new TileWMS({
+          url: bhuvanUrl,
+          params: {
+            'LAYERS': 'basemap:admin_group',
+            'TILED': true,
+            'VERSION': '1.1.1',
+            'FORMAT': 'image/png',
+            'TRANSPARENT': 'true',
+            'SRS': 'EPSG:4326',
+            'WIDTH': 256,
+            'HEIGHT': 256,
+          },
+          serverType: 'geoserver',
+          projection: 'EPSG:4326',
+          crossOrigin: process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined,
+        }),
+        visible: true
+      });
+
+      const roadsLayer = new TileLayer({
+        source: new TileWMS({
+          url: bhuvanUrl,
+          params: {
+            'LAYERS': 'mmi:mmi_india',
+            'TILED': true,
+            'VERSION': '1.1.1',
+            'FORMAT': 'image/png',
+            'TRANSPARENT': 'true',
+            'SRS': 'EPSG:4326',
+            'WIDTH': 256,
+            'HEIGHT': 256,
+          },
+          serverType: 'geoserver',
+          projection: 'EPSG:4326',
+          crossOrigin: process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined,
+        }),
+        visible: true
+      });
+
+      // --- Satellite Layer (ArcGIS) ---
+      const satelliteLayer = new TileLayer({
+        source: new XYZ({
+          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          attributions: "© Esri",
+          maxZoom: 18,
+        }),
+        visible: false, // Initially hidden
+      });
+
+      // Store refs
+      normalLayersRef.current = [india3Layer, adminGroupLayer, roadsLayer];
+      satelliteLayerRef.current = satelliteLayer;
+
+      // Add layers to map
+      initialMap.addLayer(india3Layer);
+      initialMap.addLayer(adminGroupLayer);
+      initialMap.addLayer(roadsLayer);
+      initialMap.addLayer(satelliteLayer);
 
       // Layer for route and points
       const vectorLayer = new VectorLayer({
@@ -1123,6 +1167,23 @@ const RouteETA = () => {
     }
   };
 
+  // Handle Layer Type Toggle
+  useEffect(() => {
+    if (map.current) {
+      const isNormal = mapType === 'normal';
+
+      // Toggle normal layers
+      if (normalLayersRef.current) {
+        normalLayersRef.current.forEach(layer => layer.setVisible(isNormal));
+      }
+
+      // Toggle satellite layer
+      if (satelliteLayerRef.current) {
+        satelliteLayerRef.current.setVisible(!isNormal);
+      }
+    }
+  }, [mapType]);
+
   return (
     <MainCard sx={{ height: '85vh', display: 'flex', flexDirection: 'column', '& .MuiCardContent-root': { height: '100%', display: 'flex', flexDirection: 'column', p: 2 } }}>
       <AutoHideAlert
@@ -1227,6 +1288,30 @@ const RouteETA = () => {
         {/* Map Container */}
         <Box sx={{ flex: 1, position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid #eee' }}>
           <Box ref={mapRef} id="map" sx={{ width: "100%", height: "100%", position: 'relative' }}>
+            {/* Map Type Toggle */}
+            <Box sx={{ position: "absolute", top: "10px", left: "40px", zIndex: 10000 }}>
+              <ButtonGroup variant="contained" size="small" aria-label="map type button group">
+                <Tooltip title="Normal Map">
+                  <Button
+                    onClick={() => setMapType("normal")}
+                    color={mapType === "normal" ? "primary" : "inherit"}
+                    sx={{ bgcolor: mapType === "normal" ? "primary.main" : "background.paper", color: mapType === "normal" ? "white" : "text.primary" }}
+                  >
+                    Normal
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Satellite Map">
+                  <Button
+                    onClick={() => setMapType("satellite")}
+                    color={mapType === "satellite" ? "primary" : "inherit"}
+                    sx={{ bgcolor: mapType === "satellite" ? "primary.main" : "background.paper", color: mapType === "satellite" ? "white" : "text.primary" }}
+                  >
+                    Satellite
+                  </Button>
+                </Tooltip>
+              </ButtonGroup>
+            </Box>
+
             <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }} alt="InSpace" />
             <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }} alt="ISRO" />
             <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }} alt="Skytron" />
