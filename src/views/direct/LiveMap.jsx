@@ -43,13 +43,28 @@ const resolveMapplsToken = () => {
   if (typeof document !== "undefined") {
     const scripts = Array.from(document.getElementsByTagName("script"));
     const sdkScript = scripts.find((script) =>
-      script.src && script.src.includes("mappls.com/advancedmaps/api/")
+      script.src && (
+        script.src.includes("mappls.com/advancedmaps/api/") ||
+        script.src.includes("mappls.com/map/sdk/")
+      )
     );
 
     if (sdkScript) {
+      // Try legacy path-based token
       const match = sdkScript.src.match(/api\/([^/]+)\/map_sdk/i);
       if (match && match[1]) {
         return match[1];
+      }
+
+      // Try query param based token (new SDK)
+      try {
+        const url = new URL(sdkScript.src);
+        const accessToken = url.searchParams.get("access_token");
+        if (accessToken) return accessToken;
+      } catch (e) {
+        // Fallback regex if URL parsing fails
+        const tokenMatch = sdkScript.src.match(/[?&]access_token=([^&]+)/);
+        if (tokenMatch && tokenMatch[1]) return tokenMatch[1];
       }
     }
   }
