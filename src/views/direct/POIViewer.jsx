@@ -204,10 +204,7 @@ const getPoiMarkerIcon = (color) => {
 
 const POIViewer = () => {
 
-  useEffect(() => {
-    const resp = axios.get("https://search.mappls.com/search/address/geocode?address=ganeshguri&access_token=hbetrqpnyaoqssztkakwzjjmoxkowalvbwus");
-    console.log(resp);
-  }, []);
+
 
 
 
@@ -894,9 +891,10 @@ const POIViewer = () => {
 
     try {
       setGeoSearchLoading(true);
-      const url = `https://search.mappls.com/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+      // Use proxy path /mappls/ to avoid CORS
+      const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
 
-      console.log('Fetching geocode via Axios:', url);
+      console.log('Fetching geocode via Axios (Proxy):', url);
       const response = await axios.get(url);
 
       // Axios treats 2xx as success by default
@@ -959,26 +957,22 @@ const POIViewer = () => {
             });
           }
         } else {
-          // Use eLoc
-          if (typeof hdMap.moveCamera === 'function') {
+          // Use eLoc - Avoid panTo as it requires explicit coordinates
+          console.log('Using eLoc for navigation:', result.eLoc);
+
+          if (typeof hdMap.setCenter === 'function') {
+            hdMap.setCenter({ eloc: result.eLoc, zoom: 16 });
+          } else if (typeof hdMap.moveCamera === 'function') {
             hdMap.moveCamera({ center: { eloc: result.eLoc }, zoom: 16 });
-          } else if (typeof hdMap.panTo === 'function') {
-            hdMap.panTo({ eloc: result.eLoc });
-          } else if (typeof hdMap.setCenter === 'function') {
-            hdMap.setCenter({ eloc: result.eLoc });
           }
 
           // Add a temporary marker using eLoc
           if (window.mappls && window.mappls.Marker) {
-            // Add marker using eLoc. Mappls Marker often accepts position: { eloc: ... }
-            const marker = new window.mappls.Marker({
+            new window.mappls.Marker({
               map: hdMap,
               position: { eloc: result.eLoc },
               popupHtml: `<div>${result.formattedAddress}</div>`
             });
-            // Clear previous temp markers to avoid clutter
-            // Use a separate tracking for search markers if needed, or just let it stay
-            // For now, let's just add it.
           }
         }
       } catch (e) {
@@ -991,10 +985,11 @@ const POIViewer = () => {
 
   const handleReverseGeocode = async (lat, lng) => {
     try {
-      const url = `https://search.mappls.com/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
+      // Use proxy path /mappls to avoid CORS
+      const url = `/mappls/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+      const response = await axios.get(url);
+      if (response.status === 200) {
+        const data = response.data;
         console.log('Reverse Geocoding response:', data);
         if (data.results && data.results.length > 0) {
           const result = data.results[0];
