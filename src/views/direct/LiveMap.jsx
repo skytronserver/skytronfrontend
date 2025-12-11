@@ -415,6 +415,7 @@ const MapComponent = ({
   const normalMapRef = useRef(null);
   const normalMapContainerRef = useRef(null);
   const satelliteMapContainerRef = useRef(null);
+  const soiMapContainerRef = useRef(null);
   const hdMapContainerRef = useRef(null);
   const hdMapInnerRef = useRef(null);
   const hdVehicleMarkersRef = useRef([]);
@@ -917,6 +918,124 @@ const MapComponent = ({
         olMapRef.current.setTarget(null);
         olMapRef.current = null;
       }
+    };
+  }, [mapType]);
+
+  // Initialize Survey of India Map
+  useEffect(() => {
+    if (mapType !== "soi" || !soiMapContainerRef.current) return;
+
+    try {
+      const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
+
+      // Base map: OpenStreetMap
+      const baseLayer = new TileLayer({
+        source: new XYZ({
+          url: "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        })
+      });
+
+      // Layer 1: State Boundary
+      const wmsLayer1 = new TileLayer({
+        title: "State Boundary",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            'LAYERS': 'skytron:states',
+            'TILED': true
+          },
+          serverType: 'geoserver',
+          crossOrigin: 'anonymous'
+        }),
+        opacity: 0.7
+      });
+
+      // Layer 2: Survey of India (Contours)
+      const wmsLayer2 = new TileLayer({
+        title: "Survey of India",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            'LAYERS': 'skytron:Contours',
+            'TILED': true
+          },
+          serverType: 'geoserver',
+          crossOrigin: 'anonymous'
+        }),
+        visible: true,
+        opacity: 0.8
+      });
+
+      const soiMap = new Map({
+        target: soiMapContainerRef.current,
+        layers: [baseLayer, wmsLayer1, wmsLayer2],
+        view: new View({
+          projection: "EPSG:4326",
+          center: [91.7362, 26.1445],
+          zoom: 10,
+          maxZoom: 19,
+          constrainResolution: true,
+        }),
+        pixelRatio: 1,
+      });
+
+      // Initialize vector layer for markers
+      const initialVectorLayer = new VectorLayer({
+        source: new VectorSource(),
+        zIndex: 200,
+      });
+      soiMap.addLayer(initialVectorLayer);
+
+      // Initialize POI vector layer
+      const poiSource = new VectorSource();
+      const initialPoiVectorLayer = new VectorLayer({
+        source: poiSource,
+        zIndex: 100,
+        declutter: true,
+      });
+      soiMap.addLayer(initialPoiVectorLayer);
+      setPoiVectorLayer(initialPoiVectorLayer);
+
+      // Initialize vector layer for drawing
+      const drawSource = new VectorSource();
+      const drawLayer = new VectorLayer({
+        source: drawSource,
+        style: new Style({
+          fill: new Fill({
+            color: "rgba(255, 255, 255, 0.2)",
+          }),
+          stroke: new Stroke({
+            color: "#ffcc33",
+            width: 2,
+          }),
+          image: new CircleStyle({
+            radius: 7,
+            fill: new Fill({
+              color: "#ffcc33",
+            }),
+          }),
+        }),
+      });
+      soiMap.addLayer(drawLayer);
+
+      // Create dynamic overlay
+      const initialOverlay = new Overlay({
+        element: overlayElement.current,
+      });
+      soiMap.addOverlay(initialOverlay);
+
+      setMap(soiMap);
+      setVectorLayer(initialVectorLayer);
+      setDynamicOverlay(initialOverlay);
+      setDrawVectorLayer(drawLayer);
+
+    } catch (error) {
+      console.error("Error initializing SOI map:", error);
+    }
+
+    return () => {
+      // Cleanup logic if needed, but usually strictly setting target null is enough for OL
+      // React strict mode might cause double init so we just let it be replaced
     };
   }, [mapType]);
 
@@ -1994,6 +2113,18 @@ const MapComponent = ({
                 HD
               </Button>
             </Tooltip>
+            <Tooltip title="Survey of India">
+              <Button
+                onClick={() => setMapType("soi")}
+                variant={mapType === "soi" ? "contained" : "outlined"}
+                sx={{
+                  backgroundColor: mapType === "soi" ? "#1976d2" : "transparent",
+                  color: mapType === "soi" ? "white" : "inherit",
+                }}
+              >
+                SOI
+              </Button>
+            </Tooltip>
           </ButtonGroup>
         </Box>
 
@@ -2246,6 +2377,76 @@ const MapComponent = ({
                 zIndex: 10000,
                 backgroundColor: "transparent",
                 pointerEvents: "none",
+              }}
+            />
+          </div>
+        )}
+
+        {/* Survey of India Map Container */}
+        {mapType === "soi" && (
+          <div
+            ref={soiMapContainerRef}
+            style={{ width: "100%", height: "100%", position: "relative" }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: "50px",
+                left: "10px",
+                zIndex: 1000,
+                display: "flex",
+                gap: "10px",
+              }}
+            >
+              <Button
+                variant="contained"
+                size="small"
+                onClick={startDrawing}
+                color={drawInteraction ? "secondary" : "primary"}
+              >
+                {drawInteraction ? "Drawing..." : "Draw Polygon"}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={clearPolygon}
+                color="error"
+              >
+                Clear
+              </Button>
+            </div>
+            <img
+              src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                height: "60px",
+                width: "auto",
+                zIndex: 1000,
+              }}
+            />
+            <img
+              src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                height: "60px",
+                width: "auto",
+                zIndex: 1000,
+              }}
+            />
+            <img
+              src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+              style={{
+                position: "absolute",
+                bottom: "20px",
+                right: 0,
+                height: "60px",
+                width: "auto",
+                zIndex: 1000,
+                backgroundColor: "transparent",
               }}
             />
           </div>

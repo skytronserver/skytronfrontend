@@ -56,6 +56,7 @@ import {
 } from '@mui/icons-material';
 import POIService from '../../services/POIService';
 import HomePageService from '../../services/HomePage';
+import axios from 'axios';
 
 const MAPPLS_TOKEN_ENV_KEYS = [
   "REACT_APP_MAPPLS_TOKEN",
@@ -202,6 +203,14 @@ const getPoiMarkerIcon = (color) => {
 };
 
 const POIViewer = () => {
+
+  useEffect(() => {
+    const resp = axios.get("https://search.mappls.com/search/address/geocode?address=ganeshguri&access_token=hbetrqpnyaoqssztkakwzjjmoxkowalvbwus");
+    console.log(resp);
+  }, []);
+
+
+
   // Map References
   const hdMapContainerRef = useRef(null);
   const hdMapInnerRef = useRef(null);
@@ -212,6 +221,7 @@ const POIViewer = () => {
   const mapplsInitInProgressRef = useRef(false);
   const mapplsLibraryPollRef = useRef(null);
   const hdMapContainerIdRef = useRef(null);
+
 
 
   const [pois, setPois] = useState([]);
@@ -245,6 +255,13 @@ const POIViewer = () => {
   const [drawingPoints, setDrawingPoints] = useState([]);
   const tempPolyRef = useRef(null);
   const tempMarkersRef = useRef([]);
+
+  // Geocoding State
+  const [geoSearchDialogOpen, setGeoSearchDialogOpen] = useState(false);
+  const [geoSearchQuery, setGeoSearchQuery] = useState('');
+  const [geoSearchResults, setGeoSearchResults] = useState([]);
+  const [geoSearchLoading, setGeoSearchLoading] = useState(false);
+  const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
 
 
 
@@ -409,6 +426,7 @@ const POIViewer = () => {
             mark_type: 'Point',
             radius: '100.5'
           }));
+          handleReverseGeocode(lat, lng);
           setDialogOpen(true);
           setDrawingMode(null);
         }
@@ -419,6 +437,7 @@ const POIViewer = () => {
             mark_type: 'Circle',
             radius: '100'
           }));
+          handleReverseGeocode(lat, lng);
           setDialogOpen(true);
           setDrawingMode(null);
         }
@@ -870,6 +889,130 @@ const POIViewer = () => {
     }
   };
 
+  const handleGeoSearch = async () => {
+    if (!geoSearchQuery.trim()) return;
+
+    try {
+      setGeoSearchLoading(true);
+      const url = `https://search.mappls.com/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+
+      console.log('Fetching geocode via Axios:', url);
+      const response = await axios.get(url);
+
+      // Axios treats 2xx as success by default
+      if (response.status === 200) {
+        const data = response.data;
+        console.log('Geocoding response data:', data);
+
+        // Mappls SDK sometimes wraps results differently or returns 200 even with empty results
+        let results = [];
+        if (data.copResults) {
+          if (Array.isArray(data.copResults)) {
+            results = data.copResults;
+          } else {
+            results = [data.copResults];
+          }
+        } else if (Array.isArray(data)) {
+          results = data;
+        }
+
+        setGeoSearchResults(results);
+        if (results.length === 0) {
+          showSnackbar('No results found', 'info');
+        }
+      } else {
+        console.warn('Geocoding status:', response.status);
+        showSnackbar(`Error: ${response.statusText}`, 'error');
+      }
+    } catch (error) {
+      console.error('Geocoding exception:', error);
+      if (error.code === "ERR_NETWORK") {
+        showSnackbar('Network Error (Likely CORS). Try using the SDK or a proxy.', 'error');
+      } else {
+        showSnackbar('Error searching address', 'error');
+      }
+    } finally {
+      setGeoSearchLoading(false);
+    }
+  };
+
+  const handleGeoResultClick = (result) => {
+    console.log('Selected geo result:', result);
+    const hdMap = mapplsMapRef.current;
+    if (hdMap && result.eLoc) {
+      try {
+        // Check for hidden lat/lng
+        const lat = result.latitude || result.lat;
+        const lng = result.longitude || result.lng;
+
+        if (lat && lng) {
+          const pos = { lat: parseFloat(lat), lng: parseFloat(lng) };
+          if (hdMap.panTo) hdMap.panTo(pos);
+          else if (hdMap.setCenter) hdMap.setCenter(pos);
+
+          // Add marker
+          if (window.mappls && window.mappls.Marker) {
+            new window.mappls.Marker({
+              map: hdMap,
+              position: pos,
+              html: `<div style="color:red;font-weight:bold;">${result.locality || 'Location'}</div>`
+            });
+          }
+        } else {
+          // Use eLoc
+          if (typeof hdMap.moveCamera === 'function') {
+            hdMap.moveCamera({ center: { eloc: result.eLoc }, zoom: 16 });
+          } else if (typeof hdMap.panTo === 'function') {
+            hdMap.panTo({ eloc: result.eLoc });
+          } else if (typeof hdMap.setCenter === 'function') {
+            hdMap.setCenter({ eloc: result.eLoc });
+          }
+
+          // Add a temporary marker using eLoc
+          if (window.mappls && window.mappls.Marker) {
+            // Add marker using eLoc. Mappls Marker often accepts position: { eloc: ... }
+            const marker = new window.mappls.Marker({
+              map: hdMap,
+              position: { eloc: result.eLoc },
+              popupHtml: `<div>${result.formattedAddress}</div>`
+            });
+            // Clear previous temp markers to avoid clutter
+            // Use a separate tracking for search markers if needed, or just let it stay
+            // For now, let's just add it.
+          }
+        }
+      } catch (e) {
+        console.error("Error panning to eLoc:", e);
+        showSnackbar('Error moving map to location', 'error');
+      }
+    }
+    setGeoSearchDialogOpen(false);
+  };
+
+  const handleReverseGeocode = async (lat, lng) => {
+    try {
+      const url = `https://search.mappls.com/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Reverse Geocoding response:', data);
+        if (data.results && data.results.length > 0) {
+          const result = data.results[0];
+          const address = result.formatted_address;
+          setFormData(prev => ({
+            ...prev,
+            description: address, // Pre-fill description with address
+            // Use city/district for name if empty? 
+            name: prev.name ? prev.name : (result.poi || result.locality || 'New POI')
+          }));
+          showSnackbar(`Location: ${address}`, 'success');
+        }
+      }
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
+    }
+  };
+
   const getPoiIcon = (markType) => {
     switch (markType) {
       case 'Point':
@@ -1159,8 +1302,8 @@ const POIViewer = () => {
           </Typography>
 
           <Stack direction="row" spacing={1} sx={{ pb: 0.5 }}>
-            <Tooltip title="Search">
-              <IconButton>
+            <Tooltip title="Geocoding Search">
+              <IconButton onClick={() => setGeoSearchDialogOpen(true)}>
                 <SearchIcon />
               </IconButton>
             </Tooltip>
@@ -1390,6 +1533,65 @@ const POIViewer = () => {
           </Box>
         </Paper>
       )}
+
+      {/* Geocoding Search Dialog */}
+      <Dialog
+        open={geoSearchDialogOpen}
+        onClose={() => setGeoSearchDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2, overflow: 'hidden' } }}
+      >
+        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search address, city, or place..."
+              value={geoSearchQuery}
+              onChange={(e) => setGeoSearchQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleGeoSearch(); }}
+              InputProps={{
+                startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+                endAdornment: geoSearchLoading ? <CircularProgress size={20} /> : null
+              }}
+            />
+            <Button variant="contained" onClick={handleGeoSearch} disabled={geoSearchLoading}>
+              Search
+            </Button>
+            <IconButton onClick={() => setGeoSearchDialogOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Stack>
+        </Box>
+        <DialogContent sx={{ p: 0, minHeight: 300, maxHeight: 500 }}>
+          {geoSearchResults && geoSearchResults.length > 0 ? (
+            <List>
+              {geoSearchResults.map((result, index) => (
+                <ListItemButton key={index} onClick={() => handleGeoResultClick(result)} divider>
+                  <ListItemIcon>
+                    <LocationOnIcon color="error" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={result.formattedAddress || result.locality}
+                    secondary={
+                      <Typography variant="caption" color="text.secondary">
+                        {[result.district, result.city, result.state].filter(Boolean).join(', ')}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', p: 4, flexDirection: 'column' }}>
+              <Typography color="text.secondary" align="center">
+                {geoSearchLoading ? 'Searching...' : 'Enter an address to search'}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Add/Edit Dialog */}
       <Dialog
