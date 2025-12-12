@@ -197,7 +197,7 @@ const MainRoutes = {
     {
       path: '/reports/alert-report',
       element: <AlertReport />,
-      roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture']
+      roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture', 'owner']
     },
     {
       path: '/reports/device-health-report',

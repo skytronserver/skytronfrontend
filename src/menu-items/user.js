@@ -131,7 +131,7 @@ const user = {
         //   breadcrumbs: false,
         //   roles: ["superadmin", "owner"],
         // },
-        
+
       ],
     },
     {
@@ -433,7 +433,7 @@ const user = {
           breadcrumbs: false,
           roles: ["dealer"],
         },
-        
+
         // {
         //   id: "view-pending",
         //   title: "Pending for Owner Approval",
@@ -475,7 +475,7 @@ const user = {
       title: "Reports",
       type: "collapse",
       icon: icons.IconReport,
-      roles: ["dealer", "devicemanufacture", "stateadmin","sosadmin","superadmin","dtorto"],
+      roles: ["dealer", "devicemanufacture", "stateadmin", "sosadmin", "superadmin", "dtorto", "owner"],
       children: [
         {
           id: "sos-other-list",
@@ -668,7 +668,7 @@ const user = {
           type: "item",
           url: "/device/combined-stock-report",
           breadcrumbs: false,
-          roles: ["devicemanufacture","dtorto"],
+          roles: ["devicemanufacture", "dtorto"],
         },
         // {
         //   id: "device-alert-log",
@@ -727,7 +727,7 @@ const user = {
           type: 'item',
           url: '/reports/alert-report',
           breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture']
+          roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture', 'owner']
         },
         {
           id: 'device-health-report',

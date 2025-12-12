@@ -54,7 +54,7 @@ const AlertReport = () => {
   const alertTypes = [
     'Route', 'Em', 'Eng', 'OverSpeed', 'LowIntBat', 'LowExtBat',
     'ExtBatDiscnt', 'BoxTemp', 'EmTemp', 'Tilt', 'HarshBreak',
-    'HarshTurn', 'HarshAccileration'
+    'HarshTurn', 'HarshAccileration', 'Permit voilation'
   ];
 
   // Alert status options
