@@ -321,19 +321,7 @@ const POIViewer = () => {
         console.log('Mappls map created successfully', hdMap);
 
         // Add a test marker to verify Mappls marker API works
-        setTimeout(() => {
-          try {
-            console.log('Creating test marker...');
-            const testMarker = new window.mappls.Marker({
-              map: hdMap,
-              position: { lat: 26.1445, lng: 91.7362 },
-              title: 'Test Marker - Center of Guwahati'
-            });
-            console.log('Test marker created:', testMarker);
-          } catch (testError) {
-            console.error('Failed to create test marker:', testError);
-          }
-        }, 2000);
+
 
       } catch (e) {
         console.error("Failed to create Mappls HD map instance", e);
@@ -934,28 +922,107 @@ const POIViewer = () => {
     }
   };
 
-  const handleGeoResultClick = (result) => {
+  const handleGeoResultClick = async (result) => {
     console.log('Selected geo result:', result);
     const hdMap = mapplsMapRef.current;
     if (hdMap && result.eLoc) {
       try {
         // Check for hidden lat/lng
-        const lat = result.latitude || result.lat;
-        const lng = result.longitude || result.lng;
+        let lat = result.latitude || result.lat;
+        let lng = result.longitude || result.lng;
+
+        // If lat/lng are missing, try to fetch them using eLoc
+        if (!lat || !lng) {
+          try {
+            // Use the user provided URL format
+            const url = `https://place.mappls.com/O2O/entity/place-details/${result.eLoc}?access_token=${MAPPLS_GEOCODING_TOKEN}`;
+            console.log('Fetching detailed place info for eLoc:', result.eLoc);
+            const response = await axios.get(url);
+            if (response.status === 200 && response.data) {
+              lat = response.data.latitude;
+              lng = response.data.longitude;
+              console.log('Resolved eLoc to coordinates:', lat, lng);
+            }
+          } catch (err) {
+            console.error('Error resolving eLoc details:', err);
+            // Fallback to original behavior if fetch fails
+          }
+        }
 
         if (lat && lng) {
           const pos = { lat: parseFloat(lat), lng: parseFloat(lng) };
-          if (hdMap.panTo) hdMap.panTo(pos);
-          else if (hdMap.setCenter) hdMap.setCenter(pos);
 
-          // Add marker
-          if (window.mappls && window.mappls.Marker) {
-            new window.mappls.Marker({
-              map: hdMap,
-              position: pos,
-              html: `<div style="color:red;font-weight:bold;">${result.locality || 'Location'}</div>`
-            });
+          console.log('Attempting to pan map to:', pos);
+          console.log('Current map center before pan:', hdMap.getCenter());
+          console.log('Current map zoom before pan:', hdMap.getZoom());
+
+          // Use Mappls API methods as per documentation
+          try {
+            // Try panTo first
+            if (typeof hdMap.panTo === 'function') {
+              console.log('Calling panTo with:', { lat: pos.lat, lng: pos.lng });
+              hdMap.panTo({ lat: pos.lat, lng: pos.lng });
+            }
+
+            // Also try setCenter as backup
+            if (typeof hdMap.setCenter === 'function') {
+              console.log('Calling setCenter with:', { lat: pos.lat, lng: pos.lng });
+              hdMap.setCenter({ lat: pos.lat, lng: pos.lng });
+            }
+
+            // Set zoom
+            if (typeof hdMap.setZoom === 'function') {
+              console.log('Calling setZoom with: 16');
+              hdMap.setZoom(16);
+            }
+
+            // Clear previous search marker if exists
+            if (window.searchMarker) {
+              try { window.searchMarker.remove(); } catch (e) { }
+            }
+
+            // Add marker at the searched location
+            if (window.mappls && window.mappls.Marker) {
+              const iconUrl = getPoiMarkerIcon('#FF0000'); // Red marker
+
+              const marker = new window.mappls.Marker({
+                map: hdMap,
+                position: pos,
+                icon: iconUrl,
+                width: 30,
+                height: 40,
+                popupHtml: `
+                  <div style="padding: 12px; min-width: 200px;">
+                    <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #333;">
+                      ${result.poi || result.placeName || result.locality || 'Location'}
+                    </h3>
+                    <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4;">
+                      ${result.formattedAddress || result.address || 'No address available'}
+                    </p>
+                    ${result.district ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #999;">District: ${result.district}</p>` : ''}
+                    ${result.state ? `<p style="margin: 2px 0 0 0; font-size: 11px; color: #999;">State: ${result.state}</p>` : ''}
+                    <p style="margin: 6px 0 0 0; font-size: 10px; color: #999;">
+                      ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
+                    </p>
+                  </div>
+                `
+              });
+
+              window.searchMarker = marker;
+              console.log('Search marker added at:', pos);
+            }
+
+            // Check after panning
+            setTimeout(() => {
+              console.log('Map center after pan:', hdMap.getCenter());
+              console.log('Map zoom after pan:', hdMap.getZoom());
+            }, 500);
+
+          } catch (error) {
+            console.error('Error during pan:', error);
           }
+
+          console.log('Map panned to:', pos);
         } else {
           // Use eLoc - Avoid panTo as it requires explicit coordinates
           console.log('Using eLoc for navigation:', result.eLoc);
@@ -965,15 +1032,6 @@ const POIViewer = () => {
           } else if (typeof hdMap.moveCamera === 'function') {
             hdMap.moveCamera({ center: { eloc: result.eLoc }, zoom: 16 });
           }
-
-          // Add a temporary marker using eLoc
-          if (window.mappls && window.mappls.Marker) {
-            new window.mappls.Marker({
-              map: hdMap,
-              position: { eloc: result.eLoc },
-              popupHtml: `<div>${result.formattedAddress}</div>`
-            });
-          }
         }
       } catch (e) {
         console.error("Error panning to eLoc:", e);
@@ -982,6 +1040,7 @@ const POIViewer = () => {
     }
     setGeoSearchDialogOpen(false);
   };
+
 
   const handleReverseGeocode = async (lat, lng) => {
     try {
@@ -1199,24 +1258,6 @@ const POIViewer = () => {
         }}
       >
         <Stack spacing={1} p={1.5}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setDialogOpen(true)}
-            fullWidth
-            sx={{
-              // backgroundColor: 'background.paper', // Use primary button styles instead?
-              // Standard contained button looks better
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              px: 2,
-              borderRadius: 2
-            }}
-          >
-            Add POI
-          </Button>
-
-          <Divider />
-
           <Typography variant="subtitle2" color="text.secondary" sx={{ pl: 1 }}>
             Drawing Tools
           </Typography>
@@ -1535,52 +1576,123 @@ const POIViewer = () => {
         onClose={() => setGeoSearchDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 2, overflow: 'hidden' } }}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: 'hidden',
+            backgroundColor: alpha(theme.palette.background.paper, 0.95),
+            backdropFilter: 'blur(20px)',
+          }
+        }}
       >
-        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{
+          p: 3,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.background.paper, 0.8)} 100%)`,
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Search Location
+          </Typography>
           <Stack direction="row" spacing={1} alignItems="center">
             <TextField
               fullWidth
-              size="small"
+              size="medium"
               placeholder="Search address, city, or place..."
               value={geoSearchQuery}
               onChange={(e) => setGeoSearchQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleGeoSearch(); }}
               InputProps={{
                 startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
-                endAdornment: geoSearchLoading ? <CircularProgress size={20} /> : null
+                endAdornment: geoSearchLoading ? <CircularProgress size={20} /> : null,
+                sx: {
+                  borderRadius: 2,
+                  backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                }
               }}
             />
-            <Button variant="contained" onClick={handleGeoSearch} disabled={geoSearchLoading}>
+            <Button
+              variant="contained"
+              onClick={handleGeoSearch}
+              disabled={geoSearchLoading}
+              sx={{
+                minWidth: 100,
+                height: 56,
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
               Search
             </Button>
-            <IconButton onClick={() => setGeoSearchDialogOpen(false)}>
-              <CloseIcon />
-            </IconButton>
           </Stack>
         </Box>
-        <DialogContent sx={{ p: 0, minHeight: 300, maxHeight: 500 }}>
+        <DialogContent sx={{ p: 0, minHeight: 300, maxHeight: 500, overflow: 'auto' }}>
           {geoSearchResults && geoSearchResults.length > 0 ? (
-            <List>
+            <List sx={{ p: 2 }}>
               {geoSearchResults.map((result, index) => (
-                <ListItemButton key={index} onClick={() => handleGeoResultClick(result)} divider>
-                  <ListItemIcon>
-                    <LocationOnIcon color="error" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={result.formattedAddress || result.locality}
-                    secondary={
-                      <Typography variant="caption" color="text.secondary">
-                        {[result.district, result.city, result.state].filter(Boolean).join(', ')}
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    mb: 1.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                >
+                  <ListItemButton
+                    onClick={() => handleGeoResultClick(result)}
+                    sx={{ p: 2 }}
+                  >
+                    <ListItemIcon>
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: alpha(theme.palette.error.main, 0.1),
+                        }}
+                      >
+                        <LocationOnIcon color="error" />
+                      </Box>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5 }}>
+                          {result.poi || result.formattedAddress || result.locality}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                          {[result.district, result.city, result.state].filter(Boolean).join(', ')}
+                        </Typography>
+                      }
+                    />
+                  </ListItemButton>
+                </Paper>
               ))}
             </List>
           ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', p: 4, flexDirection: 'column' }}>
-              <Typography color="text.secondary" align="center">
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
+              p: 4,
+              flexDirection: 'column'
+            }}>
+              <SearchIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+              <Typography color="text.secondary" align="center" variant="body1">
                 {geoSearchLoading ? 'Searching...' : 'Enter an address to search'}
               </Typography>
             </Box>

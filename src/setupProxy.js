@@ -15,4 +15,19 @@ module.exports = function (app) {
             },
         })
     );
+
+    app.use(
+        "/mappls-place",
+        createProxyMiddleware({
+            target: "https://place.mappls.com",
+            changeOrigin: true,
+            secure: false,
+            pathRewrite: {
+                "^/mappls-place": "",
+            },
+            onProxyReq: function (proxyReq) {
+                proxyReq.setHeader("origin", "https://place.mappls.com");
+            },
+        })
+    );
 };
