@@ -2211,16 +2211,18 @@ const MapComponent = ({
               width: 30,
               height: 40,
               popupHtml: `
-                <div style="padding: 12px; min-width: 200px;">
-                  <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #333;">
+                <div style="padding: 10px; width: 250px; font-family: 'Roboto', sans-serif;">
+                  <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #333; line-height: 1.3; overflow-wrap: break-word;">
                     ${result.poi || result.placeName || result.locality || 'Location'}
                   </h3>
-                  <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4;">
+                  <p style="margin: 0 0 5px 0; font-size: 12px; color: #666; line-height: 1.4; overflow-wrap: break-word;">
                     ${result.formattedAddress || result.address || 'No address available'}
                   </p>
-                  ${result.district ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #999;">District: ${result.district}</p>` : ''}
-                  ${result.state ? `<p style="margin: 2px 0 0 0; font-size: 11px; color: #999;">State: ${result.state}</p>` : ''}
-                  <p style="margin: 6px 0 0 0; font-size: 10px; color: #999;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
+                    ${result.district ? `<span style="font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${result.district}</span>` : ''}
+                    ${result.state ? `<span style="font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${result.state}</span>` : ''}
+                  </div>
+                  <p style="margin: 8px 0 0 0; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 6px;">
                     ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
                   </p>
                 </div>
@@ -2275,20 +2277,20 @@ const MapComponent = ({
             const overlayContent = document.getElementById('overlay-content');
             if (overlayContent) {
               overlayContent.innerHTML = `
-                <div class="overlay-card">
+                <div class="overlay-card" style="max-width: 250px; overflow: hidden;">
                   <div class="overlay-header">
-                    <div class="overlay-title">${result.poi || result.placeName || result.locality || 'Location'}</div>
+                    <div class="overlay-title" style="word-wrap: break-word;">${result.poi || result.placeName || result.locality || 'Location'}</div>
                   </div>
                   <div class="overlay-body">
-                    <div class="overlay-row">
-                      <span class="overlay-label">Address</span>
-                      <span class="overlay-value">${result.formattedAddress || result.address || 'N/A'}</span>
+                    <div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;">
+                      <span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">Address</span>
+                      <span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.formattedAddress || result.address || 'N/A'}</span>
                     </div>
-                    ${result.district ? `<div class="overlay-row"><span class="overlay-label">District</span><span class="overlay-value">${result.district}</span></div>` : ''}
-                    ${result.state ? `<div class="overlay-row"><span class="overlay-label">State</span><span class="overlay-value">${result.state}</span></div>` : ''}
-                    <div class="overlay-row">
-                      <span class="overlay-label">Coordinates</span>
-                      <span class="overlay-value">${latNum.toFixed(6)}, ${lngNum.toFixed(6)}</span>
+                    ${result.district ? `<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;"><span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">District</span><span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.district}</span></div>` : ''}
+                    ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;"><span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">State</span><span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.state}</span></div>` : ''}
+                    <div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;">
+                      <span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">Coordinates</span>
+                      <span class="overlay-value" style="flex: 1; word-break: break-all; color: #333;">${latNum.toFixed(6)}, ${lngNum.toFixed(6)}</span>
                     </div>
                   </div>
                 </div>

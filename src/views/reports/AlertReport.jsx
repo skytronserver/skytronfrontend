@@ -52,9 +52,28 @@ const AlertReport = () => {
 
   // Alert type options
   const alertTypes = [
-    'Route', 'Em', 'Eng', 'OverSpeed', 'LowIntBat', 'LowExtBat',
-    'ExtBatDiscnt', 'BoxTemp', 'EmTemp', 'Tilt', 'HarshBreak',
-    'HarshTurn', 'HarshAccileration', 'PermitVoilation', 'WorkingHoursVoilation', ''
+    { value: 'Route', label: 'Route' },
+    { value: 'Em', label: 'Emergency (Em)' },
+    { value: 'Eng', label: 'Engine (Eng)' },
+    { value: 'OverSpeed', label: 'Over Speed' },
+    { value: 'LowIntBat', label: 'Low Internal Battery' },
+    { value: 'LowExtBat', label: 'Low External Battery' },
+    { value: 'ExtBatDiscnt', label: 'Ext Battery Disconnected' },
+    { value: 'BoxTemp', label: 'Box Temperature' },
+    { value: 'EmTemp', label: 'Emergency Temperature' },
+    { value: 'Tilt', label: 'Tilt' },
+    { value: 'HarshBreak', label: 'Harsh Break' },
+    { value: 'HarshTurn', label: 'Harsh Turn' },
+    { value: 'HarshAccileration', label: 'Harsh Acceleration' },
+    { value: 'PermitVoilation', label: 'Permit Violation' },
+    { value: 'WorkingHoursVoilation', label: 'Working Hours Violation' },
+    { value: 'Bus-Stop Voilation', label: 'Bus-Stop Violation' },
+    { value: 'Route', label: 'Route Deviation Alert' },
+    { value: 'Route', label: 'Route Violation (PoI)' },
+    { value: 'Route', label: 'Route Violation (Area)' },
+    { value: 'Route', label: 'Route Violation (Route)' },
+    { value: 'Geo-fence Entry Alert', label: 'Geo-fence Entry Alert' },
+    { value: 'Geo-fence Exit Alert', label: 'Geo-fence Exit Alert' },
   ];
 
   // Alert status options
@@ -443,8 +462,8 @@ const AlertReport = () => {
                           onChange={(e) => handleFilterChange('type', e.target.value)}
                         >
                           <MenuItem value="">All Types</MenuItem>
-                          {alertTypes.map(type => (
-                            <MenuItem key={type} value={type}>{type}</MenuItem>
+                          {alertTypes.map((type) => (
+                            <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
                           ))}
                         </Select>
                       </FormControl>

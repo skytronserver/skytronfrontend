@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import TaggingService from "../../services/TaggingService";
 import { createAxiosInstance } from "../../services/axiosInstance";
+import TripService from "../../services/TripService";
 import {
   Button,
   Grid,
@@ -24,6 +25,10 @@ import {
   FormControlLabel,
   ButtonGroup,
   Tooltip,
+  Tabs,
+  Tab,
+  Stack,
+  Chip
 } from "@mui/material";
 import { ExpandLess, ExpandMore, History, Delete, Route, Navigation, MyLocation, DirectionsCar } from '@mui/icons-material';
 import "ol/ol.css";
@@ -74,10 +79,15 @@ const RouteETA = () => {
     message: "",
     type: "success"
   });
-  const [savedRoutes, setSavedRoutes] = useState([]);
+  const [historyTrips, setHistoryTrips] = useState([]);
   const [expandHistory, setExpandHistory] = useState(false);
   const [expandInstructions, setExpandInstructions] = useState(true);
   const [instructions, setInstructions] = useState([]);
+
+  // Trip Management State
+  const [activeTripId, setActiveTripId] = useState(null);
+  const [tripName, setTripName] = useState("");
+  const [tripLoading, setTripLoading] = useState(false);
 
   // Live Tracking State
   const [isTracking, setIsTracking] = useState(false);
@@ -90,48 +100,55 @@ const RouteETA = () => {
   const normalLayersRef = useRef([]);
   const satelliteLayerRef = useRef(null);
 
+  // UI State
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
   // Icon Styles
   const iconStyles = {
     red: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: require("../../assets/images/red/bus.png"),
-        scale: 0.20,
+        scale: 0.07,
       }),
     }),
     orange: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: require("../../assets/images/orange/bus.png"),
-        scale: 0.20,
+        scale: 0.07,
       }),
     }),
     blue: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: require("../../assets/images/blue/bus.png"),
-        scale: 0.20,
+        scale: 0.07,
       }),
     }),
     green: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: require("../../assets/images/green/bus.png"),
-        scale: 0.20,
+        scale: 0.07,
       }),
     }),
     grey: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: require("../../assets/images/grey/bus.png"),
-        scale: 0.20,
+        scale: 0.07,
       }),
     }),
     default: new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: require("../../assets/images/grey/bus.png"),
-        scale: 0.05,
+        scale: 0.07,
       }),
     }),
   };
@@ -176,7 +193,7 @@ const RouteETA = () => {
       image: selectedStyleBase.getImage(),
       text: new Text({
         text: data.vehicle_registration_number,
-        offsetY: -40,
+        offsetY: -25,
         font: 'bold 12px Arial',
         fill: new Fill({ color: '#000' }),
         stroke: new Stroke({ color: '#fff', width: 3 }),
@@ -270,39 +287,19 @@ const RouteETA = () => {
     }
   };
 
-  const saveRouteToHistory = (route) => {
+  const fetchTrips = async () => {
     try {
-      // Create a unique ID for this route
-      const routeId = Date.now().toString();
-
-      const routeData = {
-        id: routeId,
-        timestamp: new Date().toISOString(),
-        startPoint: points[0],
-        endPoint: points[1],
-        distance: distance,
-        eta: eta,
-        deviceId: deviceId,
-        instructions: instructions // Save instructions too
-      };
-
-      setSavedRoutes(prevRoutes => {
-        // Add to beginning, keep max 10 routes
-        const updatedRoutes = [routeData, ...prevRoutes].slice(0, 10);
-
-        // Save to localStorage
-        localStorage.setItem(`routeETA_${deviceId}`, JSON.stringify(updatedRoutes));
-
-        return updatedRoutes;
-      });
-
-      setAlert({
-        open: true,
-        message: "Route saved to history",
-        type: "success"
-      });
+      setTripLoading(true);
+      const data = await TripService.getTrips();
+      // Handle response structure (list or paginated results)
+      const trips = Array.isArray(data) ? data : (data.results || []);
+      // Sort by latest first (assuming id or created_at)
+      const sortedTrips = trips.sort((a, b) => b.id - a.id);
+      setHistoryTrips(sortedTrips);
     } catch (error) {
-      console.error("Error saving route to history:", error);
+      console.error("Error fetching trips:", error);
+    } finally {
+      setTripLoading(false);
     }
   };
 
@@ -526,14 +523,7 @@ const RouteETA = () => {
         type: "success"
       });
 
-      // Save the route to history if device is selected
-      if (deviceId) {
-        saveRouteToHistory({
-          ...path,
-          hash: routeData.hash,
-          instructions: path.instructions
-        });
-      }
+
     } catch (error) {
       console.error("Error calculating route:", error);
       setAlert({
@@ -1070,17 +1060,10 @@ const RouteETA = () => {
     updateMapPoints(points);
   }, [points]);
 
-  // Load saved routes from localStorage on component mount
+  // Load trips on mount
   useEffect(() => {
-    try {
-      const storedRoutes = localStorage.getItem(`routeETA_${deviceId}`);
-      if (storedRoutes) {
-        setSavedRoutes(JSON.parse(storedRoutes));
-      }
-    } catch (error) {
-      console.error("Error loading saved routes:", error);
-    }
-  }, [deviceId]);
+    fetchTrips();
+  }, []); // Run once on mount
 
   // Live Tracking Effect
   useEffect(() => {
@@ -1115,44 +1098,277 @@ const RouteETA = () => {
     };
   }, [isTracking, selectedVehicleReg]);
 
-  // Delete a saved route
-  const deleteRoute = (routeId) => {
-    setSavedRoutes(prevRoutes => {
-      const updatedRoutes = prevRoutes.filter(route => route.id !== routeId);
+  // Delete a saved route - placeholder if delete API exists
+  // For now, we only have Cancel which is handled in trip management
 
-      // Update localStorage
-      localStorage.setItem(`routeETA_${deviceId}`, JSON.stringify(updatedRoutes));
-
-      return updatedRoutes;
-    });
-  };
-
-  // Load a saved route
-  const loadRoute = (route) => {
+  // Load a saved trip from history
+  // Load a saved trip from history
+  const loadTrip = (trip) => {
     try {
-      setPoints([route.startPoint, route.endPoint]);
-      setDistance(route.distance);
-      setEta(route.eta);
-      if (route.instructions) {
-        setInstructions(route.instructions);
-      } else {
-        setInstructions([]);
+      if (!trip.trip_route) {
+        setAlert({ open: true, message: "No route data in this trip", type: "warning" });
+        return;
       }
 
-      // This will trigger a map update via the useEffect that watches points
+      // Parse route coordinates: stored as [[lat, lon], ...]
+      const routePointsLatLon = JSON.parse(trip.trip_route);
+
+      // Convert to [lon, lat] for OpenLayers/State
+      const routePointsLonLat = routePointsLatLon.map(p => [p[1], p[0]]);
+
+      if (routePointsLonLat.length < 2) {
+        setAlert({ open: true, message: "Invalid route data", type: "error" });
+        return;
+      }
+
+      const start = routePointsLonLat[0];
+      const end = routePointsLonLat[routePointsLonLat.length - 1];
+
+      setPoints([start, end]);
+      setDistance(trip.distance_travel);
+
+      let loadedEta = null;
+      // Parse ETA (HH:MM:ss)
+      if (trip.expected_time_of_travel) {
+        const parts = trip.expected_time_of_travel.split(':');
+        if (parts.length >= 2) {
+          loadedEta = { hours: parseInt(parts[0]), minutes: parseInt(parts[1]) };
+          setEta(loadedEta);
+        }
+      }
+
+      // Set trip name
+      setTripName(trip.trip_name || "");
+      setActiveTripId(trip.id);
 
       setAlert({
         open: true,
-        message: "Previous route loaded",
+        message: `Loaded trip: ${trip.trip_name}`,
         type: "info"
       });
+
+      // Draw the saved route on the map
+      // Use setTimeout to ensure this runs after the useEffect triggered by setPoints,
+      // which would otherwise clear the map.
+      setTimeout(() => {
+        if (!vectorSourceRef.current || !map.current) return;
+
+        vectorSourceRef.current.clear();
+
+        // 1. Add Start/End Points
+        [start, end].forEach((coord, index) => {
+          const pointFeature = new Feature({
+            geometry: new Point(fromLonLat(coord)),
+            name: pointLabels[index],
+          });
+          const pointStyle = new Style({
+            image: new Circle({
+              radius: index === 0 ? 7 : 8,
+              fill: new Fill({ color: index === 0 ? '#007bff' : '#dc3545' }),
+              stroke: new Stroke({ color: '#ffffff', width: 2 }),
+            }),
+            text: new Text({
+              text: pointLabels[index],
+              offsetY: -15,
+              font: '12px Arial',
+              fill: new Fill({ color: index === 0 ? '#007bff' : '#dc3545' }),
+              stroke: new Stroke({ color: '#ffffff', width: 3 }),
+            })
+          });
+          pointFeature.setStyle(pointStyle);
+          vectorSourceRef.current.addFeature(pointFeature);
+        });
+
+        // 2. Add Saved Route Line
+        const routeCoordinates = routePointsLatLon.map(p => fromLonLat([p[1], p[0]]));
+        const routeFeature = new Feature({
+          geometry: new LineString(routeCoordinates),
+        });
+        routeFeature.setId('current_route');
+        routeFeature.setStyle(new Style({
+          stroke: new Stroke({
+            color: '#0066ff',
+            width: 4,
+          }),
+        }));
+        vectorSourceRef.current.addFeature(routeFeature);
+        routeCoordinatesRef.current = routeCoordinates;
+
+        // 3. Add Distance/Time Label
+        if (routeCoordinates.length > 0 && trip.distance_travel) {
+          const midPointIndex = Math.floor(routeCoordinates.length / 2);
+          const midPoint = routeCoordinates[midPointIndex];
+          const etaText = loadedEta ? `${loadedEta.hours > 0 ? `${loadedEta.hours}h ` : ''}${loadedEta.minutes}m` : '';
+
+          const labelFeature = new Feature({
+            geometry: new Point(midPoint),
+          });
+          labelFeature.setStyle(new Style({
+            text: new Text({
+              text: `${parseFloat(trip.distance_travel).toFixed(2)} km ${etaText ? `(${etaText})` : ''}`,
+              font: 'bold 14px Arial',
+              padding: [5, 5, 5, 5],
+              backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.8)' }),
+              fill: new Fill({ color: '#0066ff' }),
+              stroke: new Stroke({ color: '#ffffff', width: 3 }),
+            }),
+          }));
+          vectorSourceRef.current.addFeature(labelFeature);
+        }
+
+        // 4. Fit View
+        const extent = routeFeature.getGeometry().getExtent();
+        if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
+          map.current.getView().fit(extent, {
+            padding: [70, 70, 70, 70],
+            duration: 1000,
+            maxZoom: 17,
+          });
+        }
+      }, 200);
+
     } catch (error) {
-      console.error("Error loading saved route:", error);
+      console.error("Error loading trip:", error);
       setAlert({
         open: true,
-        message: "Error loading route. Please try again.",
+        message: "Error loading trip data",
         type: "error"
       });
+    }
+  };
+
+  // Trip Management Functions
+  const getRouteString = () => {
+    if (!routeCoordinatesRef.current || routeCoordinatesRef.current.length === 0) {
+      // usage of raw points if route not calculated?
+      return JSON.stringify(points.map(p => [p[1], p[0]])); // [lat, lon]
+    }
+    // Convert current route coordinates to [lat, lon] array
+    return JSON.stringify(
+      routeCoordinatesRef.current.map(c => {
+        const ll = toLonLat(c);
+        return [ll[1], ll[0]]; // [lat, lon]
+      })
+    );
+  };
+
+  const handleStartTrip = async () => {
+    if (!deviceId) {
+      setAlert({ open: true, message: "Please select a vehicle first", type: "warning" });
+      return;
+    }
+
+    setTripLoading(true);
+    try {
+      // Calculate travel time string in format HH:MM:ss
+      let travelTime = "00:00:00";
+      if (eta) {
+        // Pad with leading zeros
+        const hh = String(eta.hours).padStart(2, '0');
+        const mm = String(eta.minutes).padStart(2, '0');
+        travelTime = `${hh}:${mm}:00`;
+      }
+
+      const payload = {
+        trip_name: tripName || `Trip - ${new Date().toLocaleString()}`,
+        trip_route: getRouteString(),
+        vehicle_id: deviceId,
+        // New required fields
+        tripvehical_tag: deviceId, // Using device ID as the tag
+        expected_time_of_travel: travelTime,
+        distance_travel: distance ? distance.toString() : "0"
+      };
+
+      console.log("Creating trip with payload:", payload);
+      const response = await TripService.createTrip(payload);
+
+      if (response.success) {
+        // Assume response.data contains the trip object with an ID
+        // Adjust based on actual API response structure
+        const newTripId = response.data.id || response.data.trip_id || response.data.pk;
+        setActiveTripId(newTripId);
+        setAlert({ open: true, message: "Trip started successfully", type: "success" });
+        fetchTrips(); // Refresh list
+        setTabValue(1); // Swith to Navigation tab
+      } else {
+        setAlert({ open: true, message: "Failed to start trip: " + (response.error || "Unknown error"), type: "error" });
+      }
+    } catch (error) {
+      console.error("Start trip error:", error);
+      setAlert({ open: true, message: "Error starting trip", type: "error" });
+    } finally {
+      setTripLoading(false);
+    }
+  };
+
+  const handleUpdateTrip = async () => {
+    if (!activeTripId) return;
+
+    setTripLoading(true);
+    try {
+      const payload = {
+        trip_name: tripName,
+        trip_route: getRouteString()
+      };
+
+      const response = await TripService.updateTrip(activeTripId, payload);
+      if (response.success) {
+        setAlert({ open: true, message: "Trip updated successfully", type: "success" });
+        fetchTrips(); // Refresh list
+      } else {
+        setAlert({ open: true, message: "Failed to update trip", type: "error" });
+      }
+    } catch (error) {
+      console.error("Update trip error:", error);
+      setAlert({ open: true, message: "Error updating trip", type: "error" });
+    } finally {
+      setTripLoading(false);
+    }
+  };
+
+  const handleEndTrip = async () => {
+    if (!activeTripId) return;
+
+    setTripLoading(true);
+    try {
+      const response = await TripService.endTrip(activeTripId);
+      if (response.success) {
+        setAlert({ open: true, message: "Trip ended successfully", type: "success" });
+        setActiveTripId(null);
+        setTripName("");
+        fetchTrips(); // Refresh list
+      } else {
+        setAlert({ open: true, message: "Failed to end trip", type: "error" });
+      }
+    } catch (error) {
+      console.error("End trip error:", error);
+      setAlert({ open: true, message: "Error ending trip", type: "error" });
+    } finally {
+      setTripLoading(false);
+    }
+  };
+
+  const handleCancelTrip = async () => {
+    if (!activeTripId) return;
+
+    if (!window.confirm("Are you sure you want to cancel this trip?")) return;
+
+    setTripLoading(true);
+    try {
+      const response = await TripService.cancelTrip(activeTripId);
+      if (response.success) {
+        setAlert({ open: true, message: "Trip cancelled", type: "success" });
+        setActiveTripId(null);
+        setTripName("");
+        fetchTrips(); // Refresh list
+      } else {
+        setAlert({ open: true, message: "Failed to cancel trip", type: "error" });
+      }
+    } catch (error) {
+      console.error("Cancel trip error:", error);
+      setAlert({ open: true, message: "Error cancelling trip", type: "error" });
+    } finally {
+      setTripLoading(false);
     }
   };
 
@@ -1185,352 +1401,425 @@ const RouteETA = () => {
   }, [mapType]);
 
   return (
-    <MainCard sx={{ height: '85vh', display: 'flex', flexDirection: 'column', '& .MuiCardContent-root': { height: '100%', display: 'flex', flexDirection: 'column', p: 2 } }}>
-      <AutoHideAlert
-        open={alert.open}
-        onClose={() => setAlert({ ...alert, open: false })}
-        message={alert.message}
-        type={alert.type}
-      />
+    <MainCard
+      content={false}
+      sx={{
+        height: '85vh',
+        display: 'flex',
+        overflow: 'hidden',
+        border: '1px solid',
+        borderColor: 'divider'
+      }}
+    >
+      {/* Map Area - Left Side */}
+      <Box sx={{ flex: 1, position: 'relative', height: '100%' }}>
+        <AutoHideAlert
+          open={alert.open}
+          onClose={() => setAlert({ ...alert, open: false })}
+          message={alert.message}
+          type={alert.type}
+        />
 
-      {/* Header Section */}
-      <Grid container spacing={2} alignItems="center" sx={{ mb: 2, flexShrink: 0 }}>
-        <Grid item xs={12} md={3}>
-          <Typography variant="h3" component="h2" noWrap>
-            Route ETA Calculator
-          </Typography>
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          <Autocomplete
-            value={deviceList.find((item) => item.device.id === deviceId) || null}
-            onChange={handleAutocompleteChange}
-            options={inputValue ? deviceList : []}
-            getOptionLabel={(option) => option.vehicle_reg_no || ""}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Select Vehicle"
-                variant="outlined"
-                size="small"
-                fullWidth
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-            )}
-            noOptionsText="Enter Vehicle Reg No."
-            isOptionEqualToValue={(option, value) =>
-              option.device.id === value.device.id
-            }
-            disableClearable
-          />
-        </Grid>
-
-        <Grid item xs={12} md={2}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isTracking}
-                onChange={(e) => setIsTracking(e.target.checked)}
-                disabled={!deviceId}
-                color="primary"
-                size="small"
-              />
-            }
-            label={<Typography variant="body2">{isTracking ? "Tracking ON" : "Tracking OFF"}</Typography>}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 1 }}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={setStartToVehicleLocation}
-            startIcon={<MyLocation />}
-            disabled={!deviceId}
-            size="small"
-          >
-            Start from Vehicle
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              if (points.length === 2) {
-                calculateRoute(points);
-              } else {
-                setAlert({
-                  open: true,
-                  message: "Please select start and end points first",
-                  type: "warning"
-                });
-              }
-            }}
-            disabled={points.length !== 2}
-            startIcon={<Route />}
-            size="small"
-          >
-            Calculate
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={clearPoints}
-            startIcon={<Delete />}
-            size="small"
-          >
-            Clear
-          </Button>
-        </Grid>
-      </Grid>
-
-      {/* Content Section */}
-      <Box sx={{ display: 'flex', flex: 1, gap: 2, overflow: 'hidden', minHeight: 0 }}>
-        {/* Map Container */}
-        <Box sx={{ flex: 1, position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid #eee' }}>
-          <Box ref={mapRef} id="map" sx={{ width: "100%", height: "100%", position: 'relative' }}>
-            {/* Map Type Toggle */}
-            <Box sx={{ position: "absolute", top: "10px", left: "40px", zIndex: 10000 }}>
-              <ButtonGroup variant="contained" size="small" aria-label="map type button group">
-                <Tooltip title="Normal Map">
-                  <Button
-                    onClick={() => setMapType("normal")}
-                    color={mapType === "normal" ? "primary" : "inherit"}
-                    sx={{ bgcolor: mapType === "normal" ? "primary.main" : "background.paper", color: mapType === "normal" ? "white" : "text.primary" }}
-                  >
-                    Normal
-                  </Button>
-                </Tooltip>
-                <Tooltip title="Satellite Map">
-                  <Button
-                    onClick={() => setMapType("satellite")}
-                    color={mapType === "satellite" ? "primary" : "inherit"}
-                    sx={{ bgcolor: mapType === "satellite" ? "primary.main" : "background.paper", color: mapType === "satellite" ? "white" : "text.primary" }}
-                  >
-                    Satellite
-                  </Button>
-                </Tooltip>
-              </ButtonGroup>
-            </Box>
-
-            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }} alt="InSpace" />
-            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }} alt="ISRO" />
-            <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }} alt="Skytron" />
+        <Box ref={mapRef} id="map" sx={{ width: "100%", height: "100%" }}>
+          {/* Map Type Toggle - Absolute Top Left */}
+          <Box sx={{ position: "absolute", top: 10, left: 10, zIndex: 10 }}>
+            <ButtonGroup variant="contained" size="small" sx={{ bgcolor: 'white', boxShadow: 2 }}>
+              <Button
+                onClick={() => setMapType("normal")}
+                color={mapType === "normal" ? "primary" : "inherit"}
+              >
+                Normal
+              </Button>
+              <Button
+                onClick={() => setMapType("satellite")}
+                color={mapType === "satellite" ? "primary" : "inherit"}
+              >
+                Satellite
+              </Button>
+            </ButtonGroup>
           </Box>
 
-          {/* Map Legend */}
-          <Paper
-            elevation={3}
-            sx={{
-              position: 'absolute',
-              bottom: 10,
-              left: 10,
-              p: 1,
-              zIndex: 1000,
-              backgroundColor: 'rgba(255,255,255,0.9)',
-              width: 'auto',
-              borderRadius: 1
-            }}
-          >
-            <Typography variant="caption" gutterBottom sx={{ fontWeight: 'bold', display: 'block' }}>
-              Legend
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#007bff', mr: 1 }} />
-              <Typography variant="caption">Start</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#dc3545', mr: 1 }} />
-              <Typography variant="caption">End</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{ width: 15, height: 3, bgcolor: '#0066ff', mr: 1 }} />
-              <Typography variant="caption">Route</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ width: 15, height: 3, bgcolor: '#ff6b6b', mr: 1, borderStyle: 'dashed', borderWidth: 1 }} />
-              <Typography variant="caption">Direct</Typography>
-            </Box>
-          </Paper>
+          {/* Logos */}
+          <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '50px', width: 'auto', zIndex: 1 }} alt="InSpace" />
+          <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '50px', width: 'auto', zIndex: 1 }} alt="ISRO" />
+          <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '50px', width: 'auto', zIndex: 1, backgroundColor: 'transparent' }} alt="Skytron" />
         </Box>
 
-        {/* Side Panel */}
-        <Box sx={{ width: 350, display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', pr: 1 }}>
-          {/* Live Tracking Info Card */}
-          {isTracking && liveLocation && (
-            <Card elevation={3} sx={{ bgcolor: '#e3f2fd', flexShrink: 0 }}>
-              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                  <MyLocation sx={{ mr: 1, fontSize: 18 }} color="primary" />
-                  Live Tracking
+        {/* Legend - Absolute Bottom Left (above logos) */}
+        <Paper
+          elevation={3}
+          sx={{
+            position: 'absolute',
+            bottom: 60,
+            left: 10,
+            p: 1.5,
+            zIndex: 10,
+            backgroundColor: 'rgba(255,255,255,0.95)',
+            borderRadius: 2
+          }}
+        >
+          <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+            Map Legend
+          </Typography>
+          <Stack spacing={0.5}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#007bff', mr: 1, border: '2px solid white', boxShadow: 1 }} />
+              <Typography variant="caption">Start Point</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#dc3545', mr: 1, border: '2px solid white', boxShadow: 1 }} />
+              <Typography variant="caption">End Point</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ width: 20, height: 4, bgcolor: '#0066ff', mr: 1 }} />
+              <Typography variant="caption">Calculated Route</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ width: 20, height: 4, bgcolor: '#ff6b6b', mr: 1, borderStyle: 'dashed', borderWidth: 1 }} />
+              <Typography variant="caption">Direct Line</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <DirectionsCar sx={{ fontSize: 16, mr: 1, color: '#e65100' }} />
+              <Typography variant="caption">Live Vehicle</Typography>
+            </Box>
+          </Stack>
+        </Paper>
+      </Box>
+
+      {/* Control Panel - Right Side */}
+      <Box sx={{
+        width: 400,
+        display: 'flex',
+        flexDirection: 'column',
+        borderLeft: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        zIndex: 12
+      }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            variant="fullWidth"
+            indicatorColor="primary"
+            textColor="primary"
+          >
+            <Tab icon={<DirectionsCar fontSize="small" />} iconPosition="start" label="Monitor" />
+            <Tab icon={<Navigation fontSize="small" />} iconPosition="start" label="Nav" />
+            <Tab icon={<History fontSize="small" />} iconPosition="start" label="History" />
+          </Tabs>
+        </Box>
+
+        <Box sx={{ p: 2, flex: 1, overflowY: 'auto' }}>
+          {/* --- MONITOR TAB --- */}
+          {tabValue === 0 && (
+            <Stack spacing={3}>
+              {/* 1. Vehicle Selection */}
+              <Box>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  VEHICLE CONFIGURATION
                 </Typography>
-                <Typography variant="body2" noWrap>
-                  <strong>Vehicle:</strong> {liveLocation.vehicle_registration_number}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Speed:</strong> {liveLocation.speed} km/h
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Updated:</strong> {new Date(liveLocation.entry_time).toLocaleTimeString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          )}
+                <Stack spacing={2}>
+                  <Autocomplete
+                    value={deviceList.find((item) => item.device.id === deviceId) || null}
+                    onChange={handleAutocompleteChange}
+                    options={inputValue ? deviceList : []}
+                    getOptionLabel={(option) => option.vehicle_reg_no || ""}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Select Vehicle"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        onChange={(e) => setInputValue(e.target.value)}
+                      />
+                    )}
+                    noOptionsText="Type to search..."
+                    isOptionEqualToValue={(option, value) => option.device.id === value.device.id}
+                    disableClearable
+                  />
 
-          {/* Current route details */}
-          <Paper elevation={3} sx={{ p: 2, flexShrink: 0 }}>
-            <Typography variant="h5" gutterBottom>
-              Route Details
-            </Typography>
-            <Divider sx={{ mb: 1 }} />
+                  <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: isTracking ? '#e3f2fd' : 'transparent' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <MyLocation color={isTracking ? "primary" : "disabled"} sx={{ mr: 1 }} />
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold">Live Updates</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {isTracking ? "Tracking Active" : "Tracking Paused"}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Switch
+                      checked={isTracking}
+                      onChange={(e) => setIsTracking(e.target.checked)}
+                      disabled={!deviceId}
+                      size="small"
+                    />
+                  </Paper>
 
-            {points.length > 0 ? (
-              <>
-                <Typography variant="body2" gutterBottom noWrap>
-                  <strong>Start:</strong>
-                  {points.length > 0 ? ` ${points[0][0].toFixed(5)}, ${points[0][1].toFixed(5)}` : ' -'}
-                </Typography>
-
-                <Typography variant="body2" gutterBottom noWrap>
-                  <strong>End:</strong>
-                  {points.length > 1 ? ` ${points[1][0].toFixed(5)}, ${points[1][1].toFixed(5)}` : ' -'}
-                </Typography>
-
-                <Divider sx={{ my: 1 }} />
-
-                {distance && (
-                  <Typography variant="subtitle2" gutterBottom color="primary">
-                    Distance: {distance} km
-                  </Typography>
-                )}
-
-                {eta && (
-                  <Typography variant="subtitle2" gutterBottom color="secondary">
-                    ETA: {eta.hours > 0 ? `${eta.hours}h ` : ''}{eta.minutes}m
-                  </Typography>
-                )}
-              </>
-            ) : (
-              <Typography variant="body2" color="textSecondary">
-                Set start/end points on map.
-              </Typography>
-            )}
-          </Paper>
-
-          {/* Turn-by-Turn Navigation */}
-          {instructions.length > 0 && (
-            <Paper elevation={3} sx={{ p: 1, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, py: 0.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Navigation sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                  <Typography variant="h5">
-                    Navigation
-                  </Typography>
-                </Box>
-                <IconButton
-                  onClick={() => setExpandInstructions(!expandInstructions)}
-                  size="small"
-                >
-                  {expandInstructions ? <ExpandLess /> : <ExpandMore />}
-                </IconButton>
+                  {/* Live Info Card */}
+                  {isTracking && liveLocation && (
+                    <Card variant="outlined" sx={{ bgcolor: '#f1f8e9' }}>
+                      <CardContent sx={{ p: '12px !important' }}>
+                        <Grid container spacing={1}>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="textSecondary">Speed</Typography>
+                            <Typography variant="body2" fontWeight="bold">{liveLocation.speed} km/h</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="textSecondary">Last Update</Typography>
+                            <Typography variant="body2" fontWeight="bold">{new Date(liveLocation.entry_time).toLocaleTimeString()}</Typography>
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  )}
+                </Stack>
               </Box>
 
-              <Collapse in={expandInstructions} timeout="auto">
-                <List sx={{ overflow: 'auto', maxHeight: '250px', bgcolor: 'background.paper' }} dense>
-                  {instructions.map((step, index) => (
-                    <ListItem key={index} divider={index !== instructions.length - 1}>
-                      <ListItemIcon sx={{ minWidth: 30 }}>
+              <Divider />
+
+              {/* 2. Route Planning */}
+              <Box>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  ROUTE PLANNING
+                </Typography>
+
+                <Stack spacing={2}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      size="small"
+                      label="Start"
+                      color={points.length > 0 ? "primary" : "default"}
+                      variant={points.length > 0 ? "filled" : "outlined"}
+                    />
+                    <Typography variant="body2" sx={{ flex: 1 }} noWrap>
+                      {points.length > 0 ? `${points[0][0].toFixed(5)}, ${points[0][1].toFixed(5)}` : "Not set"}
+                    </Typography>
+                    <Tooltip title="Set Start to Vehicle Location">
+                      <IconButton size="small" onClick={setStartToVehicleLocation} disabled={!deviceId}>
+                        <DirectionsCar fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      size="small"
+                      label="End"
+                      color={points.length > 1 ? "error" : "default"}
+                      variant={points.length > 1 ? "filled" : "outlined"}
+                    />
+                    <Typography variant="body2" sx={{ flex: 1 }} noWrap>
+                      {points.length > 1 ? `${points[1][0].toFixed(5)}, ${points[1][1].toFixed(5)}` : "Not set"}
+                    </Typography>
+                    {/* Placeholder for future "Set End form search" if needed */}
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      size="small"
+                      onClick={clearPoints}
+                      startIcon={<Delete />}
+                      fullWidth
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={() => calculateRoute(points)}
+                      disabled={points.length !== 2}
+                      startIcon={<Route />}
+                      fullWidth
+                    >
+                      Calculate
+                    </Button>
+                  </Box>
+
+                  {/* Route Result */}
+                  {distance && (
+                    <Paper variant="outlined" sx={{ p: 2, bgcolor: '#fafafa', textAlign: 'center' }}>
+                      <Grid container>
+                        <Grid item xs={6} sx={{ borderRight: '1px solid #ddd' }}>
+                          <Typography variant="caption" display="block">Total Distance</Typography>
+                          <Typography variant="h6" color="primary">{distance} km</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" display="block">Estimated Time</Typography>
+                          <Typography variant="h6" color="secondary">
+                            {eta ? `${eta.hours}h ${eta.minutes}m` : '--'}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  )}
+                </Stack>
+              </Box>
+
+              <Divider />
+
+              {/* 3. Trip Actions (Start New Trip only) */}
+              {distance && !activeTripId && (
+                <Box>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    TRIP MANAGEMENT
+                  </Typography>
+
+                  <Stack spacing={2}>
+                    <TextField
+                      label="Trip Name"
+                      placeholder="e.g. Morning Delivery"
+                      size="small"
+                      value={tripName}
+                      onChange={(e) => setTripName(e.target.value)}
+                      fullWidth
+                    />
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={handleStartTrip}
+                      disabled={tripLoading || !deviceId}
+                      startIcon={tripLoading ? null : <DirectionsCar />}
+                      fullWidth
+                    >
+                      {tripLoading ? "Starting..." : "Start Trip"}
+                    </Button>
+                  </Stack>
+                </Box>
+              )}
+            </Stack>
+          )}
+
+          {/* --- NAVIGATION TAB --- */}
+          {/* --- NAVIGATION TAB --- */}
+          {tabValue === 1 && (
+            <Box>
+              {/* Trip Active Controls in Navigation */}
+              {activeTripId && (
+                <Paper variant="outlined" sx={{ p: 2, m: 2, mb: 1, borderColor: 'green', bgcolor: '#f0f9f0' }}>
+                  <Stack spacing={2}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle2" color="success.main" fontWeight="bold">
+                        TRIP ACTIVE
+                      </Typography>
+                      <Chip label={`ID: ${activeTripId}`} size="small" variant="outlined" color="success" />
+                    </Box>
+
+                    <TextField
+                      label="Update Name"
+                      size="small"
+                      value={tripName}
+                      onChange={(e) => setTripName(e.target.value)}
+                      fullWidth
+                      sx={{ bgcolor: 'white' }}
+                    />
+
+                    <Stack spacing={1}>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="primary"
+                          onClick={handleUpdateTrip}
+                          disabled={tripLoading}
+                        >
+                          Update
+                        </Button>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="success"
+                          onClick={handleEndTrip}
+                          disabled={tripLoading}
+                        >
+                          End
+                        </Button>
+                      </Box>
+
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={handleCancelTrip}
+                        disabled={tripLoading}
+                        startIcon={<Delete />}
+                      >
+                        Cancel Trip
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Paper>
+              )}
+
+              <List dense>
+                {instructions.length > 0 ? (
+                  instructions.map((step, index) => (
+                    <ListItem key={index} divider>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
                         {step.sign === 0 ? <DirectionsCar fontSize="small" /> :
-                          step.sign === 2 ? <Navigation sx={{ transform: 'rotate(90deg)' }} fontSize="small" /> : // Right
-                            step.sign === -2 ? <Navigation sx={{ transform: 'rotate(-90deg)' }} fontSize="small" /> : // Left
+                          step.sign === 2 ? <Navigation sx={{ transform: 'rotate(90deg)' }} fontSize="small" /> :
+                            step.sign === -2 ? <Navigation sx={{ transform: 'rotate(-90deg)' }} fontSize="small" /> :
                               <Navigation fontSize="small" />}
                       </ListItemIcon>
                       <ListItemText
                         primary={step.text}
                         secondary={`${(step.distance / 1000).toFixed(2)} km`}
-                        primaryTypographyProps={{ variant: 'body2', fontSize: '0.85rem' }}
-                        secondaryTypographyProps={{ variant: 'caption' }}
+                        primaryTypographyProps={{ variant: 'body2' }}
                       />
                     </ListItem>
-                  ))}
-                </List>
-              </Collapse>
-            </Paper>
+                  ))
+                ) : (
+                  <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography color="textSecondary">
+                      No route calculated.
+                    </Typography>
+                  </Box>
+                )}
+              </List>
+            </Box>
           )}
 
-          {/* Route history panel */}
-          <Paper elevation={3} sx={{ p: 1, flexGrow: 1, minHeight: '100px', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, py: 0.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <History sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                <Typography variant="h5">
-                  History
-                </Typography>
-              </Box>
-              <IconButton
-                onClick={() => setExpandHistory(!expandHistory)}
-                size="small"
-              >
-                {expandHistory ? <ExpandLess /> : <ExpandMore />}
-              </IconButton>
-            </Box>
-
-            <Divider sx={{ mb: 1 }} />
-
-            <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-              <Collapse in={expandHistory} timeout="auto" unmountOnExit>
-                {deviceId ? (
-                  savedRoutes.length > 0 ? (
-                    <List sx={{ p: 0 }} dense>
-                      {savedRoutes.map((route) => (
-                        <ListItem
-                          key={route.id}
-                          disablePadding
-                          secondaryAction={
-                            <IconButton
-                              edge="end"
-                              aria-label="delete"
-                              onClick={() => deleteRoute(route.id)}
-                              size="small"
-                              color="error"
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          }
-                          sx={{ mb: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
-                        >
-                          <ListItemButton onClick={() => loadRoute(route)} dense>
-                            <ListItemText
-                              primary={
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <Route sx={{ mr: 1, fontSize: 16, color: 'primary.main' }} />
-                                  <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                                    {new Date(route.timestamp).toLocaleString()}
-                                  </Typography>
-                                </Box>
-                              }
-                              secondary={
-                                <Typography variant="caption" color="textSecondary">
-                                  {route.distance} km • {route.eta ? `${route.eta.hours}h ${route.eta.minutes}m` : 'N/A'}
-                                </Typography>
-                              }
-                            />
-                          </ListItemButton>
-                        </ListItem>
-                      ))}
-                    </List>
-                  ) : (
-                    <Typography variant="caption" color="textSecondary" align="center" display="block" sx={{ mt: 2 }}>
-                      No saved routes.
-                    </Typography>
-                  )
-                ) : (
-                  <Typography variant="caption" color="textSecondary" align="center" display="block" sx={{ mt: 2 }}>
-                    Select vehicle for history.
+          {/* --- HISTORY TAB --- */}
+          {tabValue === 2 && (
+            <Stack spacing={1}>
+              {historyTrips.length > 0 ? (
+                historyTrips.map((trip) => (
+                  <Card key={trip.id} variant="outlined" sx={{ '&:hover': { bgcolor: '#f5f5f5' }, cursor: 'pointer' }} onClick={() => loadTrip(trip)}>
+                    <CardContent sx={{ p: '12px !important' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="subtitle2" fontWeight="bold">
+                          {trip.trip_name || `Trip #${trip.id}`}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {new Date(trip.created_at).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Typography variant="body2" fontSize="small">
+                          📍 {parseFloat(trip.distance_travel || 0).toFixed(2)} km
+                        </Typography>
+                        <Typography variant="body2" fontSize="small">
+                          ⏱ {trip.expected_time_of_travel}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography color="textSecondary">
+                    No trip history found.
                   </Typography>
-                )}
-              </Collapse>
-            </Box>
-          </Paper>
+                </Box>
+              )}
+            </Stack>
+          )}
         </Box>
       </Box>
     </MainCard>

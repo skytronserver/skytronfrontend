@@ -179,7 +179,7 @@ const user = {
     },
     {
       id: "route-eta",
-      title: "Route ETA Calculator",
+      title: "Trip monitor",
       type: "item",
       url: "/route-eta",
       icon: icons.IconCalculator,
