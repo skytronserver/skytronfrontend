@@ -706,7 +706,7 @@ const user = {
         },
         {
           id: 'api-data-log',
-          title: 'API Data Log',
+          title: 'Event Data Log',
           type: 'item',
           url: '/reports/api-data-log',
           icon: icons.IconDeviceAnalytics,

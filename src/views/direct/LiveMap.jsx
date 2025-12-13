@@ -1,5 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, ButtonGroup, Tooltip, Box } from "@mui/material";
+import {
+  Button,
+  ButtonGroup,
+  Tooltip,
+  Box,
+  IconButton,
+  TextField,
+  Typography,
+  CircularProgress,
+  Stack,
+  Paper,
+  List,
+  ListItemButton,
+  ListItemText,
+  ListItemIcon,
+  alpha,
+  useTheme,
+  Snackbar,
+  Alert,
+  InputBase,
+  Divider
+} from "@mui/material";
+import {
+  Search as SearchIcon,
+  LocationOn as LocationOnIcon,
+  Close as CloseIcon
+} from "@mui/icons-material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource, TileWMS, XYZ } from "ol/source";
@@ -20,6 +46,7 @@ import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import POIService from "../../services/POIService";
+import axios from "axios";
 
 const MAPPLS_TOKEN_ENV_KEYS = [
   "REACT_APP_MAPPLS_TOKEN",
@@ -431,6 +458,14 @@ const MapComponent = ({
   const [drawingPoints, setDrawingPoints] = useState([]);
   const tempPolyRef = useRef(null);
   const tempMarkersRef = useRef([]);
+
+  // Geocoding State
+  const [geoSearchQuery, setGeoSearchQuery] = useState('');
+  const [geoSearchResults, setGeoSearchResults] = useState([]);
+  const [geoSearchLoading, setGeoSearchLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
+  const theme = useTheme();
 
   const USE_TYPE_COLORS = {
     school: "#1E88E5",
@@ -2065,6 +2100,218 @@ const MapComponent = ({
     }
   };
 
+  // Geocoding Handlers
+  const showSnackbar = (message, severity = 'error') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleGeoSearch = async () => {
+    if (!geoSearchQuery.trim()) return;
+
+    try {
+      setGeoSearchLoading(true);
+      const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+
+      console.log('Fetching geocode via Axios (Proxy):', url);
+      const response = await axios.get(url);
+
+      if (response.status === 200) {
+        const data = response.data;
+        console.log('Geocoding response data:', data);
+
+        let results = [];
+        if (data.copResults) {
+          if (Array.isArray(data.copResults)) {
+            results = data.copResults;
+          } else {
+            results = [data.copResults];
+          }
+        } else if (Array.isArray(data)) {
+          results = data;
+        }
+
+        setGeoSearchResults(results);
+        if (results.length === 0) {
+          showSnackbar('No results found', 'info');
+        }
+      } else {
+        console.warn('Geocoding status:', response.status);
+        showSnackbar(`Error: ${response.statusText}`, 'error');
+      }
+    } catch (error) {
+      console.error('Geocoding exception:', error);
+      if (error.code === "ERR_NETWORK") {
+        showSnackbar('Network Error (Likely CORS). Try using the SDK or a proxy.', 'error');
+      } else {
+        showSnackbar('Error searching address', 'error');
+      }
+    } finally {
+      setGeoSearchLoading(false);
+    }
+  };
+
+  const handleGeoResultClick = async (result) => {
+    console.log('Selected geo result:', result);
+
+    let lat = result.latitude || result.lat;
+    let lng = result.longitude || result.lng;
+
+    // If lat/lng are missing, try to fetch them using eLoc
+    if (!lat || !lng && result.eLoc) {
+      try {
+        const url = `https://place.mappls.com/O2O/entity/place-details/${result.eLoc}?access_token=${MAPPLS_GEOCODING_TOKEN}`;
+        console.log('Fetching detailed place info for eLoc:', result.eLoc);
+        const response = await axios.get(url);
+        if (response.status === 200 && response.data) {
+          lat = response.data.latitude;
+          lng = response.data.longitude;
+          console.log('Resolved eLoc to coordinates:', lat, lng);
+        }
+      } catch (err) {
+        console.error('Error resolving eLoc details:', err);
+      }
+    }
+
+    if (lat && lng) {
+      const latNum = parseFloat(lat);
+      const lngNum = parseFloat(lng);
+
+      // Handle HD Map (Mappls)
+      if (mapType === "hd" && mapplsMapRef.current) {
+        const hdMap = mapplsMapRef.current;
+        const pos = { lat: latNum, lng: lngNum };
+
+        try {
+          if (typeof hdMap.panTo === 'function') {
+            hdMap.panTo({ lat: pos.lat, lng: pos.lng });
+          }
+          if (typeof hdMap.setCenter === 'function') {
+            hdMap.setCenter({ lat: pos.lat, lng: pos.lng });
+          }
+          if (typeof hdMap.setZoom === 'function') {
+            hdMap.setZoom(16);
+          }
+
+          // Clear previous search marker if exists
+          if (window.searchMarker) {
+            try { window.searchMarker.remove(); } catch (e) { }
+          }
+
+          // Add marker at the searched location
+          if (window.mappls && window.mappls.Marker) {
+            const iconUrl = getPoiMarkerIcon('#FF0000');
+            const marker = new window.mappls.Marker({
+              map: hdMap,
+              position: pos,
+              icon: iconUrl,
+              width: 30,
+              height: 40,
+              popupHtml: `
+                <div style="padding: 12px; min-width: 200px;">
+                  <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #333;">
+                    ${result.poi || result.placeName || result.locality || 'Location'}
+                  </h3>
+                  <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4;">
+                    ${result.formattedAddress || result.address || 'No address available'}
+                  </p>
+                  ${result.district ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #999;">District: ${result.district}</p>` : ''}
+                  ${result.state ? `<p style="margin: 2px 0 0 0; font-size: 11px; color: #999;">State: ${result.state}</p>` : ''}
+                  <p style="margin: 6px 0 0 0; font-size: 10px; color: #999;">
+                    ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
+                  </p>
+                </div>
+              `
+            });
+            window.searchMarker = marker;
+          }
+        } catch (error) {
+          console.error('Error during pan on HD map:', error);
+          showSnackbar('Error moving map to location', 'error');
+        }
+      }
+      // Handle OpenLayers maps (Normal, Satellite, SOI)
+      else if (map && ["normal", "satellite", "soi"].includes(mapType)) {
+        try {
+          // Pan to location
+          map.getView().animate({
+            center: [lngNum, latNum],
+            zoom: 16,
+            duration: 500
+          });
+
+          // Clear previous search marker if exists
+          if (window.olSearchMarker) {
+            try {
+              vectorLayer.getSource().removeFeature(window.olSearchMarker);
+            } catch (e) { }
+          }
+
+          // Add marker at the searched location
+          const markerFeature = new Feature({
+            geometry: new Point([lngNum, latNum]),
+          });
+
+          markerFeature.setStyle(new Style({
+            image: new Icon({
+              anchor: [0.5, 1],
+              src: 'data:image/svg+xml;base64,' + window.btoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 24 24">
+                  <path fill="#FF0000" d="M12 2c4.418 0 8 3.134 8 7 0 5.25-8 13-8 13S4 14.25 4 9c0-3.866 3.582-7 8-7Zm0 4a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 6Z"/>
+                </svg>
+              `),
+              scale: 1.2,
+            }),
+          }));
+
+          vectorLayer.getSource().addFeature(markerFeature);
+          window.olSearchMarker = markerFeature;
+
+          // Show popup with location info
+          if (dynamicOverlay) {
+            const overlayContent = document.getElementById('overlay-content');
+            if (overlayContent) {
+              overlayContent.innerHTML = `
+                <div class="overlay-card">
+                  <div class="overlay-header">
+                    <div class="overlay-title">${result.poi || result.placeName || result.locality || 'Location'}</div>
+                  </div>
+                  <div class="overlay-body">
+                    <div class="overlay-row">
+                      <span class="overlay-label">Address</span>
+                      <span class="overlay-value">${result.formattedAddress || result.address || 'N/A'}</span>
+                    </div>
+                    ${result.district ? `<div class="overlay-row"><span class="overlay-label">District</span><span class="overlay-value">${result.district}</span></div>` : ''}
+                    ${result.state ? `<div class="overlay-row"><span class="overlay-label">State</span><span class="overlay-value">${result.state}</span></div>` : ''}
+                    <div class="overlay-row">
+                      <span class="overlay-label">Coordinates</span>
+                      <span class="overlay-value">${latNum.toFixed(6)}, ${lngNum.toFixed(6)}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+              dynamicOverlay.setPosition([lngNum, latNum]);
+              overlayElement.current.style.display = 'block';
+            }
+          }
+        } catch (error) {
+          console.error('Error during pan on OpenLayers map:', error);
+          showSnackbar('Error moving map to location', 'error');
+        }
+      }
+    } else {
+      showSnackbar('Could not determine location coordinates', 'error');
+    }
+
+    // Clear search results and query after selection
+    setGeoSearchResults([]);
+    setGeoSearchQuery('');
+  };
+
+
   return (
     <div>
       {/* Map container */}
@@ -2126,6 +2373,159 @@ const MapComponent = ({
               </Button>
             </Tooltip>
           </ButtonGroup>
+        </Box>
+
+        {/* Search Bar with Autocomplete */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: "10px",
+            left: "80%",
+            transform: "translateX(-50%)",
+            zIndex: 10000,
+            width: '220px',
+            maxWidth: 'calc(100% - 32px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          {/* Search Pill */}
+          <Paper
+            elevation={4}
+            sx={{
+              p: '2px 4px',
+              display: 'flex',
+              alignItems: 'center',
+              width: '100%',
+              borderRadius: '50px',
+              backgroundColor: alpha(theme.palette.background.paper, 0.95),
+              backdropFilter: 'blur(10px)',
+              border: '1px solid',
+              borderColor: alpha(theme.palette.divider, 0.1),
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                boxShadow: '0 8px 25px rgba(0,0,0,0.12)',
+                transform: 'translateY(-1px)',
+                borderColor: alpha(theme.palette.primary.main, 0.2),
+              }
+            }}
+          >
+            <IconButton sx={{ p: '4px' }} aria-label="menu">
+              <SearchIcon color="action" />
+            </IconButton>
+
+            <InputBase
+              sx={{ ml: 1, flex: 1, fontSize: '0.95rem' }}
+              placeholder="Search detailed address..."
+              value={geoSearchQuery}
+              onChange={(e) => setGeoSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleGeoSearch();
+                if (e.key === 'Escape') {
+                  setGeoSearchQuery('');
+                  setGeoSearchResults([]);
+                }
+              }}
+            />
+
+            {geoSearchQuery && (
+              <IconButton
+                size="small"
+                onClick={() => {
+                  setGeoSearchQuery('');
+                  setGeoSearchResults([]);
+                }}
+                sx={{ p: '8px', mr: 0.5 }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            )}
+
+            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+
+            <IconButton
+              color="primary"
+              sx={{ p: '10px' }}
+              onClick={handleGeoSearch}
+              disabled={geoSearchLoading}
+            >
+              {geoSearchLoading ? <CircularProgress size={24} thickness={5} /> : <SearchIcon />}
+            </IconButton>
+          </Paper>
+
+          {/* Floating Search Results */}
+          {geoSearchResults && geoSearchResults.length > 0 && (
+            <Paper
+              elevation={6}
+              sx={{
+                width: '100%',
+                maxHeight: 400,
+                overflow: 'auto',
+                borderRadius: 4,
+                mt: 1,
+                backgroundColor: alpha(theme.palette.background.paper, 0.98),
+                backdropFilter: 'blur(12px)',
+                border: '1px solid',
+                borderColor: 'divider',
+                animation: 'fadeIn 0.2s ease-out',
+                '@keyframes fadeIn': {
+                  '0%': { opacity: 0, transform: 'translateY(-10px)' },
+                  '100%': { opacity: 1, transform: 'translateY(0)' },
+                },
+              }}
+            >
+              <List sx={{ p: 1 }}>
+                {geoSearchResults.map((result, index) => (
+                  <ListItemButton
+                    key={index}
+                    onClick={() => handleGeoResultClick(result)}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: alpha(theme.palette.error.main, 0.1),
+                        }}
+                      >
+                        <LocationOnIcon color="error" fontSize="small" />
+                      </Box>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          {result.poi || result.formattedAddress || result.locality}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                          {[result.district, result.city, result.state].filter(Boolean).join(', ')}
+                        </Typography>
+                      }
+                    />
+                  </ListItemButton>
+                ))}
+              </List>
+              <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider', bgcolor: alpha(theme.palette.grey[50], 0.5) }}>
+                <Typography variant="caption" color="text.secondary" align="center" display="block">
+                  {geoSearchResults.length} results found
+                </Typography>
+              </Box>
+            </Paper>
+          )}
         </Box>
 
         {/* Normal Map Container */}
@@ -2545,6 +2945,23 @@ const MapComponent = ({
           white-space: nowrap;
         }
       `}</style>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
