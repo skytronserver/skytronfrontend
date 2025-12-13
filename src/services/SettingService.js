@@ -1,4 +1,4 @@
-import { getAxiosInstance } from './axiosInstance'; 
+import { getAxiosInstance } from './axiosInstance';
 const create_settings_hp_freq = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/Settings/create_settings_hp_freq/", data);
@@ -71,7 +71,7 @@ const filter_settings_ip = (data) => {
 //Download Files
 const file_Download = (data) => {
   const http = getAxiosInstance();
-  return http.post("/api/download/", data,{ responseType: 'blob' });
+  return http.post("/api/download/", data, { responseType: 'blob' });
 };
 
 // Database Archive & Restore
@@ -111,29 +111,36 @@ const fetchNotificationPreferences = () => {
   return http.get("/api/user/notification-preferences/");
 };
 
+// Send Command
+const send_command = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/commands/send/", data);
+};
+
 const SettingService = {
-    create_settings_hp_freq,
-    filter_settings_hp_freq,
-    create_settings_ota,
-    filter_settings_ota,
-    create_settings_VehicleCategory,
-    filter_settings_VehicleCategory,
-    create_settings_State,
-    filter_settings_State,
-    create_settings_District,
-    filter_settings_District,
-    create_settings_firmware,
-    filter_settings_firmware,
-    create_settings_ip,
-    filter_settings_ip,
-    file_Download,
-    archiveDatabase,
-    restoreDatabase,
-    archiveGpsData,
-    getGpsArchivesList,
-    restoreGpsArchive,
-    updateNotificationPreferences,
-    fetchNotificationPreferences
+  create_settings_hp_freq,
+  filter_settings_hp_freq,
+  create_settings_ota,
+  filter_settings_ota,
+  create_settings_VehicleCategory,
+  filter_settings_VehicleCategory,
+  create_settings_State,
+  filter_settings_State,
+  create_settings_District,
+  filter_settings_District,
+  create_settings_firmware,
+  filter_settings_firmware,
+  create_settings_ip,
+  filter_settings_ip,
+  file_Download,
+  archiveDatabase,
+  restoreDatabase,
+  archiveGpsData,
+  getGpsArchivesList,
+  restoreGpsArchive,
+  updateNotificationPreferences,
+  fetchNotificationPreferences,
+  send_command
 };
 
 export default SettingService;

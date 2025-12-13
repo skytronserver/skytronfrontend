@@ -1,25 +1,32 @@
-import {useDispatch} from 'react-redux'
+import { useDispatch } from 'react-redux'
 import React from 'react';
 // project imports
-import Grid  from "@mui/material/Grid";
+import Grid from "@mui/material/Grid";
 import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import UserServices from '../../services/UserServices';
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 import Datatable from '../../datatables/Datatable';
-import {registeredUserColumns} from '../../datatables/rowsColumn';
+import { registeredUserColumns } from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
-import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
+import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField } from '@mui/material';
 
 const UsersList = () => {
   const { t } = useTranslation();
-  const [load,setLoad]=useState(false)
-  const dispatch=useDispatch();
-  const [users,setUsers]=useState([]);
+  const [load, setLoad] = useState(false)
+  const dispatch = useDispatch();
+  const [users, setUsers] = useState([]);
   const [notification, setNotification] = useState({
     open: false,
     message: '',
     severity: 'success'
+  });
+  const [extendDialog, setExtendDialog] = useState({
+    open: false,
+    userId: null,
+    userName: '',
+    newExpiry: '',
+    currentExpiry: ''
   });
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
@@ -27,14 +34,14 @@ const UsersList = () => {
     userName: ''
   });
 
-  useEffect(()=>{
+  useEffect(() => {
     const retrievePosts = async () => {
-      const retriveData=await UserServices.getRegisteredUsers();
+      const retriveData = await UserServices.getRegisteredUsers();
       setUsers(retriveData.data);
       setLoad(true)
     };
     retrievePosts();
-  },[dispatch])
+  }, [dispatch])
 
   const handleDeactivateUser = async (userId) => {
     try {
@@ -86,6 +93,64 @@ const UsersList = () => {
     }
   };
 
+  // Extend Validity Handlers
+  const handleOpenExtendDialog = (userId, userName, currentExpiry) => {
+    // Format date for input type="date" (YYYY-MM-DD) if currentExpiry exists
+    let formattedDate = '';
+    let displayCurrentExpiry = 'N/A';
+    if (currentExpiry) {
+      const date = new Date(currentExpiry);
+      formattedDate = date.toISOString().split('T')[0];
+      displayCurrentExpiry = date.toLocaleDateString('en-GB');
+    }
+
+    setExtendDialog({
+      open: true,
+      userId,
+      userName,
+      newExpiry: formattedDate,
+      currentExpiry: displayCurrentExpiry
+    });
+  };
+
+  const handleCloseExtendDialog = () => {
+    setExtendDialog({ open: false, userId: null, userName: '', newExpiry: '', currentExpiry: '' });
+  };
+
+  const handleExtendValidity = async () => {
+    try {
+      if (!extendDialog.newExpiry) {
+        setNotification({
+          open: true,
+          message: 'Please select a date',
+          severity: 'warning'
+        });
+        return;
+      }
+
+      const response = await UserServices.updateUser(extendDialog.userId, { expirydate: extendDialog.newExpiry });
+
+      if (response.status === 200 || response.status === 201) {
+        const updatedData = await UserServices.getRegisteredUsers();
+        setUsers(updatedData.data);
+
+        setNotification({
+          open: true,
+          message: 'User validity extended successfully',
+          severity: 'success'
+        });
+        handleCloseExtendDialog();
+      }
+    } catch (error) {
+      console.error('Error extending validity:', error);
+      setNotification({
+        open: true,
+        message: 'Failed to extend validity',
+        severity: 'error'
+      });
+    }
+  };
+
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
   };
@@ -106,6 +171,15 @@ const UsersList = () => {
   const columnsWithActions = [
     ...registeredUserColumns,
     {
+      name: "expirydate",
+      label: "Expiry Date",
+      options: {
+        filter: true,
+        sort: true,
+        customBodyRender: (value) => value ? new Date(value).toLocaleDateString('en-GB') : 'N/A'
+      }
+    },
+    {
       name: "actions",
       label: "Actions",
       options: {
@@ -115,21 +189,37 @@ const UsersList = () => {
           const userId = tableMeta.rowData[0]; // Assuming id is the first column
           const userName = tableMeta.rowData[2]; // Assuming name is the third column
           const isActive = !!tableMeta.rowData[8]; // is_active hidden column
+          const currentExpiry = tableMeta.rowData[9]; // expirydate column we just added (index 9)
 
           return (
-            <button
-              onClick={() => isActive ? handleOpenConfirmDialog(userId, userName) : handleReactivateUser(userId)}
-              style={{
-                padding: '5px 10px',
-                backgroundColor: isActive ? '#ff4444' : '#34c759',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              {isActive ? 'Deactivate' : 'Reactivate'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => isActive ? handleOpenConfirmDialog(userId, userName) : handleReactivateUser(userId)}
+                style={{
+                  padding: '5px 10px',
+                  backgroundColor: isActive ? '#ff4444' : '#34c759',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                {isActive ? 'Deactivate' : 'Reactivate'}
+              </button>
+              <button
+                onClick={() => handleOpenExtendDialog(userId, userName, currentExpiry)}
+                style={{
+                  padding: '5px 10px',
+                  backgroundColor: '#2196f3',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Extend Validity
+              </button>
+            </div>
           );
         }
       }
@@ -142,16 +232,16 @@ const UsersList = () => {
         <PageHeader title={t('users.listTitle')} />
       </Grid>
       <Grid item xs={12}>
-        {load && <Datatable tableTitle="" userRows={users} userColumns={columnsWithActions}/>}
+        {load && <Datatable tableTitle="" userRows={users} userColumns={columnsWithActions} />}
       </Grid>
-      <Snackbar 
-        open={notification.open} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseNotification} 
+        <Alert
+          onClose={handleCloseNotification}
           severity={notification.severity}
           sx={{ width: '100%' }}
         >
@@ -177,13 +267,43 @@ const UsersList = () => {
           <Button onClick={handleCloseConfirmDialog} color="primary">
             Cancel
           </Button>
-          <Button 
-            onClick={() => handleDeactivateUser(confirmDialog.userId)} 
+          <Button
+            onClick={() => handleDeactivateUser(confirmDialog.userId)}
             color="error"
             autoFocus
           >
             Deactivate
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={extendDialog.open} onClose={handleCloseExtendDialog}>
+        <DialogTitle>Extend User Validity</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Select the new validity date for {extendDialog.userName}
+          </DialogContentText>
+          <DialogContentText sx={{ mt: 1, mb: 2, fontWeight: 'bold' }}>
+            Current Validity: {extendDialog.currentExpiry}
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="expiryDate"
+            label="Expiry Date"
+            type="date"
+            fullWidth
+            variant="standard"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            value={extendDialog.newExpiry}
+            onChange={(e) => setExtendDialog({ ...extendDialog, newExpiry: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseExtendDialog}>Cancel</Button>
+          <Button onClick={handleExtendValidity} color="primary">Update</Button>
         </DialogActions>
       </Dialog>
     </Grid>

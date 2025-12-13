@@ -30,7 +30,7 @@ import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { keyMapping, iconData, iconStyles, fullText, isoDatePattern } from "../../store/constant";
-import { formatDateTime } from "../../helper"
+import { formatDateTime, getRole } from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
 
@@ -43,7 +43,12 @@ const LiveTracking = () => {
   const [owner, setOwner] = useState("");
   const [poi, setPoi] = useState("");
   const [roads, setRoads] = useState("");
+
   const [polygon, setPolygon] = useState("");
+  const [category, setCategory] = useState("");
+  const [make, setMake] = useState("");
+  const [dtoCode, setDtoCode] = useState("");
+  const userRole = getRole();
   const [typeFilter, setTypeFilter] = useState("default");
   const [tableDataTop, setTableDataTop] = useState([]); // Data for the scrollable table
   const [selectedId, setSelectedId] = useState(null); // Track the selected button ID
@@ -68,6 +73,13 @@ const LiveTracking = () => {
       setRoads(value);
     } else if (name === "polygon") {
       setPolygon(value);
+
+    } else if (name === "category") {
+      setCategory(value);
+    } else if (name === "make") {
+      setMake(value);
+    } else if (name === "dtoCode") {
+      setDtoCode(value);
     }
   };
 
@@ -233,6 +245,9 @@ const LiveTracking = () => {
       poi: poi,
       roads: roads,
       polygon: polygon,
+      category: category,
+      make: make,
+      dto_code: dtoCode,
     };
     setSelectedId(null); // Reset selection when submitting new search
     setFocusedEntry(null);
@@ -247,11 +262,14 @@ const LiveTracking = () => {
       poi: poi,
       roads: roads,
       polygon: polygon,
+      category: category,
+      make: make,
+      dto_code: dtoCode,
     };
 
     // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon]);
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, dtoCode]);
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -266,6 +284,9 @@ const LiveTracking = () => {
       poi: '',
       roads: '',
       polygon: '',
+      category: '',
+      make: '',
+      dto_code: '',
     };
 
     try {
@@ -489,6 +510,49 @@ const LiveTracking = () => {
                           InputProps={{ sx: { bgcolor: 'white' } }}
                         />
                       </Grid>
+                      {userRole === "stateadmin" && (
+                        <>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="Category"
+                              type="text"
+                              value={category}
+                              name="category"
+                              onChange={handleInput}
+                              variant="outlined"
+                              size="small"
+                              InputProps={{ sx: { bgcolor: 'white' } }}
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="Make"
+                              type="text"
+                              value={make}
+                              name="make"
+                              onChange={handleInput}
+                              variant="outlined"
+                              size="small"
+                              InputProps={{ sx: { bgcolor: 'white' } }}
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="DTO Code"
+                              type="text"
+                              value={dtoCode}
+                              name="dtoCode"
+                              onChange={handleInput}
+                              variant="outlined"
+                              size="small"
+                              InputProps={{ sx: { bgcolor: 'white' } }}
+                            />
+                          </Grid>
+                        </>
+                      )}
                     </Grid>
                   </Collapse>
                 </Box>

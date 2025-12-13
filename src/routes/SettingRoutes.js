@@ -15,6 +15,7 @@ import VehicleCategory from "../views/settings/VehicleCategory";
 import NotificationPreferences from "../views/settings/NotificationPreferences";
 import StateDistrict from "../views/settings/StateDistrict";
 import FrequencyFirmware from "../views/settings/FrequencyFirmware";
+import SendCommand from "../views/settings/SendCommand";
 import ArchiveRestore from "../views/settings/ArchiveRestore";
 import NoticeForm from "../views/forms/NoticeForm";
 import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
@@ -28,7 +29,7 @@ const PrivateRoute = ({ element, roles }) => {
   const userData = sessionStorage.getItem('cookiesData');
   const data = userData && userData.split("-").map(item => myDecipher(item))
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
-  const userRoles=data.length > 2 && data[1];
+  const userRoles = data.length > 2 && data[1];
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -42,7 +43,7 @@ const PrivateRoute = ({ element, roles }) => {
 
 const applyPrivateRoute = (route) => ({
   ...route,
-  element: <PrivateRoute element={route.element} roles={route.roles}/>,
+  element: <PrivateRoute element={route.element} roles={route.roles} />,
 });
 
 const SettingRoutes = {
@@ -86,58 +87,65 @@ const SettingRoutes = {
     {
       path: "/setting/frequency-firmware",
       element: (
-        <FrequencyFirmware/>
+        <FrequencyFirmware />
       ),
-      roles: ['superadmin','devicemanufacture']
+      roles: ['superadmin', 'devicemanufacture']
     },
     {
       path: "/setting/archive-restore",
       element: (
-        <ArchiveRestore/>
+        <ArchiveRestore />
       ),
       roles: ['superadmin']
     },
     {
       path: "/setting/notice/*",
       element: (
-        <NoticeForm/>
+        <NoticeForm />
       ),
       roles: ['superadmin']
     },
     {
       path: "/setting/ip-settings",
       element: (
-        <IPSetting/>
+        <IPSetting />
       ),
-      roles: ['superadmin','dealer']
+      roles: ['superadmin', 'dealer']
     },
     {
       path: "/setting/holiday/*",
       element: (
-        <SchoolHolidayForm/>
+        <SchoolHolidayForm />
       ),
       roles: ['superadmin', 'owner']
     },
     {
       path: "/setting/holiday/new",
       element: (
-        <SchoolHolidayForm/>
+        <SchoolHolidayForm />
       ),
       roles: ['superadmin', 'owner']
     },
     {
       path: "/setting/login-settings",
       element: (
-        <LoginSettings/>
+        <LoginSettings />
       ),
       roles: ['superadmin']
     },
     {
       path: "/holiday/all-holiday-list",
       element: (
-        <SchoolHolidayList/>
+        <SchoolHolidayList />
       ),
       roles: ['superadmin', 'owner']
+    },
+    {
+      path: "/setting/send-command",
+      element: (
+        <SendCommand />
+      ),
+      roles: ['stateadmin']
     },
   ].map((route) => applyPrivateRoute(route)),
 };
