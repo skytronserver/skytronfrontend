@@ -38,7 +38,7 @@ import {
 } from "@mui/icons-material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { Vector as VectorSource, TileWMS, XYZ } from "ol/source";
+import { Vector as VectorSource, TileWMS, XYZ, Cluster } from "ol/source";
 import {
   Icon,
   Style,
@@ -781,6 +781,29 @@ const MapComponent = ({
     }
   };
 
+  const clusterStyleFunction = (feature) => {
+    const features = feature.get('features');
+    const size = features.length;
+
+    if (size === 1) {
+      // Return the style of the original feature
+      return features[0].getStyle();
+    }
+
+    return new Style({
+      image: new CircleStyle({
+        radius: 12 + Math.min(size * 0.5, 8),
+        stroke: new Stroke({ color: '#fff', width: 2 }),
+        fill: new Fill({ color: '#1976d2' }),
+      }),
+      text: new Text({
+        text: size.toString(),
+        fill: new Fill({ color: '#fff' }),
+        font: 'bold 12px "Roboto", sans-serif',
+      }),
+    });
+  };
+
   // Initialize Normal Map (Default)
   useEffect(() => {
     if (mapType !== "normal" || !normalMapContainerRef.current) return;
@@ -817,9 +840,14 @@ const MapComponent = ({
     });
 
     // Initialize vector layer for markers
+    // Initialize vector layer for markers (with Clustering)
     const initialVectorLayer = new VectorLayer({
-      source: new VectorSource(),
+      source: new Cluster({
+        distance: 40,
+        source: new VectorSource(),
+      }),
       zIndex: 200,
+      style: clusterStyleFunction,
     });
     initialMap.addLayer(initialVectorLayer);
 
@@ -908,9 +936,14 @@ const MapComponent = ({
 
 
       // Initialize vector layer for markers
+      // Initialize vector layer for markers (with Clustering)
       const initialVectorLayer = new VectorLayer({
-        source: new VectorSource(),
+        source: new Cluster({
+          distance: 40,
+          source: new VectorSource(),
+        }),
         zIndex: 200,
+        style: clusterStyleFunction,
       });
       satelliteMap.addLayer(initialVectorLayer);
 
@@ -1028,9 +1061,14 @@ const MapComponent = ({
       });
 
       // Initialize vector layer for markers
+      // Initialize vector layer for markers (with Clustering)
       const initialVectorLayer = new VectorLayer({
-        source: new VectorSource(),
+        source: new Cluster({
+          distance: 40,
+          source: new VectorSource(),
+        }),
         zIndex: 200,
+        style: clusterStyleFunction,
       });
       soiMap.addLayer(initialVectorLayer);
 
@@ -1905,8 +1943,9 @@ const MapComponent = ({
     const allMarkers = [...gpsData, ...policeData];
 
     if (allMarkers.length > 0) {
-      // Clear the previous markers
-      vectorLayer.getSource().clear();
+      // Clear the previous markers (Access inner source from Cluster)
+      const vectorSource = vectorLayer.getSource().getSource();
+      vectorSource.clear();
 
       const features = allMarkers
         .map((entry) => {
@@ -1938,22 +1977,44 @@ const MapComponent = ({
         .filter(Boolean);
 
       // Add all features (markers) to the vector layer
-      vectorLayer.getSource().addFeatures(features);
+      vectorSource.addFeatures(features);
 
       // Only auto-fit if autoFit prop is true and there are markers
       if (autoFit && features.length > 0) {
+        // Use Cluster source extent (which covers all features)
         const extent = vectorLayer.getSource().getExtent();
         map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
       }
 
-      // Handle map click to display the overlay and zoom to street level
+      // Handle map click to display the overlay and zoom to street level or expand cluster
       const clickHandler = function (event) {
         dynamicOverlay.getElement().style.display = "none";
 
         // Check if a feature is clicked
-        map.forEachFeatureAtPixel(event.pixel, function (feature) {
-          const coordinates = feature.getGeometry().getCoordinates();
-          const entryData = feature.get("entryData");
+        const feature = map.forEachFeatureAtPixel(event.pixel, (feature) => feature);
+
+        if (!feature) return;
+
+        const features = feature.get('features');
+
+        if (features && features.length > 1) {
+          // Calculate extent of all features in cluster
+          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          features.forEach(f => {
+            const coords = f.getGeometry().getCoordinates();
+            if (coords[0] < minX) minX = coords[0];
+            if (coords[0] > maxX) maxX = coords[0];
+            if (coords[1] < minY) minY = coords[1];
+            if (coords[1] > maxY) maxY = coords[1];
+          });
+          map.getView().fit([minX, minY, maxX, maxY], { padding: [100, 100, 100, 100], duration: 500 });
+          return;
+        }
+
+        if (features && features.length === 1) {
+          const originalFeature = features[0];
+          const entryData = originalFeature.get("entryData");
+          const coordinates = originalFeature.getGeometry().getCoordinates();
 
           if (!entryData) return;
 
@@ -2001,7 +2062,7 @@ const MapComponent = ({
             zoom: 18,
             duration: 500, // Animate the zoom for 500ms
           });
-        });
+        }
       };
 
       map.on("click", clickHandler);
@@ -2021,6 +2082,37 @@ const MapComponent = ({
     markerLabelMode,
     autoFit,
   ]);
+
+  // Handle clustering distance based on zoom level to reveal tight clusters
+  useEffect(() => {
+    if (!map || !vectorLayer) return;
+
+    const source = vectorLayer.getSource();
+    // Ensure we are working with a Cluster source which supports setDistance
+    if (!source || typeof source.setDistance !== 'function') return;
+
+    const handleZoomChange = () => {
+      const zoom = map.getView().getZoom();
+      // Disable clustering at high zoom levels (e.g., >= 17) to reveal individual items
+      // 40 is the default distance we set during initialization
+      const targetDistance = zoom >= 17 ? 0 : 40;
+
+      if (source.getDistance() !== targetDistance) {
+        source.setDistance(targetDistance);
+      }
+    };
+
+    const view = map.getView();
+    // Initial check
+    handleZoomChange();
+
+    // Listen to changes
+    view.on('change:resolution', handleZoomChange);
+
+    return () => {
+      view.un('change:resolution', handleZoomChange);
+    };
+  }, [map, vectorLayer]);
 
   useEffect(() => {
     if (!focusEntry) return;
