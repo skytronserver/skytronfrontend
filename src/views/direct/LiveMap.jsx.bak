@@ -1,26 +1,25 @@
-
 import React, { useEffect, useRef, useState } from "react";
-import { useTheme, alpha } from '@mui/material/styles';
 import {
   Button,
   ButtonGroup,
   Tooltip,
   Box,
   IconButton,
+  TextField,
   Typography,
   CircularProgress,
+  Stack,
   Paper,
   List,
   ListItemButton,
   ListItemText,
   ListItemIcon,
+  alpha,
+  useTheme,
   Snackbar,
   Alert,
   InputBase,
-  Divider,
-  Collapse,
-  Switch,
-  FormControlLabel
+  Divider
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -255,7 +254,7 @@ const ensureHdPopupStyles = () => {
 
     .drawing-mode-active, 
     .drawing-mode-active * {
-      cursor: crosshair!important;
+      cursor: crosshair !important;
     }
   `;
 
@@ -297,7 +296,7 @@ const getMarkerLabelText = (entry, mode = "vehicle") => {
         entry.route_info ||
         entry.routeInformation ||
         entry.route_ref?.name ||
-        (entry.route_ref?.id ? `Route ${entry.route_ref.id} ` : "")
+        (entry.route_ref?.id ? `Route ${entry.route_ref.id}` : "")
       );
     }
     case "vehicle":
@@ -322,18 +321,17 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
 
   const speedValue =
     typeof entry?.speed === "number" && entry.speed > 2
-      ? `${entry.speed.toFixed(2)} km / h`
+      ? `${entry.speed.toFixed(2)} km/h`
       : "0 km/h";
 
   const dateValue = formatDisplayValue(entry?.date);
   const timeValue = formatDisplayValue(entry?.time);
   const batteryValue = `${formatDisplayValue(
     entry?.internal_battery_voltage
-  )
-    } - ${formatDisplayValue(entry?.main_input_voltage)} `;
+  )} - ${formatDisplayValue(entry?.main_input_voltage)}`;
 
   return `
-  < div class="mappls-hd-popup-card" >
+    <div class="mappls-hd-popup-card">
       <div class="mappls-hd-popup-header">
         <div class="mappls-hd-popup-title">${displayLabel}</div>
         <div class="mappls-hd-popup-pill ${alertClass}">${alertType}</div>
@@ -356,7 +354,7 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
           <span class="mappls-hd-popup-value">${batteryValue}</span>
         </div>
       </div>
-    </div >
+    </div>
   `;
 };
 
@@ -454,10 +452,10 @@ const MapComponent = ({
   const normalMapContainerRef = useRef(null);
   const satelliteMapContainerRef = useRef(null);
   const soiMapContainerRef = useRef(null);
-  const hdMapContainerRef = useRef(null); // Mappls SDK Refs
+  const hdMapContainerRef = useRef(null);
   const hdMapInnerRef = useRef(null);
-  const hdVehicleMarkersRef = useRef([]); // Store vehicle markers for HD map
-  const hdPoiMarkersRef = useRef([]);     // Store POI markers for HD map
+  const hdVehicleMarkersRef = useRef([]);
+  const hdPoiMarkersRef = useRef([]);
   const mapplsInstanceRef = useRef(null);
   const mapplsInitializedRef = useRef(false);
   const mapplsInitInProgressRef = useRef(false);
@@ -472,9 +470,7 @@ const MapComponent = ({
 
   // Geocoding State
   const [geoSearchQuery, setGeoSearchQuery] = useState('');
-  const [geoSearchResults, setGeoSearchResults] = useState([]); // Store search results
-  const [showVehicles, setShowVehicles] = useState(true);
-  const [showPois, setShowPois] = useState(true);
+  const [geoSearchResults, setGeoSearchResults] = useState([]);
   const [geoSearchLoading, setGeoSearchLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
@@ -2327,49 +2323,6 @@ const MapComponent = ({
   };
 
 
-  // Handle Layer Visibility Toggles (OpenLayers)
-  useEffect(() => {
-    if (vectorLayer) {
-      vectorLayer.setVisible(showVehicles);
-    }
-  }, [showVehicles, vectorLayer]);
-
-  useEffect(() => {
-    if (poiVectorLayer) {
-      poiVectorLayer.setVisible(showPois);
-    }
-  }, [showPois, poiVectorLayer]);
-
-  // Handle Layer Visibility Toggles (Mappls HD)
-  useEffect(() => {
-    // Toggle Vehicle Markers
-    if (hdVehicleMarkersRef.current) {
-      hdVehicleMarkersRef.current.forEach(marker => {
-        try {
-          if (showVehicles) {
-            if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
-          } else {
-            marker.remove();
-          }
-        } catch (e) { console.warn("Error toggling HD vehicle marker", e); }
-      });
-    }
-
-    // Toggle POI Markers
-    if (hdPoiMarkersRef.current) {
-      hdPoiMarkersRef.current.forEach(marker => {
-        try {
-          if (showPois) {
-            if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
-          } else {
-            marker.remove();
-          }
-        } catch (e) { console.warn("Error toggling HD POI marker", e); }
-      });
-    }
-  }, [showVehicles, showPois, mapType]);
-
-
   // Controls State
   const [showLayerMenu, setShowLayerMenu] = useState(false);
 
@@ -2380,8 +2333,8 @@ const MapComponent = ({
       <Box
         sx={{
           position: "absolute",
-          top: 6,
-          left: 30,
+          top: 16,
+          left: 16,
           zIndex: 1100,
           width: '320px',
           maxWidth: 'calc(100% - 80px)', // Leave room for right controls
@@ -2524,68 +2477,36 @@ const MapComponent = ({
               elevation={6}
               sx={{
                 mr: 1,
-                p: 1.5,
+                p: 0.5,
                 borderRadius: '12px',
                 backgroundColor: alpha(theme.palette.background.paper, 0.95),
                 backdropFilter: 'blur(10px)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 1
+                gap: 0.5
               }}
             >
-              {/* Map Type Selection */}
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                {[
-                  { id: 'normal', label: 'Normal', icon: <MapIcon /> },
-                  { id: 'satellite', label: 'Satellite', icon: <SatelliteIcon /> },
-                  { id: 'hd', label: 'Mappls HD', icon: <HdIcon /> },
-                  { id: 'soi', label: 'SOI', icon: <PublicIcon /> }
-                ].map((type) => (
-                  <Tooltip key={type.id} title={type.label} arrow>
-                    <IconButton
-                      size="small"
-                      onClick={() => setMapType(type.id)}
-                      sx={{
-                        color: mapType === type.id ? 'primary.main' : 'text.secondary',
-                        bgcolor: mapType === type.id ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-                        borderRadius: '8px',
-                        border: mapType === type.id ? `1px solid ${theme.palette.primary.main}` : '1px solid transparent'
-                      }}
-                    >
-                      {type.icon}
-                    </IconButton>
-                  </Tooltip>
-                ))}
-              </Box>
-
-              <Divider />
-
-              {/* Layer Toggles */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      size="small"
-                      checked={showVehicles}
-                      onChange={(e) => setShowVehicles(e.target.checked)}
-                    />
-                  }
-                  label={<Typography variant="caption" fontWeight={500}>Vehicles</Typography>}
-                  sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      size="small"
-                      checked={showPois}
-                      onChange={(e) => setShowPois(e.target.checked)}
-                    />
-                  }
-                  label={<Typography variant="caption" fontWeight={500}>POIs</Typography>}
-                  sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
-                />
-              </Box>
-
+              {[
+                { id: 'normal', label: 'Normal', icon: <MapIcon /> },
+                { id: 'satellite', label: 'Satellite', icon: <SatelliteIcon /> },
+                { id: 'hd', label: 'Mappls HD', icon: <HdIcon /> },
+                { id: 'soi', label: 'SOI', icon: <PublicIcon /> }
+              ].map((type) => (
+                <Tooltip key={type.id} title={type.label} arrow>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setMapType(type.id);
+                    }}
+                    sx={{
+                      color: mapType === type.id ? 'primary.main' : 'text.secondary',
+                      bgcolor: mapType === type.id ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    {type.icon}
+                  </IconButton>
+                </Tooltip>
+              ))}
             </Paper>
           )}
         </Box>
@@ -2719,17 +2640,431 @@ const MapComponent = ({
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ height: '50px' }} alt="Skytron" />
       </Box>
 
-      {/* Overlay for displaying marker details */}
-      <div ref={overlayElement} className="dynamic-overlay">
-        <div id="overlay-content"></div>
-      </div>
+    </div>
+  );
 
-      <style>{`
+  {/* Search Bar with Autocomplete */ }
+  <Box
+    sx={{
+      position: "absolute",
+      top: "10px",
+      left: "80%",
+      transform: "translateX(-50%)",
+      zIndex: 10000,
+      width: '220px',
+      maxWidth: 'calc(100% - 32px)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 1,
+    }}
+  >
+    {/* Search Pill */}
+    <Paper
+      elevation={4}
+      sx={{
+        p: '2px 4px',
+        display: 'flex',
+        alignItems: 'center',
+        width: '100%',
+        borderRadius: '50px',
+        backgroundColor: alpha(theme.palette.background.paper, 0.95),
+        backdropFilter: 'blur(10px)',
+        border: '1px solid',
+        borderColor: alpha(theme.palette.divider, 0.1),
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': {
+          boxShadow: '0 8px 25px rgba(0,0,0,0.12)',
+          transform: 'translateY(-1px)',
+          borderColor: alpha(theme.palette.primary.main, 0.2),
+        }
+      }}
+    >
+      <IconButton sx={{ p: '4px' }} aria-label="menu">
+        <SearchIcon color="action" />
+      </IconButton>
+
+      <InputBase
+        sx={{ ml: 1, flex: 1, fontSize: '0.95rem' }}
+        placeholder="Search detailed address..."
+        value={geoSearchQuery}
+        onChange={(e) => setGeoSearchQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleGeoSearch();
+          if (e.key === 'Escape') {
+            setGeoSearchQuery('');
+            setGeoSearchResults([]);
+          }
+        }}
+      />
+
+      {geoSearchQuery && (
+        <IconButton
+          size="small"
+          onClick={() => {
+            setGeoSearchQuery('');
+            setGeoSearchResults([]);
+          }}
+          sx={{ p: '8px', mr: 0.5 }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      )}
+
+      <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+
+      <IconButton
+        color="primary"
+        sx={{ p: '10px' }}
+        onClick={handleGeoSearch}
+        disabled={geoSearchLoading}
+      >
+        {geoSearchLoading ? <CircularProgress size={24} thickness={5} /> : <SearchIcon />}
+      </IconButton>
+    </Paper>
+
+    {/* Floating Search Results */}
+    {geoSearchResults && geoSearchResults.length > 0 && (
+      <Paper
+        elevation={6}
+        sx={{
+          width: '100%',
+          maxHeight: 400,
+          overflow: 'auto',
+          borderRadius: 4,
+          mt: 1,
+          backgroundColor: alpha(theme.palette.background.paper, 0.98),
+          backdropFilter: 'blur(12px)',
+          border: '1px solid',
+          borderColor: 'divider',
+          animation: 'fadeIn 0.2s ease-out',
+          '@keyframes fadeIn': {
+            '0%': { opacity: 0, transform: 'translateY(-10px)' },
+            '100%': { opacity: 1, transform: 'translateY(0)' },
+          },
+        }}
+      >
+        <List sx={{ p: 1 }}>
+          {geoSearchResults.map((result, index) => (
+            <ListItemButton
+              key={index}
+              onClick={() => handleGeoResultClick(result)}
+              sx={{
+                borderRadius: 2,
+                mb: 0.5,
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: alpha(theme.palette.error.main, 0.1),
+                  }}
+                >
+                  <LocationOnIcon color="error" fontSize="small" />
+                </Box>
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    {result.poi || result.formattedAddress || result.locality}
+                  </Typography>
+                }
+                secondary={
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    {[result.district, result.city, result.state].filter(Boolean).join(', ')}
+                  </Typography>
+                }
+              />
+            </ListItemButton>
+          ))}
+        </List>
+        <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider', bgcolor: alpha(theme.palette.grey[50], 0.5) }}>
+          <Typography variant="caption" color="text.secondary" align="center" display="block">
+            {geoSearchResults.length} results found
+          </Typography>
+        </Box>
+      </Paper>
+    )}
+  </Box>
+
+  {/* Normal Map Container */ }
+  {
+    mapType === "normal" && (
+      <div
+        ref={normalMapContainerRef}
+        style={{ width: "100%", height: "100%", position: "relative" }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: "50px",
+            left: "10px",
+            zIndex: 1000,
+            display: "flex",
+            gap: "10px",
+          }}
+        >
+          <Button
+            variant="contained"
+            size="small"
+            onClick={startDrawing}
+            color={drawInteraction ? "secondary" : "primary"}
+          >
+            {drawInteraction ? "Drawing..." : "Draw Polygon"}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={clearPolygon}
+            color="error"
+          >
+            Clear
+          </Button>
+        </div>
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 1000,
+          }}
+        />
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 1000,
+          }}
+        />
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            right: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 1000,
+            backgroundColor: "transparent",
+          }}
+        />
+      </div>
+    )
+  }
+
+  {/* Satellite Map Container */ }
+  {
+    mapType === "satellite" && (
+      <div
+        ref={satelliteMapContainerRef}
+        style={{ width: "100%", height: "100%", position: "relative" }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: "50px",
+            left: "10px",
+            zIndex: 1000,
+            display: "flex",
+            gap: "10px",
+          }}
+        >
+          <Button
+            variant="contained"
+            size="small"
+            onClick={startDrawing}
+            color={drawInteraction ? "secondary" : "primary"}
+          >
+            {drawInteraction ? "Drawing..." : "Draw Polygon"}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={clearPolygon}
+            color="error"
+          >
+            Clear
+          </Button>
+        </div>
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 1000,
+          }}
+        />
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 1000,
+          }}
+        />
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            right: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 1000,
+            backgroundColor: "transparent",
+          }}
+        />
+      </div>
+    )
+  }
+
+  {/* HD Map Container */ }
+  {
+    mapType === "hd" && (
+      <div
+        ref={hdMapContainerRef}
+        style={{ width: "100%", height: "100%", position: "relative" }}
+      >
+        {/* Actual Mappls map div - this gets cleared */}
+        <div
+          ref={hdMapInnerRef}
+          style={{ width: "100%", height: "100%", position: "absolute" }}
+        />
+
+        {/* HD Map Controls */}
+        <div
+          style={{
+            position: "absolute",
+            top: "50px",
+            left: "10px",
+            zIndex: 1000,
+            display: "flex",
+            gap: "10px",
+          }}
+        >
+          <Button
+            variant="contained"
+            size="small"
+            onClick={startHdDrawing}
+            color={drawingMode === 'polygon' ? "secondary" : "primary"}
+          >
+            {drawingMode === 'polygon' ? "Drawing..." : "Draw Polygon"}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={clearHdDrawing}
+            color="error"
+          >
+            Clear
+          </Button>
+        </div>
+
+        {/* Finish Polygon Button */}
+        {drawingMode === 'polygon' && drawingPoints.length > 2 && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 40,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1100,
+            }}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={finishHdDrawing}
+              sx={{
+                borderRadius: 28,
+                px: 4,
+                py: 1.5,
+                textTransform: 'none',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                fontWeight: 600,
+                fontSize: '1rem',
+              }}
+            >
+              Finish Polygon
+            </Button>
+          </Box>
+        )}
+
+
+        {/* Logos - outside the inner map div so they persist */}
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 10000,
+            pointerEvents: "none",
+          }}
+        />
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 10000,
+            pointerEvents: "none",
+          }}
+        />
+        <img
+          src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            right: 0,
+            height: "60px",
+            width: "auto",
+            zIndex: 10000,
+            backgroundColor: "transparent",
+            pointerEvents: "none",
+          }}
+        />
+
+
+        {/* Overlay for displaying marker details */}
+        < div ref={overlayElement} className="dynamic-overlay" >
+          <div id="overlay-content"></div>
+        </div >
+
+        <style>{`
         .dynamic-overlay {
           position: absolute;
           display: none;
           transform: translate(-5%, 0%);
-          z-index: 1200; /* above all else */
+          z-index: 1001; /* above logos */
         }
 
         .overlay-card {
@@ -2812,25 +3147,24 @@ const MapComponent = ({
         }
       `}</style>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
           onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbar.severity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </div >
+    );
+  };
 
-    </div>
-  );
-};
-
-export default MapComponent;
+  export default MapComponent;
