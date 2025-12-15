@@ -8,92 +8,92 @@ import TaggingService from "../services/TaggingService";
 export const retriveAwaitingList = async () => {
   try {
     const response = await TaggingService.tagApprovedOwnerApproval();
-    if(response.data.length===0){
-      return [{value:"",label:'Data Found'}]
+    if (response.data.length === 0) {
+      return [{ value: "", label: 'Data Found' }]
     }
-    const list=response.data.map(device => ({
+    const list = response.data.map(device => ({
       value: device.device,
       label: device.vehicle_reg_no,
-    })); 
+    }));
     return list;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log('No Data Found')
     } else {
       console.log('No Data Found')
     }
-    return [{value:'',label:'No Data'}]
+    return [{ value: '', label: 'No Data' }]
   }
 };
 export const retriveDeviceModelList = async (data) => {
   try {
     const response = await DeviceModelServices.getDeviceList(data);
-    const list=response.data.data.map(device => ({
+    const list = response.data.data.map(device => ({
       value: device.id,
       label: device.imei,
-    })); 
+    }));
     return list;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log('No Data Found')
     } else {
       console.log('No Data Found')
     }
-    return [{value:'',label:'Unable to fetch'}]
+    return [{ value: '', label: 'Unable to fetch' }]
   }
 };
 export const retriveModelList = async () => {
   try {
     const response = await DeviceModelServices.getAllModels();
-    const list=response.data.map(device => ({
+    const list = response.data.map(device => ({
       value: device.id,
       label: device.model_name,
-    })); 
+    }));
     return list;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log('No Data Found')
     } else {
       console.log('No Data Found')
     }
-    return {status:500}
+    return { status: 500 }
   }
 };
 export const filterModelList = async (data) => {
   try {
     const response = await DeviceModelServices.getFilterModels(data);
-    if(response.data.length===0){
-      return [{value:"",label:'No Approved Models'}]
+    if (response.data.length === 0) {
+      return [{ value: "", label: 'No Approved Models' }]
     }
-    const list=response.data.map(device => ({
+    const list = response.data.map(device => ({
       value: device.id,
       label: device.model_name,
-    })); 
+    }));
     return list;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log('No Data Found')
     } else {
       console.log('No Data Found')
     }
-    return {status:500}
+    return { status: 500 }
   }
 };
 
 export const retriveStateList = async () => {
   try {
     const response = await SettingService.filter_settings_State();
-    if(response.data.length===0){
-      return [{value:"",label:'No State Found'}]
+    if (response.data.length === 0) {
+      return [{ value: "", label: 'No State Found' }]
     }
-    const list=response.data.map(device => ({
+    const list = response.data.map(device => ({
       value: device.id,
       label: device.state,
-    })); 
+    }));
     return list;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log('No Data Found')
     } else {
       console.log('No Data Found')
     }
@@ -101,22 +101,22 @@ export const retriveStateList = async () => {
 };
 export const retriveSOSLead = async () => {
   try {
-    let filteredData=[];
-    const response = await UserServices.fetchSOSUser({user_type:"teamlead"});
-    if(response.data.length===0){
-      return [{value:"",label:'No Data Found'}]
+    let filteredData = [];
+    const response = await UserServices.fetchSOSUser({ user_type: "teamlead" });
+    if (response.data.length === 0) {
+      return [{ value: "", label: 'No Data Found' }]
     }
-    if(response?.data){
-      filteredData=response?.data.filter(item=>item.user_type==="teamlead")
+    if (response?.data) {
+      filteredData = response?.data.filter(item => item.user_type === "teamlead")
     }
-    const list=filteredData.map(user => ({
+    const list = filteredData.map(user => ({
       value: user.id,
       label: user.users[0].name,
-    })); 
+    }));
     return list;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log('No Data Found')
     } else {
       console.log('No Data Found')
     }
@@ -124,278 +124,278 @@ export const retriveSOSLead = async () => {
 };
 export const retriveSOSMember = async () => {
   try {
-    let filteredData=[];
+    let filteredData = [];
     const response = await UserServices.fetchSOSUser();
-    if(response.data.length===0){
-      return [{value:"",label:'No Data Found'}]
+    if (response.data.length === 0) {
+      return [{ value: "", label: 'No Data Found' }]
     }
-    
-    if(response?.data){
-      filteredData=response?.data.filter(item=>item.user_type!=="teamlead")
+
+    if (response?.data) {
+      filteredData = response?.data.filter(item => item.user_type !== "teamlead")
     }
-    const list=filteredData.map(user => ({
+    const list = filteredData.map(user => ({
       value: user.id,
       label: user.users[0].name,
-    })); 
+    }));
     return list;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-     console.log('No Data Found')
+      console.log('No Data Found')
     } else {
       console.log('No Data Found')
     }
   }
 };
 export const retriveDistrictList = async (filter) => {
-    try {
-      const response = await SettingService.filter_settings_District(filter);
-      const list=response.data.map(device => ({
-        value: device.id,
-        label: device.district,
-      })); 
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-       console.log('No Data Found')
-      } else {
-        console.log('No Data Found')
-      }
+  try {
+    const response = await SettingService.filter_settings_District(filter);
+    const list = response.data.map(device => ({
+      value: device.id,
+      label: device.district,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
     }
-  };
-  export const retriveDTOList = async (filter) => {
-    try {
-      const response = await SettingService.filter_settings_District(filter);
-      const list=response.data.map(device => ({
-        value: device?.district_code,
-        label: device?.district_code,
-      })); 
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-       console.log('No Data Found')
-      } else {
-        console.log('No Data Found')
-      }
+  }
+};
+export const retriveDTOList = async (filter) => {
+  try {
+    const response = await SettingService.filter_settings_District(filter);
+    const list = response.data.map(device => ({
+      value: device?.district_code,
+      label: device?.district_code,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
     }
-  };
-  export const retriveManufacturerList = async () => {
-    try {
-      const response = await ManufacturerServices.findManufacturer();
-      const list=response.data.map(manufacturer => ({
-        value: manufacturer.id,
-        label: manufacturer.company_name,
-      })); 
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-       console.log('No Data Found')
-      } else {
-        console.log('No Data Found')
-      }
+  }
+};
+export const retriveManufacturerList = async () => {
+  try {
+    const response = await ManufacturerServices.findManufacturer();
+    const list = response.data.map(manufacturer => ({
+      value: manufacturer.id,
+      label: manufacturer.company_name,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
     }
-  };
+  }
+};
 export const fetchDeviceListForSale = async () => {
-    try {
-      const filter = {
-        esim_status:"ESIM_Active_Confirmed"
-      };
-      const response = await StockServices.stockFilter(filter);
-      const list = response.data.data.map((device) => ({
-        value: device.id,
-        label: device.imei,
-      }));
-      const uniqueList = [
-        ...new Map(list.map((item) => [item["value"], item])).values(),
-      ];
-      return uniqueList;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("No Data Found");
-      } else {
-        console.log("No Data Found");
-      }
+  try {
+    const filter = {
+      esim_status: "ESIM_Active_Confirmed"
+    };
+    const response = await StockServices.stockFilter(filter);
+    const list = response.data.data.map((device) => ({
+      value: device.id,
+      label: device.imei,
+    }));
+    const uniqueList = [
+      ...new Map(list.map((item) => [item["value"], item])).values(),
+    ];
+    return uniqueList;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
     }
-  };
+  }
+};
 export const fetchDeviceListForTagging = async () => {
-    try {
-      const filter = {
-        esim_status: "ESIM_Active_Confirmed",
-        stock_status: "Available_for_fitting"
-      };
-      const response = await StockServices.stockFilter(filter);
-      const list = response.data.data.map((device) => ({
-        value: device.id,
-        label: device.imei,
-      }));
-      const uniqueList = [
-        ...new Map(list.map((item) => [item["value"], item])).values(),
-      ];
-      return uniqueList;
-    } catch (error) {
-      console.error("fetchDeviceListForTagging error:", error.response?.data || error.message);
-      // Return empty fallback so the dropdown doesn’t crash
-      return [];
+  try {
+    const filter = {
+      esim_status: "ESIM_Active_Confirmed",
+      stock_status: "Available_for_fitting"
+    };
+    const response = await StockServices.stockFilter(filter);
+    const list = response.data.data.map((device) => ({
+      value: device.id,
+      label: device.imei,
+    }));
+    const uniqueList = [
+      ...new Map(list.map((item) => [item["value"], item])).values(),
+    ];
+    return uniqueList;
+  } catch (error) {
+    console.error("fetchDeviceListForTagging error:", error.response?.data || error.message);
+    // Return empty fallback so the dropdown doesn’t crash
+    return [];
+  }
+};
+export const fetchEsimProvider = async () => {
+  try {
+    const response = await StockServices.getProviderList();
+    const provider = response.data;
+    const list = Object.keys(provider)
+      .filter((key) => provider[key] === "active")
+      .map((key) => ({ value: key, label: key }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
     }
-  };
-  export const fetchEsimProvider = async () => {
-    try {
-      const response = await StockServices.getProviderList();
-      const provider = response.data;
-      const list = Object.keys(provider)
-        .filter((key) => provider[key] === "active")
-        .map((key) => ({ value: key, label: key }));
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("No Data Found");
-      } else {
-        console.log("No Data Found");
-      }
+  }
+};
+export const retriveDealerList = async () => {
+  try {
+    const res = await DealerServices.dealerList();
+    if (res.data.length === 0) {
+      return [{ value: '', label: 'No Approved Dealer' }]
     }
-  };
-export const retriveDealerList=async()=>{
-    try{
-        const res=await DealerServices.dealerList();
-        if(res.data.length===0){
-          return [{value:'',label:'No Approved Dealer'}]
-        }
-        const filtered=res.data.filter((item)=>item.users[0].status==='active');
-        const arrayList=filtered.map(dealer=>({
-            value:dealer.id,
-            label:dealer.company_name,
-        }));
+    const filtered = res.data.filter((item) => item.users[0].status === 'active');
+    const arrayList = filtered.map(dealer => ({
+      value: dealer.id,
+      label: dealer.company_name,
+    }));
 
-        return arrayList;
-    }catch(error){
-        if (error.response && error.response.status === 404) {
-            console.log('No Data Found')
-           } else {
-             console.log('No Data Found')
-           }
+    return arrayList;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log('No Data Found')
+    } else {
+      console.log('No Data Found')
     }
+  }
 }
 export const retriveVehicleOwner = async () => {
-    try {
-      const response = await UserServices.fetchVehicleOwner();
-      if(response.data.length===0){
-        return [{value:'',label:'No Owner'}];
-      }
-      const filtered=response.data.filter((item)=>item.users[0].status==='active');
-      const list = filtered.map((owner) => ({
-        value: owner.id,
-        label: owner.users[0].name,
-      }));
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("No Data Found");
-      } else {
-        console.log("No Data Found");
-      }
+  try {
+    const response = await UserServices.fetchVehicleOwner();
+    if (response.data.length === 0) {
+      return [{ value: '', label: 'No Owner' }];
     }
-  };
+    const filtered = response.data.filter((item) => item.users[0].status === 'active');
+    const list = filtered.map((owner) => ({
+      value: owner.id,
+      label: owner.users[0].name,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
+    }
+  }
+};
 export const retriveCreatedSimProvider = async (data) => {
-    try {
-      const response = await UserServices.fetchSimProvider(data);
-      const filtered=response.data.filter((simProvider)=>simProvider.users[0].status!=='pending');
-      const list = filtered.map((simProvider) => ({
-        value: simProvider.id,
-        label: simProvider.users[0].name,
-      }));
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("No Data Found");
-      } else {
-        console.log("No Data Found");
-      }
-      return [{value:'',label:'No Data Found'}]
+  try {
+    const response = await UserServices.fetchSimProvider(data);
+    const filtered = response.data.filter((simProvider) => simProvider.users[0].status !== 'pending');
+    const list = filtered.map((simProvider) => ({
+      value: simProvider.id,
+      label: simProvider.users[0].name,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
     }
-  };
+    return [{ value: '', label: 'No Data Found' }]
+  }
+};
 export const fetchVehicleCategory = async () => {
-    try {
-      const resp = await SettingService.filter_settings_VehicleCategory();
-      const list = resp.data.map((category) => ({
-        value: category.id,
-        label: category.category,
-      }));
-      return list;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("No Data Found");
-      } else {
-        console.log("No Data Found");
-      }
+  try {
+    const resp = await SettingService.filter_settings_VehicleCategory();
+    const list = resp.data.map((category) => ({
+      value: category.id,
+      label: category.category,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
     }
-  };
+  }
+};
 
-  export const fetchTaggedList = async (data) => {
-    try {
-      const filter = data ? data : {
-        is_tagged: false,
-      };
-      const response = await DeviceModelServices.getDeviceList(filter);
-      const list = response.data.data.map((device) => ({
-        value: device.id,
-        label: device.imei,
-      }));
-      const uniqueList = [
-        ...new Map(list.map((item) => [item["value"], item])).values(),
-      ];
-      return uniqueList;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("No Data Found");
-      } else {
-        console.log("No Data Found");
-      }
-      return [{value:'',label:'No Data Found'}]
+export const fetchTaggedList = async (data) => {
+  try {
+    const filter = data ? data : {
+      is_tagged: false,
+    };
+    const response = await DeviceModelServices.getDeviceList(filter);
+    const list = response.data.data.map((device) => ({
+      value: device.id,
+      label: device.imei,
+    }));
+    const uniqueList = [
+      ...new Map(list.map((item) => [item["value"], item])).values(),
+    ];
+    return uniqueList;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
     }
-  };
+    return [{ value: '', label: 'No Data Found' }]
+  }
+};
 
 export const updateObjectValues = (targetObject, sourceObject, excludeKeys = []) => {
-    for (const key in targetObject) {
-      if (sourceObject.hasOwnProperty(key) && !excludeKeys.includes(key)) {
-        targetObject[key] = sourceObject[key];
-      }
+  for (const key in targetObject) {
+    if (sourceObject.hasOwnProperty(key) && !excludeKeys.includes(key)) {
+      targetObject[key] = sourceObject[key];
     }
-  };
+  }
+};
 
 export const convertErrorObjectToArray = (errorObject) => {
-    if(errorObject?.error){
-      return errorObject?.error
-    }else{
-      return Object.entries(errorObject).map(([key, value]) => ({
-        field: key,
-        message: value[0] // Assuming there's only one error message per field
-      }));
-    }
-    
-  };
+  if (errorObject?.error) {
+    return errorObject?.error
+  } else {
+    return Object.entries(errorObject).map(([key, value]) => ({
+      field: key,
+      message: value[0] // Assuming there's only one error message per field
+    }));
+  }
+
+};
 
 export const cipherEncryption = (salt) => {
-    const textToChars = text => text.split('').map(c => c.charCodeAt(0));
-    const byteHex = n => ("0" + Number(n).toString(16)).substr(-2);
-    const applySaltToChar = code => textToChars(salt).reduce((a,b) => a ^ b, code);
+  const textToChars = text => text.split('').map(c => c.charCodeAt(0));
+  const byteHex = n => ("0" + Number(n).toString(16)).substr(-2);
+  const applySaltToChar = code => textToChars(salt).reduce((a, b) => a ^ b, code);
 
-    return text => text.split('')
-      .map(textToChars)
-      .map(applySaltToChar)
-      .map(byteHex)
-      .join('');
+  return text => text.split('')
+    .map(textToChars)
+    .map(applySaltToChar)
+    .map(byteHex)
+    .join('');
 }
-    
+
 export const decipherEncryption = (salt) => {
-    const textToChars = text => text.split('').map(c => c.charCodeAt(0));
-    const applySaltToChar = code => textToChars(salt).reduce((a,b) => a ^ b, code);
-    return encoded => encoded.match(/.{1,2}/g)
-      .map(hex => parseInt(hex, 16))
-      .map(applySaltToChar)
-      .map(charCode => String.fromCharCode(charCode))
-      .join('');
+  const textToChars = text => text.split('').map(c => c.charCodeAt(0));
+  const applySaltToChar = code => textToChars(salt).reduce((a, b) => a ^ b, code);
+  return encoded => encoded.match(/.{1,2}/g)
+    .map(hex => parseInt(hex, 16))
+    .map(applySaltToChar)
+    .map(charCode => String.fromCharCode(charCode))
+    .join('');
 }
 
-export const getRole=()=>{
+export const getRole = () => {
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
@@ -409,9 +409,9 @@ export const formatDate = (dateString) => {
   const year = date.getFullYear();
   return `${day}-${month}-${year}`;
 };
-export const dateTimeUpdate=(date)=>{
+export const dateTimeUpdate = (date) => {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); 
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -419,9 +419,9 @@ export const dateTimeUpdate=(date)=>{
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
 }
-export const debounce=(func, wait)=> {
+export const debounce = (func, wait) => {
   let timeout;
-  return function(...args) {
+  return function (...args) {
     const later = () => {
       clearTimeout(timeout);
       func.apply(this, args);
@@ -432,7 +432,7 @@ export const debounce=(func, wait)=> {
 }
 export const openFile = async (e, filePath) => {
   let splitData = filePath.split("/");
-  let filename = splitData.length >= 1 && splitData[splitData.length-1];
+  let filename = splitData.length >= 1 && splitData[splitData.length - 1];
   e.preventDefault();
   try {
     const response = await SettingService.file_Download({
@@ -451,20 +451,20 @@ export const openFile = async (e, filePath) => {
     if (blob.size === 0) {
       throw new Error("The downloaded file is empty.");
     }
-    
+
     // Create URL for the blob
     const url = window.URL.createObjectURL(blob);
-    
+
     // Create temporary link element
     const a = document.createElement("a");
     a.href = url;
     a.download = fileName;
-    
+
     // Append to body, click and remove
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    
+
     // Clean up the URL
     setTimeout(() => window.URL.revokeObjectURL(url), 60000); // revoke after 1 minute
   } catch (error) {
@@ -472,31 +472,32 @@ export const openFile = async (e, filePath) => {
   }
 };
 
-export const formatDateTime=(dateTimeString)=>{
+export const formatDateTime = (dateTimeString) => {
   // Check if the string matches the date and time format
-  const isoDatePattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z/;
-  
-  if (isoDatePattern.test(dateTimeString)) {
-      // Convert string to Date object
-      const dateObj = new Date(dateTimeString);
-      
-      // Extract Date in YYYY-MM-DD format
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(dateObj.getDate()).padStart(2, '0');
-      const formattedDate = `${year}-${month}-${day}`;
-      
-      // Extract Time in HH:MM:SS.mmm format
-      const hours = String(dateObj.getHours()).padStart(2, '0');
-      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-      const seconds = String(dateObj.getSeconds()).padStart(2, '0');
-      const milliseconds = String(dateObj.getMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
-      const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} IST`;
-      
-      // Return formatted date and time
-      return `${formattedDate} \n ${formattedTime}`
+  // Relaxed regex or simply check if valid date
+  const isoDatePattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+
+  if (dateTimeString && (isoDatePattern.test(dateTimeString) || !isNaN(new Date(dateTimeString).getTime()))) {
+    // Convert string to Date object
+    const dateObj = new Date(dateTimeString);
+
+    // Extract Date in YYYY-MM-DD format
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Extract Time in HH:MM:SS.mmm format
+    const hours = String(dateObj.getHours()).padStart(2, '0');
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+    const milliseconds = String(dateObj.getMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
+    const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} IST`;
+
+    // Return formatted date and time
+    return `${formattedDate} \n ${formattedTime}`
   } else {
-      return "Invalid date-time format!";
+    return "Invalid date-time format!";
   }
 }
 

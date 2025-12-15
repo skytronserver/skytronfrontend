@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Box, Button, Slider, Typography } from "@mui/material";
+import { Box, Button, Slider, Typography, Paper, Grid } from "@mui/material";
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import StopIcon from '@mui/icons-material/Stop';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -20,6 +20,7 @@ import LineString from "ol/geom/LineString";
 import { getCenter } from "ol/extent"; // For centering the map
 import axios from "axios";
 import Select from "ol/interaction/Select";
+import { formatDateTime } from "../../helper";
 
 const GPSHistoryMap = ({
   startDateTime,
@@ -35,6 +36,7 @@ const GPSHistoryMap = ({
   const [map, setMap] = useState(null);
   const [mapData, setMapData] = useState([]);
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
+  const [currentData, setCurrentData] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
   const [maxSliderValue, setMaxSliderValue] = useState(0);
@@ -49,9 +51,14 @@ const GPSHistoryMap = ({
   const markerRef = useRef(null);
   const animationMarkerRef = useRef(null); // Separate ref for the animation marker
   const animationIntervalId = useRef(null);
+
   const featureOverlayRef = useRef(null);
+  const infoOverlayRef = useRef(null); // Ref for live info box overlay
+  const infoBoxElementRef = useRef(null); // Ref for the DOM element of info box
   const allFeaturesRef = useRef([]); // To store all features and avoid clearing markers
+
   const isRecordingRef = useRef(false); // Ref to track recording state for render loop
+  const sliderValueRef = useRef(0); // Ref to track slider value for animation loop
 
   const STREET_ZOOM_LEVEL = 18;
 
@@ -105,6 +112,9 @@ const GPSHistoryMap = ({
     setDownloadStatus("Idle");
     try {
       if (vehicleRegistrationNumber !== "") {
+        // Stop any existing animation
+        clearInterval(animationIntervalId.current);
+        setIsPlaying(false);
         setDownloadStatus("Downloading");
         const response = await axios.get(
           `${process.env.REACT_APP_BASE_URL}api/gps_history_map_data/`,
@@ -227,11 +237,20 @@ const GPSHistoryMap = ({
         element: overlayRef.current,
         autoPan: true,
         autoPanAnimation: {
-          duration: 2,
+          duration: 250,
         },
       });
-
       initialMap.addOverlay(overlay);
+
+      // Create overlay for moving info box
+      const infoOverlay = new Overlay({
+        element: infoBoxElementRef.current,
+        positioning: 'bottom-center',
+        stopEvent: false,
+        offset: [0, -50], // Position above the icon
+      });
+      initialMap.addOverlay(infoOverlay);
+      infoOverlayRef.current = infoOverlay;
 
       const markerSource = new VectorSource();
       const markerLayer = new VectorLayer({
@@ -260,7 +279,7 @@ const GPSHistoryMap = ({
 
   // Function to add markers and lines when data is loaded
   const loadMarkersAndLines = (data) => {
-    const coordinates = data.map((entry) => fromLonLat([entry.lon, entry.lat]));
+    const coordinates = data.map((entry) => fromLonLat([parseFloat(entry.lon), parseFloat(entry.lat)]));
     const lineFeature = new Feature({
       geometry: new LineString(coordinates),
     });
@@ -282,29 +301,22 @@ const GPSHistoryMap = ({
 
     data.forEach((entry, index) => {
       const point = new Feature({
-        geometry: new Point(fromLonLat([entry.lon, entry.lat])),
+        geometry: new Point(fromLonLat([parseFloat(entry.lon), parseFloat(entry.lat)])),
         data: entry,
       });
-      var col = "gray";
-      console.log(entry.ps);
-      if (entry.ps == "EM") { col = "red" }
-
-
-      else if (entry.s < 1) { col = "blue" }
-      else if (entry.ps == "NR") { col = "green" }
-      else { col = "gray" }
+      const statusInfo = getStatusInfo(entry);
 
       // Adding circular marker for each point
       point.setStyle(
         new Style({
           image: new CircleStyle({
             radius: 2,
-            fill: new Fill({ color: col }),
+            fill: new Fill({ color: statusInfo.colorHex }),
           }),
           text: new Text({
             text: (index + 1).toString(),
             scale: 0.2,
-            fill: new Fill({ color: col }),
+            fill: new Fill({ color: statusInfo.colorHex }),
           }),
         })
       );
@@ -322,6 +334,15 @@ const GPSHistoryMap = ({
     attachClickToPoints();
     setIsPlaying(false);
     setDownloadStatus("Play");
+
+    // Set initial data for info box and vehicle marker
+    if (data.length > 0) {
+      setSliderValue(0);
+      sliderValueRef.current = 0;
+      setCurrentData(data[0]);
+      // Initialize the car marker at start position
+      updateEmergencyPointer(data[0]);
+    }
   };
 
   // Attach click event to each point feature
@@ -361,14 +382,28 @@ const GPSHistoryMap = ({
 
   const updateEmergencyPointer = (entry) => {
     if (!entry) return;
-    const { lon, lat, h, ps, s } = entry;
-    const currentCoordinates = fromLonLat([lon, lat]);
+    setCurrentData(entry);
+    const { lon, lat, ps, s } = entry;
+    // Ensure coordinates are numbers for smooth movement
+    const currentCoordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+
+    const statusInfo = getStatusInfo(entry);
+
+    const category = entry?.device_tag_info?.category_info?.category;
+    const normalizedType = category ? category.toLowerCase().replace(/\s+/g, '_') : 'bus';
+    const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
+    const iconType = availableTypes.includes(normalizedType) ? normalizedType : 'bus';
 
     let iconSrc;
-    if (ps === "EM") iconSrc = require("../../assets/images/red/bus.png");
-    else if (s < 1) iconSrc = require("../../assets/images/blue/bus.png");
-    else if (ps === "NR") iconSrc = require("../../assets/images/green/bus.png");
-    else iconSrc = require("../../assets/images/grey/bus.png");
+    try {
+      iconSrc = require(`../../assets/images/${statusInfo.colorKey}/${iconType}.png`);
+    } catch (e) {
+      try {
+        iconSrc = require(`../../assets/images/${statusInfo.colorKey}/bus.png`);
+      } catch (e2) {
+        iconSrc = require("../../assets/images/grey/bus.png");
+      }
+    }
 
     const iconStyle = new Style({
       image: new Icon({
@@ -376,7 +411,7 @@ const GPSHistoryMap = ({
         crossOrigin: 'anonymous',
         src: iconSrc,
         scale: 0.07,
-        rotation: h ? (h * Math.PI) / 180 : 0, // Rotate based on heading
+        rotation: 0, // Keep icon straight as requested
       }),
     });
 
@@ -394,28 +429,54 @@ const GPSHistoryMap = ({
     }
 
     setCurrentCoordinates(currentCoordinates);
+    // Update info box overlay position
+    if (infoOverlayRef.current) {
+      infoOverlayRef.current.setPosition(currentCoordinates);
+    }
     // Optional: Only center if users wants to follow (current behavior: always follows)
     map.getView().setCenter(currentCoordinates);
   };
 
   const handleSliderChange = (event, value) => {
     setSliderValue(value);
+    sliderValueRef.current = value;
     const entry = mapData[value];
     if (entry) {
       updateEmergencyPointer(entry);
     }
   };
 
+  const getStatusInfo = (data) => {
+    if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
+
+    const isIgnitionOn = String(data.igs) === "1";
+    const speed = Number(data.s || 0);
+    const packetStatus = data.ps;
+
+    // Logic based on LiveTracking.jsx
+    if (packetStatus === "EA") {
+      return { colorKey: 'red', colorHex: '#d32f2f', statusText: 'Emergency' };
+    } else if (packetStatus !== "NR" && packetStatus) {
+      return { colorKey: 'orange', colorHex: '#ed6c02', statusText: 'Alert' };
+    } else if (isIgnitionOn && speed <= 1) {
+      return { colorKey: 'blue', colorHex: '#0288d1', statusText: 'Stopped' };
+    } else if (isIgnitionOn && speed > 1) {
+      return { colorKey: 'green', colorHex: '#2e7d32', statusText: 'Moving' };
+    } else {
+      return { colorKey: 'grey', colorHex: '#757575', statusText: 'Offline/Ignition Off' };
+    }
+  };
+
   const playAnimation = () => {
     setIsPlaying(true);
-    let currentIndex = sliderValue;
+    // Don't use local variable, use ref
     overlayRef.current.style.display = "none";
 
     animationIntervalId.current = setInterval(() => {
-      if (currentIndex < maxSliderValue) {
-        currentIndex += 1;
-        setSliderValue(currentIndex);
-        const entry = mapData[currentIndex];
+      if (sliderValueRef.current < maxSliderValue) {
+        sliderValueRef.current += 1;
+        setSliderValue(sliderValueRef.current);
+        const entry = mapData[sliderValueRef.current];
         if (entry) {
           updateEmergencyPointer(entry);
         }
@@ -423,7 +484,7 @@ const GPSHistoryMap = ({
         clearInterval(animationIntervalId.current);
         setIsPlaying(false);
       }
-    }, animationSpeed);
+    }, (510 - animationSpeed)); // Invert speed: Higher value = Lower delay (Faster)
   };
 
   const pauseAnimation = () => {
@@ -433,6 +494,7 @@ const GPSHistoryMap = ({
 
   const restartAnimation = () => {
     setSliderValue(0);
+    sliderValueRef.current = 0;
     if (mapData[0]) updateEmergencyPointer(mapData[0]);
   };
 
@@ -440,12 +502,12 @@ const GPSHistoryMap = ({
   const getSupportedMimeType = () => {
     // Prioritize MP4 (H.264) for better compatibility with media players
     const types = [
-      'video/mp4;codecs=h264', // Chrome/Edge/Safari
+      'video/webm;codecs=vp9', // High quality, reliable
+      'video/webm;codecs=vp8', // Standard reliable fallback
+      'video/webm',            // Generic WebM
+      'video/mp4;codecs=h264', // Chrome/Edge/Safari (Can be buggy)
       'video/mp4;codecs=avc1', // Alternative H.264 identifier
       'video/mp4',             // Generic MP4
-      'video/webm;codecs=vp9', // High quality WebM fallback
-      'video/webm;codecs=vp8', // Standard WebM fallback
-      'video/webm',            // Generic WebM
     ];
 
     for (const type of types) {
@@ -483,7 +545,7 @@ const GPSHistoryMap = ({
 
       const recorder = new MediaRecorder(stream, {
         mimeType: mimeType,
-        videoBitsPerSecond: 5000000 // 5 Mbps
+        videoBitsPerSecond: 8000000 // 8 Mbps for higher quality
       });
 
       const chunks = [];
@@ -801,6 +863,14 @@ const GPSHistoryMap = ({
     }
   }, [isPlaying, isRecording, sliderValue, maxSliderValue]);
 
+  // Handle speed change dynamically
+  useEffect(() => {
+    if (isPlaying) {
+      clearInterval(animationIntervalId.current);
+      playAnimation();
+    }
+  }, [animationSpeed]);
+
 
   useEffect(() => {
     if (mapData.length > 0 && markerRef.current) {
@@ -865,7 +935,7 @@ const GPSHistoryMap = ({
         >
           {isExportingPdf ? "Generating PDF..." : "Export as PDF"}
         </Button>
-        <Typography variant="body2" sx={{ ml: 2, alignItems: "right", }}>Faster</Typography>
+        <Typography variant="body2" sx={{ ml: 2, alignItems: "right", }}>Slower</Typography>
         <Slider
           value={animationSpeed}
           onChange={(e, value) => setAnimationSpeed(value)}
@@ -874,7 +944,7 @@ const GPSHistoryMap = ({
           step={10}
           sx={{ width: "10%", ml: 2, alignItems: "right", }}
         />
-        <Typography sx={{ ml: 2, alignItems: "right", }} variant="body2">Slower</Typography>
+        <Typography sx={{ ml: 2, alignItems: "right", }} variant="body2">Faster</Typography>
 
       </Box>
 
@@ -884,6 +954,67 @@ const GPSHistoryMap = ({
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
+
+        {/* Hidden Container for Overlay Content - React Renders Here, OL uses DOM element */}
+        <div ref={infoBoxElementRef} style={{ position: 'absolute', minWidth: '150px' }}>
+          {currentData && (
+            <Paper
+              elevation={2}
+              sx={{
+                p: 0.5,
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderTop: `2px solid ${getStatusInfo(currentData).colorHex}`,
+                borderRadius: 1,
+                minWidth: 'auto',
+                maxWidth: 180 // Increased slightly to fit date/loc
+              }}
+            >
+              <Grid container spacing={0.25}>
+                <Grid item xs={12}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" gap={0.5}>
+                    <Typography variant="body2" fontWeight="bold" sx={{ fontSize: '0.7rem', lineHeight: 1 }}>
+                      {vehicleRegistrationNumber}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        bgcolor: getStatusInfo(currentData).colorHex,
+                        color: 'white',
+                        px: 0.5,
+                        borderRadius: 0.5,
+                        fontSize: '0.6rem',
+                        lineHeight: 1
+                      }}
+                    >
+                      {getStatusInfo(currentData).statusText}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>
+                    {String(currentData.s)} km/h
+                  </Typography>
+                </Grid>
+                <Grid item xs={6} sx={{ textAlign: 'right' }}>
+                  <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>
+                    Itg: {String(currentData.igs) === "1" ? "ON" : "OFF"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1 }}>
+                    {/* Show full formatted date time */}
+                    {formatDateTime(currentData.et)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1 }}>
+                    Loc: {Number(currentData.lat).toFixed(4)}, {Number(currentData.lon).toFixed(4)}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
+        </div>
       </Box>
       <Box
         ref={overlayRef}
