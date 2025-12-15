@@ -247,7 +247,7 @@ const GPSHistoryMap = ({
         element: infoBoxElementRef.current,
         positioning: 'bottom-center',
         stopEvent: false,
-        offset: [0, -50], // Position above the icon
+        offset: [0, -85], // Position above the icon (increased offset for new anchor)
       });
       initialMap.addOverlay(infoOverlay);
       infoOverlayRef.current = infoOverlay;
@@ -407,7 +407,9 @@ const GPSHistoryMap = ({
 
     const iconStyle = new Style({
       image: new Icon({
-        anchor: [0.5, 0.5], // Center the icon rotation
+        anchor: [0.5, 0.8], // Bottom center touching the route
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
         crossOrigin: 'anonymous',
         src: iconSrc,
         scale: 0.07,
@@ -432,6 +434,10 @@ const GPSHistoryMap = ({
     // Update info box overlay position
     if (infoOverlayRef.current) {
       infoOverlayRef.current.setPosition(currentCoordinates);
+      // Force update offset to ensure it sits above the vehicle icon
+      // Assuming icon height ~35-40px after scale, -40 puts it at top of icon.
+      // We want it higher, so -85 or -100.
+      infoOverlayRef.current.setOffset([0, -110]);
     }
     // Optional: Only center if users wants to follow (current behavior: always follows)
     map.getView().setCenter(currentCoordinates);
@@ -956,7 +962,7 @@ const GPSHistoryMap = ({
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
 
         {/* Hidden Container for Overlay Content - React Renders Here, OL uses DOM element */}
-        <div ref={infoBoxElementRef} style={{ position: 'absolute', minWidth: '150px' }}>
+        <div ref={infoBoxElementRef} style={{ position: 'absolute', minWidth: '150px', top: '-17px', left: '50%', transform: 'translateX(-50%)' }}>
           {currentData && (
             <Paper
               elevation={2}
