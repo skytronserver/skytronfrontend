@@ -679,6 +679,35 @@ const POIViewer = () => {
         formDataObj.append(key, formData[key]);
       });
 
+      // Ensure backend-required fields are present
+      const status2 = formData.status || 'Active';
+      let lat = '';
+      let lon = '';
+      let address = formData.description || formData.name || '';
+
+      try {
+        if (formData.location) {
+          const parsedLocation = typeof formData.location === 'string'
+            ? JSON.parse(formData.location)
+            : formData.location;
+
+          if (Array.isArray(parsedLocation) && parsedLocation.length > 0) {
+            const firstPoint = parsedLocation[0];
+            if (Array.isArray(firstPoint) && firstPoint.length >= 2) {
+              lat = firstPoint[0];
+              lon = firstPoint[1];
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing POI location for lat/lon', e);
+      }
+
+      formDataObj.append('status2', status2);
+      formDataObj.append('lat', lat);
+      formDataObj.append('lon', lon);
+      formDataObj.append('address', address);
+
       if (isEditMode && selectedPoi) {
         formDataObj.append('poi_id', selectedPoi.id);
         await POIService.updatePOI(formDataObj);

@@ -2237,11 +2237,21 @@ const MapComponent = ({
           }
         } else if (Array.isArray(data)) {
           results = data;
+        } else if (Array.isArray(data.results)) {
+          // Support gromed.in geocode format: { results: [...] }
+          results = data.results;
         }
 
         setGeoSearchResults(results);
         if (results.length === 0) {
           showSnackbar('No results found', 'info');
+        } else {
+          // Auto-focus map on the first geocode result
+          try {
+            handleGeoResultClick(results[0]);
+          } catch (e) {
+            console.error('Error focusing map on geocode result:', e);
+          }
         }
       } else {
         console.warn('Geocoding status:', response.status);
@@ -2262,8 +2272,12 @@ const MapComponent = ({
   const handleGeoResultClick = async (result) => {
     console.log('Selected geo result:', result);
 
+    // Support multiple response formats:
+    // - Mappls: { latitude, longitude }
+    // - Generic: { lat, lng }
+    // - Gromed geocode: { lat, lon, address }
     let lat = result.latitude || result.lat;
-    let lng = result.longitude || result.lng;
+    let lng = result.longitude || result.lng || result.lon;
 
     // If lat/lng are missing, try to fetch them using eLoc
     if (!lat || !lng && result.eLoc) {
@@ -2318,10 +2332,10 @@ const MapComponent = ({
               popupHtml: `
                 <div style="padding: 10px; width: 250px; font-family: 'Roboto', sans-serif;">
                   <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #333; line-height: 1.3; overflow-wrap: break-word;">
-                    ${result.poi || result.placeName || result.locality || 'Location'}
+                    ${result.poi || result.placeName || result.locality || result.name || 'Location'}
                   </h3>
                   <p style="margin: 0 0 5px 0; font-size: 12px; color: #666; line-height: 1.4; overflow-wrap: break-word;">
-                    ${result.formattedAddress || result.address || 'No address available'}
+                    ${result.formattedAddress || result.address || result.description || 'No address available'}
                   </p>
                   <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
                     ${result.district ? `<span style="font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${result.district}</span>` : ''}
