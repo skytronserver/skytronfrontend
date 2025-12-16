@@ -177,6 +177,14 @@ const getApiDataLog = (params = {}) => {
   return http.post(`/api/apiLog/${queryString}`, {});
 };
 
+const getIncidentData = (data) => {
+  const http = getAxiosInstance();
+  // Using absolute URL as it's an external system, but assuming the token from axiosInstance is valid or headers are handled.
+  // If the base URL is different and requires a different token/auth, this might need adjustment.
+  // For now, using the provided URL in the user request.
+  return http.post("https://api.gromed.in/api/incident/filter/", data);
+};
+
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -206,6 +214,7 @@ const HomePageService = {
   getEmMedia,
   getStatus,
   getEmergencyUserLocations,
+  getIncidentData,
 };
 
 export default HomePageService;

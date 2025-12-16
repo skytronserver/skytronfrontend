@@ -21,13 +21,7 @@ const UsersList = () => {
     message: '',
     severity: 'success'
   });
-  const [extendDialog, setExtendDialog] = useState({
-    open: false,
-    userId: null,
-    userName: '',
-    newExpiry: '',
-    currentExpiry: ''
-  });
+
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     userId: null,
@@ -93,63 +87,7 @@ const UsersList = () => {
     }
   };
 
-  // Extend Validity Handlers
-  const handleOpenExtendDialog = (userId, userName, currentExpiry) => {
-    // Format date for input type="date" (YYYY-MM-DD) if currentExpiry exists
-    let formattedDate = '';
-    let displayCurrentExpiry = 'N/A';
-    if (currentExpiry) {
-      const date = new Date(currentExpiry);
-      formattedDate = date.toISOString().split('T')[0];
-      displayCurrentExpiry = date.toLocaleDateString('en-GB');
-    }
 
-    setExtendDialog({
-      open: true,
-      userId,
-      userName,
-      newExpiry: formattedDate,
-      currentExpiry: displayCurrentExpiry
-    });
-  };
-
-  const handleCloseExtendDialog = () => {
-    setExtendDialog({ open: false, userId: null, userName: '', newExpiry: '', currentExpiry: '' });
-  };
-
-  const handleExtendValidity = async () => {
-    try {
-      if (!extendDialog.newExpiry) {
-        setNotification({
-          open: true,
-          message: 'Please select a date',
-          severity: 'warning'
-        });
-        return;
-      }
-
-      const response = await UserServices.updateUser(extendDialog.userId, { expirydate: extendDialog.newExpiry });
-
-      if (response.status === 200 || response.status === 201) {
-        const updatedData = await UserServices.getRegisteredUsers();
-        setUsers(updatedData.data);
-
-        setNotification({
-          open: true,
-          message: 'User validity extended successfully',
-          severity: 'success'
-        });
-        handleCloseExtendDialog();
-      }
-    } catch (error) {
-      console.error('Error extending validity:', error);
-      setNotification({
-        open: true,
-        message: 'Failed to extend validity',
-        severity: 'error'
-      });
-    }
-  };
 
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
@@ -205,19 +143,6 @@ const UsersList = () => {
                 }}
               >
                 {isActive ? 'Deactivate' : 'Reactivate'}
-              </button>
-              <button
-                onClick={() => handleOpenExtendDialog(userId, userName, currentExpiry)}
-                style={{
-                  padding: '5px 10px',
-                  backgroundColor: '#2196f3',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Extend Validity
               </button>
             </div>
           );
@@ -277,35 +202,7 @@ const UsersList = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={extendDialog.open} onClose={handleCloseExtendDialog}>
-        <DialogTitle>Extend User Validity</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Select the new validity date for {extendDialog.userName}
-          </DialogContentText>
-          <DialogContentText sx={{ mt: 1, mb: 2, fontWeight: 'bold' }}>
-            Current Validity: {extendDialog.currentExpiry}
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="expiryDate"
-            label="Expiry Date"
-            type="date"
-            fullWidth
-            variant="standard"
-            InputLabelProps={{
-              shrink: true,
-            }}
-            value={extendDialog.newExpiry}
-            onChange={(e) => setExtendDialog({ ...extendDialog, newExpiry: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseExtendDialog}>Cancel</Button>
-          <Button onClick={handleExtendValidity} color="primary">Update</Button>
-        </DialogActions>
-      </Dialog>
+
     </Grid>
   );
 }
