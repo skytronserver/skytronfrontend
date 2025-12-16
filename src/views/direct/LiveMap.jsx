@@ -2219,8 +2219,8 @@ const MapComponent = ({
 
     try {
       setGeoSearchLoading(true);
-      const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
-
+      // const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+      const url = `https://api.gromed.in/api/geocode/?q=${encodeURIComponent(geoSearchQuery)}`;
       console.log('Fetching geocode via Axios (Proxy):', url);
       const response = await axios.get(url);
 

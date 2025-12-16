@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
+import POIService from "../../services/POIService";
 import MiniBoard from "../../ui-component/MiniBoard";
 import DetailCard from "../../ui-component/DetailCard";
 import { useDispatch } from 'react-redux';
@@ -26,6 +27,9 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const [newPendingCall, setNewPendingCall] = useState(null);
   const [showDetails, setShowDetails] = useState(false)
   const [sosLocations, setSosLocations] = useState([]);
+  const [policePois, setPolicePois] = useState([]);
+  const [nearestPolice, setNearestPolice] = useState(null);
+  const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const { t } = useTranslation();
 
   //fetching live location
@@ -56,6 +60,102 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
 
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, [dispatch]);
+
+  // Fetch Police Station POIs for SOS map
+  useEffect(() => {
+    const fetchPolicePois = async () => {
+      try {
+        const response = await POIService.getAllPOIs();
+        const data = response?.data || response || [];
+
+        const filtered = Array.isArray(data)
+          ? data.filter((poi) => {
+              const type = poi?.use_type || "";
+              const normalized = String(type).toLowerCase();
+              return (
+                normalized === "policestation" ||
+                normalized === "police_station" ||
+                normalized === "police"
+              );
+            })
+          : [];
+
+        setPolicePois(filtered);
+      } catch (error) {
+        console.error("Error fetching police POIs for SOSDashboard:", error);
+      }
+    };
+
+    fetchPolicePois();
+  }, []);
+
+  useEffect(() => {
+    if (!sosLocations || sosLocations.length === 0 || !policePois || policePois.length === 0) {
+      setNearestPolice(null);
+      setNearestPoliceDistance(null);
+      return;
+    }
+
+    const baseLoc = sosLocations[0];
+    const baseLat = Number(baseLoc.latitude);
+    const baseLon = Number(baseLoc.longitude);
+
+    if (!Number.isFinite(baseLat) || !Number.isFinite(baseLon)) {
+      setNearestPolice(null);
+      setNearestPoliceDistance(null);
+      return;
+    }
+
+    const toRad = (value) => (value * Math.PI) / 180;
+
+    const distanceKm = (lat1, lon1, lat2, lon2) => {
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    };
+
+    let bestPoi = null;
+    let bestDistance = null;
+
+    policePois.forEach((poi) => {
+      try {
+        const location = JSON.parse(poi.location);
+        if (!Array.isArray(location) || location.length === 0 || !location[0] || location[0].length !== 2) {
+          return;
+        }
+        const [lat, lon] = location[0];
+        const poiLat = Number(lat);
+        const poiLon = Number(lon);
+        if (!Number.isFinite(poiLat) || !Number.isFinite(poiLon)) {
+          return;
+        }
+
+        const d = distanceKm(baseLat, baseLon, poiLat, poiLon);
+        if (bestDistance === null || d < bestDistance) {
+          bestDistance = d;
+          bestPoi = poi;
+        }
+      } catch (e) {
+        return;
+      }
+    });
+
+    if (bestPoi && bestDistance !== null) {
+      setNearestPolice(bestPoi);
+      setNearestPoliceDistance(bestDistance);
+    } else {
+      setNearestPolice(null);
+      setNearestPoliceDistance(null);
+    }
+  }, [sosLocations, policePois]);
 
   const fetchAndPlotLocations = async () => {
     try {
@@ -188,6 +288,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
       <Grid item xs={12} md={12}>
         <BhuvanMapComponent
           gpsData={sosLocations}
+          pois={policePois}
           width="100%"
           height="65vh"
           autoFit={false}
@@ -200,6 +301,21 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
           zoom={7}
         />
       </Grid>
+      {nearestPolice && (
+        <Grid item xs={12} md={6}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            Nearest Police Station
+          </Typography>
+          <Typography variant="body2">
+            {nearestPolice.name || nearestPolice.description || "Police Station"}
+          </Typography>
+          {nearestPoliceDistance !== null && (
+            <Typography variant="body2">
+              Distance: {nearestPoliceDistance.toFixed(2)} km
+            </Typography>
+          )}
+        </Grid>
+      )}
       <DetailCard
         handleBroadcast={handleBroadcast}
         handleCloseCall={handleCloseCall}

@@ -705,6 +705,15 @@ const user = {
           roles: ['superadmin']
         },
         {
+          id: 'health-packet-log',
+          title: 'Health Packet Log',
+          type: 'item',
+          url: '/reports/health-packet-log',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+        {
           id: 'api-data-log',
           title: 'Event Data Log',
           type: 'item',

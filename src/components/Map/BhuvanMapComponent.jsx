@@ -140,6 +140,9 @@ const BhuvanMapComponent = ({
         busstop: "#7CB342",
         railwaystation: "#5C6BC0",
         airport: "#039BE5",
+        // Police station POIs (use_type "PoliceStation" -> key "policestation")
+        policestation: "#1565C0",
+        police: "#1565C0",
         other: "#546E7A",
     };
 

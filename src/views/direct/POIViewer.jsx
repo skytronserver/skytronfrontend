@@ -879,8 +879,10 @@ const POIViewer = () => {
 
     try {
       setGeoSearchLoading(true);
-      // Use proxy path /mappls/ to avoid CORS
-      const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+      // // Use proxy path /mappls/ to avoid CORS
+      // const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+
+      const url = `https://api.gromed.in/api/geocode/?q=${encodeURIComponent(geoSearchQuery)}`;
 
       console.log('Fetching geocode via Axios (Proxy):', url);
       const response = await axios.get(url);
@@ -1044,8 +1046,9 @@ const POIViewer = () => {
 
   const handleReverseGeocode = async (lat, lng) => {
     try {
-      // Use proxy path /mappls to avoid CORS
-      const url = `/mappls/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+      // // Use proxy path /mappls to avoid CORS
+      // const url = `/mappls/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lng}`;
       const response = await axios.get(url);
       if (response.status === 200) {
         const data = response.data;

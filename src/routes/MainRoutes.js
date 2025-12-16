@@ -32,9 +32,10 @@ import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
 import SuperAdminDashboard from "../views/direct/SuperAdminDashboard";
 import NewMap from "../views/MapComponent/Index";
+import HealthPacketLog from "../views/reports/HealthPacketLog";
+import MapPolicy from "../views/pages/MapPolicy";
 
 import Help from "../views/pages/Help";
-
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -210,9 +211,18 @@ const MainRoutes = {
       roles: ['superadmin']
     },
     {
+      path: '/reports/health-packet-log',
+      element: <HealthPacketLog />,
+      roles: ['superadmin']
+    },
+    {
       path: '/map',
       element: <NewMap />,
       roles: ['superadmin']
+    },
+    {
+      path: '/map-policy',
+      element: <MapPolicy />
     }
 
   ].map((route) => applyPrivateRoute(route)),
