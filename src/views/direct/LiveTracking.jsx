@@ -278,6 +278,7 @@ const LiveTracking = () => {
       make: make,
       dto_code: dtoCode,
     };
+
     setSelectedId(null); // Reset selection when submitting new search
     setFocusedEntry(null);
     retriveMapData(params);

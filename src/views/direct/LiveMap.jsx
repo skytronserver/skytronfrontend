@@ -59,6 +59,31 @@ import "ol/ol.css";
 import POIService from "../../services/POIService";
 import axios from "axios";
 
+const formatDateDDMMYY = (raw) => {
+  if (!raw || raw.length < 8) return raw || "-";
+  const d = raw.slice(0, 2);   // 16
+  const m = raw.slice(2, 4);   // 12
+  const y = raw.slice(6, 8);   // 25 from 2025
+  return `${d}-${m}-${y}`;
+};
+
+const formatTimeHHMMSS = (raw) => {
+  if (!raw || raw.length < 6) return raw || "-";
+
+  const h24 = parseInt(raw.slice(0, 2), 10); // 0–23
+  const m = raw.slice(2, 4);
+  const s = raw.slice(4, 6);
+
+  if (Number.isNaN(h24)) return raw;
+
+  const period = h24 >= 12 ? "PM" : "AM";
+  let h12 = h24 % 12;
+  if (h12 === 0) h12 = 12; // 0 -> 12 AM/PM
+
+  const h = String(h12).padStart(2, "0");
+  return `${h}:${m}:${s} ${period}`;
+};
+
 const MAPPLS_TOKEN_ENV_KEYS = [
   "REACT_APP_MAPPLS_TOKEN",
   "REACT_APP_MAPPLS_REST_KEY",
@@ -2271,11 +2296,11 @@ const MapComponent = ({
                   <div class="overlay-body">
                     <div class="overlay-row">
                       <span class="overlay-label">Date</span>
-                      <span class="overlay-value">${entryData.date || "-"}</span>
+                      <span class="overlay-value">${formatDateDDMMYY(entryData.date)}</span>
                     </div>
                     <div class="overlay-row">
                       <span class="overlay-label">Time</span>
-                      <span class="overlay-value">${entryData.time || "-"}</span>
+                      <span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
                     </div>
                     <div class="overlay-row">
                       <span class="overlay-label">Speed</span>
@@ -2284,6 +2309,14 @@ const MapComponent = ({
                     <div class="overlay-row">
                       <span class="overlay-label">Battery</span>
                       <span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
+                    </div>
+                    <div class="overlay-row">
+                      <span class="overlay-label">Latitude</span>
+                      <span class="overlay-value">${entryData.latitude || "-"}</span>
+                    </div>
+                    <div class="overlay-row">
+                      <span class="overlay-label">Longitude</span>
+                      <span class="overlay-value">${entryData.longitude || "-"}</span>
                     </div>
                   </div>
                 </div>
