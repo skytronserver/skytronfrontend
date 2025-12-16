@@ -6,13 +6,26 @@ import { Download, Print, Visibility, CheckCircle, LocalShipping, Phone, Calenda
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
-import {uploadReceiptInitials,uploadReceiptFormFields} from "../../formjson/uploadReceipt";
+import { uploadReceiptInitials, uploadReceiptFormFields } from "../../formjson/uploadReceipt";
 import { useState, useEffect, useRef } from "react";
 import TaggingService from "../../services/TaggingService";
-import {fetchTaggedList} from "../../helper";
+import { fetchTaggedList } from "../../helper";
 import { useTranslation } from 'react-i18next';
 import { jsPDF } from "jspdf";
 import skytronLogo from "../../assets/images/skytron-logo4.png";
+
+const formatICCID = (val) => {
+  if (!val) return "";
+  const str = String(val);
+  if (str.toLowerCase().includes('e')) {
+    try {
+      return Number(val).toLocaleString('en-US', { useGrouping: false });
+    } catch (e) {
+      return str;
+    }
+  }
+  return str;
+};
 
 const UploadReceipt = () => {
   const { t } = useTranslation();
@@ -21,22 +34,22 @@ const UploadReceipt = () => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [certificateData, setCertificateData] = useState(null);
   const certificateRef = useRef(null);
-  
+
   useEffect(() => {
     (async () => {
-      const filter={
+      const filter = {
         is_tagged: "True",
       }
-        const tagged_list = await fetchTaggedList(filter);
-        setUpdatedFormField((prevConfig) => ({
-            ...prevConfig,
-            device_id: {
-              ...prevConfig.device_id,
-              options: tagged_list,
-            },
-          }));
-          setIsFormLoaded(true);
-      })();
+      const tagged_list = await fetchTaggedList(filter);
+      setUpdatedFormField((prevConfig) => ({
+        ...prevConfig,
+        device_id: {
+          ...prevConfig.device_id,
+          options: tagged_list,
+        },
+      }));
+      setIsFormLoaded(true);
+    })();
   }, []);
 
   const handleFileChange = (event, formik) => {
@@ -46,7 +59,7 @@ const UploadReceipt = () => {
       formik.setFieldValue(fieldName, selectedFile);
     }
   };
- 
+
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {
       acc[field] = updatedFormFields[field].validation;
@@ -134,7 +147,7 @@ const UploadReceipt = () => {
     }
   };
 
-const loadCertificatePreview = async (values) => {
+  const loadCertificatePreview = async (values) => {
     try {
       setLoading(true);
       const deviceData = { device_id: values.device_id };
@@ -168,7 +181,7 @@ const loadCertificatePreview = async (values) => {
         vltdModel: device?.model || vahanData?.deviceSerialno || "",
         vltdImei: device?.imei || vahanData?.imeiNo || "",
         esimIccid: device?.iccid || vahanData?.iccId || "",
-        esimIccid2: device?.iccid2 || "",
+        esimIccid2: formatICCID(device?.iccid2),
         esimValidity: device?.esim_validity || "",
       });
     } catch (error) {
@@ -270,7 +283,7 @@ const loadCertificatePreview = async (values) => {
         <Formik
           initialValues={uploadReceiptInitials}
           validationSchema={validationSchema}
-          onSubmit={() => {}}
+          onSubmit={() => { }}
           enableReinitialize
         >
           {(formik) => (
@@ -328,7 +341,7 @@ const loadCertificatePreview = async (values) => {
       {certificateData && (
         <Grid container justifyContent="center" style={{ marginTop: "32px" }}>
           <Grid item xs={12} md={11} lg={9}>
-            <Paper 
+            <Paper
               elevation={8}
               sx={{
                 background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
@@ -351,8 +364,8 @@ const loadCertificatePreview = async (values) => {
                 <Box sx={{ textAlign: 'center', mb: 4 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
                     <CheckCircle sx={{ color: '#1976d2', fontSize: 32, mr: 1 }} />
-                    <Typography variant="h4" sx={{ 
-                      fontWeight: 700, 
+                    <Typography variant="h4" sx={{
+                      fontWeight: 700,
                       color: '#1565c0',
                       letterSpacing: 1,
                       textTransform: 'uppercase'
@@ -361,23 +374,23 @@ const loadCertificatePreview = async (values) => {
                     </Typography>
                   </Box>
                   <Divider sx={{ mb: 2, bgcolor: '#1976d2' }} />
-                  <Typography variant="h5" sx={{ 
-                    fontWeight: 600, 
+                  <Typography variant="h5" sx={{
+                    fontWeight: 600,
                     color: '#424242',
                     letterSpacing: 0.5
                   }}>
                     VLTD Tagging & Activation Certificate
                   </Typography>
-                  <Chip 
-                    label="Official Document" 
-                    color="primary" 
-                    size="small" 
+                  <Chip
+                    label="Official Document"
+                    color="primary"
+                    size="small"
                     sx={{ mt: 1 }}
                   />
                 </Box>
 
                 {/* Certificate Content */}
-                <Box sx={{ 
+                <Box sx={{
                   backgroundColor: 'rgba(255, 255, 255, 0.9)',
                   borderRadius: 3,
                   p: 3,
@@ -548,7 +561,7 @@ const loadCertificatePreview = async (values) => {
                 </Box>
 
                 {/* Footer Section */}
-                <Box sx={{ 
+                <Box sx={{
                   backgroundColor: 'rgba(25, 118, 210, 0.08)',
                   borderRadius: 2,
                   p: 2,
@@ -561,8 +574,8 @@ const loadCertificatePreview = async (values) => {
                     This certificate is system-generated from the SkyTron platform and does not require any physical signature or stamp.
                   </Typography>
                   <Box sx={{ mt: 2, mb: 1 }}>
-                    <Typography variant="body2" sx={{ 
-                      letterSpacing: 2, 
+                    <Typography variant="body2" sx={{
+                      letterSpacing: 2,
                       color: '#1976d2',
                       fontWeight: 600
                     }}>

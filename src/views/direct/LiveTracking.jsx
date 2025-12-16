@@ -57,6 +57,7 @@ const LiveTracking = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [markerLabelMode, setMarkerLabelMode] = useState('vehicle');
   const [policeLocations, setPoliceLocations] = useState([]);
+  const [incidentData, setIncidentData] = useState([]);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -183,6 +184,31 @@ const LiveTracking = () => {
     }
   }, [computeSearchCenter]);
 
+  const fetchIncidents = useCallback(async (entries = []) => {
+    try {
+      const center = computeSearchCenter(entries);
+      const response = await HomePageService.getIncidentData({
+        latitude: center.latitude,
+        longitude: center.longitude,
+        radius_km: 50, // Default radius
+        page: 1,
+        page_size: 100,
+        // Add date range if needed, e.g., current year
+        registered_at_from: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
+        registered_at_to: new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0],
+      });
+
+      if (response && response.data && response.data.status === "success" && Array.isArray(response.data.data)) {
+        setIncidentData(response.data.data);
+      } else {
+        setIncidentData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching incidents:', error);
+      setIncidentData([]);
+    }
+  }, [computeSearchCenter]);
+
   const retriveMapData = async (data) => {
     try {
       const retriveData_table = await HomePageService.getLiveTracking_data(
@@ -203,12 +229,14 @@ const LiveTracking = () => {
         }
 
         fetchPoliceLocations(newData);
+        fetchIncidents(newData);
       } else {
         setTableDataTop([]);
         setFilteredData([]);
         setSelectedId(null);
         setFocusedEntry(null);
         fetchPoliceLocations();
+        fetchIncidents();
       }
       setLoad(true);
     } catch (error) {
@@ -217,6 +245,7 @@ const LiveTracking = () => {
       setSelectedId(null);
       setFocusedEntry(null);
       fetchPoliceLocations();
+      fetchIncidents();
     }
   };
 
@@ -650,6 +679,7 @@ const LiveTracking = () => {
           <MapComponent
             gpsData={filteredData}
             policeData={policeLocations}
+            incidentData={incidentData}
             width="100%"
             height={selectedId ? "400px" : "600px"}
             onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}

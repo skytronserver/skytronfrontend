@@ -52,7 +52,12 @@ function SendCommand() {
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         setSubmitting(true);
         setLoading(true);
-        const resp = await sendCommandService(values);
+        const payload = {
+            imei: values.imei,
+            command_base: `@${values.selected_command}`,
+            value: `${values.input_value}*`,
+        };
+        const resp = await sendCommandService(payload);
         if (resp.code === "200") {
             setAlert((prevAlert) => ({
                 ...prevAlert,

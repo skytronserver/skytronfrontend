@@ -39,6 +39,7 @@ import {
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource, TileWMS, XYZ, Cluster } from "ol/source";
+import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
 import {
   Icon,
   Style,
@@ -430,6 +431,7 @@ const createBhuvanSource = (layerName) => {
 const MapComponent = ({
   gpsData,
   policeData = [],
+  incidentData = [],
   width = "100%",
   height = "400px",
   onPolygonComplete,
@@ -444,6 +446,7 @@ const MapComponent = ({
   const [drawVectorLayer, setDrawVectorLayer] = useState(null);
   const [drawInteraction, setDrawInteraction] = useState(null);
   const [poiVectorLayer, setPoiVectorLayer] = useState(null);
+  const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
   const [pois, setPois] = useState([]);
 
   // Map type state for 3-layer system
@@ -458,6 +461,7 @@ const MapComponent = ({
   const hdMapInnerRef = useRef(null);
   const hdVehicleMarkersRef = useRef([]); // Store vehicle markers for HD map
   const hdPoiMarkersRef = useRef([]);     // Store POI markers for HD map
+  const hdIncidentMarkersRef = useRef([]); // Store incident markers for HD map
   const mapplsInstanceRef = useRef(null);
   const mapplsInitializedRef = useRef(false);
   const mapplsInitInProgressRef = useRef(false);
@@ -474,7 +478,8 @@ const MapComponent = ({
   const [geoSearchQuery, setGeoSearchQuery] = useState('');
   const [geoSearchResults, setGeoSearchResults] = useState([]); // Store search results
   const [showVehicles, setShowVehicles] = useState(true);
-  const [showPois, setShowPois] = useState(true);
+  const [showPois, setShowPois] = useState(false);
+  const [showIncidents, setShowIncidents] = useState(false);
   const [geoSearchLoading, setGeoSearchLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
@@ -832,9 +837,15 @@ const MapComponent = ({
         projection: "EPSG:4326",
         center: [91.7362, 26.1445], // Guwahati, Assam
         zoom: 10,
-        maxZoom: 19,
+        maxZoom: 22,
         constrainResolution: true,
       }),
+
+      controls: [
+        new ZoomSlider(),
+        new FullScreen(),
+        new ScaleLine()
+      ],
 
       pixelRatio: 1,
     });
@@ -857,9 +868,20 @@ const MapComponent = ({
       source: poiSource,
       zIndex: 100,
       declutter: true,
+      visible: false,
     });
     initialMap.addLayer(initialPoiVectorLayer);
     setPoiVectorLayer(initialPoiVectorLayer);
+
+    // Initialize incident vector layer
+    const incidentSource = new VectorSource();
+    const initialIncidentVectorLayer = new VectorLayer({
+      source: incidentSource,
+      zIndex: 300,
+      visible: false,
+    });
+    initialMap.addLayer(initialIncidentVectorLayer);
+    setIncidentVectorLayer(initialIncidentVectorLayer);
 
     // Initialize vector layer for drawing
     const drawSource = new VectorSource();
@@ -927,9 +949,14 @@ const MapComponent = ({
           projection: "EPSG:4326",
           center: [91.7362, 26.1445],
           zoom: 10,
-          maxZoom: 19,
+          maxZoom: 22,
           constrainResolution: true,
         }),
+        controls: [
+          new ZoomSlider(),
+          new FullScreen(),
+          new ScaleLine()
+        ],
         pixelRatio: 1,
       });
 
@@ -953,9 +980,20 @@ const MapComponent = ({
         source: poiSource,
         zIndex: 100,
         declutter: true,
+        visible: false,
       });
       satelliteMap.addLayer(initialPoiVectorLayer);
       setPoiVectorLayer(initialPoiVectorLayer);
+
+      // Initialize incident vector layer for satellite
+      const incidentSource = new VectorSource();
+      const initialIncidentVectorLayer = new VectorLayer({
+        source: incidentSource,
+        zIndex: 300,
+        visible: false,
+      });
+      satelliteMap.addLayer(initialIncidentVectorLayer);
+      setIncidentVectorLayer(initialIncidentVectorLayer);
 
       // Initialize vector layer for drawing
       const drawSource = new VectorSource();
@@ -1428,6 +1466,17 @@ const MapComponent = ({
       hdPoiMarkersRef.current = [];
     };
 
+    const clearIncidentMarkers = () => {
+      hdIncidentMarkersRef.current.forEach((marker) => {
+        try {
+          marker?.remove?.();
+        } catch (error) {
+          console.warn("Error removing incident marker from HD map", error);
+        }
+      });
+      hdIncidentMarkersRef.current = [];
+    };
+
     const createMarker = (options) => {
       const markerFactory = mapplsInstance?.marker;
 
@@ -1452,6 +1501,7 @@ const MapComponent = ({
 
     clearVehicleMarkers();
     clearPoiMarkers();
+    clearIncidentMarkers();
 
     let allMarkers = [];
 
@@ -1549,7 +1599,7 @@ const MapComponent = ({
               const poiIconUrl = getPoiMarkerIcon(poiColor);
 
               const markerOptions = {
-                map: hdMap,
+                map: showPois ? hdMap : null,
                 position: { lat: latitude, lng: longitude },
                 label: poi.name || undefined,
                 title: poi.name || "Point of Interest",
@@ -1577,14 +1627,75 @@ const MapComponent = ({
       console.error("Error updating HD map markers:", error);
     }
 
+    // Add Incident Markers
+    if (incidentData.length > 0) {
+      incidentData.forEach((incident) => {
+        try {
+          const longitude = Number(incident.longitude);
+          const latitude = Number(incident.latitude);
+
+          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
+
+          const popupContent = `
+            <div style="padding: 12px; min-width: 250px; font-family: 'Roboto', sans-serif;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                 <h4 style="margin: 0; color: #d32f2f; font-size: 16px;">Incident #${incident.id}</h4>
+                 <span style="background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; border: 1px solid #ffcdd2;">ALERT</span>
+              </div>
+              <p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
+              ${incident.image_file ? (() => {
+              const url = incident.image_file.startsWith('http') ? incident.image_file : `https://api.gromed.in/${incident.image_file}`;
+              const isVideo = incident.image_file.match(/\.(mp4|webm|ogg|mov)$/i);
+              return isVideo
+                ? `<video src="${url}" controls style="width: 100%; max-height: 160px; border-radius: 6px; border: 1px solid #eee; display: block;"></video>`
+                : `<img src="${url}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; display: block;" alt="Incident" />`
+            })() : ''}
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+                 <span>Registered:</span>
+                 <span style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
+              </div>
+            </div>
+          `;
+
+          const svgIcon = `
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L1 21H23L12 2Z" fill="#F44336" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M12 9V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          `;
+          const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
+
+          const markerOptions = {
+            map: showIncidents ? hdMap : null,
+            position: { lat: latitude, lng: longitude },
+            icon: {
+              url: iconUrl,
+              width: 40,
+              height: 40
+            },
+            popupHtml: popupContent,
+          };
+
+          const markerInstance = createMarker(markerOptions);
+          if (markerInstance) {
+            hdIncidentMarkersRef.current.push(markerInstance);
+          }
+        } catch (error) {
+          console.error("Error creating incident marker", error);
+        }
+      });
+    }
+
     // Don't reset center/zoom on marker updates - let user control the map
     // Only set initial center/zoom when map is first created
 
     return () => {
       clearVehicleMarkers();
       clearPoiMarkers();
+      clearIncidentMarkers();
     };
-  }, [mapType, gpsData, policeData, pois]);
+  }, [mapType, gpsData, policeData, pois, incidentData]);
 
   // HD Map Drawing Logic - Handle Clicks
   useEffect(() => {
@@ -1990,14 +2101,250 @@ const MapComponent = ({
       const clickHandler = function (event) {
         dynamicOverlay.getElement().style.display = "none";
 
-        // Check if a feature is clicked
-        const feature = map.forEachFeatureAtPixel(event.pixel, (feature) => feature);
+        let allHits = [];
+        // Collect ALL features at pixel
+        map.forEachFeatureAtPixel(event.pixel, (feature) => {
+          allHits.push(feature);
+        }, { hitTolerance: 5 });
 
-        if (!feature) return;
+        if (allHits.length === 0) return;
 
-        const features = feature.get('features');
+        // Temporary compatibility: define 'feature' as the first hit so subsequent code works
+        const feature = allHits[0];
 
-        if (features && features.length > 1) {
+        const aggregatedItems = [];
+
+        allHits.forEach(f => {
+          if (f.get("isIncident")) {
+            aggregatedItems.push({ type: 'incident', data: f.get("data"), coord: f.getGeometry().getCoordinates() });
+            return;
+          }
+          const subFeatures = f.get('features');
+          if (subFeatures && subFeatures.length > 0) {
+            subFeatures.forEach(sf => {
+              const entry = sf.get('entryData');
+              if (entry) aggregatedItems.push({ type: 'vehicle', data: entry, coord: sf.getGeometry().getCoordinates() });
+            });
+          } else {
+            const entry = f.get('entryData');
+            if (entry) aggregatedItems.push({ type: 'vehicle', data: entry, coord: f.getGeometry().getCoordinates() });
+          }
+        });
+
+        const uniqueItems = [];
+        const seen = new Set();
+        aggregatedItems.forEach(item => {
+          const id = item.type === 'incident' ? `inc_${item.data.id}` : `veh_${item.data.vehicle_registration_number}`;
+          if (!seen.has(id)) {
+            seen.add(id);
+            uniqueItems.push(item);
+          }
+        });
+
+        if (uniqueItems.length > 0) {
+          // Logic for Handling Consolidated Items
+          const firstHit = allHits[0];
+          const firstHitFeatures = firstHit.get('features');
+          const isVisualCluster = allHits.length === 1 && firstHitFeatures && firstHitFeatures.length > 1;
+
+          if (isVisualCluster) {
+            const currentZoom = map.getView().getZoom();
+            const isSameLocation = firstHitFeatures.every(f => {
+              const c = f.getGeometry().getCoordinates();
+              const c0 = firstHitFeatures[0].getGeometry().getCoordinates();
+              return c[0] === c0[0] && c[1] === c0[1];
+            });
+
+            if (!isSameLocation && currentZoom < 16) {
+              let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+              firstHitFeatures.forEach(f => {
+                const c = f.getGeometry().getCoordinates();
+                if (c[0] < minX) minX = c[0];
+                if (c[0] > maxX) maxX = c[0];
+                if (c[1] < minY) minY = c[1];
+                if (c[1] > maxY) maxY = c[1];
+              });
+              map.getView().fit([minX, minY, maxX, maxY], { padding: [100, 100, 100, 100], duration: 500 });
+              return;
+            }
+          }
+
+          if (uniqueItems.length > 1) {
+            renderListView(uniqueItems);
+            return;
+          }
+
+          renderSingleView(uniqueItems[0]);
+          return; // Important: Stop processing OLD logic
+        }
+
+        // --- Helper Functions Definitions ---
+        function renderListView(items) {
+          let listHtml = `
+              <div class="overlay-card" style="min-width: 280px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
+                <div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
+                  <div class="overlay-title">${items.length} Items Here</div>
+                </div>
+                <div class="overlay-body" style="padding: 0;">
+            `;
+
+          items.forEach(item => {
+            if (item.type === 'incident') {
+              listHtml += `
+                 <div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #ffebee; background: #fff5f5; cursor: pointer;">
+                    <div style="font-weight: 600; color: #b71c1c; margin-bottom: 2px;">Incident #${item.data.id}</div> 
+                    <div style="font-size: 11px; color: #6b7280;">${item.data.details || "Alert"}</div>
+                 </div>`;
+            } else {
+              const entry = item.data;
+              const title = entry.vehicle_registration_number || entry.imei || "Unknown";
+              const speed = entry.speed > 0 ? `${entry.speed} km/h` : "Stopped";
+              listHtml += `
+                 <div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
+                    <div style="font-weight: 600; color: #111827; margin-bottom: 2px;">${title}</div>
+                    <div style="font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+                       <span>${speed}</span>
+                       <span>${entry.time || ""}</span>
+                    </div>
+                 </div>`;
+            }
+          });
+          listHtml += `</div></div>`;
+
+          const el = document.getElementById("overlay-content");
+          if (el) el.innerHTML = listHtml;
+          dynamicOverlay.setPosition(items[0].coord);
+          dynamicOverlay.getElement().style.display = "block";
+        }
+
+        function renderSingleView(item) {
+          const coordinates = item.coord;
+
+          if (item.type === 'incident') {
+            const incident = item.data;
+            document.getElementById("overlay-content").innerHTML = `
+                <div class="overlay-card" style="min-width: 250px; font-family: 'Roboto', sans-serif;">
+                  <div class="overlay-header">
+                    <div class="overlay-title">Incident #${incident.id}</div> 
+                    <div class="overlay-pill overlay-pill--alert">ALERT</div>
+                  </div>
+                  <div class="overlay-body">
+                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
+                     ${incident.image_file ? (() => {
+                const url = incident.image_file.startsWith('http') ? incident.image_file : `https://api.gromed.in/${incident.image_file}`;
+                const isVideo = incident.image_file.match(/\.(mp4|webm|ogg|mov)$/i);
+                return `
+                     <div class="overlay-row" style="margin-top: 8px;">
+                        ${isVideo ?
+                    `<video src="${url}" controls style="width: 100%; max-height: 160px; border-radius: 6px; border: 1px solid #eee; display: block;"></video>` :
+                    `<img src="${url}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; display: block;" alt="Incident" />`
+                  }
+                     </div>`;
+              })() : ''}
+                    <div class="overlay-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+                      <span class="overlay-label">Registered:</span>
+                      <span class="overlay-value" style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+            dynamicOverlay.setPosition(coordinates);
+            dynamicOverlay.getElement().style.display = "block";
+
+            const currentZoom = map.getView().getZoom();
+            const targetZoom = currentZoom > 16 ? currentZoom : 16;
+            map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+
+          } else {
+            const entryData = item.data;
+            const speedValue = entryData.speed > 2 ? entryData.speed : 0;
+            const alertType = entryData.packet_type || "NR";
+            const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
+
+            document.getElementById("overlay-content").innerHTML = `
+                <div class="overlay-card">
+                  <div class="overlay-header">
+                    <div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
+                    <div class="overlay-pill ${alertClass}">${alertType}</div>
+                  </div>
+                  <div class="overlay-body">
+                    <div class="overlay-row">
+                      <span class="overlay-label">Date</span>
+                      <span class="overlay-value">${entryData.date || "-"}</span>
+                    </div>
+                    <div class="overlay-row">
+                      <span class="overlay-label">Time</span>
+                      <span class="overlay-value">${entryData.time || "-"}</span>
+                    </div>
+                    <div class="overlay-row">
+                      <span class="overlay-label">Speed</span>
+                      <span class="overlay-value">${speedValue} km/h</span>
+                    </div>
+                    <div class="overlay-row">
+                      <span class="overlay-label">Battery</span>
+                      <span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+            dynamicOverlay.setPosition(coordinates);
+            dynamicOverlay.getElement().style.display = "block";
+
+            const currentZoom = map.getView().getZoom();
+            const targetZoom = currentZoom > 18 ? currentZoom : 18;
+            map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+          }
+        }
+
+
+
+        if (false) {
+          // Check if we can't separate them further (same duplicate location or max zoom)
+          const currentZoom = map.getView().getZoom();
+          const isSameLocation = features.every(f => {
+            const c = f.getGeometry().getCoordinates();
+            const c0 = features[0].getGeometry().getCoordinates();
+            return c[0] === c0[0] && c[1] === c0[1];
+          });
+
+          if (currentZoom >= 16 || isSameLocation) {
+            // Show list of vehicles
+            let listHtml = `
+              <div class="overlay-card" style="min-width: 260px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
+                <div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
+                  <div class="overlay-title">${features.length} Vehicles Here</div>
+                </div>
+                <div class="overlay-body" style="padding: 0;">
+            `;
+
+            features.forEach(f => {
+              const entry = f.get('entryData');
+              if (!entry) return;
+
+              const vehicleNum = entry.vehicle_registration_number || entry.imei || "Unknown";
+              const speed = entry.speed > 0 ? `${entry.speed} km/h` : "Stopped";
+
+              listHtml += `
+                 <div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
+                    <div style="font-weight: 600; color: #111827; margin-bottom: 2px;">${vehicleNum}</div>
+                    <div style="font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+                       <span>${speed}</span>
+                       <span>${entry.time || ""}</span>
+                    </div>
+                 </div>
+              `;
+            });
+
+            listHtml += `</div></div>`;
+
+            document.getElementById("overlay-content").innerHTML = listHtml;
+            dynamicOverlay.setPosition(features[0].getGeometry().getCoordinates());
+            dynamicOverlay.getElement().style.display = "block";
+            return;
+          }
+
           // Calculate extent of all features in cluster
           let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
           features.forEach(f => {
@@ -2011,7 +2358,7 @@ const MapComponent = ({
           return;
         }
 
-        if (features && features.length === 1) {
+        if (false) {
           const originalFeature = features[0];
           const entryData = originalFeature.get("entryData");
           const coordinates = originalFeature.getGeometry().getCoordinates();
@@ -2083,6 +2430,54 @@ const MapComponent = ({
     autoFit,
   ]);
 
+  // Handle Incident Data for OpenLayers (Normal/Satellite)
+  useEffect(() => {
+    if (!map || !incidentVectorLayer) return;
+
+    const source = incidentVectorLayer.getSource();
+    source.clear();
+
+    if (incidentData.length > 0) {
+      const features = incidentData
+        .map((incident) => {
+          const longitude = Number(incident.longitude);
+          const latitude = Number(incident.latitude);
+
+          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+
+          const feature = new Feature({
+            geometry: new Point([longitude, latitude]),
+            data: incident,
+            isIncident: true,
+          });
+
+          // Style for incident
+          const svgIcon = `
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L1 21H23L12 2Z" fill="#F44336" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M12 9V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          `;
+          const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
+
+          feature.setStyle(
+            new Style({
+              image: new Icon({
+                anchor: [0.5, 1],
+                src: iconUrl,
+                scale: 1.0,
+              }),
+            })
+          );
+          return feature;
+        })
+        .filter(Boolean);
+
+      source.addFeatures(features);
+    }
+  }, [incidentData, map, incidentVectorLayer]);
+
   // Handle clustering distance based on zoom level to reveal tight clusters
   useEffect(() => {
     if (!map || !vectorLayer) return;
@@ -2095,7 +2490,7 @@ const MapComponent = ({
       const zoom = map.getView().getZoom();
       // Disable clustering at high zoom levels (e.g., >= 17) to reveal individual items
       // 40 is the default distance we set during initialization
-      const targetDistance = zoom >= 17 ? 0 : 40;
+      const targetDistance = zoom >= 14 ? 0 : 30;
 
       if (source.getDistance() !== targetDistance) {
         source.setDistance(targetDistance);
@@ -2446,6 +2841,12 @@ const MapComponent = ({
     }
   }, [showPois, poiVectorLayer]);
 
+  useEffect(() => {
+    if (incidentVectorLayer) {
+      incidentVectorLayer.setVisible(showIncidents);
+    }
+  }, [showIncidents, incidentVectorLayer]);
+
   // Handle Layer Visibility Toggles (Mappls HD)
   useEffect(() => {
     // Toggle Vehicle Markers
@@ -2473,7 +2874,19 @@ const MapComponent = ({
         } catch (e) { console.warn("Error toggling HD POI marker", e); }
       });
     }
-  }, [showVehicles, showPois, mapType]);
+    // Toggle Incident Markers
+    if (hdIncidentMarkersRef.current) {
+      hdIncidentMarkersRef.current.forEach(marker => {
+        try {
+          if (showIncidents) {
+            if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
+          } else {
+            marker.remove();
+          }
+        } catch (e) { console.warn("Error toggling HD incident marker", e); }
+      });
+    }
+  }, [showVehicles, showPois, showIncidents, mapType]);
 
 
   // Controls State
@@ -2688,6 +3101,17 @@ const MapComponent = ({
                     />
                   }
                   label={<Typography variant="caption" fontWeight={500}>POIs</Typography>}
+                  sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={showIncidents}
+                      onChange={(e) => setShowIncidents(e.target.checked)}
+                    />
+                  }
+                  label={<Typography variant="caption" fontWeight={500}>Incidents</Typography>}
                   sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
                 />
               </Box>
