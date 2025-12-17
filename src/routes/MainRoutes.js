@@ -33,6 +33,7 @@ import UserStatisticsReport from "../views/reports/UserStatisticsReport";
 import SuperAdminDashboard from "../views/direct/SuperAdminDashboard";
 import NewMap from "../views/MapComponent/Index";
 import HealthPacketLog from "../views/reports/HealthPacketLog";
+import POIReport from "../views/reports/POIReport";
 import MapPolicy from "../views/pages/MapPolicy";
 
 import Help from "../views/pages/Help";
@@ -69,6 +70,11 @@ const DashboardDefault = Loadable(
   lazy(() => import("../views/dashboard/Default"))
 );
 
+const MorthDashboard = Loadable(
+  lazy(() => import("../views/dashboard/Morth"))
+);
+
+
 // sample page routing
 const SamplePage = Loadable(lazy(() => import("../views/sample-page")));
 // ==============================|| MAIN ROUTING ||============================== //
@@ -84,6 +90,11 @@ const MainRoutes = {
     {
       path: "/superadmin-dashboard",
       element: <SuperAdminDashboard />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/morth-dashboard",
+      element: <MorthDashboard />,
       roles: ["superadmin"],
     },
     {
@@ -214,6 +225,11 @@ const MainRoutes = {
       path: '/reports/health-packet-log',
       element: <HealthPacketLog />,
       roles: ['superadmin']
+    },
+    {
+      path: '/reports/poi-report',
+      element: <POIReport />,
+      roles: ['superadmin', 'stateadmin', 'owner', 'dto']
     },
     {
       path: '/map',
