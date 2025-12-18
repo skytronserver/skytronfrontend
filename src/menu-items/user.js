@@ -739,6 +739,14 @@ const user = {
           roles: ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture', 'owner']
         },
         {
+          id: 'poi-report',
+          title: 'POI Report',
+          type: 'item',
+          url: '/reports/poi-report',
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin', 'dto', 'owner']
+        },
+        {
           id: 'device-health-report',
           title: 'Device Health Report',
           type: 'item',
