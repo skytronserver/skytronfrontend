@@ -1111,16 +1111,16 @@
     "title": "Emergency Data Logs"
   },
   "apiData": {
-    "title": "API Data Log",
+    "title": "Event Data Log",
     "requestUrl": "Request URL",
     "ipAddress": "IP Address",
     "method": "Method",
     "requestData": "Request Data",
     "noData": "No data",
     "errorDisplayingData": "Error displaying data",
-    "searchLabel": "Search API Logs",
+    "searchLabel": "Search by URL",
     "searchPlaceholder": "Type 'Post' to find POST requests",
-    "searchHelperText": "Search by URL, method, or error code"
+    "searchHelperText": ""
   },
   "holiday": {
     "listTitle": "School Holiday List",

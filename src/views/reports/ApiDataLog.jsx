@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import HomePageService from 'services/HomePage'
-import DynamicDatatables from '../../datatables/DynamicDatatables'
-import Grid from "@mui/material/Grid"
-import { gridSpacing } from "../../store/constant"
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import SearchIcon from '@mui/icons-material/Search'
-import CircularProgress from '@mui/material/CircularProgress'
-import Chip from '@mui/material/Chip'
-import Box from '@mui/material/Box'
-import { useTranslation } from 'react-i18next'
+import React, { useState, useEffect, useCallback } from 'react';
+import HomePageService from 'services/HomePage';
+import DynamicDatatables from '../../datatables/DynamicDatatables';
+import Grid from "@mui/material/Grid";
+import { gridSpacing } from "../../store/constant";
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import SearchIcon from '@mui/icons-material/Search';
+import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
+import Box from '@mui/material/Box';
+import { useTranslation } from 'react-i18next';
 
 const ApiDataLog = () => {
     const { t } = useTranslation();
