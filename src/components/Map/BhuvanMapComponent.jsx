@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, ButtonGroup, Tooltip, Box } from "@mui/material";
+import { Button, ButtonGroup, Tooltip, Box, Divider, Paper, Switch, Typography } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource, TileWMS, XYZ } from "ol/source";
@@ -50,6 +50,7 @@ const BhuvanMapComponent = ({
     height = "400px",
     onPolygonComplete,
     onMarkerClick,
+    onMapReady,
     autoFit = false,
     focusEntry = null,
     markerLabelMode = "vehicle",
@@ -68,12 +69,33 @@ const BhuvanMapComponent = ({
     const [drawInteraction, setDrawInteraction] = useState(null);
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
 
-    // Map type state: 'normal' or 'satellite'
+    // Map type state: 'normal' | 'satellite' | 'soi'
     const [mapType, setMapType] = useState(defaultMapType);
     const normalMapRef = useRef(null);
     const satelliteMapRef = useRef(null);
+    const soiMapRef = useRef(null);
+    const vectorLayerByTypeRef = useRef({ normal: null, satellite: null, soi: null });
     const normalMapContainerRef = useRef(null);
     const satelliteMapContainerRef = useRef(null);
+    const soiMapContainerRef = useRef(null);
+
+    const [soiLayerVisibility, setSoiLayerVisibility] = useState({
+        states: true,
+        assamDistrict: true,
+        contours: true,
+        majorTowns: true,
+        railwayTracks: true,
+        roads: true,
+    });
+
+    const soiLayersRef = useRef({
+        states: null,
+        assamDistrict: null,
+        contours: null,
+        majorTowns: null,
+        railwayTracks: null,
+        roads: null,
+    });
 
     // Bhuvan WMS Configuration
     const resolveBhuvanWmsUrl = () => {
@@ -491,9 +513,32 @@ const BhuvanMapComponent = ({
 
         setMap(initialMap);
         setVectorLayer(initialVectorLayer);
+        vectorLayerByTypeRef.current.normal = initialVectorLayer;
         setDynamicOverlay(initialOverlay);
         setDrawVectorLayer(drawLayer);
         normalMapRef.current = initialMap;
+
+        try {
+            setTimeout(() => initialMap.updateSize(), 0);
+        } catch (e) {
+            // ignore
+        }
+
+        if (typeof onMapReady === "function") {
+            onMapReady({
+                map: initialMap,
+                mapType: "normal",
+                vectorLayer: initialVectorLayer,
+                poiVectorLayer: initialPoiVectorLayer,
+                drawVectorLayer: drawLayer,
+                overlay: initialOverlay,
+                baseLayers: {
+                    india3Layer,
+                    adminGroupLayer,
+                    roadsLayer,
+                },
+            });
+        }
 
         return () => {
             if (normalMapRef.current) {
@@ -502,6 +547,273 @@ const BhuvanMapComponent = ({
             }
         };
     }, [mapType]);
+
+    // Initialize SOI Map (Bhuvan base + skytron overlays)
+    useEffect(() => {
+        if (mapType !== "soi" || !soiMapContainerRef.current) return;
+
+        try {
+            const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
+
+            const bhuvanIndia3Layer = new TileLayer({
+                source: createBhuvanSource("india3"),
+                zIndex: 0,
+            });
+
+            const bhuvanAdminLayer = new TileLayer({
+                source: createBhuvanSource("basemap%3Aadmin_group"),
+                zIndex: 1,
+            });
+
+            const bhuvanRoadsLayer = new TileLayer({
+                source: createBhuvanSource("mmi:mmi_india"),
+                zIndex: 2,
+            });
+
+            const soiStatesLayer = new TileLayer({
+                title: "States",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: { LAYERS: "skytron:states", TILED: true },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.7,
+                visible: soiLayerVisibility.states,
+                zIndex: 10,
+            });
+
+            const soiAssamDistrictLayer = new TileLayer({
+                title: "ASSAM District Boundary",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: { LAYERS: "skytron:ASSAM_DISTRICT_BDY", TILED: true },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.8,
+                visible: soiLayerVisibility.assamDistrict,
+                zIndex: 11,
+            });
+
+            const soiContoursLayer = new TileLayer({
+                title: "Contours",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: { LAYERS: "skytron:Contours", TILED: true },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.8,
+                visible: soiLayerVisibility.contours,
+                zIndex: 12,
+            });
+
+            const soiMajorTownsLayer = new TileLayer({
+                title: "Major Towns / Headquarters",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: { LAYERS: "skytron:MajortownsHeadquarters", TILED: true },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.majorTowns,
+                zIndex: 13,
+            });
+
+            const soiRailwayTracksLayer = new TileLayer({
+                title: "Railway Tracks",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: { LAYERS: "skytron:RailwayTracks", TILED: true },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.railwayTracks,
+                zIndex: 14,
+            });
+
+            const soiRoadsLayer = new TileLayer({
+                title: "SOI Roads",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: { LAYERS: "skytron:Roads", TILED: true },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.roads,
+                zIndex: 15,
+            });
+
+            const soiMap = new Map({
+                target: soiMapContainerRef.current,
+                layers: [
+                    bhuvanIndia3Layer,
+                    bhuvanAdminLayer,
+                    bhuvanRoadsLayer,
+                    soiStatesLayer,
+                    soiAssamDistrictLayer,
+                    soiContoursLayer,
+                    soiMajorTownsLayer,
+                    soiRailwayTracksLayer,
+                    soiRoadsLayer,
+                ],
+                view: new View({
+                    projection: "EPSG:4326",
+                    center: center,
+                    zoom: zoom,
+                    maxZoom: 19,
+                    constrainResolution: true,
+                }),
+                pixelRatio: 1,
+            });
+
+            const initialVectorLayer = new VectorLayer({
+                source: new VectorSource(),
+                zIndex: 200,
+            });
+            soiMap.addLayer(initialVectorLayer);
+
+            const poiSource = new VectorSource();
+            const initialPoiVectorLayer = new VectorLayer({
+                source: poiSource,
+                zIndex: 100,
+                declutter: true,
+            });
+            soiMap.addLayer(initialPoiVectorLayer);
+
+            const drawSource = new VectorSource();
+            const drawLayer = new VectorLayer({
+                source: drawSource,
+                style: new Style({
+                    fill: new Fill({
+                        color: "rgba(255, 255, 255, 0.2)",
+                    }),
+                    stroke: new Stroke({
+                        color: "#ffcc33",
+                        width: 2,
+                    }),
+                    image: new CircleStyle({
+                        radius: 7,
+                        fill: new Fill({
+                            color: "#ffcc33",
+                        }),
+                    }),
+                }),
+            });
+            soiMap.addLayer(drawLayer);
+
+            const initialOverlay = new Overlay({
+                element: overlayElement.current,
+            });
+            soiMap.addOverlay(initialOverlay);
+
+            soiMapRef.current = soiMap;
+            setMap(soiMap);
+            setVectorLayer(initialVectorLayer);
+            vectorLayerByTypeRef.current.soi = initialVectorLayer;
+            setPoiVectorLayer(initialPoiVectorLayer);
+            setDrawVectorLayer(drawLayer);
+            setDynamicOverlay(initialOverlay);
+
+            try {
+                setTimeout(() => soiMap.updateSize(), 0);
+            } catch (e) {
+                // ignore
+            }
+
+            soiLayersRef.current = {
+                states: soiStatesLayer,
+                assamDistrict: soiAssamDistrictLayer,
+                contours: soiContoursLayer,
+                majorTowns: soiMajorTownsLayer,
+                railwayTracks: soiRailwayTracksLayer,
+                roads: soiRoadsLayer,
+            };
+
+            if (typeof onMapReady === "function") {
+                onMapReady({
+                    map: soiMap,
+                    mapType: "soi",
+                    vectorLayer: initialVectorLayer,
+                    poiVectorLayer: initialPoiVectorLayer,
+                    drawVectorLayer: drawLayer,
+                    overlay: initialOverlay,
+                    baseLayers: {
+                        bhuvanIndia3Layer,
+                        bhuvanAdminLayer,
+                        bhuvanRoadsLayer,
+                    },
+                    soiLayers: soiLayersRef.current,
+                });
+            }
+        } catch (error) {
+            console.error("Error initializing SOI map:", error);
+        }
+
+        return () => {
+            if (soiMapRef.current) {
+                soiMapRef.current.setTarget(null);
+                soiMapRef.current = null;
+            }
+        };
+        // Intentionally do not depend on soiLayerVisibility to avoid re-init on toggle
+    }, [mapType, center, zoom, onMapReady]);
+
+    useEffect(() => {
+        const activeMap =
+            mapType === "normal"
+                ? normalMapRef.current
+                : mapType === "satellite"
+                    ? satelliteMapRef.current
+                    : mapType === "soi"
+                        ? soiMapRef.current
+                        : null;
+
+        if (!activeMap) return;
+
+        try {
+            setTimeout(() => {
+                try {
+                    activeMap.updateSize();
+                } catch (e) {
+                    // ignore
+                }
+            }, 0);
+
+            setTimeout(() => {
+                try {
+                    activeMap.updateSize();
+                } catch (e) {
+                    // ignore
+                }
+            }, 250);
+        } catch (e) {
+            // ignore
+        }
+    }, [mapType]);
+
+    useEffect(() => {
+        if (mapType !== "soi") return;
+        const layers = soiLayersRef.current;
+        if (!layers) return;
+
+        layers.states?.setVisible?.(!!soiLayerVisibility.states);
+        layers.assamDistrict?.setVisible?.(!!soiLayerVisibility.assamDistrict);
+        layers.contours?.setVisible?.(!!soiLayerVisibility.contours);
+        layers.majorTowns?.setVisible?.(!!soiLayerVisibility.majorTowns);
+        layers.railwayTracks?.setVisible?.(!!soiLayerVisibility.railwayTracks);
+        layers.roads?.setVisible?.(!!soiLayerVisibility.roads);
+    }, [mapType, soiLayerVisibility]);
 
     // Initialize Satellite Map (OpenLayers)
     useEffect(() => {
@@ -513,7 +825,7 @@ const BhuvanMapComponent = ({
                 title: "OSM Satellite",
                 source: new XYZ({
                     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-                    attributions: "© Esri",
+                    attributions: " Esri",
                     maxZoom: 18,
                 }),
                 zIndex: 0,
@@ -579,139 +891,35 @@ const BhuvanMapComponent = ({
 
             setMap(satelliteMap);
             setVectorLayer(initialVectorLayer);
+            vectorLayerByTypeRef.current.satellite = initialVectorLayer;
             setDynamicOverlay(initialOverlay);
             setDrawVectorLayer(drawLayer);
             satelliteMapRef.current = satelliteMap;
+
+            try {
+                setTimeout(() => satelliteMap.updateSize(), 0);
+            } catch (e) {
+                // ignore
+            }
+
+            if (typeof onMapReady === "function") {
+                onMapReady({
+                    map: satelliteMap,
+                    mapType: "satellite",
+                    vectorLayer: initialVectorLayer,
+                    poiVectorLayer: initialPoiVectorLayer,
+                    drawVectorLayer: drawLayer,
+                    overlay: initialOverlay,
+                    baseLayers: {
+                        osmLayer,
+                    },
+                });
+            }
         } catch (error) {
             console.error("Error initializing satellite map:", error);
         }
+    }, [mapType, center, zoom, onMapReady]);
 
-        return () => {
-            if (satelliteMapRef.current) {
-                satelliteMapRef.current.setTarget(null);
-                satelliteMapRef.current = null;
-            }
-        };
-    }, [mapType]);
-
-    // Update POI markers when POIs change
-    useEffect(() => {
-        if (!poiVectorLayer || pois.length === 0) return;
-
-        const poiSource = poiVectorLayer.getSource();
-        poiSource.clear();
-
-        pois.forEach((poi) => {
-            try {
-                const location = JSON.parse(poi.location);
-                if (Array.isArray(location) && location.length > 0) {
-                    let feature;
-
-                    switch (poi.mark_type) {
-                        case "Point":
-                            if (location[0] && location[0].length === 2) {
-                                const [lat, lon] = location[0];
-                                const longitude = Number(lon);
-                                const latitude = Number(lat);
-                                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                                    const coordinates = [longitude, latitude];
-                                    feature = new Feature({
-                                        geometry: new Point(coordinates),
-                                        data: poi,
-                                    });
-                                }
-                            }
-                            break;
-
-                        case "Circle":
-                            if (location[0] && location[0].length === 2) {
-                                const [lat, lon] = location[0];
-                                const longitude = Number(lon);
-                                const latitude = Number(lat);
-                                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                                    const center = [longitude, latitude];
-                                    const radiusMeters = parseFloat(poi.radius) || 100;
-                                    const metersPerDegree =
-                                        111320 * Math.cos((latitude * Math.PI) / 180) || 111320;
-                                    const radiusDegrees = radiusMeters / metersPerDegree;
-                                    feature = new Feature({
-                                        geometry: new Circle(center, radiusDegrees),
-                                        data: poi,
-                                    });
-                                }
-                            }
-                            break;
-
-                        case "Polygon":
-                            if (location.length >= 3) {
-                                const polygonCoords = location
-                                    .map((coord) => {
-                                        if (coord && coord.length === 2) {
-                                            const [lat, lon] = coord;
-                                            const longitude = Number(lon);
-                                            const latitude = Number(lat);
-                                            if (
-                                                Number.isFinite(longitude) &&
-                                                Number.isFinite(latitude)
-                                            ) {
-                                                return [longitude, latitude];
-                                            }
-                                        }
-                                        return null;
-                                    })
-                                    .filter((coord) => coord !== null);
-
-                                if (polygonCoords.length >= 3) {
-                                    feature = new Feature({
-                                        geometry: new Polygon([polygonCoords]),
-                                        data: poi,
-                                    });
-                                }
-                            }
-                            break;
-
-                        case "Road":
-                            if (location.length >= 2) {
-                                const roadCoords = location
-                                    .map((coord) => {
-                                        if (coord && coord.length === 2) {
-                                            const [lat, lon] = coord;
-                                            const longitude = Number(lon);
-                                            const latitude = Number(lat);
-                                            if (
-                                                Number.isFinite(longitude) &&
-                                                Number.isFinite(latitude)
-                                            ) {
-                                                return [longitude, latitude];
-                                            }
-                                        }
-                                        return null;
-                                    })
-                                    .filter((coord) => coord !== null);
-
-                                if (roadCoords.length >= 2) {
-                                    feature = new Feature({
-                                        geometry: new LineString(roadCoords),
-                                        data: poi,
-                                    });
-                                }
-                            }
-                            break;
-                    }
-
-                    if (feature) {
-                        const styles = getPoiStyles(poi);
-                        feature.setStyle(styles);
-                        poiSource.addFeature(feature);
-                    }
-                }
-            } catch (error) {
-                console.error("Error processing POI:", poi.id, error);
-            }
-        });
-    }, [pois, poiVectorLayer]);
-
-    // Update GPS markers
     useEffect(() => {
         if (!map || !vectorLayer) {
             return;
@@ -981,7 +1189,56 @@ const BhuvanMapComponent = ({
                                     Satellite
                                 </Button>
                             </Tooltip>
+                            <Tooltip title="SOI Map - Bhuvan base + SOI overlays">
+                                <Button
+                                    onClick={() => setMapType("soi")}
+                                    variant={mapType === "soi" ? "contained" : "outlined"}
+                                    sx={{
+                                        backgroundColor:
+                                            mapType === "soi" ? "#1976d2" : "transparent",
+                                        color: mapType === "soi" ? "white" : "inherit",
+                                    }}
+                                >
+                                    SOI
+                                </Button>
+                            </Tooltip>
                         </ButtonGroup>
+
+                        {mapType === "soi" && (
+                            <Paper
+                                elevation={3}
+                                sx={{ mt: 1, p: 1, borderRadius: 1, width: 220 }}
+                            >
+                                <Typography variant="caption" fontWeight={700} sx={{ display: "block", mb: 0.5 }}>
+                                    SOI Layers
+                                </Typography>
+                                <Divider sx={{ mb: 0.5 }} />
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Typography variant="caption">States</Typography>
+                                    <Switch size="small" checked={soiLayerVisibility.states} onChange={(e) => setSoiLayerVisibility((p) => ({ ...p, states: e.target.checked }))} />
+                                </Box>
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Typography variant="caption">ASSAM District BDY</Typography>
+                                    <Switch size="small" checked={soiLayerVisibility.assamDistrict} onChange={(e) => setSoiLayerVisibility((p) => ({ ...p, assamDistrict: e.target.checked }))} />
+                                </Box>
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Typography variant="caption">Contours</Typography>
+                                    <Switch size="small" checked={soiLayerVisibility.contours} onChange={(e) => setSoiLayerVisibility((p) => ({ ...p, contours: e.target.checked }))} />
+                                </Box>
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Typography variant="caption">Major Towns HQ</Typography>
+                                    <Switch size="small" checked={soiLayerVisibility.majorTowns} onChange={(e) => setSoiLayerVisibility((p) => ({ ...p, majorTowns: e.target.checked }))} />
+                                </Box>
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Typography variant="caption">Railway Tracks</Typography>
+                                    <Switch size="small" checked={soiLayerVisibility.railwayTracks} onChange={(e) => setSoiLayerVisibility((p) => ({ ...p, railwayTracks: e.target.checked }))} />
+                                </Box>
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Typography variant="caption">Roads</Typography>
+                                    <Switch size="small" checked={soiLayerVisibility.roads} onChange={(e) => setSoiLayerVisibility((p) => ({ ...p, roads: e.target.checked }))} />
+                                </Box>
+                            </Paper>
+                        )}
                     </Box>
                 )}
 
@@ -989,6 +1246,85 @@ const BhuvanMapComponent = ({
                 {mapType === "normal" && (
                     <div
                         ref={normalMapContainerRef}
+                        style={{ width: "100%", height: "100%", position: "relative" }}
+                    >
+                        {showDrawControls && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "50px",
+                                    left: "10px",
+                                    zIndex: 1000,
+                                    display: "flex",
+                                    gap: "10px",
+                                }}
+                            >
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={startDrawing}
+                                    color={drawInteraction ? "secondary" : "primary"}
+                                >
+                                    {drawInteraction ? "Drawing..." : "Draw Polygon"}
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={clearPolygon}
+                                    color="error"
+                                >
+                                    Clear
+                                </Button>
+                            </div>
+                        )}
+                        {showLogos && (
+                            <>
+                                <img
+                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
+                                    style={{
+                                        position: "absolute",
+                                        bottom: 0,
+                                        left: 0,
+                                        height: "60px",
+                                        width: "auto",
+                                        zIndex: 1000,
+                                    }}
+                                    alt="InSpace Logo"
+                                />
+                                <img
+                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        right: 0,
+                                        height: "60px",
+                                        width: "auto",
+                                        zIndex: 1000,
+                                    }}
+                                    alt="ISRO Logo"
+                                />
+                                <img
+                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+                                    style={{
+                                        position: "absolute",
+                                        bottom: "20px",
+                                        right: 0,
+                                        height: "60px",
+                                        width: "auto",
+                                        zIndex: 1000,
+                                        backgroundColor: "transparent",
+                                    }}
+                                    alt="Skytron Logo"
+                                />
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {/* SOI Map Container */}
+                {mapType === "soi" && (
+                    <div
+                        ref={soiMapContainerRef}
                         style={{ width: "100%", height: "100%", position: "relative" }}
                     >
                         {showDrawControls && (

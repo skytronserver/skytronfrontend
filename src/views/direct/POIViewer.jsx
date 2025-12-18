@@ -55,10 +55,6 @@ import {
   People as PeopleIcon,
   List as ListIcon,
 } from '@mui/icons-material';
- import { Map, View } from "ol";
- import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
- import { Vector as VectorSource, TileWMS, XYZ } from "ol/source";
- import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
  import { Draw } from "ol/interaction";
  import Feature from "ol/Feature";
  import Point from "ol/geom/Point";
@@ -70,51 +66,7 @@ import {
 import POIService from '../../services/POIService';
 import HomePageService from '../../services/HomePage';
 import axios from 'axios';
-
-const resolveBhuvanWmsUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/bhuvan/gwc/service/wms`;
-};
-
-const BHUVAN_WMS_URL = resolveBhuvanWmsUrl();
-
-const BHUVAN_CROSS_ORIGIN =
-  process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined;
-
-const createBhuvanSource = (layerName) => {
-  const options = {
-    url: BHUVAN_WMS_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  if (BHUVAN_CROSS_ORIGIN) {
-    options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  }
-
-  return new TileWMS(options);
-};
+import BhuvanMapComponent from '../../components/Map/BhuvanMapComponent';
 
 const hexToRgba = (hex, alpha) => {
   if (!hex) return `rgba(30, 136, 229, ${alpha})`;
@@ -175,17 +127,12 @@ const POIViewer = () => {
 
 
 
-  // OpenLayers Refs
-  const normalMapContainerRef = useRef(null);
-  const satelliteMapContainerRef = useRef(null);
-  const soiMapContainerRef = useRef(null);
-  const normalMapRef = useRef(null);
-  const satelliteMapRef = useRef(null);
-  const soiMapRef = useRef(null);
-  const poiLayerRef = useRef({ normal: null, satellite: null, soi: null });
-  const drawLayerRef = useRef({ normal: null, satellite: null, soi: null });
+  const mapRef = useRef(null);
+  const poiVectorLayerRef = useRef(null);
+  const drawVectorLayerRef = useRef(null);
   const drawInteractionRef = useRef(null);
-  const searchFeatureRef = useRef({ normal: null, satellite: null, soi: null });
+  const searchFeatureRef = useRef(null);
+  const poiClickHandlerRef = useRef(null);
 
 
 
@@ -208,7 +155,6 @@ const POIViewer = () => {
     alert_type: '',
     speed_limit: 0,
   });
-  const [mapType, setMapType] = useState('normal');
   const [drawingMode, setDrawingMode] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -227,210 +173,63 @@ const POIViewer = () => {
   const [geoSearchQuery, setGeoSearchQuery] = useState('');
   const [geoSearchResults, setGeoSearchResults] = useState([]);
   const [geoSearchLoading, setGeoSearchLoading] = useState(false);
-  const getActiveMap = () => {
-    if (mapType === 'satellite') return satelliteMapRef.current;
-    if (mapType === 'soi') return soiMapRef.current;
-    return normalMapRef.current;
-  };
 
-  const getActivePoiLayer = () => {
-    return poiLayerRef.current?.[mapType] || null;
-  };
-
-  const getActiveDrawLayer = () => {
-    return drawLayerRef.current?.[mapType] || null;
-  };
-
-
-
-  // Initialize Normal Map (Bhuvan)
-  useEffect(() => {
-    if (mapType !== 'normal' || !normalMapContainerRef.current) return;
-    if (normalMapRef.current) return;
-
-    const india3Layer = new TileLayer({ source: createBhuvanSource('india3'), zIndex: 1 });
-    const adminGroupLayer = new TileLayer({
-      source: createBhuvanSource('basemap%3Aadmin_group'),
-      zIndex: 2,
-    });
-    const roadsLayer = new TileLayer({ source: createBhuvanSource('mmi:mmi_india'), zIndex: 3 });
-
-    const poiLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 100,
-      declutter: true,
-    });
-    const drawLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 200,
-      style: new Style({
-        fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
-        stroke: new Stroke({ color: '#ffcc33', width: 2 }),
-        image: new CircleStyle({ radius: 7, fill: new Fill({ color: '#ffcc33' }) }),
-      }),
-    });
-
-    const mapInstance = new Map({
-      target: normalMapContainerRef.current,
-      layers: [india3Layer, adminGroupLayer, roadsLayer, poiLayer, drawLayer],
-      view: new View({
-        projection: 'EPSG:4326',
-        center: [91.7362, 26.1445],
-        zoom: 10,
-        maxZoom: 22,
-        constrainResolution: true,
-      }),
-      controls: [new ZoomSlider(), new FullScreen(), new ScaleLine()],
-      pixelRatio: 1,
-    });
-
-    normalMapRef.current = mapInstance;
-    poiLayerRef.current.normal = poiLayer;
-    drawLayerRef.current.normal = drawLayer;
-
-    return () => {
-      if (normalMapRef.current) {
-        normalMapRef.current.setTarget(null);
-        normalMapRef.current = null;
+  const handleMapReady = ({ map, poiVectorLayer, drawVectorLayer }) => {
+    if (mapRef.current && poiClickHandlerRef.current) {
+      try {
+        mapRef.current.un('singleclick', poiClickHandlerRef.current);
+      } catch (e) {
+        // ignore
       }
-      poiLayerRef.current.normal = null;
-      drawLayerRef.current.normal = null;
-    };
-  }, [mapType]);
+      poiClickHandlerRef.current = null;
+    }
 
-  // Initialize Satellite Map
-  useEffect(() => {
-    if (mapType !== 'satellite' || !satelliteMapContainerRef.current) return;
-    if (satelliteMapRef.current) return;
+    mapRef.current = map || null;
+    poiVectorLayerRef.current = poiVectorLayer || null;
+    drawVectorLayerRef.current = drawVectorLayer || null;
 
-    const osmLayer = new TileLayer({
-      title: 'OSM Satellite',
-      source: new XYZ({
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attributions: '© Esri',
-        maxZoom: 18,
-      }),
-      zIndex: 0,
-    });
+    const poiLayer = poiVectorLayerRef.current;
+    const source = poiLayer?.getSource?.();
+    if (source) {
+      source.clear();
+      pois.forEach((poi) => {
+        const feature = createPoiFeature(poi);
+        if (feature) source.addFeature(feature);
+      });
+    }
 
-    const poiLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 100,
-      declutter: true,
-    });
-    const drawLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 200,
-      style: new Style({
-        fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
-        stroke: new Stroke({ color: '#ffcc33', width: 2 }),
-        image: new CircleStyle({ radius: 7, fill: new Fill({ color: '#ffcc33' }) }),
-      }),
-    });
+    searchFeatureRef.current = null;
 
-    const mapInstance = new Map({
-      target: satelliteMapContainerRef.current,
-      layers: [osmLayer, poiLayer, drawLayer],
-      view: new View({
-        projection: 'EPSG:4326',
-        center: [91.7362, 26.1445],
-        zoom: 10,
-        maxZoom: 22,
-        constrainResolution: true,
-      }),
-      controls: [new ZoomSlider(), new FullScreen(), new ScaleLine()],
-      pixelRatio: 1,
-    });
+    if (mapRef.current) {
+      const clickHandler = (evt) => {
+        let foundPoi = null;
+        try {
+          mapRef.current.forEachFeatureAtPixel(evt.pixel, (feature) => {
+            const poi = feature?.get?.('poi');
+            if (poi) {
+              foundPoi = poi;
+              return true;
+            }
+            return false;
+          });
+        } catch (e) {
+          // ignore
+        }
 
-    satelliteMapRef.current = mapInstance;
-    poiLayerRef.current.satellite = poiLayer;
-    drawLayerRef.current.satellite = drawLayer;
+        if (foundPoi) {
+          setSelectedPoi(foundPoi);
+          setSelectedPoiId(foundPoi.id);
+          setPopoverAnchor(evt.pixel);
+          setPopoverOpen(true);
+        } else {
+          setPopoverOpen(false);
+        }
+      };
 
-    return () => {
-      if (satelliteMapRef.current) {
-        satelliteMapRef.current.setTarget(null);
-        satelliteMapRef.current = null;
-      }
-      poiLayerRef.current.satellite = null;
-      drawLayerRef.current.satellite = null;
-    };
-  }, [mapType]);
-
-  // Initialize SOI Map
-  useEffect(() => {
-    if (mapType !== 'soi' || !soiMapContainerRef.current) return;
-    if (soiMapRef.current) return;
-
-    const geoserverURL = 'https://map.gromed.in/geoserver/skytron/wms';
-    const baseLayer = new TileLayer({
-      source: new XYZ({ url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png' }),
-      zIndex: 0,
-    });
-
-    const stateBoundaryLayer = new TileLayer({
-      title: 'State Boundary',
-      source: new TileWMS({
-        url: geoserverURL,
-        params: { LAYERS: 'skytron:state_boundary', TILED: true, FORMAT: 'image/png', TRANSPARENT: true },
-        serverType: 'geoserver',
-        transition: 0,
-      }),
-      zIndex: 1,
-    });
-
-    const contourLayer = new TileLayer({
-      title: 'Contours',
-      source: new TileWMS({
-        url: geoserverURL,
-        params: { LAYERS: 'skytron:contours', TILED: true, FORMAT: 'image/png', TRANSPARENT: true },
-        serverType: 'geoserver',
-        transition: 0,
-      }),
-      zIndex: 2,
-    });
-
-    const poiLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 100,
-      declutter: true,
-    });
-    const drawLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 200,
-      style: new Style({
-        fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
-        stroke: new Stroke({ color: '#ffcc33', width: 2 }),
-        image: new CircleStyle({ radius: 7, fill: new Fill({ color: '#ffcc33' }) }),
-      }),
-    });
-
-    const mapInstance = new Map({
-      target: soiMapContainerRef.current,
-      layers: [baseLayer, stateBoundaryLayer, contourLayer, poiLayer, drawLayer],
-      view: new View({
-        projection: 'EPSG:4326',
-        center: [91.7362, 26.1445],
-        zoom: 10,
-        maxZoom: 22,
-        constrainResolution: true,
-      }),
-      controls: [new ZoomSlider(), new FullScreen(), new ScaleLine()],
-      pixelRatio: 1,
-    });
-
-    soiMapRef.current = mapInstance;
-    poiLayerRef.current.soi = poiLayer;
-    drawLayerRef.current.soi = drawLayer;
-
-    return () => {
-      if (soiMapRef.current) {
-        soiMapRef.current.setTarget(null);
-        soiMapRef.current = null;
-      }
-      poiLayerRef.current.soi = null;
-      drawLayerRef.current.soi = null;
-    };
-  }, [mapType]);
+      poiClickHandlerRef.current = clickHandler;
+      mapRef.current.on('singleclick', clickHandler);
+    }
+  };
 
   const fetchPOIs = async () => {
     try {
@@ -620,20 +419,20 @@ const POIViewer = () => {
   };
 
   useEffect(() => {
-    const layers = [poiLayerRef.current.normal, poiLayerRef.current.satellite, poiLayerRef.current.soi].filter(Boolean);
-    layers.forEach((layer) => {
-      const source = layer.getSource();
-      source.clear();
-      pois.forEach((poi) => {
-        const feature = createPoiFeature(poi);
-        if (feature) source.addFeature(feature);
-      });
+    const poiLayer = poiVectorLayerRef.current;
+    const source = poiLayer?.getSource?.();
+    if (!source) return;
+
+    source.clear();
+    pois.forEach((poi) => {
+      const feature = createPoiFeature(poi);
+      if (feature) source.addFeature(feature);
     });
-  }, [pois, mapType]);
+  }, [pois]);
 
   useEffect(() => {
-    const mapInstance = getActiveMap();
-    const drawLayer = getActiveDrawLayer();
+    const mapInstance = mapRef.current;
+    const drawLayer = drawVectorLayerRef.current;
     if (!mapInstance || !drawLayer) return;
 
     if (drawInteractionRef.current) {
@@ -714,7 +513,7 @@ const POIViewer = () => {
        }
        drawInteractionRef.current = null;
      };
-   }, [drawingMode, mapType]);
+   }, [drawingMode]);
 
    const handleEditClick = (poi) => {
      setFormData({
@@ -854,9 +653,7 @@ const POIViewer = () => {
   useEffect(() => {
     const handleResize = () => {
       try {
-        normalMapRef.current?.updateSize?.();
-        satelliteMapRef.current?.updateSize?.();
-        soiMapRef.current?.updateSize?.();
+        mapRef.current?.updateSize?.();
       } catch (e) {
         // ignore
       }
@@ -978,7 +775,7 @@ const POIViewer = () => {
   const handlePoiClick = (poi) => {
     setSelectedPoiId(poi.id);
     // Center map on selected POI (OpenLayers)
-    const mapInstance = getActiveMap();
+    const mapInstance = mapRef.current;
     if (poi.location && mapInstance) {
       try {
         const location = JSON.parse(poi.location);
@@ -1046,7 +843,7 @@ const POIViewer = () => {
 
   const handleGeoResultClick = async (result) => {
     console.log('Selected geo result:', result);
-    const mapInstance = getActiveMap();
+    const mapInstance = mapRef.current;
     if (mapInstance) {
       const latRaw = result.latitude || result.lat;
       const lngRaw = result.longitude || result.lng || result.lon;
@@ -1058,10 +855,10 @@ const POIViewer = () => {
         view.setCenter([lng, lat]);
         view.setZoom(16);
 
-        const poiLayer = getActivePoiLayer();
+        const poiLayer = poiVectorLayerRef.current;
         if (poiLayer) {
           const source = poiLayer.getSource();
-          const previous = searchFeatureRef.current?.[mapType];
+          const previous = searchFeatureRef.current;
           if (previous) {
             try {
               source.removeFeature(previous);
@@ -1083,7 +880,7 @@ const POIViewer = () => {
             })
           );
           source.addFeature(feature);
-          searchFeatureRef.current[mapType] = feature;
+          searchFeatureRef.current = feature;
         }
       } else {
         showSnackbar('Selected location is missing coordinates', 'error');
@@ -1149,25 +946,22 @@ const POIViewer = () => {
 
 
       {/* Main Map Containers (OpenLayers) */}
-      <Box sx={{ height: '100%', width: '100%', display: mapType === 'normal' ? 'block' : 'none', position: 'relative' }}>
-        <div ref={normalMapContainerRef} style={{ width: '100%', height: '100%' }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: "absolute", bottom: 0, left: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: "absolute", top: 0, right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: "absolute", bottom: "20px", right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-      </Box>
-
-      <Box sx={{ height: '100%', width: '100%', display: mapType === 'satellite' ? 'block' : 'none', position: 'relative' }}>
-        <div ref={satelliteMapContainerRef} style={{ width: '100%', height: '100%' }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: "absolute", bottom: 0, left: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: "absolute", top: 0, right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: "absolute", bottom: "20px", right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-      </Box>
-
-      <Box sx={{ height: '100%', width: '100%', display: mapType === 'soi' ? 'block' : 'none', position: 'relative' }}>
-        <div ref={soiMapContainerRef} style={{ width: '100%', height: '100%' }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: "absolute", bottom: 0, left: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: "absolute", top: 0, right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: "absolute", bottom: "20px", right: 0, height: "60px", zIndex: 100, pointerEvents: "none" }} />
+      <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
+        <BhuvanMapComponent
+          gpsData={[]}
+          policeData={[]}
+          pois={[]}
+          width="100%"
+          height="100%"
+          autoFit={false}
+          showMapTypeToggle={true}
+          showDrawControls={false}
+          showLogos={true}
+          defaultMapType="normal"
+          center={[91.7362, 26.1445]}
+          zoom={10}
+          onMapReady={handleMapReady}
+        />
       </Box>
 
       {/* Zoom Controls Container */}
@@ -1329,33 +1123,6 @@ const POIViewer = () => {
             Drawing Tools
           </Typography>
 
-          <ButtonGroup size="small" variant="outlined" sx={{ alignSelf: 'flex-start' }}>
-            <Button
-              variant={mapType === 'normal' ? 'contained' : 'outlined'}
-              onClick={() => setMapType('normal')}
-              startIcon={<MapIcon />}
-              sx={{ textTransform: 'none' }}
-            >
-              Normal
-            </Button>
-            <Button
-              variant={mapType === 'satellite' ? 'contained' : 'outlined'}
-              onClick={() => setMapType('satellite')}
-              startIcon={<SatelliteIcon />}
-              sx={{ textTransform: 'none' }}
-            >
-              Satellite
-            </Button>
-            <Button
-              variant={mapType === 'soi' ? 'contained' : 'outlined'}
-              onClick={() => setMapType('soi')}
-              startIcon={<PublicIcon />}
-              sx={{ textTransform: 'none' }}
-            >
-              SOI
-            </Button>
-          </ButtonGroup>
-
           <Stack direction="row" spacing={1} sx={{ pb: 0.5 }}>
             <Tooltip title="Point">
               <span>
@@ -1444,6 +1211,7 @@ const POIViewer = () => {
               </IconButton>
             </Tooltip>
           </Stack>
+
         </Stack>
       </Paper>
 

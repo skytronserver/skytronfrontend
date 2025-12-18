@@ -58,6 +58,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import POIService from "../../services/POIService";
 import axios from "axios";
+import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
 const formatDateDDMMYY = (raw) => {
   if (!raw || raw.length < 8) return raw || "-";
@@ -476,6 +477,24 @@ const MapComponent = ({
   const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
   const [pois, setPois] = useState([]);
 
+  const [soiLayerVisibility, setSoiLayerVisibility] = useState({
+    states: true,
+    assamDistrict: true,
+    contours: true,
+    majorTowns: true,
+    railwayTracks: true,
+    roads: true,
+  });
+
+  const soiLayersRef = useRef({
+    states: null,
+    assamDistrict: null,
+    contours: null,
+    majorTowns: null,
+    railwayTracks: null,
+    roads: null,
+  });
+
   // Map type state for 3-layer system
   const [mapType, setMapType] = useState("normal"); // 'normal', 'satellite', 'hd'
   const mapplsMapRef = useRef(null);
@@ -864,7 +883,7 @@ const MapComponent = ({
         projection: "EPSG:4326",
         center: [91.7362, 26.1445], // Guwahati, Assam
         zoom: 10,
-        maxZoom: 22,
+        maxZoom: 32,
         constrainResolution: true,
       }),
 
@@ -1092,47 +1111,141 @@ const MapComponent = ({
     try {
       const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
 
-      // Base map: OpenStreetMap
-      const baseLayer = new TileLayer({
-        source: new XYZ({
-          url: "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        })
+      // Bhuvan base map (same as normal map)
+      const bhuvanIndia3Layer = new TileLayer({
+        source: createBhuvanSource("india3"),
+        zIndex: 0,
       });
 
-      // Layer 1: State Boundary
-      const wmsLayer1 = new TileLayer({
-        title: "State Boundary",
+      const bhuvanAdminLayer = new TileLayer({
+        source: createBhuvanSource("basemap%3Aadmin_group"),
+        zIndex: 1,
+      });
+
+      const bhuvanRoadsLayer = new TileLayer({
+        source: createBhuvanSource("mmi:mmi_india"),
+        zIndex: 2,
+      });
+
+      // SOI / skytron overlays
+      const soiStatesLayer = new TileLayer({
+        title: "States",
         source: new TileWMS({
           url: geoserverURL,
           params: {
-            'LAYERS': 'skytron:states',
-            'TILED': true
+            LAYERS: "skytron:states",
+            TILED: true,
           },
-          serverType: 'geoserver',
-          crossOrigin: 'anonymous'
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
         }),
-        opacity: 0.7
+        opacity: 0.7,
+        visible: soiLayerVisibility.states,
+        zIndex: 10,
       });
 
-      // Layer 2: Survey of India (Contours)
-      const wmsLayer2 = new TileLayer({
-        title: "Survey of India",
+      const soiAssamDistrictLayer = new TileLayer({
+        title: "ASSAM District Boundary",
         source: new TileWMS({
           url: geoserverURL,
           params: {
-            'LAYERS': 'skytron:Contours',
-            'TILED': true
+            LAYERS: "skytron:ASSAM_DISTRICT_BDY",
+            TILED: true,
           },
-          serverType: 'geoserver',
-          crossOrigin: 'anonymous'
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
         }),
-        visible: true,
-        opacity: 0.8
+        opacity: 0.8,
+        visible: soiLayerVisibility.assamDistrict,
+        zIndex: 11,
       });
+
+      const soiContoursLayer = new TileLayer({
+        title: "Contours",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:Contours",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.8,
+        visible: soiLayerVisibility.contours,
+        zIndex: 12,
+      });
+
+      const soiMajorTownsLayer = new TileLayer({
+        title: "Major Towns / Headquarters",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:MajortownsHeadquarters",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.majorTowns,
+        zIndex: 13,
+      });
+
+      const soiRailwayTracksLayer = new TileLayer({
+        title: "Railway Tracks",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:RailwayTracks",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.railwayTracks,
+        zIndex: 14,
+      });
+
+      const soiRoadsLayer = new TileLayer({
+        title: "SOI Roads",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:Roads",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.roads,
+        zIndex: 15,
+      });
+
+      soiLayersRef.current = {
+        states: soiStatesLayer,
+        assamDistrict: soiAssamDistrictLayer,
+        contours: soiContoursLayer,
+        majorTowns: soiMajorTownsLayer,
+        railwayTracks: soiRailwayTracksLayer,
+        roads: soiRoadsLayer,
+      };
 
       const soiMap = new Map({
         target: soiMapContainerRef.current,
-        layers: [baseLayer, wmsLayer1, wmsLayer2],
+        layers: [
+          bhuvanIndia3Layer,
+          bhuvanAdminLayer,
+          bhuvanRoadsLayer,
+          soiStatesLayer,
+          soiAssamDistrictLayer,
+          soiContoursLayer,
+          soiMajorTownsLayer,
+          soiRailwayTracksLayer,
+          soiRoadsLayer,
+        ],
         view: new View({
           projection: "EPSG:4326",
           center: [91.7362, 26.1445],
@@ -1164,6 +1277,16 @@ const MapComponent = ({
       });
       soiMap.addLayer(initialPoiVectorLayer);
       setPoiVectorLayer(initialPoiVectorLayer);
+
+      // Initialize incident vector layer for SOI
+      const incidentSource = new VectorSource();
+      const initialIncidentVectorLayer = new VectorLayer({
+        source: incidentSource,
+        zIndex: 300,
+        visible: false,
+      });
+      soiMap.addLayer(initialIncidentVectorLayer);
+      setIncidentVectorLayer(initialIncidentVectorLayer);
 
       // Initialize vector layer for drawing
       const drawSource = new VectorSource();
@@ -1207,6 +1330,18 @@ const MapComponent = ({
       // React strict mode might cause double init so we just let it be replaced
     };
   }, [mapType]);
+
+  useEffect(() => {
+    const layers = soiLayersRef.current;
+    if (!layers) return;
+
+    layers.states?.setVisible?.(!!soiLayerVisibility.states);
+    layers.assamDistrict?.setVisible?.(!!soiLayerVisibility.assamDistrict);
+    layers.contours?.setVisible?.(!!soiLayerVisibility.contours);
+    layers.majorTowns?.setVisible?.(!!soiLayerVisibility.majorTowns);
+    layers.railwayTracks?.setVisible?.(!!soiLayerVisibility.railwayTracks);
+    layers.roads?.setVisible?.(!!soiLayerVisibility.roads);
+  }, [soiLayerVisibility]);
 
   // Initialize HD Map (Mappls)
   useEffect(() => {
@@ -1681,6 +1816,8 @@ const MapComponent = ({
 
           if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
 
+          const hdMediaContainerId = `incident-media-hd-${incident.id}-${Date.now()}`;
+
           const popupContent = `
             <div style="padding: 12px; min-width: 250px; font-family: 'Roboto', sans-serif;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -1688,13 +1825,7 @@ const MapComponent = ({
                  <span style="background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; border: 1px solid #ffcdd2;">ALERT</span>
               </div>
               <p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
-              ${incident.image_file ? (() => {
-              const url = incident.image_file.startsWith('http') ? incident.image_file : `https://api.gromed.in/${incident.image_file}`;
-              const isVideo = incident.image_file.match(/\.(mp4|webm|ogg|mov)$/i);
-              return isVideo
-                ? `<video src="${url}" controls style="width: 100%; max-height: 160px; border-radius: 6px; border: 1px solid #eee; display: block;"></video>`
-                : `<img src="${url}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; display: block;" alt="Incident" />`
-            })() : ''}
+              ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;"></div>` : ''}
               <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
                  <span>Registered:</span>
                  <span style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
@@ -1725,6 +1856,33 @@ const MapComponent = ({
           const markerInstance = createMarker(markerOptions);
           if (markerInstance) {
             hdIncidentMarkersRef.current.push(markerInstance);
+
+            if (incident.image_file) {
+              const loadMedia = () => {
+                // Wait a tick for popup DOM to be mounted
+                setTimeout(() => {
+                  try {
+                    renderSecureIncidentMedia(incident.image_file, hdMediaContainerId, {
+                      maxWidth: "100%",
+                      maxHeight: "160px",
+                      borderRadius: "6px",
+                    });
+                  } catch (e) {
+                    console.error("Failed to load secure incident media in HD popup", e);
+                  }
+                }, 50);
+              };
+
+              try {
+                if (typeof markerInstance.addListener === "function") {
+                  markerInstance.addListener("click", loadMedia);
+                } else if (typeof markerInstance.on === "function") {
+                  markerInstance.on("click", loadMedia);
+                }
+              } catch (e) {
+                // Best-effort only (SDK variants differ)
+              }
+            }
           }
         } catch (error) {
           console.error("Error creating incident marker", error);
@@ -2267,6 +2425,7 @@ const MapComponent = ({
 
           if (item.type === 'incident') {
             const incident = item.data;
+            const imageContainerId = `incident-media-${incident.id}-${Date.now()}`;
             document.getElementById("overlay-content").innerHTML = `
                 <div class="overlay-card" style="min-width: 250px; font-family: 'Roboto', sans-serif;">
                   <div class="overlay-header">
@@ -2275,17 +2434,7 @@ const MapComponent = ({
                   </div>
                   <div class="overlay-body">
                     <p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
-                     ${incident.image_file ? (() => {
-                const url = incident.image_file.startsWith('http') ? incident.image_file : `https://api.gromed.in/${incident.image_file}`;
-                const isVideo = incident.image_file.match(/\.(mp4|webm|ogg|mov)$/i);
-                return `
-                     <div class="overlay-row" style="margin-top: 8px;">
-                        ${isVideo ?
-                    `<video src="${url}" controls style="width: 100%; max-height: 160px; border-radius: 6px; border: 1px solid #eee; display: block;"></video>` :
-                    `<img src="${url}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; display: block;" alt="Incident" />`
-                  }
-                     </div>`;
-              })() : ''}
+                    ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;"></div>` : ''}
                     <div class="overlay-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
                       <span class="overlay-label">Registered:</span>
                       <span class="overlay-value" style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
@@ -2300,6 +2449,17 @@ const MapComponent = ({
             const currentZoom = map.getView().getZoom();
             const targetZoom = currentZoom > 16 ? currentZoom : 16;
             map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+
+            // Load secure incident media asynchronously if it exists
+            if (incident.image_file) {
+              renderSecureIncidentMedia(incident.image_file, imageContainerId, {
+                maxWidth: "100%",
+                maxHeight: "160px",
+                borderRadius: "6px",
+              }).catch((err) => {
+                console.error("Failed to load incident media:", err);
+              });
+            }
 
           } else {
             const entryData = item.data;
@@ -3199,6 +3359,83 @@ const MapComponent = ({
                   sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
                 />
               </Box>
+
+              {mapType === 'soi' && (
+                <>
+                  <Divider />
+                  <Typography variant="caption" fontWeight={700} sx={{ px: 0.5, color: 'text.secondary' }}>
+                    SOI Layers
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.states}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, states: e.target.checked }))}
+                        />
+                      }
+                      label={<Typography variant="caption" fontWeight={500}>States</Typography>}
+                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.assamDistrict}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrict: e.target.checked }))}
+                        />
+                      }
+                      label={<Typography variant="caption" fontWeight={500}>ASSAM District BDY</Typography>}
+                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.contours}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, contours: e.target.checked }))}
+                        />
+                      }
+                      label={<Typography variant="caption" fontWeight={500}>Contours</Typography>}
+                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.majorTowns}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, majorTowns: e.target.checked }))}
+                        />
+                      }
+                      label={<Typography variant="caption" fontWeight={500}>Major Towns HQ</Typography>}
+                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.railwayTracks}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, railwayTracks: e.target.checked }))}
+                        />
+                      }
+                      label={<Typography variant="caption" fontWeight={500}>Railway Tracks</Typography>}
+                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.roads}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roads: e.target.checked }))}
+                        />
+                      }
+                      label={<Typography variant="caption" fontWeight={500}>Roads</Typography>}
+                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                    />
+                  </Box>
+                </>
+              )}
 
             </Paper>
           )}
