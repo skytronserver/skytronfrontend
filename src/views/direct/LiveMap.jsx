@@ -58,6 +58,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import POIService from "../../services/POIService";
 import axios from "axios";
+import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
 const formatDateDDMMYY = (raw) => {
   if (!raw || raw.length < 8) return raw || "-";
@@ -2267,6 +2268,11 @@ const MapComponent = ({
 
           if (item.type === 'incident') {
             const incident = item.data;
+            
+            // Create unique container ID for this incident
+            const imageContainerId = `incident-media-${incident.id}-${Date.now()}`;
+            
+            // Build the card with placeholder for secure image
             document.getElementById("overlay-content").innerHTML = `
                 <div class="overlay-card" style="min-width: 250px; font-family: 'Roboto', sans-serif;">
                   <div class="overlay-header">
@@ -2275,17 +2281,7 @@ const MapComponent = ({
                   </div>
                   <div class="overlay-body">
                     <p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
-                     ${incident.image_file ? (() => {
-                const url = incident.image_file.startsWith('http') ? incident.image_file : `https://api.gromed.in/${incident.image_file}`;
-                const isVideo = incident.image_file.match(/\.(mp4|webm|ogg|mov)$/i);
-                return `
-                     <div class="overlay-row" style="margin-top: 8px;">
-                        ${isVideo ?
-                    `<video src="${url}" controls style="width: 100%; max-height: 160px; border-radius: 6px; border: 1px solid #eee; display: block;"></video>` :
-                    `<img src="${url}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; display: block;" alt="Incident" />`
-                  }
-                     </div>`;
-              })() : ''}
+                    ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;"></div>` : ''}
                     <div class="overlay-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
                       <span class="overlay-label">Registered:</span>
                       <span class="overlay-value" style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
@@ -2300,6 +2296,17 @@ const MapComponent = ({
             const currentZoom = map.getView().getZoom();
             const targetZoom = currentZoom > 16 ? currentZoom : 16;
             map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+
+            // Load secure incident media asynchronously if it exists
+            if (incident.image_file) {
+              renderSecureIncidentMedia(incident.image_file, imageContainerId, {
+                maxWidth: "100%",
+                maxHeight: "160px",
+                borderRadius: "6px",
+              }).catch(err => {
+                console.error("Failed to load incident media:", err);
+              });
+            }
 
           } else {
             const entryData = item.data;
