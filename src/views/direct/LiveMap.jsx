@@ -463,6 +463,7 @@ const MapComponent = ({
   autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
   focusEntry = null,
   markerLabelMode = "vehicle",
+  nmrArea = null,
 }) => {
   const overlayElement = useRef();
   const [map, setMap] = useState(null);
@@ -472,6 +473,7 @@ const MapComponent = ({
   const [drawInteraction, setDrawInteraction] = useState(null);
   const [poiVectorLayer, setPoiVectorLayer] = useState(null);
   const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
+  const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
   const [pois, setPois] = useState([]);
 
   // Map type state for 3-layer system
@@ -908,6 +910,16 @@ const MapComponent = ({
     initialMap.addLayer(initialIncidentVectorLayer);
     setIncidentVectorLayer(initialIncidentVectorLayer);
 
+    // Initialize NMR circle vector layer
+    const nmrSource = new VectorSource();
+    const initialNmrVectorLayer = new VectorLayer({
+      source: nmrSource,
+      zIndex: 250,
+      visible: true,
+    });
+    initialMap.addLayer(initialNmrVectorLayer);
+    setNmrVectorLayer(initialNmrVectorLayer);
+
     // Initialize vector layer for drawing
     const drawSource = new VectorSource();
     const drawLayer = new VectorLayer({
@@ -961,7 +973,7 @@ const MapComponent = ({
         title: "OSM Satellite",
         source: new XYZ({
           url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          attributions: "© Esri",
+          attributions: " Esri",
           maxZoom: 18,
         }),
         zIndex: 0,
@@ -984,8 +996,6 @@ const MapComponent = ({
         ],
         pixelRatio: 1,
       });
-
-
 
       // Initialize vector layer for markers
       // Initialize vector layer for markers (with Clustering)
@@ -1019,6 +1029,16 @@ const MapComponent = ({
       });
       satelliteMap.addLayer(initialIncidentVectorLayer);
       setIncidentVectorLayer(initialIncidentVectorLayer);
+
+      // Initialize NMR circle vector layer for satellite
+      const nmrSource = new VectorSource();
+      const initialNmrVectorLayer = new VectorLayer({
+        source: nmrSource,
+        zIndex: 250,
+        visible: true,
+      });
+      satelliteMap.addLayer(initialNmrVectorLayer);
+      setNmrVectorLayer(initialNmrVectorLayer);
 
       // Initialize vector layer for drawing
       const drawSource = new VectorSource();
@@ -2510,6 +2530,37 @@ const MapComponent = ({
       source.addFeatures(features);
     }
   }, [incidentData, map, incidentVectorLayer]);
+
+  // Handle NMR circular area (normal / satellite OpenLayers maps)
+  useEffect(() => {
+    if (!map || !nmrVectorLayer) return;
+
+    const source = nmrVectorLayer.getSource();
+    source.clear();
+
+    if (!nmrArea) return;
+
+    const lat = Number(nmrArea.latitude);
+    const lon = Number(nmrArea.longitude);
+    const radiusKm = Number(nmrArea.radiusKm) || 5;
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+    // Approximate conversion: 1 degree of latitude ~ 111.32 km
+    const radiusDeg = radiusKm / 111.32;
+
+    const circleGeom = new Circle([lon, lat], radiusDeg);
+    const feature = new Feature({ geometry: circleGeom });
+
+    feature.setStyle(
+      new Style({
+        fill: new Fill({ color: 'rgba(33, 150, 243, 0.15)' }), // light blue fill
+        stroke: new Stroke({ color: '#2196F3', width: 2 }), // blue border
+      })
+    );
+
+    source.addFeature(feature);
+  }, [map, nmrVectorLayer, nmrArea]);
 
   // Handle clustering distance based on zoom level to reveal tight clusters
   useEffect(() => {

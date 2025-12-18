@@ -4,6 +4,7 @@ export const notificationPreferencesInitialsFields = {
   nf_popup: false,
   nf_sms: false,
   nf_email: false,
+  nf_frequency: 1,
 };
 
 export const notificationPreferencesFormFields = {
@@ -24,5 +25,11 @@ export const notificationPreferencesFormFields = {
     type: "checkbox",
     label: "notificationPreferences.form.email.label",
     validation: Yup.boolean(),
+  },
+  nf_frequency: {
+    name: "nf_frequency",
+    type: "select",
+    label: "Frequency",
+    validation: Yup.number().min(1).max(25).required(),
   },
 };

@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Grid, FormControlLabel, Checkbox } from "@mui/material";
+import { Button, CircularProgress, Grid, FormControlLabel, Checkbox, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { Formik } from "formik";
 import React, { useState, useEffect } from "react";
 import { gridSpacing } from "../../store/constant";
@@ -26,14 +26,17 @@ function NotificationPreferences({ fieldConfig, initialData }) {
       try {
         const resp = await SettingService.fetchNotificationPreferences();
         if (resp.data?.data) {
-          setCurrentSettings(resp.data.data);
+          const apiData = resp.data.data || {};
+          // Merge API data over initial defaults so nf_frequency and other
+          // new fields always have a valid initial value.
+          setCurrentSettings({ ...initialData, ...apiData });
         }
       } catch (error) {
         console.error("Failed to fetch notification preferences:", error);
       }
     };
     loadCurrentPreferences();
-  }, []);
+  }, [initialData]);
 
   const handleClose = () => {
     setOpen(false);
@@ -69,13 +72,22 @@ function NotificationPreferences({ fieldConfig, initialData }) {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
-    const response = await updatePreferences(values);
+    // Ensure nf_frequency is always sent as a valid number (1-25)
+    const payload = {
+      ...values,
+      nf_frequency:
+        values.nf_frequency === undefined || values.nf_frequency === null || values.nf_frequency === ""
+          ? 1
+          : Number(values.nf_frequency),
+    };
+
+    const response = await updatePreferences(payload);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t('common.formSubmitSuccess'));
       setSubmitting(false);
       setLoading(false);
-      setCurrentSettings(values);
+      setCurrentSettings(payload);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -138,23 +150,60 @@ function NotificationPreferences({ fieldConfig, initialData }) {
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
                   <Grid container spacing={2} className="form-controller">
-                    {Object.keys(fieldConfig).map((field) => (
-                      <Grid key={field} item md={12} sm={12} xs={12}>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={formik.values[field]}
-                              onChange={(e) => {
-                                formik.setFieldValue(field, e.target.checked);
-                              }}
-                              name={field}
-                              color="primary"
+                    {Object.keys(fieldConfig).map((field) => {
+                      const config = fieldConfig[field];
+
+                      if (config.type === "checkbox") {
+                        return (
+                          <Grid key={field} item md={12} sm={12} xs={12}>
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={formik.values[field]}
+                                  onChange={(e) => {
+                                    formik.setFieldValue(field, e.target.checked);
+                                  }}
+                                  name={field}
+                                  color="primary"
+                                />
+                              }
+                              label={t(config.label)}
                             />
-                          }
-                          label={t(fieldConfig[field].label)}
-                        />
-                      </Grid>
-                    ))}
+                          </Grid>
+                        );
+                      }
+
+                      if (config.type === "select") {
+                        return (
+                          <Grid key={field} item md={12} sm={12} xs={12}>
+                            <FormControl fullWidth>
+                              <InputLabel id={`${field}-label`}>
+                                {config.label}
+                              </InputLabel>
+                              <Select
+                                labelId={`${field}-label`}
+                                id={field}
+                                name={field}
+                                label={config.label}
+                                value={formik.values[field] ?? ""}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  formik.setFieldValue(field, value === "" ? "" : Number(value));
+                                }}
+                              >
+                                {Array.from({ length: 25 }, (_, index) => index + 1).map((value) => (
+                                  <MenuItem key={value} value={value}>
+                                    {value}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        );
+                      }
+
+                      return null;
+                    })}
                     <Grid item xs={12} style={{ marginTop: "20px" }}>
                       <Button
                         type="submit"

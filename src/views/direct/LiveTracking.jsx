@@ -21,6 +21,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 
 import MainCard from "../../ui-component/cards/MainCard";
@@ -58,6 +60,8 @@ const LiveTracking = () => {
   const [markerLabelMode, setMarkerLabelMode] = useState('vehicle');
   const [policeLocations, setPoliceLocations] = useState([]);
   const [incidentData, setIncidentData] = useState([]);
+  const [useNmrLocation, setUseNmrLocation] = useState(false);
+  const [nmrArea, setNmrArea] = useState(null);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -209,6 +213,52 @@ const LiveTracking = () => {
     }
   }, [computeSearchCenter]);
 
+  const isBadGnss = (entry) => {
+    const lat = Number(entry?.latitude);
+    const lon = Number(entry?.longitude);
+    return (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon) ||
+      (lat === 0 && lon === 0)
+    );
+  };
+
+  const applyNmrLocation = async (entry) => {
+    const mcc = entry?.mcc;
+    const mnc = entry?.mnc;
+    const lac = entry?.lac;
+    const cellId = entry?.cell_id;
+
+    if (!mcc || !mnc || !lac || !cellId) {
+      return entry;
+    }
+
+    try {
+      const payload = {
+        mcc: String(mcc),
+        mnc: String(mnc),
+        lac: String(lac),
+        cell_id: String(cellId),
+      };
+
+      const nmrResponse = await HomePageService.getCellLocation(payload);
+      const latValue = nmrResponse?.data?.average_latitude ?? nmrResponse?.data?.lat ?? nmrResponse?.data?.latitude;
+      const lonValue = nmrResponse?.data?.average_longitude ?? nmrResponse?.data?.lon ?? nmrResponse?.data?.lng ?? nmrResponse?.data?.longitude;
+
+      const lat = Number(latValue);
+      const lon = Number(lonValue);
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        return entry;
+      }
+
+      // Automatic NMR fallback: update coordinates only, do NOT show circle
+      return { ...entry, latitude: lat, longitude: lon };
+    } catch (e) {
+      return entry;
+    }
+  };
+
   const retriveMapData = async (data) => {
     try {
       const retriveData_table = await HomePageService.getLiveTracking_data(
@@ -216,7 +266,17 @@ const LiveTracking = () => {
       );
 
       if (Array.isArray(retriveData_table.data.data)) {
-        const newData = retriveData_table.data.data;
+        const rawData = retriveData_table.data.data;
+
+        const newData = await Promise.all(
+          rawData.map(async (item) => {
+            if (isBadGnss(item)) {
+              return await applyNmrLocation(item);
+            }
+            return item;
+          })
+        );
+
         setTableDataTop(newData);
         setFilteredData(newData);
 
@@ -225,6 +285,7 @@ const LiveTracking = () => {
           setSelectedId(`vehicle-${newData[0].imei}`);
           setFocusedEntry(newData[0]);
         } else {
+          setSelectedId(null);
           setFocusedEntry(null);
         }
 
@@ -235,6 +296,8 @@ const LiveTracking = () => {
         setFilteredData([]);
         setSelectedId(null);
         setFocusedEntry(null);
+        setUseNmrLocation(false);
+        setNmrArea(null);
         fetchPoliceLocations();
         fetchIncidents();
       }
@@ -244,6 +307,8 @@ const LiveTracking = () => {
       setFilteredData([]);
       setSelectedId(null);
       setFocusedEntry(null);
+      setUseNmrLocation(false);
+      setNmrArea(null);
       fetchPoliceLocations();
       fetchIncidents();
     }
@@ -257,10 +322,14 @@ const LiveTracking = () => {
       setSelectedId(id);
       setFilteredData([selectedRow]);
       setFocusedEntry(selectedRow);
+      setUseNmrLocation(false);
+      setNmrArea(null);
     } else {
       setSelectedId(null);
       setFilteredData(tableDataTop);
       setFocusedEntry(null);
+      setUseNmrLocation(false);
+      setNmrArea(null);
     }
   };
 
@@ -281,6 +350,9 @@ const LiveTracking = () => {
 
     setSelectedId(null); // Reset selection when submitting new search
     setFocusedEntry(null);
+    setUseNmrLocation(false);
+    setNmrArea(null);
+
     retriveMapData(params);
   };
 
@@ -322,7 +394,14 @@ const LiveTracking = () => {
     try {
       const response = await HomePageService.getLiveTracking_data(params);
       if (Array.isArray(response?.data?.data) && response.data.data.length > 0) {
-        const updated = response.data.data[0];
+        let updated = response.data.data[0];
+
+        if (isBadGnss(updated)) {
+          updated = await applyNmrLocation(updated);
+        } else if (useNmrLocation) {
+          updated = await applyNmrLocation(updated);
+        }
+
         setFilteredData([updated]);
         setFocusedEntry(updated);
       }
@@ -676,6 +755,78 @@ const LiveTracking = () => {
                 <MenuItem value="route">Route Information</MenuItem>
               </Select>
             </FormControl>
+            <FormControlLabel
+              sx={{ ml: 2 }}
+              control={
+                <Switch
+                  color="primary"
+                  checked={useNmrLocation}
+                  onChange={async (event) => {
+                    const enabled = event.target.checked;
+                    setUseNmrLocation(enabled);
+
+                    // When turning OFF, revert to latest GNSS for selected vehicle
+                    if (!enabled) {
+                      // Clear NMR area so circle disappears
+                      setNmrArea(null);
+                      if (selectedId) {
+                        await refreshSelectedVehicle();
+                      }
+                      return;
+                    }
+
+                    // Require a focused entry to apply manual NMR
+                    if (!focusedEntry) {
+                      return;
+                    }
+
+                    const mcc = focusedEntry.mcc;
+                    const mnc = focusedEntry.mnc;
+                    const lac = focusedEntry.lac;
+                    const cellId = focusedEntry.cell_id;
+
+                    if (!mcc || !mnc || !lac || !cellId) {
+                      return;
+                    }
+
+                    try {
+                      const payload = {
+                        mcc: String(mcc),
+                        mnc: String(mnc),
+                        lac: String(lac),
+                        cell_id: String(cellId),
+                      };
+
+                      const response = await HomePageService.getCellLocation(payload);
+                      const latValue =
+                        response?.data?.average_latitude ??
+                        response?.data?.lat ??
+                        response?.data?.latitude;
+                      const lonValue =
+                        response?.data?.average_longitude ??
+                        response?.data?.lon ??
+                        response?.data?.lng ??
+                        response?.data?.longitude;
+
+                      const lat = Number(latValue);
+                      const lon = Number(lonValue);
+
+                      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                        return;
+                      }
+
+                      // Set NMR circle radius to 0.5 km (~500 meters)
+                      setNmrArea({ latitude: lat, longitude: lon, radiusKm: 0.5 });
+                      const nmrEntry = { ...focusedEntry, latitude: lat, longitude: lon };
+                      setFilteredData([nmrEntry]);
+                      setFocusedEntry(nmrEntry);
+                    } catch (e) {
+                    }
+                  }}
+                />
+              }
+              label="Use NMR Location"
+            />
           </Box>
           <MapComponent
             gpsData={filteredData}
@@ -686,6 +837,7 @@ const LiveTracking = () => {
             onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
             focusEntry={focusedEntry}
             markerLabelMode={markerLabelMode}
+            nmrArea={nmrArea}
           />
 
         </div>

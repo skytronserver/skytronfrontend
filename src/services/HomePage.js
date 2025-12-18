@@ -185,6 +185,11 @@ const getIncidentData = (data) => {
   return http.post("https://api.gromed.in/api/incident/filter/", data);
 };
 
+const getCellLocation = (data) => {
+  const http = getAxiosInstance();
+  return http.post("https://api.gromed.in/api/cell_location/", data);
+};
+
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -215,6 +220,7 @@ const HomePageService = {
   getStatus,
   getEmergencyUserLocations,
   getIncidentData,
+  getCellLocation,
 };
 
 export default HomePageService;
