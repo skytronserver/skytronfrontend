@@ -1,19 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Box, Button, Slider, Typography, Paper, CircularProgress } from "@mui/material";
 import "ol/ol.css";
-import { Map, View } from "ol";
-import { Tile as TileLayer } from "ol/layer";
-import { OSM, TileWMS } from "ol/source";
-import { fromLonLat, toLonLat } from "ol/proj";
-import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
-import VectorLayer from "ol/layer/Vector";
 import { Icon, Style, Stroke, Circle as CircleStyle, Fill, Text } from "ol/style";
 import Point from "ol/geom/Point";
 import Feature from "ol/Feature";
 import LineString from "ol/geom/LineString";
 import { getCenter } from "ol/extent";
 import Select from "ol/interaction/Select";
+import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 
 const TripPlanningMap = ({
   routeCoordinates,
@@ -35,13 +30,11 @@ const TripPlanningMap = ({
   const [progress, setProgress] = useState(0);
   const [remainingTime, setRemainingTime] = useState(null);
   const [tripStatus, setTripStatus] = useState("scheduled");
-  
-  const mapRef = useRef(null);
-  const overlayRef = useRef(null);
-  const markerRef = useRef(null);
+
+  const markerSourceRef = useRef(null);
+  const mapInstanceRef = useRef(null);
   const animationMarkerRef = useRef(null);
   const animationIntervalId = useRef(null);
-  const featureOverlayRef = useRef(null);
   const allFeaturesRef = useRef([]);
   const etaIntervalRef = useRef(null);
 
@@ -53,106 +46,15 @@ const TripPlanningMap = ({
     return Math.round((end - start) / (1000 * 60));
   };
 
-  // Initialize map
-  useEffect(() => {
-    if (!map) {
-      const initialMap = new Map({
-        target: mapRef.current,
-        layers: [
-          new TileLayer({
-            source: new OSM(),
-          }),
-          // India3 layer
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'india3',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-          // Admin group layer (basemap)
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'basemap%3Aadmin_group',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-          // Roads layer (mmi_india)
-          new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'mmi:mmi_india',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
-          }),
-        ],
-        view: new View({
-          center: fromLonLat([91.829437, 26.131644]),
-          zoom: 7,
-        }),
-        pixelRatio: 1,
-      });
-
-      const overlay = new Overlay({
-        element: overlayRef.current,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 2,
-        },
-      });
-
-      initialMap.addOverlay(overlay);
-
-      const markerSource = new VectorSource();
-      const markerLayer = new VectorLayer({
-        source: markerSource,
-      });
-
-      initialMap.addLayer(markerLayer);
-
-      setMap(initialMap);
-      markerRef.current = markerSource;
-      featureOverlayRef.current = overlay;
-    }
-  }, [map]);
+  const handleMapReady = ({ map: readyMap, vectorLayer }) => {
+    mapInstanceRef.current = readyMap;
+    markerSourceRef.current = vectorLayer?.getSource?.() || null;
+    setMap(readyMap);
+  };
 
   // Load route when coordinates change
   useEffect(() => {
-    if (routeCoordinates && routeCoordinates.length > 0 && markerRef.current) {
+    if (routeCoordinates && routeCoordinates.length > 0 && markerSourceRef.current) {
       loadRoute(routeCoordinates);
     }
   }, [routeCoordinates]);
@@ -192,15 +94,15 @@ const TripPlanningMap = ({
         return;
       }
 
-      markerRef.current.clear();
+      markerSourceRef.current.clear();
       allFeaturesRef.current = [];
 
       // Create point features only for start and end points
       const startPoint = new Feature({
-        geometry: new Point(fromLonLat(coordinates[0])),
+        geometry: new Point(coordinates[0]),
       });
       const endPoint = new Feature({
-        geometry: new Point(fromLonLat(coordinates[coordinates.length - 1])),
+        geometry: new Point(coordinates[coordinates.length - 1]),
       });
 
       // Set style for start and end points
@@ -218,11 +120,11 @@ const TripPlanningMap = ({
         );
       });
 
-      markerRef.current.addFeatures([startPoint, endPoint]);
+      markerSourceRef.current.addFeatures([startPoint, endPoint]);
       allFeaturesRef.current.push(startPoint, endPoint);
 
       // Create and add the route line
-      const lineCoordinates = coordinates.map(coords => fromLonLat(coords));
+      const lineCoordinates = coordinates;
       
       if (lineCoordinates.some(coord => !coord || coord.length < 2)) {
         throw new Error('Invalid coordinates in route');
@@ -239,7 +141,7 @@ const TripPlanningMap = ({
         })
       }));
       
-      markerRef.current.addFeature(line);
+      markerSourceRef.current.addFeature(line);
       allFeaturesRef.current.push(line);
 
       // Get the extent and verify it's valid before fitting
@@ -338,11 +240,11 @@ const TripPlanningMap = ({
 
   // Update current position on map
   const updateCurrentPosition = (lon, lat) => {
-    const currentCoordinates = fromLonLat([lon, lat]);
+    const currentCoordinates = [lon, lat];
 
     // Remove the previous animation marker if it exists
     if (animationMarkerRef.current) {
-      markerRef.current.removeFeature(animationMarkerRef.current);
+      markerSourceRef.current.removeFeature(animationMarkerRef.current);
     }
 
     // Add the new animation marker
@@ -360,7 +262,7 @@ const TripPlanningMap = ({
 
     marker.setStyle(markerStyle);
 
-    markerRef.current.addFeature(marker);
+    markerSourceRef.current.addFeature(marker);
     animationMarkerRef.current = marker;
 
     setCurrentCoordinates(currentCoordinates);
@@ -371,7 +273,6 @@ const TripPlanningMap = ({
   const playAnimation = () => {
     setIsPlaying(true);
     let currentIndex = sliderValue;
-    overlayRef.current.style.display = "none";
 
     animationIntervalId.current = setInterval(() => {
       if (currentIndex < maxSliderValue) {
@@ -412,7 +313,20 @@ const TripPlanningMap = ({
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '500px' }}>
-      <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+      <BhuvanMapComponent
+        width="100%"
+        height="100%"
+        gpsData={[]}
+        policeData={[]}
+        pois={[]}
+        showDrawControls={false}
+        showLogos={true}
+        showMapTypeToggle={true}
+        defaultMapType="normal"
+        center={[91.829437, 26.131644]}
+        zoom={7}
+        onMapReady={handleMapReady}
+      />
       
       {/* ETA Info Overlay */}
       <Paper
@@ -482,4 +396,4 @@ const TripPlanningMap = ({
   );
 };
 
-export default TripPlanningMap; 
+export default TripPlanningMap;

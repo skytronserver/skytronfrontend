@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     Box,
     Grid,
+    Stack,
     Typography,
     alpha,
     Table,
@@ -18,20 +19,11 @@ import {
 import MainCard from 'ui-component/cards/MainCard';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
-// OpenLayers imports
-import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import TileWMS from 'ol/source/TileWMS';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import Style from 'ol/style/Style';
 import Icon from 'ol/style/Icon';
-import { fromLonLat } from 'ol/proj';
+import BhuvanMapComponent from '../../components/Map/BhuvanMapComponent';
 
 // Services
 import HomePageService from 'services/HomePage';
@@ -40,105 +32,73 @@ import UserServices from 'services/UserServices';
 // --- Reusable Map Component ---
 const DashboardMap = ({ data, getStyle, center = [91.7362, 26.1445], zoom = 10 }) => {
     const mapRef = useRef(null);
-    const [map, setMap] = useState(null);
-    const [vectorLayer, setVectorLayer] = useState(null);
+    const vectorLayerRef = useRef(null);
+    const latestStyleRef = useRef(getStyle);
+    latestStyleRef.current = getStyle;
 
-    // Initialize Map
-    useEffect(() => {
-        if (!mapRef.current) return;
-
-        const createBhuvanWms = () =>
-            new TileLayer({
-                source: new TileWMS({
-                    url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-                    params: {
-                        LAYERS: 'basemap%3Aadmin_group',
-                        TILED: true,
-                        VERSION: '1.1.1',
-                        FORMAT: 'image/png',
-                        TRANSPARENT: 'true',
-                        SRS: 'EPSG:4326'
-                    },
-                    serverType: 'geoserver',
-                    projection: 'EPSG:4326'
-                }),
-                opacity: 1
-            });
-
-        const vectorSource = new VectorSource();
-        const vector = new VectorLayer({
-            source: vectorSource,
-            zIndex: 200
-        });
-
-        const initialMap = new Map({
-            target: mapRef.current,
-            layers: [
-                new TileLayer({ source: new OSM() }),
-                createBhuvanWms(),
-                vector
-            ],
-            view: new View({
-                center: fromLonLat(center),
-                zoom: zoom
-            })
-        });
-
-        setMap(initialMap);
-        setVectorLayer(vector);
-
-        // Resize observer to handle container size changes
-        const resizeObserver = new ResizeObserver(() => {
-            initialMap.updateSize();
-        });
-        resizeObserver.observe(mapRef.current);
-
-        return () => {
-            resizeObserver.disconnect();
-            initialMap.setTarget(null);
-        };
-    }, []); // Init once
+    const handleMapReady = ({ map, vectorLayer }) => {
+        mapRef.current = map;
+        vectorLayerRef.current = vectorLayer || null;
+    };
 
     // Update Markers
     useEffect(() => {
-        if (!map || !vectorLayer || !data) return;
+        const vectorLayer = vectorLayerRef.current;
+        if (!vectorLayer || !data) return;
 
-        const source = vectorLayer.getSource();
+        const source = vectorLayer.getSource?.();
+        if (!source) return;
+
         source.clear();
 
-        const features = data.map((item, index) => {
-            // Support both direct lat/lon properties and nested location arrays if needed
-            // Assuming item has latitude/longitude or we pass a normalized structure
-            const lat = Number(item.latitude);
-            const lon = Number(item.longitude);
+        const styleFn = latestStyleRef.current;
+        const features = data
+            .map((item) => {
+                const lat = Number(item.latitude);
+                const lon = Number(item.longitude);
 
-            if (isNaN(lat) || isNaN(lon)) return null;
+                if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
 
-            const coords = fromLonLat([lon, lat]);
-            const f = new Feature({
-                geometry: new Point(coords),
-                data: item
-            });
+                const f = new Feature({
+                    geometry: new Point([lon, lat]),
+                    data: item,
+                });
 
-            if (getStyle) {
-                f.setStyle(getStyle(item));
-            }
-            return f;
-        }).filter(Boolean);
+                if (styleFn) {
+                    f.setStyle(styleFn(item));
+                }
+
+                return f;
+            })
+            .filter(Boolean);
 
         source.addFeatures(features);
-    }, [map, vectorLayer, data, getStyle]);
+    }, [data, getStyle]);
 
     return (
         <Box
-            ref={mapRef}
             sx={{
                 width: '100%',
                 height: '100%',
                 minHeight: '400px',
                 '& .ol-viewport': { borderRadius: '0 0 12px 12px' }
             }}
-        />
+        >
+            <BhuvanMapComponent
+                width="100%"
+                height="100%"
+                gpsData={[]}
+                policeData={[]}
+                pois={[]}
+                showDrawControls={false}
+                showLogos={false}
+                showMapTypeToggle={true}
+                defaultMapType="normal"
+                center={center}
+                zoom={zoom}
+                onMapReady={handleMapReady}
+            />
+        </Box>
     );
 };
 
@@ -223,11 +183,11 @@ const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, c
     <Box
         sx={{
             height: '100%',
-            minHeight: '600px',
+            minHeight: { xs: 'auto', md: 560 },
             borderRadius: 4,
             bgcolor: '#ffffff',
             border: '1px solid',
-            borderColor: alpha(accentColor, 0.1),
+            borderColor: alpha(accentColor, 0.12),
             boxShadow: `0 4px 20px 0 ${alpha(accentColor, 0.05)}`,
             display: 'flex',
             flexDirection: 'column',
@@ -235,15 +195,15 @@ const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, c
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
                 transform: 'translateY(-4px)',
-                boxShadow: `0 20px 40px -4px ${alpha(accentColor, 0.1)}`,
-                borderColor: alpha(accentColor, 0.3)
+                boxShadow: `0 20px 40px -4px ${alpha(accentColor, 0.12)}`,
+                borderColor: alpha(accentColor, 0.36)
             }
         }}
     >
         <Box sx={{
-            p: 3,
-            borderBottom: `1px solid ${alpha(accentColor, 0.1)}`,
-            background: `linear-gradient(135deg, ${alpha(accentColor, 0.12)} 0%, ${alpha(accentColor, 0.02)} 100%)`,
+            p: { xs: 2.5, md: 3 },
+            borderBottom: `1px solid ${alpha(accentColor, 0.12)}`,
+            background: `linear-gradient(135deg, ${alpha(accentColor, 0.16)} 0%, ${alpha(accentColor, 0.04)} 100%)`,
             position: 'relative'
         }}>
             <Box sx={{
@@ -263,37 +223,51 @@ const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, c
         </Box>
 
         {mapComponent ? (
-            <>
-                <Box sx={{ p: 3 }}>
-                    {children}
-                </Box>
+            <Box
+                sx={{
+                    flex: 1,
+                    width: '100%',
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', lg: '1.1fr 0.9fr' },
+                    gap: { xs: 2.5, md: 3 },
+                    p: { xs: 2.5, md: 3 },
+                    borderTop: `1px solid ${alpha(accentColor, 0.12)}`
+                }}
+            >
                 <Box
                     sx={{
-                        flex: 1,
-                        minHeight: '400px',
-                        width: '100%',
-                        display: 'flex',
                         position: 'relative',
-                        borderTop: `1px solid ${alpha(accentColor, 0.1)}`
+                        minHeight: { xs: 280, md: 420 },
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                        boxShadow: `0 18px 40px -20px ${alpha(accentColor, 0.36)}`,
+                        '& .ol-viewport': { borderRadius: 3 },
+                        '& canvas': { display: 'block !important' }
                     }}
                 >
-                    <Box sx={{ flex: 1, position: 'relative', '& canvas': { display: 'block !important' } }}>
-                        {mapComponent}
-                    </Box>
-                    <Box sx={{
-                        width: '35%',
-                        maxWidth: '320px',
-                        borderLeft: `1px solid ${alpha(accentColor, 0.1)}`,
-                        p: 2,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: alpha(accentColor, 0.02)
-                    }}>
+                    {mapComponent}
+                </Box>
+
+                <Stack spacing={{ xs: 2, md: 3 }} sx={{ height: '100%' }}>
+                    <Box sx={{ flexShrink: 0 }}>{children}</Box>
+                    <Box
+                        sx={{
+                            flex: 1,
+                            minHeight: { xs: 240, md: 280 },
+                            borderRadius: 3,
+                            border: `1px solid ${alpha(accentColor, 0.18)}`,
+                            bgcolor: alpha(accentColor, 0.06),
+                            p: { xs: 2, md: 2.5 },
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: `0 18px 36px -18px ${alpha(accentColor, 0.32)}`
+                        }}
+                    >
                         {chartComponent}
                     </Box>
-                </Box>
-            </>
+                </Stack>
+            </Box>
         ) : (
             <Box sx={{ p: 3, flex: 1 }}>
                 <Grid container spacing={3} sx={{ height: '100%' }}>
@@ -312,51 +286,63 @@ const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, c
 const MetricCard = ({ label, value, color }) => (
     <Box
         sx={{
-            p: 2.5,
+            p: 2,
             borderRadius: 3,
             bgcolor: '#fff',
             border: '1px solid',
-            borderColor: alpha(color, 0.15),
+            borderColor: alpha(color, 0.18),
             position: 'relative',
             overflow: 'hidden',
             transition: 'all 0.3s ease',
-            boxShadow: `0 2px 8px ${alpha(color, 0.05)}`,
+            boxShadow: `0 3px 12px ${alpha(color, 0.06)}`,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: 1.25,
+            minHeight: 120,
             '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: `0 8px 16px ${alpha(color, 0.1)}`,
+                transform: 'translateY(-3px)',
+                boxShadow: `0 14px 28px ${alpha(color, 0.12)}`,
                 borderColor: alpha(color, 0.4)
             }
         }}
     >
         <Box sx={{ position: 'relative', zIndex: 1 }}>
-            <Typography variant="caption" sx={{
-                color: color,
-                fontWeight: 700,
-                fontSize: '0.7rem',
-                textTransform: 'uppercase',
-                letterSpacing: '1.2px',
-                mb: 1,
-                display: 'block'
-            }}>
+            <Typography
+                variant="caption"
+                sx={{
+                    color,
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.12em'
+                }}
+            >
                 {label}
             </Typography>
-            <Typography variant="h4" sx={{
-                fontWeight: 800,
-                fontSize: '1.75rem',
-                color: '#0f172a',
-                letterSpacing: '-0.5px'
-            }}>
-                {value}
-            </Typography>
         </Box>
+        <Typography
+            variant="h4"
+            sx={{
+                fontWeight: 800,
+                fontSize: { xs: '1.55rem', sm: '1.7rem' },
+                color: '#0f172a',
+                letterSpacing: '-0.4px',
+                position: 'relative',
+                zIndex: 1,
+                lineHeight: 1.1
+            }}
+        >
+            {value ?? '—'}
+        </Typography>
         <Box sx={{
             position: 'absolute',
-            right: -20,
-            top: -20,
-            width: 100,
-            height: 100,
+            right: -32,
+            top: -32,
+            width: 120,
+            height: 120,
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(color, 0.15)} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${alpha(color, 0.18)} 0%, transparent 70%)`,
             zIndex: 0
         }} />
     </Box>

@@ -133,6 +133,8 @@ const POIViewer = () => {
   const drawInteractionRef = useRef(null);
   const searchFeatureRef = useRef(null);
   const poiClickHandlerRef = useRef(null);
+  const baseLayersRef = useRef({});
+  const soiLayersRef = useRef({});
 
 
 
@@ -147,6 +149,13 @@ const POIViewer = () => {
     name: '',
     address: '',
     description: '',
+    city: '',
+    state: '',
+    pincode: '',
+    pluscode: '',
+    phone: '',
+    website: '',
+    area: '',
     status: 'Active',
     mark_type: 'Point',
     use_type: 'School',
@@ -168,13 +177,18 @@ const POIViewer = () => {
   const tempPolyRef = useRef(null);
   const tempMarkersRef = useRef([]);
 
+  const [activeMapType, setActiveMapType] = useState('normal');
+  const [layerMenuAnchorEl, setLayerMenuAnchorEl] = useState(null);
+  const [baseLayerVisibility, setBaseLayerVisibility] = useState({});
+  const [soiLayerVisibility, setSoiLayerVisibility] = useState({});
+
   // Geocoding State
   const [geoSearchDialogOpen, setGeoSearchDialogOpen] = useState(false);
   const [geoSearchQuery, setGeoSearchQuery] = useState('');
   const [geoSearchResults, setGeoSearchResults] = useState([]);
   const [geoSearchLoading, setGeoSearchLoading] = useState(false);
 
-  const handleMapReady = ({ map, poiVectorLayer, drawVectorLayer }) => {
+  const handleMapReady = ({ map, mapType, poiVectorLayer, drawVectorLayer, baseLayers, soiLayers }) => {
     if (mapRef.current && poiClickHandlerRef.current) {
       try {
         mapRef.current.un('singleclick', poiClickHandlerRef.current);
@@ -187,6 +201,32 @@ const POIViewer = () => {
     mapRef.current = map || null;
     poiVectorLayerRef.current = poiVectorLayer || null;
     drawVectorLayerRef.current = drawVectorLayer || null;
+
+    setActiveMapType(mapType || 'normal');
+    baseLayersRef.current = baseLayers || {};
+    soiLayersRef.current = soiLayers || {};
+
+    setBaseLayerVisibility((prev) => {
+      const next = { ...prev };
+      Object.entries(baseLayersRef.current || {}).forEach(([key, layer]) => {
+        if (typeof next[key] === 'undefined') {
+          const visible = typeof layer?.getVisible === 'function' ? layer.getVisible() : true;
+          next[key] = !!visible;
+        }
+      });
+      return next;
+    });
+
+    setSoiLayerVisibility((prev) => {
+      const next = { ...prev };
+      Object.entries(soiLayersRef.current || {}).forEach(([key, layer]) => {
+        if (typeof next[key] === 'undefined') {
+          const visible = typeof layer?.getVisible === 'function' ? layer.getVisible() : true;
+          next[key] = !!visible;
+        }
+      });
+      return next;
+    });
 
     const poiLayer = poiVectorLayerRef.current;
     const source = poiLayer?.getSource?.();
@@ -225,10 +265,49 @@ const POIViewer = () => {
           setPopoverOpen(false);
         }
       };
-
       poiClickHandlerRef.current = clickHandler;
       mapRef.current.on('singleclick', clickHandler);
     }
+  };
+
+  const layerMenuOpen = Boolean(layerMenuAnchorEl);
+
+  const handleOpenLayerMenu = (event) => {
+    setLayerMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseLayerMenu = () => {
+    setLayerMenuAnchorEl(null);
+  };
+
+  const toggleBaseLayer = (key) => {
+    setBaseLayerVisibility((prev) => {
+      const nextValue = !prev[key];
+      const layer = baseLayersRef.current?.[key];
+      if (layer?.setVisible) {
+        try {
+          layer.setVisible(nextValue);
+        } catch (e) {
+          // ignore
+        }
+      }
+      return { ...prev, [key]: nextValue };
+    });
+  };
+
+  const toggleSoiLayer = (key) => {
+    setSoiLayerVisibility((prev) => {
+      const nextValue = !prev[key];
+      const layer = soiLayersRef.current?.[key];
+      if (layer?.setVisible) {
+        try {
+          layer.setVisible(nextValue);
+        } catch (e) {
+          // ignore
+        }
+      }
+      return { ...prev, [key]: nextValue };
+    });
   };
 
   const fetchPOIs = async () => {
@@ -256,7 +335,7 @@ const POIViewer = () => {
 
   const getPoiStyles = (poi) => {
     const baseColor = getUseTypeColor(poi);
-    const fillColor = hexToRgba(baseColor, 0.18);
+    const fillColor = hexToRgba(baseColor, 0);
 
     const primaryLabel = poi?.name?.trim();
     const secondaryLabel = poi?.use_type?.trim();
@@ -520,6 +599,13 @@ const POIViewer = () => {
        name: poi.name,
        address: poi.address || '',
        description: poi.description,
+       city: poi.city || '',
+       state: poi.state || '',
+       pincode: poi.pincode || '',
+       pluscode: poi.pluscode || '',
+       phone: poi.phone || '',
+       website: poi.website || '',
+       area: poi.area || '',
        status: poi.status,
        mark_type: poi.mark_type,
        use_type: poi.use_type,
@@ -543,6 +629,13 @@ const POIViewer = () => {
       formDataObj.append('name', formData.name);
       formDataObj.append('description', formData.description);
       formDataObj.append('address', formData.address);
+      formDataObj.append('city', formData.city || '');
+      formDataObj.append('state', formData.state || '');
+      formDataObj.append('pincode', formData.pincode || '');
+      formDataObj.append('pluscode', formData.pluscode || '');
+      formDataObj.append('phone', formData.phone || '');
+      formDataObj.append('website', formData.website || '');
+      formDataObj.append('area', formData.area || '');
       formDataObj.append('status', formData.status);
       formDataObj.append('status2', formData.status); // Mapping status to status2
       formDataObj.append('mark_type', formData.mark_type);
@@ -577,7 +670,8 @@ const POIViewer = () => {
       const status2 = formData.status || 'Active';
       let lat = '';
       let lon = '';
-      let address = formData.description || formData.name || '';
+      // Do not override the user's address field; only keep a fallback for safety.
+      const fallbackAddress = formData.address || formData.description || formData.name || '';
 
       try {
         if (formData.location) {
@@ -600,7 +694,9 @@ const POIViewer = () => {
       formDataObj.append('status2', status2);
       formDataObj.append('lat', lat);
       formDataObj.append('lon', lon);
-      formDataObj.append('address', address);
+      if (!formData.address && fallbackAddress) {
+        formDataObj.append('address', fallbackAddress);
+      }
 
       if (isEditMode && selectedPoi) {
         formDataObj.append('poi_id', selectedPoi.id);
@@ -684,6 +780,13 @@ const POIViewer = () => {
       name: '',
       address: '',
       description: '',
+      city: '',
+      state: '',
+      pincode: '',
+      pluscode: '',
+      phone: '',
+      website: '',
+      area: '',
       status: 'Active',
       mark_type: 'Point',
       use_type: 'School',
@@ -855,6 +958,8 @@ const POIViewer = () => {
         view.setCenter([lng, lat]);
         view.setZoom(16);
 
+        handleReverseGeocode(lat, lng);
+
         const poiLayer = poiVectorLayerRef.current;
         if (poiLayer) {
           const source = poiLayer.getSource();
@@ -892,24 +997,56 @@ const POIViewer = () => {
 
   const handleReverseGeocode = async (lat, lng) => {
     try {
-      // // Use proxy path /mappls to avoid CORS
-      // const url = `/mappls/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
-      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lng}`;
+      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${encodeURIComponent(
+        lat
+      )}&lon=${encodeURIComponent(lng)}`;
       const response = await axios.get(url);
       if (response.status === 200) {
         const data = response.data;
         console.log('Reverse Geocoding response:', data);
-        if (data.results && data.results.length > 0) {
-          const result = data.results[0];
-          const address = result.formatted_address;
-          setFormData(prev => ({
+
+        const firstResult = Array.isArray(data?.results) ? data.results[0] : null;
+        const formattedAddress =
+          data?.address ||
+          data?.data?.address ||
+          firstResult?.formatted_address ||
+          firstResult?.display_name ||
+          data?.formatted_address ||
+          data?.display_name ||
+          '';
+
+        const suggestedName =
+          firstResult?.poi ||
+          firstResult?.locality ||
+          firstResult?.city ||
+          firstResult?.district ||
+          '';
+
+        const city = data?.city || data?.data?.city || firstResult?.city || firstResult?.locality || null;
+        const state = data?.state || data?.data?.state || firstResult?.state || null;
+        const pincode = data?.pincode || data?.data?.pincode || firstResult?.pincode || null;
+        const pluscode = data?.pluscode || data?.data?.pluscode || firstResult?.pluscode || null;
+
+        if (formattedAddress) {
+          setFormData((prev) => ({
             ...prev,
-            address: address, // Pre-fill address
-            description: prev.description,
-            // Use city/district for name if empty? 
-            name: prev.name ? prev.name : (result.poi || result.locality || 'New POI')
+            address: formattedAddress,
+            name: prev.name ? prev.name : suggestedName || prev.name,
           }));
-          showSnackbar(`Location: ${address}`, 'success');
+          showSnackbar(`Location: ${formattedAddress}`, 'success');
+        } else {
+          showSnackbar('Reverse geocoding returned no address', 'info');
+        }
+
+        // Optional extra fields (only if your POI form/UI later includes them)
+        if (city || state || pincode || pluscode) {
+          setFormData((prev) => ({
+            ...prev,
+            city: prev.city ? prev.city : city || '',
+            state: prev.state ? prev.state : state || '',
+            pincode: prev.pincode ? prev.pincode : pincode || '',
+            pluscode: prev.pluscode ? prev.pluscode : pluscode || '',
+          }));
         }
       }
     } catch (error) {
@@ -963,6 +1100,118 @@ const POIViewer = () => {
           onMapReady={handleMapReady}
         />
       </Box>
+
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          zIndex: 1100,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <Tooltip title="Layers" placement="left">
+          <IconButton
+            onClick={handleOpenLayerMenu}
+            sx={{
+              backgroundColor: alpha(theme.palette.background.paper, 0.9),
+              border: '1px solid',
+              borderColor: alpha(theme.palette.divider, 0.25),
+              backdropFilter: 'blur(8px)',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.background.paper, 0.98),
+              },
+            }}
+            size="small"
+          >
+            <LayersIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      <Popover
+        open={layerMenuOpen}
+        anchorEl={layerMenuAnchorEl}
+        onClose={handleCloseLayerMenu}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: {
+            p: 1.5,
+            width: 260,
+            borderRadius: 2,
+          },
+        }}
+      >
+        <Stack spacing={1}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            Base Layers
+          </Typography>
+
+          {Object.keys(baseLayersRef.current || {}).length === 0 ? (
+            <Typography variant="caption" color="text.secondary">
+              No base layers available
+            </Typography>
+          ) : (
+            Object.entries(baseLayersRef.current || {}).map(([key]) => {
+              const labelMap = {
+                india3Layer: 'India3',
+                adminGroupLayer: 'Admin Boundaries',
+                roadsLayer: 'Roads',
+                osmLayer: 'Satellite (OSM)',
+                bhuvanIndia3Layer: 'India3',
+                bhuvanAdminLayer: 'Admin Boundaries',
+                bhuvanRoadsLayer: 'Roads',
+              };
+              const label = labelMap[key] || key;
+
+              return (
+                <Box key={key} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography variant="body2">{label}</Typography>
+                  <Switch
+                    size="small"
+                    checked={!!baseLayerVisibility[key]}
+                    onChange={() => toggleBaseLayer(key)}
+                  />
+                </Box>
+              );
+            })
+          )}
+
+          {activeMapType === 'soi' && Object.keys(soiLayersRef.current || {}).length > 0 && (
+            <>
+              <Divider />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                SOI Layers
+              </Typography>
+              {Object.entries(soiLayersRef.current || {}).map(([key]) => {
+                const labelMap = {
+                  states: 'States',
+                  assamDistrict: 'ASSAM District BDY',
+                  contours: 'Contours',
+                  majorTowns: 'Major Towns HQ',
+                  railwayTracks: 'Railway Tracks',
+                  roads: 'Roads',
+                };
+                const label = labelMap[key] || key;
+
+                return (
+                  <Box key={key} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="body2">{label}</Typography>
+                    <Switch
+                      size="small"
+                      checked={!!soiLayerVisibility[key]}
+                      onChange={() => toggleSoiLayer(key)}
+                    />
+                  </Box>
+                );
+              })}
+            </>
+          )}
+        </Stack>
+      </Popover>
 
       {/* Zoom Controls Container */}
       <Box
@@ -1611,6 +1860,40 @@ const POIViewer = () => {
               size="small"
             />
 
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="City"
+                value={formData.city}
+                onChange={(e) => setFormData((prev) => ({ ...prev, city: e.target.value }))}
+                size="small"
+              />
+              <TextField
+                fullWidth
+                label="State"
+                value={formData.state}
+                onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
+                size="small"
+              />
+            </Stack>
+
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="Pincode"
+                value={formData.pincode}
+                onChange={(e) => setFormData((prev) => ({ ...prev, pincode: e.target.value }))}
+                size="small"
+              />
+              <TextField
+                fullWidth
+                label="Plus Code"
+                value={formData.pluscode}
+                onChange={(e) => setFormData((prev) => ({ ...prev, pluscode: e.target.value }))}
+                size="small"
+              />
+            </Stack>
+
             <TextField
               fullWidth
               label="Description"
@@ -1618,6 +1901,31 @@ const POIViewer = () => {
               rows={3}
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              size="small"
+            />
+
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="Phone"
+                value={formData.phone}
+                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                size="small"
+              />
+              <TextField
+                fullWidth
+                label="Website"
+                value={formData.website}
+                onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
+                size="small"
+              />
+            </Stack>
+
+            <TextField
+              fullWidth
+              label="Area"
+              value={formData.area}
+              onChange={(e) => setFormData((prev) => ({ ...prev, area: e.target.value }))}
               size="small"
             />
 

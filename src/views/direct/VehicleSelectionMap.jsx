@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { Map, View } from "ol";
-import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { OSM, Vector as VectorSource } from "ol/source";
+import { Vector as VectorSource } from "ol/source";
 import Cluster from "ol/source/Cluster";
-import { fromLonLat } from "ol/proj";
+import { Vector as VectorLayer } from "ol/layer";
 import { Icon, Style, Text, Fill, Stroke, Circle as CircleStyle } from "ol/style";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
+import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 
 const VehicleSelectionMap = ({
     gpsData,
@@ -16,14 +15,13 @@ const VehicleSelectionMap = ({
     height = "500px",
     onVehicleSelect,
 }) => {
-    const mapElement = useRef(null);
     const overlayElement = useRef(null);
     const clickHandlerRef = useRef(null);
 
     const [map, setMap] = useState(null);
-    const [vectorLayer, setVectorLayer] = useState(null);
-    const [clusterLayer, setClusterLayer] = useState(null);
     const [dynamicOverlay, setDynamicOverlay] = useState(null);
+    const vectorSourceRef = useRef(null);
+    const clusterLayerRef = useRef(null);
 
     // Memoize icon styles to prevent recreation on every render
     const iconStyles = useMemo(() => ({
@@ -97,13 +95,14 @@ const VehicleSelectionMap = ({
         }
     }, [iconStyles, calculateTimeDifference]);
 
-    // Initialize map on mount
-    useEffect(() => {
-        if (!mapElement.current) return;
+    const handleMapReady = ({ map: readyMap }) => {
+        // Create vector source and clustered layer on top of the reusable base map
+        const source = new VectorSource();
+        const clusterSource = new Cluster({
+            distance: 60,
+            source,
+        });
 
-        console.log("VehicleSelectionMap: Initializing map with optimized clustering");
-
-        // Define cluster style function inside effect
         const clusterStyleFunction = (feature) => {
             const size = feature.get('features').length;
 
@@ -127,74 +126,50 @@ const VehicleSelectionMap = ({
                         font: 'bold 14px sans-serif',
                     }),
                 });
-            } else {
-                const originalFeature = feature.get('features')[0];
-                const data = originalFeature.get('entryData');
-                return getIconStyle(data);
             }
+
+            const originalFeature = feature.get('features')[0];
+            const data = originalFeature.get('entryData');
+            return getIconStyle(data);
         };
 
-        const initialMap = new Map({
-            target: mapElement.current,
-            layers: [
-                new TileLayer({
-                    source: new OSM(),
-                }),
-            ],
-            view: new View({
-                center: fromLonLat([78.9629, 20.5937]), // Center of India
-                zoom: 6, // Increased from 5 for better initial view
-            }),
-        });
-
-        const initialVectorSource = new VectorSource();
-        const clusterSource = new Cluster({
-            distance: 60, // Increased from 40 for better clustering (fewer clusters)
-            source: initialVectorSource,
-        });
-
-        const initialClusterLayer = new VectorLayer({
+        const clusterLayer = new VectorLayer({
             source: clusterSource,
             style: clusterStyleFunction,
+            zIndex: 500,
         });
-
-        initialMap.addLayer(initialClusterLayer);
 
         const initialOverlay = new Overlay({
             element: overlayElement.current,
         });
-        initialMap.addOverlay(initialOverlay);
 
-        console.log("VehicleSelectionMap: Map initialized successfully");
+        readyMap.addLayer(clusterLayer);
+        readyMap.addOverlay(initialOverlay);
 
-        setMap(initialMap);
-        setVectorLayer(initialVectorSource);
-        setClusterLayer(initialClusterLayer);
+        vectorSourceRef.current = source;
+        clusterLayerRef.current = clusterLayer;
+
+        setMap(readyMap);
         setDynamicOverlay(initialOverlay);
-
-        return () => {
-            initialMap.setTarget(null);
-        };
-    }, [getIconStyle]);
+    };
 
     // Update markers when GPS data changes
     useEffect(() => {
         console.log("VehicleSelectionMap: GPS data updated", {
             dataLength: gpsData.length,
             hasMap: !!map,
-            hasVectorLayer: !!vectorLayer
+            hasVectorLayer: !!vectorSourceRef.current
         });
 
-        if (!map || !vectorLayer || !clusterLayer || gpsData.length === 0) return;
+        if (!map || !vectorSourceRef.current || !clusterLayerRef.current || gpsData.length === 0) return;
 
         // Clear previous markers
-        vectorLayer.clear();
+        vectorSourceRef.current.clear();
 
         // Create features from GPS data
         const features = gpsData.map((entry) => {
-            const coordinates = fromLonLat([entry.longitude, entry.latitude]);
             return new Feature({
-                geometry: new Point(coordinates),
+                geometry: new Point([Number(entry.longitude), Number(entry.latitude)]),
                 entryData: entry,
             });
         });
@@ -202,12 +177,12 @@ const VehicleSelectionMap = ({
         console.log("VehicleSelectionMap: Adding features", features.length);
 
         // Add features to vector layer
-        vectorLayer.addFeatures(features);
+        vectorSourceRef.current.addFeatures(features);
 
         // Fit map to show all markers
-        const extent = clusterLayer.getSource().getSource().getExtent();
+        const extent = clusterLayerRef.current.getSource().getSource().getExtent();
         map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
-    }, [gpsData, map, vectorLayer, clusterLayer]);
+    }, [gpsData, map]);
 
     // Handle map clicks
     useEffect(() => {
@@ -290,7 +265,22 @@ const VehicleSelectionMap = ({
 
     return (
         <div>
-            <div ref={mapElement} style={{ width, height, position: 'relative' }}>
+            <div style={{ width, height, position: 'relative' }}>
+                <BhuvanMapComponent
+                    width="100%"
+                    height="100%"
+                    gpsData={[]}
+                    policeData={[]}
+                    pois={[]}
+                    showDrawControls={false}
+                    showLogos={true}
+                    showMapTypeToggle={true}
+                    defaultMapType="normal"
+                    center={[78.9629, 20.5937]}
+                    zoom={6}
+                    onMapReady={handleMapReady}
+                />
+
                 {gpsData.length === 0 && (
                     <div style={{
                         position: 'absolute',
@@ -309,22 +299,6 @@ const VehicleSelectionMap = ({
                         </p>
                     </div>
                 )}
-
-                <img
-                    src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
-                    alt="InSpace Logo"
-                    style={{ position: 'absolute', bottom: 0, left: 0, height: '60px', width: 'auto', zIndex: 1000 }}
-                />
-                <img
-                    src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
-                    alt="ISRO Logo"
-                    style={{ position: 'absolute', top: 0, right: 0, height: '60px', width: 'auto', zIndex: 1000 }}
-                />
-                <img
-                    src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
-                    alt="Skytron Logo"
-                    style={{ position: 'absolute', bottom: "20px", right: 0, height: '60px', width: 'auto', zIndex: 1000, backgroundColor: 'transparent' }}
-                />
             </div>
 
             <div ref={overlayElement} className="dynamic-overlay">
