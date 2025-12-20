@@ -26,11 +26,12 @@ const MorthDashboard = () => {
         }
     });
 
-    const vltPieData = [
-        { name: 'Active', value: stats.vltStatus.active, color: '#4caf50' },
-        { name: 'Inactive', value: stats.vltStatus.inactive, color: '#f44336' },
-        { name: 'Maintenance', value: stats.vltStatus.maintenance, color: '#ff9800' }
-    ];
+const vltPieData = [
+  { name: 'Active', value: stats.vltStatus.active, color: '#6fb0f1ff' },     // Blue
+  { name: 'Inactive', value: stats.vltStatus.inactive, color: '#eeb3b3ff' }, // Red
+  { name: 'Maintenance', value: stats.vltStatus.maintenance, color: '#eec88aff' } // Yellow
+];
+
 
     useEffect(() => {
         // Placeholder for API call
@@ -130,7 +131,7 @@ const MorthDashboard = () => {
                                 <YAxis />
                                 <Tooltip />
                                 <Legend />
-                                <Bar dataKey="count" fill="#2196f3" name="Alert Count" />
+                                <Bar dataKey="count" fill="#D32F2F" name="Alert Count" />
                             </BarChart>
                         </ResponsiveContainer>
                     </Box>
