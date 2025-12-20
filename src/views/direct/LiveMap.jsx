@@ -354,6 +354,7 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
 
   const dateValue = formatDisplayValue(entry?.date);
   const timeValue = formatDisplayValue(entry?.time);
+  const addressValue = formatDisplayValue(entry?.address);
   const batteryValue = `${formatDisplayValue(
     entry?.internal_battery_voltage
   )
@@ -373,6 +374,10 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
         <div class="mappls-hd-popup-row">
           <span class="mappls-hd-popup-label">Time</span>
           <span class="mappls-hd-popup-value">${timeValue}</span>
+        </div>
+        <div class="mappls-hd-popup-row">
+          <span class="mappls-hd-popup-label">Address</span>
+          <span class="mappls-hd-popup-value">${addressValue}</span>
         </div>
         <div class="mappls-hd-popup-row">
           <span class="mappls-hd-popup-label">Speed</span>
@@ -460,6 +465,7 @@ const MapComponent = ({
   incidentData = [],
   width = "100%",
   height = "400px",
+  onVehicleClick,
   onPolygonComplete,
   autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
   focusEntry = null,
@@ -467,6 +473,7 @@ const MapComponent = ({
   nmrArea = null,
 }) => {
   const overlayElement = useRef();
+  const lastClickedVehicleRef = useRef(null);
   const [map, setMap] = useState(null);
   const [vectorLayer, setVectorLayer] = useState(null);
   const [dynamicOverlay, setDynamicOverlay] = useState(null);
@@ -478,21 +485,47 @@ const MapComponent = ({
   const [pois, setPois] = useState([]);
 
   const [soiLayerVisibility, setSoiLayerVisibility] = useState({
-    states: true,
-    assamDistrict: true,
-    contours: true,
-    majorTowns: true,
-    railwayTracks: true,
-    roads: true,
+    states: false,
+    assamDistrict: false,
+    assamDistrictBdy2: false,
+    assamDistrictHq: false,
+    assamStateBdy: false,
+    assamSubdistrictBdy: false,
+    cartTrackHills: false,
+    contours: false,
+    kamrupRural: false,
+    majorTowns: false,
+    name: false,
+    railwayTracks: false,
+    roads: false,
+    roadsAllWeatherMotorable: false,
+    roadsMotorableInFairWeather: false,
+    roadsNationalHighway: false,
+    roadOthers: false,
+    roadTunnel: false,
+    stateHighway: false,
   });
 
   const soiLayersRef = useRef({
     states: null,
     assamDistrict: null,
+    assamDistrictBdy2: null,
+    assamDistrictHq: null,
+    assamStateBdy: null,
+    assamSubdistrictBdy: null,
+    cartTrackHills: null,
     contours: null,
+    kamrupRural: null,
     majorTowns: null,
+    name: null,
     railwayTracks: null,
     roads: null,
+    roadsAllWeatherMotorable: null,
+    roadsMotorableInFairWeather: null,
+    roadsNationalHighway: null,
+    roadOthers: null,
+    roadTunnel: null,
+    stateHighway: null,
   });
 
   // Map type state for 3-layer system
@@ -500,6 +533,7 @@ const MapComponent = ({
   const mapplsMapRef = useRef(null);
   const olMapRef = useRef(null);
   const normalMapRef = useRef(null);
+  const olWasDraggingRef = useRef(false);
   const normalMapContainerRef = useRef(null);
   const satelliteMapContainerRef = useRef(null);
   const soiMapContainerRef = useRef(null);
@@ -1160,6 +1194,86 @@ const MapComponent = ({
         zIndex: 11,
       });
 
+      const soiAssamDistrictBdy2Layer = new TileLayer({
+        title: "ASSAM District Boundary 2",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ASSAM_DISTRICT_BDY2",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.8,
+        visible: soiLayerVisibility.assamDistrictBdy2,
+        zIndex: 12,
+      });
+
+      const soiAssamDistrictHqLayer = new TileLayer({
+        title: "ASSAM District HQ",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ASSAM_DISTRICT_HQ",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.assamDistrictHq,
+        zIndex: 13,
+      });
+
+      const soiAssamStateBdyLayer = new TileLayer({
+        title: "ASSAM State Boundary",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ASSAM_STATE_BDY",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.8,
+        visible: soiLayerVisibility.assamStateBdy,
+        zIndex: 14,
+      });
+
+      const soiAssamSubdistrictBdyLayer = new TileLayer({
+        title: "ASSAM Subdistrict Boundary",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ASSAM_SUBDISTRICT_BDY",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.8,
+        visible: soiLayerVisibility.assamSubdistrictBdy,
+        zIndex: 15,
+      });
+
+      const soiCartTrackHillsLayer = new TileLayer({
+        title: "Cart Track Hills",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:CART_TRACK_HILLS",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.cartTrackHills,
+        zIndex: 16,
+      });
+
       const soiContoursLayer = new TileLayer({
         title: "Contours",
         source: new TileWMS({
@@ -1176,6 +1290,22 @@ const MapComponent = ({
         zIndex: 12,
       });
 
+      const soiKamrupRuralLayer = new TileLayer({
+        title: "Kamrup Rural",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:KAMRUP_RURAL",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.kamrupRural,
+        zIndex: 17,
+      });
+
       const soiMajorTownsLayer = new TileLayer({
         title: "Major Towns / Headquarters",
         source: new TileWMS({
@@ -1190,6 +1320,22 @@ const MapComponent = ({
         opacity: 0.9,
         visible: soiLayerVisibility.majorTowns,
         zIndex: 13,
+      });
+
+      const soiNameLayer = new TileLayer({
+        title: "Name",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:NAME",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.name,
+        zIndex: 18,
       });
 
       const soiRailwayTracksLayer = new TileLayer({
@@ -1224,13 +1370,122 @@ const MapComponent = ({
         zIndex: 15,
       });
 
+      const soiRoadsAllWeatherMotorableLayer = new TileLayer({
+        title: "Roads (All Weather Motorable)",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ROADS_ALL_WEATHER_MOTORABLE",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.roadsAllWeatherMotorable,
+        zIndex: 19,
+      });
+
+      const soiRoadsMotorableInFairWeatherLayer = new TileLayer({
+        title: "Roads (Motorable in Fair Weather)",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ROADS_MOTORABLE_IN_FAIR_WEATHER",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.roadsMotorableInFairWeather,
+        zIndex: 20,
+      });
+
+      const soiRoadsNationalHighwayLayer = new TileLayer({
+        title: "Roads (National Highway)",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ROADS_NATIONAL_HIGHWAY",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.roadsNationalHighway,
+        zIndex: 21,
+      });
+
+      const soiRoadOthersLayer = new TileLayer({
+        title: "Road Others",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ROAD_OTHERS",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.roadOthers,
+        zIndex: 22,
+      });
+
+      const soiRoadTunnelLayer = new TileLayer({
+        title: "Road Tunnel",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:ROAD_TUNNEL",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.roadTunnel,
+        zIndex: 23,
+      });
+
+      const soiStateHighwayLayer = new TileLayer({
+        title: "State Highway",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:STATE_HIGHWAY",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.stateHighway,
+        zIndex: 24,
+      });
+
       soiLayersRef.current = {
         states: soiStatesLayer,
         assamDistrict: soiAssamDistrictLayer,
+        assamDistrictBdy2: soiAssamDistrictBdy2Layer,
+        assamDistrictHq: soiAssamDistrictHqLayer,
+        assamStateBdy: soiAssamStateBdyLayer,
+        assamSubdistrictBdy: soiAssamSubdistrictBdyLayer,
+        cartTrackHills: soiCartTrackHillsLayer,
         contours: soiContoursLayer,
+        kamrupRural: soiKamrupRuralLayer,
         majorTowns: soiMajorTownsLayer,
+        name: soiNameLayer,
         railwayTracks: soiRailwayTracksLayer,
         roads: soiRoadsLayer,
+        roadsAllWeatherMotorable: soiRoadsAllWeatherMotorableLayer,
+        roadsMotorableInFairWeather: soiRoadsMotorableInFairWeatherLayer,
+        roadsNationalHighway: soiRoadsNationalHighwayLayer,
+        roadOthers: soiRoadOthersLayer,
+        roadTunnel: soiRoadTunnelLayer,
+        stateHighway: soiStateHighwayLayer,
       };
 
       const soiMap = new Map({
@@ -1241,10 +1496,23 @@ const MapComponent = ({
           bhuvanRoadsLayer,
           soiStatesLayer,
           soiAssamDistrictLayer,
+          soiAssamDistrictBdy2Layer,
+          soiAssamDistrictHqLayer,
+          soiAssamStateBdyLayer,
+          soiAssamSubdistrictBdyLayer,
+          soiCartTrackHillsLayer,
           soiContoursLayer,
+          soiKamrupRuralLayer,
           soiMajorTownsLayer,
+          soiNameLayer,
           soiRailwayTracksLayer,
           soiRoadsLayer,
+          soiRoadsAllWeatherMotorableLayer,
+          soiRoadsMotorableInFairWeatherLayer,
+          soiRoadsNationalHighwayLayer,
+          soiRoadOthersLayer,
+          soiRoadTunnelLayer,
+          soiStateHighwayLayer,
         ],
         view: new View({
           projection: "EPSG:4326",
@@ -1337,10 +1605,23 @@ const MapComponent = ({
 
     layers.states?.setVisible?.(!!soiLayerVisibility.states);
     layers.assamDistrict?.setVisible?.(!!soiLayerVisibility.assamDistrict);
+    layers.assamDistrictBdy2?.setVisible?.(!!soiLayerVisibility.assamDistrictBdy2);
+    layers.assamDistrictHq?.setVisible?.(!!soiLayerVisibility.assamDistrictHq);
+    layers.assamStateBdy?.setVisible?.(!!soiLayerVisibility.assamStateBdy);
+    layers.assamSubdistrictBdy?.setVisible?.(!!soiLayerVisibility.assamSubdistrictBdy);
+    layers.cartTrackHills?.setVisible?.(!!soiLayerVisibility.cartTrackHills);
     layers.contours?.setVisible?.(!!soiLayerVisibility.contours);
+    layers.kamrupRural?.setVisible?.(!!soiLayerVisibility.kamrupRural);
     layers.majorTowns?.setVisible?.(!!soiLayerVisibility.majorTowns);
+    layers.name?.setVisible?.(!!soiLayerVisibility.name);
     layers.railwayTracks?.setVisible?.(!!soiLayerVisibility.railwayTracks);
     layers.roads?.setVisible?.(!!soiLayerVisibility.roads);
+    layers.roadsAllWeatherMotorable?.setVisible?.(!!soiLayerVisibility.roadsAllWeatherMotorable);
+    layers.roadsMotorableInFairWeather?.setVisible?.(!!soiLayerVisibility.roadsMotorableInFairWeather);
+    layers.roadsNationalHighway?.setVisible?.(!!soiLayerVisibility.roadsNationalHighway);
+    layers.roadOthers?.setVisible?.(!!soiLayerVisibility.roadOthers);
+    layers.roadTunnel?.setVisible?.(!!soiLayerVisibility.roadTunnel);
+    layers.stateHighway?.setVisible?.(!!soiLayerVisibility.stateHighway);
   }, [soiLayerVisibility]);
 
   // Initialize HD Map (Mappls)
@@ -1726,12 +2007,15 @@ const MapComponent = ({
           // Build the styled popup HTML matching normal map
           ensureHdPopupStyles();
           const popupContent = buildHdPopupHtml(entry, markerLabelMode);
+          const labelText = getMarkerLabelText(entry, markerLabelMode) || undefined;
 
           const markerOptions = iconUrl
             ? {
               map: hdMap,
               position: { lat: latitude, lng: longitude },
               icon: iconUrl,
+              label: labelText,
+              title: labelText,
               width: 60,
               height: 60,
               popupHtml: popupContent,
@@ -1742,6 +2026,8 @@ const MapComponent = ({
             : {
               map: hdMap,
               position: { lat: latitude, lng: longitude },
+              label: labelText,
+              title: labelText,
               popupHtml: popupContent,
               popupOptions: {
                 openPopup: false,
@@ -2245,8 +2531,8 @@ const MapComponent = ({
     }
 
     const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
-    // Do not show any text label below/around the marker icon
-    return createIconStyle(color, iconVehicleType, "");
+    const labelText = getMarkerLabel(data, labelMode);
+    return createIconStyle(color, iconVehicleType, labelText);
   };
 
   useEffect(() => {
@@ -2302,6 +2588,13 @@ const MapComponent = ({
 
       // Handle map click to display the overlay and zoom to street level or expand cluster
       const clickHandler = function (event) {
+        // Ignore clicks that are actually the end of a drag-pan.
+        // OpenLayers may still emit a click/singleclick after small drags on some devices.
+        if (olWasDraggingRef.current || event?.dragging) {
+          olWasDraggingRef.current = false;
+          return;
+        }
+
         dynamicOverlay.getElement().style.display = "none";
 
         let allHits = [];
@@ -2467,6 +2760,17 @@ const MapComponent = ({
             const alertType = entryData.packet_type || "NR";
             const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
 
+            if (typeof onVehicleClick === "function") {
+              onVehicleClick(entryData);
+            }
+
+            lastClickedVehicleRef.current = {
+              imei: entryData?.imei,
+              coordinates,
+            };
+
+            const addressValue = entryData?.address ? entryData.address : "-";
+
             document.getElementById("overlay-content").innerHTML = `
                 <div class="overlay-card">
                   <div class="overlay-header">
@@ -2481,6 +2785,10 @@ const MapComponent = ({
                     <div class="overlay-row">
                       <span class="overlay-label">Time</span>
                       <span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
+                    </div>
+                    <div class="overlay-row">
+                      <span class="overlay-label">Address</span>
+                      <span class="overlay-value">${addressValue}</span>
                     </div>
                     <div class="overlay-row">
                       <span class="overlay-label">Speed</span>
@@ -2625,10 +2933,22 @@ const MapComponent = ({
         }
       };
 
-      map.on("click", clickHandler);
+      const pointerDownHandler = () => {
+        olWasDraggingRef.current = false;
+      };
+
+      const pointerDragHandler = () => {
+        olWasDraggingRef.current = true;
+      };
+
+      map.on("pointerdown", pointerDownHandler);
+      map.on("pointerdrag", pointerDragHandler);
+      map.on("singleclick", clickHandler);
 
       return () => {
-        map.un("click", clickHandler);
+        map.un("singleclick", clickHandler);
+        map.un("pointerdown", pointerDownHandler);
+        map.un("pointerdrag", pointerDragHandler);
       };
     } else {
       vectorLayer.getSource().clear();
@@ -2639,9 +2959,63 @@ const MapComponent = ({
     map,
     vectorLayer,
     dynamicOverlay,
+    onVehicleClick,
     markerLabelMode,
     autoFit,
   ]);
+
+  useEffect(() => {
+    if (!dynamicOverlay || !map || !focusEntry?.address) return;
+
+    const lastClicked = lastClickedVehicleRef.current;
+    if (!lastClicked?.imei || lastClicked.imei !== focusEntry?.imei) return;
+
+    const overlayContent = document.getElementById("overlay-content");
+    if (!overlayContent) return;
+
+    const speedValue = focusEntry.speed > 2 ? focusEntry.speed : 0;
+    const alertType = focusEntry.packet_type || "NR";
+    const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
+
+    overlayContent.innerHTML = `
+      <div class="overlay-card">
+        <div class="overlay-header">
+          <div class="overlay-title">${focusEntry.vehicle_registration_number || "-"}</div>
+          <div class="overlay-pill ${alertClass}">${alertType}</div>
+        </div>
+        <div class="overlay-body">
+          <div class="overlay-row">
+            <span class="overlay-label">Date</span>
+            <span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
+          </div>
+          <div class="overlay-row">
+            <span class="overlay-label">Time</span>
+            <span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
+          </div>
+          <div class="overlay-row">
+            <span class="overlay-label">Address</span>
+            <span class="overlay-value">${focusEntry.address}</span>
+          </div>
+          <div class="overlay-row">
+            <span class="overlay-label">Speed</span>
+            <span class="overlay-value">${speedValue} km/h</span>
+          </div>
+          <div class="overlay-row">
+            <span class="overlay-label">Battery</span>
+            <span class="overlay-value">${focusEntry.internal_battery_voltage || "-"} - ${focusEntry.main_input_voltage || "-"}</span>
+          </div>
+          <div class="overlay-row">
+            <span class="overlay-label">Latitude</span>
+            <span class="overlay-value">${focusEntry.latitude || "-"}</span>
+          </div>
+          <div class="overlay-row">
+            <span class="overlay-label">Longitude</span>
+            <span class="overlay-value">${focusEntry.longitude || "-"}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
 
   // Handle Incident Data for OpenLayers (Normal/Satellite)
   useEffect(() => {
@@ -3293,7 +3667,9 @@ const MapComponent = ({
                 backdropFilter: 'blur(10px)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1
+                gap: 1,
+                maxHeight: '70vh',
+                overflowY: 'auto'
               }}
             >
               {/* Map Type Selection */}
@@ -3366,7 +3742,17 @@ const MapComponent = ({
                   <Typography variant="caption" fontWeight={700} sx={{ px: 0.5, color: 'text.secondary' }}>
                     SOI Layers
                   </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxHeight: 280, overflowY: 'auto', pr: 0.5 }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.assamStateBdy}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamStateBdy: e.target.checked }))}
+                        />
+                      }
+                      label="ASSAM State BDY"
+                    />
                     <FormControlLabel
                       control={
                         <Switch
@@ -3375,8 +3761,7 @@ const MapComponent = ({
                           onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, states: e.target.checked }))}
                         />
                       }
-                      label={<Typography variant="caption" fontWeight={500}>States</Typography>}
-                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                      label="States"
                     />
                     <FormControlLabel
                       control={
@@ -3386,8 +3771,57 @@ const MapComponent = ({
                           onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrict: e.target.checked }))}
                         />
                       }
-                      label={<Typography variant="caption" fontWeight={500}>ASSAM District BDY</Typography>}
-                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                      label="ASSAM District BDY"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.assamDistrictBdy2}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrictBdy2: e.target.checked }))}
+                        />
+                      }
+                      label="ASSAM District BDY2"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.assamDistrictHq}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrictHq: e.target.checked }))}
+                        />
+                      }
+                      label="ASSAM District HQ"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.assamSubdistrictBdy}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamSubdistrictBdy: e.target.checked }))}
+                        />
+                      }
+                      label="ASSAM Subdistrict BDY"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.kamrupRural}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, kamrupRural: e.target.checked }))}
+                        />
+                      }
+                      label="Kamrup Rural"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.cartTrackHills}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, cartTrackHills: e.target.checked }))}
+                        />
+                      }
+                      label="Cart Track Hills"
                     />
                     <FormControlLabel
                       control={
@@ -3397,8 +3831,7 @@ const MapComponent = ({
                           onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, contours: e.target.checked }))}
                         />
                       }
-                      label={<Typography variant="caption" fontWeight={500}>Contours</Typography>}
-                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                      label="Contours"
                     />
                     <FormControlLabel
                       control={
@@ -3408,8 +3841,17 @@ const MapComponent = ({
                           onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, majorTowns: e.target.checked }))}
                         />
                       }
-                      label={<Typography variant="caption" fontWeight={500}>Major Towns HQ</Typography>}
-                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                      label="Major Towns HQ"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.name}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, name: e.target.checked }))}
+                        />
+                      }
+                      label="Name"
                     />
                     <FormControlLabel
                       control={
@@ -3419,8 +3861,7 @@ const MapComponent = ({
                           onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, railwayTracks: e.target.checked }))}
                         />
                       }
-                      label={<Typography variant="caption" fontWeight={500}>Railway Tracks</Typography>}
-                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                      label="Railway Tracks"
                     />
                     <FormControlLabel
                       control={
@@ -3430,8 +3871,67 @@ const MapComponent = ({
                           onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roads: e.target.checked }))}
                         />
                       }
-                      label={<Typography variant="caption" fontWeight={500}>Roads</Typography>}
-                      sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+                      label="Roads"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.roadsAllWeatherMotorable}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsAllWeatherMotorable: e.target.checked }))}
+                        />
+                      }
+                      label="Roads All Weather"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.roadsMotorableInFairWeather}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsMotorableInFairWeather: e.target.checked }))}
+                        />
+                      }
+                      label="Roads Fair Weather"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.roadsNationalHighway}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsNationalHighway: e.target.checked }))}
+                        />
+                      }
+                      label="National Highway"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.stateHighway}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, stateHighway: e.target.checked }))}
+                        />
+                      }
+                      label="State Highway"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.roadTunnel}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadTunnel: e.target.checked }))}
+                        />
+                      }
+                      label="Road Tunnel"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.roadOthers}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadOthers: e.target.checked }))}
+                        />
+                      }
+                      label="Road Others"
                     />
                   </Box>
                 </>

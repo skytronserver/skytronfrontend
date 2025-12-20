@@ -123,9 +123,7 @@ const getPoiMarkerIcon = (color) => {
 
 const POIViewer = () => {
 
-
-
-
+  const DEBUG_POI_GEO = true;
 
   const mapRef = useRef(null);
   const poiVectorLayerRef = useRef(null);
@@ -133,11 +131,18 @@ const POIViewer = () => {
   const drawInteractionRef = useRef(null);
   const searchFeatureRef = useRef(null);
   const poiClickHandlerRef = useRef(null);
-  const baseLayersRef = useRef({});
-  const soiLayersRef = useRef({});
-
-
-
+  const olWasDraggingRef = useRef(false);
+  const olPointerDownHandlerRef = useRef(null);
+  const olPointerDragHandlerRef = useRef(null);
+  const mapMoveEndHandlerRef = useRef(null);
+  const mapPointerDragUpdateHandlerRef = useRef(null);
+  const popoverOpenRef = useRef(false);
+  const selectedPoiCoordRef = useRef(null);
+  const popoverRafRef = useRef(null);
+  const reverseGeoCacheRef = useRef(new Map());
+  const reverseGeoStateRef = useRef({ loading: false, error: null, data: null, key: null });
+  // const [reverseGeoState, setReverseGeoState] = useState(reverseGeoStateRef.current);
+  const overlappingCoordsRef = useRef(new Map());
   const [pois, setPois] = useState([]);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -145,21 +150,25 @@ const POIViewer = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverAnchor, setPopoverAnchor] = useState(null);
+  const [selectedPoiCoord, setSelectedPoiCoord] = useState(null);
+
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     description: '',
+    pluscode: '',
+    area: '',
     city: '',
     state: '',
     pincode: '',
-    pluscode: '',
     phone: '',
     website: '',
-    area: '',
     status: 'Active',
     mark_type: 'Point',
     use_type: 'School',
     location: '',
+    lat: '',
+    lon: '',
     radius: '100.5',
     alert_type: '',
     speed_limit: 0,
@@ -167,7 +176,6 @@ const POIViewer = () => {
   const [drawingMode, setDrawingMode] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // Removed old layers state
   const theme = useTheme();
   const [routePoints, setRoutePoints] = useState([]);
   const [poiListOpen, setPoiListOpen] = useState(false);
@@ -177,18 +185,27 @@ const POIViewer = () => {
   const tempPolyRef = useRef(null);
   const tempMarkersRef = useRef([]);
 
-  const [activeMapType, setActiveMapType] = useState('normal');
-  const [layerMenuAnchorEl, setLayerMenuAnchorEl] = useState(null);
-  const [baseLayerVisibility, setBaseLayerVisibility] = useState({});
-  const [soiLayerVisibility, setSoiLayerVisibility] = useState({});
-
-  // Geocoding State
   const [geoSearchDialogOpen, setGeoSearchDialogOpen] = useState(false);
   const [geoSearchQuery, setGeoSearchQuery] = useState('');
   const [geoSearchResults, setGeoSearchResults] = useState([]);
   const [geoSearchLoading, setGeoSearchLoading] = useState(false);
 
-  const handleMapReady = ({ map, mapType, poiVectorLayer, drawVectorLayer, baseLayers, soiLayers }) => {
+  const [reverseGeoState, setReverseGeoState] = useState({
+    loading: false,
+    error: null,
+    data: null,
+    key: null,
+  });
+
+  useEffect(() => {
+    popoverOpenRef.current = popoverOpen;
+  }, [popoverOpen]);
+
+  useEffect(() => {
+    selectedPoiCoordRef.current = selectedPoiCoord;
+  }, [selectedPoiCoord]);
+
+  const handleMapReady = ({ map, poiVectorLayer, drawVectorLayer }) => {
     if (mapRef.current && poiClickHandlerRef.current) {
       try {
         mapRef.current.un('singleclick', poiClickHandlerRef.current);
@@ -198,35 +215,45 @@ const POIViewer = () => {
       poiClickHandlerRef.current = null;
     }
 
+    if (mapRef.current && olPointerDownHandlerRef.current) {
+      try {
+        mapRef.current.un('pointerdown', olPointerDownHandlerRef.current);
+      } catch (e) {
+        // ignore
+      }
+      olPointerDownHandlerRef.current = null;
+    }
+
+    if (mapRef.current && olPointerDragHandlerRef.current) {
+      try {
+        mapRef.current.un('pointerdrag', olPointerDragHandlerRef.current);
+      } catch (e) {
+        // ignore
+      }
+      olPointerDragHandlerRef.current = null;
+    }
+
+    if (mapRef.current && mapMoveEndHandlerRef.current) {
+      try {
+        mapRef.current.un('moveend', mapMoveEndHandlerRef.current);
+      } catch (e) {
+        // ignore
+      }
+      mapMoveEndHandlerRef.current = null;
+    }
+
+    if (mapRef.current && mapPointerDragUpdateHandlerRef.current) {
+      try {
+        mapRef.current.un('pointerdrag', mapPointerDragUpdateHandlerRef.current);
+      } catch (e) {
+        // ignore
+      }
+      mapPointerDragUpdateHandlerRef.current = null;
+    }
+
     mapRef.current = map || null;
     poiVectorLayerRef.current = poiVectorLayer || null;
     drawVectorLayerRef.current = drawVectorLayer || null;
-
-    setActiveMapType(mapType || 'normal');
-    baseLayersRef.current = baseLayers || {};
-    soiLayersRef.current = soiLayers || {};
-
-    setBaseLayerVisibility((prev) => {
-      const next = { ...prev };
-      Object.entries(baseLayersRef.current || {}).forEach(([key, layer]) => {
-        if (typeof next[key] === 'undefined') {
-          const visible = typeof layer?.getVisible === 'function' ? layer.getVisible() : true;
-          next[key] = !!visible;
-        }
-      });
-      return next;
-    });
-
-    setSoiLayerVisibility((prev) => {
-      const next = { ...prev };
-      Object.entries(soiLayersRef.current || {}).forEach(([key, layer]) => {
-        if (typeof next[key] === 'undefined') {
-          const visible = typeof layer?.getVisible === 'function' ? layer.getVisible() : true;
-          next[key] = !!visible;
-        }
-      });
-      return next;
-    });
 
     const poiLayer = poiVectorLayerRef.current;
     const source = poiLayer?.getSource?.();
@@ -242,12 +269,19 @@ const POIViewer = () => {
 
     if (mapRef.current) {
       const clickHandler = (evt) => {
+        if (olWasDraggingRef.current || evt?.dragging) {
+          olWasDraggingRef.current = false;
+          return;
+        }
+
         let foundPoi = null;
+        let foundFeature = null;
         try {
           mapRef.current.forEachFeatureAtPixel(evt.pixel, (feature) => {
             const poi = feature?.get?.('poi');
             if (poi) {
               foundPoi = poi;
+              foundFeature = feature;
               return true;
             }
             return false;
@@ -259,55 +293,90 @@ const POIViewer = () => {
         if (foundPoi) {
           setSelectedPoi(foundPoi);
           setSelectedPoiId(foundPoi.id);
-          setPopoverAnchor(evt.pixel);
           setPopoverOpen(true);
+
+          // Zoom/center to the POI like a normal maps app
+          try {
+            const geom = foundFeature?.getGeometry?.();
+            let focusCoord = null;
+
+            if (geom) {
+              const type = geom.getType?.();
+              if (type === 'Point') {
+                focusCoord = geom.getCoordinates?.();
+              } else if (type === 'Circle') {
+                focusCoord = geom.getCenter?.();
+              } else if (type === 'Polygon') {
+                focusCoord = geom.getInteriorPoint?.().getCoordinates?.();
+              } else if (type === 'LineString') {
+                focusCoord = geom.getCoordinateAt?.(0.5);
+              }
+            }
+
+            if (focusCoord && mapRef.current?.getView) {
+              setSelectedPoiCoord(focusCoord);
+              try {
+                const px = mapRef.current.getPixelFromCoordinate?.(focusCoord);
+                if (px) {
+                  setPopoverAnchor(px);
+                }
+              } catch (e) {
+                // ignore
+              }
+
+              const view = mapRef.current.getView();
+              const currentZoom = view.getZoom?.() ?? 0;
+              const targetZoom = currentZoom >= 16 ? currentZoom : 16;
+              view.animate({ center: focusCoord, zoom: targetZoom, duration: 500 });
+            }
+          } catch (e) {
+            // ignore
+          }
         } else {
           setPopoverOpen(false);
+          setSelectedPoiCoord(null);
         }
       };
+
       poiClickHandlerRef.current = clickHandler;
       mapRef.current.on('singleclick', clickHandler);
+
+      const pointerDownHandler = () => {
+        olWasDraggingRef.current = false;
+      };
+
+      const pointerDragHandler = () => {
+        olWasDraggingRef.current = true;
+      };
+
+      olPointerDownHandlerRef.current = pointerDownHandler;
+      olPointerDragHandlerRef.current = pointerDragHandler;
+
+      mapRef.current.on('pointerdown', pointerDownHandler);
+      mapRef.current.on('pointerdrag', pointerDragHandler);
+
+      const syncPopoverPosition = () => {
+        if (!popoverOpenRef.current) return;
+        const coord = selectedPoiCoordRef.current;
+        if (!coord) return;
+
+        if (popoverRafRef.current) return;
+        popoverRafRef.current = window.requestAnimationFrame(() => {
+          popoverRafRef.current = null;
+          try {
+            const px = mapRef.current?.getPixelFromCoordinate?.(coord);
+            if (px) setPopoverAnchor(px);
+          } catch (e) {
+            // ignore
+          }
+        });
+      };
+
+      mapMoveEndHandlerRef.current = syncPopoverPosition;
+      mapPointerDragUpdateHandlerRef.current = syncPopoverPosition;
+      mapRef.current.on('moveend', syncPopoverPosition);
+      mapRef.current.on('pointerdrag', syncPopoverPosition);
     }
-  };
-
-  const layerMenuOpen = Boolean(layerMenuAnchorEl);
-
-  const handleOpenLayerMenu = (event) => {
-    setLayerMenuAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseLayerMenu = () => {
-    setLayerMenuAnchorEl(null);
-  };
-
-  const toggleBaseLayer = (key) => {
-    setBaseLayerVisibility((prev) => {
-      const nextValue = !prev[key];
-      const layer = baseLayersRef.current?.[key];
-      if (layer?.setVisible) {
-        try {
-          layer.setVisible(nextValue);
-        } catch (e) {
-          // ignore
-        }
-      }
-      return { ...prev, [key]: nextValue };
-    });
-  };
-
-  const toggleSoiLayer = (key) => {
-    setSoiLayerVisibility((prev) => {
-      const nextValue = !prev[key];
-      const layer = soiLayersRef.current?.[key];
-      if (layer?.setVisible) {
-        try {
-          layer.setVisible(nextValue);
-        } catch (e) {
-          // ignore
-        }
-      }
-      return { ...prev, [key]: nextValue };
-    });
   };
 
   const fetchPOIs = async () => {
@@ -335,7 +404,7 @@ const POIViewer = () => {
 
   const getPoiStyles = (poi) => {
     const baseColor = getUseTypeColor(poi);
-    const fillColor = hexToRgba(baseColor, 0);
+    const fillColor = hexToRgba(baseColor, 0.1);
 
     const primaryLabel = poi?.name?.trim();
     const secondaryLabel = poi?.use_type?.trim();
@@ -446,14 +515,35 @@ const POIViewer = () => {
 
     if (!Array.isArray(coordinates) || coordinates.length === 0) return null;
 
-    if (poi.mark_type === 'Point' || poi.mark_type === 'Circle') {
+    if (poi.mark_type?.trim() === 'Point' || poi.mark_type?.trim() === 'Circle') {
+      console.log('[POI][createPoiFeature] Point/Circle', { poiId: poi.id, mark_type: poi.mark_type, coordinates });
       const first = coordinates[0];
-      if (!Array.isArray(first) || first.length < 2) return null;
-      const lat = Number(first[0]);
-      const lng = Number(first[1]);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      if (!Array.isArray(first) || first.length < 2) {
+        console.log('[POI][createPoiFeature] Invalid coordinates array', { poiId: poi.id, first });
+        return null;
+      }
+      let lat = Number(first[0]);
+      let lng = Number(first[1]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        console.log('[POI][createPoiFeature] Invalid lat/lng', { poiId: poi.id, lat, lng });
+        return null;
+      }
 
-      if (poi.mark_type === 'Point') {
+      // Add small offset for overlapping POIs to prevent exact overlap
+      const offsetKey = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+      const offsetCount = overlappingCoordsRef.current.get(offsetKey) || 0;
+      overlappingCoordsRef.current.set(offsetKey, offsetCount + 1);
+      
+      if (offsetCount > 0) {
+        // Apply small offset in a spiral pattern
+        const offsetDegrees = 0.0001; // ~10 meters
+        const angle = offsetCount * 0.5; // Create spiral effect
+        lat += Math.cos(angle) * offsetDegrees;
+        lng += Math.sin(angle) * offsetDegrees;
+        console.log('[POI][createPoiFeature] Applied offset', { poiId: poi.id, offsetCount, originalLat: first[0], originalLng: first[1], newLat: lat, newLng: lng });
+      }
+
+      if (poi.mark_type?.trim() === 'Point') {
         const feature = new Feature({ geometry: new Point([lng, lat]) });
         feature.set('poi', poi);
         feature.setStyle(getPoiStyles(poi));
@@ -467,7 +557,7 @@ const POIViewer = () => {
       return feature;
     }
 
-    if (poi.mark_type === 'Polygon') {
+    if (poi.mark_type?.trim() === 'Polygon') {
       if (coordinates.length < 3) return null;
       const ring = coordinates
         .map((pt) => [Number(pt[1]), Number(pt[0])])
@@ -482,7 +572,7 @@ const POIViewer = () => {
       return feature;
     }
 
-    if (poi.mark_type === 'Road') {
+    if (poi.mark_type?.trim() === 'Road') {
       if (coordinates.length < 2) return null;
       const lineCoords = coordinates
         .map((pt) => [Number(pt[1]), Number(pt[0])])
@@ -500,13 +590,25 @@ const POIViewer = () => {
   useEffect(() => {
     const poiLayer = poiVectorLayerRef.current;
     const source = poiLayer?.getSource?.();
-    if (!source) return;
+    if (!source) {
+      console.log('[POI][useEffect] No source found');
+      return;
+    }
 
     source.clear();
+    overlappingCoordsRef.current.clear(); // Reset overlapping counter
+    console.log('[POI][useEffect] Processing', pois.length, 'POIs');
     pois.forEach((poi) => {
+      console.log('[POI][useEffect] Processing POI', { id: poi.id, name: poi.name, mark_type: poi.mark_type });
       const feature = createPoiFeature(poi);
-      if (feature) source.addFeature(feature);
+      if (feature) {
+        source.addFeature(feature);
+        console.log('[POI][useEffect] Feature added for POI', poi.id);
+      } else {
+        console.log('[POI][useEffect] Feature creation failed for POI', poi.id);
+      }
     });
+    console.log('[POI][useEffect] Total features in source:', source.getFeatures().length);
   }, [pois]);
 
   useEffect(() => {
@@ -545,6 +647,8 @@ const POIViewer = () => {
 
       if (drawingMode === 'point') {
         const [lng, lat] = geom.getCoordinates();
+        setSelectedPoi(null);
+        setIsEditMode(false);
         setFormData((prev) => ({ ...prev, location: JSON.stringify([[lat, lng]]), mark_type: 'Point', radius: prev.radius || '100.5' }));
         handleReverseGeocode(lat, lng);
         setDialogOpen(true);
@@ -554,6 +658,8 @@ const POIViewer = () => {
 
       if (drawingMode === 'circle') {
         const [lng, lat] = geom.getCenter();
+        setSelectedPoi(null);
+        setIsEditMode(false);
         setFormData((prev) => ({ ...prev, location: JSON.stringify([[lat, lng]]), mark_type: 'Circle', radius: prev.radius || '100' }));
         handleReverseGeocode(lat, lng);
         setDialogOpen(true);
@@ -589,36 +695,44 @@ const POIViewer = () => {
         } catch (e) {
           // ignore
         }
-       }
-       drawInteractionRef.current = null;
-     };
-   }, [drawingMode]);
+      }
+      drawInteractionRef.current = null;
+    };
+  }, [drawingMode]);
 
-   const handleEditClick = (poi) => {
-     setFormData({
-       name: poi.name,
-       address: poi.address || '',
-       description: poi.description,
-       city: poi.city || '',
-       state: poi.state || '',
-       pincode: poi.pincode || '',
-       pluscode: poi.pluscode || '',
-       phone: poi.phone || '',
-       website: poi.website || '',
-       area: poi.area || '',
-       status: poi.status,
-       mark_type: poi.mark_type,
-       use_type: poi.use_type,
-       location: poi.location,
-       radius: poi.radius,
-       alert_type: poi.alert_type || 'None',
-       speed_limit: poi.speed_limit || 0,
-     });
-     setSelectedPoi(poi);
-     setIsEditMode(true);
-     setDialogOpen(true);
-     setPopoverOpen(false);
-   };
+  const handleEditClick = (poi) => {
+    setFormData({
+      name: poi.name,
+      address: poi.address || '',
+      description: poi.description,
+      pluscode: poi.pluscode || '',
+      area: poi.area || '',
+      city: poi.city || '',
+      state: poi.state || '',
+      pincode: poi.pincode || '',
+      phone: poi.phone || '',
+      website: poi.website || '',
+      status: poi.status,
+      mark_type: poi.mark_type,
+      use_type: poi.use_type,
+      location: poi.location,
+      lat: poi.lat ?? '',
+      lon: poi.lon ?? '',
+      radius: poi.radius,
+      alert_type: poi.alert_type || 'None',
+      speed_limit: poi.speed_limit || 0,
+    });
+
+    setSelectedPoi(poi);
+    setIsEditMode(true);
+    setDialogOpen(true);
+    setPopoverOpen(false);
+
+    const { lat, lng } = getLatLngFromPoi(poi);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      handleReverseGeocode(lat, lng);
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -629,18 +743,29 @@ const POIViewer = () => {
       formDataObj.append('name', formData.name);
       formDataObj.append('description', formData.description);
       formDataObj.append('address', formData.address);
-      formDataObj.append('city', formData.city || '');
-      formDataObj.append('state', formData.state || '');
-      formDataObj.append('pincode', formData.pincode || '');
-      formDataObj.append('pluscode', formData.pluscode || '');
-      formDataObj.append('phone', formData.phone || '');
-      formDataObj.append('website', formData.website || '');
-      formDataObj.append('area', formData.area || '');
+
+      formDataObj.append('pluscode', formData.pluscode ?? '');
+      formDataObj.append('area', formData.area ?? '');
+      formDataObj.append('city', formData.city ?? '');
+      formDataObj.append('state', formData.state ?? '');
+      formDataObj.append('pincode', formData.pincode ?? '');
+      formDataObj.append('phone', formData.phone ?? '');
+      formDataObj.append('website', formData.website ?? '');
       formDataObj.append('status', formData.status);
       formDataObj.append('status2', formData.status); // Mapping status to status2
       formDataObj.append('mark_type', formData.mark_type);
       formDataObj.append('use_type', formData.use_type);
-      formDataObj.append('location', formData.location);
+
+      // Location is still required by backend; derive from lat/lon when not explicitly set
+      let effectiveLocation = formData.location;
+      if (!effectiveLocation) {
+        const latNum = Number(formData.lat);
+        const lonNum = Number(formData.lon);
+        if (Number.isFinite(latNum) && Number.isFinite(lonNum)) {
+          effectiveLocation = JSON.stringify([[latNum, lonNum]]);
+        }
+      }
+      formDataObj.append('location', effectiveLocation || '');
 
       // Add other fields conditionally
       if (formData.radius) {
@@ -653,50 +778,25 @@ const POIViewer = () => {
         formDataObj.append('speed_limit', formData.speed_limit);
       }
 
-      // Send separate lat/lon for Point type
-      if (formData.mark_type === 'Point') {
-        try {
-          const loc = JSON.parse(formData.location);
-          if (Array.isArray(loc) && loc.length > 0 && Array.isArray(loc[0])) {
-            formDataObj.append('lat', loc[0][0]);
-            formDataObj.append('lon', loc[0][1]);
-          }
-        } catch (e) {
-          console.error('Error extracting lat/lon:', e);
-        }
-      }
-
       // Ensure backend-required fields are present
       const status2 = formData.status || 'Active';
       let lat = '';
       let lon = '';
-      // Do not override the user's address field; only keep a fallback for safety.
-      const fallbackAddress = formData.address || formData.description || formData.name || '';
+      let address = formData.description || formData.name || '';
 
-      try {
-        if (formData.location) {
-          const parsedLocation = typeof formData.location === 'string'
-            ? JSON.parse(formData.location)
-            : formData.location;
-
-          if (Array.isArray(parsedLocation) && parsedLocation.length > 0) {
-            const firstPoint = parsedLocation[0];
-            if (Array.isArray(firstPoint) && firstPoint.length >= 2) {
-              lat = firstPoint[0];
-              lon = firstPoint[1];
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Error parsing POI location for lat/lon', e);
+      const fromLocation = getLatLonFromLocation(effectiveLocation);
+      if (fromLocation.lat !== null && fromLocation.lon !== null) {
+        lat = String(fromLocation.lat);
+        lon = String(fromLocation.lon);
       }
+
+      const latOut = formData.lat !== '' ? String(formData.lat) : lat;
+      const lonOut = formData.lon !== '' ? String(formData.lon) : lon;
 
       formDataObj.append('status2', status2);
-      formDataObj.append('lat', lat);
-      formDataObj.append('lon', lon);
-      if (!formData.address && fallbackAddress) {
-        formDataObj.append('address', fallbackAddress);
-      }
+      formDataObj.append('lat', latOut);
+      formDataObj.append('lon', lonOut);
+      formDataObj.append('address', address);
 
       if (isEditMode && selectedPoi) {
         formDataObj.append('poi_id', selectedPoi.id);
@@ -770,7 +870,6 @@ const POIViewer = () => {
     // ensure other modes don't break things
   };
 
-
   const handleCancel = () => {
     setDialogOpen(false);
     setIsEditMode(false);
@@ -780,24 +879,24 @@ const POIViewer = () => {
       name: '',
       address: '',
       description: '',
+      pluscode: '',
+      area: '',
       city: '',
       state: '',
       pincode: '',
-      pluscode: '',
       phone: '',
       website: '',
-      area: '',
       status: 'Active',
       mark_type: 'Point',
       use_type: 'School',
       location: '',
+      lat: '',
+      lon: '',
       radius: '100.5',
       alert_type: '',
       speed_limit: 0,
     });
   };
-
-
 
   // Add route vector layer
   useEffect(() => {
@@ -876,21 +975,35 @@ const POIViewer = () => {
   };
 
   const handlePoiClick = (poi) => {
+    setSelectedPoi(poi);
     setSelectedPoiId(poi.id);
-    // Center map on selected POI (OpenLayers)
+    setPopoverOpen(true);
+
     const mapInstance = mapRef.current;
-    if (poi.location && mapInstance) {
+    const { lat, lng } = getLatLngFromPoi(poi);
+
+    if (Number.isFinite(lat) && Number.isFinite(lng) && mapInstance?.getView) {
       try {
-        const location = JSON.parse(poi.location);
-        if (Array.isArray(location) && location.length > 0) {
-          const [lat, lon] = location[0];
-          const view = mapInstance.getView();
-          view.setCenter([Number(lon), Number(lat)]);
-          view.setZoom(15);
+        const coord = [lng, lat];
+        setSelectedPoiCoord(coord);
+        try {
+          const px = mapInstance.getPixelFromCoordinate?.(coord);
+          if (px) setPopoverAnchor(px);
+        } catch (e) {
+          // ignore
         }
+
+        const view = mapInstance.getView();
+        const currentZoom = view.getZoom?.() ?? 0;
+        const targetZoom = currentZoom >= 16 ? currentZoom : 16;
+        view.animate({ center: coord, zoom: targetZoom, duration: 500 });
       } catch (error) {
-        console.error('Error parsing POI location:', error);
+        console.error('Error centering map on POI:', error);
       }
+    }
+
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      handleReverseGeocode(lat, lng);
     }
   };
 
@@ -899,27 +1012,21 @@ const POIViewer = () => {
 
     try {
       setGeoSearchLoading(true);
-      // // Use proxy path /mappls/ to avoid CORS
-      // const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
 
       const url = `https://api.gromed.in/api/geocode/?q=${encodeURIComponent(geoSearchQuery)}`;
 
       console.log('Fetching geocode via Axios (Proxy):', url);
       const response = await axios.get(url);
 
-      // Axios treats 2xx as success by default
       if (response.status === 200) {
         const data = response.data;
         console.log('Geocoding response data:', data);
 
-        // Mappls SDK sometimes wraps results differently or returns 200 even with empty results
         let results = [];
-        if (data.copResults) {
-          if (Array.isArray(data.copResults)) {
-            results = data.copResults;
-          } else {
-            results = [data.copResults];
-          }
+        if (Array.isArray(data?.results)) {
+          results = data.results;
+        } else if (data?.results) {
+          results = [data.results];
         } else if (Array.isArray(data)) {
           results = data;
         }
@@ -958,8 +1065,6 @@ const POIViewer = () => {
         view.setCenter([lng, lat]);
         view.setZoom(16);
 
-        handleReverseGeocode(lat, lng);
-
         const poiLayer = poiVectorLayerRef.current;
         if (poiLayer) {
           const source = poiLayer.getSource();
@@ -972,6 +1077,8 @@ const POIViewer = () => {
             }
           }
 
+          const label = result.address || result.name || result.poi || result.formattedAddress || result.locality || '';
+
           const feature = new Feature({
             geometry: new Point([lng, lat]),
           });
@@ -982,6 +1089,17 @@ const POIViewer = () => {
                 fill: new Fill({ color: "#E53935" }),
                 stroke: new Stroke({ color: "#ffffff", width: 2 }),
               }),
+              text: label
+                ? new Text({
+                    text: label,
+                    font: '12px "Roboto", sans-serif',
+                    fill: new Fill({ color: '#0D47A1' }),
+                    stroke: new Stroke({ color: '#ffffff', width: 3 }),
+                    backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
+                    padding: [2, 4, 2, 4],
+                    offsetY: -20,
+                  })
+                : undefined,
             })
           );
           source.addFeature(feature);
@@ -994,65 +1112,177 @@ const POIViewer = () => {
     setGeoSearchDialogOpen(false);
   };
 
+  const getLatLngFromPoi = (poi) => {
+    if (!poi) return { lat: null, lng: null };
+
+    const latDirect = Number(poi.lat);
+    const lngDirect = Number(poi.lon);
+    if (Number.isFinite(latDirect) && Number.isFinite(lngDirect)) {
+      return { lat: latDirect, lng: lngDirect };
+    }
+
+    try {
+      const location = typeof poi.location === 'string' ? JSON.parse(poi.location) : poi.location;
+      if (Array.isArray(location) && location.length > 0 && Array.isArray(location[0])) {
+        const lat = Number(location[0][0]);
+        const lng = Number(location[0][1]);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return { lat: null, lng: null };
+  };
 
   const handleReverseGeocode = async (lat, lng) => {
     try {
-      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${encodeURIComponent(
-        lat
-      )}&lon=${encodeURIComponent(lng)}`;
+      const safeLat = Number(lat);
+      const safeLng = Number(lng);
+      if (!Number.isFinite(safeLat) || !Number.isFinite(safeLng)) {
+        console.log('[POI][reverseGeocode] invalid coords', { lat, lng });
+        return;
+      }
+
+      const cacheKey = `${safeLat.toFixed(6)},${safeLng.toFixed(6)}`;
+      console.log('[POI][reverseGeocode] start', {
+        cacheKey,
+        lat: safeLat,
+        lng: safeLng,
+        isEditMode,
+        selectedPoiId: selectedPoi?.id ?? null,
+      });
+
+      const cached = reverseGeoCacheRef.current.get(cacheKey);
+      if (cached) {
+        console.log('[POI][reverseGeocode] cache hit', { cacheKey, cached });
+        setReverseGeoState({ loading: false, error: null, data: cached, key: cacheKey });
+        setFormData((prev) => {
+          const next = {
+            ...prev,
+            address: prev.address || cached.address || '',
+            name: prev.name || cached.name || '',
+            description: prev.description || cached.description || '',
+            pluscode: prev.pluscode || cached.pluscode || '',
+            area: prev.area || cached.area || '',
+            city: prev.city || cached.city || '',
+            state: prev.state || cached.state || '',
+            pincode: prev.pincode || cached.pincode || '',
+            phone: prev.phone || cached.phone || '',
+            website: prev.website || cached.website || '',
+            lat: prev.lat || (Number.isFinite(safeLat) ? String(safeLat) : ''),
+            lon: prev.lon || (Number.isFinite(safeLng) ? String(safeLng) : ''),
+            location:
+              prev.location ||
+              (Number.isFinite(safeLat) && Number.isFinite(safeLng)
+                ? JSON.stringify([[safeLat, safeLng]])
+                : ''),
+          };
+          console.log('[POI][reverseGeocode] apply cached -> formData', { before: prev, after: next });
+          return next;
+        });
+        return;
+      }
+
+      setReverseGeoState({ loading: true, error: null, data: null, key: cacheKey });
+      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${safeLat}&lon=${safeLng}`;
+      console.log('[POI][reverseGeocode] request', { url, cacheKey });
+
       const response = await axios.get(url);
-      if (response.status === 200) {
-        const data = response.data;
-        console.log('Reverse Geocoding response:', data);
+      console.log('[POI][reverseGeocode] response.status', response?.status);
+      console.log('[POI][reverseGeocode] response.data', response?.data);
 
-        const firstResult = Array.isArray(data?.results) ? data.results[0] : null;
-        const formattedAddress =
-          data?.address ||
-          data?.data?.address ||
-          firstResult?.formatted_address ||
-          firstResult?.display_name ||
-          data?.formatted_address ||
-          data?.display_name ||
-          '';
+      if (response?.status !== 200) {
+        setReverseGeoState({ loading: false, error: 'Reverse geocoding failed', data: null, key: cacheKey });
+        showSnackbar('Reverse geocoding failed (non-200)', 'error');
+        return;
+      }
 
-        const suggestedName =
-          firstResult?.poi ||
-          firstResult?.locality ||
-          firstResult?.city ||
-          firstResult?.district ||
-          '';
-
-        const city = data?.city || data?.data?.city || firstResult?.city || firstResult?.locality || null;
-        const state = data?.state || data?.data?.state || firstResult?.state || null;
-        const pincode = data?.pincode || data?.data?.pincode || firstResult?.pincode || null;
-        const pluscode = data?.pluscode || data?.data?.pluscode || firstResult?.pluscode || null;
-
-        if (formattedAddress) {
-          setFormData((prev) => ({
-            ...prev,
-            address: formattedAddress,
-            name: prev.name ? prev.name : suggestedName || prev.name,
-          }));
-          showSnackbar(`Location: ${formattedAddress}`, 'success');
-        } else {
-          showSnackbar('Reverse geocoding returned no address', 'info');
-        }
-
-        // Optional extra fields (only if your POI form/UI later includes them)
-        if (city || state || pincode || pluscode) {
-          setFormData((prev) => ({
-            ...prev,
-            city: prev.city ? prev.city : city || '',
-            state: prev.state ? prev.state : state || '',
-            pincode: prev.pincode ? prev.pincode : pincode || '',
-            pluscode: prev.pluscode ? prev.pluscode : pluscode || '',
-          }));
+      let data = response.data;
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
+          // ignore
         }
       }
+
+      const first = Array.isArray(data?.results)
+        ? data.results[0]
+        : (data && typeof data === 'object' ? data : null);
+      console.log('[POI][reverseGeocode] parsed first result', first);
+
+      if (!first) {
+        setReverseGeoState({ loading: false, error: null, data: null, key: cacheKey });
+        showSnackbar('Reverse geocode: no results', 'info');
+        return;
+      }
+
+      const result = {
+        id: first.id ?? null,
+        name: null,
+        lat: safeLat,  // Use click coordinates
+        lon: safeLng,  // Use click coordinates
+        address: first.address ?? null,
+        pluscode: first.pluscode ?? null,
+        area: first.area ?? null,
+        city: first.city ?? null,
+        state: first.state ?? null,
+        pincode: first.pincode ?? null,
+        phone:  null,
+        website:  null,
+        description:  null,
+      };
+
+      reverseGeoCacheRef.current.set(cacheKey, result);
+      setReverseGeoState({ loading: false, error: null, data: result, key: cacheKey });
+
+      setFormData((prev) => {
+        const isCreating = !isEditMode && !selectedPoi;
+        const pick = (current, incoming) => {
+          if (isCreating) return incoming !== undefined && incoming !== null ? incoming : current;
+          return current ? current : (incoming !== undefined && incoming !== null ? incoming : current);
+        };
+
+        const next = {
+          ...prev,
+          name: pick(prev.name, result.name || prev.name),
+          address: pick(prev.address, result.address || prev.address),
+          description: pick(prev.description, result.description || prev.description),
+          pluscode: pick(prev.pluscode, result.pluscode ?? prev.pluscode),
+          area: pick(prev.area, result.area ?? prev.area),
+          city: pick(prev.city, result.city ?? prev.city),
+          state: pick(prev.state, result.state ?? prev.state),
+          pincode: pick(prev.pincode, result.pincode ?? prev.pincode),
+          phone: pick(prev.phone, result.phone ?? prev.phone),
+          website: pick(prev.website, result.website ?? prev.website),
+          lat: pick(prev.lat, Number.isFinite(result.lat) ? String(result.lat) : prev.lat),
+          lon: pick(prev.lon, Number.isFinite(result.lon) ? String(result.lon) : prev.lon),
+          location: pick(
+            prev.location,
+            Number.isFinite(result.lat) && Number.isFinite(result.lon)
+              ? JSON.stringify([[result.lat, result.lon]])
+              : prev.location
+          ),
+        };
+
+        console.log('[POI][reverseGeocode] apply api -> formData', { before: prev, after: next, result });
+        return next;
+      });
     } catch (error) {
-      console.error("Reverse geocoding error:", error);
+      console.error('Reverse geocoding error:', error);
+      setReverseGeoState((prev) => ({ ...prev, loading: false, error: 'Reverse geocoding failed' }));
+      showSnackbar('Reverse geocoding failed (exception)', 'error');
     }
   };
+
+  useEffect(() => {
+    if (!selectedPoi || !popoverOpen) return;
+    const { lat, lng } = getLatLngFromPoi(selectedPoi);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    handleReverseGeocode(lat, lng);
+  }, [selectedPoi, popoverOpen]);
 
   const getPoiIcon = (markType) => {
     switch (markType) {
@@ -1069,7 +1299,7 @@ const POIViewer = () => {
     }
   };
 
-  const filteredPois = pois.filter(poi => {
+  const filteredPois = pois.filter((poi) => {
     const searchLower = searchQuery.toLowerCase();
     return (
       poi.name.toLowerCase().includes(searchLower) ||
@@ -1078,10 +1308,32 @@ const POIViewer = () => {
     );
   });
 
+  const getLatLonFromLocation = (locationValue) => {
+    if (!locationValue) return { lat: null, lon: null };
+    try {
+      let parsed = typeof locationValue === 'string' ? JSON.parse(locationValue) : locationValue;
+
+      if (typeof parsed === 'string') {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0]) && parsed[0].length >= 2) {
+        const lat = Number(parsed[0][0]);
+        const lon = Number(parsed[0][1]);
+        if (Number.isFinite(lat) && Number.isFinite(lon)) return { lat, lon };
+      }
+    } catch (e) {
+      // ignore
+    }
+    return { lat: null, lon: null };
+  };
+
   return (
     <Box sx={{ height: '100%', width: '100%', position: 'relative', overflow: 'hidden' }}>
-
-
       {/* Main Map Containers (OpenLayers) */}
       <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
         <BhuvanMapComponent
@@ -1100,118 +1352,6 @@ const POIViewer = () => {
           onMapReady={handleMapReady}
         />
       </Box>
-
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 16,
-          right: 16,
-          zIndex: 1100,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1,
-        }}
-      >
-        <Tooltip title="Layers" placement="left">
-          <IconButton
-            onClick={handleOpenLayerMenu}
-            sx={{
-              backgroundColor: alpha(theme.palette.background.paper, 0.9),
-              border: '1px solid',
-              borderColor: alpha(theme.palette.divider, 0.25),
-              backdropFilter: 'blur(8px)',
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.background.paper, 0.98),
-              },
-            }}
-            size="small"
-          >
-            <LayersIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-
-      <Popover
-        open={layerMenuOpen}
-        anchorEl={layerMenuAnchorEl}
-        onClose={handleCloseLayerMenu}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1.5,
-            width: 260,
-            borderRadius: 2,
-          },
-        }}
-      >
-        <Stack spacing={1}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            Base Layers
-          </Typography>
-
-          {Object.keys(baseLayersRef.current || {}).length === 0 ? (
-            <Typography variant="caption" color="text.secondary">
-              No base layers available
-            </Typography>
-          ) : (
-            Object.entries(baseLayersRef.current || {}).map(([key]) => {
-              const labelMap = {
-                india3Layer: 'India3',
-                adminGroupLayer: 'Admin Boundaries',
-                roadsLayer: 'Roads',
-                osmLayer: 'Satellite (OSM)',
-                bhuvanIndia3Layer: 'India3',
-                bhuvanAdminLayer: 'Admin Boundaries',
-                bhuvanRoadsLayer: 'Roads',
-              };
-              const label = labelMap[key] || key;
-
-              return (
-                <Box key={key} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">{label}</Typography>
-                  <Switch
-                    size="small"
-                    checked={!!baseLayerVisibility[key]}
-                    onChange={() => toggleBaseLayer(key)}
-                  />
-                </Box>
-              );
-            })
-          )}
-
-          {activeMapType === 'soi' && Object.keys(soiLayersRef.current || {}).length > 0 && (
-            <>
-              <Divider />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                SOI Layers
-              </Typography>
-              {Object.entries(soiLayersRef.current || {}).map(([key]) => {
-                const labelMap = {
-                  states: 'States',
-                  assamDistrict: 'ASSAM District BDY',
-                  contours: 'Contours',
-                  majorTowns: 'Major Towns HQ',
-                  railwayTracks: 'Railway Tracks',
-                  roads: 'Roads',
-                };
-                const label = labelMap[key] || key;
-
-                return (
-                  <Box key={key} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">{label}</Typography>
-                    <Switch
-                      size="small"
-                      checked={!!soiLayerVisibility[key]}
-                      onChange={() => toggleSoiLayer(key)}
-                    />
-                  </Box>
-                );
-              })}
-            </>
-          )}
-        </Stack>
-      </Popover>
 
       {/* Zoom Controls Container */}
       <Box
@@ -1582,6 +1722,22 @@ const POIViewer = () => {
                   >
                     {selectedPoi.description || 'No description provided'}
                   </Typography>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {reverseGeoState.loading
+                      ? 'Fetching address...'
+                      : (reverseGeoState.data?.address || selectedPoi.address || reverseGeoState.data?.name || '—')}
+                  </Typography>
                 </Box>
                 <IconButton
                   size="small"
@@ -1691,7 +1847,7 @@ const POIViewer = () => {
           sx: {
             borderRadius: 3,
             overflow: 'hidden',
-            backgroundColor: alpha(theme.palette.background.paper, 0.95),
+            backgroundColor: alpha(theme.palette.background.paper, 0),
             backdropFilter: 'blur(20px)',
           }
         }}
@@ -1780,12 +1936,12 @@ const POIViewer = () => {
                     <ListItemText
                       primary={
                         <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5 }}>
-                          {result.poi || result.formattedAddress || result.locality}
+                          {result.name || result.address || result.poi || result.formattedAddress || result.locality || 'Unknown'}
                         </Typography>
                       }
                       secondary={
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                          {[result.district, result.city, result.state].filter(Boolean).join(', ')}
+                          {result.address || [result.district, result.city, result.state].filter(Boolean).join(', ') || ''}
                         </Typography>
                       }
                     />
@@ -1860,40 +2016,6 @@ const POIViewer = () => {
               size="small"
             />
 
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                label="City"
-                value={formData.city}
-                onChange={(e) => setFormData((prev) => ({ ...prev, city: e.target.value }))}
-                size="small"
-              />
-              <TextField
-                fullWidth
-                label="State"
-                value={formData.state}
-                onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
-                size="small"
-              />
-            </Stack>
-
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                label="Pincode"
-                value={formData.pincode}
-                onChange={(e) => setFormData((prev) => ({ ...prev, pincode: e.target.value }))}
-                size="small"
-              />
-              <TextField
-                fullWidth
-                label="Plus Code"
-                value={formData.pluscode}
-                onChange={(e) => setFormData((prev) => ({ ...prev, pluscode: e.target.value }))}
-                size="small"
-              />
-            </Stack>
-
             <TextField
               fullWidth
               label="Description"
@@ -1909,23 +2031,80 @@ const POIViewer = () => {
                 fullWidth
                 label="Phone"
                 value={formData.phone}
-                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 size="small"
               />
               <TextField
                 fullWidth
                 label="Website"
                 value={formData.website}
-                onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                size="small"
+              />
+            </Stack>
+
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="Plus Code"
+                value={formData.pluscode}
+                onChange={(e) => setFormData(prev => ({ ...prev, pluscode: e.target.value }))}
+                size="small"
+              />
+              <TextField
+                fullWidth
+                label="Area"
+                value={formData.area}
+                onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
+                size="small"
+              />
+            </Stack>
+
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="City"
+                value={formData.city}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                size="small"
+              />
+              <TextField
+                fullWidth
+                label="State"
+                value={formData.state}
+                onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                size="small"
+              />
+            </Stack>
+
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="Pincode"
+                value={formData.pincode}
+                onChange={(e) => setFormData(prev => ({ ...prev, pincode: e.target.value }))}
                 size="small"
               />
             </Stack>
 
             <TextField
               fullWidth
-              label="Area"
-              value={formData.area}
-              onChange={(e) => setFormData((prev) => ({ ...prev, area: e.target.value }))}
+              label="Location"
+              value={formData.location}
+              onChange={(e) => {
+                const nextLocation = e.target.value;
+                const parsed = getLatLonFromLocation(nextLocation);
+                setFormData((prev) => ({
+                  ...prev,
+                  location: nextLocation,
+                  lat: parsed.lat !== null ? String(parsed.lat) : prev.lat,
+                  lon: parsed.lon !== null ? String(parsed.lon) : prev.lon,
+                }));
+
+                if (parsed.lat !== null && parsed.lon !== null) {
+                  handleReverseGeocode(parsed.lat, parsed.lon);
+                }
+              }}
               size="small"
             />
 
@@ -1991,13 +2170,6 @@ const POIViewer = () => {
               <Stack direction="row" spacing={2}>
                 <TextField
                   fullWidth
-                  label="Alert Type"
-                  value={formData.alert_type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, alert_type: e.target.value }))}
-                  size="small"
-                />
-                <TextField
-                  fullWidth
                   label="Speed Limit (km/h)"
                   type="number"
                   value={formData.speed_limit}
@@ -2006,6 +2178,14 @@ const POIViewer = () => {
                 />
               </Stack>
             )}
+
+            <TextField
+              fullWidth
+              label="Alert Type"
+              value={formData.alert_type}
+              onChange={(e) => setFormData(prev => ({ ...prev, alert_type: e.target.value }))}
+              size="small"
+            />
 
             {formData.mark_type === 'Circle' && (
               <TextField
@@ -2017,20 +2197,6 @@ const POIViewer = () => {
                 size="small"
               />
             )}
-
-            <TextField
-              fullWidth
-              label="Location"
-              value={formData.location}
-              InputProps={{ readOnly: true }}
-              size="small"
-              helperText="Click on the map to set location"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                },
-              }}
-            />
           </Stack>
         </DialogContent>
 
@@ -2052,7 +2218,14 @@ const POIViewer = () => {
             <Button
               variant="contained"
               onClick={handleSubmit}
-              disabled={loading || !formData.location}
+              disabled={(() => {
+                if (loading) return true;
+                if (formData.location) {
+                  const parsed = getLatLonFromLocation(formData.location);
+                  if (parsed.lat !== null && parsed.lon !== null) return false;
+                }
+                return !(Number.isFinite(Number(formData.lat)) && Number.isFinite(Number(formData.lon)));
+              })()}
               startIcon={loading ? <CircularProgress size={20} /> : null}
               size="small"
               sx={{ px: 3 }}
