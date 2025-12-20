@@ -5,6 +5,7 @@ let categoryList = [];
 export const taggingInitials = {
   device: "",
   vehicle_owner: "",
+  state_code: "",
   district_code: "",
   district: "",
   vehicle_number: "",
@@ -31,6 +32,13 @@ export const taggingFields = {
     validation: Yup.string()
       .matches(/^\d{10}$/, 'tagDeviceForm.validation.mobileFormat')
       .required('tagDeviceForm.validation.mobileRequired'),
+  },
+  state_code: {
+    name: "state_code",
+    type: "text",
+    label: "State Code",
+    validation: Yup.string(),
+    disabled: true,
   },
   district_code: {
     name: "district_code",

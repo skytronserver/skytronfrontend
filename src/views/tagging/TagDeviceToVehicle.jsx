@@ -80,10 +80,15 @@ function TagDeviceToVehicle() {
         label: district.district,
         value: district.id
       }));
-      const mappedDistrictCode = districts.map(district => ({
-        label: district.district_code,
-        value: district.district_code
-      }));
+      const mappedDistrictCode = districts.map(district => {
+        const fullCode = district.district_code || "";
+        const stateMatch = fullCode.match(/^[A-Za-z]+/);
+        const numericPart = stateMatch ? fullCode.slice(stateMatch[0].length).trim() : fullCode;
+        return {
+          label: numericPart, // e.g. "01 02" shown in dropdown
+          value: fullCode,    // e.g. "AS01 02" kept as actual value
+        };
+      });
       setDealerDistricts(mappedDistricts);
 
       // Update the form fields with the mapped districts
@@ -158,6 +163,13 @@ function TagDeviceToVehicle() {
     tac_valid_upto: "",
 
   })
+
+  const handleDistrictCodeChange = (event, formik) => {
+    const value = event?.target?.value || "";
+    const stateMatch = value.match(/^[A-Za-z]+/);
+    const stateCode = stateMatch ? stateMatch[0] : "";
+    formik.setFieldValue("state_code", stateCode);
+  };
 
   useEffect(() => {
     (async () => {
@@ -487,19 +499,26 @@ function TagDeviceToVehicle() {
                     <Grid container spacing={2} className="form-controller">
                       {Object.keys(updatedFormFields).map((field, idx, arr) => {
                         if (field === "vehicle_reg_no") return null; // skip old field
-                        // Custom rendering for district_code + vehicle_number as one row
+                        if (field === "state_code") return null; // rendered inside vehicle_reg_group
+                        // Custom rendering for state_code + district_code + vehicle_number as one row
                         if (field === "district_code") {
                           return (
                             <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
                               <Grid container spacing={1} alignItems="flex-end">
-                                <Grid item xs={5}>
+                                <Grid item xs={3}>
+                                  <FormField
+                                    fieldConfig={updatedFormFields["state_code"]}
+                                    formik={formik}
+                                  />
+                                </Grid>
+                                <Grid item xs={4}>
                                   <FormField
                                     fieldConfig={updatedFormFields["district_code"]}
                                     formik={formik}
-                                    handleOptionChange={(e, formik) => formik.setFieldValue("district_code", e.target.value)}
+                                    handleOptionChange={handleDistrictCodeChange}
                                   />
                                 </Grid>
-                                <Grid item xs={7}>
+                                <Grid item xs={5}>
                                   <FormField
                                     fieldConfig={updatedFormFields["vehicle_number"]}
                                     formik={formik}
