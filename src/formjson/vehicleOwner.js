@@ -15,6 +15,8 @@ export const ownerInitialValues = {
   expirydate: formattedDate,
   idProofno: "",
   file_idProof: null,
+  lat: "",
+  lon: "",
 };
 
 export const vehicleOwnerField = {
@@ -67,6 +69,22 @@ export const vehicleOwnerField = {
     validation: Yup.string()
       .min(5, "vehicleOwnerForm.validation.idProofNoLength")
       .required("vehicleOwnerForm.validation.idProofNoRequired"),
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("vehicleOwnerForm.validation.latNumber")
+      .required("Latitude is required"),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("vehicleOwnerForm.validation.lonNumber")
+      .required("Longitude is required"),
   },
   file_idProof: {
     name: "file_idProof",

@@ -491,7 +491,9 @@
       "state": "State Name",
       "idProofno": "ID Proof Number",
       "file_idProof": "Upload ID Proof",
-      "file_authorisation_letter": "Upload Authorization Letter"
+      "file_authorisation_letter": "Upload Authorization Letter",
+      "lat": "Latitude",
+      "lon": "Longitude"
     },
     "messages": {
       "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 512KB.",

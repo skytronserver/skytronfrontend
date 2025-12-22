@@ -18,6 +18,8 @@ export const dealerInitialValues = {
     gstCertificate: null,
     deviceManufacturerLetter: null,
     userIdProof: null,
+    lat: "",
+    lon: "",
 };
 
 
@@ -118,5 +120,21 @@ export const dealerFormField = {
     type: "file",
     label: "User ID Proof",
     validation: Yup.mixed().required("User ID Proof is required"),
-  }
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("Latitude must be a number")
+      .nullable(),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("Longitude must be a number")
+      .nullable(),
+  },
 };

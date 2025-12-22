@@ -20,7 +20,9 @@ export const dtoInitialsValues = {
     expirydate:formattedDate,
     dto_rto:"",
     file_idProof: null,
-    file_authorisation_letter:null
+    file_authorisation_letter:null,
+    lat: "",
+    lon: "",
 };
 
 export const dtoFormFields = {
@@ -115,5 +117,21 @@ export const dtoFormFields = {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     })
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("dtoForm.validation.latNumber")
+      .required("Latitude is required"),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("dtoForm.validation.lonNumber")
+      .required("Longitude is required"),
   }
 };

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 
+import axios from "axios";
 import { useTranslation } from 'react-i18next';
 import {
   TextField,
   Button,
   Grid,
+
   Table,
   TableBody,
   TableCell,
@@ -40,12 +42,12 @@ const LiveTracking = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
+
   const [vehicleNo, setVehicleNo] = useState("");
   const [imeiNo, setImeiNo] = useState("");
   const [owner, setOwner] = useState("");
   const [poi, setPoi] = useState("");
   const [roads, setRoads] = useState("");
-
   const [polygon, setPolygon] = useState("");
   const [category, setCategory] = useState("");
   const [make, setMake] = useState("");
@@ -62,6 +64,7 @@ const LiveTracking = () => {
   const [incidentData, setIncidentData] = useState([]);
   const [useNmrLocation, setUseNmrLocation] = useState(false);
   const [nmrArea, setNmrArea] = useState(null);
+  const [reverseGeocodeCache, setReverseGeocodeCache] = useState({});
 
   // Handle input changes
   const handleInput = (event) => {
@@ -86,6 +89,16 @@ const LiveTracking = () => {
     } else if (name === "dtoCode") {
       setDtoCode(value);
     }
+  };
+
+  const handleVehicleMarkerClick = (entry) => {
+    if (!entry?.imei) return;
+
+    setSelectedId(`vehicle-${entry.imei}`);
+    setFilteredData([entry]);
+    setFocusedEntry(entry);
+    setUseNmrLocation(false);
+    setNmrArea(null);
   };
 
   const computeSearchCenter = useCallback((entries = []) => {
@@ -313,6 +326,71 @@ const LiveTracking = () => {
       fetchIncidents();
     }
   };
+
+  const getReverseGeocodeCacheKey = (lat, lon) => {
+    const latNum = Number(lat);
+    const lonNum = Number(lon);
+    if (!Number.isFinite(latNum) || !Number.isFinite(lonNum)) return null;
+    return `${latNum.toFixed(5)},${lonNum.toFixed(5)}`;
+  };
+
+  const reverseGeocode = async (lat, lon) => {
+    const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`;
+    const response = await axios.get(url);
+    const payload = response?.data;
+    const formattedAddress = payload?.results?.[0]?.formatted_address;
+    if (formattedAddress) return formattedAddress;
+    if (typeof payload?.address === "string" && payload.address.trim()) {
+      return payload.address;
+    }
+    return "";
+  };
+
+  useEffect(() => {
+    const lat = focusedEntry?.latitude;
+    const lon = focusedEntry?.longitude;
+    const cacheKey = getReverseGeocodeCacheKey(lat, lon);
+
+    if (!focusedEntry || !cacheKey) return;
+    if (focusedEntry.address) return;
+
+    const cachedAddress = reverseGeocodeCache[cacheKey];
+    if (typeof cachedAddress === "string") {
+      if (!cachedAddress) return;
+
+      setFocusedEntry((prev) => (prev ? { ...prev, address: cachedAddress } : prev));
+      setFilteredData((prev) =>
+        prev.map((row) =>
+          row?.imei === focusedEntry?.imei ? { ...row, address: cachedAddress } : row
+        )
+      );
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const address = await reverseGeocode(lat, lon);
+        if (cancelled) return;
+
+        setReverseGeocodeCache((prev) => ({ ...prev, [cacheKey]: address || "" }));
+        if (!address) return;
+
+        setFocusedEntry((prev) => (prev ? { ...prev, address } : prev));
+        setFilteredData((prev) =>
+          prev.map((row) => (row?.imei === focusedEntry?.imei ? { ...row, address } : row))
+        );
+      } catch (error) {
+        if (cancelled) return;
+        setReverseGeocodeCache((prev) => ({ ...prev, [cacheKey]: "" }));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [focusedEntry?.imei, focusedEntry?.latitude, focusedEntry?.longitude, focusedEntry?.address, reverseGeocodeCache]);
 
   // Handle button click, update selectedId and filtered data
   const handleButtonClick = (id) => {
@@ -832,6 +910,7 @@ const LiveTracking = () => {
             gpsData={filteredData}
             policeData={policeLocations}
             incidentData={incidentData}
+            onVehicleClick={handleVehicleMarkerClick}
             width="100%"
             height={selectedId ? "400px" : "600px"}
             onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}

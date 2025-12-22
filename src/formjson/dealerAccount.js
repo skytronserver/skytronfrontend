@@ -22,6 +22,8 @@ export const dealerAccountInitialValues = {
   file_companRegCertificate: null,
   file_GSTCertificate: null,
   file_idProof: null,
+  lat: "",
+  lon: "",
 };
 
 export const dealerAccountFormField = {
@@ -164,5 +166,21 @@ export const dealerAccountFormField = {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("dealerAccountForm.validation.latNumber")
+      .required("Latitude is required"),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("dealerAccountForm.validation.lonNumber")
+      .required("Longitude is required"),
   },
 };

@@ -1,5 +1,14 @@
 // assets
-import { IconDashboard, IconChartBar, IconUsers, IconPhone, IconCar } from '@tabler/icons';
+import {
+  IconDashboard,
+  IconChartBar,
+  IconUsers,
+  IconPhone,
+  IconCar,
+  IconShield,
+  IconAmbulance,
+  IconAlertTriangle
+} from '@tabler/icons';
 
 // constant
 const icons = {
@@ -7,7 +16,10 @@ const icons = {
   IconChartBar,
   IconUsers,
   IconPhone,
-  IconCar
+  IconCar,
+  IconShield,
+  IconAmbulance,
+  IconAlertTriangle
 };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -31,6 +43,33 @@ const dashboard = {
       type: 'item',
       url: '/superadmin-dashboard',
       icon: icons.IconChartBar,
+      breadcrumbs: false,
+      roles: ['superadmin']
+    },
+    {
+      id: 'superadmin-dashboard-transport',
+      title: 'Transport Dashboard',
+      type: 'item',
+      url: '/superadmin-dashboard/transport',
+      icon: icons.IconCar,
+      breadcrumbs: false,
+      roles: ['superadmin']
+    },
+    {
+      id: 'superadmin-dashboard-public-safety',
+      title: 'Public Safety Dashboard',
+      type: 'item',
+      url: '/superadmin-dashboard/public-safety',
+      icon: icons.IconShield,
+      breadcrumbs: false,
+      roles: ['superadmin']
+    },
+    {
+      id: 'superadmin-dashboard-sos',
+      title: 'SOS Dashboard',
+      type: 'item',
+      url: '/superadmin-dashboard/sos',
+      icon: icons.IconAlertTriangle,
       breadcrumbs: false,
       roles: ['superadmin']
     },

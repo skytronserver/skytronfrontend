@@ -489,7 +489,9 @@
       "state": "राज्य का नाम",
       "idProofno": "पहचान पत्र संख्या",
       "file_idProof": "पहचान पत्र",
-      "file_authorisation_letter": "प्राधिकरण पत्र"
+      "file_authorisation_letter": "प्राधिकरण पत्र",
+      "lat": "अक्षांश",
+      "lon": "देशांतर"
     },
     "messages": {
       "file_idProof": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए।",

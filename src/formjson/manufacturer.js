@@ -21,6 +21,8 @@ export const manufacturerInitialValues = {
     file_companRegCertificate: null,
     file_GSTCertificate: null,
     file_idProof: null,
+    lat: "",
+    lon: "",
 };
 
 export const manufacturerFormField = {
@@ -150,5 +152,21 @@ export const manufacturerFormField = {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
-  }
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("Latitude must be a number")
+      .nullable(),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("Longitude must be a number")
+      .nullable(),
+  },
 };

@@ -5,7 +5,6 @@
  */
 
 export { default as BhuvanMapComponent } from './BhuvanMapComponent';
-export { default as ExampleMapUsage } from './ExampleMapUsage';
 
 // Default export
 export { default } from './BhuvanMapComponent';

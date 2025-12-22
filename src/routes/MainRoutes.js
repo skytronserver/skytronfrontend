@@ -30,7 +30,10 @@ import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
-import SuperAdminDashboard from "../views/direct/SuperAdminDashboard";
+import SuperAdminDashboard from "../views/dashboard/super admin dashboard/SuperAdminDashboard";
+import PublicTransportDashboard from "../views/dashboard/super admin dashboard/PublicTransportDashboard";
+import PublicSafetyDashboard from "../views/dashboard/super admin dashboard/PublicSafetyDashboard";
+import SOSEmergencyDashboard from "../views/dashboard/super admin dashboard/SOSEmergencyDashboard";
 import NewMap from "../views/MapComponent/Index";
 import HealthPacketLog from "../views/reports/HealthPacketLog";
 import POIReport from "../views/reports/POIReport";
@@ -90,6 +93,21 @@ const MainRoutes = {
     {
       path: "/superadmin-dashboard",
       element: <SuperAdminDashboard />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/transport",
+      element: <PublicTransportDashboard />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/public-safety",
+      element: <PublicSafetyDashboard />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/sos",
+      element: <SOSEmergencyDashboard />,
       roles: ["superadmin"],
     },
     {

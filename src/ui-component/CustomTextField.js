@@ -81,6 +81,68 @@ const FormField = ({
           }}
         />
       );
+    case "number": {
+      const isLatField = fieldConfig.name === "lat";
+
+      const handleUseMyLocation = () => {
+        if (!navigator.geolocation) {
+          // Geolocation not supported; do nothing for now
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            formik.setFieldValue("lat", latitude);
+            formik.setFieldValue("lon", longitude);
+          },
+          () => {
+            // Permission denied or error; silently ignore for now
+          }
+        );
+      };
+
+      const numberField = (
+        <TextField
+          label={t(label)}
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          type="number"
+          disabled={disabled ? true : false}
+          {...formik.getFieldProps(fieldConfig.name)}
+          error={
+            formik.touched[fieldConfig.name] &&
+            Boolean(formik.errors[fieldConfig.name])
+          }
+          helperText={
+            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
+          }
+          onChange={(e) => {
+            const value = e.target.value;
+            formik.setFieldValue(fieldConfig.name, value);
+          }}
+        />
+      );
+
+      if (!isLatField) {
+        return numberField;
+      }
+
+      return (
+        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+          <div style={{ flex: 1 }}>{numberField}</div>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleUseMyLocation}
+            style={{ marginTop: "24px", whiteSpace: "nowrap" }}
+          >
+            {t("Use my location")}
+          </Button>
+        </div>
+      );
+    }
     case "checkbox":
       return (
         <FormControlLabel

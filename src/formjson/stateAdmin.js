@@ -16,6 +16,8 @@ export const stateAdminInitialValues = {
     idProofno: "",
     file_idProof: null,
     file_authorisation_letter:null,
+    lat: "",
+    lon: "",
   };
   export const stateAdminField = {
     name: {
@@ -100,5 +102,21 @@ export const stateAdminInitialValues = {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     })
-    }
+    },
+    lat: {
+      name: "lat",
+      type: "number",
+      label: "Latitude",
+      validation: Yup.number()
+        .typeError("Latitude must be a number")
+        .nullable(),
+    },
+    lon: {
+      name: "lon",
+      type: "number",
+      label: "Longitude",
+      validation: Yup.number()
+        .typeError("Longitude must be a number")
+        .nullable(),
+    },
   };
