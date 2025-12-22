@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 const AlertList = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+
+  const on_debug=false
   
   useEffect(() => {
     const fetchAlertList = async () => {
@@ -16,7 +18,9 @@ const AlertList = () => {
     };
     fetchAlertList();
   }, [dispatch]);
-
+if(on_debug){
+console.log("AlertList")  
+}
   // const alertList=useSelector((state)=>state.reports.alertList);
   return (
     <Grid container spacing={gridSpacing}>
