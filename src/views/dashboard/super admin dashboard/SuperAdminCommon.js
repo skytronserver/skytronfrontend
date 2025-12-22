@@ -76,6 +76,10 @@ const floatY = keyframes`
   }
 `;
 
+const VEHICLE_FAKE_LOADING_DELAY = 650;
+const SOS_FAKE_LOADING_DELAY = 30000;
+const SOS_REFRESH_INTERVAL = 90000;
+
 const DashboardMap = ({ data, getStyle, center = [91.7362, 26.1445], zoom = 10 }) => {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -497,6 +501,7 @@ const useVehicleData = () => {
   const [vehicleData, setVehicleData] = useState([]);
   const [vehicleStats, setVehicleStats] = useState({ total: 0, online: 0, emergency: 0, offline: 0 });
   const [loading, setLoading] = useState(false);
+  const fakeDelayRef = useRef(null);
 
   const iconStyles = useMemo(
     () => ({
@@ -568,14 +573,37 @@ const useVehicleData = () => {
   useEffect(() => {
     let mounted = true;
 
+    const clearScheduledFinish = () => {
+      if (fakeDelayRef.current) {
+        clearTimeout(fakeDelayRef.current);
+        fakeDelayRef.current = null;
+      }
+    };
+
+    const scheduleLoadingComplete = () => {
+      clearScheduledFinish();
+      fakeDelayRef.current = setTimeout(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      }, VEHICLE_FAKE_LOADING_DELAY);
+    };
+
     const fetchVehicleData = async () => {
       try {
-        setLoading(true);
+        clearScheduledFinish();
+        if (mounted) {
+          setLoading(true);
+        }
         const response = await HomePageService.getLiveTracking_data({});
         if (!mounted) return;
 
         const vehicles = response?.data?.data;
-        if (!Array.isArray(vehicles)) return;
+        if (!Array.isArray(vehicles)) {
+          setVehicleData([]);
+          setVehicleStats({ total: 0, online: 0, emergency: 0, offline: 0 });
+          return;
+        }
 
         setVehicleData(vehicles);
 
@@ -606,7 +634,7 @@ const useVehicleData = () => {
       } catch (error) {
         console.error('Error fetching vehicle data:', error);
       } finally {
-        if (mounted) setLoading(false);
+        scheduleLoadingComplete();
       }
     };
 
@@ -615,6 +643,7 @@ const useVehicleData = () => {
     return () => {
       mounted = false;
       clearInterval(interval);
+      clearScheduledFinish();
     };
   }, [calculateTimeDifference]);
 
@@ -635,13 +664,34 @@ const useSosDashboardData = () => {
   });
   const [sosCalls, setSosCalls] = useState([]);
   const [sosLoading, setSosLoading] = useState(false);
+  const fakeDelayRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
 
+    const clearScheduledFinish = () => {
+      if (fakeDelayRef.current) {
+        clearTimeout(fakeDelayRef.current);
+        fakeDelayRef.current = null;
+      }
+    };
+
+    const scheduleLoadingComplete = () => {
+      clearScheduledFinish();
+      fakeDelayRef.current = setTimeout(() => {
+        if (mounted) {
+          setSosLoading(false);
+        }
+        fakeDelayRef.current = null;
+      }, SOS_FAKE_LOADING_DELAY);
+    };
+
     const fetchSOSData = async () => {
       try {
-        setSosLoading(true);
+        clearScheduledFinish();
+        if (mounted) {
+          setSosLoading(true);
+        }
         const [dashboardResponse, callsResponse] = await Promise.all([
           UserServices.getSOSAdminDashboard(),
           HomePageService.getPendingSOSCall()
@@ -658,19 +708,20 @@ const useSosDashboardData = () => {
           closedSOS: dashboard.Total_Closed_Calls || 0
         });
 
-        setSosCalls(calls.slice(0, 10));
+        setSosCalls(Array.isArray(calls) ? calls.slice(0, 10) : []);
       } catch (error) {
         console.error('Error fetching SOS data:', error);
       } finally {
-        if (mounted) setSosLoading(false);
+        scheduleLoadingComplete();
       }
     };
 
     fetchSOSData();
-    const interval = setInterval(fetchSOSData, 10000);
+    const interval = setInterval(fetchSOSData, SOS_REFRESH_INTERVAL);
     return () => {
       mounted = false;
       clearInterval(interval);
+      clearScheduledFinish();
     };
   }, []);
 

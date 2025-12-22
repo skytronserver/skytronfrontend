@@ -17,9 +17,9 @@ import {
   PageWrapper,
   DashboardCard,
   MetricCard,
-  DashboardMap,
   useVehicleData
 } from './SuperAdminCommon';
+import { BhuvanMapComponent } from 'components/Map';
 
 /* -------------------------------------------------------------------------- */
 /* 🎨 Design Tokens                                                            */
@@ -160,7 +160,21 @@ const PublicTransportDashboard = () => {
         subtitle="Live Fleet Monitoring"
         accentColor={COLORS.primary}
         chartComponent={speedChartContent}
-        mapComponent={<DashboardMap data={vehicleData} getStyle={getVehicleStyle} />}
+        mapComponent={(
+          <BhuvanMapComponent
+            gpsData={vehicleData}
+            policeData={[]}
+            width="100%"
+            height="100%"
+            markerLabelMode="vehicle"
+            showMapTypeToggle={false}
+            showDrawControls={false}
+            showLogos={false}
+            showSoiLayerPanel={false}
+            autoFit
+            onMarkerClick={undefined}
+          />
+        )}
         sx={{
           flex: 1,
           display: 'flex',

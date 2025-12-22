@@ -10,9 +10,9 @@ import {
   DashboardCard,
   MetricCard,
   StatBarChart,
-  DashboardMap,
   useVehicleData
 } from './SuperAdminCommon';
+import { BhuvanMapComponent } from 'components/Map';
 
 /* -------------------------------------------------------------------------- */
 /* 🎨 Design Tokens                                                            */
@@ -189,7 +189,21 @@ const PublicSafetyDashboard = () => {
         subtitle="Police & Ambulance Coordination"
         accentColor={COLORS.policePrimary}
         chartComponent={readinessChartContent}
-        mapComponent={<DashboardMap data={vehicleData} getStyle={getSafetyStyle} />}
+        mapComponent={(
+          <BhuvanMapComponent
+            gpsData={vehicleData}
+            policeData={[]}
+            width="100%"
+            height="100%"
+            markerLabelMode="vehicle"
+            showMapTypeToggle={false}
+            showDrawControls={false}
+            showLogos={false}
+            showSoiLayerPanel={false}
+            autoFit
+            onMarkerClick={undefined}
+          />
+        )}
       >
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
