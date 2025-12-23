@@ -212,11 +212,11 @@ const MainLayout = () => {
 
       {/* drawer */}
 
-     {userRoles!=='desk_ex' && <Sidebar
+      {userRoles !== 'desk_ex' && <Sidebar
         drawerOpen={matchDownMd ? leftDrawerOpened : leftDrawerOpened}
         drawerToggle={handleLeftDrawerToggle}
       />
-     }
+      }
       {/* main content */}
       <Main theme={theme} open={leftDrawerOpened}>
         {/* breadcrumb */}

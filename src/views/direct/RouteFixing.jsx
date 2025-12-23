@@ -63,6 +63,20 @@ const RouteFixing = () => {
   };
 
   useEffect(() => {
+    const fetchDeviceList = async () => {
+      try {
+        const retriveData = await TaggingService.getOwnerList();
+        if (retriveData?.data) {
+          setDeviceList(retriveData.data);
+        }
+      } catch (error) {
+        console.error("Error fetching device list:", error);
+      }
+    };
+    fetchDeviceList();
+  }, []);
+
+  useEffect(() => {
     if (!map.current) return;
 
     const clickHandler = (e) => {

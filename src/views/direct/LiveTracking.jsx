@@ -48,7 +48,6 @@ const LiveTracking = () => {
   const [owner, setOwner] = useState("");
   const [poi, setPoi] = useState("");
   const [roads, setRoads] = useState("");
-  const [route, setRoute] = useState("");
   const [polygon, setPolygon] = useState("");
   const [category, setCategory] = useState("");
   const [make, setMake] = useState("");
@@ -67,25 +66,6 @@ const LiveTracking = () => {
   const [nmrArea, setNmrArea] = useState(null);
   const [reverseGeocodeCache, setReverseGeocodeCache] = useState({});
 
-  const getReverseGeocodeCacheKey = useCallback((lat, lon) => {
-    const latNum = Number(lat);
-    const lonNum = Number(lon);
-    if (!Number.isFinite(latNum) || !Number.isFinite(lonNum)) return null;
-    return `${latNum.toFixed(5)},${lonNum.toFixed(5)}`;
-  }, []);
-
-  const reverseGeocode = useCallback(async (lat, lon) => {
-    const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`;
-    const response = await axios.get(url);
-    const payload = response?.data;
-    const formattedAddress = payload?.results?.[0]?.formatted_address;
-    if (formattedAddress) return formattedAddress;
-    if (typeof payload?.address === "string" && payload.address.trim()) {
-      return payload.address;
-    }
-    return "";
-  }, []);
-
   // Handle input changes
   const handleInput = (event) => {
     const { name, value } = event.target;
@@ -99,8 +79,6 @@ const LiveTracking = () => {
       setPoi(value);
     } else if (name === "roads") {
       setRoads(value);
-    } else if (name === "route") {
-      setRoute(value);
     } else if (name === "polygon") {
       setPolygon(value);
 
@@ -158,7 +136,7 @@ const LiveTracking = () => {
     try {
       const center = computeSearchCenter(entries);
       const response = await HomePageService.getEmergencyUserLocations({
-        user_type: 'police_ex',
+        user_type: 'police',
         lat: center.latitude,
         lon: center.longitude,
         radius_km: 10,
@@ -173,40 +151,27 @@ const LiveTracking = () => {
         records = payload.data;
       } else if (Array.isArray(payload?.results)) {
         records = payload.results;
-      } else if (Array.isArray(payload?.results?.data)) {
-        records = payload.results.data;
       } else if (Array.isArray(payload?.data?.results)) {
         records = payload.data.results;
       }
 
       const normalized = records
         .map((item, index) => {
-          const policePoi = item?.policepoi || item?.police_poi || item?.poi || item?.poi_ref;
-          const userInfo = item?.field_ex?.users?.[0];
           const latitude = Number(
-            item?.latitude ?? item?.lat ?? item?.location?.lat ?? item?.geo_lat ?? item?.em_lat
+            item?.latitude ?? item?.lat ?? item?.location?.lat ?? item?.geo_lat
           );
           const longitude = Number(
-            item?.longitude ?? item?.lon ?? item?.location?.lon ?? item?.location?.lng ?? item?.geo_lon ?? item?.em_lon
+            item?.longitude ?? item?.lon ?? item?.location?.lon ?? item?.location?.lng ?? item?.geo_lon
           );
 
           if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             return null;
           }
 
-          const lastUpdatedRaw = item?.updated_at || item?.last_updated || item?.timestamp || item?.time;
+          const lastUpdatedRaw = item?.updated_at || item?.last_updated || item?.timestamp;
           const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw).toISOString() : new Date().toISOString();
 
-          const userName = userInfo?.name;
-          const derivedAddress =
-            item?.address ||
-            userInfo?.address ||
-            policePoi?.address ||
-            "";
-          const nearestPoliceStation = policePoi?.address || "uzanbazr policestation";
-          const policeStationContact = policePoi?.contact || "987654123";
-
-          const labelFallback = userName || item?.name || item?.vehicle_reg_no || item?.vehicle_id || `Police #${index + 1}`;
+          const labelFallback = item?.name || item?.vehicle_reg_no || item?.vehicle_id || `Police #${index + 1}`;
 
           return {
             id: item?.id || item?.device_id || item?.em_ex_id || `police-${index}`,
@@ -217,74 +182,24 @@ const LiveTracking = () => {
             markerCategory: 'police',
             packet_type: 'POLICE',
             ignition_status: item?.ignition_status ?? 0,
-            speed: Number(item?.speed ?? item?.field_ex?.speed) || 0,
+            speed: Number(item?.speed) || 0,
             entry_time: lastUpdated,
             date: lastUpdated.split('T')[0] ?? '',
             time: lastUpdated.split('T')[1]?.split('Z')[0] ?? '',
             internal_battery_voltage: item?.internal_battery_voltage || '--',
             main_input_voltage: item?.main_input_voltage || '--',
-            address: derivedAddress,
-            nearestPoliceStation,
-            nearestPoliceContact: policeStationContact,
             latitude,
             longitude,
           };
         })
         .filter(Boolean);
 
-      const cacheUpdates = {};
-      const enriched = [];
-
-      for (const entry of normalized) {
-        if (entry.address) {
-          enriched.push(entry);
-          continue;
-        }
-
-        const cacheKey = getReverseGeocodeCacheKey(entry.latitude, entry.longitude);
-        if (!cacheKey) {
-          enriched.push(entry);
-          continue;
-        }
-
-        const hasLocalUpdate = Object.prototype.hasOwnProperty.call(cacheUpdates, cacheKey);
-        const cachedValue = hasLocalUpdate ? cacheUpdates[cacheKey] : reverseGeocodeCache[cacheKey];
-
-        if (typeof cachedValue === 'string') {
-          if (cachedValue) {
-            enriched.push({ ...entry, address: cachedValue });
-          } else {
-            enriched.push(entry);
-          }
-          continue;
-        }
-
-        try {
-          const address = await reverseGeocode(entry.latitude, entry.longitude);
-          const resolved = typeof address === 'string' ? address.trim() : '';
-          cacheUpdates[cacheKey] = resolved;
-
-          if (resolved) {
-            enriched.push({ ...entry, address: resolved });
-          } else {
-            enriched.push(entry);
-          }
-        } catch (geoError) {
-          cacheUpdates[cacheKey] = '';
-          enriched.push(entry);
-        }
-      }
-
-      if (Object.keys(cacheUpdates).length > 0) {
-        setReverseGeocodeCache((prev) => ({ ...prev, ...cacheUpdates }));
-      }
-
-      setPoliceLocations(enriched);
+      setPoliceLocations(normalized);
     } catch (error) {
       console.error('Error fetching police locations:', error);
       setPoliceLocations([]);
     }
-  }, [computeSearchCenter, reverseGeocodeCache, getReverseGeocodeCacheKey, reverseGeocode]);
+  }, [computeSearchCenter]);
 
   const fetchIncidents = useCallback(async (entries = []) => {
     try {
@@ -412,6 +327,25 @@ const LiveTracking = () => {
     }
   };
 
+  const getReverseGeocodeCacheKey = (lat, lon) => {
+    const latNum = Number(lat);
+    const lonNum = Number(lon);
+    if (!Number.isFinite(latNum) || !Number.isFinite(lonNum)) return null;
+    return `${latNum.toFixed(5)},${lonNum.toFixed(5)}`;
+  };
+
+  const reverseGeocode = async (lat, lon) => {
+    const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`;
+    const response = await axios.get(url);
+    const payload = response?.data;
+    const formattedAddress = payload?.results?.[0]?.formatted_address;
+    if (formattedAddress) return formattedAddress;
+    if (typeof payload?.address === "string" && payload.address.trim()) {
+      return payload.address;
+    }
+    return "";
+  };
+
   useEffect(() => {
     const lat = focusedEntry?.latitude;
     const lon = focusedEntry?.longitude;
@@ -456,15 +390,7 @@ const LiveTracking = () => {
     return () => {
       cancelled = true;
     };
-  }, [
-    focusedEntry?.imei,
-    focusedEntry?.latitude,
-    focusedEntry?.longitude,
-    focusedEntry?.address,
-    reverseGeocodeCache,
-    getReverseGeocodeCacheKey,
-    reverseGeocode,
-  ]);
+  }, [focusedEntry?.imei, focusedEntry?.latitude, focusedEntry?.longitude, focusedEntry?.address, reverseGeocodeCache]);
 
   // Handle button click, update selectedId and filtered data
   const handleButtonClick = (id) => {
@@ -494,7 +420,6 @@ const LiveTracking = () => {
       owner: owner,
       poi: poi,
       roads: roads,
-      route: route,
       polygon: polygon,
       category: category,
       make: make,
@@ -516,7 +441,6 @@ const LiveTracking = () => {
       owner: owner,
       poi: poi,
       roads: roads,
-      route: route,
       polygon: polygon,
       category: category,
       make: make,
@@ -525,7 +449,7 @@ const LiveTracking = () => {
 
     // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
-  }, [imeiNo, vehicleNo, owner, poi, roads, route, polygon, category, make, dtoCode]);
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, dtoCode]);
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -539,7 +463,6 @@ const LiveTracking = () => {
       owner: '',
       poi: '',
       roads: '',
-      route: '',
       polygon: '',
       category: '',
       make: '',
@@ -755,19 +678,6 @@ const LiveTracking = () => {
                           type="text"
                           value={roads}
                           name="roads"
-                          onChange={handleInput}
-                          variant="outlined"
-                          size="small"
-                          InputProps={{ sx: { bgcolor: 'white' } }}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Route"
-                          type="text"
-                          value={route}
-                          name="route"
                           onChange={handleInput}
                           variant="outlined"
                           size="small"
