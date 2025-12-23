@@ -17,6 +17,7 @@ const getLiveTracking_data = (data) => {
       owner: data.owner,
       poi: data.poi,
       roads: data.roads,
+      route: data.route,
       polygon: data.polygon,
       category: data.category,
       make: data.make,

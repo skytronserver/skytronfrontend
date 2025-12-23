@@ -355,10 +355,23 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
   const dateValue = formatDisplayValue(entry?.date);
   const timeValue = formatDisplayValue(entry?.time);
   const addressValue = formatDisplayValue(entry?.address);
+  const nearestStationValue =
+    entry?.markerCategory === "police" ? formatDisplayValue(entry?.nearestPoliceStation) : null;
+  const policeContactValue =
+    entry?.markerCategory === "police" ? formatDisplayValue(entry?.nearestPoliceContact) : null;
   const batteryValue = `${formatDisplayValue(
     entry?.internal_battery_voltage
   )
     } - ${formatDisplayValue(entry?.main_input_voltage)} `;
+
+  const policeRows = [
+    nearestStationValue
+      ? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Nearest Police Station</span><span class="mappls-hd-popup-value">${nearestStationValue}</span></div>`
+      : "",
+    policeContactValue
+      ? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Police Contact</span><span class="mappls-hd-popup-value">${policeContactValue}</span></div>`
+      : "",
+  ].join("");
 
   return `
   < div class="mappls-hd-popup-card" >
@@ -379,6 +392,7 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
           <span class="mappls-hd-popup-label">Address</span>
           <span class="mappls-hd-popup-value">${addressValue}</span>
         </div>
+        ${policeRows}
         <div class="mappls-hd-popup-row">
           <span class="mappls-hd-popup-label">Speed</span>
           <span class="mappls-hd-popup-value">${speedValue}</span>
@@ -916,7 +930,7 @@ const MapComponent = ({
       view: new View({
         projection: "EPSG:4326",
         center: [91.7362, 26.1445], // Guwahati, Assam
-        zoom: 10,
+        zoom: 6,
         maxZoom: 32,
         constrainResolution: true,
       }),
@@ -924,7 +938,7 @@ const MapComponent = ({
       controls: [
         new ZoomSlider(),
         new FullScreen(),
-        new ScaleLine()
+        // new ScaleLine()
       ],
 
       pixelRatio: 1,
@@ -1038,7 +1052,7 @@ const MapComponent = ({
         view: new View({
           projection: "EPSG:4326",
           center: [91.7362, 26.1445],
-          zoom: 10,
+          zoom: 13,
           maxZoom: 22,
           constrainResolution: true,
         }),
@@ -1517,7 +1531,7 @@ const MapComponent = ({
         view: new View({
           projection: "EPSG:4326",
           center: [91.7362, 26.1445],
-          zoom: 10,
+          zoom: 13,
           maxZoom: 19,
           constrainResolution: true,
         }),
@@ -1707,7 +1721,7 @@ const MapComponent = ({
           properties: {
             center: [26.1445, 91.7362], // Guwahati - [lat, lng] array format
             draggable: true,
-            zoom: 10,
+            zoom: 13,
             minZoom: 4,
             maxZoom: 18,
             backgroundColor: "#fff",
@@ -1734,7 +1748,7 @@ const MapComponent = ({
         }
 
         if (typeof hdMap.setZoom === 'function') {
-          hdMap.setZoom(11);
+          hdMap.setZoom(14);
         }
 
         // Verify after a short delay
@@ -2770,6 +2784,23 @@ const MapComponent = ({
             };
 
             const addressValue = entryData?.address ? entryData.address : "-";
+            const nearestPoliceStationValue =
+              entryData?.markerCategory === "police"
+                ? (entryData.nearestPoliceStation || "uzanbazr policestation")
+                : null;
+            const policeContactValue =
+              entryData?.markerCategory === "police"
+                ? (entryData.nearestPoliceContact || "987654123")
+                : null;
+
+            const policeInfoRows = [
+              nearestPoliceStationValue
+                ? `<div class="overlay-row"><span class="overlay-label">Nearest Police Station</span><span class="overlay-value">${nearestPoliceStationValue}</span></div>`
+                : "",
+              policeContactValue
+                ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
+                : "",
+            ].join("");
 
             document.getElementById("overlay-content").innerHTML = `
                 <div class="overlay-card">
@@ -2790,6 +2821,7 @@ const MapComponent = ({
                       <span class="overlay-label">Address</span>
                       <span class="overlay-value">${addressValue}</span>
                     </div>
+                    ${policeInfoRows}
                     <div class="overlay-row">
                       <span class="overlay-label">Speed</span>
                       <span class="overlay-value">${speedValue} km/h</span>
@@ -2977,6 +3009,24 @@ const MapComponent = ({
     const alertType = focusEntry.packet_type || "NR";
     const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
 
+    const nearestPoliceStationValue =
+      focusEntry?.markerCategory === "police"
+        ? (focusEntry.nearestPoliceStation || "uzanbazr policestation")
+        : null;
+    const policeContactValue =
+      focusEntry?.markerCategory === "police"
+        ? (focusEntry.nearestPoliceContact || "987654123")
+        : null;
+
+    const policeInfoRows = [
+      nearestPoliceStationValue
+        ? `<div class="overlay-row"><span class="overlay-label">Nearest Police Station</span><span class="overlay-value">${nearestPoliceStationValue}</span></div>`
+        : "",
+      policeContactValue
+        ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
+        : "",
+    ].join("");
+
     overlayContent.innerHTML = `
       <div class="overlay-card">
         <div class="overlay-header">
@@ -2996,6 +3046,7 @@ const MapComponent = ({
             <span class="overlay-label">Address</span>
             <span class="overlay-value">${focusEntry.address}</span>
           </div>
+          ${policeInfoRows}
           <div class="overlay-row">
             <span class="overlay-label">Speed</span>
             <span class="overlay-value">${speedValue} km/h</span>
