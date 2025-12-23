@@ -20,6 +20,8 @@ export const eSIMInitialValues = {
     file_GSTCertificate: null,
     file_idProof:null,
     file_companRegCertificate:null,
+    lat: "",
+    lon: "",
 };
 
 export const eSIMFormField = {
@@ -140,5 +142,21 @@ export const eSIMFormField = {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("Latitude must be a number")
+      .nullable(),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("Longitude must be a number")
+      .nullable(),
   },
 };

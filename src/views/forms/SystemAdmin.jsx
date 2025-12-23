@@ -40,6 +40,22 @@ const systemAdminFormFields = {
     label: "Date of Birth",
     validation: Yup.string().required("Date of Birth is required"),
   },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("Latitude must be a number")
+      .nullable(),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("Longitude must be a number")
+      .nullable(),
+  },
 };
 
 const initialValues = {
@@ -47,6 +63,8 @@ const initialValues = {
   email: "",
   mobile: "",
   dob: "",
+  lat: "",
+  lon: "",
 };
 
 const SystemAdmin = () => {

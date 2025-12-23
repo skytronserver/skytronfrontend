@@ -308,7 +308,9 @@
       "state": "ৰাজ্যৰ নাম",
       "idProofno": "আইডি প্ৰমাণ নম্বৰ",
       "file_idProof": "আইডি প্ৰমাণ আপল'ড কৰক",
-      "file_authorisation_letter": "অনুমতি পত্ৰ আপল'ড কৰক"
+      "file_authorisation_letter": "অনুমতি পত্ৰ আপল'ড কৰক",
+      "lat": "অক্ষাংশ",
+      "lon": "দ্ৰাঘিমাংশ"
     },
     "messages": {
       "file_idProof": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু ৫১২কেবিৰ তলত হ'ব লাগিব।",

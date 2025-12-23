@@ -7,6 +7,8 @@ export const otherUserInitialValues = {
   dtoCode: "",
   idProofno: "",
   file_idProof: null,
+  lat: "",
+  lon: "",
 };
 export const otherUserFormField = {
   name: {
@@ -54,5 +56,21 @@ export const otherUserFormField = {
     type: "file",
     label: "User ID Proof",
     validation: Yup.mixed().required("User ID Document is required"),
-  }
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("Latitude must be a number")
+      .nullable(),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("Longitude must be a number")
+      .nullable(),
+  },
 };
