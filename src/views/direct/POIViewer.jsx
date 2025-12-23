@@ -55,14 +55,14 @@ import {
   People as PeopleIcon,
   List as ListIcon,
 } from '@mui/icons-material';
- import { Draw } from "ol/interaction";
- import Feature from "ol/Feature";
- import Point from "ol/geom/Point";
- import Polygon from "ol/geom/Polygon";
- import Circle from "ol/geom/Circle";
- import LineString from "ol/geom/LineString";
- import { Fill, Stroke, Style, Circle as CircleStyle, Text } from "ol/style";
- import "ol/ol.css";
+import { Draw } from "ol/interaction";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import Polygon from "ol/geom/Polygon";
+import Circle from "ol/geom/Circle";
+import LineString from "ol/geom/LineString";
+import { Fill, Stroke, Style, Circle as CircleStyle, Text } from "ol/style";
+import "ol/ol.css";
 import POIService from '../../services/POIService';
 import HomePageService from '../../services/HomePage';
 import axios from 'axios';
@@ -533,7 +533,7 @@ const POIViewer = () => {
       const offsetKey = `${lat.toFixed(6)},${lng.toFixed(6)}`;
       const offsetCount = overlappingCoordsRef.current.get(offsetKey) || 0;
       overlappingCoordsRef.current.set(offsetKey, offsetCount + 1);
-      
+
       if (offsetCount > 0) {
         // Apply small offset in a spiral pattern
         const offsetDegrees = 0.0001; // ~10 meters
@@ -742,7 +742,6 @@ const POIViewer = () => {
       // Explicitly append fields as requested
       formDataObj.append('name', formData.name);
       formDataObj.append('description', formData.description);
-      formDataObj.append('address', formData.address);
 
       formDataObj.append('pluscode', formData.pluscode ?? '');
       formDataObj.append('area', formData.area ?? '');
@@ -782,7 +781,7 @@ const POIViewer = () => {
       const status2 = formData.status || 'Active';
       let lat = '';
       let lon = '';
-      let address = formData.description || formData.name || '';
+      let address = formData.address || formData.description || formData.name || '';
 
       const fromLocation = getLatLonFromLocation(effectiveLocation);
       if (fromLocation.lat !== null && fromLocation.lon !== null) {
@@ -1091,14 +1090,14 @@ const POIViewer = () => {
               }),
               text: label
                 ? new Text({
-                    text: label,
-                    font: '12px "Roboto", sans-serif',
-                    fill: new Fill({ color: '#0D47A1' }),
-                    stroke: new Stroke({ color: '#ffffff', width: 3 }),
-                    backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
-                    padding: [2, 4, 2, 4],
-                    offsetY: -20,
-                  })
+                  text: label,
+                  font: '12px "Roboto", sans-serif',
+                  fill: new Fill({ color: '#0D47A1' }),
+                  stroke: new Stroke({ color: '#ffffff', width: 3 }),
+                  backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
+                  padding: [2, 4, 2, 4],
+                  offsetY: -20,
+                })
                 : undefined,
             })
           );
@@ -1229,9 +1228,9 @@ const POIViewer = () => {
         city: first.city ?? null,
         state: first.state ?? null,
         pincode: first.pincode ?? null,
-        phone:  null,
-        website:  null,
-        description:  null,
+        phone: null,
+        website: null,
+        description: null,
       };
 
       reverseGeoCacheRef.current.set(cacheKey, result);
@@ -1734,10 +1733,35 @@ const POIViewer = () => {
                       lineHeight: 1.3,
                     }}
                   >
-                    {reverseGeoState.loading
-                      ? 'Fetching address...'
-                      : (reverseGeoState.data?.address || selectedPoi.address || reverseGeoState.data?.name || '—')}
+                    {selectedPoi.address || '—'}
                   </Typography>
+
+                  {/* Extended Info */}
+                  <Stack spacing={0.5} mb={1}>
+                    {(selectedPoi.city || selectedPoi.state || selectedPoi.pincode) && (
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        {[selectedPoi.city, selectedPoi.state, selectedPoi.pincode].filter(Boolean).join(', ')}
+                      </Typography>
+                    )}
+
+                    {Number(selectedPoi.speed_limit) > 0 && (
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        Speed Limit: <strong>{selectedPoi.speed_limit} km/h</strong>
+                      </Typography>
+                    )}
+
+                    {selectedPoi.phone && (
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        Phone: <a href={`tel:${selectedPoi.phone}`} style={{ color: 'inherit' }}>{selectedPoi.phone}</a>
+                      </Typography>
+                    )}
+
+                    {selectedPoi.website && (
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        Website: <a href={selectedPoi.website.startsWith('http') ? selectedPoi.website : `https://${selectedPoi.website}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>{selectedPoi.website}</a>
+                      </Typography>
+                    )}
+                  </Stack>
                 </Box>
                 <IconButton
                   size="small"
@@ -1779,7 +1803,7 @@ const POIViewer = () => {
                     },
                   }}
                 />
-                {selectedPoi.radius && (
+                {/* {selectedPoi.radius && (Number(selectedPoi.radius) > 0) && (
                   <Chip
                     label={`${selectedPoi.radius}m`}
                     size="small"
@@ -1793,7 +1817,7 @@ const POIViewer = () => {
                       },
                     }}
                   />
-                )}
+                )} */}
               </Stack>
 
               <Divider sx={{ my: 1 }} />

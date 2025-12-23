@@ -336,6 +336,19 @@ const EMCall = () => {
                     <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
                   </Box>
 
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Owner Name</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Owner Email</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.email || "N/A"}</Typography>
+                  </Box>
+
                   {assignments.length > 0 && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Assignment Statuses</Typography>
