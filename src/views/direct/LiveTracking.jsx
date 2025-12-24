@@ -134,60 +134,74 @@ const LiveTracking = () => {
 
   const fetchPoliceLocations = useCallback(async (entries = []) => {
     try {
-      const center = computeSearchCenter(entries);
-      const response = await HomePageService.getEmergencyUserLocations({
+      // Build API params - only include lat/lon when a vehicle is selected
+      const params = {
         user_type: 'police_ex',
-        lat: center.latitude,
-        lon: center.longitude,
-        radius_km: 10,
-      });
+      };
 
-      const payload = response?.data ?? [];
+      // If entries exist (vehicle selected), add location-based filtering
+      if (entries && entries.length > 0) {
+        const center = computeSearchCenter(entries);
+        params.lat = center.latitude;
+        params.lon = center.longitude;
+        params.radius_km = 10;
+      }
+
+      const response = await HomePageService.getEmergencyUserLocations(params);
+
+      // Parse the nested response structure
+      const payload = response?.data ?? {};
       let records = [];
 
-      if (Array.isArray(payload)) {
-        records = payload;
-      } else if (Array.isArray(payload?.data)) {
-        records = payload.data;
+      // Handle the structure: { results: { data: [...] } }
+      if (payload?.results?.data && Array.isArray(payload.results.data)) {
+        records = payload.results.data;
       } else if (Array.isArray(payload?.results)) {
         records = payload.results;
-      } else if (Array.isArray(payload?.data?.results)) {
-        records = payload.data.results;
+      } else if (Array.isArray(payload?.data)) {
+        records = payload.data;
+      } else if (Array.isArray(payload)) {
+        records = payload;
       }
 
       const normalized = records
         .map((item, index) => {
-          const latitude = Number(
-            item?.latitude ?? item?.lat ?? item?.location?.lat ?? item?.geo_lat
-          );
-          const longitude = Number(
-            item?.longitude ?? item?.lon ?? item?.location?.lon ?? item?.location?.lng ?? item?.geo_lon
-          );
+          // Extract location from em_lat and em_lon at root level
+          const latitude = Number(item?.em_lat ?? item?.latitude ?? item?.lat);
+          const longitude = Number(item?.em_lon ?? item?.longitude ?? item?.lon);
 
           if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             return null;
           }
 
-          const lastUpdatedRaw = item?.updated_at || item?.last_updated || item?.timestamp;
+          // Extract user info from field_ex
+          const fieldEx = item?.field_ex ?? {};
+          const users = fieldEx?.users ?? [];
+          const primaryUser = users[0] ?? {};
+
+          // Extract timestamp from time field or field_ex
+          const lastUpdatedRaw = item?.time ?? fieldEx?.created ?? item?.timestamp;
           const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw).toISOString() : new Date().toISOString();
 
-          const labelFallback = item?.name || item?.vehicle_reg_no || item?.vehicle_id || `Police #${index + 1}`;
+          // Create label from user name or fallback
+          const userName = primaryUser?.name || fieldEx?.idProofno || `Police #${index + 1}`;
+          const labelFallback = userName;
 
           return {
-            id: item?.id || item?.device_id || item?.em_ex_id || `police-${index}`,
-            vehicle_registration_number: item?.vehicle_reg_no || item?.vehicle_registration_number || labelFallback,
-            block_name: item?.block_name || item?.area_name || item?.station_name || item?.police_station || '',
-            route_name: item?.route_name || item?.route || '',
+            id: item?.id || fieldEx?.id || `police-${index}`,
+            vehicle_registration_number: userName,
+            block_name: fieldEx?.district_info?.district || fieldEx?.state_info?.state || '',
+            route_name: '',
             markerLabel: labelFallback,
             markerCategory: 'police',
             packet_type: 'POLICE',
-            ignition_status: item?.ignition_status ?? 0,
+            ignition_status: 1, // Assume active
             speed: Number(item?.speed) || 0,
             entry_time: lastUpdated,
             date: lastUpdated.split('T')[0] ?? '',
             time: lastUpdated.split('T')[1]?.split('Z')[0] ?? '',
-            internal_battery_voltage: item?.internal_battery_voltage || '--',
-            main_input_voltage: item?.main_input_voltage || '--',
+            internal_battery_voltage: '--',
+            main_input_voltage: '--',
             latitude,
             longitude,
           };
@@ -283,10 +297,39 @@ const LiveTracking = () => {
 
         const newData = await Promise.all(
           rawData.map(async (item) => {
+            let processedItem = item;
+
             if (isBadGnss(item)) {
-              return await applyNmrLocation(item);
+              processedItem = await applyNmrLocation(item);
             }
-            return item;
+
+            // Extract block_name and route_name from device_tag_info for all vehicles
+            const blockName = processedItem?.device_tag_info?.block?.name ||
+              processedItem?.device_tag_info?.block_name ||
+              processedItem?.device_tag_info?.device?.block_name ||
+              processedItem?.device_tag_info?.device?.district ||
+              processedItem?.device_tag_info?.district_info?.district ||
+              processedItem?.device_tag_info?.state_info?.state ||
+              processedItem?.block_name ||
+              processedItem?.address ||
+              processedItem?.nearest_poi?.data?.address ||
+              '';
+
+            const routeId = processedItem?.route_id ||
+              processedItem?.device_tag_info?.route?.id ||
+              processedItem?.nearby_routes_within_100m?.[0]?.data?.id;
+
+            const routeName = processedItem?.device_tag_info?.route?.name ||
+              processedItem?.device_tag_info?.route_name ||
+              processedItem?.device_tag_info?.route_ref?.name ||
+              processedItem?.route_name ||
+              (routeId ? `Route: ${routeId}` : '');
+
+            return {
+              ...processedItem,
+              block_name: blockName,
+              route_name: routeName,
+            };
           })
         );
 
@@ -335,15 +378,44 @@ const LiveTracking = () => {
   };
 
   const reverseGeocode = async (lat, lon) => {
-    const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`;
-    const response = await axios.get(url);
-    const payload = response?.data;
-    const formattedAddress = payload?.results?.[0]?.formatted_address;
-    if (formattedAddress) return formattedAddress;
-    if (typeof payload?.address === "string" && payload.address.trim()) {
-      return payload.address;
+    try {
+      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`;
+      const response = await axios.get(url);
+      const payload = response?.data;
+
+      let city = "";
+      let area = "";
+      let address = "";
+
+      // 1. Check for the flat structure shown by the user
+      if (payload && typeof payload === 'object' && !payload.results) {
+        city = payload.city || "";
+        area = payload.area || "";
+        address = payload.address || "";
+        return { address, city, area };
+      }
+
+      // 2. Fallback to nested results structure
+      const result = payload?.results?.[0];
+      if (result) {
+        if (Array.isArray(result.address_components)) {
+          const cityComp = result.address_components.find((c) =>
+            c.types.includes("locality") ||
+            c.types.includes("administrative_area_level_2") ||
+            c.types.includes("administrative_area_level_3")
+          );
+          if (cityComp) city = cityComp.long_name;
+        }
+        address = result.formatted_address || (typeof payload?.address === "string" ? payload.address.trim() : "");
+        return { address, city, area: "" };
+      }
+
+      const fallbackAddress = typeof payload?.address === "string" ? payload.address.trim() : "";
+      return { address: fallbackAddress, city: "", area: "" };
+    } catch (error) {
+      console.error("Reverse geocode error:", error);
+      return { address: "", city: "" };
     }
-    return "";
   };
 
   useEffect(() => {
@@ -352,16 +424,25 @@ const LiveTracking = () => {
     const cacheKey = getReverseGeocodeCacheKey(lat, lon);
 
     if (!focusedEntry || !cacheKey) return;
-    if (focusedEntry.address) return;
+    // Remove the early return for address so we can ensure geocoding (which populates block_name) runs
+    // if block_name is missing or a fallback.
+    const hasValidBlock = focusedEntry.block_name && focusedEntry.block_name !== "" && focusedEntry.block_name !== "china";
+    if (focusedEntry.address && hasValidBlock) return;
 
-    const cachedAddress = reverseGeocodeCache[cacheKey];
-    if (typeof cachedAddress === "string") {
-      if (!cachedAddress) return;
+    const cached = reverseGeocodeCache[cacheKey];
+    if (cached && typeof cached === "object") {
+      const { address, block_name } = cached;
+      if (!address && !block_name) return;
 
-      setFocusedEntry((prev) => (prev ? { ...prev, address: cachedAddress } : prev));
+      setFocusedEntry((prev) => (prev ? { ...prev, address, block_name: block_name || prev.block_name } : prev));
       setFilteredData((prev) =>
         prev.map((row) =>
-          row?.imei === focusedEntry?.imei ? { ...row, address: cachedAddress } : row
+          row?.imei === focusedEntry?.imei ? { ...row, address, block_name: block_name || row.block_name } : row
+        )
+      );
+      setTableDataTop((prev) =>
+        prev.map((row) =>
+          row?.imei === focusedEntry?.imei ? { ...row, address, block_name: block_name || row.block_name } : row
         )
       );
       return;
@@ -371,19 +452,27 @@ const LiveTracking = () => {
 
     (async () => {
       try {
-        const address = await reverseGeocode(lat, lon);
+        console.debug(`[LiveTracking] Fetching reverse geocode for: ${lat}, ${lon}`);
+        const { address, city, area } = await reverseGeocode(lat, lon);
         if (cancelled) return;
 
-        setReverseGeocodeCache((prev) => ({ ...prev, [cacheKey]: address || "" }));
-        if (!address) return;
+        const effectiveBlockName = city || area || address || "";
+        setReverseGeocodeCache((prev) => ({ ...prev, [cacheKey]: { address: address || "", block_name: effectiveBlockName } }));
 
-        setFocusedEntry((prev) => (prev ? { ...prev, address } : prev));
+        setFocusedEntry((prev) => (prev ? { ...prev, address: address || "", block_name: effectiveBlockName || prev.block_name } : prev));
         setFilteredData((prev) =>
-          prev.map((row) => (row?.imei === focusedEntry?.imei ? { ...row, address } : row))
+          prev.map((row) =>
+            row?.imei === focusedEntry?.imei ? { ...row, address: address || "", block_name: effectiveBlockName || row.block_name } : row
+          )
+        );
+        setTableDataTop((prev) =>
+          prev.map((row) =>
+            row?.imei === focusedEntry?.imei ? { ...row, address: address || "", block_name: effectiveBlockName || row.block_name } : row
+          )
         );
       } catch (error) {
         if (cancelled) return;
-        setReverseGeocodeCache((prev) => ({ ...prev, [cacheKey]: "" }));
+        setReverseGeocodeCache((prev) => ({ ...prev, [cacheKey]: { address: "", block_name: "" } }));
       }
     })();
 
@@ -697,21 +786,21 @@ const LiveTracking = () => {
                           InputProps={{ sx: { bgcolor: 'white' } }}
                         />
                       </Grid>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Category"
+                          type="text"
+                          value={category}
+                          name="category"
+                          onChange={handleInput}
+                          variant="outlined"
+                          size="small"
+                          InputProps={{ sx: { bgcolor: 'white' } }}
+                        />
+                      </Grid>
                       {userRole === "stateadmin" && (
                         <>
-                          <Grid item xs={6}>
-                            <TextField
-                              fullWidth
-                              label="Category"
-                              type="text"
-                              value={category}
-                              name="category"
-                              onChange={handleInput}
-                              variant="outlined"
-                              size="small"
-                              InputProps={{ sx: { bgcolor: 'white' } }}
-                            />
-                          </Grid>
                           <Grid item xs={6}>
                             <TextField
                               fullWidth
@@ -874,7 +963,6 @@ const LiveTracking = () => {
                         lac: String(lac),
                         cell_id: String(cellId),
                       };
-
                       const response = await HomePageService.getCellLocation(payload);
                       const latValue =
                         response?.data?.average_latitude ??

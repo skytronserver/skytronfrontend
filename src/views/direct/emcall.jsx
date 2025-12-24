@@ -11,7 +11,7 @@ import {
   Alert,
   Snackbar,
 } from "@mui/material";
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -20,11 +20,13 @@ import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import HomePageService from "../../services/HomePage";
+import POIService from "../../services/POIService";
 import CustomModal from "../../ui-component/CustomModal";
 import "./emcall.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 
 const EMCall = () => {
+  const theme = useTheme();
   const { state } = useLocation();
   const { call } = state || {};
   const userRole = call?.type || '';
@@ -43,6 +45,222 @@ const EMCall = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+
+  // Police Data State
+  const [policeLocations, setPoliceLocations] = useState([]);
+  const [policePois, setPolicePois] = useState([]);
+  const [nearestPolice, setNearestPolice] = useState(null);
+  const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
+  const [nearestPoliceAddress, setNearestPoliceAddress] = useState("");
+
+  // Distance helper (Haversine formula)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Logic for nearest police station and reverse geocoding
+  useEffect(() => {
+    if (sosLocations.length > 0 && policePois.length > 0) {
+      const callPoint = sosLocations[0];
+      let minDistance = Infinity;
+      let nearestUnit = null;
+
+      policePois.forEach((poi) => {
+        try {
+          const locData = JSON.parse(poi.location);
+          if (Array.isArray(locData) && locData.length > 0) {
+            const lat = Number(locData[0][0]);
+            const lon = Number(locData[0][1]);
+
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+              const dist = calculateDistance(
+                callPoint.latitude,
+                callPoint.longitude,
+                lat,
+                lon
+              );
+
+              if (dist < minDistance) {
+                minDistance = dist;
+                nearestUnit = {
+                  ...poi,
+                  latitude: lat,
+                  longitude: lon
+                };
+              }
+            }
+          }
+        } catch (e) {
+          // ignore invalid loc data
+        }
+      });
+
+      if (nearestUnit) {
+        setNearestPolice(nearestUnit);
+        setNearestPoliceDistance(minDistance);
+
+        // Initialize address from POI data immediately (prefer description if longer)
+        const initialAddr = (nearestUnit.description?.length > (nearestUnit.address?.length || 0))
+          ? nearestUnit.description
+          : (nearestUnit.address || nearestUnit.description || "Fetching address...");
+        setNearestPoliceAddress(initialAddr);
+
+        // Fetch address via reverse geocoding to see if we can get an even better one
+        const fetchAddress = async () => {
+          try {
+            const resp = await HomePageService.getReverseGeocode(nearestUnit.latitude, nearestUnit.longitude);
+            const data = resp?.data;
+            const result = data?.results?.[0];
+
+            let city = "";
+            if (result && Array.isArray(result.address_components)) {
+              const cityComp = result.address_components.find((c) =>
+                c.types.includes("locality") ||
+                c.types.includes("administrative_area_level_2") ||
+                c.types.includes("administrative_area_level_3")
+              );
+              if (cityComp) city = cityComp.long_name;
+            }
+
+            const geoAddr = result?.formatted_address ||
+              data?.results?.[0]?.address ||
+              data?.address ||
+              data?.formatted_address;
+
+            // Update address if we got a valid one
+            if (geoAddr) {
+              setNearestPoliceAddress(geoAddr);
+            }
+          } catch (error) {
+            console.error("Geocoding failed:", error);
+          }
+        };
+        fetchAddress();
+      }
+    }
+  }, [sosLocations, policePois]);
+
+  // Fetch Police Station POIs
+  useEffect(() => {
+    const fetchPolicePois = async () => {
+      try {
+        const response = await POIService.getAllPOIs();
+        const data = response?.data || response || [];
+
+        const filtered = Array.isArray(data)
+          ? data.filter((poi) => {
+            const type = poi?.use_type || "";
+            const normalized = String(type).toLowerCase();
+            return (
+              normalized === "policestation" ||
+              normalized === "police_station" ||
+              normalized === "police"
+            );
+          })
+          : [];
+
+        setPolicePois(filtered);
+      } catch (error) {
+        console.error("Error fetching police POIs for EmCall:", error);
+      }
+    };
+
+    fetchPolicePois();
+  }, []);
+
+  // Fetch Police Locations
+  const fetchPoliceLocations = async (callLocs = []) => {
+    try {
+      const params = {
+        user_type: 'police_ex',
+      };
+
+      if (callLocs && callLocs.length > 0) {
+        const center = callLocs[0]; // Use first call location as center
+        if (center && center.latitude && center.longitude) {
+          params.lat = center.latitude;
+          params.lon = center.longitude;
+          params.radius_km = 10;
+        }
+      }
+
+      const response = await HomePageService.getEmergencyUserLocations(params);
+
+      // Parse the nested response structure
+      const payload = response?.data ?? {};
+      let records = [];
+
+      if (payload?.results?.data && Array.isArray(payload.results.data)) {
+        records = payload.results.data;
+      } else if (Array.isArray(payload?.results)) {
+        records = payload.results;
+      } else if (Array.isArray(payload?.data)) {
+        records = payload.data;
+      } else if (Array.isArray(payload)) {
+        records = payload;
+      }
+
+      const normalized = records
+        .map((item, index) => {
+          const latitude = Number(item?.em_lat ?? item?.latitude ?? item?.lat);
+          const longitude = Number(item?.em_lon ?? item?.longitude ?? item?.lon);
+
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return null;
+          }
+
+          const fieldEx = item?.field_ex ?? {};
+          const users = fieldEx?.users ?? [];
+          const primaryUser = users[0] ?? {};
+
+          const lastUpdatedRaw = item?.time ?? fieldEx?.created ?? item?.timestamp;
+          const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw).toISOString() : new Date().toISOString();
+
+          const userName = primaryUser?.name || fieldEx?.idProofno || `Police #${index + 1}`;
+          const labelFallback = userName;
+
+          return {
+            id: item?.id || fieldEx?.id || `police-${index}`,
+            vehicle_registration_number: userName,
+            block_name: fieldEx?.district_info?.district || fieldEx?.state_info?.state || '',
+            route_name: '',
+            markerLabel: labelFallback,
+            markerCategory: 'police',
+            packet_type: 'POLICE',
+            ignition_status: 1,
+            speed: Number(item?.speed) || 0,
+            entry_time: lastUpdated,
+            date: lastUpdated.split('T')[0] ?? '',
+            time: lastUpdated.split('T')[1]?.split('Z')[0] ?? '',
+            latitude,
+            longitude,
+          };
+        })
+        .filter(Boolean);
+
+      setPoliceLocations(normalized);
+    } catch (error) {
+      console.error('Error fetching police locations:', error);
+      setPoliceLocations([]);
+    }
+  };
+
+  // Poll Police Locations based on SOS Location
+  useEffect(() => {
+    fetchPoliceLocations(sosLocations);
+    const interval = setInterval(() => fetchPoliceLocations(sosLocations), 10000);
+    return () => clearInterval(interval);
+  }, [sosLocations]);
 
   // Fetch locations and assignments
   const fetchAndPlotLocations = async () => {
@@ -104,7 +322,7 @@ const EMCall = () => {
     }
   };
 
-  // Initial Fetch and Polling
+  // Initial Fetch and Polling for Call Data
   useEffect(() => {
     fetchMessages();
     fetchAndPlotLocations();
@@ -321,8 +539,8 @@ const EMCall = () => {
         <Grid container spacing={3}>
           {/* Call Details Card */}
           <Grid item xs={12} md={3}>
-            <Card elevation={3} sx={{ height: '100%', borderRadius: 2 }}>
-              <CardContent>
+            <Card elevation={3} sx={{ height: '100%', borderRadius: 2, display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
                 <Typography variant="h4" sx={{ mb: 3, color: 'primary.main', fontWeight: 600, borderBottom: 2, borderColor: 'primary.main', pb: 1 }}>
                   CALL DETAILS
                 </Typography>
@@ -348,6 +566,62 @@ const EMCall = () => {
                     <Typography variant="caption" color="text.secondary">Owner Email</Typography>
                     <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.email || "N/A"}</Typography>
                   </Box>
+                  <Box sx={{ display: 'flex', gap: 3 }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Latitude</Typography>
+                      <Typography variant="body2" fontWeight={500}>{sosLocations[0]?.latitude?.toFixed(6) || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Longitude</Typography>
+                      <Typography variant="body2" fontWeight={500}>{sosLocations[0]?.longitude?.toFixed(6) || "N/A"}</Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Nearest Police Station Info - Moved here and styled as a highlight */}
+                  {nearestPolice && (
+                    <Box sx={{
+                      mt: 2,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.secondary.main, 0.05),
+                      border: '1px solid',
+                      borderColor: 'secondary.light'
+                    }}>
+                      <Typography variant="subtitle1" sx={{ mb: 1.5, color: 'secondary.main', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <LocalPoliceIcon fontSize="small" /> NEAREST POLICE STATION
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Station Name</Typography>
+                          <Typography variant="body2" fontWeight={600} color="primary.dark">
+                            {nearestPolice.name || nearestPolice.description || "Police Station"}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Contact Number</Typography>
+                          <Typography variant="body2" fontWeight={600}>
+                            {nearestPolice.phone ||
+                              nearestPolice.mobile ||
+                              nearestPolice.phoneno ||
+                              nearestPolice.contact ||
+                              "N/A"}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Distance</Typography>
+                          <Typography variant="body2" fontWeight={600}>
+                            {nearestPoliceDistance !== null ? `${nearestPoliceDistance.toFixed(2)} km` : "N/A"}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Address</Typography>
+                          <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.4 }}>
+                            {nearestPoliceAddress || "Fetching address..."}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  )}
 
                   {assignments.length > 0 && (
                     <Box sx={{ mt: 2 }}>
@@ -382,18 +656,18 @@ const EMCall = () => {
                   )}
                 </Box>
               </CardContent>
-              <CardContent>
-                <Box display="flex" flexDirection="column" gap={1.5}>
-                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("police_ex")} disabled={broadcastDisabled}>
+              <CardContent sx={{ p: 2, pt: 0, borderTop: '1px solid', borderColor: 'divider' }}>
+                <Box display="flex" flexDirection="column" gap={1} sx={{ mt: 2 }}>
+                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("police_ex")} disabled={broadcastDisabled} size="small">
                     Broadcast Police
                   </Button>
-                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("ambulance_ex")} disabled={broadcastDisabled}>
+                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("ambulance_ex")} disabled={broadcastDisabled} size="small">
                     Broadcast Ambulance
                   </Button>
-                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("both")} disabled={broadcastDisabled}>
+                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("both")} disabled={broadcastDisabled} size="small">
                     Broadcast Both
                   </Button>
-                  <Button variant="contained" color="error" onClick={handleCloseCall} disabled={!canCloseCall()}>
+                  <Button variant="contained" color="error" onClick={handleCloseCall} disabled={!canCloseCall()} size="small">
                     Close Call
                   </Button>
                 </Box>
@@ -406,9 +680,11 @@ const EMCall = () => {
             <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden' }}>
               <BhuvanMapComponent
                 gpsData={sosLocations}
+                policeData={policeLocations}
+                pois={policePois}
                 width="100%"
                 height="100%"
-                autoFit={true}
+                autoFit={sosLocations.length > 0}
                 showMapTypeToggle={true}
                 showDrawControls={false}
                 showLogos={true}

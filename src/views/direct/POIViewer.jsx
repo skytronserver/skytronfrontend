@@ -121,6 +121,7 @@ const getPoiMarkerIcon = (color) => {
   return null;
 };
 
+const EMPTY_POIS = [];
 const POIViewer = () => {
 
   const DEBUG_POI_GEO = true;
@@ -144,6 +145,7 @@ const POIViewer = () => {
   // const [reverseGeoState, setReverseGeoState] = useState(reverseGeoStateRef.current);
   const overlappingCoordsRef = useRef(new Map());
   const [pois, setPois] = useState([]);
+  const [showAllPois, setShowAllPois] = useState(false);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -259,13 +261,21 @@ const POIViewer = () => {
     const source = poiLayer?.getSource?.();
     if (source) {
       source.clear();
-      pois.forEach((poi) => {
-        const feature = createPoiFeature(poi);
-        if (feature) source.addFeature(feature);
-      });
-    }
+      if (showAllPois) {
+        pois.forEach((poi) => {
+          const feature = createPoiFeature(poi);
+          if (feature) source.addFeature(feature);
+        });
+      }
 
-    searchFeatureRef.current = null;
+      if (searchFeatureRef.current) {
+        try {
+          source.addFeature(searchFeatureRef.current);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
 
     if (mapRef.current) {
       const clickHandler = (evt) => {
@@ -597,19 +607,28 @@ const POIViewer = () => {
 
     source.clear();
     overlappingCoordsRef.current.clear(); // Reset overlapping counter
-    console.log('[POI][useEffect] Processing', pois.length, 'POIs');
-    pois.forEach((poi) => {
-      console.log('[POI][useEffect] Processing POI', { id: poi.id, name: poi.name, mark_type: poi.mark_type });
-      const feature = createPoiFeature(poi);
-      if (feature) {
-        source.addFeature(feature);
-        console.log('[POI][useEffect] Feature added for POI', poi.id);
-      } else {
-        console.log('[POI][useEffect] Feature creation failed for POI', poi.id);
+
+    if (showAllPois) {
+      console.log('[POI][useEffect] Processing', pois.length, 'POIs');
+      pois.forEach((poi) => {
+        const feature = createPoiFeature(poi);
+        if (feature) {
+          source.addFeature(feature);
+        }
+      });
+    }
+
+    // Preserve search feature if it exists
+    if (searchFeatureRef.current) {
+      try {
+        source.addFeature(searchFeatureRef.current);
+      } catch (e) {
+        console.error('[POI][useEffect] Error re-adding search feature:', e);
       }
-    });
+    }
+
     console.log('[POI][useEffect] Total features in source:', source.getFeatures().length);
-  }, [pois]);
+  }, [pois, showAllPois]);
 
   useEffect(() => {
     const mapInstance = mapRef.current;
@@ -1081,6 +1100,23 @@ const POIViewer = () => {
           const feature = new Feature({
             geometry: new Point([lng, lat]),
           });
+          feature.set('poi', {
+            id: 'search-result',
+            name: result.name || result.poi || result.formattedAddress || result.locality || 'Searched Location',
+            address: result.address || result.formattedAddress || '',
+            description: result.description || 'Searched location result',
+            use_type: result.type || 'Search',
+            status: 'Temporary',
+            lat: lat,
+            lon: lng,
+            mark_type: 'Point',
+            city: result.city || result.district || '',
+            state: result.state || '',
+            pincode: result.pincode || result.postcode || '',
+            phone: result.phone || result.tel || '',
+            website: result.website || result.url || '',
+            speed_limit: result.speed_limit || 40
+          });
           feature.setStyle(
             new Style({
               image: new CircleStyle({
@@ -1099,6 +1135,7 @@ const POIViewer = () => {
                   offsetY: -20,
                 })
                 : undefined,
+              zIndex: 2000,
             })
           );
           source.addFeature(feature);
@@ -1338,7 +1375,7 @@ const POIViewer = () => {
         <BhuvanMapComponent
           gpsData={[]}
           policeData={[]}
-          pois={[]}
+          pois={EMPTY_POIS}
           width="100%"
           height="100%"
           autoFit={false}
@@ -1389,12 +1426,12 @@ const POIViewer = () => {
       />
 
       {/* POI List Toggle Button */}
-      <IconButton
+      {/* <IconButton
         onClick={() => setPoiListOpen(!poiListOpen)}
         sx={{
           position: 'absolute',
-          top: 16,
-          left: 16,
+          top: 60,
+          left: 6,
           backgroundColor: 'background.paper',
           '&:hover': {
             backgroundColor: alpha(theme.palette.primary.main, 0.1),
@@ -1403,7 +1440,7 @@ const POIViewer = () => {
         }}
       >
         <ListIcon />
-      </IconButton>
+      </IconButton> */}
 
       {/* POI List Drawer */}
       <Drawer
@@ -1579,6 +1616,22 @@ const POIViewer = () => {
             </Tooltip>
           </Stack>
 
+
+          <Divider />
+
+          <Typography variant="subtitle2" color="text.secondary" sx={{ pl: 1 }}>
+            Layers
+          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ pl: 1, pb: 0.5 }}>
+            <Switch
+              size="small"
+              checked={showAllPois}
+              onChange={(e) => setShowAllPois(e.target.checked)}
+            />
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+              Show All POIs
+            </Typography>
+          </Stack>
 
           <Divider />
 
@@ -1823,38 +1876,42 @@ const POIViewer = () => {
               <Divider sx={{ my: 1 }} />
 
               <Stack direction="row" spacing={1}>
-                <Button
-                  size="small"
-                  startIcon={<EditIcon />}
-                  onClick={() => {
-                    handleEditClick(selectedPoi);
-                    setPopoverOpen(false);
-                  }}
-                  fullWidth
-                  sx={{
-                    textTransform: 'none',
-                    py: 0.5,
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<DeleteIcon />}
-                  color="error"
-                  onClick={() => {
-                    handleDelete();
-                    setPopoverOpen(false);
-                  }}
-                  disabled={loading}
-                  fullWidth
-                  sx={{
-                    textTransform: 'none',
-                    py: 0.5,
-                  }}
-                >
-                  Delete
-                </Button>
+                {selectedPoi.id !== 'search-result' && (
+                  <Button
+                    size="small"
+                    startIcon={<EditIcon />}
+                    onClick={() => {
+                      handleEditClick(selectedPoi);
+                      setPopoverOpen(false);
+                    }}
+                    fullWidth
+                    sx={{
+                      textTransform: 'none',
+                      py: 0.5,
+                    }}
+                  >
+                    Edit
+                  </Button>
+                )}
+                {selectedPoi.id !== 'search-result' && (
+                  <Button
+                    size="small"
+                    startIcon={<DeleteIcon />}
+                    color="error"
+                    onClick={() => {
+                      handleDelete();
+                      setPopoverOpen(false);
+                    }}
+                    disabled={loading}
+                    fullWidth
+                    sx={{
+                      textTransform: 'none',
+                      py: 0.5,
+                    }}
+                  >
+                    Delete
+                  </Button>
+                )}
               </Stack>
             </Box>
           </Box>
