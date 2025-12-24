@@ -19,18 +19,17 @@ const ManufacturerList = () => {
     const fetchManufacturerList = async () => {
       try {
         const response = await ManufacturerServices.findManufacturer();
-        setManufacturer(response.data) 
-        setLoad(true)
+        const apiData = response && response.data ? response.data : [];
+        setManufacturer(Array.isArray(apiData) ? apiData : []);
+        setLoad(true);
       } catch (error) {
-        if (error.response && error.response.status === 404) {
-          console.log("No Data Found");
-        } else {
-          console.log("No Data Found");
-        }
+        console.log("Error fetching manufacturers:", error);
+        setManufacturer([]);
+        setLoad(true);
       }
     };
     fetchManufacturerList();
-  },[])
+  }, [])
   //For actions refer AvailableForSale Component
   const actionColumn = [
     {

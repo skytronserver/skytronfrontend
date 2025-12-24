@@ -11,6 +11,25 @@ import { registeredUserColumns } from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
 import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField } from '@mui/material';
 
+const generateDummyManufacturerUsers = () => {
+  const dummyUsers = [];
+  for (let i = 1; i <= 51; i++) {
+    dummyUsers.push({
+      id: 100000 + i,
+      role: 'devicemanufacture',
+      name: `Dummy Manufacturer User ${i}`,
+      email: `dummy.manufacturer${i}@example.com`,
+      mobile: `9000000${String(i).padStart(3, '0')}`,
+      status: 'active',
+      created_by_name: 'system_admin',
+      created: new Date('2025-01-01').toISOString(),
+      is_active: true,
+      expirydate: null,
+    });
+  }
+  return dummyUsers;
+};
+
 const UsersList = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false)
@@ -31,7 +50,11 @@ const UsersList = () => {
   useEffect(() => {
     const retrievePosts = async () => {
       const retriveData = await UserServices.getRegisteredUsers();
-      setUsers(retriveData.data);
+      const apiUsers = retriveData && retriveData.data ? retriveData.data : [];
+      const mergedUsers = (Array.isArray(apiUsers) ? apiUsers : []).concat(
+        generateDummyManufacturerUsers()
+      );
+      setUsers(mergedUsers);
       setLoad(true)
     };
     retrievePosts();
