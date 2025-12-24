@@ -136,7 +136,7 @@ const LiveTracking = () => {
     try {
       const center = computeSearchCenter(entries);
       const response = await HomePageService.getEmergencyUserLocations({
-        user_type: 'police',
+        user_type: 'police_ex',
         lat: center.latitude,
         lon: center.longitude,
         radius_km: 10,
