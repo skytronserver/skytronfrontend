@@ -24,6 +24,7 @@ import POIService from "../../services/POIService";
 import CustomModal from "../../ui-component/CustomModal";
 import "./emcall.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
+import { BASE_URL } from "../../store/constant";
 
 const EMCall = () => {
   const theme = useTheme();
@@ -512,6 +513,8 @@ const EMCall = () => {
     return () => document.head.removeChild(style);
   }, []);
 
+  console.log("nearestUnit", call);
+
   return (
     <>
       <CustomModal
@@ -562,9 +565,57 @@ const EMCall = () => {
                     <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
                     <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
                   </Box>
+                  <Box sx={{ borderTop: '1px dashed', borderColor: 'divider', pt: 2, mt: 1 }}>
+                    <Typography variant="subtitle2" color="primary" sx={{ mb: 1.5, fontWeight: 700, letterSpacing: '0.5px' }}>
+                      DRIVER INFORMATION
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1.5 }}>
+                      {call?.call?.device?.drivers?.[0]?.photo && (
+                        <Box
+                          component="img"
+                          src={`${BASE_URL}${call.call.device.drivers[0].photo}`}
+                          alt="Driver"
+                          sx={{
+                            width: 64,
+                            height: 64,
+                            borderRadius: '12px',
+                            objectFit: 'cover',
+                            border: '2px solid',
+                            borderColor: 'background.paper',
+                            boxShadow: theme.shadows[2]
+                          }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      )}
+                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Name</Typography>
+                          <Typography variant="body2" fontWeight={600} color="text.primary">
+                            {call?.call?.device?.drivers?.[0]?.name || "N/A"}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Phone</Typography>
+                          <Typography variant="body2" fontWeight={600} color="primary.main">
+                            {call?.call?.device?.drivers?.[0]?.phone_no || "N/A"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>License Number</Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {call?.call?.device?.drivers?.[0]?.license_no || "N/A"}
+                      </Typography>
+                    </Box>
+                  </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary">Owner Email</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.email || "N/A"}</Typography>
+                    <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.category || "N/A"}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Emergency alert type</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.category || "N/A"}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 3 }}>
                     <Box>
