@@ -760,7 +760,7 @@ const user = {
           type: 'item',
           url: '/reports/device-health-report',
           breadcrumbs: false,
-          roles: ['superadmin']
+          roles: ['superadmin','stateadmin']
         },
         {
           id: 'user-statistics-report',

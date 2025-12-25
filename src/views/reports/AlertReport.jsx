@@ -49,6 +49,7 @@ const AlertReport = () => {
   const [pageSize, setPageSize] = useState(25);
   const [statesList, setStatesList] = useState([]);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [quickRange, setQuickRange] = useState('');
 
   // Alert type options
   const alertTypes = [
@@ -276,6 +277,47 @@ const AlertReport = () => {
     setFilters(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleQuickRangeChange = (value) => {
+    setQuickRange(value);
+
+    if (!value) {
+      // Clear quick range -> leave dates as-is so user can set manually
+      return;
+    }
+
+    let start;
+    const end = new Date();
+
+    if (value === '24h') {
+      // Past 24 hours
+      start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+    } else if (value === '3d') {
+      start = new Date();
+      start.setDate(end.getDate() - 3);
+    } else if (value === '7d') {
+      start = new Date();
+      start.setDate(end.getDate() - 7);
+    } else if (value === '3m') {
+      start = new Date();
+      start.setMonth(end.getMonth() - 3);
+    } else {
+      return;
+    }
+
+    const formatDateOnly = (date) => {
+      return date.toISOString().split('T')[0];
+    };
+
+    const startDateStr = formatDateOnly(start);
+    const endDateStr = formatDateOnly(end);
+
+    setFilters(prev => ({
+      ...prev,
+      start_date: startDateStr,
+      end_date: endDateStr
     }));
   };
 
@@ -558,6 +600,24 @@ const AlertReport = () => {
                         onChange={(e) => handleFilterChange('end_date', e.target.value)}
                         InputLabelProps={{ shrink: true }}
                       />
+                    </Grid>
+
+                    {/* Quick Range */}
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel>Quick Range</InputLabel>
+                        <Select
+                          value={quickRange}
+                          label="Quick Range"
+                          onChange={(e) => handleQuickRangeChange(e.target.value)}
+                        >
+                          <MenuItem value="">All Time</MenuItem>
+                          <MenuItem value="24h">Past 24 hours</MenuItem>
+                          <MenuItem value="3d">Past 3 days</MenuItem>
+                          <MenuItem value="7d">Past 7 days</MenuItem>
+                          <MenuItem value="3m">Past 3 months</MenuItem>
+                        </Select>
+                      </FormControl>
                     </Grid>
 
                     {/* Latitude */}

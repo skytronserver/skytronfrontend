@@ -25,6 +25,7 @@ import {
   MenuItem,
   Switch,
   FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 
 import MainCard from "../../ui-component/cards/MainCard";
@@ -52,6 +53,8 @@ const LiveTracking = () => {
   const [category, setCategory] = useState("");
   const [make, setMake] = useState("");
   const [dtoCode, setDtoCode] = useState("");
+  const [inRange, setInRange] = useState(false);
+  const [poiAsPolygon, setPoiAsPolygon] = useState(false);
   const userRole = getRole();
   const [typeFilter, setTypeFilter] = useState("default");
   const [tableDataTop, setTableDataTop] = useState([]); // Data for the scrollable table
@@ -513,6 +516,9 @@ const LiveTracking = () => {
       category: category,
       make: make,
       dto_code: dtoCode,
+      poi_id: poi,
+      in_range: inRange,
+      poi_as_polygon: poiAsPolygon,
     };
 
     setSelectedId(null); // Reset selection when submitting new search
@@ -534,11 +540,14 @@ const LiveTracking = () => {
       category: category,
       make: make,
       dto_code: dtoCode,
+      poi_id: poi,
+      in_range: inRange,
+      poi_as_polygon: poiAsPolygon,
     };
 
     // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, dtoCode]);
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, dtoCode, inRange, poiAsPolygon]);
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -556,6 +565,9 @@ const LiveTracking = () => {
       category: '',
       make: '',
       dto_code: '',
+      poi_id: poi,
+      in_range: inRange,
+      poi_as_polygon: poiAsPolygon,
     };
 
     try {
@@ -750,15 +762,54 @@ const LiveTracking = () => {
                       <Grid item xs={6}>
                         <TextField
                           fullWidth
-                          label="POI"
+                          label="Category"
                           type="text"
-                          value={poi}
-                          name="poi"
+                          value={category}
+                          name="category"
                           onChange={handleInput}
                           variant="outlined"
                           size="small"
                           InputProps={{ sx: { bgcolor: 'white' } }}
                         />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Box display="flex" flexDirection="column" gap={0.5}>
+                          <Box display="flex" gap={1}>
+                            <TextField
+                              fullWidth
+                              label="POI"
+                              type="text"
+                              value={poi}
+                              name="poi"
+                              onChange={handleInput}
+                              variant="outlined"
+                              size="small"
+                              InputProps={{ sx: { bgcolor: 'white' } }}
+                            />
+                          </Box>
+                          <Box display="flex" flexWrap="wrap" gap={2}>
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  color="primary"
+                                  checked={inRange}
+                                  onChange={(e) => setInRange(e.target.checked)}
+                                />
+                              }
+                              label="In Range Only"
+                            />
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  color="primary"
+                                  checked={poiAsPolygon}
+                                  onChange={(e) => setPoiAsPolygon(e.target.checked)}
+                                />
+                              }
+                              label="POI as Polygon"
+                            />
+                          </Box>
+                        </Box>
                       </Grid>
                       <Grid item xs={6}>
                         <TextField
@@ -780,19 +831,6 @@ const LiveTracking = () => {
                           type="text"
                           value={polygon}
                           name="polygon"
-                          onChange={handleInput}
-                          variant="outlined"
-                          size="small"
-                          InputProps={{ sx: { bgcolor: 'white' } }}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Category"
-                          type="text"
-                          value={category}
-                          name="category"
                           onChange={handleInput}
                           variant="outlined"
                           size="small"

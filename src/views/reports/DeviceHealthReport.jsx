@@ -53,6 +53,9 @@ const DeviceHealthReport = () => {
     offline_devices: 0,
     no_data_devices: 0
   });
+  const [offlineFilter, setOfflineFilter] = useState('all');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [quickRange, setQuickRange] = useState('');
 
   // Data Grid columns
   const columns = [
@@ -273,6 +276,9 @@ const DeviceHealthReport = () => {
       manufacturer_id: '',
       vehicle_owner_id: ''
     });
+    setOfflineFilter('all');
+    setDateRange({ start: '', end: '' });
+    setQuickRange('');
     setPage(0);
     fetchHealthData({});
   };
@@ -357,6 +363,90 @@ const DeviceHealthReport = () => {
 
   const toggleFiltersExpanded = () => {
     setFiltersExpanded(!filtersExpanded);
+  };
+
+  const getFilteredRows = () => {
+    let rows = healthData;
+
+    // Apply offline duration filter if selected
+    if (offlineFilter !== 'all') {
+      const days = parseInt(offlineFilter, 10);
+      if (!Number.isNaN(days)) {
+        const thresholdMinutes = days * 24 * 60;
+        rows = rows.filter((row) => {
+          const duration = row?.offline_duration_minutes || 0;
+          return row?.device_status === 'offline' && duration >= thresholdMinutes;
+        });
+      }
+    }
+
+    // Apply date range filter on last_seen if provided
+    if (dateRange.start || dateRange.end) {
+      const startTime = dateRange.start ? new Date(dateRange.start).getTime() : null;
+      const endTime = dateRange.end ? new Date(dateRange.end).getTime() : null;
+
+      rows = rows.filter((row) => {
+        if (!row.last_seen) {
+          return false;
+        }
+        const lastSeenTime = new Date(row.last_seen).getTime();
+
+        if (Number.isNaN(lastSeenTime)) {
+          return false;
+        }
+
+        if (startTime !== null && lastSeenTime < startTime) {
+          return false;
+        }
+
+        if (endTime !== null) {
+          // Include alerts up to end of selected day
+          const endOfDay = endTime + (24 * 60 * 60 * 1000) - 1;
+          if (lastSeenTime > endOfDay) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+    }
+
+    return rows;
+  };
+
+  const handleQuickRangeChange = (value) => {
+    setQuickRange(value);
+
+    if (!value) {
+      setDateRange({ start: '', end: '' });
+      return;
+    }
+
+    let start;
+    const end = new Date();
+
+    if (value === '24h') {
+      // Past 24 hours
+      start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+    } else if (value === '3d') {
+      start = new Date();
+      start.setDate(end.getDate() - 3);
+    } else if (value === '7d') {
+      start = new Date();
+      start.setDate(end.getDate() - 7);
+    } else if (value === '3m') {
+      start = new Date();
+      start.setMonth(end.getMonth() - 3);
+    } else {
+      return;
+    }
+
+    const formatDateOnly = (date) => date.toISOString().split('T')[0];
+
+    setDateRange({
+      start: formatDateOnly(start),
+      end: formatDateOnly(end)
+    });
   };
 
   return (
@@ -539,6 +629,64 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Start Date"
+                      type="date"
+                      value={dateRange.start}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                      InputLabelProps={{ shrink: true }}
+                      size="small"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      label="End Date"
+                      type="date"
+                      value={dateRange.end}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                      InputLabelProps={{ shrink: true }}
+                      size="small"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Offline Duration</InputLabel>
+                      <Select
+                        value={offlineFilter}
+                        label="Offline Duration"
+                        onChange={(e) => setOfflineFilter(e.target.value)}
+                      >
+                        <MenuItem value="all">All Devices</MenuItem>
+                        <MenuItem value="3">Offline  3 days</MenuItem>
+                        <MenuItem value="7">Offline  7 days</MenuItem>
+                        <MenuItem value="10">Offline  10 days</MenuItem>
+                        <MenuItem value="30">Offline  30 days</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Last Seen Range</InputLabel>
+                      <Select
+                        value={quickRange}
+                        label="Last Seen Range"
+                        onChange={(e) => handleQuickRangeChange(e.target.value)}
+                      >
+                        <MenuItem value="">All Time</MenuItem>
+                        <MenuItem value="24h">Past 24 hours</MenuItem>
+                        <MenuItem value="3d">Past 3 days</MenuItem>
+                        <MenuItem value="7d">Past 7 days</MenuItem>
+                        <MenuItem value="3m">Past 3 months</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
                 </Grid>
                 
                 <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -589,7 +737,7 @@ const DeviceHealthReport = () => {
         <Paper sx={{ height: 600, width: '100%' }}>
           {loading && <CustomLoader />}
           <DataGrid
-            rows={healthData}
+            rows={getFilteredRows()}
             columns={columns}
             pageSize={pageSize}
             rowsPerPageOptions={[10, 25, 50, 100]}

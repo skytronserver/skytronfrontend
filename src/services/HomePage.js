@@ -20,7 +20,13 @@ const getLiveTracking_data = (data) => {
       polygon: data.polygon,
       category: data.category,
       make: data.make,
-      dto_code: data.dto_code
+      dto_code: data.dto_code,
+
+      // Optional POI-based filtering parameters to match
+      // https://api.gromed.in/api/gps_track_data_api/?poi_id=1631&in_range=False&poi_as_polygon=True
+      poi_id: data.poi_id,
+      in_range: data.in_range,
+      poi_as_polygon: data.poi_as_polygon,
     }
   });
 };
