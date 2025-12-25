@@ -747,6 +747,14 @@ const user = {
           roles: ['superadmin', 'stateadmin', 'dto', 'owner']
         },
         {
+          id: 'incident-report',
+          title: 'Incident Report',
+          type: 'item',
+          url: '/reports/incident-report',
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+        {
           id: 'device-health-report',
           title: 'Device Health Report',
           type: 'item',

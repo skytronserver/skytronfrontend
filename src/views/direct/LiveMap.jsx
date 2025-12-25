@@ -313,18 +313,24 @@ const getMarkerLabelText = (entry, mode = "vehicle") => {
         entry.device_tag_info?.device?.block_name ||
         entry.device_tag_info?.device?.district ||
         entry.district ||
+        entry.address ||
+        entry.nearest_poi?.data?.address ||
         ""
       );
     }
     case "route": {
+      const routeId = entry.route_id ||
+        entry.route_ref?.id ||
+        entry.device_tag_info?.route?.id ||
+        entry.nearby_routes_within_100m?.[0]?.data?.id;
       return (
         entry.route_name ||
         entry.route ||
-        entry.route_id ||
+        (routeId ? `Route: ${routeId}` : "") ||
         entry.route_info ||
         entry.routeInformation ||
         entry.route_ref?.name ||
-        (entry.route_ref?.id ? `Route ${entry.route_ref.id} ` : "")
+        ""
       );
     }
     case "vehicle":
@@ -680,7 +686,6 @@ const MapComponent = ({
 
   const getMarkerLabel = (entry, mode) => {
     if (!entry) return "";
-
     switch (mode) {
       case "block": {
         return (
@@ -693,19 +698,26 @@ const MapComponent = ({
           entry.device_tag_info?.block_name ||
           entry.device_tag_info?.device?.block_name ||
           entry.device_tag_info?.device?.district ||
+          entry.device_tag_info?.state_info?.state ||
           entry.district ||
+          entry.address ||
+          entry.nearest_poi?.data?.address ||
           ""
         );
       }
       case "route": {
+        const routeId = entry.route_id ||
+          entry.route_ref?.id ||
+          entry.device_tag_info?.route?.id ||
+          entry.nearby_routes_within_100m?.[0]?.data?.id;
         return (
           entry.route_name ||
           entry.route ||
-          entry.route_id ||
+          (routeId ? `Route: ${routeId}` : "") ||
           entry.route_info ||
           entry.routeInformation ||
           entry.route_ref?.name ||
-          (entry.route_ref?.id ? `Route ${entry.route_ref.id}` : "")
+          ""
         );
       }
       case "vehicle":
@@ -2546,6 +2558,7 @@ const MapComponent = ({
 
     const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
     const labelText = getMarkerLabel(data, labelMode);
+    console.debug(`[LiveMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
     return createIconStyle(color, iconVehicleType, labelText);
   };
 

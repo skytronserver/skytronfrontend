@@ -399,6 +399,7 @@ const BhuvanMapComponent = ({
 
     const getMarkerLabel = (entry, mode) => {
         if (!entry) return "";
+        console.debug(`[BhuvanMap] getMarkerLabel: mode=${mode}, imei=${entry.imei || entry.device_tag_info?.device?.imei}`);
 
         switch (mode) {
             case "block": {
@@ -412,6 +413,8 @@ const BhuvanMapComponent = ({
                     entry.device_tag_info?.block_name ||
                     entry.device_tag_info?.device?.block_name ||
                     entry.device_tag_info?.device?.district ||
+                    entry.device_tag_info?.district_info?.district ||
+                    entry.device_tag_info?.state_info?.state ||
                     entry.district ||
                     ""
                 );
@@ -473,8 +476,9 @@ const BhuvanMapComponent = ({
         }
 
         const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
-        // Do not show any text label below/around the marker icon
-        return createIconStyle(color, iconVehicleType, "");
+        const labelText = getMarkerLabel(data, labelMode);
+        console.debug(`[BhuvanMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
+        return createIconStyle(color, iconVehicleType, labelText);
     };
 
     // Initialize Normal Map (Bhuvan Layers)
@@ -1484,6 +1488,14 @@ const BhuvanMapComponent = ({
                   <span class="overlay-value">${entryData.internal_battery_voltage || "-"
                         } - ${entryData.main_input_voltage || "-"}</span>
                 </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Latitude</span>
+                  <span class="overlay-value">${entryData.latitude?.toFixed(6) || "-"}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Longitude</span>
+                  <span class="overlay-value">${entryData.longitude?.toFixed(6) || "-"}</span>
+                </div>
               </div>
               ${selectButtonHtml}
             </div>
@@ -1532,6 +1544,59 @@ const BhuvanMapComponent = ({
         autoFit,
         onMarkerClick,
     ]);
+
+    // Render POIs
+    useEffect(() => {
+        if (!map || !poiVectorLayer) return;
+
+        poiVectorLayer.getSource().clear();
+
+        if (pois && pois.length > 0) {
+            const features = pois
+                .map((poi) => {
+                    if (!poi.location) return null;
+
+                    try {
+                        let geometry = null;
+                        const locationData = JSON.parse(poi.location);
+
+                        if (!Array.isArray(locationData) || locationData.length === 0) return null;
+
+                        // Check mark_type and create appropriate geometry
+                        // Note: Data format assumes [lat, lon], OL expects [lon, lat]
+                        if (poi.mark_type === "Point") {
+                            const lat = Number(locationData[0][0]);
+                            const lon = Number(locationData[0][1]);
+                            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                                geometry = new Point([lon, lat]);
+                            }
+                        } else if (poi.mark_type === "Polygon" || poi.mark_type === "Circle") {
+                            // Treat Circle as Polygon for now as per getPoiStyles
+                            const coords = locationData.map((pt) => [Number(pt[1]), Number(pt[0])]);
+                            geometry = new Polygon([coords]);
+                        } else if (poi.mark_type === "Road") {
+                            const coords = locationData.map((pt) => [Number(pt[1]), Number(pt[0])]);
+                            geometry = new LineString(coords);
+                        }
+
+                        if (!geometry) return null;
+
+                        const feature = new Feature({
+                            geometry: geometry,
+                            poiData: poi,
+                        });
+
+                        feature.setStyle(getPoiStyles(poi));
+                        return feature;
+                    } catch (error) {
+                        return null;
+                    }
+                })
+                .filter(Boolean);
+
+            poiVectorLayer.getSource().addFeatures(features);
+        }
+    }, [pois, map, poiVectorLayer]);
 
     // Focus on specific entry
     useEffect(() => {

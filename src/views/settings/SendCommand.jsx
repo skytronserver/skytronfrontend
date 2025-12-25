@@ -52,11 +52,15 @@ function SendCommand() {
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         setSubmitting(true);
         setLoading(true);
+
+        // Check if command starts with "GET" and use "0*" as value
+        const isGetCommand = values.selected_command.toUpperCase().startsWith("GET");
         const payload = {
             imei: values.imei,
             command_base: `@${values.selected_command}`,
-            value: `${values.input_value}*`,
+            value: isGetCommand ? "0*" : `${values.input_value}*`,
         };
+
         const resp = await sendCommandService(payload);
         if (resp.code === "200") {
             setAlert((prevAlert) => ({
@@ -127,30 +131,41 @@ function SendCommand() {
                             onSubmit={handleSubmit}
                             enableReinitialize
                         >
-                            {(formik) => (
-                                <form onSubmit={formik.handleSubmit}>
-                                    <Grid container spacing={2} className="form-controller">
-                                        {Object.keys(sendCommandFields).map((field) => (
-                                            <Grid key={field} item xs={12}>
-                                                <FormField
-                                                    fieldConfig={sendCommandFields[field]}
-                                                    formik={formik}
-                                                />
+                            {(formik) => {
+                                // Check if selected command starts with "GET"
+                                const isGetCommand = formik.values.selected_command.toUpperCase().startsWith("GET");
+
+                                return (
+                                    <form onSubmit={formik.handleSubmit}>
+                                        <Grid container spacing={2} className="form-controller">
+                                            {Object.keys(sendCommandFields).map((field) => {
+                                                // Hide input_value field if command starts with "GET"
+                                                if (field === "input_value" && isGetCommand) {
+                                                    return null;
+                                                }
+                                                return (
+                                                    <Grid key={field} item xs={12}>
+                                                        <FormField
+                                                            fieldConfig={sendCommandFields[field]}
+                                                            formik={formik}
+                                                        />
+                                                    </Grid>
+                                                );
+                                            })}
+                                            <Grid item xs={12} style={{ marginTop: "20px" }}>
+                                                <Button
+                                                    type="submit"
+                                                    variant="contained"
+                                                    color="primary"
+                                                    disabled={loading}
+                                                >
+                                                    Submit
+                                                </Button>
                                             </Grid>
-                                        ))}
-                                        <Grid item xs={12} style={{ marginTop: "20px" }}>
-                                            <Button
-                                                type="submit"
-                                                variant="contained"
-                                                color="primary"
-                                                disabled={loading}
-                                            >
-                                                Submit
-                                            </Button>
                                         </Grid>
-                                    </Grid>
-                                </form>
-                            )}
+                                    </form>
+                                );
+                            }}
                         </Formik>
                     </MainCard>
                 </Grid>

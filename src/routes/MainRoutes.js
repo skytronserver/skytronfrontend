@@ -37,6 +37,7 @@ import SOSEmergencyDashboard from "../views/dashboard/super admin dashboard/SOSE
 import NewMap from "../views/MapComponent/Index";
 import HealthPacketLog from "../views/reports/HealthPacketLog";
 import POIReport from "../views/reports/POIReport";
+import IncidentReport from "../views/reports/IncidentReport";
 import MapPolicy from "../views/pages/MapPolicy";
 
 import Help from "../views/pages/Help";
@@ -248,6 +249,11 @@ const MainRoutes = {
       path: '/reports/poi-report',
       element: <POIReport />,
       roles: ['superadmin', 'stateadmin', 'owner', 'dto']
+    },
+    {
+      path: '/reports/incident-report',
+      element: <IncidentReport />,
+      roles: ['superadmin']
     },
     {
       path: '/map',

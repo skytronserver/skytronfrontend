@@ -190,6 +190,12 @@ const getCellLocation = (data) => {
   return http.post("https://api.gromed.in/api/cell_location/", data);
 };
 
+const getReverseGeocode = (lat, lon) => {
+  const http = getAxiosInstance();
+  // Using direct URL as per existing patterns in LiveMap
+  return http.get(`https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`);
+};
+
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -221,6 +227,7 @@ const HomePageService = {
   getEmergencyUserLocations,
   getIncidentData,
   getCellLocation,
+  getReverseGeocode,
 };
 
 export default HomePageService;
