@@ -7,6 +7,10 @@ import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 
 const GpsDataLog = () => {
     const { t } = useTranslation();
@@ -32,6 +36,7 @@ const gpsDataColumns = [
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
+    const [offlineFilter, setOfflineFilter] = useState('all')
 
     const parseGpsData = (text) => {
         try {
@@ -65,7 +70,21 @@ const gpsDataColumns = [
                 search: search
             });
             const parsedData = parseGpsData(response.data);
-            setData(parsedData);
+            
+            // Apply offline duration filter if selected
+            let filteredData = parsedData;
+            if (offlineFilter !== 'all') {
+                const hours = parseInt(offlineFilter, 10);
+                if (!Number.isNaN(hours)) {
+                    const thresholdTime = new Date(Date.now() - hours * 60 * 60 * 1000);
+                    filteredData = parsedData.filter((row) => {
+                        const timestamp = new Date(row.timestamp);
+                        return timestamp < thresholdTime;
+                    });
+                }
+            }
+            
+            setData(filteredData);
         } catch (error) {
             console.error('Error fetching GPS data:', error);
             setData([]);
@@ -81,6 +100,10 @@ const gpsDataColumns = [
         getGpsData();
     }, []);
     
+    useEffect(() => {
+        getGpsData(searchQuery);
+    }, [offlineFilter]);
+    
     const options = {
         search: false,
         searchPlaceholder: t('gpsData.searchPlaceholder'),
@@ -95,7 +118,7 @@ const gpsDataColumns = [
             <Grid item xs={12}>
                 <form onSubmit={handleSearch}>
                     <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <TextField
                                 fullWidth
                                 label={t('gpsData.searchByImei')}
@@ -103,6 +126,19 @@ const gpsDataColumns = [
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 variant="outlined"
                             />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <FormControl fullWidth variant="outlined">
+                                <InputLabel>Device Offline Filter</InputLabel>
+                                <Select
+                                    value={offlineFilter}
+                                    onChange={(e) => setOfflineFilter(e.target.value)}
+                                    label="Device Offline Filter"
+                                >
+                                    <MenuItem value="all">All Records</MenuItem>
+                                    <MenuItem value="0.25">Older than 15 minutes</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item>
                             <Button

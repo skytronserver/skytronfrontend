@@ -90,6 +90,7 @@ const MainLayout = () => {
     message: "",
     type: "info",
   });
+  const [ownerAlertQueue, setOwnerAlertQueue] = useState([]);
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
   const dispatch = useDispatch();
@@ -129,32 +130,58 @@ const MainLayout = () => {
 
     const fetchOwnerAlerts = async () => {
       try {
-        const response = await showDeviceApi.getAlertLogFilter({
-          type: "OverSpeed",
-          page: 1,
-          page_size: 10,
-        });
-        const alerts = Array.isArray(response?.data?.data)
-          ? response.data.data
-          : [];
+        // Try different alert types and collect all messages
+        const alertTypes = ["OverSpeed", "Route_overspeed", "Route"];
+        const messages = [];
 
-        if (alerts.length > 0) {
+        for (const type of alertTypes) {
+          const response = await showDeviceApi.getAlertLogFilter({
+            type,
+            page: 1,
+            page_size: 10,
+          });
+
+          const alerts = Array.isArray(response?.data?.data)
+            ? response.data.data
+            : [];
+
+          if (alerts.length === 0) continue;
+
           const latestAlert = alerts[0];
           const timestamp = latestAlert?.timestamp
             ? new Date(latestAlert.timestamp).toLocaleString("en-IN")
             : "recently";
           const vehicleRegNo =
             latestAlert?.deviceTag?.device?.vehicle_reg_no || "your fleet";
-          const message = `Latest OverSpeed alert for ${vehicleRegNo} at ${timestamp}.`;
+
+          const typeLabelMap = {
+            OverSpeed: "OverSpeed",
+            Route_overspeed: "Route overspeed",
+            Route: "Route violation",
+          };
+
+          const typeLabel = typeLabelMap[type] || type || "Alert";
+          const message = `Latest ${typeLabel} alert for ${vehicleRegNo} at ${timestamp}.`;
+
+          messages.push({
+            message,
+            type: type === "OverSpeed" ? "warning" : "info",
+          });
+        }
+
+        if (messages.length > 0) {
+          setOwnerAlertQueue(messages);
+          const first = messages[0];
           setOwnerAlertNotification({
             open: true,
-            message,
-            type: "warning",
+            message: first.message,
+            type: first.type,
           });
         } else {
           setOwnerAlertNotification({
             open: true,
-            message: "No recent OverSpeed alerts detected for your vehicles.",
+            message:
+              "No recent OverSpeed or Route alerts detected for your vehicles.",
             type: "info",
           });
         }
@@ -176,7 +203,23 @@ const MainLayout = () => {
     if (reason === "clickaway") {
       return;
     }
+
+    // Close current
     setOwnerAlertNotification((prev) => ({ ...prev, open: false }));
+
+    // Show next message in queue, if any
+    setOwnerAlertQueue((prevQueue) => {
+      const [, ...rest] = prevQueue;
+      if (rest.length > 0) {
+        const next = rest[0];
+        setOwnerAlertNotification({
+          open: true,
+          message: next.message,
+          type: next.type,
+        });
+      }
+      return rest;
+    });
   };
 
   if (!isAuthenticated) {

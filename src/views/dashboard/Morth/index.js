@@ -5,9 +5,10 @@ import { IconAlertTriangle, IconDeviceAnalytics, IconEmergencyBed, IconTruck } f
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { fetchMorthDashboardData } from 'services/MorthService';
 
 const MorthDashboard = () => {
-    // Mock data for the dashboard
+    // Mock data for the dashboard (used as initial and fallback values)
     const [stats, setStats] = useState({
         totalPanicPress: 1250,
         panicActionTaken: 1180,
@@ -26,6 +27,9 @@ const MorthDashboard = () => {
         }
     });
 
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
 const vltPieData = [
   { name: 'Active', value: stats.vltStatus.active, color: '#6fb0f1ff' },     // Blue
   { name: 'Inactive', value: stats.vltStatus.inactive, color: '#eeb3b3ff' }, // Red
@@ -34,12 +38,42 @@ const vltPieData = [
 
 
     useEffect(() => {
-        // Placeholder for API call
-        // const fetchData = async () => {
-        //     const data = await UserServices.getMorthData();
-        //     setStats(data);
-        // };
-        // fetchData();
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const data = await fetchMorthDashboardData();
+
+                // Map API response to local stats shape with safe fallbacks.
+                // Adjust these mappings once the exact API response structure is confirmed.
+                const mappedStats = {
+                    totalPanicPress: Number(data?.total_panic_press ?? data?.totalPanicPress ?? stats.totalPanicPress) || 0,
+                    panicActionTaken: Number(data?.panic_action_taken ?? data?.panicActionTaken ?? stats.panicActionTaken) || 0,
+                    alerts: Array.isArray(data?.alerts)
+                        ? data.alerts.map((item) => ({
+                            category: item.category || item.name || 'Unknown',
+                            count: Number(item.count ?? item.value ?? 0) || 0
+                        }))
+                        : stats.alerts,
+                    vltStatus: {
+                        total: Number(data?.vlt_total ?? data?.vltStatus?.total ?? stats.vltStatus.total) || 0,
+                        active: Number(data?.vlt_active ?? data?.vltStatus?.active ?? stats.vltStatus.active) || 0,
+                        inactive: Number(data?.vlt_inactive ?? data?.vltStatus?.inactive ?? stats.vltStatus.inactive) || 0,
+                        maintenance: Number(data?.vlt_maintenance ?? data?.vltStatus?.maintenance ?? stats.vltStatus.maintenance) || 0
+                    }
+                };
+
+                setStats(mappedStats);
+            } catch (err) {
+                console.error('Failed to load MoRTH dashboard data:', err);
+                setError('Failed to load MoRTH dashboard data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, []);
 
     return (

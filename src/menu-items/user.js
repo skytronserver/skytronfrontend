@@ -693,7 +693,7 @@ const user = {
           url: '/reports/gps-data-log',
           icon: icons.IconDeviceAnalytics,
           breadcrumbs: false,
-          roles: ['superadmin']
+          roles: ['superadmin', 'stateadmin']
         },
         {
           id: 'emergency-data-logs',

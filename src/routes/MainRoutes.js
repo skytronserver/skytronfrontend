@@ -187,7 +187,7 @@ const MainRoutes = {
     {
       path: '/reports/gps-data-log',
       element: <GpsDataLog />,
-      roles: ['superadmin']
+      roles: ['superadmin', 'stateadmin']
     },
     {
       path: '/reports/emergency-data-logs',
