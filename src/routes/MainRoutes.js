@@ -41,6 +41,14 @@ import MapPolicy from "../views/pages/MapPolicy";
 
 import Help from "../views/pages/Help";
 
+// School Bus Management System
+import SchoolBusDashboard from "../views/schoolbus/SchoolBusDashboard";
+import ParentTracking from "../views/schoolbus/ParentTracking";
+import SchoolBusTagging from "../views/schoolbus/SchoolBusTagging";
+import RouteManagement from "../views/schoolbus/RouteManagement";
+import BusAssignment from "../views/schoolbus/BusAssignment";
+import ProfileManagement from "../views/schoolbus/ProfileManagement";
+
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
@@ -232,7 +240,7 @@ const MainRoutes = {
     {
       path: '/reports/device-health-report',
       element: <DeviceHealthReport />,
-      roles: ['superadmin','stateadmin']
+      roles: ['superadmin', 'stateadmin']
     },
     {
       path: '/reports/user-statistics-report',
@@ -257,6 +265,37 @@ const MainRoutes = {
     {
       path: '/map-policy',
       element: <MapPolicy />
+    },
+    // School Bus Management System Routes
+    {
+      path: '/schoolbus',
+      element: <SchoolBusDashboard />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/parent-tracking',
+      element: <ParentTracking />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
+    },
+    {
+      path: '/schoolbus/bus-tagging',
+      element: <SchoolBusTagging />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/route-management',
+      element: <RouteManagement />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/bus-assignment',
+      element: <BusAssignment />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/profile-management',
+      element: <ProfileManagement />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
     }
 
   ].map((route) => applyPrivateRoute(route)),
