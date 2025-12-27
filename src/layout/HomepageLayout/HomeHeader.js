@@ -86,29 +86,6 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             </div>
           </Typography>
 
-          {/* Important Links Dropdown */}
-          <Button
-            color="inherit"
-            startIcon={<ImportantLinksIcon />}
-            endIcon={<ArrowDownIcon />}
-            onClick={handleImportantLinksClick}
-            sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
-          >
-            Important Links
-          </Button>
-          <Menu
-            anchorEl={anchorEl}
-            open={importantLinksOpen}
-            onClose={handleImportantLinksClose}
-            MenuListProps={{
-              'aria-labelledby': 'important-links-button',
-            }}
-          >
-            <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
-              Manufacturer and Device Uptime Details
-            </MenuItem>
-          </Menu>
-
           {/* Menu icon */}
           <IconButton
             size="large"
@@ -120,11 +97,47 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           >
             <MenuIcon />
           </IconButton>
-          {/* Navigation buttons */}
+          {/* Navigation buttons: Home, Important Links, Privacy Policy */}
 
           <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <Button color="inherit" startIcon={<HomeIcon />} component={Link} to="/" sx={{ mr: 2 }}>{t('common.home')}</Button>
-            <Button color="inherit" component={Link} to="/privacy-policy">{t('common.privacyPolicy')}</Button>
+            {/* Home */}
+            <Button
+              color="inherit"
+              startIcon={<HomeIcon />}
+              component={Link}
+              to="/"
+              sx={{ mr: 2 }}
+            >
+              {t('common.home')}
+            </Button>
+
+            {/* Important Links Dropdown */}
+            <Button
+              color="inherit"
+              startIcon={<ImportantLinksIcon />}
+              endIcon={<ArrowDownIcon />}
+              onClick={handleImportantLinksClick}
+              sx={{ mr: 2 }}
+            >
+              Important Links
+            </Button>
+            <Menu
+              anchorEl={anchorEl}
+              open={importantLinksOpen}
+              onClose={handleImportantLinksClose}
+              MenuListProps={{
+                'aria-labelledby': 'important-links-button',
+              }}
+            >
+              <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
+                Manufacturer and Device Uptime Details
+              </MenuItem>
+            </Menu>
+
+            {/* Privacy Policy */}
+            <Button color="inherit" component={Link} to="/privacy-policy">
+              {t('common.privacyPolicy')}
+            </Button>
           </Grid>
           
         </Toolbar>

@@ -8,6 +8,10 @@ import {
   Grid,
   TextField,
   Alert,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
@@ -18,16 +22,18 @@ const UserRegistrationRequest = () => {
     firstName: "",
     lastName: "",
     org_name: "",
-    user_type: "Business",
-    email: "support@skytron.in",
+    user_type: "",
+    email: "",
     mobile: "",
     dob: "1990-01-01",
     request: "",
   });
-  
+
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [documents, setDocuments] = useState([]);
+  const [documentError, setDocumentError] = useState("");
 
   const paperStyle = {
     p: 3,
@@ -53,10 +59,51 @@ const UserRegistrationRequest = () => {
     }));
   };
 
+  const handleDocumentChange = (e) => {
+    const files = Array.from(e.target.files || []);
+
+    if (!files.length) {
+      setDocuments([]);
+      setDocumentError("");
+      return;
+    }
+
+    const pdfFiles = files.filter(
+      (file) =>
+        file.type === "application/pdf" ||
+        (file.type === "" && file.name.toLowerCase().endsWith(".pdf"))
+    );
+
+    const totalSize = pdfFiles.reduce((sum, file) => sum + file.size, 0);
+    const maxSizeBytes = 3 * 1024 * 1024;
+
+    if (!pdfFiles.length) {
+      setDocuments([]);
+      setDocumentError("Only PDF files are allowed.");
+      e.target.value = "";
+      return;
+    }
+
+    if (totalSize > maxSizeBytes) {
+      setDocuments([]);
+      setDocumentError("Total size of uploaded PDFs must not exceed 3 MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setDocuments(pdfFiles);
+    setDocumentError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setErrorMessage("");
+
+    if (documentError) {
+      setSubmitting(false);
+      return;
+    }
 
     const payload = {
       name:
@@ -69,19 +116,30 @@ const UserRegistrationRequest = () => {
       request_detail: formData.request,
     };
 
+    // Build FormData to include files
+    const formDataToSend = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      formDataToSend.append(key, value);
+    });
+    documents.forEach((file, index) => {
+      formDataToSend.append(`document_${index}`, file);
+    });
+
     try {
-      await UserServices.publicUserRegistration(payload);
+      await UserServices.publicUserRegistration(formDataToSend);
       setShowSuccess(true);
       setFormData({
         firstName: "",
         lastName: "",
         org_name: "",
-        user_type: "Business",
-        email: "support@skytron.in",
+        user_type: "",
+        email: "",
         mobile: "",
         dob: "1990-01-01",
         request: "",
       });
+      setDocuments([]);
+      setDocumentError("");
     } catch (err) {
       const msg = err?.response?.data?.detail || "Failed to submit registration request.";
       setErrorMessage(msg);
@@ -189,16 +247,20 @@ const UserRegistrationRequest = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="User Type"
-                    name="user_type"
-                    value={formData.user_type}
-                    onChange={handleInputChange}
-                    required
-                    variant="outlined"
-                    placeholder="Business / Dealer / Individual"
-                  />
+                  <FormControl fullWidth variant="outlined" required>
+                    <InputLabel>User Type</InputLabel>
+                    <Select
+                      label="User Type"
+                      name="user_type"
+                      value={formData.user_type}
+                      onChange={handleInputChange}
+                    >
+                      <MenuItem value="Device Manufacturer">Device Manufacturer</MenuItem>
+                      <MenuItem value="M2M Service Provider">M2M Service Provider</MenuItem>
+                      <MenuItem value="VLTD Dealer">VLTD Dealer</MenuItem>
+                      <MenuItem value="School Admin">School Admin</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
@@ -210,9 +272,6 @@ const UserRegistrationRequest = () => {
                     onChange={handleInputChange}
                     required
                     variant="outlined"
-                    InputProps={{
-                      readOnly: true,
-                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -232,7 +291,7 @@ const UserRegistrationRequest = () => {
                     placeholder="Enter 10-digit mobile number"
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Date of Birth"
@@ -244,6 +303,27 @@ const UserRegistrationRequest = () => {
                     variant="outlined"
                     InputLabelProps={{ shrink: true }}
                   />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Box>
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      multiple
+                      onChange={handleDocumentChange}
+                      style={{ width: "100%" }}
+                    />
+                    {documentError && (
+                      <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                        {documentError}
+                      </Typography>
+                    )}
+                    {!documentError && documents.length > 0 && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {documents.length} PDF file(s) selected (max total 3 MB)
+                      </Typography>
+                    )}
+                  </Box>
                 </Grid>
                 <Grid item xs={12}>
                   <TextField

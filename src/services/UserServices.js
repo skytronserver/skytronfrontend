@@ -213,9 +213,10 @@ const getVehicleAlertStatistics = () => {
 };
 
 const publicUserRegistration = (data) => {
+    const isFormData = data instanceof FormData;
     return axios.post(`${BASE_URL}api/public/user_registration/`, data, {
         headers: {
-            "Content-type": "application/json",
+            "Content-type": isFormData ? "multipart/form-data" : "application/json",
         },
     });
 };

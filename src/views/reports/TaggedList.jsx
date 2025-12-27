@@ -18,6 +18,7 @@ const TaggedList = () => {
   const [reload,setReload]=useState(false);
   const role=getRole();
   const [tagged,setTagged]=useState([]);
+  const [rowTagState,setRowTagState]=useState({});
 
   useEffect(()=>{
     const fetchTaggedList = async () => {
@@ -28,6 +29,11 @@ const TaggedList = () => {
         const response = await StockServices.stockFilter(filter);
         console.log(response.data.data,'pplplplplp')
         setTagged(response.data.data) 
+        const initialState = {};
+        response.data.data.forEach((item) => {
+          initialState[item.id] = 'tagged';
+        });
+        setRowTagState(initialState);
         setLoad(true)
       } catch (error) {
         if (error.response && error.response.status === 404) {
@@ -46,21 +52,43 @@ const TaggedList = () => {
     if (confirmed) {
      console.log(id);
      try {
-      await TaggingService.cancelTagDevice({device_id:id});
-      setReload(prev=>!prev)
+      await TaggingService.untagDevice({device_id:id});
+      setRowTagState(prev=>({
+        ...prev,
+        [id]:'untagged'
+      }))
      } catch (error) {
       console.log(error)
      }
     }
   }
+  const handleRetag=async (e,id)=>{
+    e.preventDefault();
+    const confirmed = window.confirm('Are you sure you want to retag this device?');
+    if (confirmed) {
+     try {
+      await TaggingService.retagDevice({device_id:id});
+      setRowTagState(prev=>({
+        ...prev,
+        [id]:'tagged'
+      }))
+     } catch (error) {
+      console.log(error)
+     }
+    }
+  }
+// console.log(response,"oppolo");
 
   const actionColumn = [
+    
     {
       name: "Action",
       label: t('common.action'),
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          const id = tableMeta.rowData[0];
+          const isTagged = rowTagState[id] !== 'untagged';
           return (
             <div className="cellAction" style={{display:'flex'}}>
              <div style={{"marginRight":"5px"}}>
@@ -69,9 +97,9 @@ const TaggedList = () => {
                           variant="outlined"
                           color="error"
                           size="small"
-                          onClick={(event) => handleUntag(event, tableMeta.rowData[0])}
+                          onClick={(event) => isTagged ? handleUntag(event, id) : handleRetag(event, id)}
                         >
-                          {t('tagged.untag')}
+                          {isTagged ? t('tagged.untag') : 'Retag'}
                         </Button>
              </div>
             </div>
