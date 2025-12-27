@@ -389,8 +389,9 @@ const GPSHistoryMap = ({
 
     const statusInfo = getStatusInfo(entry);
 
-    const category = entry?.device_tag_info?.category_info?.category;
-    const normalizedType = category ? category.toLowerCase().replace(/\s+/g, '_') : 'bus';
+    const categoryData = entry?.device_tag_info?.category_info?.category;
+    const categoryName = typeof categoryData === 'object' ? categoryData?.category : categoryData;
+    const normalizedType = categoryName ? categoryName.toLowerCase().replace(/\s+/g, '_') : 'bus';
     const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
     const iconType = availableTypes.includes(normalizedType) ? normalizedType : 'bus';
 

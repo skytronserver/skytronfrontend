@@ -611,11 +611,17 @@ const EMCall = () => {
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.category || "N/A"}</Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                      {typeof call?.call?.device?.category === 'object'
+                        ? (call.call.device.category?.category || "N/A")
+                        : (call?.call?.device?.category || "N/A")}
+                    </Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Emergency alert type</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.category || "N/A"}</Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                      {call?.call?.packet_type || "SOS"}
+                    </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 3 }}>
                     <Box>

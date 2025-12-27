@@ -347,8 +347,9 @@ const BhuvanMapComponent = ({
 
     // Vehicle Icon Styling
     const createIconStyle = (color, vehicleType, labelText) => {
-        const normalizedVehicleType = vehicleType
-            ? vehicleType.toLowerCase().replace(/\s+/g, "_")
+        const categoryName = typeof vehicleType === 'object' ? vehicleType?.category : vehicleType;
+        const normalizedVehicleType = categoryName
+            ? categoryName.toLowerCase().replace(/\s+/g, "_")
             : "bus";
 
         const availableTypes = [

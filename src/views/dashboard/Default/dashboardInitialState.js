@@ -82,7 +82,7 @@ export const dashboardInitialState = {
     genuineCalls: 0,
     fakeCalls: 0,
   },
-  dtoDashboardInfo:{
+  dtoDashboardInfo: {
     activated: 0,
     vehicles: 0,
     onlineDevice: 0,
@@ -111,68 +111,68 @@ export const dashboardInitialState = {
     inactive: 0,
   },
   adminFitmentInfo: {
-    fitted:0,
-    toggedDevice:0,
+    fitted: 0,
+    toggedDevice: 0,
     onlineDevice: 0,
     offlineDevice: 0,
   },
-  team:{
-    Total_Teams:0,
-    Total_DeskExecutives:0,
-    Live_Teams:0,
-    Live_DeskExecutives:0
+  team: {
+    Total_Teams: 0,
+    Total_DeskExecutives: 0,
+    Live_Teams: 0,
+    Live_DeskExecutives: 0
   },
-  teamForLead:{
-    Total_DeskExecutives:0,
-    Live_DeskExecutives:0
+  teamForLead: {
+    Total_DeskExecutives: 0,
+    Live_DeskExecutives: 0
   },
-  incomingCall:{
-    Total_Incoming_Calls:0,
-    Total_Incoming_Calls_thismonth:0,
-    Total_Incoming_Calls_thisweek:0,
-    Total_Incoming_Calls_today:0,
+  incomingCall: {
+    Total_Incoming_Calls: 0,
+    Total_Incoming_Calls_thismonth: 0,
+    Total_Incoming_Calls_thisweek: 0,
+    Total_Incoming_Calls_today: 0,
   },
-  fakeCall:{
-    Total_Fake_Calls:0,
-    Total_Fake_Calls_thismonth:0,
-    Total_Fake_Calls_thisweek:0,
-    Total_Fake_Calls_today:0,
+  fakeCall: {
+    Total_Fake_Calls: 0,
+    Total_Fake_Calls_thismonth: 0,
+    Total_Fake_Calls_thisweek: 0,
+    Total_Fake_Calls_today: 0,
   },
-  callRejection:{
-    Total_Rejected_Assignemnt:0,
-    Total_Rejected_Assignemnt_thismonth:0,
-    Total_Rejected_Assignemnt_thisweek:0,
-    Total_Rejected_Assignemnt_today:0,
+  callRejection: {
+    Total_Rejected_Assignemnt: 0,
+    Total_Rejected_Assignemnt_thismonth: 0,
+    Total_Rejected_Assignemnt_thisweek: 0,
+    Total_Rejected_Assignemnt_today: 0,
   },
-  calls:{
-    Total_Active_Calls:0,
-    Total_Closed_Calls:0,
-    Total_Pending_Calls:0,
-    Average_time_to_Accept:0
+  calls: {
+    Total_Active_Calls: 0,
+    Total_Closed_Calls: 0,
+    Total_Pending_Calls: 0,
+    Average_time_to_Accept: 0
   },
-  assignment:{
-    Total_Assignemnt_thistmonth:0,
-    Total_Assignemnt_thisweek:0,
-    Total_Assignemnt_today:0,
-    Total_Assignemnt:0,
+  assignment: {
+    Total_Assignemnt_thistmonth: 0,
+    Total_Assignemnt_thisweek: 0,
+    Total_Assignemnt_today: 0,
+    Total_Assignemnt: 0,
   },
-  closedAssignment:{
-    Total_Closed_Assignemnt_thistmonth:0,
-    Total_Closed_Assignemnt_thisweek:0,
-    Total_Closed_Assignemnt_today:0,
-    Total_Closed_Assignemnt:0,
+  closedAssignment: {
+    Total_Closed_Assignemnt_thistmonth: 0,
+    Total_Closed_Assignemnt_thisweek: 0,
+    Total_Closed_Assignemnt_today: 0,
+    Total_Closed_Assignemnt: 0,
   },
-  falseAssignment:{
-    Total_False_Assignemnt_thistmonth:0,
-    Total_False_Assignemnt_thisweek:0,
-    Total_False_Assignemnt_today:0,
-    Total_False_Assignemnt:0,
+  falseAssignment: {
+    Total_False_Assignemnt_thistmonth: 0,
+    Total_False_Assignemnt_thisweek: 0,
+    Total_False_Assignemnt_today: 0,
+    Total_False_Assignemnt: 0,
   },
-  rejectedAssignment:{
-    Total_Rejected_Assignemnt_thistmonth:0,
-    Total_Rejected_Assignemnt_thisweek:0,
-    Total_Rejected_Assignemnt_today:0,
-    Total_Rejected_Assignemnt:0,
+  rejectedAssignment: {
+    Total_Rejected_Assignemnt_thistmonth: 0,
+    Total_Rejected_Assignemnt_thisweek: 0,
+    Total_Rejected_Assignemnt_today: 0,
+    Total_Rejected_Assignemnt: 0,
   },
   vehicleAlertStatistics: {
     vehicles: {
