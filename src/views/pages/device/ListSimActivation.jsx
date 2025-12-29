@@ -1,6 +1,13 @@
 import React from 'react';
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import Typography from "@mui/material/Typography";
 import { gridSpacing } from "../../../store/constant";
 import StockServices from '../../../services/StockServices';
 import SettingService from '../../../services/SettingService';
@@ -32,6 +39,10 @@ const ListSimActivation = () => {
   const [list, setList] = useState([]);
   const [whitelistedPhoneNumbers, setWhitelistedPhoneNumbers] = useState({ scn2: "", escn: "" });
   const [whitelistedIps, setWhitelistedIps] = useState({ eip: "", pip: "" });
+
+  const [ipWhitelistDialogOpen, setIpWhitelistDialogOpen] = useState(false);
+  const [ipWhitelistConfirmed, setIpWhitelistConfirmed] = useState(false);
+  const [pendingRowData, setPendingRowData] = useState(null);
 
   const handleCloseAlert = () => {
     setOpenAlert(false);
@@ -133,28 +144,53 @@ const ListSimActivation = () => {
     setList(mergedList);
   }, [rawList, whitelistedPhoneNumbers, whitelistedIps]);
 
+  const submitRequestUpdate = async (data, status) => {
+    const formData = {
+      eSim_activation_req_id: data[1],
+      status: status,
+    };
+    try {
+      await StockServices.updateRequest(formData);
+      setReload(prev => !prev);
+      setAlertType("success");
+      setAlertMessage(t('simActivation.messages.success'));
+      setOpenAlert(true);
+    } catch (error) {
+      console.error(error);
+      setAlertType("error");
+      setAlertMessage(t('simActivation.messages.error'));
+      setOpenAlert(true);
+    }
+  };
+
   const handleRequest = async (e, data, status) => {
     e.preventDefault();
-    const confirmed = window.confirm(t('simActivation.messages.confirmRequest'));
-    
-    if (confirmed) {
-      const formData = {
-        eSim_activation_req_id: data[1],
-        status: status,
-      };
-      try {
-        await StockServices.updateRequest(formData);
-        setReload(prev => !prev);
-        setAlertType("success");
-        setAlertMessage(t('simActivation.messages.success'));
-        setOpenAlert(true);
-      } catch (error) {
-        console.error(error);
-        setAlertType("error");
-        setAlertMessage(t('simActivation.messages.error'));
-        setOpenAlert(true);
-      }
+
+    if (status === "accept") {
+      setPendingRowData(data);
+      setIpWhitelistConfirmed(false);
+      setIpWhitelistDialogOpen(true);
+      return;
     }
+
+    const confirmed = window.confirm(t('simActivation.messages.confirmRequest'));
+    if (!confirmed) return;
+
+    await submitRequestUpdate(data, status);
+  };
+
+  const handleCloseIpWhitelistDialog = () => {
+    setIpWhitelistDialogOpen(false);
+    setPendingRowData(null);
+    setIpWhitelistConfirmed(false);
+  };
+
+  const handleConfirmIpWhitelistAndSubmit = async () => {
+    if (!pendingRowData || !ipWhitelistConfirmed) return;
+    setIpWhitelistDialogOpen(false);
+    await submitRequestUpdate(pendingRowData, "accept");
+    setPendingRowData(null);
+    setIpWhitelistConfirmed(false);
   };
 
   const actionColumn = [
@@ -207,6 +243,50 @@ const ListSimActivation = () => {
         message={alertMessage}
         type={alertType}
       />
+      <Dialog
+        open={ipWhitelistDialogOpen}
+        onClose={handleCloseIpWhitelistDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Confirm IP Whitelisting</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Before approving this eSIM activation request, confirm that our server IP is whitelisted by the concerned M2M/telecom service provider.
+          </Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Configured IPs
+          </Typography>
+          <Typography variant="body2">
+            EIP: {whitelistedIps?.eip || "-"}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            PIP: {whitelistedIps?.pip || "-"}
+          </Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={ipWhitelistConfirmed}
+                onChange={(e) => setIpWhitelistConfirmed(e.target.checked)}
+              />
+            }
+            label="Yes, our server IP is whitelisted by this provider"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseIpWhitelistDialog} variant="outlined">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmIpWhitelistAndSubmit}
+            variant="contained"
+            color="success"
+            disabled={!ipWhitelistConfirmed}
+          >
+            Approve & Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           {load && (
