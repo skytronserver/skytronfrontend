@@ -191,9 +191,9 @@ function NotificationPreferences({ fieldConfig, initialData }) {
                                   formik.setFieldValue(field, value === "" ? "" : Number(value));
                                 }}
                               >
-                                {Array.from({ length: 25 }, (_, index) => index + 1).map((value) => (
+                                {[1, 7].map((value) => (
                                   <MenuItem key={value} value={value}>
-                                    {value}
+                                    {value === 1 ? "Daily (every 1 day)" : "Weekly (every 7 days)"}
                                   </MenuItem>
                                 ))}
                               </Select>

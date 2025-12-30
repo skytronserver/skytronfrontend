@@ -85,6 +85,191 @@ const formatTimeHHMMSS = (raw) => {
   return `${h}:${m}:${s} ${period}`;
 };
 
+const ALERT_CODE_LABELS = {
+  // Normal
+  NR1: "Normal Live",
+  NR: "Normal Live",  // Handle both NR1 and NR
+  NR2: "Normal History",
+  
+  // Battery Alerts
+  BD3: "Battery Disconnected",
+  BL4: "Low Battery",
+  BH5: "Battery Charged",
+  BR6: "Mains Reconnected",
+  
+  // Ignition Alerts
+  IN7: "Ignition On",
+  IF8: "Ignition Off",
+  
+  // Security Alerts
+  TA9: "Tamper Alert",
+  
+  // Emergency Alerts
+  EA10: "Emergency Alert (Panic)",
+  EA11: "Emergency Alert Cleared",
+  
+  // System Alerts
+  OT12: "Configuration Updated",
+  
+  // Driving Behavior Alerts
+  HB13: "Harsh Braking",
+  HA14: "Harsh Acceleration",
+  RT15: "Rash Turning"
+};
+
+const resolveAlertCode = (entry) => {
+  if (!entry) return "-";
+  const alertPrefix = entry.packet_type || entry.packetType;
+  const alertId = entry.alert_id;
+  if (
+    alertPrefix &&
+    alertId !== null &&
+    alertId !== undefined &&
+    alertId !== "" &&
+    /^[A-Za-z]{1,3}$/.test(String(alertPrefix)) &&
+    /^\d{1,3}$/.test(String(alertId))
+  ) {
+    const combined = `${String(alertPrefix).toUpperCase()}${String(alertId)}`;
+    if (ALERT_CODE_LABELS[combined]) return combined;
+  }
+
+  const candidates = [
+    entry.alert_type,
+    entry.alert_code,
+    // some payloads send alert code in packet_type
+    entry.packet_type,
+    entry.packetType,
+    // fallback to numeric id (least preferred)
+    entry.alert_id,
+  ];
+
+  const raw = candidates.find((value) => value !== null && value !== undefined && value !== "");
+  if (!raw) return "-";
+
+  const normalized = String(raw).toUpperCase().replace(/\s+/g, "");
+  // Prefer exact match if possible (e.g., NR1, EA10)
+  if (ALERT_CODE_LABELS[normalized]) return normalized;
+
+  // Fallback: extract first CODE pattern like AA99, A9, AAA999
+  const match = normalized.match(/[A-Z]{1,3}\d{1,3}/);
+  return match?.[0] || normalized;
+};
+
+const resolveAlertLabel = (entry) => {
+  const code = resolveAlertCode(entry);
+  if (!code || code === "-") return "-";
+  return ALERT_CODE_LABELS[code] ? `${ALERT_CODE_LABELS[code]} (${code})` : code;
+};
+
+const resolvePacketTypeLabel = (entry) => {
+  if (!entry) return "-";
+  // In your payload, packet_status often contains L/H (Live/History)
+  const raw =
+    entry.packet_status ||
+    entry.packetStatus ||
+    entry.packet_type_code ||
+    entry.packet_type_flag ||
+    entry.packetTypeFlag ||
+    entry.packet_category ||
+    entry.packetCategory ||
+    entry.packet_source ||
+    entry.packetSource;
+
+  if (!raw) return "-";
+  const normalized = String(raw).toUpperCase();
+  if (normalized === "L" || normalized === "LIVE") return "Live";
+  if (normalized === "H" || normalized === "HISTORY") return "History";
+  return String(raw);
+};
+
+const resolveDeviceStatusLabel = (entry) => {
+  if (!entry) return "Offline";
+  
+  // Check for explicit online/offline status
+  const raw =
+    entry.device_status ||
+    entry.deviceStatus ||
+    entry.status;
+    
+  if (raw === undefined || raw === null) {
+    // If no explicit status, determine based on last update time
+    const lastUpdate = entry.timestamp || entry.date || entry.time;
+    if (lastUpdate) {
+      const lastUpdateTime = new Date(lastUpdate).getTime();
+      const currentTime = new Date().getTime();
+      // Consider offline if no update in last 15 minutes
+      return (currentTime - lastUpdateTime) < (15 * 60 * 1000) ? "Online" : "Offline";
+    }
+    return "Offline";
+  }
+
+  if (raw === null || raw === undefined || raw === "") return "-";
+
+  const normalized = String(raw).toLowerCase();
+  if (["online", "on", "1", "true", "connected"].includes(normalized)) return "Online";
+  if (["offline", "off", "0", "false", "disconnected"].includes(normalized)) return "Offline";
+  return String(raw);
+};
+
+const resolveNearestPoiLabel = (entry) => {
+  if (!entry) return "-";
+  const poiName =
+    entry?.nearest_poi?.data?.name ||
+    entry?.nearestPoi?.name ||
+    entry?.nearest_poi_name ||
+    entry?.nearestPoiName;
+  const poiAddress =
+    entry?.nearest_poi?.data?.address ||
+    entry?.nearestPoi?.address ||
+    entry?.nearest_poi_address ||
+    entry?.nearestPoiAddress;
+
+  const best = poiName || poiAddress;
+  if (!best) return "-";
+
+  const details = poiName && poiAddress ? `${poiName} - ${poiAddress}` : best;
+  return `Near to ${details}`;
+};
+
+const resolveNearestPoliceDetails = (entry) => {
+  if (!entry) return { name: "-", address: "-", lat: "-", lng: "-" };
+
+  const name =
+    entry?.nearestPoliceStation ||
+    entry?.nearest_police_station?.data?.name ||
+    entry?.nearest_police_station?.name ||
+    entry?.nearestPolice?.name ||
+    "-";
+
+  const address =
+    entry?.nearestPoliceAddress ||
+    entry?.nearest_police_station?.data?.address ||
+    entry?.nearest_police_station?.address ||
+    entry?.nearestPolice?.address ||
+    "-";
+
+  const lat =
+    entry?.nearestPoliceLat ||
+    entry?.nearest_police_station?.data?.latitude ||
+    entry?.nearest_police_station?.latitude ||
+    entry?.nearestPolice?.latitude ||
+    "-";
+
+  const lng =
+    entry?.nearestPoliceLng ||
+    entry?.nearest_police_station?.data?.longitude ||
+    entry?.nearest_police_station?.longitude ||
+    entry?.nearestPolice?.longitude ||
+    "-";
+
+  return {
+    name: name ? String(name) : "-",
+    address: address ? String(address) : "-",
+    lat: lat === null || lat === undefined || lat === "" ? "-" : String(lat),
+    lng: lng === null || lng === undefined || lng === "" ? "-" : String(lng),
+  };
+};
+
 const MAPPLS_TOKEN_ENV_KEYS = [
   "REACT_APP_MAPPLS_TOKEN",
   "REACT_APP_MAPPLS_REST_KEY",
@@ -2785,8 +2970,11 @@ const MapComponent = ({
           } else {
             const entryData = item.data;
             const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-            const alertType = entryData.packet_type || "NR";
-            const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
+            const packetTypeCode = resolveAlertCode(entryData) || "NR1";
+            const alertLabel = resolveAlertLabel(entryData);
+            // Extract just the name part (without the code in parentheses if present)
+            const pillText = alertLabel.split(' (')[0];
+            const pillClass = /^NR/i.test(packetTypeCode) ? "overlay-pill--normal" : "overlay-pill--alert";
 
             if (typeof onVehicleClick === "function") {
               onVehicleClick(entryData);
@@ -2798,6 +2986,11 @@ const MapComponent = ({
             };
 
             const addressValue = entryData?.address ? entryData.address : "-";
+            const packetTypeLabel = resolvePacketTypeLabel(entryData);
+            const packetTypeFullLabel = resolveAlertLabel(entryData);
+            const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
+            const nearestPoiLabel = resolveNearestPoiLabel(entryData);
+            const nearestPolice = resolveNearestPoliceDetails(entryData);
             const nearestPoliceStationValue =
               entryData?.markerCategory === "police"
                 ? (entryData.nearestPoliceStation || "uzanbazr policestation")
@@ -2807,50 +3000,208 @@ const MapComponent = ({
                 ? (entryData.nearestPoliceContact || "987654123")
                 : null;
 
+            // Removed unused geographic information extraction
+
+            // Extract route information with fallbacks
+            const routeId =
+              entryData?.route_id ||
+              entryData?.route_ref?.id ||
+              entryData?.device_tag_info?.route?.id ||
+              entryData?.nearby_routes_within_100m?.[0]?.data?.id ||
+              "-";
+              
+            const routeData = entryData?.route_ref || entryData?.device_tag_info?.route || {};
+            
+            const routeName = 
+              entryData?.route_name ||
+              entryData?.route ||
+              entryData?.route_info ||
+              entryData?.routeInformation ||
+              routeData?.name ||
+              (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
+              
+            const routeCode = routeData?.code || entryData?.route_code || "-";
+            const routeType = routeData?.type || entryData?.route_type || "-";
+            const startPoint = routeData?.start_point || entryData?.start_point || "-";
+            const endPoint = routeData?.end_point || entryData?.end_point || "-";
+            const stops = routeData?.stops || entryData?.route_stops || [];
+            const distance = routeData?.distance ? `${routeData.distance} km` : "-";
+            const duration = routeData?.duration || entryData?.route_duration || "-";
+            const schedule = routeData?.schedule || entryData?.route_schedule || "-";
+            const operator = routeData?.operator || entryData?.route_operator || "-";
+
             const policeInfoRows = [
-              nearestPoliceStationValue
-                ? `<div class="overlay-row"><span class="overlay-label">Nearest Police Station</span><span class="overlay-value">${nearestPoliceStationValue}</span></div>`
+              nearestPoliceStationValue || nearestPolice?.name
+                ? `<div class="overlay-row"><span class="overlay-label">Nearest Police</span><span class="overlay-value">${nearestPolice?.name || nearestPoliceStationValue}</span></div>`
+                : "",
+              nearestPolice?.address && nearestPolice.address !== "-"
+                ? `<div class="overlay-row overlay-row--multiline">
+                     <span class="overlay-label">Police Address</span>
+                     <span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span>
+                   </div>`
+                : "",
+              nearestPolice?.lat && nearestPolice?.lng && nearestPolice.lat !== "-" && nearestPolice.lng !== "-"
+                ? `<div class="overlay-row">
+                     <span class="overlay-label">Police Location</span>
+                     <span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span>
+                   </div>`
                 : "",
               policeContactValue
                 ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
+                : "",
+            ].filter(Boolean).join("");
+
+            const policeDetailsRows = [
+              nearestPolice?.name && nearestPolice.name !== "-"
+                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
+                : "",
+              nearestPolice?.address && nearestPolice.address !== "-"
+                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
+                : "",
+              nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+                ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
                 : "",
             ].join("");
 
             document.getElementById("overlay-content").innerHTML = `
                 <div class="overlay-card">
                   <div class="overlay-header">
-                    <div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
-                    <div class="overlay-pill ${alertClass}">${alertType}</div>
+                    <div class="overlay-header-content">
+                      <div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
+                    </div>
+                    <div class="overlay-pill ${pillClass}">${pillText}</div>
                   </div>
-                  <div class="overlay-body">
-                    <div class="overlay-row">
-                      <span class="overlay-label">Date</span>
-                      <span class="overlay-value">${formatDateDDMMYY(entryData.date)}</span>
+                  <div class="overlay-tabs" data-overlay-tabs>
+                    <div class="overlay-tab-list" role="tablist">
+                      <button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
+                      <button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
+                      <button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
                     </div>
-                    <div class="overlay-row">
-                      <span class="overlay-label">Time</span>
-                      <span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
+
+                    <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
+                      <div class="overlay-section">
+                        <div class="overlay-section-title">Vehicle Information</div>
+                        <div class="overlay-section-body">
+                        <div class="overlay-row">
+                          <span class="overlay-label">Packet Status</span>
+                          <span class="overlay-value">${packetTypeLabel}</span>
+                        </div>
+                        <div class="overlay-row overlay-row--multiline">
+                          <span class="overlay-label">Alert Type</span>
+                          <span class="overlay-value overlay-value--multiline">${packetTypeFullLabel}</span>
+                        </div>
+                        <div class="overlay-row">
+                          <span class="overlay-label">Device Status</span>
+                          <span class="overlay-value">${deviceStatusLabel}</span>
+                        </div>
+                        <div class="overlay-row">
+                          <span class="overlay-label">Date</span>
+                          <span class="overlay-value">${formatDateDDMMYY(entryData.date)}</span>
+                        </div>
+                        <div class="overlay-row">
+                          <span class="overlay-label">Time</span>
+                          <span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
+                        </div>
+                        <div class="overlay-row overlay-row--multiline">
+                          <span class="overlay-label">Address</span>
+                          <span class="overlay-value overlay-value--multiline">${addressValue}</span>
+                        </div>
+                        ${policeInfoRows}
+                        ${policeDetailsRows}
+                        <div class="overlay-row">
+                          <span class="overlay-label">Speed</span>
+                          <span class="overlay-value">${speedValue} km/h</span>
+                        </div>
+                        <div class="overlay-row">
+                          <span class="overlay-label">Battery</span>
+                          <span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
+                        </div>
+                        <div class="overlay-row">
+                          <span class="overlay-label">Latitude</span>
+                          <span class="overlay-value">${entryData.latitude || "-"}</span>
+                        </div>
+                        <div class="overlay-row">
+                          <span class="overlay-label">Longitude</span>
+                          <span class="overlay-value">${entryData.longitude || "-"}</span>
+                        </div>
+                        </div>
+                      </div>
                     </div>
-                    <div class="overlay-row">
-                      <span class="overlay-label">Address</span>
-                      <span class="overlay-value">${addressValue}</span>
+
+                    <div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
+                      <div class="overlay-section">
+                        <div class="overlay-section-title">Geographic Information</div>
+                        <div class="overlay-section-body">
+                        <div class="overlay-row overlay-row--multiline">
+                          <span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
+                        </div>
+                        </div>
+                      </div>
                     </div>
-                    ${policeInfoRows}
-                    <div class="overlay-row">
-                      <span class="overlay-label">Speed</span>
-                      <span class="overlay-value">${speedValue} km/h</span>
-                    </div>
-                    <div class="overlay-row">
-                      <span class="overlay-label">Battery</span>
-                      <span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
-                    </div>
-                    <div class="overlay-row">
-                      <span class="overlay-label">Latitude</span>
-                      <span class="overlay-value">${entryData.latitude || "-"}</span>
-                    </div>
-                    <div class="overlay-row">
-                      <span class="overlay-label">Longitude</span>
-                      <span class="overlay-value">${entryData.longitude || "-"}</span>
+
+                    <div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
+                      <div class="overlay-section">
+                        <div class="overlay-section-title">Route Information</div>
+                        <div class="overlay-section-body">
+                          <!-- Basic Route Info -->
+                          <div class="overlay-row">
+                            <span class="overlay-label">Route Name</span>
+                            <span class="overlay-value">${routeName}</span>
+                          </div>
+                          <div class="overlay-row">
+                            <span class="overlay-label">Route ID</span>
+                            <span class="overlay-value">${routeId}</span>
+                          </div>
+                          <div class="overlay-row">
+                            <span class="overlay-label">Route Code</span>
+                            <span class="overlay-value">${routeCode}</span>
+                          </div>
+                          <div class="overlay-row">
+                            <span class="overlay-label">Type</span>
+                            <span class="overlay-value">${routeType}</span>
+                          </div>
+                          
+                          <!-- Route Path -->
+                          <div class="overlay-row">
+                            <span class="overlay-label">From</span>
+                            <span class="overlay-value">${startPoint}</span>
+                          </div>
+                          <div class="overlay-row">
+                            <span class="overlay-label">To</span>
+                            <span class="overlay-value">${endPoint}</span>
+                          </div>
+                          
+                          <!-- Route Details -->
+                          <div class="overlay-row">
+                            <span class="overlay-label">Distance</span>
+                            <span class="overlay-value">${distance}</span>
+                          </div>
+                          <div class="overlay-row">
+                            <span class="overlay-label">Duration</span>
+                            <span class="overlay-value">${duration}</span>
+                          </div>
+                          
+                          <!-- Stops -->
+                          <div class="overlay-row overlay-row--multiline">
+                            <span class="overlay-label">Stops</span>
+                            <span class="overlay-value overlay-value--multiline">
+                              ${stops.length > 0 ? stops.map(stop => 
+                                typeof stop === 'object' ? (stop.name || stop.id || '-') : stop
+                              ).join(', ') : 'No stops available'}
+                            </span>
+                          </div>
+                          
+                          <!-- Schedule & Operator -->
+                          <div class="overlay-row">
+                            <span class="overlay-label">Schedule</span>
+                            <span class="overlay-value">${schedule}</span>
+                          </div>
+                          <div class="overlay-row">
+                            <span class="overlay-label">Operator</span>
+                            <span class="overlay-value">${operator}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3020,8 +3371,16 @@ const MapComponent = ({
     if (!overlayContent) return;
 
     const speedValue = focusEntry.speed > 2 ? focusEntry.speed : 0;
-    const alertType = focusEntry.packet_type || "NR";
-    const alertClass = alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
+    const packetTypeCode = resolveAlertCode(focusEntry) || "NR1";
+    const alertLabel = resolveAlertLabel(focusEntry);
+    // Extract just the name part (without the code in parentheses if present)
+    const pillText = alertLabel.split(' (')[0];
+    const pillClass = /^NR/i.test(packetTypeCode) ? "overlay-pill--normal" : "overlay-pill--alert";
+
+    const packetTypeLabel = resolvePacketTypeLabel(focusEntry);
+    const packetTypeFullLabel = resolveAlertLabel(focusEntry);
+    const nearestPoiLabel = resolveNearestPoiLabel(focusEntry);
+    const nearestPolice = resolveNearestPoliceDetails(focusEntry);
 
     const nearestPoliceStationValue =
       focusEntry?.markerCategory === "police"
@@ -3032,6 +3391,58 @@ const MapComponent = ({
         ? (focusEntry.nearestPoliceContact || "987654123")
         : null;
 
+    const wardValue =
+      focusEntry?.ward_name ||
+      focusEntry?.ward ||
+      focusEntry?.wardName ||
+      focusEntry?.device_tag_info?.ward?.name ||
+      focusEntry?.device_tag_info?.ward_name ||
+      "-";
+    const districtValue =
+      focusEntry?.district ||
+      focusEntry?.district_name ||
+      focusEntry?.districtName ||
+      focusEntry?.device_tag_info?.device?.district ||
+      focusEntry?.device_tag_info?.district?.name ||
+      focusEntry?.device_tag_info?.district_name ||
+      "-";
+    const stateValue =
+      focusEntry?.state ||
+      focusEntry?.state_name ||
+      focusEntry?.stateName ||
+      focusEntry?.device_tag_info?.state_info?.state ||
+      focusEntry?.device_tag_info?.state?.name ||
+      focusEntry?.device_tag_info?.state_name ||
+      "-";
+
+    // Extract route information with fallbacks
+    const routeId =
+      focusEntry?.route_id ||
+      focusEntry?.route_ref?.id ||
+      focusEntry?.device_tag_info?.route?.id ||
+      focusEntry?.nearby_routes_within_100m?.[0]?.data?.id ||
+      "-";
+      
+    const routeData = focusEntry?.route_ref || focusEntry?.device_tag_info?.route || {};
+    
+    const routeName = 
+      focusEntry?.route_name ||
+      focusEntry?.route ||
+      focusEntry?.route_info ||
+      focusEntry?.routeInformation ||
+      routeData?.name ||
+      (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
+      
+    const routeCode = routeData?.code || focusEntry?.route_code || "-";
+    const routeType = routeData?.type || focusEntry?.route_type || "-";
+    const startPoint = routeData?.start_point || focusEntry?.start_point || "-";
+    const endPoint = routeData?.end_point || focusEntry?.end_point || "-";
+    const stops = routeData?.stops || focusEntry?.route_stops || [];
+    const distance = routeData?.distance ? `${routeData.distance} km` : "-";
+    const duration = routeData?.duration || focusEntry?.route_duration || "-";
+    const schedule = routeData?.schedule || focusEntry?.route_schedule || "-";
+    const operator = routeData?.operator || focusEntry?.route_operator || "-";
+
     const policeInfoRows = [
       nearestPoliceStationValue
         ? `<div class="overlay-row"><span class="overlay-label">Nearest Police Station</span><span class="overlay-value">${nearestPoliceStationValue}</span></div>`
@@ -3041,46 +3452,190 @@ const MapComponent = ({
         : "",
     ].join("");
 
+    const policeDetailsRows = [
+      nearestPolice?.name && nearestPolice.name !== "-"
+        ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
+        : "",
+      nearestPolice?.address && nearestPolice.address !== "-"
+        ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
+        : "",
+      nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+        ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
+        : "",
+    ].join("");
+
     overlayContent.innerHTML = `
       <div class="overlay-card">
         <div class="overlay-header">
-          <div class="overlay-title">${focusEntry.vehicle_registration_number || "-"}</div>
-          <div class="overlay-pill ${alertClass}">${alertType}</div>
+          <div class="overlay-header-content">
+            <div class="overlay-title">${focusEntry.vehicle_registration_number || "-"}</div>
+          </div>
+          <div class="overlay-pill ${pillClass}">${pillText}</div>
         </div>
-        <div class="overlay-body">
-          <div class="overlay-row">
-            <span class="overlay-label">Date</span>
-            <span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
+        <div class="overlay-tabs" data-overlay-tabs>
+          <div class="overlay-tab-list" role="tablist">
+            <button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
+            <button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
+            <button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
           </div>
-          <div class="overlay-row">
-            <span class="overlay-label">Time</span>
-            <span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
+
+          <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
+            <div class="overlay-section">
+              <div class="overlay-section-title">Vehicle Information</div>
+              <div class="overlay-section-body">
+              <div class="overlay-row">
+                <span class="overlay-label">Packet Status</span>
+                <span class="overlay-value">${packetTypeLabel}</span>
+              </div>
+              <div class="overlay-row overlay-row--multiline">
+                <span class="overlay-label">Packet Type</span>
+                <span class="overlay-value overlay-value--multiline">${packetTypeFullLabel}</span>
+              </div>
+              <div class="overlay-row">
+                <span class="overlay-label">Date</span>
+                <span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
+              </div>
+              <div class="overlay-row">
+                <span class="overlay-label">Time</span>
+                <span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
+              </div>
+              <div class="overlay-row overlay-row--multiline">
+                <span class="overlay-label">Address</span>
+                <span class="overlay-value overlay-value--multiline">${focusEntry.address}</span>
+              </div>
+              ${policeInfoRows}
+              ${policeDetailsRows}
+              <div class="overlay-row">
+                <span class="overlay-label">Speed</span>
+                <span class="overlay-value">${speedValue} km/h</span>
+              </div>
+              <div class="overlay-row">
+                <span class="overlay-label">Battery</span>
+                <span class="overlay-value">${focusEntry.internal_battery_voltage || "-"} - ${focusEntry.main_input_voltage || "-"}</span>
+              </div>
+              <div class="overlay-row">
+                <span class="overlay-label">Latitude</span>
+                <span class="overlay-value">${focusEntry.latitude || "-"}</span>
+              </div>
+              <div class="overlay-row">
+                <span class="overlay-label">Longitude</span>
+                <span class="overlay-value">${focusEntry.longitude || "-"}</span>
+              </div>
+              </div>
+            </div>
           </div>
-          <div class="overlay-row">
-            <span class="overlay-label">Address</span>
-            <span class="overlay-value">${focusEntry.address}</span>
+
+          <div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
+            <div class="overlay-section">
+              <div class="overlay-section-title">Geographic Information</div>
+              <div class="overlay-section-body">
+                <div class="overlay-row overlay-row--multiline">
+                  <span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          ${policeInfoRows}
-          <div class="overlay-row">
-            <span class="overlay-label">Speed</span>
-            <span class="overlay-value">${speedValue} km/h</span>
-          </div>
-          <div class="overlay-row">
-            <span class="overlay-label">Battery</span>
-            <span class="overlay-value">${focusEntry.internal_battery_voltage || "-"} - ${focusEntry.main_input_voltage || "-"}</span>
-          </div>
-          <div class="overlay-row">
-            <span class="overlay-label">Latitude</span>
-            <span class="overlay-value">${focusEntry.latitude || "-"}</span>
-          </div>
-          <div class="overlay-row">
-            <span class="overlay-label">Longitude</span>
-            <span class="overlay-value">${focusEntry.longitude || "-"}</span>
+
+          <div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
+            <div class="overlay-section">
+              <div class="overlay-section-title">Route Information</div>
+              <div class="overlay-section-body">
+                <!-- Basic Route Info -->
+                <div class="overlay-row">
+                  <span class="overlay-label">Route Name</span>
+                  <span class="overlay-value">${routeName}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Route ID</span>
+                  <span class="overlay-value">${routeId}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Route Code</span>
+                  <span class="overlay-value">${routeCode}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Type</span>
+                  <span class="overlay-value">${routeType}</span>
+                </div>
+                
+                <!-- Route Path -->
+                <div class="overlay-row">
+                  <span class="overlay-label">From</span>
+                  <span class="overlay-value">${startPoint}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">To</span>
+                  <span class="overlay-value">${endPoint}</span>
+                </div>
+                
+                <!-- Route Details -->
+                <div class="overlay-row">
+                  <span class="overlay-label">Distance</span>
+                  <span class="overlay-value">${distance}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Duration</span>
+                  <span class="overlay-value">${duration}</span>
+                </div>
+                
+                <!-- Stops -->
+                <div class="overlay-row overlay-row--multiline">
+                  <span class="overlay-label">Stops</span>
+                  <span class="overlay-value overlay-value--multiline">
+                    ${stops.length > 0 ? stops.map(stop => 
+                      typeof stop === 'object' ? (stop.name || stop.id || '-') : stop
+                    ).join(', ') : 'No stops available'}
+                  </span>
+                </div>
+                
+                <!-- Schedule & Operator -->
+                <div class="overlay-row">
+                  <span class="overlay-label">Schedule</span>
+                  <span class="overlay-value">${schedule}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Operator</span>
+                  <span class="overlay-value">${operator}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     `;
   }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
+
+  useEffect(() => {
+    const container = overlayElement.current;
+    if (!container) return;
+
+    const handleClick = (event) => {
+      const tabButton = event.target?.closest?.("[data-overlay-tab]");
+      if (!tabButton) return;
+
+      const tabName = tabButton.getAttribute("data-overlay-tab");
+      if (!tabName) return;
+
+      const tabsRoot = tabButton.closest("[data-overlay-tabs]");
+      if (!tabsRoot) return;
+
+      const allTabs = tabsRoot.querySelectorAll("[data-overlay-tab]");
+      allTabs.forEach((btn) => {
+        btn.classList.toggle("overlay-tab--active", btn === tabButton);
+      });
+
+      const panels = tabsRoot.querySelectorAll("[data-overlay-panel]");
+      panels.forEach((panel) => {
+        panel.classList.toggle(
+          "overlay-panel--active",
+          panel.getAttribute("data-overlay-panel") === tabName
+        );
+      });
+    };
+
+    container.addEventListener("click", handleClick);
+    return () => container.removeEventListener("click", handleClick);
+  }, []);
 
   // Handle Incident Data for OpenLayers (Normal/Satellite)
   useEffect(() => {
@@ -4151,41 +4706,50 @@ const MapComponent = ({
         .overlay-card {
           background-color: #ffffff;
           border-radius: 10px;
-          padding: 6px 8px;
+          padding: 8px 10px;
           box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
           border: 1px solid rgba(0, 0, 0, 0.08);
           min-width: 160px;
-          max-width: 180px;
+          max-width: 320px;
           font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          font-size: 10px;
+          font-size: 11px;
           color: #1f2933;
         }
 
         .overlay-header {
           display: flex;
-          align-items: center;
           justify-content: space-between;
-          margin-bottom: 6px;
+          align-items: flex-start;
+          padding: 12px 16px;
+          border-bottom: 1px solid #e5e7eb;
           gap: 8px;
         }
-
+        
+        .overlay-header-content {
+          flex: 1;
+          min-width: 0; /* Allows text truncation */
+        }
+        
         .overlay-title {
-          font-weight: 600;
-          font-size: 13px;
-          color: #111827;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          font-size: 16px;
+          font-weight: 600;
+          color: #111827;
         }
 
         .overlay-pill {
           padding: 2px 8px;
           border-radius: 999px;
           font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.03em;
+          font-weight: 500;
           text-transform: uppercase;
+          letter-spacing: 0.05em;
           border: 1px solid transparent;
+          white-space: nowrap;
+          flex-shrink: 0;
+          margin-left: 8px;
         }
 
         .overlay-pill--normal {
@@ -4208,23 +4772,110 @@ const MapComponent = ({
           row-gap: 4px;
         }
 
-        .overlay-row {
+        .overlay-sections {
+          display: grid;
+          row-gap: 8px;
+          border-top: 1px solid #f1f5f9;
+          padding-top: 8px;
+          margin-top: 4px;
+        }
+
+        .overlay-tabs {
+          border-top: 1px solid #f1f5f9;
+          padding-top: 8px;
+          margin-top: 4px;
+        }
+
+        .overlay-tab-list {
           display: flex;
-          justify-content: space-between;
+          gap: 6px;
+          margin-bottom: 8px;
+        }
+
+        .overlay-tab {
+          appearance: none;
+          border: 1px solid #e5e7eb;
+          background: #f9fafb;
+          color: #374151;
+          font-size: 10px;
+          font-weight: 600;
+          padding: 4px 8px;
+          border-radius: 999px;
+          cursor: pointer;
+        }
+
+        .overlay-tab--active {
+          background: #eef2ff;
+          border-color: #c7d2fe;
+          color: #1e3a8a;
+        }
+
+        .overlay-panel {
+          display: none;
+          max-height: 220px;
+          overflow: auto;
+          padding-right: 2px;
+        }
+
+        .overlay-panel {
+          overflow-x: hidden;
+        }
+
+        .overlay-panel--active {
+          display: block;
+        }
+
+        .overlay-section {
+          border: 1px solid #eef2f7;
+          border-radius: 8px;
+          padding: 8px 10px;
+          background: #ffffff;
+        }
+
+        .overlay-section-title {
+          font-size: 12px;
+          font-weight: 700;
+          color: #111827;
+          margin-bottom: 6px;
+        }
+
+        .overlay-section-body {
+          display: grid;
+          row-gap: 4px;
+        }
+
+        .overlay-row {
+          display: grid;
+          grid-template-columns: 84px 1fr;
+          gap: 10px;
           align-items: baseline;
-          gap: 8px;
+        }
+
+        .overlay-row--multiline {
+          align-items: start;
         }
 
         .overlay-label {
           font-size: 11px;
           color: #6b7280;
+          white-space: nowrap;
         }
 
         .overlay-value {
           font-size: 11px;
           font-weight: 500;
           color: #111827;
-          white-space: nowrap;
+          text-align: left;
+        }
+
+        .overlay-value--multiline {
+          white-space: normal;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          text-align: left;
+          max-width: none;
+          line-height: 1.2;
+          overflow: visible;
         }
       `}</style>
 
