@@ -9,7 +9,7 @@ const icons = { IconBrandChrome, IconHelp, IconSettings };
 const other = {
   id: 'setting-all-routes',
   type: 'group',
-  roles: ['superadmin', 'devicemanufacture', 'stateadmin'],
+  roles: ['superadmin', 'devicemanufacture', 'dealer', 'stateadmin'],
   children: [
     {
       id: 'setting-all',
@@ -79,7 +79,7 @@ const other = {
           type: 'item',
           url: '/setting/ip-settings',
           breadcrumbs: false,
-          roles: ['superadmin', 'dealer']
+          roles: ['superadmin', 'dealer', 'devicemanufacture']
         },
         {
           id: 'login-settings',

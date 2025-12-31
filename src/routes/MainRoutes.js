@@ -18,6 +18,7 @@ import GetAllCall from "../views/direct/GetAllCall";
 import CallDetails from "../views/direct/CallDetails";
 import AlertList from "../views/reports/AlertList";
 import AlertLog from "../views/reports/AlertLog";
+import ActivationLogReport from "../views/reports/ActivationLogReport";
 import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import GpsDataLog from "../views/reports/GpsDataLog";
@@ -195,6 +196,11 @@ const MainRoutes = {
     {
       path: '/reports/gps-data-log',
       element: <GpsDataLog />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/reports/activation-log-report',
+      element: <ActivationLogReport />,
       roles: ['superadmin', 'stateadmin']
     },
     {

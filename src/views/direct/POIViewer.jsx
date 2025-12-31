@@ -792,7 +792,7 @@ const POIViewer = () => {
       if (formData.alert_type) {
         formDataObj.append('alert_type', formData.alert_type);
       }
-      if (formData.speed_limit) {
+      if (formData.speed_limit !== undefined && formData.speed_limit !== null) {
         formDataObj.append('speed_limit', formData.speed_limit);
       }
 
@@ -2247,18 +2247,16 @@ const POIViewer = () => {
               </Select>
             </FormControl>
 
-            {formData.mark_type === 'Road' && (
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  fullWidth
-                  label="Speed Limit (km/h)"
-                  type="number"
-                  value={formData.speed_limit}
-                  onChange={(e) => setFormData(prev => ({ ...prev, speed_limit: e.target.value }))}
-                  size="small"
-                />
-              </Stack>
-            )}
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                label="Speed Limit (km/h)"
+                type="number"
+                value={formData.speed_limit}
+                onChange={(e) => setFormData(prev => ({ ...prev, speed_limit: e.target.value }))}
+                size="small"
+              />
+            </Stack>
 
             <TextField
               fullWidth

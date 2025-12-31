@@ -7,6 +7,10 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SearchIcon from '@mui/icons-material/Search';
 import { useTranslation } from 'react-i18next';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 const HealthPacketLog = () => {
   const { t } = useTranslation();
@@ -33,6 +37,7 @@ const HealthPacketLog = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [offlineFilter, setOfflineFilter] = useState('normal');
 
   const parseGpsData = (responseData) => {
     try {
@@ -91,7 +96,19 @@ const HealthPacketLog = () => {
         return packet.rawData.startsWith('$,HLM');
       });
 
-      setData(healthPacketsOnly);
+      let filteredData = healthPacketsOnly;
+      if (offlineFilter !== 'normal') {
+        const days = parseInt(offlineFilter, 10);
+        if (!Number.isNaN(days)) {
+          const thresholdTime = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+          filteredData = healthPacketsOnly.filter((row) => {
+            const timestamp = new Date(row.timestamp);
+            return timestamp < thresholdTime;
+          });
+        }
+      }
+
+      setData(filteredData);
     } catch (error) {
       console.error('Error fetching Health Packet Log data:', error);
       setData([]);
@@ -109,6 +126,10 @@ const HealthPacketLog = () => {
     getHealthPackets();
   }, []);
 
+  useEffect(() => {
+    getHealthPackets(searchQuery);
+  }, [offlineFilter]);
+
   const options = {
     search: false,
     searchPlaceholder: t('gpsData.searchPlaceholder'),
@@ -123,7 +144,7 @@ const HealthPacketLog = () => {
       <Grid item xs={12}>
         <form onSubmit={handleSearch}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 label={t('gpsData.searchByImei')}
@@ -131,6 +152,20 @@ const HealthPacketLog = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 variant="outlined"
               />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Device Offline Filter</InputLabel>
+                <Select
+                  value={offlineFilter}
+                  onChange={(e) => setOfflineFilter(e.target.value)}
+                  label="Device Offline Filter"
+                >
+                  <MenuItem value="normal">Normal</MenuItem>
+                  <MenuItem value="7">7 Days Offline</MenuItem>
+                  <MenuItem value="10">10 Days Offline</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item>
               <Button

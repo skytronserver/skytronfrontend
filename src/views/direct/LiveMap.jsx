@@ -87,8 +87,8 @@ const formatTimeHHMMSS = (raw) => {
 
 const ALERT_CODE_LABELS = {
   // Normal
-  NR1: "Normal Live",
-  NR: "Normal Live",  // Handle both NR1 and NR
+  NR1: "Normal ",
+  NR: "Normal ",  // Handle both NR1 and NR
   NR2: "Normal History",
   
   // Battery Alerts
@@ -236,6 +236,7 @@ const resolveNearestPoliceDetails = (entry) => {
 
   const name =
     entry?.nearestPoliceStation ||
+    entry?.nearest_police?.data?.name ||
     entry?.nearest_police_station?.data?.name ||
     entry?.nearest_police_station?.name ||
     entry?.nearestPolice?.name ||
@@ -243,6 +244,7 @@ const resolveNearestPoliceDetails = (entry) => {
 
   const address =
     entry?.nearestPoliceAddress ||
+    entry?.nearest_police?.data?.address ||
     entry?.nearest_police_station?.data?.address ||
     entry?.nearest_police_station?.address ||
     entry?.nearestPolice?.address ||
@@ -250,6 +252,8 @@ const resolveNearestPoliceDetails = (entry) => {
 
   const lat =
     entry?.nearestPoliceLat ||
+    entry?.nearest_police?.data?.lat ||
+    entry?.nearest_police?.data?.latitude ||
     entry?.nearest_police_station?.data?.latitude ||
     entry?.nearest_police_station?.latitude ||
     entry?.nearestPolice?.latitude ||
@@ -257,6 +261,9 @@ const resolveNearestPoliceDetails = (entry) => {
 
   const lng =
     entry?.nearestPoliceLng ||
+    entry?.nearest_police?.data?.lon ||
+    entry?.nearest_police?.data?.lng ||
+    entry?.nearest_police?.data?.longitude ||
     entry?.nearest_police_station?.data?.longitude ||
     entry?.nearest_police_station?.longitude ||
     entry?.nearestPolice?.longitude ||
@@ -546,10 +553,12 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
   const dateValue = formatDisplayValue(entry?.date);
   const timeValue = formatDisplayValue(entry?.time);
   const addressValue = formatDisplayValue(entry?.address);
+  const nearestPolice = resolveNearestPoliceDetails(entry);
   const nearestStationValue =
-    entry?.markerCategory === "police" ? formatDisplayValue(entry?.nearestPoliceStation) : null;
-  const policeContactValue =
-    entry?.markerCategory === "police" ? formatDisplayValue(entry?.nearestPoliceContact) : null;
+    nearestPolice?.name && nearestPolice.name !== "-" ? formatDisplayValue(nearestPolice.name) : null;
+  const policeContactValue = formatDisplayValue(
+    entry?.nearestPoliceContact || entry?.nearest_police?.data?.phone
+  );
   const batteryValue = `${formatDisplayValue(
     entry?.internal_battery_voltage
   )
@@ -2987,18 +2996,17 @@ const MapComponent = ({
 
             const addressValue = entryData?.address ? entryData.address : "-";
             const packetTypeLabel = resolvePacketTypeLabel(entryData);
-            const packetTypeFullLabel = resolveAlertLabel(entryData);
             const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
             const nearestPoiLabel = resolveNearestPoiLabel(entryData);
             const nearestPolice = resolveNearestPoliceDetails(entryData);
             const nearestPoliceStationValue =
-              entryData?.markerCategory === "police"
-                ? (entryData.nearestPoliceStation || "uzanbazr policestation")
-                : null;
+              entryData?.nearestPoliceStation ||
+              entryData?.nearest_police?.data?.name ||
+              entryData?.nearest_police_station?.data?.name ||
+              entryData?.nearest_police_station?.name ||
+              null;
             const policeContactValue =
-              entryData?.markerCategory === "police"
-                ? (entryData.nearestPoliceContact || "987654123")
-                : null;
+              entryData?.nearestPoliceContact || entryData?.nearest_police?.data?.phone || null;
 
             // Removed unused geographic information extraction
 
@@ -3076,6 +3084,7 @@ const MapComponent = ({
                       <button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
                       <button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
                       <button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
+                      <button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
                     </div>
 
                     <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
@@ -3085,10 +3094,6 @@ const MapComponent = ({
                         <div class="overlay-row">
                           <span class="overlay-label">Packet Status</span>
                           <span class="overlay-value">${packetTypeLabel}</span>
-                        </div>
-                        <div class="overlay-row overlay-row--multiline">
-                          <span class="overlay-label">Alert Type</span>
-                          <span class="overlay-value overlay-value--multiline">${packetTypeFullLabel}</span>
                         </div>
                         <div class="overlay-row">
                           <span class="overlay-label">Device Status</span>
@@ -3102,12 +3107,6 @@ const MapComponent = ({
                           <span class="overlay-label">Time</span>
                           <span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
                         </div>
-                        <div class="overlay-row overlay-row--multiline">
-                          <span class="overlay-label">Address</span>
-                          <span class="overlay-value overlay-value--multiline">${addressValue}</span>
-                        </div>
-                        ${policeInfoRows}
-                        ${policeDetailsRows}
                         <div class="overlay-row">
                           <span class="overlay-label">Speed</span>
                           <span class="overlay-value">${speedValue} km/h</span>
@@ -3130,9 +3129,13 @@ const MapComponent = ({
 
                     <div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
                       <div class="overlay-section">
-                        <div class="overlay-section-title">Geographic Information</div>
                         <div class="overlay-section-body">
                         <div class="overlay-row overlay-row--multiline">
+                          <span class="overlay-label">Address</span>
+                          <span class="overlay-value overlay-value--multiline">${addressValue}</span>
+                        </div>
+                        <div class="overlay-row overlay-row--multiline">
+                          <span class="overlay-label">Nearest Poi</span>
                           <span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
                         </div>
                         </div>
@@ -3152,54 +3155,18 @@ const MapComponent = ({
                             <span class="overlay-label">Route ID</span>
                             <span class="overlay-value">${routeId}</span>
                           </div>
-                          <div class="overlay-row">
-                            <span class="overlay-label">Route Code</span>
-                            <span class="overlay-value">${routeCode}</span>
-                          </div>
-                          <div class="overlay-row">
-                            <span class="overlay-label">Type</span>
-                            <span class="overlay-value">${routeType}</span>
-                          </div>
-                          
-                          <!-- Route Path -->
-                          <div class="overlay-row">
-                            <span class="overlay-label">From</span>
-                            <span class="overlay-value">${startPoint}</span>
-                          </div>
-                          <div class="overlay-row">
-                            <span class="overlay-label">To</span>
-                            <span class="overlay-value">${endPoint}</span>
-                          </div>
-                          
-                          <!-- Route Details -->
-                          <div class="overlay-row">
-                            <span class="overlay-label">Distance</span>
-                            <span class="overlay-value">${distance}</span>
-                          </div>
-                          <div class="overlay-row">
-                            <span class="overlay-label">Duration</span>
-                            <span class="overlay-value">${duration}</span>
-                          </div>
-                          
-                          <!-- Stops -->
-                          <div class="overlay-row overlay-row--multiline">
-                            <span class="overlay-label">Stops</span>
-                            <span class="overlay-value overlay-value--multiline">
-                              ${stops.length > 0 ? stops.map(stop => 
-                                typeof stop === 'object' ? (stop.name || stop.id || '-') : stop
-                              ).join(', ') : 'No stops available'}
-                            </span>
-                          </div>
-                          
-                          <!-- Schedule & Operator -->
-                          <div class="overlay-row">
-                            <span class="overlay-label">Schedule</span>
-                            <span class="overlay-value">${schedule}</span>
-                          </div>
-                          <div class="overlay-row">
-                            <span class="overlay-label">Operator</span>
-                            <span class="overlay-value">${operator}</span>
-                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
+                      <div class="overlay-section">
+                        <div class="overlay-section-title">Police Support</div>
+                        <div class="overlay-section-body">
+                          ${policeInfoRows || policeDetailsRows
+                            ? `${policeInfoRows}${policeDetailsRows}`
+                            : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
+                          }
                         </div>
                       </div>
                     </div>
@@ -3378,7 +3345,6 @@ const MapComponent = ({
     const pillClass = /^NR/i.test(packetTypeCode) ? "overlay-pill--normal" : "overlay-pill--alert";
 
     const packetTypeLabel = resolvePacketTypeLabel(focusEntry);
-    const packetTypeFullLabel = resolveAlertLabel(focusEntry);
     const nearestPoiLabel = resolveNearestPoiLabel(focusEntry);
     const nearestPolice = resolveNearestPoliceDetails(focusEntry);
 
@@ -3477,6 +3443,7 @@ const MapComponent = ({
             <button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
             <button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
             <button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
+            <button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
           </div>
 
           <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
@@ -3487,10 +3454,6 @@ const MapComponent = ({
                 <span class="overlay-label">Packet Status</span>
                 <span class="overlay-value">${packetTypeLabel}</span>
               </div>
-              <div class="overlay-row overlay-row--multiline">
-                <span class="overlay-label">Packet Type</span>
-                <span class="overlay-value overlay-value--multiline">${packetTypeFullLabel}</span>
-              </div>
               <div class="overlay-row">
                 <span class="overlay-label">Date</span>
                 <span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
@@ -3499,12 +3462,6 @@ const MapComponent = ({
                 <span class="overlay-label">Time</span>
                 <span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
               </div>
-              <div class="overlay-row overlay-row--multiline">
-                <span class="overlay-label">Address</span>
-                <span class="overlay-value overlay-value--multiline">${focusEntry.address}</span>
-              </div>
-              ${policeInfoRows}
-              ${policeDetailsRows}
               <div class="overlay-row">
                 <span class="overlay-label">Speed</span>
                 <span class="overlay-value">${speedValue} km/h</span>
@@ -3527,9 +3484,13 @@ const MapComponent = ({
 
           <div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
             <div class="overlay-section">
-              <div class="overlay-section-title">Geographic Information</div>
               <div class="overlay-section-body">
                 <div class="overlay-row overlay-row--multiline">
+                  <span class="overlay-label">Address</span>
+                  <span class="overlay-value overlay-value--multiline">${focusEntry.address || '-'}</span>
+                </div>
+                <div class="overlay-row overlay-row--multiline">
+                  <span class="overlay-label">Nearest Poi</span>
                   <span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
                 </div>
               </div>
@@ -3549,54 +3510,18 @@ const MapComponent = ({
                   <span class="overlay-label">Route ID</span>
                   <span class="overlay-value">${routeId}</span>
                 </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Route Code</span>
-                  <span class="overlay-value">${routeCode}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Type</span>
-                  <span class="overlay-value">${routeType}</span>
-                </div>
-                
-                <!-- Route Path -->
-                <div class="overlay-row">
-                  <span class="overlay-label">From</span>
-                  <span class="overlay-value">${startPoint}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">To</span>
-                  <span class="overlay-value">${endPoint}</span>
-                </div>
-                
-                <!-- Route Details -->
-                <div class="overlay-row">
-                  <span class="overlay-label">Distance</span>
-                  <span class="overlay-value">${distance}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Duration</span>
-                  <span class="overlay-value">${duration}</span>
-                </div>
-                
-                <!-- Stops -->
-                <div class="overlay-row overlay-row--multiline">
-                  <span class="overlay-label">Stops</span>
-                  <span class="overlay-value overlay-value--multiline">
-                    ${stops.length > 0 ? stops.map(stop => 
-                      typeof stop === 'object' ? (stop.name || stop.id || '-') : stop
-                    ).join(', ') : 'No stops available'}
-                  </span>
-                </div>
-                
-                <!-- Schedule & Operator -->
-                <div class="overlay-row">
-                  <span class="overlay-label">Schedule</span>
-                  <span class="overlay-value">${schedule}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Operator</span>
-                  <span class="overlay-value">${operator}</span>
-                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
+            <div class="overlay-section">
+              <div class="overlay-section-title">Police Support</div>
+              <div class="overlay-section-body">
+                ${policeInfoRows || policeDetailsRows
+                  ? `${policeInfoRows}${policeDetailsRows}`
+                  : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
+                }
               </div>
             </div>
           </div>

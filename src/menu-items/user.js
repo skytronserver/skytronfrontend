@@ -696,6 +696,15 @@ const user = {
           roles: ['superadmin', 'stateadmin']
         },
         {
+          id: 'activation-log-report',
+          title: 'Activation Log Report',
+          type: 'item',
+          url: '/reports/activation-log-report',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin']
+        },
+        {
           id: 'emergency-data-logs',
           title: 'Emergency Data Logs',
           type: 'item',

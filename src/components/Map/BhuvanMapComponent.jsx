@@ -1491,11 +1491,11 @@ const BhuvanMapComponent = ({
                 </div>
                 <div class="overlay-row">
                   <span class="overlay-label">Latitude</span>
-                  <span class="overlay-value">${entryData.latitude?.toFixed(6) || "-"}</span>
+                  <span class="overlay-value">${Number.isFinite(Number(entryData.latitude)) ? Number(entryData.latitude).toFixed(6) : "-"}</span>
                 </div>
                 <div class="overlay-row">
                   <span class="overlay-label">Longitude</span>
-                  <span class="overlay-value">${entryData.longitude?.toFixed(6) || "-"}</span>
+                  <span class="overlay-value">${Number.isFinite(Number(entryData.longitude)) ? Number(entryData.longitude).toFixed(6) : "-"}</span>
                 </div>
               </div>
               ${selectButtonHtml}
