@@ -57,6 +57,7 @@ import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import POIService from "../../services/POIService";
+import HomePageService from "../../services/HomePage";
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
@@ -236,7 +237,10 @@ const resolveNearestPoliceDetails = (entry) => {
 
   const name =
     entry?.nearestPoliceStation ||
+    entry?.nearest_police_station_name ||
+    entry?.nearest_police_name ||
     entry?.nearest_police?.data?.name ||
+    entry?.nearest_police?.name ||
     entry?.nearest_police_station?.data?.name ||
     entry?.nearest_police_station?.name ||
     entry?.nearestPolice?.name ||
@@ -244,7 +248,10 @@ const resolveNearestPoliceDetails = (entry) => {
 
   const address =
     entry?.nearestPoliceAddress ||
+    entry?.nearest_police_address ||
+    entry?.nearest_police_station_address ||
     entry?.nearest_police?.data?.address ||
+    entry?.nearest_police?.address ||
     entry?.nearest_police_station?.data?.address ||
     entry?.nearest_police_station?.address ||
     entry?.nearestPolice?.address ||
@@ -688,6 +695,7 @@ const MapComponent = ({
 }) => {
   const overlayElement = useRef();
   const lastClickedVehicleRef = useRef(null);
+  const trackingDetailCacheRef = useRef({});
   const [map, setMap] = useState(null);
   const [vectorLayer, setVectorLayer] = useState(null);
   const [dynamicOverlay, setDynamicOverlay] = useState(null);
@@ -767,6 +775,54 @@ const MapComponent = ({
   const [drawingPoints, setDrawingPoints] = useState([]);
   const tempPolyRef = useRef(null);
   const tempMarkersRef = useRef([]);
+
+  const fetchVehicleTrackingDetail = async (entry) => {
+    const imei =
+      entry?.imei ||
+      entry?.imei_no ||
+      entry?.imeiNo ||
+      entry?.device_tag_info?.device?.imei ||
+      entry?.device_tag_info?.imei;
+    const regno =
+      entry?.vehicle_registration_number ||
+      entry?.vehicle_reg_no ||
+      entry?.device_tag_info?.device?.vehicle_reg_no ||
+      entry?.device_tag_info?.vehicle?.vehicle_reg_no ||
+      "";
+
+    const cacheKey = imei ? `imei:${imei}` : regno ? `regno:${regno}` : null;
+    if (!cacheKey) return null;
+
+    const cached = trackingDetailCacheRef.current[cacheKey];
+    if (cached) return cached;
+
+    try {
+      const resp = await HomePageService.getLiveTracking_data({
+        imei: imei || "",
+        regno,
+        owner: "",
+        poi: "",
+        roads: "",
+        polygon: "",
+        category: "",
+        make: "",
+        dto_code: "",
+        poi_id: "",
+        in_range: false,
+        poi_as_polygon: false,
+      });
+
+      const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
+      if (detail) {
+        trackingDetailCacheRef.current[cacheKey] = detail;
+        return detail;
+      }
+    } catch (e) {
+      // best-effort only
+    }
+
+    return null;
+  };
 
   // Geocoding State
   const [geoSearchQuery, setGeoSearchQuery] = useState('');
@@ -2892,7 +2948,7 @@ const MapComponent = ({
             return;
           }
 
-          renderSingleView(uniqueItems[0]);
+          void renderSingleView(uniqueItems[0]);
           return; // Important: Stop processing OLD logic
         }
 
@@ -2935,7 +2991,7 @@ const MapComponent = ({
           dynamicOverlay.getElement().style.display = "block";
         }
 
-        function renderSingleView(item) {
+        async function renderSingleView(item) {
           const coordinates = item.coord;
 
           if (item.type === 'incident') {
@@ -2977,7 +3033,9 @@ const MapComponent = ({
             }
 
           } else {
-            const entryData = item.data;
+            const entryDataRaw = item.data;
+            const trackingDetail = await fetchVehicleTrackingDetail(entryDataRaw);
+            const entryData = trackingDetail || entryDataRaw;
             const speedValue = entryData.speed > 2 ? entryData.speed : 0;
             const packetTypeCode = resolveAlertCode(entryData) || "NR1";
             const alertLabel = resolveAlertLabel(entryData);
@@ -3039,20 +3097,14 @@ const MapComponent = ({
             const operator = routeData?.operator || entryData?.route_operator || "-";
 
             const policeInfoRows = [
-              nearestPoliceStationValue || nearestPolice?.name
-                ? `<div class="overlay-row"><span class="overlay-label">Nearest Police</span><span class="overlay-value">${nearestPolice?.name || nearestPoliceStationValue}</span></div>`
+              nearestPolice?.name && nearestPolice.name !== "-"
+                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Station</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
                 : "",
               nearestPolice?.address && nearestPolice.address !== "-"
-                ? `<div class="overlay-row overlay-row--multiline">
-                     <span class="overlay-label">Police Address</span>
-                     <span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span>
-                   </div>`
+                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Address</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
                 : "",
-              nearestPolice?.lat && nearestPolice?.lng && nearestPolice.lat !== "-" && nearestPolice.lng !== "-"
-                ? `<div class="overlay-row">
-                     <span class="overlay-label">Police Location</span>
-                     <span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span>
-                   </div>`
+              nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+                ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
                 : "",
               policeContactValue
                 ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`

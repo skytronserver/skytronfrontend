@@ -19,6 +19,7 @@ import Circle from "ol/geom/Circle";
 import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
+import HomePageService from "../../services/HomePage";
 
 /**
  * Reusable Bhuvan Map Component with OpenLayers
@@ -63,6 +64,8 @@ const BhuvanMapComponent = ({
     zoom = 10,
 }) => {
     const overlayElement = useRef();
+    const trackingDetailCacheRef = useRef({});
+    const lastClickedVehicleRef = useRef(null);
     const [map, setMap] = useState(null);
     const [vectorLayer, setVectorLayer] = useState(null);
     const [dynamicOverlay, setDynamicOverlay] = useState(null);
@@ -449,6 +452,264 @@ const BhuvanMapComponent = ({
     const calculateTimeDifference = (startTime, endTime) => {
         const timeDifferenceMillis = endTime - startTime;
         return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
+    };
+
+    const fetchVehicleTrackingDetail = async (entry) => {
+        const imei =
+            entry?.imei ||
+            entry?.imei_no ||
+            entry?.imeiNo ||
+            entry?.device_tag_info?.device?.imei ||
+            entry?.device_tag_info?.imei;
+        const regno =
+            entry?.vehicle_registration_number ||
+            entry?.vehicle_reg_no ||
+            entry?.device_tag_info?.device?.vehicle_reg_no ||
+            entry?.device_tag_info?.vehicle?.vehicle_reg_no ||
+            "";
+
+        const cacheKey = imei ? `imei:${imei}` : regno ? `regno:${regno}` : null;
+        if (!cacheKey) return null;
+
+        const cached = trackingDetailCacheRef.current[cacheKey];
+        if (cached) return cached;
+
+        try {
+            console.debug("[BhuvanMap] Fetching gps_track_data_api", { imei, regno });
+            const resp = await HomePageService.getLiveTracking_data({
+                imei: imei || "",
+                regno,
+                owner: "",
+                poi: "",
+                roads: "",
+                polygon: "",
+                category: "",
+                make: "",
+                dto_code: "",
+                poi_id: "",
+                in_range: false,
+                poi_as_polygon: false,
+            });
+
+            const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
+            if (detail) {
+                trackingDetailCacheRef.current[cacheKey] = detail;
+                return detail;
+            }
+        } catch (e) {
+            console.error("[BhuvanMap] gps_track_data_api fetch failed", e);
+        }
+
+        return null;
+    };
+
+    const resolveNearestPoliceAddress = (entry) => {
+        if (!entry) return "-";
+        return (
+            entry.nearestPoliceAddress ||
+            entry.nearest_police_address ||
+            entry.nearest_police_station_address ||
+            entry.nearest_police?.data?.address ||
+            entry.nearest_police?.address ||
+            entry.nearest_police_station?.data?.address ||
+            entry.nearest_police_station?.address ||
+            entry.nearestPolice?.address ||
+            "-"
+        );
+    };
+
+    const getPoiLatLon = (poi) => {
+        if (!poi?.location) return null;
+
+        try {
+            const parsed = typeof poi.location === "string" ? JSON.parse(poi.location) : poi.location;
+            if (!Array.isArray(parsed) || parsed.length === 0) return null;
+
+            const first = parsed[0];
+            if (!Array.isArray(first) || first.length < 2) return null;
+
+            const lat = Number(first[0]);
+            const lon = Number(first[1]);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+            return { lat, lon };
+        } catch (e) {
+            return null;
+        }
+    };
+
+    const haversineKm = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const toRad = (deg) => (deg * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+
+    const resolveNearestPoliceFromPois = (entry) => {
+        const lat = Number(entry?.latitude);
+        const lon = Number(entry?.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+        if (!Array.isArray(pois) || pois.length === 0) return null;
+
+        const policePois = pois.filter((poi) => {
+            const useType = String(poi?.use_type || "").toLowerCase();
+            return useType === "policestation" || useType === "police" || useType === "police_station" || useType === "police station";
+        });
+        if (policePois.length === 0) return null;
+
+        let best = null;
+        let bestDist = Infinity;
+        for (const poi of policePois) {
+            const coords = getPoiLatLon(poi);
+            if (!coords) continue;
+            const dist = haversineKm(lat, lon, coords.lat, coords.lon);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = poi;
+            }
+        }
+
+        if (!best) return null;
+        const name = best?.name ? String(best.name) : "-";
+        const address = best?.address || best?.description || "-";
+        return { name, address: String(address), distanceKm: bestDist };
+    };
+
+    const mergePoliceFields = (baseEntry, detailEntry) => {
+        if (!baseEntry) return baseEntry;
+        if (!detailEntry) return baseEntry;
+
+        const merged = { ...baseEntry };
+
+        const keys = [
+            "nearestPoliceAddress",
+            "nearest_police_address",
+            "nearest_police_station_address",
+            "nearestPoliceStation",
+            "nearest_police_station_name",
+            "nearest_police_name",
+            "nearest_police",
+            "nearest_police_station",
+            "nearestPolice",
+            "nearestPoliceLat",
+            "nearestPoliceLng",
+        ];
+
+        for (const key of keys) {
+            const value = detailEntry?.[key];
+            if (value !== undefined && value !== null && value !== "") {
+                merged[key] = value;
+            }
+        }
+
+        return merged;
+    };
+
+    const renderVehicleOverlay = (entryData, coordinates, alertType, alertClass, speedValue, selectButtonHtml) => {
+        const policeAddressRaw = resolveNearestPoliceAddress(entryData);
+        const poiFallback = policeAddressRaw === "-" ? resolveNearestPoliceFromPois(entryData) : null;
+        const policeAddress = poiFallback
+            ? (poiFallback.name && poiFallback.address && poiFallback.address !== "-"
+                ? `${poiFallback.name} - ${poiFallback.address}`
+                : poiFallback.name || poiFallback.address || "-")
+            : policeAddressRaw;
+
+        const safeValue = (value) => {
+            if (value === null || value === undefined) return "-";
+            if (typeof value === "string" && value.trim() === "") return "-";
+            return String(value);
+        };
+
+        const resolveVehicleNo = (entry) =>
+            safeValue(
+                entry?.vehicle_registration_number ||
+                entry?.vehicle_reg_no ||
+                entry?.vehicle_no ||
+                entry?.device_tag_info?.device?.vehicle_reg_no ||
+                entry?.device_tag_info?.vehicle?.vehicle_reg_no
+            );
+
+        const resolveDateTime = (entry) => {
+            const raw = entry?.entry_time || entry?.timestamp || entry?.time_stamp;
+            if (!raw) {
+                return { date: safeValue(entry?.date), time: safeValue(entry?.time) };
+            }
+
+            const d = new Date(raw);
+            if (Number.isNaN(d.getTime())) {
+                return { date: safeValue(entry?.date), time: safeValue(entry?.time) };
+            }
+
+            const pad2 = (n) => String(n).padStart(2, "0");
+            const date = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+            const time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+            return { date, time };
+        };
+
+        const { date, time } = resolveDateTime(entryData);
+        const battery = safeValue(
+            entryData?.battery ||
+            entryData?.battery_voltage ||
+            (entryData?.internal_battery_voltage || entryData?.main_input_voltage
+                ? `${safeValue(entryData?.internal_battery_voltage)} - ${safeValue(entryData?.main_input_voltage)}`
+                : "-")
+        );
+
+        const lat = Number(entryData?.latitude);
+        const lon = Number(entryData?.longitude);
+        const latText = Number.isFinite(lat) ? lat.toFixed(6) : "-";
+        const lonText = Number.isFinite(lon) ? lon.toFixed(6) : "-";
+
+        const el = document.getElementById("overlay-content");
+        if (!el) return;
+
+        el.innerHTML = `
+            <div class="overlay-card">
+              <div class="overlay-header">
+                <div class="overlay-title">${resolveVehicleNo(entryData)}</div>
+                <div class="overlay-pill ${alertClass}">${alertType}</div>
+              </div>
+              <div class="overlay-body">
+                <div class="overlay-row">
+                  <span class="overlay-label">Date</span>
+                  <span class="overlay-value">${safeValue(date)}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Time</span>
+                  <span class="overlay-value">${safeValue(time)}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Speed</span>
+                  <span class="overlay-value">${speedValue} km/h</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Battery</span>
+                  <span class="overlay-value">${battery}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Latitude</span>
+                  <span class="overlay-value">${latText}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Longitude</span>
+                  <span class="overlay-value">${lonText}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Nearest Police Address</span>
+                  <span class="overlay-value">${policeAddress}</span>
+                </div>
+              </div>
+              ${selectButtonHtml}
+            </div>
+          `;
+
+        dynamicOverlay.setPosition(coordinates);
+        dynamicOverlay.getElement().style.display = "block";
     };
 
     // Set the correct icon style based on data conditions and vehicle type
@@ -1463,60 +1724,36 @@ const BhuvanMapComponent = ({
                         </button>
                     ` : '';
 
-                    // Set overlay content with styled card layout
-                    document.getElementById("overlay-content").innerHTML = `
-            <div class="overlay-card">
-              <div class="overlay-header">
-                <div class="overlay-title">${entryData.vehicle_registration_number || "-"
-                        }</div>
-                <div class="overlay-pill ${alertClass}">${alertType}</div>
-              </div>
-              <div class="overlay-body">
-                <div class="overlay-row">
-                  <span class="overlay-label">Date</span>
-                  <span class="overlay-value">${entryData.date || "-"}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Time</span>
-                  <span class="overlay-value">${entryData.time || "-"}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Speed</span>
-                  <span class="overlay-value">${speedValue} km/h</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Battery</span>
-                  <span class="overlay-value">${entryData.internal_battery_voltage || "-"
-                        } - ${entryData.main_input_voltage || "-"}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Latitude</span>
-                  <span class="overlay-value">${Number.isFinite(Number(entryData.latitude)) ? Number(entryData.latitude).toFixed(6) : "-"}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Longitude</span>
-                  <span class="overlay-value">${Number.isFinite(Number(entryData.longitude)) ? Number(entryData.longitude).toFixed(6) : "-"}</span>
-                </div>
-              </div>
-              ${selectButtonHtml}
-            </div>
-          `;
+                    lastClickedVehicleRef.current = {
+                        imei: entryData?.imei,
+                        coordinates,
+                    };
 
-                    dynamicOverlay.setPosition(coordinates);
-                    dynamicOverlay.getElement().style.display = "block";
+                    void (async () => {
+                        const trackingDetail = await fetchVehicleTrackingDetail(entryData);
+                        const resolvedEntry = mergePoliceFields(entryData, trackingDetail);
+                        renderVehicleOverlay(
+                            resolvedEntry,
+                            coordinates,
+                            alertType,
+                            alertClass,
+                            speedValue,
+                            selectButtonHtml
+                        );
 
-                    // Add click handler for select button if it exists
-                    if (onMarkerClick) {
-                        setTimeout(() => {
-                            const selectBtn = document.getElementById('select-vehicle-btn');
-                            if (selectBtn) {
-                                selectBtn.onclick = () => {
-                                    onMarkerClick(entryData);
-                                    dynamicOverlay.getElement().style.display = "none";
-                                };
-                            }
-                        }, 0);
-                    }
+                        // Add click handler for select button if it exists
+                        if (onMarkerClick) {
+                            setTimeout(() => {
+                                const selectBtn = document.getElementById('select-vehicle-btn');
+                                if (selectBtn) {
+                                    selectBtn.onclick = () => {
+                                        onMarkerClick(resolvedEntry);
+                                        dynamicOverlay.getElement().style.display = "none";
+                                    };
+                                }
+                            }, 0);
+                        }
+                    })();
 
                     // Zoom to street level when clicked (zoom level 18)
                     map.getView().animate({
@@ -2087,18 +2324,24 @@ const BhuvanMapComponent = ({
           justify-content: space-between;
           align-items: baseline;
           gap: 8px;
+          min-width: 0;
         }
 
         .overlay-label {
           font-size: 11px;
           color: #6b7280;
+          flex: 0 0 52px;
         }
 
         .overlay-value {
           font-size: 11px;
           font-weight: 500;
           color: #111827;
-          white-space: nowrap;
+          flex: 1 1 auto;
+          min-width: 0;
+          white-space: normal;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
       `}</style>
         </div>
