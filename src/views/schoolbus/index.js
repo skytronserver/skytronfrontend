@@ -5,3 +5,7 @@ export { default as SchoolBusTagging } from './SchoolBusTagging';
 export { default as RouteManagement } from './RouteManagement';
 export { default as BusAssignment } from './BusAssignment';
 export { default as ProfileManagement } from './ProfileManagement';
+export { default as SchoolOnboarding } from './SchoolOnboarding';
+export { default as SchoolHolidays } from './SchoolHolidays';
+export { default as SchoolReports } from './SchoolReports';
+export { default as AlertsCenter } from './AlertsCenter';

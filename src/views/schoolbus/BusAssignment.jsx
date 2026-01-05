@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Grid,
     Box,
@@ -10,12 +10,15 @@ import {
     IconButton,
     Alert,
     Divider,
-    Chip
+    Chip,
+    Tooltip
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import MainCard from '../../ui-component/cards/MainCard';
@@ -24,27 +27,52 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import { busAssignmentFields } from '../../formjson/schoolbus';
+import SchoolBusService from '../../services/SchoolBusService';
 
 const BusAssignment = () => {
     const theme = useTheme();
     const [openAssign, setOpenAssign] = useState(false);
+    const [mode, setMode] = useState('assign');
+    const [selectedAssignment, setSelectedAssignment] = useState(null);
+    const [openConfirm, setOpenConfirm] = useState(false);
+    const [confirmConfig, setConfirmConfig] = useState({ title: '', message: '', onConfirm: null });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const t = (key) => key;
 
-    // Mock data
-    const [buses] = useState([
-        { id: '1', regNo: 'DL 1PC 1234', driverName: 'Suresh Kumar' },
-        { id: '2', regNo: 'DL 1PB 5678', driverName: 'Amit Singh' },
-    ]);
+    const [buses, setBuses] = useState([]);
+    const [routes, setRoutes] = useState([]);
+    const [assignments, setAssignments] = useState([]);
 
-    const [routes] = useState([
-        { id: '1', name: 'Route A - North' },
-        { id: '2', name: 'Route B - South' },
-    ]);
+    const resolveBusId = (busRegNo) => buses.find((b) => String(b.regNo) === String(busRegNo))?.id || '';
+    const resolveRouteId = (routeName) => routes.find((r) => String(r.name) === String(routeName))?.id || '';
 
-    const [assignments] = useState([
-        { id: '1', busRegNo: 'DL 1PC 1234', driverName: 'Suresh Kumar', routeName: 'Route A - North', assignmentDate: '2025-01-10', status: 'Active' },
-    ]);
+    useEffect(() => {
+        let mounted = true;
+        setError('');
+        setLoading(true);
+
+        Promise.all([SchoolBusService.getBuses(), SchoolBusService.getRouteOptions(), SchoolBusService.getAssignments()])
+            .then(([bRes, rRes, aRes]) => {
+                if (!mounted) return;
+                setBuses(Array.isArray(bRes?.data) ? bRes.data : []);
+                setRoutes(Array.isArray(rRes?.data) ? rRes.data : []);
+                setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
+            })
+            .catch((e) => {
+                if (!mounted) return;
+                setError(e?.message || 'Failed to load assignment data');
+            })
+            .finally(() => {
+                if (!mounted) return;
+                setLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const columns = [
         { name: 'busRegNo', label: 'Vehicle Reg No' },
@@ -64,17 +92,73 @@ const BusAssignment = () => {
             name: 'id',
             label: 'Actions',
             options: {
-                customBodyRender: () => (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button size="small" variant="text" color="primary">Re-assign</Button>
-                        <Button size="small" variant="text" color="error">Untag</Button>
-                    </Box>
-                )
+                customBodyRender: (value, tableMeta) => {
+                    const rowIndex = tableMeta?.rowIndex;
+                    const assignment = typeof rowIndex === 'number' ? assignments?.[rowIndex] : null;
+                    const busId = assignment ? resolveBusId(assignment.busRegNo) : '';
+
+                    return (
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <Tooltip title="Re-assign">
+                                <span>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => {
+                                            if (!assignment) return;
+                                            setSelectedAssignment(assignment);
+                                            setMode('reassign');
+                                            setOpenAssign(true);
+                                        }}
+                                        disabled={!assignment}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+
+                            <Tooltip title="Untag">
+                                <span>
+                                    <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => {
+                                            if (!assignment || !busId) return;
+                                            setConfirmConfig({
+                                                title: 'Untag Bus',
+                                                message: 'Are you sure you want to untag this bus from its route?',
+                                                onConfirm: async () => {
+                                                    setOpenConfirm(false);
+                                                    setError('');
+                                                    setLoading(true);
+                                                    await SchoolBusService.untagBus(busId);
+                                                    const aRes = await SchoolBusService.getAssignments();
+                                                    setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
+                                                }
+                                            });
+                                            setOpenConfirm(true);
+                                        }}
+                                        disabled={!assignment || !busId}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </Box>
+                    );
+                }
             }
         }
     ];
 
     const fieldConfig = busAssignmentFields(t, buses, routes);
+
+    const initialFormValues =
+        mode === 'reassign' && selectedAssignment
+            ? {
+                  busId: resolveBusId(selectedAssignment.busRegNo),
+                  routeId: resolveRouteId(selectedAssignment.routeName)
+              }
+            : { busId: '', routeId: '' };
 
     return (
         <Box sx={{ p: 3 }}>
@@ -93,11 +177,38 @@ const BusAssignment = () => {
                                 </Box>
                             </Box>
                             <AnimateButton>
-                                <Button variant="contained" color="warning" startIcon={<DirectionsBusIcon />} onClick={() => setOpenAssign(true)}>New Assignment</Button>
+                                <Button
+                                    variant="contained"
+                                    color="warning"
+                                    startIcon={<DirectionsBusIcon />}
+                                    onClick={() => {
+                                        setMode('assign');
+                                        setSelectedAssignment(null);
+                                        setOpenAssign(true);
+                                    }}
+                                >
+                                    New Assignment
+                                </Button>
                             </AnimateButton>
                         </Box>
                     </MainCard>
                 </Grid>
+
+                {error && (
+                    <Grid item xs={12}>
+                        <Alert severity="error" sx={{ borderRadius: 2 }}>
+                            {error}
+                        </Alert>
+                    </Grid>
+                )}
+
+                {loading && (
+                    <Grid item xs={12}>
+                        <Alert severity="info" sx={{ borderRadius: 2 }}>
+                            Loading assignment data...
+                        </Alert>
+                    </Grid>
+                )}
 
                 {/* Info Column */}
                 <Grid item xs={12}>
@@ -120,19 +231,63 @@ const BusAssignment = () => {
             </Grid>
 
             {/* Assign Bus Dialog */}
-            <Dialog open={openAssign} onClose={() => setOpenAssign(false)} maxWidth="sm" fullWidth>
+            <Dialog
+                open={openAssign}
+                onClose={() => {
+                    setOpenAssign(false);
+                    setSelectedAssignment(null);
+                    setMode('assign');
+                }}
+                maxWidth="sm"
+                fullWidth
+            >
                 <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography variant="h4">Assign Bus to Route</Typography>
-                    <IconButton onClick={() => setOpenAssign(false)}><CloseIcon /></IconButton>
+                    <Typography variant="h4">{mode === 'reassign' ? 'Re-assign Bus' : 'Assign Bus to Route'}</Typography>
+                    <IconButton
+                        onClick={() => {
+                            setOpenAssign(false);
+                            setSelectedAssignment(null);
+                            setMode('assign');
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ busId: '', routeId: '' }}
+                        enableReinitialize
+                        initialValues={initialFormValues}
                         validationSchema={Yup.object().shape({
                             busId: fieldConfig.busId.validation,
                             routeId: fieldConfig.routeId.validation
                         })}
-                        onSubmit={(values) => { console.log(values); setOpenAssign(false); }}
+                        onSubmit={(values, { setSubmitting, resetForm }) => {
+                            setError('');
+                            setLoading(true);
+
+                            const run = async () => {
+                                if (mode === 'reassign') {
+                                    await SchoolBusService.reassignBus(values.busId, { routeId: values.routeId });
+                                } else {
+                                    await SchoolBusService.assignBus(values);
+                                }
+                                const aRes = await SchoolBusService.getAssignments();
+                                setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
+                                resetForm();
+                                setOpenAssign(false);
+                                setSelectedAssignment(null);
+                                setMode('assign');
+                            };
+
+                            Promise.resolve(run())
+                                .catch((e) => {
+                                    setError(e?.message || 'Assignment failed');
+                                })
+                                .finally(() => {
+                                    setLoading(false);
+                                    setSubmitting(false);
+                                });
+                        }}
                     >
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
@@ -140,12 +295,53 @@ const BusAssignment = () => {
                                 <FormField fieldConfig={fieldConfig.routeId} formik={formik} />
                                 <Box sx={{ mt: 3 }}>
                                     <AnimateButton>
-                                        <Button fullWidth variant="contained" color="warning" type="submit">Complete Assignment</Button>
+                                        <Button fullWidth variant="contained" color="warning" type="submit">{mode === 'reassign' ? 'Save Changes' : 'Complete Assignment'}</Button>
                                     </AnimateButton>
                                 </Box>
+                                {error && (
+                                    <Box sx={{ mt: 2 }}>
+                                        <Alert severity="error" sx={{ borderRadius: 2 }}>
+                                            {error}
+                                        </Alert>
+                                    </Box>
+                                )}
                             </form>
                         )}
                     </Formik>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="h4">{confirmConfig.title}</Typography>
+                    <IconButton onClick={() => setOpenConfirm(false)}><CloseIcon /></IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
+                    <Typography variant="body1">{confirmConfig.message}</Typography>
+                    <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+                        <Button fullWidth variant="outlined" onClick={() => setOpenConfirm(false)} disabled={loading}>Cancel</Button>
+                        <AnimateButton>
+                            <Button
+                                fullWidth
+                                variant="contained"
+                                color="error"
+                                onClick={() => {
+                                    const fn = confirmConfig.onConfirm;
+                                    if (!fn) return;
+                                    Promise.resolve(fn())
+                                        .catch((e) => {
+                                            setError(e?.message || 'Action failed');
+                                        })
+                                        .finally(() => {
+                                            setLoading(false);
+                                        });
+                                }}
+                                disabled={loading}
+                            >
+                                Confirm
+                            </Button>
+                        </AnimateButton>
+                    </Box>
                 </DialogContent>
             </Dialog>
         </Box>

@@ -258,10 +258,10 @@ const ListSimActivation = () => {
             Configured IPs
           </Typography>
           <Typography variant="body2">
-            EIP: {whitelistedIps?.eip || "-"}
+            Emergency/Fallback Server IP: {whitelistedIps?.eip || "-"}
           </Typography>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            PIP: {whitelistedIps?.pip || "-"}
+            Primary Server IP: {whitelistedIps?.pip || "-"}
           </Typography>
           <FormControlLabel
             control={

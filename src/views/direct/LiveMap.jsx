@@ -4657,12 +4657,6 @@ const MapComponent = ({
       </div>
 
       {/* --- Attribution Logos --- */}
-      <Box sx={{ position: 'absolute', bottom: 4, left: 4, zIndex: 1000, pointerEvents: 'none', display: 'flex', alignItems: 'end', gap: 1 }}>
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ height: '40px' }} alt="InSpace" />
-      </Box>
-      <Box sx={{ position: 'absolute', top: 0, right: 0, zIndex: 1000, pointerEvents: 'none' }}>
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ height: '50px' }} alt="ISRO" />
-      </Box>
       <Box sx={{ position: 'absolute', bottom: 4, right: 4, zIndex: 1000, pointerEvents: 'none' }}>
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ height: '50px' }} alt="Skytron" />
       </Box>

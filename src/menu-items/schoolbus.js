@@ -28,6 +28,42 @@ const schoolbus = {
                     roles: ['superadmin', 'stateadmin', 'schooladmin']
                 },
                 {
+                    id: 'bus-tagging',
+                    title: 'Bus Tagging',
+                    type: 'item',
+                    url: '/schoolbus/bus-tagging',
+                    icon: icons.IconLockAccess,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                },
+                {
+                    id: 'route-management',
+                    title: 'Route Management',
+                    type: 'item',
+                    url: '/schoolbus/route-management',
+                    icon: icons.IconRoute,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                },
+                {
+                    id: 'bus-assignment',
+                    title: 'Bus Assignment',
+                    type: 'item',
+                    url: '/schoolbus/bus-assignment',
+                    icon: icons.IconBus,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                },
+                {
+                    id: 'profile-management',
+                    title: 'Profile Management',
+                    type: 'item',
+                    url: '/schoolbus/profile-management',
+                    icon: icons.IconUserCircle,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                },
+                {
                     id: 'parent-tracking',
                     title: 'Parent Tracking',
                     type: 'item',
@@ -35,43 +71,7 @@ const schoolbus = {
                     icon: icons.IconMapPin,
                     breadcrumbs: false,
                     roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
-                },
-                // {
-                //     id: 'bus-tagging',
-                //     title: 'Bus Tagging',
-                //     type: 'item',
-                //     url: '/schoolbus/bus-tagging',
-                //     icon: icons.IconLockAccess,
-                //     breadcrumbs: false,
-                //     roles: ['superadmin', 'stateadmin', 'schooladmin']
-                // },
-                // {
-                //     id: 'route-management',
-                //     title: 'Route Management',
-                //     type: 'item',
-                //     url: '/schoolbus/route-management',
-                //     icon: icons.IconRoute,
-                //     breadcrumbs: false,
-                //     roles: ['superadmin', 'stateadmin', 'schooladmin']
-                // },
-                // {
-                //     id: 'bus-assignment',
-                //     title: 'Bus Assignment',
-                //     type: 'item',
-                //     url: '/schoolbus/bus-assignment',
-                //     icon: icons.IconBus,
-                //     breadcrumbs: false,
-                //     roles: ['superadmin', 'stateadmin', 'schooladmin']
-                // },
-                // {
-                //     id: 'profile-management',
-                //     title: 'Profile Management',
-                //     type: 'item',
-                //     url: '/schoolbus/profile-management',
-                //     icon: icons.IconUserCircle,
-                //     breadcrumbs: false,
-                //     roles: ['superadmin', 'stateadmin', 'schooladmin']
-                // }
+                }
             ]
         }
     ]

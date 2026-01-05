@@ -1604,28 +1604,6 @@ const TripPlanning = () => {
           boxShadow: 1
         }}>
           <img 
-            src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} 
-            style={{ 
-              position: 'absolute', 
-              bottom: 16, 
-              left: 16, 
-              width: '120px', 
-              zIndex: 1000,
-              filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
-            }} 
-          />
-          <img 
-            src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} 
-            style={{ 
-              position: 'absolute', 
-              top: 16, 
-              right: 16, 
-              width: '70px', 
-              zIndex: 1000,
-              filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
-            }} 
-          />
-          <img 
             src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} 
             style={{ 
               position: 'absolute', 

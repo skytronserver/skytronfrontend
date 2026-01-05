@@ -1440,8 +1440,6 @@ const RouteETA = () => {
           </Box>
 
           {/* Logos */}
-          <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, height: '50px', width: 'auto', zIndex: 1 }} alt="InSpace" />
-          <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, height: '50px', width: 'auto', zIndex: 1 }} alt="ISRO" />
           <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '50px', width: 'auto', zIndex: 1, backgroundColor: 'transparent' }} alt="Skytron" />
         </Box>
 

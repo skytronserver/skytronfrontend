@@ -45,7 +45,7 @@ export const parentProfileFields = (t) => ({
     },
 });
 
-export const studentProfileFields = (t, parents = []) => ({
+export const studentProfileFields = (t, parents = [], routes = [], stops = []) => ({
     name: {
         name: "name",
         type: "text",
@@ -81,11 +81,25 @@ export const studentProfileFields = (t, parents = []) => ({
         options: parents.map(p => ({ label: `${p.name} - ${p.mobile}`, value: p.id })),
         validation: Yup.string().required("Parent linking is required"),
     },
-    busStop: {
-        name: "busStop",
-        type: "text",
-        label: "Designated Bus Stop",
-        placeholder: "Select or enter bus stop",
-        validation: Yup.string().required("Bus stop is required"),
+    routeId: {
+        name: "routeId",
+        type: "select",
+        label: "Assign Route",
+        options: routes.map(r => ({ label: r.routeName || r.name, value: r.id })),
+        validation: Yup.string().required("Route allocation is required"),
+    },
+    pickupStopId: {
+        name: "pickupStopId",
+        type: "select",
+        label: "Pickup Stop",
+        options: stops.map(s => ({ label: `${s.stopName} (${s.timing || ''})`, value: s.id })),
+        validation: Yup.string().required("Pickup stop is required"),
+    },
+    dropStopId: {
+        name: "dropStopId",
+        type: "select",
+        label: "Drop Stop",
+        options: stops.map(s => ({ label: `${s.stopName} (${s.timing || ''})`, value: s.id })),
+        validation: Yup.string().required("Drop stop is required"),
     },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Grid,
     Box,
@@ -26,23 +26,57 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import { parentProfileFields, studentProfileFields } from '../../formjson/schoolprofiles';
+import SchoolBusService from '../../services/SchoolBusService';
 
 const ProfileManagement = () => {
     const theme = useTheme();
     const [tabValue, setTabValue] = useState(0);
     const [openParent, setOpenParent] = useState(false);
     const [openStudent, setOpenStudent] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const t = (key) => key;
 
-    // Mock data
-    const [parents] = useState([
-        { id: '1', name: 'Rajesh Kumar', email: 'rajesh@example.com', mobile: '9876543210', address: 'Delhi Sector 5', lat: '28.6139', lon: '77.2090' },
-    ]);
+    const [parents, setParents] = useState([]);
+    const [students, setStudents] = useState([]);
+    const [routes, setRoutes] = useState([]);
+    const [routeStops, setRouteStops] = useState([]);
 
-    const [students] = useState([
-        { id: '1', name: 'Aarav Kumar', class: '5th', section: 'A', rollNo: '15', parentName: 'Rajesh Kumar', busStop: 'Sector 5 Gate' },
-    ]);
+    const loadStops = async (routeId) => {
+        if (!routeId) {
+            setRouteStops([]);
+            return;
+        }
+        const res = await SchoolBusService.getStops(routeId);
+        setRouteStops(Array.isArray(res?.data) ? res.data : []);
+    };
+
+    useEffect(() => {
+        let mounted = true;
+        setError('');
+        setLoading(true);
+
+        Promise.all([SchoolBusService.getParents(), SchoolBusService.getStudents(), SchoolBusService.getRoutes()])
+            .then(([pRes, sRes, rRes]) => {
+                if (!mounted) return;
+                setParents(Array.isArray(pRes?.data) ? pRes.data : []);
+                setStudents(Array.isArray(sRes?.data) ? sRes.data : []);
+                setRoutes(Array.isArray(rRes?.data) ? rRes.data : []);
+            })
+            .catch((e) => {
+                if (!mounted) return;
+                setError(e?.message || 'Failed to load profiles');
+            })
+            .finally(() => {
+                if (!mounted) return;
+                setLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const parentColumns = [
         { name: 'name', label: 'Parent Name' },
@@ -59,7 +93,9 @@ const ProfileManagement = () => {
         { name: 'section', label: 'Section' },
         { name: 'rollNo', label: 'Roll No' },
         { name: 'parentName', label: 'Linked Parent' },
-        { name: 'busStop', label: 'Designated Stop' },
+        { name: 'routeName', label: 'Assigned Route' },
+        { name: 'pickupStopName', label: 'Pickup Stop' },
+        { name: 'dropStopName', label: 'Drop Stop' },
     ];
 
     const handleTabChange = (event, newValue) => setTabValue(newValue);
@@ -98,6 +134,22 @@ const ProfileManagement = () => {
                         School Admins can create Parent profiles with geo-location for geofence alerts. Multiple students can be linked to a single parent account.
                     </Alert>
                 </Grid>
+
+                {error && (
+                    <Grid item xs={12}>
+                        <Alert severity="error" sx={{ borderRadius: 2 }}>
+                            {error}
+                        </Alert>
+                    </Grid>
+                )}
+
+                {loading && (
+                    <Grid item xs={12}>
+                        <Alert severity="info" sx={{ borderRadius: 2 }}>
+                            Loading profiles...
+                        </Alert>
+                    </Grid>
+                )}
 
                 {/* Tabs & Tables */}
                 <Grid item xs={12}>
@@ -140,7 +192,24 @@ const ProfileManagement = () => {
                     <Formik
                         initialValues={{ name: '', email: '', mobile: '', address: '', lat: '', lon: '' }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(parentProfileFields(t)).map(([k, v]) => [k, v.validation])))}
-                        onSubmit={(values) => { console.log(values); setOpenParent(false); }}
+                        onSubmit={(values, { setSubmitting, resetForm }) => {
+                            setError('');
+                            setLoading(true);
+                            SchoolBusService.createParent(values)
+                                .then(() => SchoolBusService.getParents())
+                                .then((pRes) => {
+                                    setParents(Array.isArray(pRes?.data) ? pRes.data : []);
+                                    resetForm();
+                                    setOpenParent(false);
+                                })
+                                .catch((e) => {
+                                    setError(e?.message || 'Failed to create parent profile');
+                                })
+                                .finally(() => {
+                                    setLoading(false);
+                                    setSubmitting(false);
+                                });
+                        }}
                     >
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
@@ -170,16 +239,48 @@ const ProfileManagement = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ name: '', class: '', section: '', rollNo: '', parentId: '', busStop: '' }}
-                        validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(studentProfileFields(t, parents)).map(([k, v]) => [k, v.validation])))}
-                        onSubmit={(values) => { console.log(values); setOpenStudent(false); }}
+                        initialValues={{ name: '', class: '', section: '', rollNo: '', parentId: '', routeId: '', pickupStopId: '', dropStopId: '' }}
+                        validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(studentProfileFields(t, parents, routes, routeStops)).map(([k, v]) => [k, v.validation])))}
+                        onSubmit={(values, { setSubmitting, resetForm }) => {
+                            setError('');
+                            setLoading(true);
+                            SchoolBusService.createStudent(values)
+                                .then(() => SchoolBusService.getStudents())
+                                .then((sRes) => {
+                                    setStudents(Array.isArray(sRes?.data) ? sRes.data : []);
+                                    resetForm();
+                                    setOpenStudent(false);
+                                    setRouteStops([]);
+                                })
+                                .catch((e) => {
+                                    setError(e?.message || 'Failed to create student profile');
+                                })
+                                .finally(() => {
+                                    setLoading(false);
+                                    setSubmitting(false);
+                                });
+                        }}
                     >
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
                                 <Grid container spacing={1}>
-                                    {Object.values(studentProfileFields(t, parents)).map(field => (
+                                    {Object.values(studentProfileFields(t, parents, routes, routeStops)).map((field) => (
                                         <Grid item xs={12} key={field.name}>
-                                            <FormField fieldConfig={field} formik={formik} />
+                                            <FormField
+                                                fieldConfig={field}
+                                                formik={formik}
+                                                handleOptionChange={async (event) => {
+                                                    if (field.name !== 'routeId') return;
+                                                    const routeId = event?.target?.value;
+                                                    formik.setFieldValue('pickupStopId', '');
+                                                    formik.setFieldValue('dropStopId', '');
+                                                    try {
+                                                        await loadStops(routeId);
+                                                    } catch (e) {
+                                                        setError(e?.message || 'Failed to load stops');
+                                                    }
+                                                }}
+                                            />
                                         </Grid>
                                     ))}
                                     <Grid item xs={12} sx={{ mt: 2 }}>

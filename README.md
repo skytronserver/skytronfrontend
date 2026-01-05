@@ -21,7 +21,15 @@ See the section about [running tests](https://facebook.github.io/create-react-ap
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
+Builds the app for production to the `build` folder.
+
+## School Bus Module (Frontend Integration)
+
+The School Bus pages under `src/views/schoolbus` are wired through `src/services/SchoolBusService.js`.
+
+- **Default behavior**: uses an in-memory mock adapter so the UI works even when backend APIs are not available.
+- **Switch to real APIs**: set the environment variable `REACT_APP_USE_SCHOOLBUS_MOCK=false` and restart the dev server.
+
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
 The build is minified and the filenames include the hashes.\

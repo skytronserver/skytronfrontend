@@ -49,6 +49,9 @@ import SchoolBusTagging from "../views/schoolbus/SchoolBusTagging";
 import RouteManagement from "../views/schoolbus/RouteManagement";
 import BusAssignment from "../views/schoolbus/BusAssignment";
 import ProfileManagement from "../views/schoolbus/ProfileManagement";
+import SchoolHolidays from "../views/schoolbus/SchoolHolidays";
+import SchoolReports from "../views/schoolbus/SchoolReports";
+import AlertsCenter from "../views/schoolbus/AlertsCenter";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -147,7 +150,7 @@ const MainRoutes = {
     {
       path: "/history-playback",
       element: <HistoryPlayback />,
-      roles: ["superadmin", "stateadmin", "owner", "dto"],
+      roles: ["superadmin", "stateadmin", "owner", "dto", "dtorto"],
     },
     {
       path: "/route-fixing",
@@ -301,6 +304,21 @@ const MainRoutes = {
     {
       path: '/schoolbus/profile-management',
       element: <ProfileManagement />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/holidays',
+      element: <SchoolHolidays />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/alerts',
+      element: <AlertsCenter />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/reports',
+      element: <SchoolReports />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
     }
 

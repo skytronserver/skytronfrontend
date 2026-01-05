@@ -1068,7 +1068,8 @@ const TripViewer = () => {
                   width: "100%",
                   height: "100%",
                   visibility: showMap ? 'visible' : 'hidden'
-                }}>
+                }}
+              >
                 {/* Layer Control Panel */}
                 <Button
                   onClick={() => setMapType(prev => prev === "normal" ? "satellite" : "normal")}
@@ -1092,8 +1093,6 @@ const TripViewer = () => {
                   {mapType === "normal" ? "Satellite View" : "Normal View"}
                 </Button>
 
-                <img src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`} style={{ position: 'absolute', bottom: 0, left: 0, width: '120px', zIndex: 1000 }} />
-                <img src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`} style={{ position: 'absolute', top: 0, right: 0, width: '70px', zIndex: 1000 }} />
                 <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
               </Box>
             </Paper>
@@ -1104,4 +1103,4 @@ const TripViewer = () => {
   );
 };
 
-export default TripViewer; 
+export default TripViewer;

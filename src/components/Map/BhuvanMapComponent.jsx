@@ -2046,30 +2046,6 @@ const BhuvanMapComponent = ({
                         {showLogos && (
                             <>
                                 <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
-                                    style={{
-                                        position: "absolute",
-                                        bottom: 0,
-                                        left: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                    }}
-                                    alt="InSpace Logo"
-                                />
-                                <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
-                                    style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        right: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                    }}
-                                    alt="ISRO Logo"
-                                />
-                                <img
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
@@ -2125,30 +2101,6 @@ const BhuvanMapComponent = ({
                         {showLogos && (
                             <>
                                 <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
-                                    style={{
-                                        position: "absolute",
-                                        bottom: 0,
-                                        left: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                    }}
-                                    alt="InSpace Logo"
-                                />
-                                <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
-                                    style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        right: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                    }}
-                                    alt="ISRO Logo"
-                                />
-                                <img
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
@@ -2203,30 +2155,6 @@ const BhuvanMapComponent = ({
                         )}
                         {showLogos && (
                             <>
-                                <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/inspace.png`}
-                                    style={{
-                                        position: "absolute",
-                                        bottom: 0,
-                                        left: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                    }}
-                                    alt="InSpace Logo"
-                                />
-                                <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/isro.png`}
-                                    style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        right: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                    }}
-                                    alt="ISRO Logo"
-                                />
                                 <img
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{

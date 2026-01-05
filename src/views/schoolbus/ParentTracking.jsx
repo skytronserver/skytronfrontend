@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Grid,
     Box,
@@ -18,22 +18,52 @@ import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import MainCard from '../../ui-component/cards/MainCard';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { gridSpacing } from '../../store/constant';
+import SchoolBusService from '../../services/SchoolBusService';
 
 const ParentTracking = () => {
     const theme = useTheme();
     const [tabValue, setTabValue] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [tracking, setTracking] = useState({
+        live: null,
+        alerts: [],
+        tripHistory: []
+    });
 
-    // Mock data
-    const alertLogs = [
-        { id: 1, type: 'Geofence Entry', stop: 'Sector 5 Main Gate', time: '2025-01-26 14:30:22', distance: '3.0 KM' },
-        { id: 2, type: 'Arrival', stop: 'Sector 5 Main Gate', time: '2025-01-26 14:35:10', distance: '0.0 KM' },
-        { id: 3, type: 'Departure', stop: 'Sector 5 Main Gate', time: '2025-01-26 14:36:05', distance: '0.1 KM' },
-    ];
+    useEffect(() => {
+        let mounted = true;
+        setError('');
+        setLoading(true);
 
-    const tripHistory = [
-        { id: 1, date: '2025-01-26', trip: 'Morning Pickup', startTime: '07:30 AM', endTime: '08:15 AM', status: 'Completed' },
-        { id: 2, date: '2025-01-26', trip: 'Evening Drop', startTime: '14:20 PM', endTime: '15:10 PM', status: 'In-Progress' },
-    ];
+        // For now we use a fixed studentId; once auth/profile wiring exists, pass actual studentId.
+        SchoolBusService.getParentTracking('1')
+            .then((res) => {
+                if (!mounted) return;
+                const data = res?.data?.tracking || res?.data || {};
+                setTracking({
+                    live: data?.live || null,
+                    alerts: Array.isArray(data?.alerts) ? data.alerts : [],
+                    tripHistory: Array.isArray(data?.tripHistory) ? data.tripHistory : []
+                });
+            })
+            .catch((e) => {
+                if (!mounted) return;
+                setError(e?.message || 'Failed to load tracking data');
+            })
+            .finally(() => {
+                if (!mounted) return;
+                setLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const live = tracking?.live;
+    const alertLogs = tracking?.alerts || [];
+    const tripHistory = tracking?.tripHistory || [];
 
     const alertColumns = [
         { name: 'type', label: 'Alert Type' },
@@ -78,14 +108,55 @@ const ParentTracking = () => {
                     </MainCard>
                 </Grid>
 
+                {error && (
+                    <Grid item xs={12}>
+                        <Alert severity="error" sx={{ borderRadius: 2 }}>
+                            {error}
+                        </Alert>
+                    </Grid>
+                )}
+
+                {loading && (
+                    <Grid item xs={12}>
+                        <Alert severity="info" sx={{ borderRadius: 2 }}>
+                            Loading tracking data...
+                        </Alert>
+                    </Grid>
+                )}
+
                 {/* Live Map & Status */}
                 <Grid item xs={12} lg={8}>
                     <MainCard title="Live Journey Monitor">
-                        <Paper variant="outlined" sx={{ height: 450, position: 'relative', bgcolor: '#f0f4f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Typography variant="h4" color="text.secondary">Live Map Placeholder</Typography>
-                            <Alert severity="info" sx={{ position: 'absolute', top: 16, left: 16, right: 16, zIndex: 1 }}>
-                                Bus DL 1PC 1234 is currently <strong>1.5 KM</strong> away from <strong>Main Street Stop</strong>. Expected Arrival in <strong>4 mins</strong>.
-                            </Alert>
+                        <Paper
+                            variant="outlined"
+                            sx={{
+                                height: 450,
+                                position: 'relative',
+                                bgcolor: '#f0f4f8',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            {live ? (
+                                <>
+                                    <Typography variant="h4" color="text.secondary">Live Map Placeholder</Typography>
+                                    <Alert severity="info" sx={{ position: 'absolute', top: 16, left: 16, right: 16, zIndex: 1 }}>
+                                        Bus <strong>{live?.vehicleRegNo || 'N/A'}</strong> is currently{' '}
+                                        <strong>{live?.distanceKm ?? 'N/A'} KM</strong> away from <strong>{live?.stopName || 'N/A'}</strong>. Expected Arrival in{' '}
+                                        <strong>{live?.etaMinutes ?? 'N/A'} mins</strong>.
+                                    </Alert>
+                                </>
+                            ) : (
+                                <Box sx={{ p: 3, textAlign: 'center' }}>
+                                    <Typography variant="h4" color="text.secondary" sx={{ mb: 1 }}>
+                                        No active trip right now
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Live tracking is available only during an active trip. When the bus is off-duty or not operational, it will not be visible.
+                                    </Typography>
+                                </Box>
+                            )}
                         </Paper>
                     </MainCard>
                 </Grid>
@@ -100,23 +171,23 @@ const ParentTracking = () => {
                                         <Typography variant="h2">A</Typography>
                                     </Paper>
                                     <Box>
-                                        <Typography variant="h4">Aarav Kumar</Typography>
-                                        <Typography variant="body2" color="text.secondary">Class 5th - Section A</Typography>
+                                        <Typography variant="h4">{live?.studentName || '-'}</Typography>
+                                        <Typography variant="body2" color="text.secondary">Class {live?.studentClass || '-'} - Section {live?.studentSection || '-'}</Typography>
                                     </Box>
                                 </Box>
                                 <Divider sx={{ my: 1.5 }} />
                                 <Typography variant="subtitle2" color="text.secondary">Assigned Bus Stop</Typography>
-                                <Typography variant="h5">Sector 5 Main Gate</Typography>
+                                <Typography variant="h5">{live?.stopName || '-'}</Typography>
                             </MainCard>
                         </Grid>
                         <Grid item xs={12}>
                             <MainCard title="Vehicle Information">
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
                                     <DirectionsBusIcon color="primary" />
-                                    <Typography variant="h4">DL 1PC 1234</Typography>
+                                    <Typography variant="h4">{live?.vehicleRegNo || '-'}</Typography>
                                 </Box>
-                                <Typography variant="body2" color="text.secondary">Driver: <strong>Suresh Kumar</strong></Typography>
-                                <Typography variant="body2" color="text.secondary">Contact: <strong>+91 9876543210</strong></Typography>
+                                <Typography variant="body2" color="text.secondary">Driver: <strong>{live?.driverName || '-'}</strong></Typography>
+                                <Typography variant="body2" color="text.secondary">Contact: <strong>{live?.driverMobile || '-'}</strong></Typography>
                             </MainCard>
                         </Grid>
                     </Grid>
