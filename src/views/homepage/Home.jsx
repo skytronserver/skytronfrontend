@@ -269,6 +269,9 @@ function Home() {
               <Link href="/user-registration-request" variant="body2">
                 Don't have a account? Click Here
               </Link>
+              <Link href="/school-registration" variant="body2">
+                School Registration
+              </Link>
               <Link href="/forgot-password" variant="body2">
                 {t('login.forgotPassword')}
               </Link>

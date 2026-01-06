@@ -4,6 +4,8 @@ import Home from "../views/homepage/Home";
 import CameraFeedsView from "pages/CameraFeedsView";
 import UserRegistrationRequest from "../views/homepage/UserRegistrationRequest";
 import DeviceStats from "../views/public/DeviceStats";
+import SchoolRegistration from "../views/homepage/SchoolRegistration";
+
 const HomeRoutes = {
   path: "/",
   element: <HomepageLayout />,
@@ -11,6 +13,10 @@ const HomeRoutes = {
     {
       path: "/",
       element: <Home />,
+    },
+    {
+      path: "/school-registration",
+      element: <SchoolRegistration />
     },
     {
       path: "/camera-feeds",

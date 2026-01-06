@@ -52,6 +52,7 @@ import ProfileManagement from "../views/schoolbus/ProfileManagement";
 import SchoolHolidays from "../views/schoolbus/SchoolHolidays";
 import SchoolReports from "../views/schoolbus/SchoolReports";
 import AlertsCenter from "../views/schoolbus/AlertsCenter";
+import SchoolOnboarding from "../views/schoolbus/SchoolOnboarding";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -320,6 +321,13 @@ const MainRoutes = {
       path: '/schoolbus/reports',
       element: <SchoolReports />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
+    }
+
+    ,
+    {
+      path: '/schoolbus/onboarding',
+      element: <SchoolOnboarding />,
+      roles: ['superadmin', 'stateadmin']
     }
 
   ].map((route) => applyPrivateRoute(route)),

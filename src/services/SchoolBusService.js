@@ -197,6 +197,10 @@ const mockDb = {
 };
 
 const mock = {
+  async sendSchoolOnboardingOtp() {
+    await mockDelay();
+    return { data: { sent: true } };
+  },
   async getSchoolApplications() {
     await mockDelay();
     return { data: [...mockDb.schoolApplications] };
@@ -539,6 +543,10 @@ const mock = {
 };
 
 const api = {
+  sendSchoolOnboardingOtp(data) {
+    const http = getAxiosInstance();
+    return http.post('/api/schoolbus/schools/applications/send-otp', data);
+  },
   getSchoolApplications() {
     const http = getAxiosInstance();
     return http.get('/api/schoolbus/schools/applications');
@@ -706,6 +714,7 @@ const api = {
 };
 
 const SchoolBusService = {
+  sendSchoolOnboardingOtp: (...args) => (shouldUseMock() ? mock.sendSchoolOnboardingOtp(...args) : api.sendSchoolOnboardingOtp(...args)),
   getSchoolApplications: (...args) => (shouldUseMock() ? mock.getSchoolApplications(...args) : api.getSchoolApplications(...args)),
   submitSchoolApplication: (...args) => (shouldUseMock() ? mock.submitSchoolApplication(...args) : api.submitSchoolApplication(...args)),
   reviewSchoolApplication: (...args) => (shouldUseMock() ? mock.reviewSchoolApplication(...args) : api.reviewSchoolApplication(...args)),
