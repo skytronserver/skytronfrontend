@@ -103,6 +103,12 @@ const BhuvanMapComponent = ({
         roadOthers: false,
         roadTunnel: false,
         stateHighway: false,
+        buildingFootprint: false,
+        roadSurface: false,
+        busStop: false,
+        block: false,
+        assamCombined: false,
+        skytronAssamCombined: false,
     });
 
     const soiLayersRef = useRef({
@@ -125,6 +131,12 @@ const BhuvanMapComponent = ({
         roadOthers: null,
         roadTunnel: null,
         stateHighway: null,
+        buildingFootprint: null,
+        roadSurface: null,
+        busStop: null,
+        block: null,
+        assamCombined: null,
+        skytronAssamCombined: null,
     });
 
     // Bhuvan WMS Configuration
@@ -1331,6 +1343,144 @@ const BhuvanMapComponent = ({
 
             attachTileSourceDebug(soiStateHighwayLayer.getSource?.(), "soi:stateHighway");
 
+            const soiBuildingFootprintLayer = new TileLayer({
+                title: "Building Footprint",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: {
+                        LAYERS: "skytron:building_footprint",
+                        TILED: true,
+                        VERSION: "1.1.1",
+                        FORMAT: "image/png",
+                        TRANSPARENT: "true",
+                        SRS: "EPSG:4326",
+                    },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.buildingFootprint,
+                zIndex: 25,
+            });
+
+            attachTileSourceDebug(soiBuildingFootprintLayer.getSource?.(), "soi:buildingFootprint");
+
+            const soiRoadSurfaceLayer = new TileLayer({
+                title: "Road Surface",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: {
+                        LAYERS: "skytron:road_surface",
+                        TILED: true,
+                        VERSION: "1.1.1",
+                        FORMAT: "image/png",
+                        TRANSPARENT: "true",
+                        SRS: "EPSG:4326",
+                    },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.roadSurface,
+                zIndex: 26,
+            });
+
+            attachTileSourceDebug(soiRoadSurfaceLayer.getSource?.(), "soi:roadSurface");
+
+            const soiBusStopLayer = new TileLayer({
+                title: "Bus Stop",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: {
+                        LAYERS: "skytron:bus_stop",
+                        TILED: true,
+                        VERSION: "1.1.1",
+                        FORMAT: "image/png",
+                        TRANSPARENT: "true",
+                        SRS: "EPSG:4326",
+                    },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.busStop,
+                zIndex: 27,
+            });
+
+            attachTileSourceDebug(soiBusStopLayer.getSource?.(), "soi:busStop");
+
+            const soiBlockLayer = new TileLayer({
+                title: "Block",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: {
+                        LAYERS: "skytron:block",
+                        TILED: true,
+                        VERSION: "1.1.1",
+                        FORMAT: "image/png",
+                        TRANSPARENT: "true",
+                        SRS: "EPSG:4326",
+                    },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.block,
+                zIndex: 28,
+            });
+
+            attachTileSourceDebug(soiBlockLayer.getSource?.(), "soi:block");
+
+            const soiAssamCombinedLayer = new TileLayer({
+                title: "Assam Combined (assam)",
+                source: new TileWMS({
+                    url: geoserverURL.replace('skytron', 'assam'),
+                    params: {
+                        LAYERS: "assam:assam_combined",
+                        TILED: true,
+                        VERSION: "1.1.1",
+                        FORMAT: "image/png",
+                        TRANSPARENT: "true",
+                        SRS: "EPSG:4326",
+                    },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.assamCombined,
+                zIndex: 29,
+            });
+
+            attachTileSourceDebug(soiAssamCombinedLayer.getSource?.(), "soi:assamCombined");
+
+            const soiSkytronAssamCombinedLayer = new TileLayer({
+                title: "Assam Combined (skytron)",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: {
+                        LAYERS: "skytron:assam_combined",
+                        TILED: true,
+                        VERSION: "1.1.1",
+                        FORMAT: "image/png",
+                        TRANSPARENT: "true",
+                        SRS: "EPSG:4326",
+                    },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.skytronAssamCombined,
+                zIndex: 30,
+            });
+
+            attachTileSourceDebug(soiSkytronAssamCombinedLayer.getSource?.(), "soi:skytronAssamCombined");
+
             const soiMap = new Map({
                 target: soiMapContainerRef.current,
                 layers: [
@@ -1356,6 +1506,12 @@ const BhuvanMapComponent = ({
                     soiRoadOthersLayer,
                     soiRoadTunnelLayer,
                     soiStateHighwayLayer,
+                    soiBuildingFootprintLayer,
+                    soiRoadSurfaceLayer,
+                    soiBusStopLayer,
+                    soiBlockLayer,
+                    soiAssamCombinedLayer,
+                    soiSkytronAssamCombinedLayer,
                 ],
                 view: new View({
                     projection: "EPSG:4326",
@@ -1441,7 +1597,14 @@ const BhuvanMapComponent = ({
                 roadOthers: soiRoadOthersLayer,
                 roadTunnel: soiRoadTunnelLayer,
                 stateHighway: soiStateHighwayLayer,
+                buildingFootprint: soiBuildingFootprintLayer,
+                roadSurface: soiRoadSurfaceLayer,
+                busStop: soiBusStopLayer,
+                block: soiBlockLayer,
+                assamCombined: soiAssamCombinedLayer,
+                skytronAssamCombined: soiSkytronAssamCombinedLayer,
             };
+
 
             if (typeof onMapReady === "function") {
                 onMapReady({
@@ -1529,6 +1692,12 @@ const BhuvanMapComponent = ({
         layers.roadOthers?.setVisible?.(!!soiLayerVisibility.roadOthers);
         layers.roadTunnel?.setVisible?.(!!soiLayerVisibility.roadTunnel);
         layers.stateHighway?.setVisible?.(!!soiLayerVisibility.stateHighway);
+        layers.buildingFootprint?.setVisible?.(!!soiLayerVisibility.buildingFootprint);
+        layers.roadSurface?.setVisible?.(!!soiLayerVisibility.roadSurface);
+        layers.busStop?.setVisible?.(!!soiLayerVisibility.busStop);
+        layers.block?.setVisible?.(!!soiLayerVisibility.block);
+        layers.assamCombined?.setVisible?.(!!soiLayerVisibility.assamCombined);
+        layers.skytronAssamCombined?.setVisible?.(!!soiLayerVisibility.skytronAssamCombined);
     }, [mapType, soiLayerVisibility]);
 
     // Initialize Satellite Map (OpenLayers)
@@ -1987,6 +2156,12 @@ const BhuvanMapComponent = ({
                                         { key: "stateHighway", label: "State Highway" },
                                         { key: "roadTunnel", label: "Road Tunnel" },
                                         { key: "roadOthers", label: "Road Others" },
+                                        { key: "buildingFootprint", label: "Building Footprint" },
+                                        { key: "roadSurface", label: "Road Surface" },
+                                        { key: "busStop", label: "Bus Stop" },
+                                        { key: "block", label: "Block" },
+                                        { key: "assamCombined", label: "Assam Combined (assam)" },
+                                        { key: "skytronAssamCombined", label: "Assam Combined (skytron)" },
                                     ]
                                 ).map((item) => (
                                     <Box key={item.key} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

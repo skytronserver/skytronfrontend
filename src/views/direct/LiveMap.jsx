@@ -726,6 +726,12 @@ const MapComponent = ({
     roadOthers: false,
     roadTunnel: false,
     stateHighway: false,
+    buildingFootprint: false,
+    roadSurface: false,
+    busStop: false,
+    block: false,
+    assamCombined: false,
+    skytronAssamCombined: false,
   });
 
   const soiLayersRef = useRef({
@@ -748,6 +754,12 @@ const MapComponent = ({
     roadOthers: null,
     roadTunnel: null,
     stateHighway: null,
+    buildingFootprint: null,
+    roadSurface: null,
+    busStop: null,
+    block: null,
+    assamCombined: null,
+    skytronAssamCombined: null,
   });
 
   // Map type state for 3-layer system
@@ -1421,6 +1433,7 @@ const MapComponent = ({
 
     try {
       const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
+      const assamGeoserverURL = "https://map.gromed.in/geoserver/assam/wms";
 
       // Bhuvan base map (same as normal map)
       const bhuvanIndia3Layer = new TileLayer({
@@ -1743,6 +1756,102 @@ const MapComponent = ({
         zIndex: 24,
       });
 
+      const soiBuildingFootprintLayer = new TileLayer({
+        title: "Building Footprint",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:building_footprint",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.buildingFootprint,
+        zIndex: 25,
+      });
+
+      const soiRoadSurfaceLayer = new TileLayer({
+        title: "Road Surface",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:road_surface",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.roadSurface,
+        zIndex: 26,
+      });
+
+      const soiBusStopLayer = new TileLayer({
+        title: "Bus Stop",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:bus_stop",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.busStop,
+        zIndex: 27,
+      });
+
+      const soiBlockLayer = new TileLayer({
+        title: "Block",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:block",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.block,
+        zIndex: 28,
+      });
+
+      const soiAssamCombinedLayer = new TileLayer({
+        title: "Assam Combined (assam)",
+        source: new TileWMS({
+          url: assamGeoserverURL,
+          params: {
+            LAYERS: "assam:assam_combined",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.assamCombined,
+        zIndex: 29,
+      });
+
+      const soiSkytronAssamCombinedLayer = new TileLayer({
+        title: "Assam Combined (skytron)",
+        source: new TileWMS({
+          url: geoserverURL,
+          params: {
+            LAYERS: "skytron:assam_combined",
+            TILED: true,
+          },
+          serverType: "geoserver",
+          crossOrigin: "anonymous",
+        }),
+        opacity: 0.9,
+        visible: soiLayerVisibility.skytronAssamCombined,
+        zIndex: 30,
+      });
+
       soiLayersRef.current = {
         states: soiStatesLayer,
         assamDistrict: soiAssamDistrictLayer,
@@ -1763,6 +1872,12 @@ const MapComponent = ({
         roadOthers: soiRoadOthersLayer,
         roadTunnel: soiRoadTunnelLayer,
         stateHighway: soiStateHighwayLayer,
+        buildingFootprint: soiBuildingFootprintLayer,
+        roadSurface: soiRoadSurfaceLayer,
+        busStop: soiBusStopLayer,
+        block: soiBlockLayer,
+        assamCombined: soiAssamCombinedLayer,
+        skytronAssamCombined: soiSkytronAssamCombinedLayer,
       };
 
       const soiMap = new Map({
@@ -1790,6 +1905,12 @@ const MapComponent = ({
           soiRoadOthersLayer,
           soiRoadTunnelLayer,
           soiStateHighwayLayer,
+          soiBuildingFootprintLayer,
+          soiRoadSurfaceLayer,
+          soiBusStopLayer,
+          soiBlockLayer,
+          soiAssamCombinedLayer,
+          soiSkytronAssamCombinedLayer,
         ],
         view: new View({
           projection: "EPSG:4326",
@@ -1899,6 +2020,12 @@ const MapComponent = ({
     layers.roadOthers?.setVisible?.(!!soiLayerVisibility.roadOthers);
     layers.roadTunnel?.setVisible?.(!!soiLayerVisibility.roadTunnel);
     layers.stateHighway?.setVisible?.(!!soiLayerVisibility.stateHighway);
+    layers.buildingFootprint?.setVisible?.(!!soiLayerVisibility.buildingFootprint);
+    layers.roadSurface?.setVisible?.(!!soiLayerVisibility.roadSurface);
+    layers.busStop?.setVisible?.(!!soiLayerVisibility.busStop);
+    layers.block?.setVisible?.(!!soiLayerVisibility.block);
+    layers.assamCombined?.setVisible?.(!!soiLayerVisibility.assamCombined);
+    layers.skytronAssamCombined?.setVisible?.(!!soiLayerVisibility.skytronAssamCombined);
   }, [soiLayerVisibility]);
 
   // Initialize HD Map (Mappls)
@@ -4529,6 +4656,66 @@ const MapComponent = ({
                         />
                       }
                       label="Road Others"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.buildingFootprint}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, buildingFootprint: e.target.checked }))}
+                        />
+                      }
+                      label="Building Footprint"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.roadSurface}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadSurface: e.target.checked }))}
+                        />
+                      }
+                      label="Road Surface"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.busStop}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, busStop: e.target.checked }))}
+                        />
+                      }
+                      label="Bus Stop"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.block}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, block: e.target.checked }))}
+                        />
+                      }
+                      label="Block"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.assamCombined}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamCombined: e.target.checked }))}
+                        />
+                      }
+                      label="Assam Combined (assam)"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.skytronAssamCombined}
+                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, skytronAssamCombined: e.target.checked }))}
+                        />
+                      }
+                      label="Assam Combined (skytron)"
                     />
                   </Box>
                 </>
