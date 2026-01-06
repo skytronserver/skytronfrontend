@@ -481,25 +481,18 @@ export const formatDateTime = (dateTimeString) => {
     // Convert string to Date object
     const dateObj = new Date(dateTimeString);
 
-    // Convert to IST timezone using toLocaleString
-    const istDateTime = dateObj.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-
-    // Format the date part (DD-MM-YYYY to YYYY-MM-DD)
-    const [datePart, timePart] = istDateTime.split(', ');
-    const [day, month, year] = datePart.split('/');
+    // Extract Date in YYYY-MM-DD format
+    const year = dateObj.getUTCFullYear();
+    const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getUTCDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
 
-    // Format the time part with IST suffix
-    const formattedTime = `${timePart} IST`;
+    // Extract Time in HH:MM:SS.mmm format
+    const hours = String(dateObj.getUTCHours()).padStart(2, '0');
+    const minutes = String(dateObj.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(dateObj.getUTCSeconds()).padStart(2, '0');
+    const milliseconds = String(dateObj.getUTCMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
+    const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} UTC`;
 
     // Return formatted date and time
     return `${formattedDate} \n ${formattedTime}`
