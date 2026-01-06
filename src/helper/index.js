@@ -481,18 +481,25 @@ export const formatDateTime = (dateTimeString) => {
     // Convert string to Date object
     const dateObj = new Date(dateTimeString);
 
-    // Extract Date in YYYY-MM-DD format
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const day = String(dateObj.getDate()).padStart(2, '0');
+    // Convert to IST timezone using toLocaleString
+    const istDateTime = dateObj.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+
+    // Format the date part (DD-MM-YYYY to YYYY-MM-DD)
+    const [datePart, timePart] = istDateTime.split(', ');
+    const [day, month, year] = datePart.split('/');
     const formattedDate = `${year}-${month}-${day}`;
 
-    // Extract Time in HH:MM:SS.mmm format
-    const hours = String(dateObj.getHours()).padStart(2, '0');
-    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-    const seconds = String(dateObj.getSeconds()).padStart(2, '0');
-    const milliseconds = String(dateObj.getMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
-    const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} IST`;
+    // Format the time part with IST suffix
+    const formattedTime = `${timePart} IST`;
 
     // Return formatted date and time
     return `${formattedDate} \n ${formattedTime}`
