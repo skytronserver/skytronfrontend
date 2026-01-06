@@ -465,10 +465,10 @@ const GPSHistoryMap = ({
       return { colorKey: 'red', colorHex: '#d32f2f', statusText: 'Emergency' };
     } else if (packetStatus !== "NR" && packetStatus) {
       return { colorKey: 'orange', colorHex: '#ed6c02', statusText: 'Alert' };
-    } else if (isIgnitionOn && speed <= 1) {
-      return { colorKey: 'blue', colorHex: '#0288d1', statusText: 'Stopped' };
-    } else if (isIgnitionOn && speed > 1) {
+    } else if (speed > 1) {
       return { colorKey: 'green', colorHex: '#2e7d32', statusText: 'Moving' };
+    } else if (isIgnitionOn) {
+      return { colorKey: 'blue', colorHex: '#0288d1', statusText: 'Stopped' };
     } else {
       return { colorKey: 'grey', colorHex: '#757575', statusText: 'Offline/Ignition Off' };
     }

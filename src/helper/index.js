@@ -482,17 +482,17 @@ export const formatDateTime = (dateTimeString) => {
     const dateObj = new Date(dateTimeString);
 
     // Extract Date in YYYY-MM-DD format
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const day = String(dateObj.getDate()).padStart(2, '0');
+    const year = dateObj.getUTCFullYear();
+    const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getUTCDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
 
     // Extract Time in HH:MM:SS.mmm format
-    const hours = String(dateObj.getHours()).padStart(2, '0');
-    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-    const seconds = String(dateObj.getSeconds()).padStart(2, '0');
-    const milliseconds = String(dateObj.getMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
-    const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} IST`;
+    const hours = String(dateObj.getUTCHours()).padStart(2, '0');
+    const minutes = String(dateObj.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(dateObj.getUTCSeconds()).padStart(2, '0');
+    const milliseconds = String(dateObj.getUTCMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
+    const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} UTC`;
 
     // Return formatted date and time
     return `${formattedDate} \n ${formattedTime}`
