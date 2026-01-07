@@ -646,21 +646,20 @@ const BhuvanMapComponent = ({
                 entry?.device_tag_info?.vehicle?.vehicle_reg_no
             );
 
+        // Use shared formatDateTime for consistent formatting
+        const { formatDateTime } = require('../../helper/index');
         const resolveDateTime = (entry) => {
             const raw = entry?.entry_time || entry?.timestamp || entry?.time_stamp;
             if (!raw) {
                 return { date: safeValue(entry?.date), time: safeValue(entry?.time) };
             }
-
-            const d = new Date(raw);
-            if (Number.isNaN(d.getTime())) {
-                return { date: safeValue(entry?.date), time: safeValue(entry?.time) };
+            const formatted = formatDateTime(raw);
+            // Split formatted into date and time for display
+            if (formatted.includes('\n')) {
+                const [date, time] = formatted.split('\n').map(s => s.trim());
+                return { date, time };
             }
-
-            const pad2 = (n) => String(n).padStart(2, "0");
-            const date = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-            const time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
-            return { date, time };
+            return { date: formatted, time: '' };
         };
 
         const { date, time } = resolveDateTime(entryData);
@@ -1673,6 +1672,13 @@ const BhuvanMapComponent = ({
         const layers = soiLayersRef.current;
         if (!layers) return;
 
+        const soiMap = soiMapRef.current;
+        let zoomLevel = 0;
+        if (soiMap && soiMap.getView) {
+            zoomLevel = soiMap.getView().getZoom();
+        }
+        const showAssamCombined = zoomLevel >= 5;
+
         layers.states?.setVisible?.(!!soiLayerVisibility.states);
         layers.assamDistrict?.setVisible?.(!!soiLayerVisibility.assamDistrict);
         layers.assamDistrictBdy2?.setVisible?.(!!soiLayerVisibility.assamDistrictBdy2);
@@ -1696,8 +1702,29 @@ const BhuvanMapComponent = ({
         layers.roadSurface?.setVisible?.(!!soiLayerVisibility.roadSurface);
         layers.busStop?.setVisible?.(!!soiLayerVisibility.busStop);
         layers.block?.setVisible?.(!!soiLayerVisibility.block);
-        layers.assamCombined?.setVisible?.(!!soiLayerVisibility.assamCombined);
-        layers.skytronAssamCombined?.setVisible?.(!!soiLayerVisibility.skytronAssamCombined);
+        layers.assamCombined?.setVisible?.(!!soiLayerVisibility.assamCombined && showAssamCombined);
+        layers.skytronAssamCombined?.setVisible?.(!!soiLayerVisibility.skytronAssamCombined && showAssamCombined);
+    }, [mapType, soiLayerVisibility]);
+
+    useEffect(() => {
+        if (mapType !== "soi") return;
+        const soiMap = soiMapRef.current;
+        if (!soiMap) return;
+        const handleMoveEnd = () => {
+            const zoomLevel = soiMap.getView().getZoom();
+            const showAssamCombined = zoomLevel >= 5;
+            const layers = soiLayersRef.current;
+            if (layers.assamCombined) {
+                layers.assamCombined.setVisible(!!soiLayerVisibility.assamCombined && showAssamCombined);
+            }
+            if (layers.skytronAssamCombined) {
+                layers.skytronAssamCombined.setVisible(!!soiLayerVisibility.skytronAssamCombined && showAssamCombined);
+            }
+        };
+        soiMap.on('moveend', handleMoveEnd);
+        return () => {
+            soiMap.un('moveend', handleMoveEnd);
+        };
     }, [mapType, soiLayerVisibility]);
 
     // Initialize Satellite Map (OpenLayers)

@@ -477,12 +477,9 @@ export const formatDateTime = (dateTimeString) => {
     return "Invalid date-time format!";
   }
 
-  // If ISO/UTC format (contains 'T' and maybe 'Z'), convert to IST
-  const isoUtcPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z)?$/;
-  if (isoUtcPattern.test(dateTimeString)) {
-    // Parse as UTC
-    const dateObj = new Date(dateTimeString);
-    // Convert to IST
+  // Always treat input as UTC and convert to IST for display
+  const dateObj = new Date(dateTimeString);
+  if (!isNaN(dateObj.getTime())) {
     const utc = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
     const istOffset = 5.5 * 60 * 60000;
     const istDate = new Date(utc + istOffset);
@@ -495,7 +492,7 @@ export const formatDateTime = (dateTimeString) => {
     return `${year}-${month}-${day} \n ${hours}:${minutes}:${seconds} IST`;
   }
 
-  // Otherwise, treat as local/IST and display as-is
+  // If not a valid date, fallback to string split
   let datePart = "";
   let timePart = "";
   if (dateTimeString.includes('T')) {

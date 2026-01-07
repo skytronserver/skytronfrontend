@@ -116,12 +116,29 @@ const GPSHistoryMap = ({
         clearInterval(animationIntervalId.current);
         setIsPlaying(false);
         setDownloadStatus("Downloading");
+
+        // Convert IST filter input to UTC before sending
+        function istToUTCString(dt) {
+          const dateObj = new Date(dt);
+          // Subtract IST offset
+          const utc = dateObj.getTime() - (5.5 * 60 * 60000);
+          const utcDate = new Date(utc);
+          const y = utcDate.getFullYear();
+          const m = String(utcDate.getMonth() + 1).padStart(2, '0');
+          const d = String(utcDate.getDate()).padStart(2, '0');
+          const h = String(utcDate.getHours()).padStart(2, '0');
+          const min = String(utcDate.getMinutes()).padStart(2, '0');
+          const s = String(utcDate.getSeconds()).padStart(2, '0');
+          return `${y}-${m}-${d}T${h}:${min}:${s}Z`;
+        }
+
+        // Send times as-is (assumed already IST from UI)
         const response = await axios.get(
           `${process.env.REACT_APP_BASE_URL}api/gps_history_map_data/`,
           {
             params: {
-              start_datetime: startDateTime,
-              end_datetime: endDateTime,
+              start_datetime: istToUTCString(startDateTime),
+              end_datetime: istToUTCString(endDateTime),
               vehicle_registration_number: vehicleRegistrationNumber,
               poi: poi,
               vehicle_owner: owner,
