@@ -473,32 +473,48 @@ export const openFile = async (e, filePath) => {
 };
 
 export const formatDateTime = (dateTimeString) => {
-  // Check if the string matches the date and time format
-  // Relaxed regex or simply check if valid date
-  const isoDatePattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-
-  if (dateTimeString && (isoDatePattern.test(dateTimeString) || !isNaN(new Date(dateTimeString).getTime()))) {
-    // Convert string to Date object
-    const dateObj = new Date(dateTimeString);
-
-    // Extract Date in YYYY-MM-DD format
-    const year = dateObj.getUTCFullYear();
-    const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(dateObj.getUTCDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
-
-    // Extract Time in HH:MM:SS.mmm format
-    const hours = String(dateObj.getUTCHours()).padStart(2, '0');
-    const minutes = String(dateObj.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(dateObj.getUTCSeconds()).padStart(2, '0');
-    const milliseconds = String(dateObj.getUTCMilliseconds()).padStart(3, '0').slice(0, 2); // 2 digits
-    const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds} UTC`;
-
-    // Return formatted date and time
-    return `${formattedDate} \n ${formattedTime}`
-  } else {
+  if (!dateTimeString || typeof dateTimeString !== 'string') {
     return "Invalid date-time format!";
   }
+
+  // If ISO/UTC format (contains 'T' and maybe 'Z'), convert to IST
+  const isoUtcPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z)?$/;
+  if (isoUtcPattern.test(dateTimeString)) {
+    // Parse as UTC
+    const dateObj = new Date(dateTimeString);
+    // Convert to IST
+    const utc = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
+    const istOffset = 5.5 * 60 * 60000;
+    const istDate = new Date(utc + istOffset);
+    const year = istDate.getFullYear();
+    const month = String(istDate.getMonth() + 1).padStart(2, '0');
+    const day = String(istDate.getDate()).padStart(2, '0');
+    const hours = String(istDate.getHours()).padStart(2, '0');
+    const minutes = String(istDate.getMinutes()).padStart(2, '0');
+    const seconds = String(istDate.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} \n ${hours}:${minutes}:${seconds} IST`;
+  }
+
+  // Otherwise, treat as local/IST and display as-is
+  let datePart = "";
+  let timePart = "";
+  if (dateTimeString.includes('T')) {
+    [datePart, timePart] = dateTimeString.split('T');
+    timePart = timePart.replace(/\..*$/, '').replace(/Z$/, '');
+  } else if (dateTimeString.includes(' ')) {
+    [datePart, timePart] = dateTimeString.split(' ');
+  } else {
+    timePart = dateTimeString;
+  }
+  let formatted = "";
+  if (datePart) {
+    formatted += datePart;
+  }
+  if (timePart) {
+    formatted += (datePart ? ' \n ' : '') + timePart + ' IST';
+  }
+  return formatted || "Invalid date-time format!";
 }
+
 
 
