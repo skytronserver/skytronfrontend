@@ -685,9 +685,9 @@ const GPSHistoryMap = ({
       pdf.setFont(undefined, 'normal');
       pdf.text(`Vehicle: ${vehicleRegistrationNumber}`, 20, yPosition);
       yPosition += 7;
-      pdf.text(`From: ${startDateTime}`, 20, yPosition);
+      pdf.text(`From: ${formatDateTime(startDateTime).replace(/\n/g, ' ')}`, 20, yPosition);
       yPosition += 7;
-      pdf.text(`To: ${endDateTime}`, 20, yPosition);
+      pdf.text(`To: ${formatDateTime(endDateTime).replace(/\n/g, ' ')}`, 20, yPosition);
       yPosition += 7;
       pdf.text(`Total Points: ${mapData.length}`, 20, yPosition);
       yPosition += 7;
@@ -804,7 +804,7 @@ const GPSHistoryMap = ({
 
       // Table data (limited to prevent overflow)
       const maxRows = 30; // Limit rows per page
-      const dataToShow = mapData.slice(0, 100); // Limit total rows to 100
+      const dataToShow = mapData.slice(0, 1000); // Limit total rows to 1000
 
       dataToShow.forEach((entry, index) => {
         if (index > 0 && index % maxRows === 0) {
@@ -828,7 +828,7 @@ const GPSHistoryMap = ({
 
         const rowData = [
           String(index + 1),
-          entry.et || 'N/A',
+          formatDateTime(entry.et).replace(/\n/g, ' '),
           !isNaN(lat) ? lat.toFixed(6) : 'N/A',
           !isNaN(lon) ? lon.toFixed(6) : 'N/A',
           String(entry.s || 0),
@@ -861,11 +861,16 @@ const GPSHistoryMap = ({
       });
 
       // Add note if data was truncated
-      if (mapData.length > 100) {
+      if (mapData.length > 1000) {
         yPosition += 10;
         pdf.setFontSize(8);
         pdf.setFont(undefined, 'italic');
-        pdf.text(`Note: Showing first 100 of ${mapData.length} total data points`, 20, yPosition);
+        pdf.text(`Note: Showing first 1000 of ${mapData.length} total data points`, 20, yPosition);
+      } else if (mapData.length > 0) {
+        yPosition += 10;
+        pdf.setFontSize(8);
+        pdf.setFont(undefined, 'italic');
+        pdf.text(`Note: Showing all ${mapData.length} data points`, 20, yPosition);
       }
 
       // Save the PDF
