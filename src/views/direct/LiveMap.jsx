@@ -4697,6 +4697,7 @@ const MapComponent = ({
                       }
                       label="Block"
                     />
+                                        {/*
                     <FormControlLabel
                       control={
                         <Switch
@@ -4707,6 +4708,7 @@ const MapComponent = ({
                       }
                       label="Assam Combined (assam)"
                     />
+                    */}
                     <FormControlLabel
                       control={
                         <Switch

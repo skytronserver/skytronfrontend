@@ -229,15 +229,24 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     previousCallsRef.current = calls;
   };
 
-  const playBuzzer = () => {
-    audio.play();
-  };
+  let buzzerTimeout;
+const playBuzzer = () => {
+  audio.currentTime = 0;
+  audio.play();
+  clearTimeout(buzzerTimeout);
+  buzzerTimeout = setTimeout(() => {
+    audio.pause();
+    audio.currentTime = 0;
+  }, 10000); // 10 seconds
+};
 
   const handleAccept = async (id, show) => {
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
     const acceptedCall = response.data;
     setNewPendingCall(null); // Close the popup after accepting
     audio.pause();
+    audio.currentTime = 0;
+    clearTimeout(buzzerTimeout);
     if (show === "here") {
       handleShow(acceptedCall)
       setShowDetails(true)
