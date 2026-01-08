@@ -4401,7 +4401,7 @@ const MapComponent = ({
                 {[
                   { id: 'normal', label: 'Normal', icon: <MapIcon /> },
                   { id: 'satellite', label: 'Satellite', icon: <SatelliteIcon /> },
-                  { id: 'hd', label: 'Mappls HD', icon: <HdIcon /> },
+                  // { id: 'hd', label: 'Mappls HD', icon: <HdIcon /> },
                   { id: 'soi', label: 'SOI', icon: <PublicIcon /> }
                 ].map((type) => (
                   <Tooltip key={type.id} title={type.label} arrow>
