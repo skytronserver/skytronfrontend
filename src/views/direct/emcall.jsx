@@ -10,6 +10,8 @@ import {
   Box,
   Alert,
   Snackbar,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { alpha, useTheme } from '@mui/material/styles';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -53,6 +55,10 @@ const EMCall = () => {
   const [nearestPolice, setNearestPolice] = useState(null);
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const [nearestPoliceAddress, setNearestPoliceAddress] = useState("");
+
+  // Toggle states for map visibility
+  const [showPoliceLayers, setShowPoliceLayers] = useState(false);
+  const [showPoiLayers, setShowPoiLayers] = useState(false);
 
   // Distance helper (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -547,6 +553,29 @@ const EMCall = () => {
                 <Typography variant="h4" sx={{ mb: 3, color: 'primary.main', fontWeight: 600, borderBottom: 2, borderColor: 'primary.main', pb: 1 }}>
                   CALL DETAILS
                 </Typography>
+
+                {/* Map Layers Toggle - At Top */}
+                <Box sx={{ 
+                  mb: 3, 
+                  p: 2, 
+                  borderRadius: 1.5,
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider'
+                }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Map Layers</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <FormControlLabel
+                      control={<Switch checked={showPoliceLayers} onChange={(e) => setShowPoliceLayers(e.target.checked)} size="small" />}
+                      label="Show Police Vehicles"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={showPoiLayers} onChange={(e) => setShowPoiLayers(e.target.checked)} size="small" />}
+                      label="Show Police Stations (POI)"
+                    />
+                  </Box>
+                </Box>
+
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
@@ -737,18 +766,19 @@ const EMCall = () => {
             <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden' }}>
               <BhuvanMapComponent
                 gpsData={sosLocations}
-                policeData={policeLocations}
-                pois={policePois}
+                policeData={showPoliceLayers ? policeLocations : []}
+                pois={showPoiLayers ? policePois : []}
                 width="100%"
                 height="100%"
-                autoFit={sosLocations.length > 0}
+                autoFit={false}
+                focusEntry={sosLocations.length > 0 ? sosLocations[0] : null}
                 showMapTypeToggle={true}
                 showDrawControls={false}
                 showLogos={true}
                 defaultMapType="normal"
                 markerLabelMode="vehicle"
-                center={[91.829437, 26.131644]}
-                zoom={7}
+                center={sosLocations.length > 0 ? [sosLocations[0].longitude, sosLocations[0].latitude] : [91.829437, 26.131644]}
+                zoom={sosLocations.length > 0 ? 16 : 7}
               />
             </Card>
           </Grid>

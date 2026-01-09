@@ -3357,8 +3357,15 @@ const MapComponent = ({
             dynamicOverlay.getElement().style.display = "block";
 
             const currentZoom = map.getView().getZoom();
-            const targetZoom = currentZoom > 18 ? currentZoom : 18;
-            map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+            // Only zoom if we're significantly below the target zoom level
+            // This prevents redundant zoom animations when clicking on an already-selected vehicle
+            if (currentZoom < 15) {
+              const targetZoom = currentZoom > 18 ? currentZoom : 18;
+              map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+            } else {
+              // Just pan to the coordinate without zooming
+              map.getView().animate({ center: coordinates, duration: 300 });
+            }
           }
         }
 
