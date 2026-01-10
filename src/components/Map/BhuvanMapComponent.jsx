@@ -394,6 +394,8 @@ const BhuvanMapComponent = ({
         };
 
         const iconScale = scaleByColor[color] || scaleByColor.default;
+        const labelGap = color === "grey" ? 15 : 5;
+        const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
 
         return new Style({
             image: new Icon({
@@ -404,12 +406,14 @@ const BhuvanMapComponent = ({
             text: labelText
                 ? new Text({
                     text: labelText,
-                    font: '12px "Roboto", sans-serif',
+                    font: '11px "Roboto", sans-serif',
                     fill: new Fill({ color: "#0D47A1" }),
                     stroke: new Stroke({ color: "#ffffff", width: 3 }),
                     backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
-                    padding: [2, 4, 2, 4],
-                    offsetY: -25,
+                    padding: [1, 3, 1, 3],
+                    textAlign: 'center',
+                    textBaseline: 'bottom',
+                    offsetY: labelOffsetY,
                 })
                 : undefined,
         });

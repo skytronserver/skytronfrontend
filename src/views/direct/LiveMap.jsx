@@ -413,6 +413,28 @@ const ensureHdPopupStyles = () => {
       color: #1f2933;
     }
 
+    /*
+      Mappls HD marker label positioning:
+      Their SDK renders a marker container with an icon + a separate label element.
+      Default placement varies (often label below icon). We normalize to label ABOVE icon.
+      This is best-effort across SDK versions by targeting common class names.
+    */
+    .mappls-marker,
+    .mappls-marker-container,
+    .mappls-marker-container > div {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+    }
+
+    .mappls-marker-label,
+    .mappls-marker-text,
+    .mappls-label {
+      order: -1 !important;
+      margin: 0 0 4px 0 !important;
+      white-space: nowrap !important;
+    }
+
     .mappls-hd-popup-header {
       display: flex;
       align-items: center;
@@ -925,6 +947,8 @@ const MapComponent = ({
     };
 
     const iconScale = scaleByColor[color] || scaleByColor.default;
+    const labelGap = color === "grey" ? 15 : 5;
+    const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
 
     return new Style({
       image: new Icon({
@@ -935,12 +959,14 @@ const MapComponent = ({
       text: labelText
         ? new Text({
           text: labelText,
-          font: '12px "Roboto", sans-serif',
+          font: '11px "Roboto", sans-serif',
           fill: new Fill({ color: "#0D47A1" }),
           stroke: new Stroke({ color: "#ffffff", width: 3 }),
           backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
-          padding: [2, 4, 2, 4],
-          offsetY: -25,
+          padding: [1, 3, 1, 3],
+          textAlign: 'center',
+          textBaseline: 'bottom',
+          offsetY: labelOffsetY,
         })
         : undefined,
     });

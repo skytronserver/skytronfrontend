@@ -71,15 +71,6 @@ const schoolbus = {
                     icon: icons.IconMapPin,
                     breadcrumbs: false,
                     roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
-                },
-                {
-                    id: 'school-onboarding',
-                    title: 'School Onboarding',
-                    type: 'item',
-                    url: '/schoolbus/onboarding',
-                    icon: icons.IconLockAccess,
-                    breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin']
                 }
             ]
         }
