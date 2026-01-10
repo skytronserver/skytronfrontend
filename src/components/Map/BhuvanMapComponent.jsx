@@ -2057,6 +2057,35 @@ const BhuvanMapComponent = ({
         }
     }, [pois, map, poiVectorLayer]);
 
+    // Draw Routes with full path coordinates
+    useEffect(() => {
+        if (!routeVectorLayer || !routes) return;
+
+        const source = routeVectorLayer.getSource();
+        source.clear();
+
+        routes.forEach(route => {
+            if (route.coordinates && Array.isArray(route.coordinates) && route.coordinates.length > 0) {
+                // Use full path coordinates from Bhuvan API
+                const feature = new Feature({
+                    geometry: new LineString(route.coordinates),
+                    type: route.type,
+                    distance: route.distance,
+                    time: route.time
+                });
+                source.addFeature(feature);
+            } else if (route.from && route.to) {
+                // Fallback to straight line if no coordinates
+                const feature = new Feature({
+                    geometry: new LineString([route.from, route.to]),
+                    type: route.type
+                });
+                source.addFeature(feature);
+            }
+        });
+
+    }, [routes, routeVectorLayer]);
+
     // Focus on specific entry
     useEffect(() => {
         if (!focusEntry) return;

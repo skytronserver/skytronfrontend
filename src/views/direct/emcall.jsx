@@ -335,64 +335,103 @@ const EMCall = () => {
       if (mappedLocations.length > 0) {
         const victimLoc = mappedLocations[0]; // Target location
 
-        fieldExList.forEach(item => {
-          // Check for assignment user type
+        // Process each field executive
+        for (const item of fieldExList) {
           const assignment = item?.Assignment;
           const userType = assignment?.ex?.user_type;
 
           if (userType === 'police_ex' || userType === 'ambulance_ex') {
-            // loc is an array of objects
+            const exId = assignment?.ex?.id;
             const locArray = item?.loc;
 
-            // Check if loc is a non-empty array
-            let effectiveLocArray = locArray;
-            const exId = assignment?.ex?.id;
+            let exData = null;
 
-            if (Array.isArray(locArray) && locArray.length > 0) {
-              if (exId) latestLocationsRef.current[exId] = locArray;
+            // Check for new location data
+            if (Array.isArray(locArray) && locArray.length > 0 && locArray[0]?.em_lat && locArray[0]?.em_lon) {
+              exData = locArray[0];
+              // Update cache if ID is available
+              if (exId) {
+                latestLocationsRef.current[exId] = {
+                  ...exData,
+                  userId: assignment?.ex?.users?.[0]?.name,
+                  userType: userType
+                };
+              }
             } else if (exId && latestLocationsRef.current[exId]) {
-              effectiveLocArray = latestLocationsRef.current[exId];
+              // Fallback to cached location if available
+              exData = latestLocationsRef.current[exId];
             }
 
-            if (Array.isArray(effectiveLocArray) && effectiveLocArray.length > 0) {
-              const exData = effectiveLocArray[0]; // Get the first (latest) location object
+            // If we have valid location data
+            if (exData) {
+              const lat = parseFloat(exData.em_lat);
+              const lon = parseFloat(exData.em_lon);
 
-              if (exData && exData.em_lat && exData.em_lon) {
-                const lat = parseFloat(exData.em_lat);
-                const lon = parseFloat(exData.em_lon);
+              if (!isNaN(lat) && !isNaN(lon)) {
+                // Fetch shortest path from Bhuvan API
+                try {
+                  const routeResponse = await HomePageService.getRoute({
+                    points: [
+                      [lon, lat], // Executive location (lon, lat)
+                      [victimLoc.longitude, victimLoc.latitude] // Victim location
+                    ]
+                  });
 
-                if (!isNaN(lat) && !isNaN(lon)) {
-                  // Add to Routes
+                  // Extract route coordinates from API response
+                  const routeData = routeResponse?.data?.data && routeResponse.data.data.paths
+                    ? routeResponse.data.data
+                    : routeResponse.data;
+
+                  if (routeData?.paths?.[0]?.points?.coordinates) {
+                    const coordinates = routeData.paths[0].points.coordinates;
+
+                    // Add the actual road route
+                    newRoutes.push({
+                      from: [lon, lat],
+                      to: [victimLoc.longitude, victimLoc.latitude],
+                      type: userType,
+                      coordinates: coordinates, // Full path coordinates
+                      distance: routeData.paths[0].distance || 0,
+                      time: routeData.paths[0].time || 0
+                    });
+                  } else {
+                    // Fallback to straight line if API fails
+                    newRoutes.push({
+                      from: [lon, lat],
+                      to: [victimLoc.longitude, victimLoc.latitude],
+                      type: userType
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error fetching route for executive:', error);
+                  // Fallback to straight line on error
                   newRoutes.push({
-                    from: [victimLoc.longitude, victimLoc.latitude],
-                    to: [lon, lat],
+                    from: [lon, lat],
+                    to: [victimLoc.longitude, victimLoc.latitude],
                     type: userType
                   });
-
-                  // Add to Field Executive Markers (for display on map)
-                  // We treat both ambulance and police as "police" category for marker display purposes or separate them if needed
-                  newPoliceLocations.push({
-                    id: `ex-${exData.id || Math.random()}`,
-                    latitude: lat,
-                    longitude: lon,
-                    vehicle_registration_number: item?.Assignment?.ex?.users?.[0]?.name || (userType === 'police_ex' ? "Police Unit" : "Ambulance Unit"),
-                    markerCategory: userType === 'police_ex' ? 'police' : 'ambulance', // You might need to support 'ambulance' category in map component or map it to 'police'
-                    speed: exData.speed || 0,
-                    entry_time: exData.time || new Date().toISOString(),
-                    packet_type: userType === 'police_ex' ? 'POLICE' : 'AMBULANCE'
-                  });
                 }
+
+                // Add to Field Executive Markers
+                newPoliceLocations.push({
+                  id: `ex-${exData.id || exId || Math.random()}`,
+                  latitude: lat,
+                  longitude: lon,
+                  vehicle_registration_number: assignment?.ex?.users?.[0]?.name || latestLocationsRef.current[exId]?.userId || (userType === 'police_ex' ? "Police Unit" : "Ambulance Unit"),
+                  markerCategory: userType === 'police_ex' ? 'police' : 'ambulance',
+                  speed: exData.speed || 0,
+                  entry_time: exData.time || new Date().toISOString(),
+                  packet_type: userType === 'police_ex' ? 'POLICE' : 'AMBULANCE'
+                });
               }
             }
           }
-        });
+        }
       }
-      setActiveRoutes(newRoutes);
 
-      // Update displayed executive locations
-      if (newPoliceLocations.length > 0) {
-        setPoliceLocations(newPoliceLocations);
-      }
+      // Always update state with the computed lists (which now include cached positions)
+      setActiveRoutes(newRoutes);
+      setPoliceLocations(newPoliceLocations);
 
     } catch (error) {
       console.error("Fetch Locations Error:", error);
@@ -904,15 +943,14 @@ const EMCall = () => {
                 width="100%"
                 height="100%"
                 routes={activeRoutes}
-                autoFit={false}
-                focusEntry={sosLocations.length > 0 ? sosLocations[0] : null}
+                autoFit={true}
                 showMapTypeToggle={true}
                 showDrawControls={false}
                 showLogos={true}
                 defaultMapType="normal"
                 markerLabelMode="vehicle"
                 center={sosLocations.length > 0 ? [sosLocations[0].longitude, sosLocations[0].latitude] : [91.829437, 26.131644]}
-                zoom={sosLocations.length > 0 ? 16 : 7}
+                zoom={sosLocations.length > 0 ? 14 : 7}
               />
             </Card>
           </Grid>
