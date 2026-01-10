@@ -12,6 +12,8 @@ import {
   Snackbar,
   FormControlLabel,
   Switch,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { alpha, useTheme } from '@mui/material/styles';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -39,8 +41,10 @@ const EMCall = () => {
   const [assignments, setAssignments] = useState([]);
   const assignmentsRef = useRef([]); // To track previous assignments for notifications
   const [sosLocations, setSosLocations] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [, setMessages] = useState([]);
+  const [activeRoutes, setActiveRoutes] = useState([]); // Routes for assigned executives
+  const latestLocationsRef = useRef({}); // Cache for last known locations
+
 
   const [broadcastDisabled, setBroadcastDisabled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -59,6 +63,20 @@ const EMCall = () => {
   // Toggle states for map visibility
   const [showPoliceLayers, setShowPoliceLayers] = useState(false);
   const [showPoiLayers, setShowPoiLayers] = useState(false);
+
+  // Tab State & Auto-play
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTabValue((prev) => (prev + 1) % 4);
+    }, 5000); // Switch every 5 seconds
+    return () => clearInterval(timer);
+  }, []);
 
   // Distance helper (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -129,14 +147,9 @@ const EMCall = () => {
             const data = resp?.data;
             const result = data?.results?.[0];
 
-            let city = "";
             if (result && Array.isArray(result.address_components)) {
-              const cityComp = result.address_components.find((c) =>
-                c.types.includes("locality") ||
-                c.types.includes("administrative_area_level_2") ||
-                c.types.includes("administrative_area_level_3")
-              );
-              if (cityComp) city = cityComp.long_name;
+              // Logic to extract city if needed in future
+              // const cityComp = result.address_components.find(...)
             }
 
             const geoAddr = result?.formatted_address ||
@@ -263,11 +276,14 @@ const EMCall = () => {
   };
 
   // Poll Police Locations based on SOS Location
+  /*
+  // Poll Police Locations based on SOS Location
   useEffect(() => {
     fetchPoliceLocations(sosLocations);
     const interval = setInterval(() => fetchPoliceLocations(sosLocations), 10000);
     return () => clearInterval(interval);
   }, [sosLocations]);
+  */
 
   // Fetch locations and assignments
   const fetchAndPlotLocations = async () => {
@@ -310,6 +326,73 @@ const EMCall = () => {
         }
       }));
       setSosLocations(mappedLocations);
+
+      // Process Field Executives for Routes
+      const fieldExList = response.data.fieldEx || [];
+      const newRoutes = [];
+      const newPoliceLocations = [];
+
+      if (mappedLocations.length > 0) {
+        const victimLoc = mappedLocations[0]; // Target location
+
+        fieldExList.forEach(item => {
+          // Check for assignment user type
+          const assignment = item?.Assignment;
+          const userType = assignment?.ex?.user_type;
+
+          if (userType === 'police_ex' || userType === 'ambulance_ex') {
+            // loc is an array of objects
+            const locArray = item?.loc;
+
+            // Check if loc is a non-empty array
+            let effectiveLocArray = locArray;
+            const exId = assignment?.ex?.id;
+
+            if (Array.isArray(locArray) && locArray.length > 0) {
+              if (exId) latestLocationsRef.current[exId] = locArray;
+            } else if (exId && latestLocationsRef.current[exId]) {
+              effectiveLocArray = latestLocationsRef.current[exId];
+            }
+
+            if (Array.isArray(effectiveLocArray) && effectiveLocArray.length > 0) {
+              const exData = effectiveLocArray[0]; // Get the first (latest) location object
+
+              if (exData && exData.em_lat && exData.em_lon) {
+                const lat = parseFloat(exData.em_lat);
+                const lon = parseFloat(exData.em_lon);
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                  // Add to Routes
+                  newRoutes.push({
+                    from: [victimLoc.longitude, victimLoc.latitude],
+                    to: [lon, lat],
+                    type: userType
+                  });
+
+                  // Add to Field Executive Markers (for display on map)
+                  // We treat both ambulance and police as "police" category for marker display purposes or separate them if needed
+                  newPoliceLocations.push({
+                    id: `ex-${exData.id || Math.random()}`,
+                    latitude: lat,
+                    longitude: lon,
+                    vehicle_registration_number: item?.Assignment?.ex?.users?.[0]?.name || (userType === 'police_ex' ? "Police Unit" : "Ambulance Unit"),
+                    markerCategory: userType === 'police_ex' ? 'police' : 'ambulance', // You might need to support 'ambulance' category in map component or map it to 'police'
+                    speed: exData.speed || 0,
+                    entry_time: exData.time || new Date().toISOString(),
+                    packet_type: userType === 'police_ex' ? 'POLICE' : 'AMBULANCE'
+                  });
+                }
+              }
+            }
+          }
+        });
+      }
+      setActiveRoutes(newRoutes);
+
+      // Update displayed executive locations
+      if (newPoliceLocations.length > 0) {
+        setPoliceLocations(newPoliceLocations);
+      }
 
     } catch (error) {
       console.error("Fetch Locations Error:", error);
@@ -419,18 +502,7 @@ const EMCall = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    try {
-      await HomePageService.sendEMmessage({
-        assignment_id: call.id,
-        message: newMessage,
-      });
-      setNewMessage("");
-      fetchMessages();
-    } catch (error) {
-      console.error("Send Message Error:", error);
-    }
-  };
+
 
   const handleModalClose = () => setModalOpen(false);
   const handleRedirectToDashboard = () => navigate('/dashboard');
@@ -510,6 +582,7 @@ const EMCall = () => {
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   `;
 
   useEffect(() => {
@@ -544,175 +617,212 @@ const EMCall = () => {
         </Alert>
       </Snackbar>
 
-      <Box sx={{ p: 3, minHeight: '100vh', background: 'linear-gradient(145deg, #f5f7fa 0%, #e4e8eb 100%)' }}>
-        <Grid container spacing={3}>
+      <Box sx={{ p: 3, height: '100vh', overflow: 'hidden', background: 'linear-gradient(145deg, #f5f7fa 0%, #e4e8eb 100%)' }}>
+        <Grid container spacing={3} sx={{ height: '100%' }}>
           {/* Call Details Card */}
           <Grid item xs={12} md={3}>
             <Card elevation={3} sx={{ height: '100%', borderRadius: 2, display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-                <Typography variant="h4" sx={{ mb: 3, color: 'primary.main', fontWeight: 600, borderBottom: 2, borderColor: 'primary.main', pb: 1 }}>
-                  CALL DETAILS
-                </Typography>
 
-                {/* Map Layers Toggle - At Top */}
-                <Box sx={{ 
-                  mb: 3, 
-                  p: 2, 
-                  borderRadius: 1.5,
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider'
-                }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Map Layers</Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <FormControlLabel
-                      control={<Switch checked={showPoliceLayers} onChange={(e) => setShowPoliceLayers(e.target.checked)} size="small" />}
-                      label="Show Police Vehicles"
-                    />
-                    <FormControlLabel
-                      control={<Switch checked={showPoiLayers} onChange={(e) => setShowPoiLayers(e.target.checked)} size="small" />}
-                      label="Show Police Stations (POI)"
-                    />
-                  </Box>
+              {/* Fixed Map Layers Section */}
+              <Box sx={{
+                p: 2,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper'
+              }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'primary.main' }}>MAP LAYERS</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <FormControlLabel
+                    control={<Switch checked={showPoliceLayers} onChange={(e) => setShowPoliceLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Police Vehicles</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={showPoiLayers} onChange={(e) => setShowPoiLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Police Stations</Typography>}
+                    sx={{ ml: 0 }}
+                  />
                 </Box>
+              </Box>
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.id}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
-                  </Box>
+              {/* Tabs Header */}
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  variant="fullWidth"
+                  indicatorColor="primary"
+                  textColor="primary"
+                  sx={{ minHeight: 48 }}
+                >
+                  <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                  <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                  <Tab label="Police" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                  <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                </Tabs>
+              </Box>
 
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Owner Name</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
+              {/* Scrollable Content Area */}
+              <CardContent sx={{ flex: 1, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
+                {tabValue === 0 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.id}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Owner Name</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
+                      <Typography variant="body1" fontWeight={500}>
+                        {typeof call?.call?.device?.category === 'object'
+                          ? (call.call.device.category?.category || "N/A")
+                          : (call?.call?.device?.category || "N/A")}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Alert Type</Typography>
+                      <Typography variant="body1" fontWeight={500} color="error.main">
+                        {call?.call?.packet_type || "SOS"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Lat</Typography>
+                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.latitude?.toFixed(5) || "N/A"}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Lon</Typography>
+                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.longitude?.toFixed(5) || "N/A"}</Typography>
+                      </Box>
+                    </Box>
                   </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
-                  </Box>
-                  <Box sx={{ borderTop: '1px dashed', borderColor: 'divider', pt: 2, mt: 1 }}>
-                    <Typography variant="subtitle2" color="primary" sx={{ mb: 1.5, fontWeight: 700, letterSpacing: '0.5px' }}>
-                      DRIVER INFORMATION
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1.5 }}>
-                      {call?.call?.device?.drivers?.[0]?.photo && (
+                )}
+
+                {tabValue === 1 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                      {call?.call?.device?.drivers?.[0]?.photo ? (
                         <Box
                           component="img"
                           src={`${BASE_URL}${call.call.device.drivers[0].photo}`}
                           alt="Driver"
                           sx={{
-                            width: 64,
-                            height: 64,
-                            borderRadius: '12px',
+                            width: 100,
+                            height: 100,
+                            borderRadius: '50%',
                             objectFit: 'cover',
-                            border: '2px solid',
-                            borderColor: 'background.paper',
-                            boxShadow: theme.shadows[2]
+                            border: '3px solid',
+                            borderColor: 'primary.light',
+                            boxShadow: theme.shadows[3]
                           }}
                           onError={(e) => { e.target.style.display = 'none'; }}
                         />
+                      ) : (
+                        <Box sx={{
+                          width: 100,
+                          height: 100,
+                          borderRadius: '50%',
+                          bgcolor: 'grey.200',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '3px solid',
+                          borderColor: 'grey.300'
+                        }}>
+                          <Typography variant="caption">No Photo</Typography>
+                        </Box>
                       )}
-                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Name</Typography>
-                          <Typography variant="body2" fontWeight={600} color="text.primary">
-                            {call?.call?.device?.drivers?.[0]?.name || "N/A"}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Phone</Typography>
-                          <Typography variant="body2" fontWeight={600} color="primary.main">
-                            {call?.call?.device?.drivers?.[0]?.phone_no || "N/A"}
-                          </Typography>
-                        </Box>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="h6" fontWeight={700} gutterBottom>
+                        {call?.call?.device?.drivers?.[0]?.name || "N/A"}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 1 }}>
+                        <PhoneInTalkIcon fontSize="small" />
+                        <Typography variant="body2">
+                          {call?.call?.device?.drivers?.[0]?.phone_no || "N/A"}
+                        </Typography>
                       </Box>
                     </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>License Number</Typography>
-                      <Typography variant="body2" fontWeight={600}>
+
+                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" gutterBottom>License Number</Typography>
+                      <Typography variant="body1" fontWeight={600} sx={{ letterSpacing: 1 }}>
                         {call?.call?.device?.drivers?.[0]?.license_no || "N/A"}
                       </Typography>
                     </Box>
                   </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
-                    <Typography variant="body1" fontWeight={500}>
-                      {typeof call?.call?.device?.category === 'object'
-                        ? (call.call.device.category?.category || "N/A")
-                        : (call?.call?.device?.category || "N/A")}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Emergency alert type</Typography>
-                    <Typography variant="body1" fontWeight={500}>
-                      {call?.call?.packet_type || "SOS"}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 3 }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Latitude</Typography>
-                      <Typography variant="body2" fontWeight={500}>{sosLocations[0]?.latitude?.toFixed(6) || "N/A"}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Longitude</Typography>
-                      <Typography variant="body2" fontWeight={500}>{sosLocations[0]?.longitude?.toFixed(6) || "N/A"}</Typography>
-                    </Box>
-                  </Box>
+                )}
 
-                  {/* Nearest Police Station Info - Moved here and styled as a highlight */}
-                  {nearestPolice && (
-                    <Box sx={{
-                      mt: 2,
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: alpha(theme.palette.secondary.main, 0.05),
-                      border: '1px solid',
-                      borderColor: 'secondary.light'
-                    }}>
-                      <Typography variant="subtitle1" sx={{ mb: 1.5, color: 'secondary.main', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LocalPoliceIcon fontSize="small" /> NEAREST POLICE STATION
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">Station Name</Typography>
-                          <Typography variant="body2" fontWeight={600} color="primary.dark">
-                            {nearestPolice.name || nearestPolice.description || "Police Station"}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">Contact Number</Typography>
-                          <Typography variant="body2" fontWeight={600}>
-                            {nearestPolice.phone ||
-                              nearestPolice.mobile ||
-                              nearestPolice.phoneno ||
-                              nearestPolice.contact ||
-                              "N/A"}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">Distance</Typography>
-                          <Typography variant="body2" fontWeight={600}>
-                            {nearestPoliceDistance !== null ? `${nearestPoliceDistance.toFixed(2)} km` : "N/A"}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">Address</Typography>
-                          <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.4 }}>
-                            {nearestPoliceAddress || "Fetching address..."}
-                          </Typography>
+                {tabValue === 2 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s' }}>
+                    {nearestPolice ? (
+                      <Box sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: alpha(theme.palette.info.main, 0.08),
+                        border: '1px solid',
+                        borderColor: 'info.light'
+                      }}>
+                        <Typography variant="subtitle2" sx={{ mb: 2, color: 'info.dark', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LocalPoliceIcon fontSize="small" /> NEAREST STATION
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Station Name</Typography>
+                            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                              {nearestPolice.name || nearestPolice.description || "Police Station"}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Contact Info</Typography>
+                            <Typography variant="body1" fontWeight={600}>
+                              {nearestPolice.phone ||
+                                nearestPolice.mobile ||
+                                nearestPolice.phoneno ||
+                                nearestPolice.contact ||
+                                "N/A"}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Distance</Typography>
+                            <Typography variant="h6" fontWeight={700} color="primary.main">
+                              {nearestPoliceDistance !== null ? `${nearestPoliceDistance.toFixed(2)} km` : "N/A"}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Location</Typography>
+                            <Typography variant="body2" sx={{ lineHeight: 1.5, fontStyle: 'italic', color: 'text.secondary' }}>
+                              {nearestPoliceAddress || "Fetching address..."}
+                            </Typography>
+                          </Box>
                         </Box>
                       </Box>
-                    </Box>
-                  )}
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 6, opacity: 0.6 }}>
+                        <LocalPoliceIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                        <Typography variant="body2" color="text.secondary">Searching for nearest police station...</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
 
-                  {assignments.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Assignment Statuses</Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {tabValue === 3 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s' }}>
+                    {assignments.length > 0 ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         {assignments.map((assignment, index) => (
                           <Box key={assignment.id} sx={{
                             display: 'flex',
@@ -720,17 +830,24 @@ const EMCall = () => {
                             p: 2,
                             bgcolor: getStatusBgColor(assignment.status),
                             borderRadius: 2,
-                            border: '2px solid',
-                            borderColor: getStatusBorderColor(assignment.status)
+                            border: '1px solid',
+                            borderColor: getStatusBorderColor(assignment.status),
+                            position: 'relative',
+                            overflow: 'hidden'
                           }}>
-                            <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '12px', bgcolor: 'background.paper' }}>
+                            {/* Decorative strip */}
+                            <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: getStatusBorderColor(assignment.status) }} />
+
+                            <Box sx={{ mr: 2, ml: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', bgcolor: 'background.paper', boxShadow: 1 }}>
                               {getServiceIcon(assignment.type)}
                             </Box>
                             <Box sx={{ flex: 1 }}>
-                              <Typography variant="subtitle2" fontWeight={600}>Assignment #{index + 1} ({assignment.type})</Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.65rem', fontWeight: 700 }}>
+                                {assignment.type?.replace('_ex', '')}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.2 }}>
                                 {getStatusIcon(assignment.status)}
-                                <Typography variant="body2" sx={{ color: getStatusColor(assignment.status), fontWeight: 600 }}>
+                                <Typography variant="body2" sx={{ color: getStatusColor(assignment.status), fontWeight: 700 }}>
                                   {getStatusText(assignment.status)}
                                 </Typography>
                               </Box>
@@ -738,38 +855,55 @@ const EMCall = () => {
                           </Box>
                         ))}
                       </Box>
-                    </Box>
-                  )}
-                </Box>
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 6, opacity: 0.6 }}>
+                        <AssignmentIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                        <Typography variant="body2" color="text.secondary">No tasks assigned yet.</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
               </CardContent>
-              <CardContent sx={{ p: 2, pt: 0, borderTop: '1px solid', borderColor: 'divider' }}>
-                <Box display="flex" flexDirection="column" gap={1} sx={{ mt: 2 }}>
-                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("police_ex")} disabled={broadcastDisabled} size="small">
-                    Broadcast Police
-                  </Button>
-                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("ambulance_ex")} disabled={broadcastDisabled} size="small">
-                    Broadcast Ambulance
-                  </Button>
-                  <Button variant="contained" color="primary" onClick={() => handleBroadcast("both")} disabled={broadcastDisabled} size="small">
-                    Broadcast Both
-                  </Button>
-                  <Button variant="contained" color="error" onClick={handleCloseCall} disabled={!canCloseCall()} size="small">
-                    Close Call
-                  </Button>
-                </Box>
+
+              {/* Fixed Bottom Broadcast Options */}
+              <CardContent sx={{ p: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
+                <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1 }}>Broadcast Actions</Typography>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Button fullWidth variant="contained" color="primary" onClick={() => handleBroadcast("police_ex")} disabled={broadcastDisabled} size="small" sx={{ fontSize: '0.7rem' }}>
+                      Police
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button fullWidth variant="contained" color="secondary" onClick={() => handleBroadcast("ambulance_ex")} disabled={broadcastDisabled} size="small" sx={{ fontSize: '0.7rem' }}>
+                      Ambulance
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button fullWidth variant="outlined" color="primary" onClick={() => handleBroadcast("both")} disabled={broadcastDisabled} size="small" startIcon={<NotificationsActiveIcon />}>
+                      Broadcast Both
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button fullWidth variant="contained" color="error" onClick={handleCloseCall} disabled={!canCloseCall()} size="medium">
+                      Close Call
+                    </Button>
+                  </Grid>
+                </Grid>
               </CardContent>
             </Card>
           </Grid>
 
           {/* Map Section */}
-          <Grid item xs={12} md={9}>
+          <Grid item xs={12} md={9} sx={{ height: '100%' }}>
             <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden' }}>
               <BhuvanMapComponent
                 gpsData={sosLocations}
-                policeData={showPoliceLayers ? policeLocations : []}
+                policeData={policeLocations}
                 pois={showPoiLayers ? policePois : []}
                 width="100%"
                 height="100%"
+                routes={activeRoutes}
                 autoFit={false}
                 focusEntry={sosLocations.length > 0 ? sosLocations[0] : null}
                 showMapTypeToggle={true}

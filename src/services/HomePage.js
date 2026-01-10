@@ -115,7 +115,7 @@ const getEmMedia = (data) => {
 
 const getPendingSOSCall = () => {
   const http = getAxiosInstance();
-  return http.post("/api/EM/DEx/getPendingCallList/");
+  return http.post("/api/EM/DEx/getCallList/");
 }
 const getAllSOSCall = () => {
   const http = getAxiosInstance();

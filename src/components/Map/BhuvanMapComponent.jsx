@@ -62,12 +62,14 @@ const BhuvanMapComponent = ({
     defaultMapType = "normal",
     center = [91.7362, 26.1445], // Guwahati, Assam
     zoom = 10,
+    routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
 }) => {
     const overlayElement = useRef();
     const trackingDetailCacheRef = useRef({});
     const lastClickedVehicleRef = useRef(null);
     const [map, setMap] = useState(null);
     const [vectorLayer, setVectorLayer] = useState(null);
+    const [routeVectorLayer, setRouteVectorLayer] = useState(null); // Layer for routes
     const [dynamicOverlay, setDynamicOverlay] = useState(null);
     const [drawVectorLayer, setDrawVectorLayer] = useState(null);
     const [drawInteraction, setDrawInteraction] = useState(null);
@@ -730,10 +732,14 @@ const BhuvanMapComponent = ({
         const timeDifference = calculateTimeDifference(entryTime, currentTime);
 
         const isPoliceMarker = data.markerCategory === "police";
+        const isAmbulanceMarker = data.markerCategory === "ambulance";
+
         let color;
 
         if (isPoliceMarker) {
             color = "blue";
+        } else if (isAmbulanceMarker) {
+            color = "red"; // Ambulance - Red Icon
         } else if (data.packet_type === "EA") {
             color = "red"; // EA Packet - Red Icon
         } else if (data.packet_type !== "NR") {
@@ -748,9 +754,11 @@ const BhuvanMapComponent = ({
             color = "default"; // Default color
         }
 
-        const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
+        let iconVehicleType = vehicleType;
+        if (isPoliceMarker) iconVehicleType = "police";
+        if (isAmbulanceMarker) iconVehicleType = "ambulance";
+
         const labelText = getMarkerLabel(data, labelMode);
-        console.debug(`[BhuvanMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
         return createIconStyle(color, iconVehicleType, labelText);
     };
 
@@ -796,15 +804,32 @@ const BhuvanMapComponent = ({
         });
         initialMap.addLayer(initialVectorLayer);
 
-        // Initialize POI vector layer
         const poiSource = new VectorSource();
-        const initialPoiVectorLayer = new VectorLayer({
+        const poiLayer = new VectorLayer({
             source: poiSource,
-            zIndex: 100,
-            declutter: true,
+            zIndex: 150, // Below markers
         });
-        initialMap.addLayer(initialPoiVectorLayer);
-        setPoiVectorLayer(initialPoiVectorLayer);
+        initialMap.addLayer(poiLayer);
+        setPoiVectorLayer(poiLayer);
+
+        // Initialize Route Layer
+        const routeLayer = new VectorLayer({
+            source: new VectorSource(),
+            zIndex: 100, // Below POIs and Markers
+            style: (feature) => {
+                const type = feature.get('type');
+                const color = type === 'ambulance_ex' ? '#e91e63' : '#1976d2'; // Red/Pink for Ambulance, Blue for Police
+                return new Style({
+                    stroke: new Stroke({
+                        color: color,
+                        width: 3,
+                        lineDash: [10, 10], // Dashed line
+                    })
+                });
+            }
+        });
+        initialMap.addLayer(routeLayer);
+        setRouteVectorLayer(routeLayer);
 
         // Initialize vector layer for drawing
         const drawSource = new VectorSource();
@@ -852,7 +877,7 @@ const BhuvanMapComponent = ({
                 map: initialMap,
                 mapType: "normal",
                 vectorLayer: initialVectorLayer,
-                poiVectorLayer: initialPoiVectorLayer,
+                poiVectorLayer: poiLayer,
                 drawVectorLayer: drawLayer,
                 overlay: initialOverlay,
                 baseLayers: {
