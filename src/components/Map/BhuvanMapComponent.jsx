@@ -906,7 +906,6 @@ const BhuvanMapComponent = ({
                     stroke: new Stroke({
                         color: color,
                         width: 3,
-                        lineDash: [10, 10], // Dashed line
                     })
                 });
             }
