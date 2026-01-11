@@ -796,10 +796,6 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
         </div>
         ${policeRows}
         <div class="mappls-hd-popup-row">
-          <span class="mappls-hd-popup-label">Speed</span>
-          <span class="mappls-hd-popup-value">${speedValue}</span>
-        </div>
-        <div class="mappls-hd-popup-row">
           <span class="mappls-hd-popup-label">Battery</span>
           <span class="mappls-hd-popup-value">${batteryValue}</span>
         </div>

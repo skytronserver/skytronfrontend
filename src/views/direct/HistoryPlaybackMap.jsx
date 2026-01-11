@@ -1023,9 +1023,11 @@ const GPSHistoryMap = ({
                   </Typography>
                 </Grid>
                 <Grid item xs={6} sx={{ textAlign: 'right' }}>
-                  <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>
-                    Itg: {String(currentData.igs) === "1" ? "ON" : "OFF"}
-                  </Typography>
+                  {String(currentData.igs) === "1" && (
+                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>
+                      Itg: ON
+                    </Typography>
+                  )}
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1 }}>

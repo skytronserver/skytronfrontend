@@ -780,10 +780,6 @@ const BhuvanMapComponent = ({
                   <span class="overlay-value">${safeValue(time)}</span>
                 </div>
                 <div class="overlay-row">
-                  <span class="overlay-label">Speed</span>
-                  <span class="overlay-value">${speedValue} km/h</span>
-                </div>
-                <div class="overlay-row">
                   <span class="overlay-label">Battery</span>
                   <span class="overlay-value">${battery}</span>
                 </div>
