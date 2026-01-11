@@ -47,6 +47,7 @@ const BhuvanMapComponent = ({
     gpsData = [],
     policeData = [],
     pois = [],
+    lookupPois,
     width = "100%",
     height = "400px",
     onPolygonComplete,
@@ -64,6 +65,7 @@ const BhuvanMapComponent = ({
     zoom = 10,
     routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
 }) => {
+    const poisForLookup = Array.isArray(lookupPois) ? lookupPois : pois;
     const overlayElement = useRef();
     const trackingDetailCacheRef = useRef({});
     const lastClickedVehicleRef = useRef(null);
@@ -572,9 +574,9 @@ const BhuvanMapComponent = ({
         const lat = Number(entry?.latitude);
         const lon = Number(entry?.longitude);
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-        if (!Array.isArray(pois) || pois.length === 0) return null;
+        if (!Array.isArray(poisForLookup) || poisForLookup.length === 0) return null;
 
-        const policePois = pois.filter((poi) => {
+        const policePois = poisForLookup.filter((poi) => {
             const useType = String(poi?.use_type || "").toLowerCase();
             return useType === "policestation" || useType === "police" || useType === "police_station" || useType === "police station";
         });
@@ -595,7 +597,18 @@ const BhuvanMapComponent = ({
         if (!best) return null;
         const name = best?.name ? String(best.name) : "-";
         const address = best?.address || best?.description || "-";
-        return { name, address: String(address), distanceKm: bestDist };
+        const phone = (
+            best?.phone ||
+            best?.phoneno ||
+            best?.mobile ||
+            best?.contact ||
+            best?.data?.phone ||
+            best?.data?.phoneno ||
+            best?.data?.mobile ||
+            best?.data?.contact ||
+            "-"
+        );
+        return { name, address: String(address), phone: String(phone), distanceKm: bestDist };
     };
 
     const mergePoliceFields = (baseEntry, detailEntry) => {
@@ -631,11 +644,35 @@ const BhuvanMapComponent = ({
     const renderVehicleOverlay = (entryData, coordinates, alertType, alertClass, speedValue, selectButtonHtml) => {
         const policeAddressRaw = resolveNearestPoliceAddress(entryData);
         const poiFallback = policeAddressRaw === "-" ? resolveNearestPoliceFromPois(entryData) : null;
-        const policeAddress = poiFallback
-            ? (poiFallback.name && poiFallback.address && poiFallback.address !== "-"
-                ? `${poiFallback.name} - ${poiFallback.address}`
-                : poiFallback.name || poiFallback.address || "-")
-            : policeAddressRaw;
+        const policeName = (
+            entryData?.nearestPoliceStation ||
+            entryData?.nearest_police_station_name ||
+            entryData?.nearest_police?.data?.name ||
+            entryData?.nearest_police?.name ||
+            entryData?.nearest_police_station?.data?.name ||
+            entryData?.nearest_police_station?.name ||
+            entryData?.nearestPolice?.name ||
+            poiFallback?.name ||
+            "-"
+        );
+
+        const policePhone = (
+            entryData?.nearestPoliceContact ||
+            entryData?.nearest_police?.data?.phone ||
+            entryData?.nearest_police?.phone ||
+            entryData?.nearest_police_station?.data?.phone ||
+            entryData?.nearest_police_station?.phone ||
+            entryData?.nearestPolice?.phone ||
+            poiFallback?.phone ||
+            poiFallback?.phoneno ||
+            poiFallback?.mobile ||
+            poiFallback?.contact ||
+            poiFallback?.data?.phone ||
+            poiFallback?.data?.phoneno ||
+            poiFallback?.data?.mobile ||
+            poiFallback?.data?.contact ||
+            "-"
+        );
 
         const safeValue = (value) => {
             if (value === null || value === undefined) return "-";
@@ -652,20 +689,62 @@ const BhuvanMapComponent = ({
                 entry?.device_tag_info?.vehicle?.vehicle_reg_no
             );
 
-        // Use shared formatDateTime for consistent formatting
-        const { formatDateTime } = require('../../helper/index');
         const resolveDateTime = (entry) => {
+            const pad2 = (v) => String(v).padStart(2, "0");
+
+            const formatDate = (dt) => {
+                try {
+                    return new Intl.DateTimeFormat("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                    }).format(dt);
+                } catch (e) {
+                    return "-";
+                }
+            };
+
+            const formatTime = (dt) => `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}:${pad2(dt.getSeconds())}`;
+
+            const parseDDMMYYYY = (value) => {
+                const s = safeValue(value);
+                if (!/^[0-9]{8}$/.test(s)) return null;
+                const dd = Number(s.slice(0, 2));
+                const mm = Number(s.slice(2, 4));
+                const yyyy = Number(s.slice(4, 8));
+                const dt = new Date(yyyy, mm - 1, dd);
+                return Number.isNaN(dt.getTime()) ? null : dt;
+            };
+
+            const parseHHMMSS = (value) => {
+                const s = safeValue(value);
+                if (!/^[0-9]{6}$/.test(s)) return null;
+                const hh = Number(s.slice(0, 2));
+                const mi = Number(s.slice(2, 4));
+                const ss = Number(s.slice(4, 6));
+                if (hh > 23 || mi > 59 || ss > 59) return null;
+                return { hh, mi, ss };
+            };
+
             const raw = entry?.entry_time || entry?.timestamp || entry?.time_stamp;
-            if (!raw) {
-                return { date: safeValue(entry?.date), time: safeValue(entry?.time) };
+            if (raw) {
+                const dt = new Date(raw);
+                if (!Number.isNaN(dt.getTime())) {
+                    return { date: formatDate(dt), time: formatTime(dt) };
+                }
             }
-            const formatted = formatDateTime(raw);
-            // Split formatted into date and time for display
-            if (formatted.includes('\n')) {
-                const [date, time] = formatted.split('\n').map(s => s.trim());
-                return { date, time };
+
+            const dateDt = parseDDMMYYYY(entry?.date);
+            const timeParts = parseHHMMSS(entry?.time);
+            if (dateDt) {
+                const outDate = formatDate(dateDt);
+                const outTime = timeParts
+                    ? `${pad2(timeParts.hh)}:${pad2(timeParts.mi)}:${pad2(timeParts.ss)}`
+                    : "-";
+                return { date: outDate, time: outTime };
             }
-            return { date: formatted, time: '' };
+
+            return { date: safeValue(entry?.date), time: safeValue(entry?.time) };
         };
 
         const { date, time } = resolveDateTime(entryData);
@@ -717,8 +796,12 @@ const BhuvanMapComponent = ({
                   <span class="overlay-value">${lonText}</span>
                 </div>
                 <div class="overlay-row">
-                  <span class="overlay-label">Nearest Police Address</span>
-                  <span class="overlay-value">${policeAddress}</span>
+                  <span class="overlay-label">Station</span>
+                  <span class="overlay-value">${safeValue(policeName)}</span>
+                </div>
+                <div class="overlay-row">
+                  <span class="overlay-label">Phone</span>
+                  <span class="overlay-value">${safeValue(policePhone)}</span>
                 </div>
               </div>
               ${selectButtonHtml}

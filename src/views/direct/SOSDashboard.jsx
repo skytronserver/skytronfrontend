@@ -298,6 +298,7 @@ const playBuzzer = () => {
         <BhuvanMapComponent
           gpsData={sosLocations}
           pois={policePois}
+          lookupPois={policePois}
           width="100%"
           height="65vh"
           autoFit={false}
@@ -318,6 +319,16 @@ const playBuzzer = () => {
           <Typography variant="body2">
             {nearestPolice.name || nearestPolice.description || "Police Station"}
           </Typography>
+          {nearestPolice.pluscode && (
+            <Typography variant="body2">
+              Pluscode: {nearestPolice.pluscode}
+            </Typography>
+          )}
+          {nearestPolice.description && (
+            <Typography variant="body2">
+              Description: {nearestPolice.description}
+            </Typography>
+          )}
           {nearestPoliceDistance !== null && (
             <Typography variant="body2">
               Distance: {nearestPoliceDistance.toFixed(2)} km

@@ -166,6 +166,8 @@ const resolveAlertLabel = (entry) => {
 
 const resolvePacketTypeLabel = (entry) => {
   if (!entry) return "-";
+
+  if (isEntryStale15Min(entry)) return "Offline";
   // In your payload, packet_status often contains L/H (Live/History)
   const raw =
     entry.packet_status ||
@@ -185,8 +187,8 @@ const resolvePacketTypeLabel = (entry) => {
   return String(raw);
 };
 
-const resolveLastUpdateTimestampMs = (entry) => {
-  if (!entry) return NaN;
+const isEntryStale15Min = (entry) => {
+  if (!entry) return true;
 
   const parseDateTimeParts = (dateStr, timeStr) => {
     if (!dateStr || !timeStr) return NaN;
@@ -194,6 +196,7 @@ const resolveLastUpdateTimestampMs = (entry) => {
     const dateTrimmed = String(dateStr).trim();
     const timeTrimmed = String(timeStr).trim();
 
+    // Format: DDMMYYYY + HHMMSS
     const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
     const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
     if (dmyCompact && hmsCompact) {
@@ -208,6 +211,7 @@ const resolveLastUpdateTimestampMs = (entry) => {
       return Number.isFinite(ms) ? ms : NaN;
     }
 
+    // Format: DD-MM-YY or DD-MM-YYYY
     const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
     if (dmy) {
       const day = Number(dmy[1]);
@@ -242,60 +246,32 @@ const resolveLastUpdateTimestampMs = (entry) => {
     return num < 1e12 ? num * 1000 : num;
   };
 
-  const candidates = [
-    entry.entry_time,
-    entry.entryTime,
-    entry.timestamp,
-    entry.time,
-    entry.gps_time,
-    entry.gpsTime,
-    entry.packet_time,
-    entry.packetTime,
-    entry.updated_at,
-    entry.updatedAt,
-    entry.created_at,
-    entry.createdAt,
-    entry.last_updated,
-    entry.lastUpdated,
-  ].filter((v) => v !== undefined && v !== null && String(v).trim() !== "");
+  const candidate = entry.entry_time ?? entry.timestamp ?? null;
+  let lastUpdateTime = NaN;
 
-  for (const candidate of candidates) {
-    if (typeof candidate === "number") {
-      const ms = normalizeEpoch(candidate);
-      if (Number.isFinite(ms)) return ms;
-      continue;
+  if (typeof candidate === "number") {
+    lastUpdateTime = normalizeEpoch(candidate);
+  } else if (typeof candidate === "string") {
+    const trimmed = candidate.trim();
+    if (/^\d+$/.test(trimmed)) {
+      lastUpdateTime = normalizeEpoch(trimmed);
+    } else {
+      lastUpdateTime = new Date(trimmed).getTime();
     }
+  }
 
-    if (typeof candidate === "string") {
-      const trimmed = candidate.trim();
-      if (/^\d+$/.test(trimmed)) {
-        const ms = normalizeEpoch(trimmed);
-        if (Number.isFinite(ms)) return ms;
+  if (!Number.isFinite(lastUpdateTime)) {
+    const datePart = entry?.date;
+    const timePart = entry?.time;
+    if (datePart && timePart) {
+      lastUpdateTime = parseDateTimeParts(datePart, timePart);
+      if (!Number.isFinite(lastUpdateTime)) {
+        lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
       }
-
-      const parsed = new Date(trimmed).getTime();
-      if (Number.isFinite(parsed)) return parsed;
     }
   }
 
-  const datePart = entry?.date;
-  const timePart = entry?.time;
-  if (datePart && timePart) {
-    const compositeMs = parseDateTimeParts(datePart, timePart);
-    if (Number.isFinite(compositeMs)) return compositeMs;
-
-    const compositeParsed = new Date(`${datePart}T${timePart}`).getTime();
-    if (Number.isFinite(compositeParsed)) return compositeParsed;
-  }
-
-  return NaN;
-};
-
-const isEntryStale15Min = (entry) => {
-  if (!entry) return true;
-
-  const lastUpdateTime = resolveLastUpdateTimestampMs(entry);
-  if (!Number.isFinite(lastUpdateTime)) return false;
+  if (!Number.isFinite(lastUpdateTime)) return true;
   const now = new Date().getTime();
   return now - lastUpdateTime > 15 * 60 * 1000;
 };
@@ -311,10 +287,76 @@ const resolveDeviceStatusLabel = (entry) => {
     
   if (raw === undefined || raw === null) {
     // If no explicit status, determine based on last update time
-    const lastUpdateTime = resolveLastUpdateTimestampMs(entry);
-    if (!Number.isFinite(lastUpdateTime)) return "Unknown";
-    const now = new Date().getTime();
-    return now - lastUpdateTime > 15 * 60 * 1000 ? "Offline" : "Online";
+    const lastUpdate = entry.entry_time || entry.timestamp;
+    let lastUpdateTime = lastUpdate ? new Date(lastUpdate).getTime() : NaN;
+
+    const parseDateTimeParts = (dateStr, timeStr) => {
+      if (!dateStr || !timeStr) return NaN;
+
+      const dateTrimmed = String(dateStr).trim();
+      const timeTrimmed = String(timeStr).trim();
+
+      // Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
+      const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+      const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+      if (dmyCompact && hmsCompact) {
+        const day = Number(dmyCompact[1]);
+        const month = Number(dmyCompact[2]);
+        const year = Number(dmyCompact[3]);
+        const hours = Number(hmsCompact[1]);
+        const minutes = Number(hmsCompact[2]);
+        const seconds = Number(hmsCompact[3]);
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+      if (dmy) {
+        const day = Number(dmy[1]);
+        const month = Number(dmy[2]);
+        let year = Number(dmy[3]);
+        if (String(dmy[3]).length === 2) year = 2000 + year;
+
+        const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+        if (!tm) return NaN;
+        let hours = Number(tm[1]);
+        const minutes = Number(tm[2]);
+        const seconds = Number(tm[3] ?? 0);
+        const ampm = tm[4]?.toUpperCase();
+        if (ampm === "AM") {
+          if (hours === 12) hours = 0;
+        } else if (ampm === "PM") {
+          if (hours !== 12) hours += 12;
+        }
+
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+      return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+    };
+
+    if (!Number.isFinite(lastUpdateTime)) {
+      const datePart = entry?.date;
+      const timePart = entry?.time;
+      if (datePart && timePart) {
+        lastUpdateTime = parseDateTimeParts(datePart, timePart);
+
+        if (!Number.isFinite(lastUpdateTime)) {
+          lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
+        }
+      }
+    }
+
+    if (Number.isFinite(lastUpdateTime)) {
+      const currentTime = new Date().getTime();
+      // Consider offline if no update in last 15 minutes
+      return (currentTime - lastUpdateTime) < (15 * 60 * 1000) ? "Online" : "Offline";
+    }
+    return "Offline";
   }
 
   if (raw === null || raw === undefined || raw === "") return "-";
@@ -395,6 +437,12 @@ const resolveNearestPoliceDetails = (entry) => {
     lat: lat === null || lat === undefined || lat === "" ? "-" : String(lat),
     lng: lng === null || lng === undefined || lng === "" ? "-" : String(lng),
   };
+};
+
+const resolveEntrySpeedValue = (entry) => {
+  const raw = entry?.speed ?? entry?.vehicle_speed ?? entry?.vehicleSpeed;
+  const num = typeof raw === "number" ? raw : Number(raw);
+  return Number.isFinite(num) ? num : 0;
 };
 
 const MAPPLS_TOKEN_ENV_KEYS = [
@@ -581,6 +629,12 @@ const ensureHdPopupStyles = () => {
       border-color: #bbf7d0;
     }
 
+    .mappls-hd-popup-pill--offline {
+      background-color: #f3f4f6;
+      color: #4b5563;
+      border-color: #d1d5db;
+    }
+
     .mappls-hd-popup-pill--alert {
       background-color: #fef2f2;
       color: #b91c1c;
@@ -683,12 +737,15 @@ const getMarkerLabelText = (entry, mode = "vehicle") => {
 
 const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
   const displayLabel = getMarkerLabelText(entry, markerLabelMode) || "-";
-  const alertType = formatDisplayValue(entry?.packet_type, "NR");
+  const isStale = isEntryStale15Min(entry);
+  const alertType = isStale ? "Offline" : formatDisplayValue(entry?.packet_type, "NR");
   const normalizedAlertType = String(alertType).trim().toUpperCase();
   const alertClass =
-    normalizedAlertType === "NR" || normalizedAlertType === "NORMAL"
-      ? "mappls-hd-popup-pill--normal"
-      : "mappls-hd-popup-pill--alert";
+    normalizedAlertType === "OFFLINE"
+      ? "mappls-hd-popup-pill--offline"
+      : (normalizedAlertType === "NR" || normalizedAlertType === "NORMAL")
+        ? "mappls-hd-popup-pill--normal"
+        : "mappls-hd-popup-pill--alert";
 
   const speedValue =
     typeof entry?.speed === "number" && entry.speed > 2
@@ -2569,16 +2626,17 @@ const MapComponent = ({
           let markerColor = "blue";
           if (isPoliceMarker) {
             markerColor = "blue";
-          } else if (isStale) {
-            markerColor = "grey";
-          } else if (entry.packet_type === "EA") {
-            markerColor = "red";
-          } else if (entry.packet_type === "IN" && String(entry.ignition_status) === "1" && entry.speed < 1) {
-            markerColor = "blue";
-          } else if (entry.packet_type !== "NR") {
-            markerColor = "orange";
-          } else if (String(entry.ignition_status) === "1" && entry.speed > 1) {
-            markerColor = "green";
+            if (isEntryStale15Min(entry)) {
+              markerColor = "grey";
+            } else if (entry.packet_type === "EA") {
+              markerColor = "red";
+            } else if (entry.packet_type !== "NR") {
+              markerColor = "orange";
+            } else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) > 1) {
+              markerColor = "green";
+            } else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) <= 1) {
+              markerColor = "blue";
+            }
           }
 
           const vehicleType = entry?.device_tag_info?.category_info?.category;
@@ -3087,8 +3145,89 @@ const MapComponent = ({
 
   const resolveEntryTimestampMs = (data) => {
     if (!data) return NaN;
-    const resolved = resolveLastUpdateTimestampMs(data);
-    return Number.isFinite(resolved) ? resolved : new Date().getTime();
+
+    const raw = data.entry_time ?? data.timestamp ?? null;
+
+    const normalizeEpoch = (value) => {
+      const num = typeof value === "number" ? value : Number(value);
+      if (!Number.isFinite(num)) return NaN;
+      return num < 1e12 ? num * 1000 : num;
+    };
+
+    if (typeof raw === "number") {
+      return normalizeEpoch(raw);
+    }
+
+    if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (/^\d+$/.test(trimmed)) {
+        return normalizeEpoch(trimmed);
+      }
+      const parsed = new Date(trimmed).getTime();
+      if (Number.isFinite(parsed)) return parsed;
+    }
+
+    const parseDateTimeParts = (dateStr, timeStr) => {
+      if (!dateStr || !timeStr) return NaN;
+
+      const dateTrimmed = String(dateStr).trim();
+      const timeTrimmed = String(timeStr).trim();
+
+      // Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
+      const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+      const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+      if (dmyCompact && hmsCompact) {
+        const day = Number(dmyCompact[1]);
+        const month = Number(dmyCompact[2]);
+        const year = Number(dmyCompact[3]);
+        const hours = Number(hmsCompact[1]);
+        const minutes = Number(hmsCompact[2]);
+        const seconds = Number(hmsCompact[3]);
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      // Format: DD-MM-YY or DD-MM-YYYY
+      const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+      if (dmy) {
+        const day = Number(dmy[1]);
+        const month = Number(dmy[2]);
+        let year = Number(dmy[3]);
+        if (String(dmy[3]).length === 2) year = 2000 + year;
+
+        const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+        if (!tm) return NaN;
+        let hours = Number(tm[1]);
+        const minutes = Number(tm[2]);
+        const seconds = Number(tm[3] ?? 0);
+        const ampm = tm[4]?.toUpperCase();
+        if (ampm === "AM") {
+          if (hours === 12) hours = 0;
+        } else if (ampm === "PM") {
+          if (hours !== 12) hours += 12;
+        }
+
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+      return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+    };
+
+    const datePart = data?.date;
+    const timePart = data?.time;
+    if (datePart && timePart) {
+      const compositeMs = parseDateTimeParts(datePart, timePart);
+      if (Number.isFinite(compositeMs)) return compositeMs;
+
+      const compositeParsed = new Date(`${datePart}T${timePart}`).getTime();
+      if (Number.isFinite(compositeParsed)) return compositeParsed;
+    }
+
+    return NaN;
   };
 
   // Set the correct icon style based on data conditions and vehicle type
@@ -3111,11 +3250,11 @@ const MapComponent = ({
       color = "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
     } else if (data.packet_type === "EA") {
       color = "red"; // EA Packet - Red Icon
-    } else if (data.packet_type === "IN" && String(data.ignition_status) === "1" && data.speed < 1) {
-      color = "blue";
     } else if (data.packet_type !== "NR") {
       color = "orange"; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
+    } else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) <= 1) {
+      color = "blue"; // Ignition ON but stationary - Blue Icon
+    } else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) > 1) {
       color = "green"; // Ignition ON and moving - Green Icon
     } else {
       color = "default"; // Default color
@@ -3640,13 +3779,8 @@ const MapComponent = ({
 
           const speedValue = entryData.speed > 2 ? entryData.speed : 0;
           const alertType = entryData.packet_type || "NR";
-          const normalizedAlertType = String(alertType).trim().toUpperCase();
           const alertClass =
-            normalizedAlertType === "OFFLINE"
-              ? "overlay-pill--offline"
-              : (normalizedAlertType === "NR" || normalizedAlertType === "NORMAL")
-                ? "overlay-pill--normal"
-                : "overlay-pill--alert";
+            alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
 
           // Set overlay content with styled card layout
           document.getElementById("overlay-content").innerHTML = `

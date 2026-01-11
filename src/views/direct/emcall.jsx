@@ -842,12 +842,14 @@ const EMCall = () => {
                               {nearestPoliceDistance !== null ? `${nearestPoliceDistance.toFixed(2)} km` : "N/A"}
                             </Typography>
                           </Box>
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">Location</Typography>
-                            <Typography variant="body2" sx={{ lineHeight: 1.5, fontStyle: 'italic', color: 'text.secondary' }}>
-                              {nearestPoliceAddress || "Fetching address..."}
-                            </Typography>
-                          </Box>
+                          {nearestPolice.description && (
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Description</Typography>
+                              <Typography variant="body2" sx={{ lineHeight: 1.5, color: 'text.secondary' }}>
+                                {nearestPolice.description}
+                              </Typography>
+                            </Box>
+                          )}
                         </Box>
                       </Box>
                     ) : (
@@ -944,6 +946,7 @@ const EMCall = () => {
                 gpsData={sosLocations}
                 policeData={policeLocations}
                 pois={showPoiLayers ? policePois : []}
+                lookupPois={policePois}
                 width="100%"
                 height="100%"
                 routes={activeRoutes}

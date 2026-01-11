@@ -149,7 +149,7 @@ const LiveTracking = () => {
         const center = computeSearchCenter(entries);
         params.lat = center.latitude;
         params.lon = center.longitude;
-        params.radius_km = 10000;
+        params.radius_km = 10;
       }
 
       const response = await HomePageService.getEmergencyUserLocations(params);
@@ -713,6 +713,14 @@ const LiveTracking = () => {
     }
   };
 
+  const resolveIgnitionOn = (entry) => String(entry?.ignition_status ?? entry?.ignitionStatus ?? "") === "1";
+
+  const resolveSpeedValue = (entry) => {
+    const raw = entry?.speed ?? entry?.vehicle_speed ?? entry?.vehicleSpeed;
+    const num = typeof raw === "number" ? raw : Number(raw);
+    return Number.isFinite(num) ? num : 0;
+  };
+
   const getIconStyle = (data) => {
     const entryTimeMs = resolveEntryTimestampMs(data);
     const currentTimeMs = new Date().getTime();
@@ -724,16 +732,19 @@ const LiveTracking = () => {
     // Get vehicle type from data
     const vehicleType = data?.device_tag_info?.category_info?.category;
 
+    const ignitionOn = resolveIgnitionOn(data);
+    const speedValue = resolveSpeedValue(data);
+
     let color;
     if (isStale) {
       color = 'grey'; // Offline device (no packets from device for 15+ minutes) - Grey Icon
     } else if (data.packet_type === "EA") {
       color = 'red'; // EA Packet - Red Icon
-    } else if (data.packet_type === "IN" && String(data.ignition_status) === "1" && data.speed <= 1) {
-      color = 'blue';
     } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
+    } else if (ignitionOn && speedValue <= 1) {
+      color = 'blue'; // Ignition ON but stationary - Blue Icon
+    } else if (ignitionOn && speedValue > 1) {
       color = 'green'; // Ignition ON and moving - Green Icon
     } else {
       color = 'default'; // Default icon for all other conditions
@@ -750,15 +761,18 @@ const LiveTracking = () => {
       : Number.POSITIVE_INFINITY;
     const isStale = timeDifference > 15;
 
+    const ignitionOn = resolveIgnitionOn(data);
+    const speedValue = resolveSpeedValue(data);
+
     if (isStale) {
       return "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
     } else if (data.packet_type === "EA") {
       return "red"; // EA Packet - Red Icon
-    } else if (data.packet_type === "IN" && String(data.ignition_status) === "1" && data.speed <= 1) {
-      return "blue";
     } else if (data.packet_type !== "NR") {
       return "orange"; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed > 1) {
+    } else if (ignitionOn && speedValue <= 1) {
+      return "blue"; // Ignition ON but stationary - Blue Icon
+    } else if (ignitionOn && speedValue > 1) {
       return "green"; // Ignition ON and moving - Green Icon
     } else {
       return "default"; // Default icon for all other conditions
@@ -802,6 +816,13 @@ const LiveTracking = () => {
         ? calculateTimeDifference(entryTimeMs, currentTimeMs)
         : Number.POSITIVE_INFINITY;
       if (timeDifference > 15) return "Offline";
+    }
+
+    if (key === "ignition_status") {
+      const ignitionOn = resolveIgnitionOn(row);
+      if (!ignitionOn) return "Engine OFF";
+      const speedValue = resolveSpeedValue(row);
+      return speedValue <= 1 ? "Engine ON (Stationary)" : "Engine ON";
     }
 
     const rawValue = row[key];
@@ -1003,7 +1024,7 @@ const LiveTracking = () => {
                     <TableCell
                       key={index}
                       onClick={() => filterByType(item.key)}
-                      className={`tracking-icon ${typeFilter === item.key ? "tracking-icon--active" : ""}`}
+                      className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
                       <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
@@ -1019,7 +1040,7 @@ const LiveTracking = () => {
                     <TableCell
                       key={index}
                       onClick={() => filterByType(item.key)}
-                      className={`tracking-icon ${typeFilter === item.key ? "tracking-icon--active" : ""}`}
+                      className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
                       <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
