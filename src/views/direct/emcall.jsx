@@ -384,6 +384,13 @@ const EMCall = () => {
 
                   if (routeData?.paths?.[0]?.points?.coordinates) {
                     const coordinates = routeData.paths[0].points.coordinates;
+                    const distanceInMeters = routeData.paths[0].distance || 0;
+                    const distanceInKm = distanceInMeters / 1000;
+
+                    // Calculate time based on 15 km/hr speed
+                    const speedKmPerHr = 15;
+                    const timeInHours = distanceInKm / speedKmPerHr;
+                    const timeInMinutes = timeInHours * 60;
 
                     // Add the actual road route
                     newRoutes.push({
@@ -391,8 +398,10 @@ const EMCall = () => {
                       to: [victimLoc.longitude, victimLoc.latitude],
                       type: userType,
                       coordinates: coordinates, // Full path coordinates
-                      distance: routeData.paths[0].distance || 0,
-                      time: routeData.paths[0].time || 0
+                      distance: distanceInMeters,
+                      distanceKm: distanceInKm,
+                      time: routeData.paths[0].time || 0,
+                      estimatedTimeMinutes: timeInMinutes
                     });
                   } else {
                     // Fallback to straight line if API fails
@@ -865,37 +874,63 @@ const EMCall = () => {
                   <Box sx={{ animation: 'fadeIn 0.5s' }}>
                     {assignments.length > 0 ? (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        {assignments.map((assignment, index) => (
-                          <Box key={assignment.id} sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            p: 2,
-                            bgcolor: getStatusBgColor(assignment.status),
-                            borderRadius: 2,
-                            border: '1px solid',
-                            borderColor: getStatusBorderColor(assignment.status),
-                            position: 'relative',
-                            overflow: 'hidden'
-                          }}>
-                            {/* Decorative strip */}
-                            <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: getStatusBorderColor(assignment.status) }} />
+                        {assignments.map((assignment, index) => {
+                          // Find matching route for this assignment
+                          const matchingRoute = activeRoutes.find(route => route.type === assignment.type);
+                          const hasRouteInfo = matchingRoute && matchingRoute.estimatedTimeMinutes;
 
-                            <Box sx={{ mr: 2, ml: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', bgcolor: 'background.paper', boxShadow: 1 }}>
-                              {getServiceIcon(assignment.type)}
-                            </Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.65rem', fontWeight: 700 }}>
-                                {assignment.type?.replace('_ex', '')}
-                              </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.2 }}>
-                                {getStatusIcon(assignment.status)}
-                                <Typography variant="body2" sx={{ color: getStatusColor(assignment.status), fontWeight: 700 }}>
-                                  {getStatusText(assignment.status)}
-                                </Typography>
+                          return (
+                            <Box key={assignment.id} sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              p: 2,
+                              bgcolor: getStatusBgColor(assignment.status),
+                              borderRadius: 2,
+                              border: '1px solid',
+                              borderColor: getStatusBorderColor(assignment.status),
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}>
+                              {/* Decorative strip */}
+                              <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: getStatusBorderColor(assignment.status) }} />
+
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Box sx={{ mr: 2, ml: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', bgcolor: 'background.paper', boxShadow: 1 }}>
+                                  {getServiceIcon(assignment.type)}
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.65rem', fontWeight: 700 }}>
+                                    {assignment.type?.replace('_ex', '')}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.2 }}>
+                                    {getStatusIcon(assignment.status)}
+                                    <Typography variant="body2" sx={{ color: getStatusColor(assignment.status), fontWeight: 700 }}>
+                                      {getStatusText(assignment.status)}
+                                    </Typography>
+                                  </Box>
+                                </Box>
                               </Box>
+
+                              {/* Route Information */}
+                              {hasRouteInfo && (
+                                <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', gap: 2 }}>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" display="block">Distance</Typography>
+                                    <Typography variant="body2" fontWeight={600} color="primary.main">
+                                      {matchingRoute.distanceKm.toFixed(2)} km
+                                    </Typography>
+                                  </Box>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" display="block">Est. Time (15 km/hr)</Typography>
+                                    <Typography variant="body2" fontWeight={600} color="primary.main">
+                                      {Math.round(matchingRoute.estimatedTimeMinutes)} min
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              )}
                             </Box>
-                          </Box>
-                        ))}
+                          );
+                        })}
                       </Box>
                     ) : (
                       <Box sx={{ textAlign: 'center', py: 6, opacity: 0.6 }}>
