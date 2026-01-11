@@ -149,7 +149,7 @@ const LiveTracking = () => {
         const center = computeSearchCenter(entries);
         params.lat = center.latitude;
         params.lon = center.longitude;
-        params.radius_km = 10;
+        params.radius_km = 10000;
       }
 
       const response = await HomePageService.getEmergencyUserLocations(params);
@@ -729,10 +729,10 @@ const LiveTracking = () => {
       color = 'grey'; // Offline device (no packets from device for 15+ minutes) - Grey Icon
     } else if (data.packet_type === "EA") {
       color = 'red'; // EA Packet - Red Icon
+    } else if (data.packet_type === "IN" && String(data.ignition_status) === "1" && data.speed <= 1) {
+      color = 'blue';
     } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed <= 1) {
-      color = 'blue'; // Ignition ON but stationary - Blue Icon
     } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       color = 'green'; // Ignition ON and moving - Green Icon
     } else {
@@ -754,10 +754,10 @@ const LiveTracking = () => {
       return "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
     } else if (data.packet_type === "EA") {
       return "red"; // EA Packet - Red Icon
+    } else if (data.packet_type === "IN" && String(data.ignition_status) === "1" && data.speed <= 1) {
+      return "blue";
     } else if (data.packet_type !== "NR") {
       return "orange"; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && data.speed <= 1) {
-      return "blue"; // Ignition ON but stationary - Blue Icon
     } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       return "green"; // Ignition ON and moving - Green Icon
     } else {
@@ -1003,7 +1003,7 @@ const LiveTracking = () => {
                     <TableCell
                       key={index}
                       onClick={() => filterByType(item.key)}
-                      className="tracking-icon"
+                      className={`tracking-icon ${typeFilter === item.key ? "tracking-icon--active" : ""}`}
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
                       <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
@@ -1019,7 +1019,7 @@ const LiveTracking = () => {
                     <TableCell
                       key={index}
                       onClick={() => filterByType(item.key)}
-                      className="tracking-icon"
+                      className={`tracking-icon ${typeFilter === item.key ? "tracking-icon--active" : ""}`}
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
                       <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />

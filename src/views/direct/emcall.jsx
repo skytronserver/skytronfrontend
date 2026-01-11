@@ -210,7 +210,7 @@ const EMCall = () => {
         if (center && center.latitude && center.longitude) {
           params.lat = center.latitude;
           params.lon = center.longitude;
-          params.radius_km = 10;
+          params.radius_km = 10000;
         }
       }
 
