@@ -149,7 +149,7 @@ const LiveTracking = () => {
         const center = computeSearchCenter(entries);
         params.lat = center.latitude;
         params.lon = center.longitude;
-        params.radius_km = 10;
+        params.radius_km = 1000;
       }
 
       const response = await HomePageService.getEmergencyUserLocations(params);
