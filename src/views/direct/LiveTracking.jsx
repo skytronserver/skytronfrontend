@@ -39,6 +39,8 @@ import { formatDateTime, getRole } from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";
 
+const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
+
 const LiveTracking = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false);
@@ -605,29 +607,127 @@ const LiveTracking = () => {
     return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
   };
 
+  const resolveEntryTimestampMs = (data) => {
+    if (!data) return NaN;
+
+    const raw = data.entry_time ?? data.timestamp ?? null;
+
+    const normalizeEpoch = (value) => {
+      const num = typeof value === "number" ? value : Number(value);
+      if (!Number.isFinite(num)) return NaN;
+      return num < 1e12 ? num * 1000 : num;
+    };
+
+    if (typeof raw === "number") {
+      return normalizeEpoch(raw);
+    }
+
+    if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (/^\d+$/.test(trimmed)) {
+        return normalizeEpoch(trimmed);
+      }
+      const parsed = new Date(trimmed).getTime();
+      if (Number.isFinite(parsed)) return parsed;
+    }
+
+    const parseDateTimeParts = (dateStr, timeStr) => {
+      if (!dateStr || !timeStr) return NaN;
+
+      const dateTrimmed = String(dateStr).trim();
+      const timeTrimmed = String(timeStr).trim();
+
+      // Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
+      const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+      const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+      if (dmyCompact && hmsCompact) {
+        const day = Number(dmyCompact[1]);
+        const month = Number(dmyCompact[2]);
+        const year = Number(dmyCompact[3]);
+        const hours = Number(hmsCompact[1]);
+        const minutes = Number(hmsCompact[2]);
+        const seconds = Number(hmsCompact[3]);
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      // Format: DD-MM-YY or DD-MM-YYYY
+      const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+      if (dmy) {
+        const day = Number(dmy[1]);
+        const month = Number(dmy[2]);
+        let year = Number(dmy[3]);
+        if (String(dmy[3]).length === 2) year = 2000 + year;
+
+        // Time: HH:MM(:SS)? (AM/PM optional)
+        const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+        if (!tm) return NaN;
+        let hours = Number(tm[1]);
+        const minutes = Number(tm[2]);
+        const seconds = Number(tm[3] ?? 0);
+        const ampm = tm[4]?.toUpperCase();
+        if (ampm === "AM") {
+          if (hours === 12) hours = 0;
+        } else if (ampm === "PM") {
+          if (hours !== 12) hours += 12;
+        }
+
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      // Fallback: try native parsing for other formats
+      const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+      return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+    };
+
+    const datePart = data?.date;
+    const timePart = data?.time;
+    if (datePart && timePart) {
+      const compositeMs = parseDateTimeParts(datePart, timePart);
+      if (Number.isFinite(compositeMs)) return compositeMs;
+
+      const compositeParsed = new Date(`${datePart}T${timePart}`).getTime();
+      if (Number.isFinite(compositeParsed)) return compositeParsed;
+    }
+
+    return NaN;
+  };
+
   const createIconPath = (color, vehicleType) => {
-    const normalizedVehicleType = vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : 'bus';
-    const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
+    const normalizedVehicleType = vehicleType ? String(vehicleType).toLowerCase().trim() : 'bus';
+    const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school bus', 'tanker', 'taxi', 'truck'];
     const iconType = availableTypes.includes(normalizedVehicleType) ? normalizedVehicleType : 'bus';
+    const fileName = `${iconType}.png`;
 
     try {
-      return require(`../../assets/images/${color}/${iconType}.png`);
+      return vehicleIconContext(`./${color}/${fileName}`);
     } catch (error) {
-      // Fallback to bus icon if specific type not found
-      return require(`../../assets/images/${color}/bus.png`);
+      try {
+        return vehicleIconContext(`./${color}/bus.png`);
+      } catch (fallbackError) {
+        return vehicleIconContext(`./default/bus.png`);
+      }
     }
   };
 
   const getIconStyle = (data) => {
-    const entryTime = new Date(data.entry_time);
-    const currentTime = new Date();
-    const timeDifference = calculateTimeDifference(entryTime, currentTime);
+    const entryTimeMs = resolveEntryTimestampMs(data);
+    const currentTimeMs = new Date().getTime();
+    const timeDifference = Number.isFinite(entryTimeMs)
+      ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+      : Number.POSITIVE_INFINITY;
+    const isStale = timeDifference > 15;
 
     // Get vehicle type from data
     const vehicleType = data?.device_tag_info?.category_info?.category;
 
     let color;
-    if (data.packet_type === "EA") {
+    if (isStale) {
+      color = 'grey'; // Offline device (no packets from device for 15+ minutes) - Grey Icon
+    } else if (data.packet_type === "EA") {
       color = 'red'; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
@@ -635,8 +735,6 @@ const LiveTracking = () => {
       color = 'blue'; // Ignition ON but stationary - Blue Icon
     } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       color = 'green'; // Ignition ON and moving - Green Icon
-    } else if (timeDifference > 5) {
-      color = 'grey'; // Offline device (no packets from device for 5+ minutes) - Grey Icon
     } else {
       color = 'default'; // Default icon for all other conditions
     }
@@ -645,11 +743,16 @@ const LiveTracking = () => {
   };
 
   const getAlartType = (data) => {
-    const entryTime = new Date(data.entry_time);
-    const currentTime = new Date();
-    const timeDifference = calculateTimeDifference(entryTime, currentTime);
+    const entryTimeMs = resolveEntryTimestampMs(data);
+    const currentTimeMs = new Date().getTime();
+    const timeDifference = Number.isFinite(entryTimeMs)
+      ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+      : Number.POSITIVE_INFINITY;
+    const isStale = timeDifference > 15;
 
-    if (data.packet_type === "EA") {
+    if (isStale) {
+      return "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
+    } else if (data.packet_type === "EA") {
       return "red"; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       return "orange"; // Any Alert Packet except EA - Orange Icon
@@ -657,8 +760,6 @@ const LiveTracking = () => {
       return "blue"; // Ignition ON but stationary - Blue Icon
     } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       return "green"; // Ignition ON and moving - Green Icon
-    } else if (timeDifference > 5) {
-      return "grey"; // Offline device (no packets from device for 5+ minutes) - Grey Icon
     } else {
       return "default"; // Default icon for all other conditions
     }
@@ -689,6 +790,27 @@ const LiveTracking = () => {
   const checkType = (type, data) => {
     const alartType = getAlartType(data);
     return type === "default" || alartType === type;
+  };
+
+  const getDisplayCellValue = (row, key) => {
+    if (!row) return "";
+
+    if (key === "packet_type" || key === "packet_status") {
+      const entryTimeMs = resolveEntryTimestampMs(row);
+      const currentTimeMs = new Date().getTime();
+      const timeDifference = Number.isFinite(entryTimeMs)
+        ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+        : Number.POSITIVE_INFINITY;
+      if (timeDifference > 15) return "Offline";
+    }
+
+    const rawValue = row[key];
+    return (
+      fullText?.[rawValue] ||
+      (isoDatePattern.test(rawValue) && formatDateTime(rawValue)) ||
+      rawValue ||
+      ""
+    );
   };
 
   return (
@@ -927,7 +1049,15 @@ const LiveTracking = () => {
                               }`}
                           >
                             <Box display="flex" alignItems="center" gap={1}>
-                              <img src={getIconStyle(row)} alt="status icon" style={{ width: '24px', height: '24px' }} />
+                              <img
+                                src={
+                                  typeFilter === "default"
+                                    ? createIconPath("default", row?.device_tag_info?.category_info?.category)
+                                    : getIconStyle(row)
+                                }
+                                alt="status icon"
+                                style={{ width: '24px', height: '24px' }}
+                              />
                               <Typography>{row.vehicle_registration_number}</Typography>
                             </Box>
                           </TableCell>
@@ -936,7 +1066,9 @@ const LiveTracking = () => {
                   )
                 ) : (
                   <TableRow key="no-data">
-                    <TableCell colSpan={6} style={{ textAlign: 'center' }}><CircularProgress size="30px" title={t('liveTracking.noData')} /></TableCell>
+                    <TableCell colSpan={6} style={{ textAlign: 'center' }}>
+                      <CircularProgress size="30px" title={t('liveTracking.noData')} />
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -1032,6 +1164,7 @@ const LiveTracking = () => {
               label="Use NMR Location"
             />
           </Box>
+
           <MapComponent
             gpsData={filteredData}
             policeData={policeLocations}
@@ -1043,8 +1176,8 @@ const LiveTracking = () => {
             focusEntry={focusedEntry}
             markerLabelMode={markerLabelMode}
             nmrArea={nmrArea}
+            allMode={typeFilter === "default"}
           />
-
         </div>
       </div>
 
@@ -1077,7 +1210,7 @@ const LiveTracking = () => {
                         key={`cell-${key}-${cellIndex}`}
                         className="skytron-table-cell"
                       >
-                        {fullText?.[row[key]] || (isoDatePattern.test(row[key]) && formatDateTime(row[key])) || row[key] || ""}
+                        {getDisplayCellValue(row, key)}
                       </TableCell>
                     ))}
                   </TableRow>

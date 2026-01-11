@@ -61,6 +61,8 @@ import HomePageService from "../../services/HomePage";
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
+const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
+
 const formatDateDDMMYY = (raw) => {
   if (!raw || raw.length < 8) return raw || "-";
   const d = raw.slice(0, 2);   // 16
@@ -183,6 +185,95 @@ const resolvePacketTypeLabel = (entry) => {
   return String(raw);
 };
 
+const isEntryStale15Min = (entry) => {
+  if (!entry) return true;
+
+  const parseDateTimeParts = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr) return NaN;
+
+    const dateTrimmed = String(dateStr).trim();
+    const timeTrimmed = String(timeStr).trim();
+
+    // Format: DDMMYYYY + HHMMSS
+    const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+    const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+    if (dmyCompact && hmsCompact) {
+      const day = Number(dmyCompact[1]);
+      const month = Number(dmyCompact[2]);
+      const year = Number(dmyCompact[3]);
+      const hours = Number(hmsCompact[1]);
+      const minutes = Number(hmsCompact[2]);
+      const seconds = Number(hmsCompact[3]);
+      const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+      const ms = dt.getTime();
+      return Number.isFinite(ms) ? ms : NaN;
+    }
+
+    // Format: DD-MM-YY or DD-MM-YYYY
+    const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+    if (dmy) {
+      const day = Number(dmy[1]);
+      const month = Number(dmy[2]);
+      let year = Number(dmy[3]);
+      if (String(dmy[3]).length === 2) year = 2000 + year;
+
+      const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+      if (!tm) return NaN;
+      let hours = Number(tm[1]);
+      const minutes = Number(tm[2]);
+      const seconds = Number(tm[3] ?? 0);
+      const ampm = tm[4]?.toUpperCase();
+      if (ampm === "AM") {
+        if (hours === 12) hours = 0;
+      } else if (ampm === "PM") {
+        if (hours !== 12) hours += 12;
+      }
+
+      const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+      const ms = dt.getTime();
+      return Number.isFinite(ms) ? ms : NaN;
+    }
+
+    const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+    return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+  };
+
+  const normalizeEpoch = (value) => {
+    const num = typeof value === "number" ? value : Number(value);
+    if (!Number.isFinite(num)) return NaN;
+    return num < 1e12 ? num * 1000 : num;
+  };
+
+  const candidate = entry.entry_time ?? entry.timestamp ?? null;
+  let lastUpdateTime = NaN;
+
+  if (typeof candidate === "number") {
+    lastUpdateTime = normalizeEpoch(candidate);
+  } else if (typeof candidate === "string") {
+    const trimmed = candidate.trim();
+    if (/^\d+$/.test(trimmed)) {
+      lastUpdateTime = normalizeEpoch(trimmed);
+    } else {
+      lastUpdateTime = new Date(trimmed).getTime();
+    }
+  }
+
+  if (!Number.isFinite(lastUpdateTime)) {
+    const datePart = entry?.date;
+    const timePart = entry?.time;
+    if (datePart && timePart) {
+      lastUpdateTime = parseDateTimeParts(datePart, timePart);
+      if (!Number.isFinite(lastUpdateTime)) {
+        lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
+      }
+    }
+  }
+
+  if (!Number.isFinite(lastUpdateTime)) return true;
+  const now = new Date().getTime();
+  return now - lastUpdateTime > 15 * 60 * 1000;
+};
+
 const resolveDeviceStatusLabel = (entry) => {
   if (!entry) return "Offline";
   
@@ -194,9 +285,71 @@ const resolveDeviceStatusLabel = (entry) => {
     
   if (raw === undefined || raw === null) {
     // If no explicit status, determine based on last update time
-    const lastUpdate = entry.timestamp || entry.date || entry.time;
-    if (lastUpdate) {
-      const lastUpdateTime = new Date(lastUpdate).getTime();
+    const lastUpdate = entry.entry_time || entry.timestamp;
+    let lastUpdateTime = lastUpdate ? new Date(lastUpdate).getTime() : NaN;
+
+    const parseDateTimeParts = (dateStr, timeStr) => {
+      if (!dateStr || !timeStr) return NaN;
+
+      const dateTrimmed = String(dateStr).trim();
+      const timeTrimmed = String(timeStr).trim();
+
+      // Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
+      const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+      const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+      if (dmyCompact && hmsCompact) {
+        const day = Number(dmyCompact[1]);
+        const month = Number(dmyCompact[2]);
+        const year = Number(dmyCompact[3]);
+        const hours = Number(hmsCompact[1]);
+        const minutes = Number(hmsCompact[2]);
+        const seconds = Number(hmsCompact[3]);
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+      if (dmy) {
+        const day = Number(dmy[1]);
+        const month = Number(dmy[2]);
+        let year = Number(dmy[3]);
+        if (String(dmy[3]).length === 2) year = 2000 + year;
+
+        const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+        if (!tm) return NaN;
+        let hours = Number(tm[1]);
+        const minutes = Number(tm[2]);
+        const seconds = Number(tm[3] ?? 0);
+        const ampm = tm[4]?.toUpperCase();
+        if (ampm === "AM") {
+          if (hours === 12) hours = 0;
+        } else if (ampm === "PM") {
+          if (hours !== 12) hours += 12;
+        }
+
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+      return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+    };
+
+    if (!Number.isFinite(lastUpdateTime)) {
+      const datePart = entry?.date;
+      const timePart = entry?.time;
+      if (datePart && timePart) {
+        lastUpdateTime = parseDateTimeParts(datePart, timePart);
+
+        if (!Number.isFinite(lastUpdateTime)) {
+          lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
+        }
+      }
+    }
+
+    if (Number.isFinite(lastUpdateTime)) {
       const currentTime = new Date().getTime();
       // Consider offline if no update in last 15 minutes
       return (currentTime - lastUpdateTime) < (15 * 60 * 1000) ? "Online" : "Offline";
@@ -714,6 +867,7 @@ const MapComponent = ({
   focusEntry = null,
   markerLabelMode = "vehicle",
   nmrArea = null,
+  allMode = false,
 }) => {
   const overlayElement = useRef();
   const lastClickedVehicleRef = useRef(null);
@@ -917,7 +1071,7 @@ const MapComponent = ({
     return USE_TYPE_COLORS[key] || "#1E88E5";
   };
 
-  const createIconStyle = (color, vehicleType, labelText) => {
+  const createIconStyle = (color, vehicleType, labelText, forceLightBlue = false) => {
     const normalizedVehicleType = vehicleType
       ? vehicleType.toLowerCase().replace(/\s+/g, "_")
       : "bus";
@@ -935,7 +1089,17 @@ const MapComponent = ({
     const iconType = availableTypes.includes(normalizedVehicleType)
       ? normalizedVehicleType
       : "bus";
-    const iconPath = require(`../../assets/images/${color}/${iconType}.png`);
+
+    let iconPath;
+    try {
+      iconPath = vehicleIconContext(`./${color}/${iconType}.png`);
+    } catch (error) {
+      try {
+        iconPath = vehicleIconContext(`./${color}/bus.png`);
+      } catch (fallbackError) {
+        iconPath = vehicleIconContext(`./default/bus.png`);
+      }
+    }
 
     const scaleByColor = {
       blue: 0.055,
@@ -950,25 +1114,48 @@ const MapComponent = ({
     const labelGap = color === "grey" ? 15 : 5;
     const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
 
+    const textStyle = labelText
+      ? new Text({
+        text: labelText,
+        font: '11px "Roboto", sans-serif',
+        fill: new Fill({ color: "#0D47A1" }),
+        stroke: new Stroke({ color: "#ffffff", width: 3 }),
+        backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
+        padding: [1, 3, 1, 3],
+        textAlign: 'center',
+        textBaseline: 'bottom',
+        offsetY: labelOffsetY,
+      })
+      : undefined;
+
+    if (forceLightBlue) {
+      return [
+        new Style({
+          image: new CircleStyle({
+            radius: 18,
+            fill: new Fill({ color: "rgba(33, 150, 243, 0.30)" }),
+            stroke: new Stroke({ color: "rgba(33, 150, 243, 0.75)", width: 2 }),
+          }),
+          text: textStyle,
+        }),
+        new Style({
+          image: new Icon({
+            anchor: [0.5, 1],
+            src: iconPath,
+            scale: iconScale,
+          }),
+          text: textStyle,
+        }),
+      ];
+    }
+
     return new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: iconPath,
         scale: iconScale,
       }),
-      text: labelText
-        ? new Text({
-          text: labelText,
-          font: '11px "Roboto", sans-serif',
-          fill: new Fill({ color: "#0D47A1" }),
-          stroke: new Stroke({ color: "#ffffff", width: 3 }),
-          backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
-          padding: [1, 3, 1, 3],
-          textAlign: 'center',
-          textBaseline: 'bottom',
-          offsetY: labelOffsetY,
-        })
-        : undefined,
+      text: textStyle,
     });
   };
 
@@ -2408,17 +2595,19 @@ const MapComponent = ({
             return;
           }
 
-          const entryTime = new Date(entry.entry_time);
-          const currentTime = new Date();
-          const timeDifference = calculateTimeDifference(
-            entryTime,
-            currentTime
-          );
+          const entryTimeMs = resolveEntryTimestampMs(entry);
+          const currentTimeMs = new Date().getTime();
+          const timeDifference = Number.isFinite(entryTimeMs)
+            ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+            : Number.POSITIVE_INFINITY;
+          const isStale = timeDifference > 15;
           const isPoliceMarker = entry.markerCategory === "police";
 
           let markerColor = "blue";
           if (isPoliceMarker) {
             markerColor = "blue";
+          } else if (isStale) {
+            markerColor = "grey";
           } else if (entry.packet_type === "EA") {
             markerColor = "red";
           } else if (entry.packet_type !== "NR") {
@@ -2427,8 +2616,6 @@ const MapComponent = ({
             markerColor = "green";
           } else if (String(entry.ignition_status) === "1" && entry.speed < 1) {
             markerColor = "blue";
-          } else if (timeDifference > 5) {
-            markerColor = "grey";
           }
 
           const vehicleType = entry?.device_tag_info?.category_info?.category;
@@ -2935,17 +3122,111 @@ const MapComponent = ({
     return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
   };
 
+  const resolveEntryTimestampMs = (data) => {
+    if (!data) return NaN;
+
+    const raw = data.entry_time ?? data.timestamp ?? null;
+
+    const normalizeEpoch = (value) => {
+      const num = typeof value === "number" ? value : Number(value);
+      if (!Number.isFinite(num)) return NaN;
+      return num < 1e12 ? num * 1000 : num;
+    };
+
+    if (typeof raw === "number") {
+      return normalizeEpoch(raw);
+    }
+
+    if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (/^\d+$/.test(trimmed)) {
+        return normalizeEpoch(trimmed);
+      }
+      const parsed = new Date(trimmed).getTime();
+      if (Number.isFinite(parsed)) return parsed;
+    }
+
+    const parseDateTimeParts = (dateStr, timeStr) => {
+      if (!dateStr || !timeStr) return NaN;
+
+      const dateTrimmed = String(dateStr).trim();
+      const timeTrimmed = String(timeStr).trim();
+
+      // Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
+      const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+      const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+      if (dmyCompact && hmsCompact) {
+        const day = Number(dmyCompact[1]);
+        const month = Number(dmyCompact[2]);
+        const year = Number(dmyCompact[3]);
+        const hours = Number(hmsCompact[1]);
+        const minutes = Number(hmsCompact[2]);
+        const seconds = Number(hmsCompact[3]);
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      // Format: DD-MM-YY or DD-MM-YYYY
+      const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+      if (dmy) {
+        const day = Number(dmy[1]);
+        const month = Number(dmy[2]);
+        let year = Number(dmy[3]);
+        if (String(dmy[3]).length === 2) year = 2000 + year;
+
+        const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+        if (!tm) return NaN;
+        let hours = Number(tm[1]);
+        const minutes = Number(tm[2]);
+        const seconds = Number(tm[3] ?? 0);
+        const ampm = tm[4]?.toUpperCase();
+        if (ampm === "AM") {
+          if (hours === 12) hours = 0;
+        } else if (ampm === "PM") {
+          if (hours !== 12) hours += 12;
+        }
+
+        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+        const ms = dt.getTime();
+        return Number.isFinite(ms) ? ms : NaN;
+      }
+
+      const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+      return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+    };
+
+    const datePart = data?.date;
+    const timePart = data?.time;
+    if (datePart && timePart) {
+      const compositeMs = parseDateTimeParts(datePart, timePart);
+      if (Number.isFinite(compositeMs)) return compositeMs;
+
+      const compositeParsed = new Date(`${datePart}T${timePart}`).getTime();
+      if (Number.isFinite(compositeParsed)) return compositeParsed;
+    }
+
+    return NaN;
+  };
+
   // Set the correct icon style based on data conditions and vehicle type
-  const getIconStyle = (data, vehicleType, labelMode) => {
-    const entryTime = new Date(data.entry_time);
-    const currentTime = new Date();
-    const timeDifference = calculateTimeDifference(entryTime, currentTime);
+  const getIconStyle = (data, vehicleType, labelMode, forceDefault = false) => {
+    const entryTimeMs = resolveEntryTimestampMs(data);
+    const currentTimeMs = new Date().getTime();
+    const timeDifference = Number.isFinite(entryTimeMs)
+      ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+      : Number.POSITIVE_INFINITY;
+    const isStale = timeDifference > 15;
 
     const isPoliceMarker = data.markerCategory === "police";
     let color;
 
-    if (isPoliceMarker) {
+    if (forceDefault) {
+      color = "default";
+    } else if (isPoliceMarker) {
       color = "blue";
+    } else if (isStale) {
+      color = "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
     } else if (data.packet_type === "EA") {
       color = "red"; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
@@ -2954,8 +3235,6 @@ const MapComponent = ({
       color = "blue"; // Ignition ON but stationary - Blue Icon
     } else if (String(data.ignition_status) === "1" && data.speed > 1) {
       color = "green"; // Ignition ON and moving - Green Icon
-    } else if (timeDifference > 5) {
-      color = "grey"; // Offline device (no packets from device for 5+ minutes) - Grey Icon
     } else {
       color = "default"; // Default color
     }
@@ -2963,7 +3242,7 @@ const MapComponent = ({
     const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
     const labelText = getMarkerLabel(data, labelMode);
     console.debug(`[LiveMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
-    return createIconStyle(color, iconVehicleType, labelText);
+    return createIconStyle(color, iconVehicleType, labelText, false);
   };
 
   useEffect(() => {
@@ -3000,7 +3279,7 @@ const MapComponent = ({
 
           // Set the appropriate style for the marker with vehicle type
           markerFeature.setStyle(
-            getIconStyle(entry, vehicleType, markerLabelMode)
+            getIconStyle(entry, vehicleType, markerLabelMode, allMode)
           );
 
           return markerFeature;
@@ -3189,12 +3468,23 @@ const MapComponent = ({
             const entryDataRaw = item.data;
             const trackingDetail = await fetchVehicleTrackingDetail(entryDataRaw);
             const entryData = trackingDetail || entryDataRaw;
+            const isStale = isEntryStale15Min(entryData);
             const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-            const packetTypeCode = resolveAlertCode(entryData) || "NR1";
-            const alertLabel = resolveAlertLabel(entryData);
+            const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
+            const isOfflineResolved = deviceStatusLabel === "Offline";
+            const packetTypeCode = (isStale || isOfflineResolved)
+              ? "Offline"
+              : (resolveAlertCode(entryData) || "NR1");
+            const alertLabel = (isStale || isOfflineResolved)
+              ? "Offline"
+              : resolveAlertLabel(entryData);
             // Extract just the name part (without the code in parentheses if present)
-            const pillText = alertLabel.split(' (')[0];
-            const pillClass = /^NR/i.test(packetTypeCode) ? "overlay-pill--normal" : "overlay-pill--alert";
+            const pillText = (isStale || isOfflineResolved)
+              ? "Offline"
+              : alertLabel.split(' (')[0];
+            const pillClass = (isStale || isOfflineResolved || /^NR/i.test(packetTypeCode))
+              ? "overlay-pill--normal"
+              : "overlay-pill--alert";
 
             if (typeof onVehicleClick === "function") {
               onVehicleClick(entryData);
@@ -3206,8 +3496,9 @@ const MapComponent = ({
             };
 
             const addressValue = entryData?.address ? entryData.address : "-";
-            const packetTypeLabel = resolvePacketTypeLabel(entryData);
-            const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
+            const packetTypeLabel = (isStale || isOfflineResolved)
+              ? "Offline"
+              : resolvePacketTypeLabel(entryData);
             const nearestPoiLabel = resolveNearestPoiLabel(entryData);
             const nearestPolice = resolveNearestPoliceDetails(entryData);
             const nearestPoliceStationValue =
@@ -3549,14 +3840,27 @@ const MapComponent = ({
     const overlayContent = document.getElementById("overlay-content");
     if (!overlayContent) return;
 
+    const isStale = isEntryStale15Min(focusEntry);
     const speedValue = focusEntry.speed > 2 ? focusEntry.speed : 0;
-    const packetTypeCode = resolveAlertCode(focusEntry) || "NR1";
-    const alertLabel = resolveAlertLabel(focusEntry);
+    const deviceStatusLabel = resolveDeviceStatusLabel(focusEntry);
+    const isOfflineResolved = deviceStatusLabel === "Offline";
+    const packetTypeCode = (isStale || isOfflineResolved)
+      ? "Offline"
+      : (resolveAlertCode(focusEntry) || "NR1");
+    const alertLabel = (isStale || isOfflineResolved)
+      ? "Offline"
+      : resolveAlertLabel(focusEntry);
     // Extract just the name part (without the code in parentheses if present)
-    const pillText = alertLabel.split(' (')[0];
-    const pillClass = /^NR/i.test(packetTypeCode) ? "overlay-pill--normal" : "overlay-pill--alert";
+    const pillText = (isStale || isOfflineResolved)
+      ? "Offline"
+      : alertLabel.split(' (')[0];
+    const pillClass = (isStale || isOfflineResolved || /^NR/i.test(packetTypeCode))
+      ? "overlay-pill--normal"
+      : "overlay-pill--alert";
 
-    const packetTypeLabel = resolvePacketTypeLabel(focusEntry);
+    const packetTypeLabel = (isStale || isOfflineResolved)
+      ? "Offline"
+      : resolvePacketTypeLabel(focusEntry);
     const nearestPoiLabel = resolveNearestPoiLabel(focusEntry);
     const nearestPolice = resolveNearestPoliceDetails(focusEntry);
 
@@ -4946,9 +5250,9 @@ const MapComponent = ({
         }
 
         .overlay-pill--normal {
-          background-color: #ecfdf3;
-          color: #15803d;
-          border-color: #bbf7d0;
+          background-color: #f3f4f6;
+          color: #4b5563;
+          border-color: #d1d5db;
         }
 
         .overlay-pill--alert {

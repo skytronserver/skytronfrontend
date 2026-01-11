@@ -707,12 +707,13 @@ const EMCall = () => {
                   <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Box>
                       <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
-                      <Typography variant="body1" fontWeight={500}>{call?.id}</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.id ?? call?.id}</Typography>
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
                       <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
                     </Box>
+
                     <Box>
                       <Typography variant="caption" color="text.secondary">Owner Name</Typography>
                       <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
@@ -907,6 +908,9 @@ const EMCall = () => {
               {/* Fixed Bottom Broadcast Options */}
               <CardContent sx={{ p: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
                 <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1 }}>Broadcast Actions</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1 }}>
+                  Assignment ID: {call?.id ?? "N/A"}
+                </Typography>
                 <Grid container spacing={1}>
                   <Grid item xs={6}>
                     <Button fullWidth variant="contained" color="primary" onClick={() => handleBroadcast("police_ex")} disabled={broadcastDisabled} size="small" sx={{ fontSize: '0.7rem' }}>
