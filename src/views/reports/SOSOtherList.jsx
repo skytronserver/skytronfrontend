@@ -41,6 +41,7 @@ const SOSOtherList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Link
@@ -68,6 +69,7 @@ const SOSOtherList = () => {
             tableTitle={t('sos.otherListTitle')}
             rows={sosUsers}
             columns={sosListColumn.concat(actionColumn)}
+            helperText="Timestamps are in GMT/UTC."
           />
         )}
       </Grid>

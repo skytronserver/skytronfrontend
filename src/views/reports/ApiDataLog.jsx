@@ -373,6 +373,7 @@ const ApiDataLog = () => {
                             rows={data}
                             columns={apiDataColumns}
                             options={options}
+                            helperText="Timestamps are in GMT/UTC."
                         />
                     </Box>
                 )}

@@ -47,6 +47,7 @@ const ApprovedModelsList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           console.log(tableMeta.rowData[1],'tableMeta.rowData[0]')
           return (
             <div className="cellAction" style={{display:'flex'}}>
@@ -80,6 +81,7 @@ const ApprovedModelsList = () => {
           tableTitle={t('deviceModel.approvedModelsTitle')} 
           rows={data} 
           columns={actionColumn.concat(approvedModelColumns)}
+          helperText="Timestamps are in GMT/UTC."
         />}
       </Grid>
     </Grid>

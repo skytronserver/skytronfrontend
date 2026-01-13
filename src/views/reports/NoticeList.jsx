@@ -62,6 +62,7 @@ const NoticeList = () => {
         options: {
           filter: false,
           customBodyRender: (value, tableMeta) => {
+            // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
             return (
               <div className="cellAction" style={{ display: "flex" }}>
                 <Button color="primary" 
@@ -81,6 +82,7 @@ const NoticeList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Link
@@ -116,6 +118,7 @@ const NoticeList = () => {
             tableTitle=""
             rows={notices}
             columns={noticeColumn.concat(actionColumn)}
+            helperText="Timestamps are in GMT/UTC."
           />
         ) : (
           <div style={{ textAlign: 'center', padding: '20px' }}>

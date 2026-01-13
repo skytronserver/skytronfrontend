@@ -147,6 +147,7 @@ const UsersList = () => {
         filter: false,
         sort: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           const userId = tableMeta.rowData[0]; // Assuming id is the first column
           const userName = tableMeta.rowData[2]; // Assuming name is the third column
           const isActive = !!tableMeta.rowData[8]; // is_active hidden column
@@ -180,7 +181,7 @@ const UsersList = () => {
         <PageHeader title={t('users.listTitle')} />
       </Grid>
       <Grid item xs={12}>
-        {load && <Datatable tableTitle="" userRows={users} userColumns={columnsWithActions} />}
+        {load && <Datatable tableTitle="" userRows={users} userColumns={columnsWithActions} helperText="Timestamps are in GMT/UTC." />}
       </Grid>
       <Snackbar
         open={notification.open}

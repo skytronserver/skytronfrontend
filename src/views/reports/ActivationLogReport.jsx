@@ -128,6 +128,7 @@ const ActivationLogReport = () => {
             rows={data}
             columns={columns}
             options={options}
+            helperText="Timestamps are in GMT/UTC."
           />
         )}
       </Grid>
