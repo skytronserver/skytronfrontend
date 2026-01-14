@@ -80,30 +80,161 @@ const hexToRgba = (hex, alpha) => {
 };
 
 const USE_TYPE_COLORS = {
+  // Educational
   school: "#1E88E5",
+  college: "#1976D2",
+  university: "#1565C0",
+
+  // Medical
   hospital: "#E53935",
+  clinic: "#EF5350",
+  pharmacy: "#F44336",
+
+  // Commercial
   dealership: "#8E24AA",
   dealer: "#8E24AA",
-  personal: "#43A047",
-  prohibited_area: "#D81B60",
-  permitroute: "#FB8C00",
-  tollgate: "#6D4C41",
-  parking: "#00897B",
-  no_parking: "#C62828",
+
+  // Tourist & Shopping - Purple shades
+  tourist_spot: "#9C27B0",
+  tourist: "#9C27B0",
+  monument: "#AB47BC",
+  museum: "#BA68C8",
+  shopping_mall: "#8E24AA",
+  mall: "#8E24AA",
+  market: "#7B1FA2",
+
+  // Eating & Hospitality - Orange shades
+  restaurant: "#FF9800",
+  hotel: "#FB8C00",
+  cafe: "#F57C00",
+  eating_house: "#FF9800",
+  homestay: "#EF6C00",
+  home_stay: "#EF6C00",
+  food_court: "#FF6F00",
+
+  // Fuel & Transport - Green shades
+  petrol_pump: "#4CAF50",
+  fuelstation: "#66BB6A",
+  fuel_station: "#66BB6A",
+  gas_station: "#81C784",
+
+  // Art & Culture - Pink/Magenta shades
+  art: "#E91E63",
+  art_gallery: "#EC407A",
+  gallery: "#F06292",
+  theater: "#D81B60",
+  cinema: "#C2185B",
+
+  // Parks & Recreation - Light Green
+  park: "#8BC34A",
+  garden: "#9CCC65",
+  playground: "#AED581",
+
+  // Religious - Gold/Yellow shades
+  temple: "#FFC107",
+  church: "#FFB300",
+  mosque: "#FFA000",
+  religious: "#FF8F00",
+
+  // Government & Public - Blue shades
+  government: "#2196F3",
+  police_station: "#1976D2",
+  post_office: "#1565C0",
+
+  // Banking & Finance - Teal
+  bank: "#009688",
+  atm: "#00897B",
+
+  // Transportation
+  busstop: "#7CB342",
+  bus_stop: "#7CB342",
+  railwaystation: "#5C6BC0",
+  railway_station: "#5C6BC0",
+  airport: "#039BE5",
+
+  // Boundaries
   villageboundary: "#5E35B1",
   cityboundary: "#3949AB",
   districtboundary: "#00838F",
   stateboundary: "#00695C",
-  fuelstation: "#FDD835",
-  busstop: "#7CB342",
-  railwaystation: "#5C6BC0",
-  airport: "#039BE5",
+
+  // Parking & Roads
+  parking: "#00897B",
+  no_parking: "#C62828",
+  tollgate: "#6D4C41",
+  toll_plaza: "#6D4C41",
+
+  // Routes & Areas
+  permitroute: "#FB8C00",
+  prohibited_area: "#D81B60",
+  restricted_area: "#AD1457",
+
+  // Personal & Other
+  personal: "#43A047",
   other: "#546E7A",
 };
 
 const getUseTypeColor = (poi) => {
   const key = poi?.use_type?.toLowerCase();
-  return USE_TYPE_COLORS[key] || "#1E88E5";
+
+  // Check if we have a predefined color
+  if (USE_TYPE_COLORS[key]) {
+    return USE_TYPE_COLORS[key];
+  }
+
+  // Generate a random vibrant color based on the use_type string
+  // This ensures the same use_type always gets the same color
+  const generateColorFromString = (str) => {
+    if (!str) return "#1E88E5";
+
+    // Create a hash from the string
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+
+    // Generate vibrant colors using HSL
+    // Hue: 0-360 (full color spectrum)
+    // Saturation: 60-80% (vibrant but not oversaturated)
+    // Lightness: 45-55% (not too dark, not too light)
+    const hue = Math.abs(hash % 360);
+    const saturation = 60 + (Math.abs(hash >> 8) % 20); // 60-80%
+    const lightness = 45 + (Math.abs(hash >> 16) % 10); // 45-55%
+
+    // Convert HSL to HEX
+    const h = hue / 360;
+    const s = saturation / 100;
+    const l = lightness / 100;
+
+    let r, g, b;
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+
+    const toHex = (x) => {
+      const hex = Math.round(x * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  };
+
+  return generateColorFromString(key || poi?.name || poi?.id?.toString() || "default");
 };
 
 const getPoiMarkerIcon = (color) => {
@@ -396,6 +527,17 @@ const POIViewer = () => {
       console.log('POI Response:', response);
       if (response && response.data) {
         console.log('POIs fetched:', response.data.length, 'items');
+
+        // Log all unique use_type values to see what's coming from API
+        const useTypes = new Set();
+        response.data.forEach(poi => {
+          if (poi.use_type) {
+            useTypes.add(poi.use_type);
+          }
+        });
+        console.log('🎨 Unique use_type values from API:', Array.from(useTypes).sort());
+        console.log('🎨 Sample POI data:', response.data.slice(0, 3));
+
         setPois(response.data);
       } else {
         showSnackbar('Invalid response format from server', 'error');
