@@ -231,6 +231,16 @@ const updateVehicleOwnerExpiry = (data) => {
     return http.post('/api/update_vehicle_owner_expiry/', data);
 };
 
+const getVehicleStatusMetrics = () => {
+    const http = getAxiosInstance();
+    return http.get('/api/vehicle_status_metrics/');
+};
+
+const getSOSMonthlyMetrics = (year) => {
+    const http = getAxiosInstance();
+    return http.get(`https://api.gromed.in/api/SOS/monthly_metrics/?year=${year}`);
+};
+
 
 const UserServices = {
     getStateStats,
@@ -274,7 +284,17 @@ const UserServices = {
     getVehicleAlertStatistics,
     publicUserRegistration,
     setLoginSettings,
-    updateVehicleOwnerExpiry
+    updateVehicleOwnerExpiry,
+    getVehicleStatusMetrics,
+    getSOSMonthlyMetrics,
+    getAmbulanceFleetMetrics: () => {
+        const http = getAxiosInstance();
+        return http.get('/api/ambulance_fleet_metrics/');
+    },
+    getPoliceFleetMetrics: () => {
+        const http = getAxiosInstance();
+        return http.get('/api/police_fleet_metrics/');
+    }
 };
 
 export default UserServices;

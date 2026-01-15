@@ -12,7 +12,10 @@ import {
   YAxis,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  LineChart,
+  Line,
+  CartesianGrid
 } from 'recharts';
 
 // OpenLayers imports
@@ -204,13 +207,14 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const StatPieChart = ({ data }) => (
-  <ResponsiveContainer width="100%" height={240}>
+const StatPieChart = ({ data, height = 240 }) => (
+  <ResponsiveContainer width="100%" height={height}>
     <PieChart>
       <Pie
         data={data}
         cx="50%"
         cy="50%"
+        width="90%"
         innerRadius={60}
         outerRadius={80}
         paddingAngle={4}
@@ -227,14 +231,14 @@ const StatPieChart = ({ data }) => (
         align="center"
         iconType="circle"
         iconSize={8}
-        wrapperStyle={{ fontSize: '12px', color: '#475569', paddingTop: '20px', fontFamily: 'Inter, sans-serif' }}
+        wrapperStyle={{ fontSize: '12px', color: '#475569', paddingTop: '10px', fontFamily: 'Inter, sans-serif' }}
       />
     </PieChart>
   </ResponsiveContainer>
 );
 
-const StatBarChart = ({ data }) => (
-  <ResponsiveContainer width="100%" height={240}>
+const StatBarChart = ({ data, height = 240 }) => (
+  <ResponsiveContainer width="100%" height={height}>
     <BarChart data={data} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
       <XAxis
         dataKey="name"
@@ -259,7 +263,99 @@ const StatBarChart = ({ data }) => (
   </ResponsiveContainer>
 );
 
-const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, chartComponent, animationDelay = '0s' }) => (
+const MonthlyTrendsChart = ({ data, height = 320 }) => (
+  <ResponsiveContainer width="100%" height={height}>
+    <BarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+      <XAxis
+        dataKey="month"
+        axisLine={false}
+        tickLine={false}
+        tick={{ fill: '#64748b', fontSize: 12, fontFamily: 'Inter, sans-serif' }}
+        dy={10}
+      />
+      <YAxis
+        axisLine={false}
+        tickLine={false}
+        tick={{ fill: '#64748b', fontSize: 12, fontFamily: 'Inter, sans-serif' }}
+      />
+      <RechartsTooltip
+        content={<CustomTooltip />}
+        cursor={{ fill: 'rgba(99, 102, 241, 0.04)' }}
+      />
+      <Legend
+        verticalAlign="top"
+        align="right"
+        iconType="circle"
+        iconSize={8}
+        wrapperStyle={{ fontSize: '12px', color: '#475569', paddingBottom: '20px', fontFamily: 'Inter, sans-serif' }}
+      />
+      <Bar dataKey="total" name="Total Calls" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
+      <Bar dataKey="genuine" name="Genuine" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={16} />
+      <Bar dataKey="fake" name="Fake" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={16} />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+const MonthlyPerformanceChart = ({ data }) => (
+  <ResponsiveContainer width="100%" height={320}>
+    <LineChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+      <XAxis
+        dataKey="month"
+        axisLine={false}
+        tickLine={false}
+        tick={{ fill: '#64748b', fontSize: 12, fontFamily: 'Inter, sans-serif' }}
+        dy={10}
+      />
+      <YAxis
+        axisLine={false}
+        tickLine={false}
+        tick={{ fill: '#64748b', fontSize: 12, fontFamily: 'Inter, sans-serif' }}
+      />
+      <RechartsTooltip
+        content={<CustomTooltip />}
+        cursor={{ stroke: 'rgba(99, 102, 241, 0.2)', strokeWidth: 2 }}
+      />
+      <Legend
+        verticalAlign="top"
+        align="right"
+        iconType="circle"
+        iconSize={8}
+        wrapperStyle={{ fontSize: '12px', color: '#475569', paddingBottom: '20px', fontFamily: 'Inter, sans-serif' }}
+      />
+      <Line
+        type="monotone"
+        dataKey="police_avg"
+        name="Police Avg (s)"
+        stroke="#3b82f6"
+        strokeWidth={3}
+        dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+        activeDot={{ r: 6, strokeWidth: 0 }}
+      />
+      <Line
+        type="monotone"
+        dataKey="ambulance_avg"
+        name="Ambulance Avg (s)"
+        stroke="#f59e0b"
+        strokeWidth={3}
+        dot={{ r: 4, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }}
+        activeDot={{ r: 6, strokeWidth: 0 }}
+      />
+      <Line
+        type="monotone"
+        dataKey="executive_avg"
+        name="Executive Avg (s)"
+        stroke="#8b5cf6"
+        strokeWidth={3}
+        dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }}
+        activeDot={{ r: 6, strokeWidth: 0 }}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+);
+
+const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, chartComponent, animationDelay = '0s', sx = {} }) => (
   <Box
     sx={{
       height: '100%',
@@ -281,7 +377,8 @@ const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, c
         transform: 'translateY(-4px)',
         boxShadow: `0 20px 40px -4px ${alpha(accentColor, 0.12)}`,
         borderColor: alpha(accentColor, 0.36)
-      }
+      },
+      ...sx
     }}
   >
     <Box
@@ -371,36 +468,33 @@ const DashboardCard = ({ title, subtitle, children, accentColor, mapComponent, c
             sx={{
               flex: 1,
               minHeight: { xs: 240, md: 280 },
-              borderRadius: 3,
-              border: `1px solid ${alpha(accentColor, 0.18)}`,
-              bgcolor: alpha(accentColor, 0.06),
-              p: { xs: 2, md: 2.5 },
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: `0 18px 36px -18px ${alpha(accentColor, 0.32)}`,
-              position: 'relative',
-              overflow: 'hidden'
+              alignItems: 'stretch',
+              justifyContent: 'center'
             }}
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: '-20% -30%',
-                background: `linear-gradient(135deg, ${alpha(accentColor, 0.25)}, transparent)`
-              }}
-            />
             {chartComponent}
           </Box>
         </Stack>
       </Box>
     ) : (
-      <Box sx={{ p: 3, flex: 1 }}>
-        <Grid container spacing={3} sx={{ height: '100%' }}>
-          <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ p: 3, flex: 1, minHeight: 0 }}>
+        <Grid container spacing={3} sx={{ height: '100%', minHeight: 0 }}>
+          <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             {children}
           </Grid>
-          <Grid item xs={12} md={5} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Grid
+            item
+            xs={12}
+            md={5}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              justifyContent: 'stretch',
+              minHeight: 0
+            }}
+          >
             {chartComponent}
           </Grid>
         </Grid>
@@ -595,10 +689,21 @@ const useVehicleData = () => {
         if (mounted) {
           setLoading(true);
         }
-        const response = await HomePageService.getLiveTracking_data({});
+
+        // Fetch both vehicle tracking data and status metrics
+        const http = HomePageService.getLiveTracking_data({}).then(res => res);
+        const metricsHttp = UserServices.getVehicleStatusMetrics ?
+          UserServices.getVehicleStatusMetrics() :
+          Promise.resolve(null);
+
+        const [trackingResponse, metricsResponse] = await Promise.all([
+          http,
+          metricsHttp.catch(() => null)
+        ]);
+
         if (!mounted) return;
 
-        const vehicles = response?.data?.data;
+        const vehicles = trackingResponse?.data?.data;
         if (!Array.isArray(vehicles)) {
           setVehicleData([]);
           setVehicleStats({ total: 0, online: 0, emergency: 0, offline: 0 });
@@ -607,30 +712,43 @@ const useVehicleData = () => {
 
         setVehicleData(vehicles);
 
-        const stats = {
-          total: vehicles.length,
-          online: 0,
-          emergency: 0,
-          offline: 0
-        };
+        // Use metrics API data if available, otherwise fall back to calculated stats
+        const metricsData = metricsResponse?.data;
+        if (metricsData && metricsData.total_registered_vehicles !== undefined) {
+          const stats = {
+            total: metricsData.total_registered_vehicles || 0,
+            online: metricsData.online_vehicles || 0,
+            emergency: metricsData.live_sos_calls || 0,
+            offline: metricsData.offline_vehicles || 0
+          };
+          setVehicleStats(stats);
+        } else {
+          // Fallback to original calculation
+          const stats = {
+            total: vehicles.length,
+            online: 0,
+            emergency: 0,
+            offline: 0
+          };
 
-        vehicles.forEach((vehicle) => {
-          const entryTime = new Date(vehicle.entry_time || Date.now());
-          const currentTime = new Date();
-          const diff = calculateTimeDifference(entryTime, currentTime);
-          const ignition = String(vehicle.ignition_status);
-          const speed = Number(vehicle.speed);
+          vehicles.forEach((vehicle) => {
+            const entryTime = new Date(vehicle.entry_time || Date.now());
+            const currentTime = new Date();
+            const diff = calculateTimeDifference(entryTime, currentTime);
+            const ignition = String(vehicle.ignition_status);
+            const speed = Number(vehicle.speed);
 
-          if (vehicle.packet_type === 'EA') {
-            stats.emergency += 1;
-          } else if (diff > 5) {
-            stats.offline += 1;
-          } else if (ignition === '1' && speed > 1) {
-            stats.online += 1;
-          }
-        });
+            if (vehicle.packet_type === 'EA') {
+              stats.emergency += 1;
+            } else if (diff > 5) {
+              stats.offline += 1;
+            } else if (ignition === '1' && speed > 1) {
+              stats.online += 1;
+            }
+          });
 
-        setVehicleStats(stats);
+          setVehicleStats(stats);
+        }
       } catch (error) {
         console.error('Error fetching vehicle data:', error);
       } finally {
@@ -692,23 +810,58 @@ const useSosDashboardData = () => {
         if (mounted) {
           setSosLoading(true);
         }
-        const [dashboardResponse, callsResponse] = await Promise.all([
+        const [dashboardResponse, leadDashboardResponse, callsResponse] = await Promise.all([
           UserServices.getSOSAdminDashboard(),
+          UserServices.getSOSLeadDashboard ? UserServices.getSOSLeadDashboard() : Promise.resolve(null),
           HomePageService.getPendingSOSCall()
         ]);
 
         if (!mounted) return;
 
         const dashboard = dashboardResponse?.data || {};
+        const leadDashboard = leadDashboardResponse?.data || {};
         const calls = callsResponse?.data?.calls || [];
 
+        const totalsSource =
+          leadDashboard &&
+          (leadDashboard.Total_Active_Calls !== undefined ||
+            leadDashboard.Total_Pending_Calls !== undefined ||
+            leadDashboard.Total_Closed_Calls !== undefined)
+            ? leadDashboard
+            : dashboard;
+
         setSosData({
-          activeSOS: dashboard.Total_Active_Calls || 0,
-          pendingSOS: dashboard.Total_Pending_Calls || 0,
-          closedSOS: dashboard.Total_Closed_Calls || 0
+          activeSOS: totalsSource.Total_Active_Calls || 0,
+          pendingSOS: totalsSource.Total_Pending_Calls || 0,
+          closedSOS: totalsSource.Total_Closed_Calls || 0
         });
 
-        setSosCalls(Array.isArray(calls) ? calls.slice(0, 10) : []);
+        const normalizedCalls = Array.isArray(calls)
+          ? calls.slice(0, 10).map((entry) => {
+              const status = (entry?.call?.status || entry?.status || 'pending').toLowerCase();
+              const vehicleRegNo = entry?.call?.device?.vehicle_reg_no;
+              const imei = entry?.call?.device?.device?.imei;
+              const ownerName = entry?.call?.device?.vehicle_owner?.users?.[0]?.name;
+
+              return {
+                id: entry?.id,
+                status,
+                location: vehicleRegNo || imei || 'Unknown',
+                created_at:
+                  entry?.created_at ||
+                  entry?.call?.created_at ||
+                  entry?.call?.createdAt ||
+                  entry?.call?.timestamp ||
+                  entry?.call?.time ||
+                  null,
+                reporter_name: ownerName || entry?.call?.caller_name || entry?.call?.caller || null,
+                notes: entry?.call?.message || entry?.call?.notes || null,
+                raw: entry
+              };
+            })
+          : [];
+
+        setSosCalls(normalizedCalls);
       } catch (error) {
         console.error('Error fetching SOS data:', error);
       } finally {
@@ -728,7 +881,7 @@ const useSosDashboardData = () => {
   return { sosData, sosCalls, sosLoading };
 };
 
-const PageWrapper = ({ title, description, children }) => (
+const PageWrapper = ({ title, description, children, sx = {} }) => (
   <MainCard
     sx={{
       bgcolor: '#f8fafc',
@@ -737,9 +890,13 @@ const PageWrapper = ({ title, description, children }) => (
         radial-gradient(circle at 100% 100%, ${alpha('#ec4899', 0.03)} 0%, transparent 50%)
       `,
       minHeight: '100vh',
+      height: '100vh',
       border: 'none',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      ...sx
     }}
   >
     <Box
@@ -766,7 +923,7 @@ const PageWrapper = ({ title, description, children }) => (
         pointerEvents: 'none'
       }}
     />
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: 4, flexShrink: 0 }}>
       <Typography
         variant="h2"
         sx={{
@@ -783,7 +940,7 @@ const PageWrapper = ({ title, description, children }) => (
         {description}
       </Typography>
     </Box>
-    {children}
+    <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>{children}</Box>
   </MainCard>
 );
 
@@ -795,5 +952,7 @@ export {
   MetricCard,
   useVehicleData,
   useSosDashboardData,
-  PageWrapper
+  PageWrapper,
+  MonthlyTrendsChart,
+  MonthlyPerformanceChart
 };
