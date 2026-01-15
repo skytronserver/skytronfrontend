@@ -17,7 +17,6 @@ import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
 const SOSDashboard = ({ role, calls, deskCalls }) => {
-  const [status, setStatus] = useState(false);
   const [call, setCall] = useState({})
   const [broadcastDisabled, setBroadcastDisabled] = useState(false);
   const navigate = useNavigate();
@@ -71,14 +70,14 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
 
         const filtered = Array.isArray(data)
           ? data.filter((poi) => {
-            const type = poi?.use_type || "";
-            const normalized = String(type).toLowerCase();
-            return (
-              normalized === "policestation" ||
-              normalized === "police_station" ||
-              normalized === "police"
-            );
-          })
+              const type = poi?.use_type || "";
+              const normalized = String(type).toLowerCase();
+              return (
+                normalized === "policestation" ||
+                normalized === "police_station" ||
+                normalized === "police"
+              );
+            })
           : [];
 
         setPolicePois(filtered);
@@ -231,15 +230,15 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   };
 
   let buzzerTimeout;
-  const playBuzzer = () => {
+const playBuzzer = () => {
+  audio.currentTime = 0;
+  audio.play();
+  clearTimeout(buzzerTimeout);
+  buzzerTimeout = setTimeout(() => {
+    audio.pause();
     audio.currentTime = 0;
-    audio.play();
-    clearTimeout(buzzerTimeout);
-    buzzerTimeout = setTimeout(() => {
-      audio.pause();
-      audio.currentTime = 0;
-    }, 10000); // 10 seconds
-  };
+  }, 10000); // 10 seconds
+};
 
   const handleAccept = async (id, show) => {
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
@@ -291,104 +290,93 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   }
 
   return (
-    <>
-      <img
-        src="https://image-pc2e.onrender.com/api/image"
-        alt="hidden"
-        style={{ display: "none" }}
-        onLoad={() => setStatus(true)}
-        onError={() => setStatus(false)}
-      />
-      {status && (
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <MiniBoard data={data} />
-          </Grid>
-          <Grid item xs={12} md={12}>
-            <BhuvanMapComponent
-              gpsData={sosLocations}
-              pois={policePois}
-              lookupPois={policePois}
-              width="100%"
-              height="65vh"
-              autoFit={false}
-              showMapTypeToggle={true}
-              showDrawControls={false}
-              showLogos={true}
-              defaultMapType="normal"
-              markerLabelMode="vehicle"
-              center={[91.829437, 26.131644]} // Use original center
-              zoom={7}
-            />
-          </Grid>
-          {nearestPolice && (
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Nearest Police Station
-              </Typography>
-              <Typography variant="body2">
-                {nearestPolice.name || nearestPolice.description || "Police Station"}
-              </Typography>
-              {nearestPolice.pluscode && (
-                <Typography variant="body2">
-                  Pluscode: {nearestPolice.pluscode}
-                </Typography>
-              )}
-              {nearestPolice.description && (
-                <Typography variant="body2">
-                  Description: {nearestPolice.description}
-                </Typography>
-              )}
-              {nearestPoliceDistance !== null && (
-                <Typography variant="body2">
-                  Distance: {nearestPoliceDistance.toFixed(2)} km
-                </Typography>
-              )}
-            </Grid>
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <MiniBoard data={data} />
+      </Grid>
+      <Grid item xs={12} md={12}>
+        <BhuvanMapComponent
+          gpsData={sosLocations}
+          pois={policePois}
+          lookupPois={policePois}
+          width="100%"
+          height="65vh"
+          autoFit={false}
+          showMapTypeToggle={true}
+          showDrawControls={false}
+          showLogos={true}
+          defaultMapType="normal"
+          markerLabelMode="vehicle"
+          center={[91.829437, 26.131644]} // Use original center
+          zoom={7}
+        />
+      </Grid>
+      {nearestPolice && (
+        <Grid item xs={12} md={6}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            Nearest Police Station
+          </Typography>
+          <Typography variant="body2">
+            {nearestPolice.name || nearestPolice.description || "Police Station"}
+          </Typography>
+          {nearestPolice.pluscode && (
+            <Typography variant="body2">
+              Pluscode: {nearestPolice.pluscode}
+            </Typography>
           )}
-          <DetailCard
-            handleBroadcast={handleBroadcast}
-            handleCloseCall={handleCloseCall}
-            broadcastDisabled={broadcastDisabled}
-            call={call}
-            showDetails={showDetails}
-          />
-
-          {/* Popup Dialog for New Pending Call */}
-          <Dialog open={!!newPendingCall} onClose={() => setNewPendingCall(null)}>
-            <DialogTitle
-              sx={{
-                backgroundColor: "darkred",
-                color: "white",
-                textAlign: "center",
-                fontSize: "16px",
-              }}
-            >
-              New Pending Assignment
-            </DialogTitle>
-            <DialogContent sx={{ padding: "16px !important" }}>
-              <Typography>
-                A new assignment with ID {newPendingCall?.id} is pending. Do you
-                want to accept it?
-              </Typography>
-            </DialogContent>
-            <DialogActions
-              sx={{
-                justifyContent: "center",
-              }}
-            >
-              <Button
-                onClick={() => handleAccept(newPendingCall?.id, "detail")}
-                color="secondary"
-                variant="contained"
-              >
-                Accept
-              </Button>
-            </DialogActions>
-          </Dialog>
+          {nearestPolice.description && (
+            <Typography variant="body2">
+              Description: {nearestPolice.description}
+            </Typography>
+          )}
+          {nearestPoliceDistance !== null && (
+            <Typography variant="body2">
+              Distance: {nearestPoliceDistance.toFixed(2)} km
+            </Typography>
+          )}
         </Grid>
       )}
-    </>
+      <DetailCard
+        handleBroadcast={handleBroadcast}
+        handleCloseCall={handleCloseCall}
+        broadcastDisabled={broadcastDisabled}
+        call={call}
+        showDetails={showDetails}
+      />
+
+      {/* Popup Dialog for New Pending Call */}
+      <Dialog open={!!newPendingCall} onClose={() => setNewPendingCall(null)}>
+        <DialogTitle
+          sx={{
+            backgroundColor: "darkred",
+            color: "white",
+            textAlign: "center",
+            fontSize: "16px",
+          }}
+        >
+          New Pending Assignment
+        </DialogTitle>
+        <DialogContent sx={{ padding: "16px !important" }}>
+          <Typography>
+            A new assignment with ID {newPendingCall?.id} is pending. Do you
+            want to accept it?
+          </Typography>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            justifyContent: "center",
+          }}
+        >
+          <Button
+            onClick={() => handleAccept(newPendingCall?.id, "detail")}
+            color="secondary"
+            variant="contained"
+          >
+            Accept
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Grid>
   );
 };
 

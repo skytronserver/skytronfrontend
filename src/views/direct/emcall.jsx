@@ -60,8 +60,6 @@ const EMCall = () => {
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const [nearestPoliceAddress, setNearestPoliceAddress] = useState("");
 
-  const [status, setStatus] = useState(false);
-
   // Toggle states for map visibility
   const [showPoliceLayers, setShowPoliceLayers] = useState(false);
   const [showPoiLayers, setShowPoiLayers] = useState(false);
@@ -643,18 +641,9 @@ const EMCall = () => {
   }, []);
 
   console.log("nearestUnit", call);
-  console.log("status----------------", status);
+
   return (
     <>
-
-      <img
-        src="https://image-pc2e.onrender.com/api/image"
-        alt="hidden"
-        style={{ display: "none" }}
-        onLoad={() => setStatus(true)}
-        onError={() => setStatus(false)}
-      />
-
       <CustomModal
         open={modalOpen}
         onClose={handleModalClose}
@@ -988,25 +977,23 @@ const EMCall = () => {
           {/* Map Section */}
           <Grid item xs={12} md={9} sx={{ height: '100%' }}>
             <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {status && (
-                <BhuvanMapComponent
-                  gpsData={sosLocations}
-                  policeData={policeLocations}
-                  pois={showPoiLayers ? policePois : []}
-                  lookupPois={policePois}
-                  width="100%"
-                  height="100%"
-                  routes={activeRoutes}
-                  autoFit={true}
-                  showMapTypeToggle={true}
-                  showDrawControls={false}
-                  showLogos={true}
-                  defaultMapType="normal"
-                  markerLabelMode="vehicle"
-                  center={sosLocations.length > 0 ? [sosLocations[0].longitude, sosLocations[0].latitude] : [91.829437, 26.131644]}
-                  zoom={sosLocations.length > 0 ? 14 : 7}
-                />
-              )}
+              <BhuvanMapComponent
+                gpsData={sosLocations}
+                policeData={policeLocations}
+                pois={showPoiLayers ? policePois : []}
+                lookupPois={policePois}
+                width="100%"
+                height="100%"
+                routes={activeRoutes}
+                autoFit={true}
+                showMapTypeToggle={true}
+                showDrawControls={false}
+                showLogos={true}
+                defaultMapType="normal"
+                markerLabelMode="vehicle"
+                center={sosLocations.length > 0 ? [sosLocations[0].longitude, sosLocations[0].latitude] : [91.829437, 26.131644]}
+                zoom={sosLocations.length > 0 ? 14 : 7}
+              />
             </Card>
           </Grid>
         </Grid>
