@@ -87,6 +87,7 @@ const TaggedList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           const id = tableMeta.rowData[0];
           const isTagged = rowTagState[id] !== 'untagged';
           return (
@@ -113,7 +114,7 @@ const TaggedList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={t('tagged.title')} rows={tagged} columns={columns}/>}
+        {load && <DynamicDatatables tableTitle={t('tagged.title')} rows={tagged} columns={columns} helperText="Timestamps are in GMT/UTC."/>}
         </Grid>
     </Grid>
   );

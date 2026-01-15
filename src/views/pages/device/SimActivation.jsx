@@ -100,6 +100,7 @@ const SimActivation = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           return (
             <div className="cellAction" style={{display:'flex'}}>
              <div style={{"marginRight":"5px"}}>

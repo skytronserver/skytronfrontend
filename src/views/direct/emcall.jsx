@@ -71,12 +71,12 @@ const EMCall = () => {
     setTabValue(newValue);
   };
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTabValue((prev) => (prev + 1) % 4);
-    }, 5000); // Switch every 5 seconds
-    return () => clearInterval(timer);
-  }, []);
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     setTabValue((prev) => (prev + 1) % 4);
+  //   }, 5000); // Switch every 5 seconds
+  //   return () => clearInterval(timer);
+  // }, []);
 
   // Distance helper (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -465,7 +465,7 @@ const EMCall = () => {
     fetchMessages();
     fetchAndPlotLocations();
 
-    const interval = setInterval(fetchAndPlotLocations, 10000);
+    const interval = setInterval(fetchAndPlotLocations, 5000);
     return () => clearInterval(interval);
   }, [call?.id]);
 
@@ -668,7 +668,7 @@ const EMCall = () => {
       <Box sx={{ p: 3, height: '100vh', overflow: 'hidden', background: 'linear-gradient(145deg, #f5f7fa 0%, #e4e8eb 100%)' }}>
         <Grid container spacing={3} sx={{ height: '100%' }}>
           {/* Call Details Card */}
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={3} sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <Card elevation={3} sx={{ height: '100%', borderRadius: 2, display: 'flex', flexDirection: 'column' }}>
 
               {/* Fixed Map Layers Section */}
@@ -711,7 +711,7 @@ const EMCall = () => {
               </Box>
 
               {/* Scrollable Content Area */}
-              <CardContent sx={{ flex: 1, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
+              <CardContent sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
                 {tabValue === 0 && (
                   <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Box>
@@ -921,7 +921,7 @@ const EMCall = () => {
                                     </Typography>
                                   </Box>
                                   <Box sx={{ flex: 1 }}>
-                                    <Typography variant="caption" color="text.secondary" display="block">Est. Time (15 km/hr)</Typography>
+                                    <Typography variant="caption" color="text.secondary" display="block">Est. Time </Typography>
                                     <Typography variant="body2" fontWeight={600} color="primary.main">
                                       {Math.round(matchingRoute.estimatedTimeMinutes)} min
                                     </Typography>
@@ -976,7 +976,7 @@ const EMCall = () => {
 
           {/* Map Section */}
           <Grid item xs={12} md={9} sx={{ height: '100%' }}>
-            <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden' }}>
+            <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <BhuvanMapComponent
                 gpsData={sosLocations}
                 policeData={policeLocations}

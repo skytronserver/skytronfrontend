@@ -31,6 +31,7 @@ import ActivatedDeviceReport from "../views/reports/ActivatedDeviceReport";
 import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
+import IncidentReport from "../views/reports/IncidentReport";
 import SuperAdminDashboard from "../views/dashboard/super admin dashboard/SuperAdminDashboard";
 import PublicTransportDashboard from "../views/dashboard/super admin dashboard/PublicTransportDashboard";
 import PublicSafetyDashboard from "../views/dashboard/super admin dashboard/PublicSafetyDashboard";
@@ -255,6 +256,11 @@ const MainRoutes = {
     {
       path: '/reports/user-statistics-report',
       element: <UserStatisticsReport />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/reports/incident-report',
+      element: <IncidentReport />,
       roles: ['superadmin']
     },
     {

@@ -82,6 +82,7 @@ const EsimStatusReport = () => {
               rows={statusData?.devices || []}
               columns={esimStatusColumns}
               tableTitle=""
+              helperText="Timestamps are in GMT/UTC."
               options={{
                 selectableRows: 'none',
                 print: false,

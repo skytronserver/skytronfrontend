@@ -132,6 +132,7 @@ const VehicleOwnerList = () => {
         filter: false,
         sort: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           // 'users' column is at index 1 and contains array of user objects.
           // We need to support cases where columns might be reordered, but relying on data structure is safer if we knew field name.
           // tableMeta.rowData follows the column order. 
@@ -165,7 +166,7 @@ const VehicleOwnerList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={t('vehicleOwner.listTitle')} rows={ownerList} columns={columnsWithActions} />}
+        {load && <DynamicDatatables tableTitle={t('vehicleOwner.listTitle')} rows={ownerList} columns={columnsWithActions} helperText="Timestamps are in GMT/UTC." />}
       </Grid>
 
       <Snackbar

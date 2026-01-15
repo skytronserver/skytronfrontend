@@ -124,6 +124,7 @@ const gpsDataColumns = [
                         rows={data}
                         columns={gpsDataColumns}
                         options={options}
+                        helperText="Timestamps are in GMT/UTC."
                     />
                 )}
             </Grid>

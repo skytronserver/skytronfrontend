@@ -214,6 +214,7 @@ const SOSTimestamp = () => {
         filter: false,
         sort: true,
         customBodyRender: (value, tableMeta) => {
+          // Raw timestamp values in tableMeta.rowData are in GMT/UTC; ensure we treat them as GMT wherever displayed/calculated.
           const sosCallHit = tableMeta.rowData[4]; // sosCallHit column
           const broadArriving = tableMeta.rowData[6]; // broadArriving column
           return calculateTimeDifference(sosCallHit, broadArriving);
@@ -227,6 +228,7 @@ const SOSTimestamp = () => {
         filter: false,
         sort: true,
         customBodyRender: (value, tableMeta) => {
+          // Raw timestamp values in tableMeta.rowData are in GMT/UTC; ensure we treat them as GMT wherever displayed/calculated.
           const sosCallHit = tableMeta.rowData[4]; // sosCallHit column
           const actualCallClose = tableMeta.rowData[8]; // actualCallClose column
           return calculateTimeDifference(sosCallHit, actualCallClose);
