@@ -264,6 +264,12 @@ function SchoolRegistration() {
                       py: 1.35,
                       borderRadius: 2.5,
                       fontWeight: 800,
+                      color: '#FFFFFF !important',
+                      '&.Mui-disabled': {
+                        color: 'rgba(255,255,255,0.95) !important',
+                        background: 'linear-gradient(90deg, #6A1B9A 0%, #8E24AA 50%, #6A1B9A 100%)',
+                        opacity: 1
+                      },
                       background: 'linear-gradient(90deg, #6A1B9A 0%, #8E24AA 50%, #6A1B9A 100%)',
                       boxShadow: '0 10px 22px rgba(106, 27, 154, 0.35)',
                       '&:hover': {

@@ -232,7 +232,7 @@ const SchoolOnboarding = () => {
                                                 </Grid>
                                                 <Grid item xs={12}>
                                                     <AnimateButton>
-                                                        <Button fullWidth variant="contained" color="primary" type="submit" disabled={loading || formik.isSubmitting}>
+                                                        <Button fullWidth variant="contained" color="primary" type="submit" disabled={loading || formik.isSubmitting} sx={{ color: '#FFFFFF !important', '&.Mui-disabled': { color: 'rgba(255,255,255,0.9) !important' } }}>
                                                             Submit Application
                                                         </Button>
                                                     </AnimateButton>
