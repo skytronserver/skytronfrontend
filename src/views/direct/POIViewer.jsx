@@ -80,98 +80,173 @@ const hexToRgba = (hex, alpha) => {
 };
 
 const USE_TYPE_COLORS = {
-  // Educational
-  school: "#1E88E5",
+  // Educational Institutions - Bright Blue
+  school: "#2196F3",
+  schools: "#2196F3",
   college: "#1976D2",
-  university: "#1565C0",
+  colleges: "#1976D2",
+  university: "#0D47A1",
+  universities: "#0D47A1",
 
-  // Medical
-  hospital: "#E53935",
-  clinic: "#EF5350",
-  pharmacy: "#F44336",
+  // Medical & Healthcare - Red/Crimson
+  hospital: "#D32F2F",
+  hospitals: "#D32F2F",
+  clinic: "#F44336",
+  clinics: "#F44336",
+  pharmacy: "#E91E63",
+  pharmacies: "#E91E63",
+  medical: "#C62828",
+  veterinary: "#AD1457",
 
-  // Commercial
-  dealership: "#8E24AA",
-  dealer: "#8E24AA",
+  // Religious Places - Gold/Yellow/Saffron (highly distinct)
+  temple: "#FF6F00",
+  temples: "#FF6F00",
+  church: "#FFC107",
+  churches: "#FFC107",
+  mosque: "#00BCD4",
+  mosques: "#00BCD4",
+  gurudwara: "#FF9800",
+  gurudwaras: "#FF9800",
+  religious: "#FFD54F",
+  meditation: "#9C27B0",
 
-  // Tourist & Shopping - Purple shades
-  tourist_spot: "#9C27B0",
-  tourist: "#9C27B0",
-  monument: "#AB47BC",
-  museum: "#BA68C8",
-  shopping_mall: "#8E24AA",
-  mall: "#8E24AA",
-  market: "#7B1FA2",
+  // Food & Dining - Orange/Coral
+  restaurant: "#FF5722",
+  restaurants: "#FF5722",
+  cafe: "#FF7043",
+  cafes: "#FF7043",
+  bakery: "#FF8A65",
+  bakeries: "#FF8A65",
+  bar: "#D84315",
+  bars: "#D84315",
+  juice: "#FFAB40",
 
-  // Eating & Hospitality - Orange shades
-  restaurant: "#FF9800",
-  hotel: "#FB8C00",
-  cafe: "#F57C00",
-  eating_house: "#FF9800",
-  homestay: "#EF6C00",
-  home_stay: "#EF6C00",
-  food_court: "#FF6F00",
+  // Hospitality - Deep Orange/Burnt Orange
+  hotel: "#E65100",
+  hotels: "#E65100",
+  guest: "#F4511E",
+  lodge: "#BF360C",
+  lodges: "#BF360C",
 
-  // Fuel & Transport - Green shades
-  petrol_pump: "#4CAF50",
-  fuelstation: "#66BB6A",
-  fuel_station: "#66BB6A",
-  gas_station: "#81C784",
+  // Shopping & Commerce - Purple/Magenta
+  market: "#9C27B0",
+  markets: "#9C27B0",
+  shopping: "#AB47BC",
+  mall: "#BA68C8",
+  supermarket: "#8E24AA",
+  supermarkets: "#8E24AA",
+  grocery: "#CE93D8",
+  bookstore: "#7B1FA2",
+  bookstores: "#7B1FA2",
+  salon: "#E1BEE7",
+  salons: "#E1BEE7",
 
-  // Art & Culture - Pink/Magenta shades
-  art: "#E91E63",
-  art_gallery: "#EC407A",
-  gallery: "#F06292",
-  theater: "#D81B60",
-  cinema: "#C2185B",
+  // Fuel & Automotive - Bright Green/Lime
+  fuel: "#76FF03",
+  fuelstation: "#64DD17",
+  petrol: "#AEEA00",
+  car: "#00E676",
+  repair: "#00C853",
+  vehicale: "#00BFA5",
 
-  // Parks & Recreation - Light Green
-  park: "#8BC34A",
-  garden: "#9CCC65",
-  playground: "#AED581",
+  // Transportation - Indigo/Navy
+  airport: "#3F51B5",
+  airports: "#3F51B5",
+  railway: "#303F9F",
+  train: "#1A237E",
+  bus: "#5C6BC0",
+  taxi: "#FFEB3B",
+  ferries: "#536DFE",
 
-  // Religious - Gold/Yellow shades
-  temple: "#FFC107",
-  church: "#FFB300",
-  mosque: "#FFA000",
-  religious: "#FF8F00",
+  // Public Services - Cyan/Turquoise
+  police: "#0097A7",
+  fire: "#FF1744",
+  post: "#00ACC1",
+  traffic: "#00838F",
+  municipal: "#006064",
 
-  // Government & Public - Blue shades
-  government: "#2196F3",
-  police_station: "#1976D2",
-  post_office: "#1565C0",
-
-  // Banking & Finance - Teal
+  // Banking & Finance - Teal/Emerald
   bank: "#009688",
-  atm: "#00897B",
+  banks: "#009688",
+  atm: "#00796B",
 
-  // Transportation
-  busstop: "#7CB342",
-  bus_stop: "#7CB342",
-  railwaystation: "#5C6BC0",
-  railway_station: "#5C6BC0",
-  airport: "#039BE5",
+  // Entertainment & Recreation - Hot Pink/Fuchsia
+  cinema: "#E91E63",
+  cinemas: "#E91E63",
+  movie: "#F50057",
+  theater: "#C51162",
+  amusement: "#FF4081",
+  club: "#F48FB1",
+  nightclub: "#880E4F",
+  nightclubs: "#880E4F",
 
-  // Boundaries
-  villageboundary: "#5E35B1",
-  cityboundary: "#3949AB",
-  districtboundary: "#00838F",
-  stateboundary: "#00695C",
+  // Arts & Culture - Rose/Magenta
+  art: "#D81B60",
+  museum: "#AD1457",
+  museums: "#AD1457",
+  gallery: "#C2185B",
+  cultural: "#E91E63",
+  exhibition: "#F06292",
+  aquarium: "#00BCD4",
 
-  // Parking & Roads
-  parking: "#00897B",
-  no_parking: "#C62828",
-  tollgate: "#6D4C41",
-  toll_plaza: "#6D4C41",
+  // Parks & Nature - Forest Green/Olive
+  park: "#558B2F",
+  parks: "#558B2F",
+  garden: "#689F38",
+  gardens: "#689F38",
+  playground: "#7CB342",
+  playgrounds: "#7CB342",
+  nature: "#33691E",
+  wildlife: "#827717",
+  zoo: "#9E9D24",
 
-  // Routes & Areas
-  permitroute: "#FB8C00",
-  prohibited_area: "#D81B60",
-  restricted_area: "#AD1457",
+  // Sports & Fitness - Lime/Chartreuse
+  sports: "#CDDC39",
+  stadium: "#C0CA33",
+  stadiums: "#C0CA33",
+  gym: "#AFB42B",
+  gyms: "#AFB42B",
+  fitness: "#9E9D24",
+  swimming: "#00BCD4",
+  yoga: "#8BC34A",
+  spa: "#4CAF50",
+  spas: "#4CAF50",
 
-  // Personal & Other
-  personal: "#43A047",
-  other: "#546E7A",
+  // Government & Administration - Royal Blue
+  government: "#1565C0",
+  court: "#0D47A1",
+  public: "#01579B",
+  community: "#0277BD",
+  convention: "#0288D1",
+
+  // Infrastructure & Utilities - Brown/Tan
+  bridge: "#5D4037",
+  bridges: "#5D4037",
+  overbridge: "#4E342E",
+  overbridges: "#4E342E",
+  weighbridge: "#6D4C41",
+  weighbridges: "#6D4C41",
+  industrial: "#795548",
+  it: "#00BCD4",
+
+  // Boundaries - Deep Purple/Violet
+  cityboundary: "#6A1B9A",
+  stateboundary: "#4A148C",
+
+  // Routes & Restrictions - Bright Red/Warning
+  permitroute: "#FF9800",
+  prohibited_area: "#F44336",
+  no_parking: "#D50000",
+
+  // Tourist Attractions - Violet/Lavender
+  tourist: "#673AB7",
+  historical: "#512DA8",
+  monument: "#5E35B1",
+
+  // Personal & Other - Neutral/Grey
+  personal: "#4CAF50",
+  other: "#607D8B",
+  business: "#455A64",
 };
 
 const getUseTypeColor = (poi) => {
@@ -567,10 +642,9 @@ const POIViewer = () => {
     const createText = (overrides = {}) =>
       new Text({
         text: displayText,
-        font: '12px "Roboto", sans-serif',
-        fill: new Fill({ color: '#0D47A1' }),
+        font: 'bold 12px "Roboto", sans-serif',
+        fill: new Fill({ color: baseColor }),
         stroke: new Stroke({ color: '#ffffff', width: 3 }),
-        backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
         padding: [2, 4, 2, 4],
         ...overrides,
       });
