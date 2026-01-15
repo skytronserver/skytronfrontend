@@ -38,6 +38,7 @@ const ManufacturerList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Link
@@ -57,7 +58,7 @@ const ManufacturerList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={t('manufacturer.listTitle')} rows={manufacturer} columns={manufacturerColumns.concat(actionColumn)}/>}
+        {load && <DynamicDatatables tableTitle={t('manufacturer.listTitle')} rows={manufacturer} columns={manufacturerColumns.concat(actionColumn)} helperText="Timestamps are in GMT/UTC."/>}
         </Grid>
     </Grid>
 );

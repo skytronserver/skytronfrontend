@@ -62,7 +62,7 @@ const DeviceModelList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={t('deviceModel.awaitingApprovalTitle')} rows={deviceModelList} columns={actionColumn.concat(deviceModelColumns)}/>}
+        {load && <DynamicDatatables tableTitle={t('deviceModel.awaitingApprovalTitle')} rows={deviceModelList} columns={actionColumn.concat(deviceModelColumns)} helperText="Timestamps are in GMT/UTC."/>}
         </Grid>
     </Grid>
 );

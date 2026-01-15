@@ -10,6 +10,7 @@ import { deviceCOPModelColumns } from "../../datatables/rowsColumn";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import MUIDataTable from "mui-datatables";
+import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 
 const UnapproveCopList = () => {
@@ -30,6 +31,9 @@ const UnapproveCopList = () => {
     (state) => state.deviceModel.deviceCOPModelList
   );
 
+  const shouldShowGmtNote = Array.isArray(deviceCOPModelList)
+    && deviceCOPModelList.some((r) => typeof r?.timestamp === 'string' && /Z\s*$/.test(r.timestamp));
+
   const actionColumn = [
     {
       name: "Action",
@@ -37,6 +41,7 @@ const UnapproveCopList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Link
@@ -64,10 +69,32 @@ const UnapproveCopList = () => {
       <Grid item xs={12}>
         {load && (
           <div className="datatable">
+      {shouldShowGmtNote && (
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          Timestamps are in GMT/UTC.
+        </Typography>
+      )}
       <MUIDataTable
               title={t('deviceModel.copListTitle')}
         data={deviceCOPModelList}
-        columns={actionColumn.concat(deviceCOPModelColumns)}
+        columns={actionColumn.concat(
+          deviceCOPModelColumns.map((col) => {
+            if (col?.name !== 'timestamp') {
+              return col;
+            }
+            if (!shouldShowGmtNote) {
+              return col;
+            }
+            const label = col?.label;
+            if (typeof label !== 'string') {
+              return col;
+            }
+            if (label.includes('(GMT/UTC)')) {
+              return col;
+            }
+            return { ...col, label: `${label} (GMT/UTC)` };
+          })
+        )}
         options={options}
       />
     </div>

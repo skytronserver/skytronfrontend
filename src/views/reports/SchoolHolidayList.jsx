@@ -185,6 +185,7 @@ const SchoolHolidayList = () => {
             rows={holidays}
             columns={holidayColumns.concat(actionColumn)}
             loading={loading}
+            helperText="Timestamps are in GMT/UTC."
           />
         </Grid>
       </Grid>

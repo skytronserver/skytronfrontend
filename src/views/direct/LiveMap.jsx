@@ -3579,8 +3579,8 @@ const MapComponent = ({
               nearestPolice?.name && nearestPolice.name !== "-"
                 ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
                 : "",
-              nearestPolice?.address && nearestPolice.address !== "-"
-                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
+              nearestPolice?.address && nearestPolice.description !== "-"
+                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.description}</span></div>`
                 : "",
               nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
                 ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`

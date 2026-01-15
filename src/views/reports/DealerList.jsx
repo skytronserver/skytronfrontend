@@ -44,6 +44,7 @@ const DealerList = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
+          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Link
@@ -75,6 +76,7 @@ const DealerList = () => {
             tableTitle={t('dealer.listTitle')}
             rows={dealers}
             columns={columns}
+            helperText="Timestamps are in GMT/UTC."
           />
         )}
       </Grid>
