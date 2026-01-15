@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -13,6 +13,8 @@ import {
   useVehicleData
 } from './SuperAdminCommon';
 import { BhuvanMapComponent } from 'components/Map';
+import MapComponent from 'views/direct/LiveMap';
+import UserServices from 'services/UserServices';
 
 /* -------------------------------------------------------------------------- */
 /* 🎨 Design Tokens                                                            */
@@ -24,6 +26,7 @@ const COLORS = {
   ambulancePrimary: '#ec4899',
   ambulanceSecondary: '#f43f5e',
   ambulanceMuted: alpha('#ec4899', 0.32),
+  offline: '#94a3b8',
   surface: alpha('#1e1b4b', 0.06),
   border: alpha('#3b82f6', 0.18),
   grid: alpha('#312e81', 0.18),
@@ -44,58 +47,86 @@ const fadeUpAnimation = {
 /* -------------------------------------------------------------------------- */
 const PublicSafetyDashboard = () => {
   const { vehicleData, loading, iconStyles } = useVehicleData();
+  const [policeMetrics, setPoliceMetrics] = useState(null);
+  const [ambulanceMetrics, setAmbulanceMetrics] = useState(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const [policeRes, ambulanceRes] = await Promise.all([
+          UserServices.getPoliceFleetMetrics(),
+          UserServices.getAmbulanceFleetMetrics()
+        ]);
+
+        if (policeRes.data) setPoliceMetrics(policeRes.data);
+        if (ambulanceRes.data) setAmbulanceMetrics(ambulanceRes.data);
+      } catch (error) {
+        console.error("Error fetching fleet metrics", error);
+      }
+    };
+
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   const policeStats = useMemo(() => {
-    const total = vehicleData.length;
-    const onDuty = vehicleData.filter((v) => String(v.ignition_status) === '1').length;
-    const standby = Math.max(total - onDuty, 0);
-    const incidents = vehicleData.filter((v) => v.packet_type === 'EA').length;
+    if (policeMetrics) {
+      return {
+        total: policeMetrics.total_executives || 0,
+        onDuty: policeMetrics.online_executives || 0,
+        standby: policeMetrics.standby_executives || 0,
+        incidents: policeMetrics.total_emergency_calls_live || 0,
+        offline: policeMetrics.offline_executives || 0
+      };
+    }
 
     return {
-      total,
-      onDuty,
-      standby,
-      incidents
+      total: 0,
+      onDuty: 0,
+      standby: 0,
+      incidents: 0,
+      offline: 0
     };
-  }, [vehicleData]);
+  }, [policeMetrics]);
 
   const ambulanceStats = useMemo(() => {
-    const total = vehicleData.length;
-    const emergency = vehicleData.filter((v) => v.packet_type === 'EA').length;
-    const enRoute = vehicleData.filter((v) => Number(v.speed) > 30).length;
-    const available = Math.max(total - emergency, 0);
+    if (ambulanceMetrics) {
+      return {
+        total: ambulanceMetrics.total_executives || 0,
+        emergency: ambulanceMetrics.total_emergency_calls_live || 0,
+        available: ambulanceMetrics.online_executives || 0,
+        enRoute: ambulanceMetrics.standby_executives || 0,
+        offline: ambulanceMetrics.offline_executives || 0
+      };
+    }
 
     return {
-      total,
-      emergency,
-      enRoute,
-      available
+      total: 0,
+      emergency: 0,
+      enRoute: 0,
+      available: 0,
+      offline: 0
     };
-  }, [vehicleData]);
+  }, [ambulanceMetrics]);
 
   const readinessData = useMemo(
     () =>
       [
         { name: 'Police On Duty', value: policeStats.onDuty, color: COLORS.policePrimary },
         { name: 'Police Standby', value: policeStats.standby, color: COLORS.policeMuted },
+        { name: 'Police Offline', value: policeStats.offline, color: COLORS.offline },
         { name: 'Ambulance Emergency', value: ambulanceStats.emergency, color: COLORS.ambulanceSecondary },
         { name: 'Ambulance En Route', value: ambulanceStats.enRoute, color: COLORS.ambulancePrimary },
-        { name: 'Ambulance Available', value: ambulanceStats.available, color: COLORS.ambulanceMuted }
+        { name: 'Ambulance Available', value: ambulanceStats.available, color: COLORS.ambulanceMuted },
+        { name: 'Ambulance Offline', value: ambulanceStats.offline, color: COLORS.offline }
       ].filter((item) => item.value > 0),
     [policeStats, ambulanceStats]
   );
 
   const readinessTrendData = useMemo(() => {
-    const checkpoints = ['00-15 min', '15-30 min', '30-45 min', '45+ min'];
-    const policeIntensity = [policeStats.onDuty, policeStats.onDuty * 0.72, policeStats.onDuty * 0.48, policeStats.onDuty * 0.24];
-    const ambulanceIntensity = [ambulanceStats.emergency + ambulanceStats.enRoute, ambulanceStats.enRoute * 0.8, ambulanceStats.available * 0.6, ambulanceStats.available * 0.3];
-
-    return checkpoints.map((label, index) => ({
-      name: label,
-      police: Math.max(Math.round(policeIntensity[index] || 0), 0),
-      ambulance: Math.max(Math.round(ambulanceIntensity[index] || 0), 0)
-    }));
-  }, [policeStats, ambulanceStats]);
+    return [];
+  }, []);
 
   const getSafetyStyle = useCallback(
     (vehicle) => {
@@ -105,6 +136,16 @@ const PublicSafetyDashboard = () => {
     },
     [iconStyles]
   );
+
+  const ambulanceVehicles = useMemo(() => {
+    return vehicleData.filter(v => {
+      const nestedCategory = v?.device_tag_info?.category_info?.category;
+      const topCategory = v?.category || v?.vehicle_category;
+      const candidates = [nestedCategory, topCategory].filter(Boolean);
+
+      return candidates.some(c => String(c).toUpperCase() === 'AMBULANCE');
+    });
+  }, [vehicleData]);
 
   const readinessChartContent = (
     <Box
@@ -190,18 +231,13 @@ const PublicSafetyDashboard = () => {
         accentColor={COLORS.policePrimary}
         chartComponent={readinessChartContent}
         mapComponent={(
-          <BhuvanMapComponent
-            gpsData={vehicleData}
+          <MapComponent
+            gpsData={ambulanceVehicles}
             policeData={[]}
             width="100%"
             height="100%"
             markerLabelMode="vehicle"
-            showMapTypeToggle={false}
-            showDrawControls={false}
-            showLogos={false}
-            showSoiLayerPanel={false}
             autoFit
-            onMarkerClick={undefined}
           />
         )}
       >

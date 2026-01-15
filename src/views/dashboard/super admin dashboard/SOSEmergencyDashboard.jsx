@@ -22,8 +22,12 @@ import {
   DashboardCard,
   MetricCard,
   StatBarChart,
+  StatPieChart,
+  MonthlyTrendsChart,
+  MonthlyPerformanceChart,
   useSosDashboardData
 } from './SuperAdminCommon';
+import UserServices from 'services/UserServices';
 
 const rippleExpand = keyframes`
   0% { transform: translate(-50%, -50%) scale(0.25); opacity: 0.8; }
@@ -266,6 +270,32 @@ const SOSEmergencyDashboard = () => {
     });
   };
 
+  const [monthlyData, setMonthlyData] = useState([]);
+
+  useEffect(() => {
+    const fetchMonthly = async () => {
+      try {
+        const response = await UserServices.getSOSMonthlyMetrics(new Date().getFullYear());
+        if (response.data) {
+          const { months, calls, performance } = response.data;
+          const processed = months.map((month, index) => ({
+            month,
+            total: calls?.total?.[index] || 0,
+            genuine: calls?.genuine?.[index] || 0,
+            fake: calls?.fake?.[index] || 0,
+            police_avg: performance?.police_avg_seconds?.[index] || null,
+            ambulance_avg: performance?.ambulance_avg_seconds?.[index] || null,
+            executive_avg: performance?.executive_accept_avg_seconds?.[index] || null,
+          }));
+          setMonthlyData(processed);
+        }
+      } catch (err) {
+        console.error('Failed to fetch monthly metrics', err);
+      }
+    };
+    fetchMonthly();
+  }, []);
+
   useEffect(() => {
     if (!selectedCallKey) return;
 
@@ -293,9 +323,35 @@ const SOSEmergencyDashboard = () => {
         subtitle="Incident Management"
         accentColor={COLORS.primary}
         animationDelay="0.4s"
-        chartComponent={<StatBarChart data={sosChartData} />}
+        sx={{ flex: 1, minHeight: 0 }}
+        chartComponent={
+          <Stack spacing={4} sx={{ height: '100%', justifyContent: 'space-between', py: 1 }}>
+            <Box sx={{ width: '100%', textAlign: 'center', flexShrink: 0 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: COLORS.textSecondary, letterSpacing: 0.5 }}>
+                DAILY CALL DETAILS
+                <br />
+                <span style={{ fontSize: '0.85em', fontWeight: 500, opacity: 0.8 }}>12.00 AM TO 11.59 PM</span>
+              </Typography>
+              <Box sx={{ height: 180, width: '100%' }}>
+                <StatPieChart data={sosChartData} height={200} />
+              </Box>
+            </Box>
+
+            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', mt: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, px: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: COLORS.textPrimary }}>
+                  Monthly Analytics
+                </Typography>
+                <Chip label={`${new Date().getFullYear()}`} size="small" sx={{ height: 30, fontSize: '0.7rem', bgcolor: alpha(COLORS.primary, 0.1), color: COLORS.primary, fontWeight: 600 }} />
+              </Box>
+              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                <MonthlyTrendsChart data={monthlyData} height="100%" />
+              </Box>
+            </Box>
+          </Stack>
+        }
       >
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={4}>
             <MetricCard label="Active SOS" value={metricValue(displayTotals.activeSOS)} color={COLORS.primary} />
           </Grid>
@@ -309,7 +365,7 @@ const SOSEmergencyDashboard = () => {
 
         <Box
           sx={{
-            mb: 2.5,
+            mb: 1.5,
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -327,11 +383,12 @@ const SOSEmergencyDashboard = () => {
               size="small"
               onChange={handleStatusFilterChange}
               aria-label="sos status filter"
+              sx={{ height: 32 }}
             >
-              <ToggleButton value="all">All</ToggleButton>
-              <ToggleButton value="active">Active</ToggleButton>
-              <ToggleButton value="pending">Pending</ToggleButton>
-              <ToggleButton value="closed">Closed</ToggleButton>
+              <ToggleButton value="all" sx={{ py: 0.5 }}>All</ToggleButton>
+              <ToggleButton value="active" sx={{ py: 0.5 }}>Active</ToggleButton>
+              <ToggleButton value="pending" sx={{ py: 0.5 }}>Pending</ToggleButton>
+              <ToggleButton value="closed" sx={{ py: 0.5 }}>Closed</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
 
@@ -345,14 +402,17 @@ const SOSEmergencyDashboard = () => {
         <Box
           sx={{
             ...fadeUpAnimation,
-            overflow: 'auto',
+            overflow: 'hidden',
             bgcolor: '#ffffff',
             borderRadius: 3,
             border: `1px solid ${alpha(COLORS.primary, 0.16)}`,
-            minHeight: '400px'
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0
           }}
         >
-          <TableContainer sx={{ maxHeight: 400 }}>
+          <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>

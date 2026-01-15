@@ -5,12 +5,11 @@ import Typography from '@mui/material/Typography';
 import { alpha } from '@mui/material/styles';
 import {
   ResponsiveContainer,
-  AreaChart,
-  Area,
-  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis
+  Legend
 } from 'recharts';
 
 import {
@@ -19,7 +18,7 @@ import {
   MetricCard,
   useVehicleData
 } from './SuperAdminCommon';
-import { BhuvanMapComponent } from 'components/Map';
+import MapComponent from 'views/direct/LiveMap';
 
 /* -------------------------------------------------------------------------- */
 /* 🎨 Design Tokens                                                            */
@@ -31,7 +30,10 @@ const COLORS = {
   border: alpha('#6366f1', 0.18),
   grid: alpha('#312e81', 0.18),
   textPrimary: '#1e1b4b',
-  textSecondary: '#475569'
+  textSecondary: '#475569',
+  online: '#06b6d4',      // Cyan - for active/online vehicles
+  offline: '#64748b',     // Slate gray - for offline vehicles
+  emergency: '#f59e0b'    // Amber/Orange - for emergency vehicles
 };
 
 /* -------------------------------------------------------------------------- */
@@ -51,92 +53,88 @@ const fadeUpAnimation = {
 const PublicTransportDashboard = () => {
   const { vehicleData, vehicleStats, loading, getVehicleStyle } = useVehicleData();
 
-  /* --------------------------- Speed Distribution -------------------------- */
-  const speedDistributionData = useMemo(() => {
-    const bins = [
-      { label: '0–20 km/h', min: 0, max: 20 },
-      { label: '20–40 km/h', min: 20, max: 40 },
-      { label: '40–60 km/h', min: 40, max: 60 },
-      { label: '60+ km/h', min: 60, max: Infinity }
+  /* --------------------------- Fleet Distribution -------------------------- */
+  const fleetDistributionData = useMemo(() => {
+    return [
+      { name: 'Online', value: vehicleStats.online || 0, color: COLORS.online },
+      { name: 'Offline', value: vehicleStats.offline || 0, color: COLORS.offline },
+      { name: 'Emergency', value: vehicleStats.emergency || 0, color: COLORS.emergency }
     ];
+  }, [vehicleStats]);
 
-    return bins.map((bin) => {
-      const count = vehicleData.filter((v) => {
-        const speed = Number(v.speed) || 0;
-        if (bin.max === Infinity) return speed >= bin.min;
-        return speed >= bin.min && speed < bin.max;
-      }).length;
-
-      return { name: bin.label, value: count };
-    });
-  }, [vehicleData]);
-
-  const hasSpeedData = speedDistributionData.some((s) => s.value > 0);
+  const hasFleetData = fleetDistributionData.some((s) => s.value > 0);
   const totalVehicles = vehicleStats.total || vehicleData.length || 0;
 
   /* ------------------------------- Chart ---------------------------------- */
-  const speedChartContent = (
+  const fleetChartContent = (
     <Box
       sx={{
         ...fadeUpAnimation,
+        width: '100%',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         borderRadius: 3,
         border: `1px solid ${COLORS.border}`,
-        bgcolor: COLORS.surface,
-        boxShadow: `0 20px 40px -24px ${alpha(COLORS.primary, 0.55)}`,
+        bgcolor: 'white',
+        boxShadow: `0 4px 12px ${alpha(COLORS.primary, 0.08)}`,
         overflow: 'hidden'
       }}
     >
       {/* Header */}
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: COLORS.textPrimary }}>
-          Fleet Speed Distribution
+      <Box sx={{ p: 2.5, pb: 1.5 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: COLORS.textPrimary, fontSize: '1rem' }}>
+          Fleet Distribution
         </Typography>
-        <Typography variant="body2" sx={{ color: COLORS.textSecondary }}>
+        <Typography variant="body2" sx={{ color: COLORS.textSecondary, fontSize: '0.875rem' }}>
           {totalVehicles
-            ? `Live breakdown of ${totalVehicles} vehicles by speed range.`
-            : 'Speed distribution will appear once vehicles are active.'}
+            ? `Live status of ${totalVehicles} vehicles`
+            : 'Waiting for data...'}
         </Typography>
       </Box>
 
       {/* Chart Area */}
-      <Box sx={{ flex: 1, minHeight: 0 }}>
-        {hasSpeedData ? (
+      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, pt: 0 }}>
+        {hasFleetData ? (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={speedDistributionData} margin={{ top: 12, right: 16, left: -8, bottom: 12 }}>
-              <defs>
-                <linearGradient id="speedGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={COLORS.primary} stopOpacity={0.9} />
-                  <stop offset="55%" stopColor={COLORS.primary} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-
-              <CartesianGrid strokeDasharray="3 6" stroke={COLORS.grid} />
-              <XAxis dataKey="name" tick={{ fill: COLORS.textPrimary, fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fill: COLORS.textPrimary, fontSize: 12 }} />
-
-              <RechartsTooltip content={<CustomTransportTooltip />} />
-
-              <Area
-                type="monotone"
+            <PieChart>
+              <Pie
+                data={fleetDistributionData}
+                cx="50%"
+                cy="50%"
+                innerRadius="45%"
+                outerRadius="75%"
+                paddingAngle={3}
                 dataKey="value"
-                stroke={COLORS.primaryDark}
-                strokeWidth={3}
-                fill="url(#speedGradient)"
-                animationDuration={900}
+                stroke="none"
+              >
+                {fleetDistributionData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <RechartsTooltip content={<CustomTransportTooltip />} />
+              <Legend
+                verticalAlign="bottom"
+                align="center"
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{
+                  fontSize: '12px',
+                  color: COLORS.textPrimary,
+                  paddingTop: '4px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 500
+                }}
               />
-            </AreaChart>
+            </PieChart>
           </ResponsiveContainer>
         ) : (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="subtitle1" fontWeight={700}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="subtitle2" fontWeight={600} color="text.secondary">
               Waiting for live telemetry
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Vehicles will appear automatically as data streams in.
+            <Typography variant="caption" color="text.secondary">
+              Vehicles will appear automatically
             </Typography>
           </Box>
         )}
@@ -147,38 +145,35 @@ const PublicTransportDashboard = () => {
   /* ------------------------------- Layout ---------------------------------- */
   return (
     <PageWrapper
-      // title="Public Transport"
-      // description="Live fleet monitoring across the state transport network."
-      // sx={{
-      //   minHeight: '100vh',
-      //   display: 'flex',
-      //   flexDirection: 'column'
-      // }}
+      title="Public Transport"
+      description="Live fleet monitoring across the state transport network."
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
     >
       <DashboardCard
         title="Public Transport"
         subtitle="Live Fleet Monitoring"
         accentColor={COLORS.primary}
-        chartComponent={speedChartContent}
+        chartComponent={fleetChartContent}
         mapComponent={(
-          <BhuvanMapComponent
+          <MapComponent
             gpsData={vehicleData}
             policeData={[]}
+            incidentData={[]}
             width="100%"
             height="100%"
             markerLabelMode="vehicle"
-            showMapTypeToggle={false}
-            showDrawControls={false}
-            showLogos={false}
-            showSoiLayerPanel={false}
-            autoFit
-            onMarkerClick={undefined}
+            autoFit={false}
           />
         )}
         sx={{
           flex: 1,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          height: '100%'
         }}
       >
         {/* Metrics */}
@@ -187,13 +182,13 @@ const PublicTransportDashboard = () => {
             <MetricCard label="Total" value={loading ? '—' : vehicleStats.total} color={COLORS.primary} />
           </Grid>
           <Grid item xs={6} sm={3}>
-            <MetricCard label="Online" value={loading ? '—' : vehicleStats.online} color="#10b981" />
+            <MetricCard label="Online" value={loading ? '—' : vehicleStats.online} color={COLORS.online} />
           </Grid>
           <Grid item xs={6} sm={3}>
-            <MetricCard label="Emergency" value={loading ? '—' : vehicleStats.emergency} color="#ef4444" />
+            <MetricCard label="Emergency" value={loading ? '—' : vehicleStats.emergency} color={COLORS.emergency} />
           </Grid>
           <Grid item xs={6} sm={3}>
-            <MetricCard label="Offline" value={loading ? '—' : vehicleStats.offline} color="#64748b" />
+            <MetricCard label="Offline" value={loading ? '—' : vehicleStats.offline} color={COLORS.offline} />
           </Grid>
         </Grid>
       </DashboardCard>
