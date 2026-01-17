@@ -19,6 +19,7 @@ import MainCard from '../../ui-component/cards/MainCard';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { gridSpacing } from '../../store/constant';
 import SchoolBusService from '../../services/SchoolBusService';
+import LiveMap from '../direct/LiveMap';
 
 const ParentTracking = () => {
     const theme = useTheme();
@@ -64,6 +65,16 @@ const ParentTracking = () => {
     const live = tracking?.live;
     const alertLogs = tracking?.alerts || [];
     const tripHistory = tracking?.tripHistory || [];
+
+    const gpsData = live?.lat && live?.lon
+        ? [
+            {
+                latitude: Number(live.lat),
+                longitude: Number(live.lon),
+                vehicle_reg_no: live?.vehicleRegNo || 'BUS',
+            }
+        ]
+        : [];
 
     const alertColumns = [
         { name: 'type', label: 'Alert Type' },
@@ -140,7 +151,9 @@ const ParentTracking = () => {
                         >
                             {live ? (
                                 <>
-                                    <Typography variant="h4" color="text.secondary">Live Map Placeholder</Typography>
+                                    <Box sx={{ position: 'absolute', inset: 0 }}>
+                                        <LiveMap gpsData={gpsData} autoFit={gpsData.length > 0} width="100%" height="100%" />
+                                    </Box>
                                     <Alert severity="info" sx={{ position: 'absolute', top: 16, left: 16, right: 16, zIndex: 1 }}>
                                         Bus <strong>{live?.vehicleRegNo || 'N/A'}</strong> is currently{' '}
                                         <strong>{live?.distanceKm ?? 'N/A'} KM</strong> away from <strong>{live?.stopName || 'N/A'}</strong>. Expected Arrival in{' '}

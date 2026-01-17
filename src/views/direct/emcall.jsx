@@ -63,6 +63,7 @@ const EMCall = () => {
   // Toggle states for map visibility
   const [showPoliceLayers, setShowPoliceLayers] = useState(false);
   const [showPoiLayers, setShowPoiLayers] = useState(false);
+  const [showAmbulanceLayers, setShowAmbulanceLayers] = useState(false);
 
   // Tab State & Auto-play
   const [tabValue, setTabValue] = useState(0);
@@ -642,6 +643,13 @@ const EMCall = () => {
 
   console.log("nearestUnit", call);
 
+  const visibleResponderMarkers = policeLocations.filter((marker) => {
+    const category = String(marker?.markerCategory || "").toLowerCase();
+    if (category === "police") return showPoliceLayers;
+    if (category === "ambulance") return showAmbulanceLayers;
+    return showPoliceLayers;
+  });
+
   return (
     <>
       <CustomModal
@@ -683,6 +691,11 @@ const EMCall = () => {
                   <FormControlLabel
                     control={<Switch checked={showPoliceLayers} onChange={(e) => setShowPoliceLayers(e.target.checked)} size="small" />}
                     label={<Typography variant="body2">Show Police Vehicles</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={showAmbulanceLayers} onChange={(e) => setShowAmbulanceLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Ambulance Vehicles</Typography>}
                     sx={{ ml: 0 }}
                   />
                   <FormControlLabel
@@ -979,7 +992,7 @@ const EMCall = () => {
             <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <BhuvanMapComponent
                 gpsData={sosLocations}
-                policeData={policeLocations}
+                policeData={(showPoliceLayers || showAmbulanceLayers) ? visibleResponderMarkers : []}
                 pois={showPoiLayers ? policePois : []}
                 lookupPois={policePois}
                 width="100%"

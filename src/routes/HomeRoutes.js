@@ -4,7 +4,9 @@ import Home from "../views/homepage/Home";
 import CameraFeedsView from "pages/CameraFeedsView";
 import UserRegistrationRequest from "../views/homepage/UserRegistrationRequest";
 import DeviceStats from "../views/public/DeviceStats";
-import SchoolRegistration from "../views/homepage/SchoolRegistration";
+import RegistrationStatusTracker from "../views/homepage/RegistrationStatusTracker";
+import RegistrationAdminReview from "../views/homepage/RegistrationAdminReview";
+import UserRegistrationForm from "../views/homepage/UserRegistrationForm";
 
 const HomeRoutes = {
   path: "/",
@@ -13,10 +15,6 @@ const HomeRoutes = {
     {
       path: "/",
       element: <Home />,
-    },
-    {
-      path: "/school-registration",
-      element: <SchoolRegistration />
     },
     {
       path: "/camera-feeds",
@@ -29,6 +27,18 @@ const HomeRoutes = {
     {
       path: "/user-registration-request",
       element: <UserRegistrationRequest />,
+    },
+    {
+      path: "/user-registration-request/:role",
+      element: <UserRegistrationForm />,
+    },
+    {
+      path: "/registration-status",
+      element: <RegistrationStatusTracker />,
+    },
+    {
+      path: "/registration-admin-review",
+      element: <RegistrationAdminReview />,
     },
     {
       path: "/device-stats",

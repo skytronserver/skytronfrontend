@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Grid, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Button
+  Grid, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Button, Paper, Switch, FormControlLabel, Box
 } from "@mui/material";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
@@ -29,6 +29,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const [showDetails, setShowDetails] = useState(false)
   const [sosLocations, setSosLocations] = useState([]);
   const [policePois, setPolicePois] = useState([]);
+  const [showPolicePois, setShowPolicePois] = useState(false);
   const [nearestPolice, setNearestPolice] = useState(null);
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const { t } = useTranslation();
@@ -62,32 +63,33 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, [dispatch]);
 
-  // Fetch Police Station POIs for SOS map
+  // Fetch Police POIs for SOS map
   useEffect(() => {
-    const fetchPolicePois = async () => {
+    const fetchPois = async () => {
       try {
         const response = await POIService.getAllPOIs();
         const data = response?.data || response || [];
 
-        const filtered = Array.isArray(data)
+        const filteredPolice = Array.isArray(data)
           ? data.filter((poi) => {
               const type = poi?.use_type || "";
               const normalized = String(type).toLowerCase();
               return (
                 normalized === "policestation" ||
                 normalized === "police_station" ||
-                normalized === "police"
+                normalized === "police" ||
+                normalized === "police station"
               );
             })
           : [];
 
-        setPolicePois(filtered);
+        setPolicePois(filteredPolice);
       } catch (error) {
-        console.error("Error fetching police POIs for SOSDashboard:", error);
+        console.error("Error fetching POIs for SOSDashboard:", error);
       }
     };
 
-    fetchPolicePois();
+    fetchPois();
   }, []);
 
   useEffect(() => {
@@ -290,6 +292,8 @@ const playBuzzer = () => {
     ];
   }
 
+  const visiblePois = showPolicePois ? policePois : [];
+
   return (
     <Grid container spacing={2}>
        <img
@@ -303,21 +307,48 @@ const playBuzzer = () => {
         <MiniBoard data={data} />
       </Grid>
       <Grid item xs={12} md={12}>
-        <BhuvanMapComponent
-          gpsData={sosLocations}
-          pois={policePois}
-          lookupPois={policePois}
-          width="100%"
-          height="65vh"
-          autoFit={false}
-          showMapTypeToggle={true}
-          showDrawControls={false}
-          showLogos={true}
-          defaultMapType="normal"
-          markerLabelMode="vehicle"
-          center={[91.829437, 26.131644]} // Use original center
-          zoom={7}
-        />
+        <Box sx={{ position: 'relative' }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              zIndex: 5,
+            }}
+          >
+            <Paper sx={{ px: 1, py: 0.5, borderRadius: 1, backgroundColor: '#fff' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={showPolicePois}
+                      onChange={(e) => setShowPolicePois(e.target.checked)}
+                    />
+                  }
+                  sx={{ m: 0 }}
+                  slotProps={{ typography: { variant: 'caption' } }}
+                  label="Police POI"
+                />
+              </Box>
+            </Paper>
+          </Box>
+          <BhuvanMapComponent
+            gpsData={sosLocations}
+            pois={visiblePois}
+            lookupPois={visiblePois}
+            width="100%"
+            height="65vh"
+            autoFit={false}
+            showMapTypeToggle={true}
+            showDrawControls={false}
+            showLogos={true}
+            defaultMapType="normal"
+            markerLabelMode="vehicle"
+            center={[91.829437, 26.131644]} // Use original center
+            zoom={7}
+          />
+        </Box>
       </Grid>
       {nearestPolice && (
         <Grid item xs={12} md={6}>
