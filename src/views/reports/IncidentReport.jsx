@@ -24,6 +24,7 @@ import MainCard from '../../ui-component/cards/MainCard';
 import CustomLoader from '../../ui-component/CustomLoader';
 import IncidentService from '../../services/IncidentService';
 import { useTheme } from '@mui/material/styles';
+import { fetchSecureIncidentMedia, createMediaUrl, isVideoFile } from '../../utils/incidentImageLoader';
 
 const IncidentReport = () => {
     const theme = useTheme();
@@ -153,7 +154,31 @@ const IncidentReport = () => {
                 <Button
                     variant="text"
                     size="small"
-                    onClick={() => window.open(`https://api.gromed.in/${params.value}`, '_blank')}
+                    onClick={async () => {
+                        try {
+                            const token = sessionStorage.getItem('oAuthToken');
+                            if (!token) {
+                                alert('Not authenticated: token missing');
+                                return;
+                            }
+                            const blob = await fetchSecureIncidentMedia(params.value, token);
+                            const url = createMediaUrl(blob);
+                            // Open in a new tab; for video, the browser will render it
+                            const newWin = window.open();
+                            if (newWin) {
+                                if (isVideoFile(params.value)) {
+                                    newWin.document.write(`<video src="${url}" controls autoplay style="max-width:100%"></video>`);
+                                } else {
+                                    newWin.document.write(`<img src="${url}" style="max-width:100%"/>`);
+                                }
+                            } else {
+                                // Fallback: change current tab
+                                window.location.href = url;
+                            }
+                        } catch (e) {
+                            alert('Failed to load image');
+                        }
+                    }}
                     sx={{ textTransform: 'none', p: 0 }}
                 >
                     View
