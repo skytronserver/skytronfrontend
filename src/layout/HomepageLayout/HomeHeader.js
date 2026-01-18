@@ -119,7 +119,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               onClick={handleImportantLinksClick}
               sx={{ mr: 2 }}
             >
-              Important Links
+              {t('common.importantLinks')}
             </Button>
             <Menu
               anchorEl={anchorEl}
@@ -130,7 +130,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               }}
             >
               <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
-                Manufacturer and Device Uptime Details
+                {t('common.manufacturerDeviceUptimeDetails')}
               </MenuItem>
             </Menu>
 
@@ -175,10 +175,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           <Divider />
           <List>
             <ListItem>
-              <ListItemText primary="Important Links" sx={{ fontWeight: 'bold' }} />
+              <ListItemText primary={t('common.importantLinks')} sx={{ fontWeight: 'bold' }} />
             </ListItem>
             <ListItem button component={Link} to="/device-stats">
-              <ListItemText primary="Manufacturer and Device Uptime Details" />
+              <ListItemText primary={t('common.manufacturerDeviceUptimeDetails')} />
             </ListItem>
           </List>
           <Divider />
