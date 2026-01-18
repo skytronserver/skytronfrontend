@@ -28,7 +28,7 @@ import POIService from "../../services/POIService";
 import CustomModal from "../../ui-component/CustomModal";
 import "./emcall.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
-import { BASE_URL } from "../../store/constant";
+import { fetchSecureIncidentMedia, createMediaUrl } from "../../utils/incidentImageLoader";
 
 const EMCall = () => {
   const theme = useTheme();
@@ -44,7 +44,6 @@ const EMCall = () => {
   const [, setMessages] = useState([]);
   const [activeRoutes, setActiveRoutes] = useState([]); // Routes for assigned executives
   const latestLocationsRef = useRef({}); // Cache for last known locations
-
 
   const [broadcastDisabled, setBroadcastDisabled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -68,16 +67,70 @@ const EMCall = () => {
   // Tab State & Auto-play
   const [tabValue, setTabValue] = useState(0);
 
+  const [driverPhotoUrl, setDriverPhotoUrl] = useState(null);
+  const [driverPhotoLoading, setDriverPhotoLoading] = useState(false);
+  const driverPhotoUrlRef = useRef(null);
+
+  const driverPhotoPathRaw = call?.call?.device?.drivers?.[0]?.photo || null;
+  const driverPhotoPath = (() => {
+    if (!driverPhotoPathRaw) return null;
+    const raw = String(driverPhotoPathRaw);
+    try {
+      if (raw.startsWith("http://") || raw.startsWith("https://")) {
+        const u = new URL(raw);
+        return u.pathname.replace(/^\/+/, "");
+      }
+    } catch (e) {
+      // ignore
+    }
+    return raw.replace(/^\/+/, "");
+  })();
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setTabValue((prev) => (prev + 1) % 4);
-  //   }, 5000); // Switch every 5 seconds
-  //   return () => clearInterval(timer);
-  // }, []);
+  useEffect(() => {
+    let cancelled = false;
+
+    if (driverPhotoUrlRef.current) {
+      URL.revokeObjectURL(driverPhotoUrlRef.current);
+      driverPhotoUrlRef.current = null;
+    }
+    setDriverPhotoUrl(null);
+
+    const token = sessionStorage.getItem('oAuthToken');
+    if (!driverPhotoPath || !token) {
+      setDriverPhotoLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setDriverPhotoLoading(true);
+    (async () => {
+      try {
+        const blob = await fetchSecureIncidentMedia(driverPhotoPath, token);
+        if (cancelled) return;
+        const url = createMediaUrl(blob);
+        driverPhotoUrlRef.current = url;
+        setDriverPhotoUrl(url);
+      } catch (e) {
+        if (cancelled) return;
+        setDriverPhotoUrl(null);
+      } finally {
+        if (!cancelled) setDriverPhotoLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (driverPhotoUrlRef.current) {
+        URL.revokeObjectURL(driverPhotoUrlRef.current);
+        driverPhotoUrlRef.current = null;
+      }
+    };
+  }, [driverPhotoPath]);
 
   // Distance helper (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -774,10 +827,24 @@ const EMCall = () => {
                 {tabValue === 1 && (
                   <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                      {call?.call?.device?.drivers?.[0]?.photo ? (
+                      {driverPhotoLoading ? (
+                        <Box sx={{
+                          width: 100,
+                          height: 100,
+                          borderRadius: '50%',
+                          bgcolor: 'grey.200',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '3px solid',
+                          borderColor: 'grey.300'
+                        }}>
+                          <Typography variant="caption">Loading...</Typography>
+                        </Box>
+                      ) : driverPhotoUrl ? (
                         <Box
                           component="img"
-                          src={`${BASE_URL}${call.call.device.drivers[0].photo}`}
+                          src={driverPhotoUrl}
                           alt="Driver"
                           sx={{
                             width: 100,
