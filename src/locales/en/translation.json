@@ -460,7 +460,8 @@
     "failedPasswordReset": "Failed to reset password",
     "failedPasswordResetEmpty": "Failed to reset password or password field is empty",
     "skytronPasswordSet": "Skytron Password Set",
-    "passwordSetSuccess": "Password has been set successfully go to home page and login using the credentials"
+    "passwordSetSuccess": "Password has been set successfully go to home page and login using the credentials",
+    "noAccountCTA": "Don't have an account? Click here"
   },
   "login": {
     "mobile": "Mobile",

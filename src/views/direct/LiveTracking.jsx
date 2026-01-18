@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import axios from "axios";
 import { useTranslation } from 'react-i18next';
@@ -70,6 +70,10 @@ const LiveTracking = () => {
   const [useNmrLocation, setUseNmrLocation] = useState(false);
   const [nmrArea, setNmrArea] = useState(null);
   const [reverseGeocodeCache, setReverseGeocodeCache] = useState({});
+  const fullDataRef = useRef([]); // processed items we've appended so far
+  const fullRawRef = useRef([]);  // raw items from API (unprocessed)
+  const listContainerRef = useRef(null);
+  const [visibleCount, setVisibleCount] = useState(0);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -96,7 +100,79 @@ const LiveTracking = () => {
     }
   };
 
-  const handleVehicleMarkerClick = (entry) => {
+  const computeRow = (processedItem) => {
+    // Extract block_name and route_name
+    const blockName = processedItem?.device_tag_info?.block?.name ||
+      processedItem?.device_tag_info?.block_name ||
+      processedItem?.device_tag_info?.device?.block_name ||
+      processedItem?.device_tag_info?.device?.district ||
+      processedItem?.device_tag_info?.district_info?.district ||
+      processedItem?.device_tag_info?.state_info?.state ||
+      processedItem?.block_name ||
+      processedItem?.address ||
+      processedItem?.nearest_poi?.data?.address ||
+      '';
+
+    const routeId = processedItem?.route_id ||
+      processedItem?.device_tag_info?.route?.id ||
+      processedItem?.nearby_routes_within_100m?.[0]?.data?.id;
+
+    const routeName = processedItem?.device_tag_info?.route?.name ||
+      processedItem?.device_tag_info?.route_name ||
+      processedItem?.device_tag_info?.route_ref?.name ||
+      processedItem?.route_name ||
+      (routeId ? `Route: ${routeId}` : '');
+
+    // Precompute status/icon
+    const entryTimeMs = resolveEntryTimestampMs(processedItem);
+    const nowMs = Date.now();
+    const diffMin = Number.isFinite(entryTimeMs) ? calculateTimeDifference(entryTimeMs, nowMs) : Number.POSITIVE_INFINITY;
+    const isStale = diffMin > 15;
+    const ignitionOn = resolveIgnitionOn(processedItem);
+    const speedValue = resolveSpeedValue(processedItem);
+
+    let alartType;
+    if (isStale) alartType = 'grey';
+    else if (processedItem.packet_type === 'EA') alartType = 'red';
+    else if (processedItem.packet_type !== 'NR') alartType = 'orange';
+    else if (ignitionOn && speedValue <= 1) alartType = 'blue';
+    else if (ignitionOn && speedValue > 1) alartType = 'green';
+    else alartType = 'default';
+
+    const vehicleType = processedItem?.device_tag_info?.category_info?.category;
+    const colorMap = { grey: 'grey', red: 'red', orange: 'orange', blue: 'blue', green: 'green', default: 'default' };
+    const color = colorMap[alartType] || 'default';
+    const preIcon = createIconPath(color, vehicleType);
+
+    return {
+      ...processedItem,
+      block_name: blockName,
+      route_name: routeName,
+      __alartType: alartType,
+      __iconSrc: preIcon,
+    };
+  };
+
+  const handleListScroll = useCallback(() => {
+    const el = listContainerRef.current;
+    if (!el || !fullRawRef.current) return;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 80;
+    if (!nearBottom) return;
+
+    const BATCH = 200;
+    const nextEnd = Math.min(visibleCount + BATCH, fullRawRef.current.length);
+    if (nextEnd <= visibleCount) return;
+
+    const nextSlice = fullRawRef.current.slice(visibleCount, nextEnd).map(computeRow);
+    fullDataRef.current = [...fullDataRef.current, ...nextSlice];
+    setTableDataTop((prev) => [...prev, ...nextSlice]);
+    if (typeFilter === 'default') {
+      setFilteredData((prev) => [...prev, ...nextSlice]);
+    }
+    setVisibleCount(nextEnd);
+  }, [visibleCount, typeFilter]);
+
+  const handleVehicleMarkerClick = async (entry) => {
     if (!entry?.imei) return;
 
     setSelectedId(`vehicle-${entry.imei}`);
@@ -104,6 +180,11 @@ const LiveTracking = () => {
     setFocusedEntry(entry);
     setUseNmrLocation(false);
     setNmrArea(null);
+    if (isBadGnss(entry)) {
+      const updated = await applyNmrLocation(entry);
+      setFilteredData([updated]);
+      setFocusedEntry(updated);
+    }
   };
 
   const computeSearchCenter = useCallback((entries = []) => {
@@ -291,67 +372,49 @@ const LiveTracking = () => {
     }
   };
 
+  let activeCancel = null;
   const retriveMapData = async (data) => {
     try {
+      if (activeCancel) {
+        activeCancel.cancel('replaced by a newer request');
+      }
+      activeCancel = axios.CancelToken.source();
+
       const retriveData_table = await HomePageService.getLiveTracking_data(
-        data
+        { ...data },
+        { cancelToken: activeCancel.token }
       );
 
       if (Array.isArray(retriveData_table.data.data)) {
         const rawData = retriveData_table.data.data;
+        fullRawRef.current = rawData;
 
-        const newData = await Promise.all(
-          rawData.map(async (item) => {
-            let processedItem = item;
+        // Lazy rendering: keep full list in ref and render initial chunk only
+        const INITIAL_CHUNK = 50; // smaller initial paint for faster perceived load
+        const CHUNK_SIZE = 200;
 
-            if (isBadGnss(item)) {
-              processedItem = await applyNmrLocation(item);
-            }
-
-            // Extract block_name and route_name from device_tag_info for all vehicles
-            const blockName = processedItem?.device_tag_info?.block?.name ||
-              processedItem?.device_tag_info?.block_name ||
-              processedItem?.device_tag_info?.device?.block_name ||
-              processedItem?.device_tag_info?.device?.district ||
-              processedItem?.device_tag_info?.district_info?.district ||
-              processedItem?.device_tag_info?.state_info?.state ||
-              processedItem?.block_name ||
-              processedItem?.address ||
-              processedItem?.nearest_poi?.data?.address ||
-              '';
-
-            const routeId = processedItem?.route_id ||
-              processedItem?.device_tag_info?.route?.id ||
-              processedItem?.nearby_routes_within_100m?.[0]?.data?.id;
-
-            const routeName = processedItem?.device_tag_info?.route?.name ||
-              processedItem?.device_tag_info?.route_name ||
-              processedItem?.device_tag_info?.route_ref?.name ||
-              processedItem?.route_name ||
-              (routeId ? `Route: ${routeId}` : '');
-
-            return {
-              ...processedItem,
-              block_name: blockName,
-              route_name: routeName,
-            };
-          })
-        );
-
-        setTableDataTop(newData);
-        setFilteredData(newData);
+        const firstSlice = rawData.slice(0, INITIAL_CHUNK).map(computeRow);
+        fullDataRef.current = firstSlice;
+        setTableDataTop(firstSlice);
+        setFilteredData(firstSlice);
+        setVisibleCount(firstSlice.length);
+        setLoad(true);
 
         // If there's exactly one vehicle, select it automatically
-        if (newData.length === 1) {
-          setSelectedId(`vehicle-${newData[0].imei}`);
-          setFocusedEntry(newData[0]);
+        if (rawData.length === 1) {
+          setSelectedId(`vehicle-${rawData[0].imei}`);
+          setFocusedEntry(computeRow(rawData[0]));
         } else {
           setSelectedId(null);
           setFocusedEntry(null);
         }
 
-        fetchPoliceLocations(newData);
-        fetchIncidents(newData);
+        // Defer auxiliary data fetches to avoid blocking first paint
+        setTimeout(() => {
+          const all = fullRawRef.current?.length ? fullRawRef.current : rawData;
+          fetchPoliceLocations(all);
+          fetchIncidents(all);
+        }, 0);
       } else {
         setTableDataTop([]);
         setFilteredData([]);
@@ -362,7 +425,7 @@ const LiveTracking = () => {
         fetchPoliceLocations();
         fetchIncidents();
       }
-      setLoad(true);
+      // load state now set earlier for faster perceived rendering
     } catch (error) {
       setTableDataTop([]);
       setFilteredData([]);
@@ -487,8 +550,11 @@ const LiveTracking = () => {
   }, [focusedEntry?.imei, focusedEntry?.latitude, focusedEntry?.longitude, focusedEntry?.address, reverseGeocodeCache]);
 
   // Handle button click, update selectedId and filtered data
-  const handleButtonClick = (id) => {
-    const selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === id);
+  const handleButtonClick = async (id) => {
+    let selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === id);
+    if (!selectedRow) {
+      selectedRow = (fullDataRef.current || []).find((row) => `vehicle-${row.imei}` === id);
+    }
 
     if (selectedRow) {
       setSelectedId(id);
@@ -496,6 +562,11 @@ const LiveTracking = () => {
       setFocusedEntry(selectedRow);
       setUseNmrLocation(false);
       setNmrArea(null);
+      if (isBadGnss(selectedRow)) {
+        const updated = await applyNmrLocation(selectedRow);
+        setFilteredData([updated]);
+        setFocusedEntry(updated);
+      }
     } else {
       setSelectedId(null);
       setFilteredData(tableDataTop);
@@ -787,7 +858,7 @@ const LiveTracking = () => {
       setFilteredData(tableDataTop);
       setFocusedEntry(null);
     } else {
-      const filteredRows = tableDataTop.filter(row => getAlartType(row) === data);
+      const filteredRows = tableDataTop.filter(row => (row.__alartType ?? getAlartType(row)) === data);
       setFilteredData(filteredRows);
 
       // If there's exactly one result after filtering, select it automatically
@@ -802,7 +873,7 @@ const LiveTracking = () => {
   };
 
   const checkType = (type, data) => {
-    const alartType = getAlartType(data);
+    const alartType = data?.__alartType ?? getAlartType(data);
     return type === "default" || alartType === type;
   };
 
@@ -1016,7 +1087,13 @@ const LiveTracking = () => {
               </Grid>
             </Grid>
           </form>
-          <TableContainer component={Paper} className="table-container" sx={{ maxHeight: '80vh', overflow: 'hidden' }}>
+          <TableContainer
+            component={Paper}
+            className="table-container"
+            sx={{ maxHeight: '80vh', overflow: 'auto' }}
+            ref={listContainerRef}
+            onScroll={handleListScroll}
+          >
             <Table stickyHeader>
               {iconData && <TableHead>
                 <TableRow>
