@@ -153,7 +153,7 @@ const IncidentReport = () => {
                 <Button
                     variant="text"
                     size="small"
-                    onClick={() => window.open(`https://api.growmed.in/${params.value}`, '_blank')}
+                    onClick={() => window.open(`https://api.gromed.in/${params.value}`, '_blank')}
                     sx={{ textTransform: 'none', p: 0 }}
                 >
                     View
@@ -177,7 +177,7 @@ const IncidentReport = () => {
             row.registered_at,
             row.latitude,
             row.longitude,
-            row.image_file ? `https://api.growmed.in/${row.image_file}` : 'N/A'
+            row.image_file ? `https://api.gromed.in/${row.image_file}` : 'N/A'
         ].join(','));
 
         const csvContent = [headers.join(','), ...csvRows].join('\n');

@@ -180,12 +180,12 @@ const mockDb = {
     {
       id: 'T1',
       routeId: '1',
-      busRegNo: 'AS01 EA3426',
-      driverName: 'Suresh Kumar',
+      busRegNo: 'AS01PT0010',
+      driverName: 'Twinkle Baruah',
       driverMobile: '+91 9876543210',
       status: 'ACTIVE',
-      lat: 28.6400,
-      lon: 77.2300
+      lat: 26.192984,
+      lon: 91.752907
     }
   ],
   tripHistoryByStudentId: {

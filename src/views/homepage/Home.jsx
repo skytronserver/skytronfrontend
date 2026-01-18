@@ -267,10 +267,7 @@ function Home() {
             </Formik>
             <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Link href="/user-registration-request" variant="body2">
-                Don't have a account? Click Here
-              </Link>
-              <Link href="/school-registration" variant="body2">
-                School Registration
+                {t('auth.noAccountCTA')}
               </Link>
               <Link href="/forgot-password" variant="body2">
                 {t('login.forgotPassword')}

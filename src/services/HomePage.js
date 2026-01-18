@@ -8,7 +8,7 @@ const getLiveTracking = (data) => {
     }
   });
 };
-const getLiveTracking_data = (data) => {
+const getLiveTracking_data = (data, config = {}) => {
   const http = getAxiosInstance();
   return http.get("/api/gps_track_data_api", {
     params: {
@@ -27,7 +27,8 @@ const getLiveTracking_data = (data) => {
       poi_id: data.poi_id,
       in_range: data.in_range,
       poi_as_polygon: data.poi_as_polygon,
-    }
+    },
+    ...config,
   });
 };
 
@@ -164,7 +165,7 @@ const getEmergencyDataLogs = (search = '') => {
   });
 };
 
-const getApiDataLog = (params = {}) => {
+const getApiDataLog = (params = {}, config = {}) => {
   const http = getAxiosInstance();
 
   // Build query string to match the exact format
@@ -180,7 +181,7 @@ const getApiDataLog = (params = {}) => {
 
   // Make POST request with the exact URL format
   console.log(`Sending request to: /api/apiLog/${queryString}`);
-  return http.post(`/api/apiLog/${queryString}`, {});
+  return http.post(`/api/apiLog/${queryString}`, {}, { ...config });
 };
 
 const getIncidentData = (data) => {
