@@ -888,6 +888,8 @@ const MapComponent = ({
   const overlayElement = useRef();
   const lastClickedVehicleRef = useRef(null);
   const trackingDetailCacheRef = useRef({});
+  const trackingDetailInFlightRef = useRef({});
+  const trackingDetailLastFetchAtRef = useRef({});
   const [map, setMap] = useState(null);
   const [vectorLayer, setVectorLayer] = useState(null);
   const [dynamicOverlay, setDynamicOverlay] = useState(null);
@@ -1000,32 +1002,45 @@ const MapComponent = ({
     const cached = trackingDetailCacheRef.current[cacheKey];
     if (cached) return cached;
 
-    try {
-      const resp = await HomePageService.getLiveTracking_data({
-        imei: imei || "",
-        regno,
-        owner: "",
-        poi: "",
-        roads: "",
-        polygon: "",
-        category: "",
-        make: "",
-        dto_code: "",
-        poi_id: "",
-        in_range: false,
-        poi_as_polygon: false,
+    const inFlight = trackingDetailInFlightRef.current[cacheKey];
+    if (inFlight) return inFlight;
+
+    const now = Date.now();
+    const lastFetchAt = trackingDetailLastFetchAtRef.current[cacheKey];
+    if (lastFetchAt && now - lastFetchAt < 15000) {
+      return null;
+    }
+    trackingDetailLastFetchAtRef.current[cacheKey] = now;
+
+    const reqPromise = HomePageService.getLiveTracking_data({
+      imei: imei || "",
+      regno,
+      owner: "",
+      poi: "",
+      roads: "",
+      polygon: "",
+      category: "",
+      make: "",
+      dto_code: "",
+      poi_id: "",
+      in_range: false,
+      poi_as_polygon: false,
+    })
+      .then((resp) => {
+        const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
+        if (detail) {
+          trackingDetailCacheRef.current[cacheKey] = detail;
+          return detail;
+        }
+        return null;
+      })
+      .catch(() => null)
+      .finally(() => {
+        delete trackingDetailInFlightRef.current[cacheKey];
       });
 
-      const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
-      if (detail) {
-        trackingDetailCacheRef.current[cacheKey] = detail;
-        return detail;
-      }
-    } catch (e) {
-      // best-effort only
-    }
-
-    return null;
+    trackingDetailInFlightRef.current[cacheKey] = reqPromise;
+    return reqPromise;
   };
 
   // Geocoding State
@@ -3483,111 +3498,90 @@ const MapComponent = ({
 
           } else {
             const entryDataRaw = item.data;
-            const trackingDetail = await fetchVehicleTrackingDetail(entryDataRaw);
-            const entryData = trackingDetail || entryDataRaw;
-            const isStale = isEntryStale15Min(entryData);
-            const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-            const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
-            const isOfflineResolved = deviceStatusLabel === "Offline";
-            const packetTypeCode = (isStale || isOfflineResolved)
-              ? "Offline"
-              : (resolveAlertCode(entryData) || "NR1");
-            const alertLabel = (isStale || isOfflineResolved)
-              ? "Offline"
-              : resolveAlertLabel(entryData);
-            // Extract just the name part (without the code in parentheses if present)
-            const pillText = (isStale || isOfflineResolved)
-              ? "Offline"
-              : alertLabel.split(' (')[0];
-            const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
-            const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
-              ? "overlay-pill--offline"
-              : (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
-                ? "overlay-pill--normal"
-                : "overlay-pill--alert";
+            const renderVehicleOverlay = (entryData) => {
+              const isStale = isEntryStale15Min(entryData);
+              const speedValue = entryData.speed > 2 ? entryData.speed : 0;
+              const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
+              const isOfflineResolved = deviceStatusLabel === "Offline";
+              const packetTypeCode = (isStale || isOfflineResolved)
+                ? "Offline"
+                : (resolveAlertCode(entryData) || "NR1");
+              const alertLabel = (isStale || isOfflineResolved)
+                ? "Offline"
+                : resolveAlertLabel(entryData);
+              const pillText = (isStale || isOfflineResolved)
+                ? "Offline"
+                : alertLabel.split(' (')[0];
+              const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
+              const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
+                ? "overlay-pill--offline"
+                : (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
+                  ? "overlay-pill--normal"
+                  : "overlay-pill--alert";
 
-            if (typeof onVehicleClick === "function") {
-              onVehicleClick(entryData);
-            }
+              if (typeof onVehicleClick === "function") {
+                onVehicleClick(entryData);
+              }
 
-            lastClickedVehicleRef.current = {
-              imei: entryData?.imei,
-              coordinates,
-            };
+              lastClickedVehicleRef.current = {
+                imei: entryData?.imei,
+                coordinates,
+              };
 
-            const addressValue = entryData?.address ? entryData.address : "-";
-            const packetTypeLabel = (isStale || isOfflineResolved)
-              ? "Offline"
-              : resolvePacketTypeLabel(entryData);
-            const nearestPoiLabel = resolveNearestPoiLabel(entryData);
-            const nearestPolice = resolveNearestPoliceDetails(entryData);
-            const nearestPoliceStationValue =
-              entryData?.nearestPoliceStation ||
-              entryData?.nearest_police?.data?.name ||
-              entryData?.nearest_police_station?.data?.name ||
-              entryData?.nearest_police_station?.name ||
-              null;
-            const policeContactValue =
-              entryData?.nearestPoliceContact || entryData?.nearest_police?.data?.phone || null;
+              const addressValue = entryData?.address ? entryData.address : "-";
+              const packetTypeLabel = (isStale || isOfflineResolved)
+                ? "Offline"
+                : resolvePacketTypeLabel(entryData);
+              const nearestPoiLabel = resolveNearestPoiLabel(entryData);
+              const nearestPolice = resolveNearestPoliceDetails(entryData);
+              const policeContactValue =
+                entryData?.nearestPoliceContact || entryData?.nearest_police?.data?.phone || null;
 
-            // Removed unused geographic information extraction
+              const routeId =
+                entryData?.route_id ||
+                entryData?.route_ref?.id ||
+                entryData?.device_tag_info?.route?.id ||
+                entryData?.nearby_routes_within_100m?.[0]?.data?.id ||
+                "-";
 
-            // Extract route information with fallbacks
-            const routeId =
-              entryData?.route_id ||
-              entryData?.route_ref?.id ||
-              entryData?.device_tag_info?.route?.id ||
-              entryData?.nearby_routes_within_100m?.[0]?.data?.id ||
-              "-";
-              
-            const routeData = entryData?.route_ref || entryData?.device_tag_info?.route || {};
-            
-            const routeName = 
-              entryData?.route_name ||
-              entryData?.route ||
-              entryData?.route_info ||
-              entryData?.routeInformation ||
-              routeData?.name ||
-              (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
-              
-            const routeCode = routeData?.code || entryData?.route_code || "-";
-            const routeType = routeData?.type || entryData?.route_type || "-";
-            const startPoint = routeData?.start_point || entryData?.start_point || "-";
-            const endPoint = routeData?.end_point || entryData?.end_point || "-";
-            const stops = routeData?.stops || entryData?.route_stops || [];
-            const distance = routeData?.distance ? `${routeData.distance} km` : "-";
-            const duration = routeData?.duration || entryData?.route_duration || "-";
-            const schedule = routeData?.schedule || entryData?.route_schedule || "-";
-            const operator = routeData?.operator || entryData?.route_operator || "-";
+              const routeData = entryData?.route_ref || entryData?.device_tag_info?.route || {};
 
-            const policeInfoRows = [
-              nearestPolice?.name && nearestPolice.name !== "-"
-                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Station</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-                : "",
-              nearestPolice?.address && nearestPolice.address !== "-"
-                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Address</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
-                : "",
-              nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-                ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-                : "",
-              policeContactValue
-                ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
-                : "",
-            ].filter(Boolean).join("");
+              const routeName =
+                entryData?.route_name ||
+                entryData?.route ||
+                entryData?.route_info ||
+                entryData?.routeInformation ||
+                routeData?.name ||
+                (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
 
-            const policeDetailsRows = [
-              nearestPolice?.name && nearestPolice.name !== "-"
-                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-                : "",
-              nearestPolice?.address && nearestPolice.description !== "-"
-                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.description}</span></div>`
-                : "",
-              nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-                ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-                : "",
-            ].join("");
+              const policeInfoRows = [
+                nearestPolice?.name && nearestPolice.name !== "-"
+                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Station</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
+                  : "",
+                nearestPolice?.address && nearestPolice.address !== "-"
+                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Address</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
+                  : "",
+                nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+                  ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
+                  : "",
+                policeContactValue
+                  ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
+                  : "",
+              ].filter(Boolean).join("");
 
-            document.getElementById("overlay-content").innerHTML = `
+              const policeDetailsRows = [
+                nearestPolice?.name && nearestPolice.name !== "-"
+                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
+                  : "",
+                nearestPolice?.address && nearestPolice.description !== "-"
+                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.description}</span></div>`
+                  : "",
+                nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+                  ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
+                  : "",
+              ].join("");
+
+              document.getElementById("overlay-content").innerHTML = `
                 <div class="overlay-card">
                   <div class="overlay-header">
                     <div class="overlay-header-content">
@@ -3689,9 +3683,23 @@ const MapComponent = ({
                   </div>
                 </div>
               `;
+            };
+
+            renderVehicleOverlay(entryDataRaw);
 
             dynamicOverlay.setPosition(coordinates);
             dynamicOverlay.getElement().style.display = "block";
+
+            fetchVehicleTrackingDetail(entryDataRaw)
+              .then((trackingDetail) => {
+                if (!trackingDetail) return;
+                const lastClick = lastClickedVehicleRef.current;
+                if (!lastClick?.imei || lastClick.imei !== trackingDetail?.imei) return;
+                renderVehicleOverlay(trackingDetail);
+              })
+              .catch(() => {
+                // best-effort only
+              });
 
             const currentZoom = map.getView().getZoom();
             // Only zoom if we're significantly below the target zoom level
