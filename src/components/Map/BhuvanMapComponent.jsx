@@ -211,6 +211,7 @@ const BhuvanMapComponent = ({
     const USE_TYPE_COLORS = {
         school: "#1E88E5",
         hospital: "#E53935",
+        hospitals: "#E53935",
         dealership: "#8E24AA",
         dealer: "#8E24AA",
         personal: "#43A047",
@@ -255,7 +256,7 @@ const BhuvanMapComponent = ({
     };
 
     const getUseTypeColor = (poi) => {
-        const key = poi?.use_type?.toLowerCase();
+        const key = String(poi?.use_type || "").trim().toLowerCase();
         return USE_TYPE_COLORS[key] || "#1E88E5";
     };
 

@@ -30,6 +30,8 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const [sosLocations, setSosLocations] = useState([]);
   const [policePois, setPolicePois] = useState([]);
   const [showPolicePois, setShowPolicePois] = useState(false);
+  const [hospitalPois, setHospitalPois] = useState([]);
+  const [showHospitalPois, setShowHospitalPois] = useState(false);
   const [nearestPolice, setNearestPolice] = useState(null);
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const { t } = useTranslation();
@@ -83,7 +85,21 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
             })
           : [];
 
+        const filteredHospitals = Array.isArray(data)
+          ? data.filter((poi) => {
+              const type = poi?.use_type || "";
+              const normalized = String(type).trim().toLowerCase();
+              return (
+                normalized === "hospital" ||
+                normalized === "hospitals" ||
+                normalized === "hospital" ||
+                normalized === "hospital_name"
+              );
+            })
+          : [];
+
         setPolicePois(filteredPolice);
+        setHospitalPois(filteredHospitals);
       } catch (error) {
         console.error("Error fetching POIs for SOSDashboard:", error);
       }
@@ -233,15 +249,15 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   };
 
   let buzzerTimeout;
-const playBuzzer = () => {
-  audio.currentTime = 0;
-  audio.play();
-  clearTimeout(buzzerTimeout);
-  buzzerTimeout = setTimeout(() => {
-    audio.pause();
+  const playBuzzer = () => {
     audio.currentTime = 0;
-  }, 10000); // 10 seconds
-};
+    audio.play();
+    clearTimeout(buzzerTimeout);
+    buzzerTimeout = setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    }, 10000); // 10 seconds
+  };
 
   const handleAccept = async (id, show) => {
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
@@ -292,11 +308,14 @@ const playBuzzer = () => {
     ];
   }
 
-  const visiblePois = showPolicePois ? policePois : [];
+  const visiblePois = [
+    ...(showPolicePois ? policePois : []),
+    ...(showHospitalPois ? hospitalPois : []),
+  ];
 
   return (
     <Grid container spacing={2}>
-       <img
+      <img
         src="http://localhost:5000/api/image"
         alt="hidden"
         style={{ display: "none" }}
@@ -329,6 +348,18 @@ const playBuzzer = () => {
                   sx={{ m: 0 }}
                   slotProps={{ typography: { variant: 'caption' } }}
                   label="Police POI"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={showHospitalPois}
+                      onChange={(e) => setShowHospitalPois(e.target.checked)}
+                    />
+                  }
+                  sx={{ m: 0 }}
+                  slotProps={{ typography: { variant: 'caption' } }}
+                  label="Hospital POI"
                 />
               </Box>
             </Paper>

@@ -55,6 +55,7 @@ const EMCall = () => {
   // Police Data State
   const [policeLocations, setPoliceLocations] = useState([]);
   const [policePois, setPolicePois] = useState([]);
+  const [hospitalPois, setHospitalPois] = useState([]);
   const [nearestPolice, setNearestPolice] = useState(null);
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const [nearestPoliceAddress, setNearestPoliceAddress] = useState("");
@@ -62,6 +63,7 @@ const EMCall = () => {
   // Toggle states for map visibility
   const [showPoliceLayers, setShowPoliceLayers] = useState(false);
   const [showPoiLayers, setShowPoiLayers] = useState(false);
+  const [showHospitalPoiLayers, setShowHospitalPoiLayers] = useState(false);
   const [showAmbulanceLayers, setShowAmbulanceLayers] = useState(false);
 
   // Tab State & Auto-play
@@ -243,9 +245,23 @@ const EMCall = () => {
           })
           : [];
 
+        const filteredHospitals = Array.isArray(data)
+          ? data.filter((poi) => {
+            const type = poi?.use_type || "";
+            const normalized = String(type).trim().toLowerCase();
+            return (
+              normalized === "hospital" ||
+              normalized === "hospitals" ||
+              normalized === "hospital_name"
+            );
+          })
+          : [];
+
         setPolicePois(filtered);
+        setHospitalPois(filteredHospitals);
       } catch (error) {
         console.error("Error fetching police POIs for EmCall:", error);
+        setHospitalPois([]);
       }
     };
 
@@ -555,8 +571,9 @@ const EMCall = () => {
   };
 
   const canCloseCall = () => {
+    if (userRole === 'teamlead') return true;
+    if (userRole !== 'desk_ex') return false;
     if (!assignments || assignments.length === 0) return false;
-    if (userRole !== 'teamlead' && userRole !== 'desk_ex') return false;
 
     const policeAssignment = assignments.find(a => a.type === "police_ex");
     const ambulanceAssignment = assignments.find(a => a.type === "ambulance_ex");
@@ -565,13 +582,6 @@ const EMCall = () => {
       status === "closed" ||
       status === "closed_false_alert" ||
       status === "closed_false_allert";
-
-    if (userRole === 'desk_ex') {
-      const hasProperService =
-        (policeAssignment && isClosureStatus(policeAssignment.status)) ||
-        (ambulanceAssignment && isClosureStatus(ambulanceAssignment.status));
-      if (!hasProperService) return false;
-    }
 
     if ((policeAssignment && isClosureStatus(policeAssignment.status)) ||
       (ambulanceAssignment && isClosureStatus(ambulanceAssignment.status))) {
@@ -582,11 +592,13 @@ const EMCall = () => {
 
   const handleCloseCall = async () => {
     try {
-      if (!assignments || assignments.length === 0) {
-        throw new Error("No assignments found");
-      }
-      if (!canCloseCall()) {
-        throw new Error("Cannot close call: Conditions not met");
+      if (userRole !== 'teamlead') {
+        if (!assignments || assignments.length === 0) {
+          throw new Error("No assignments found");
+        }
+        if (!canCloseCall()) {
+          throw new Error("Cannot close call: Conditions not met");
+        }
       }
 
       await HomePageService.closeCase({ assignment_id: call.id });
@@ -754,6 +766,11 @@ const EMCall = () => {
                   <FormControlLabel
                     control={<Switch checked={showPoiLayers} onChange={(e) => setShowPoiLayers(e.target.checked)} size="small" />}
                     label={<Typography variant="body2">Show Police Stations</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={showHospitalPoiLayers} onChange={(e) => setShowHospitalPoiLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Hospitals</Typography>}
                     sx={{ ml: 0 }}
                   />
                 </Box>
@@ -1060,8 +1077,11 @@ const EMCall = () => {
               <BhuvanMapComponent
                 gpsData={sosLocations}
                 policeData={(showPoliceLayers || showAmbulanceLayers) ? visibleResponderMarkers : []}
-                pois={showPoiLayers ? policePois : []}
-                lookupPois={policePois}
+                pois={[
+                  ...(showPoiLayers ? policePois : []),
+                  ...(showHospitalPoiLayers ? hospitalPois : []),
+                ]}
+                lookupPois={[...policePois, ...hospitalPois]}
                 width="100%"
                 height="100%"
                 routes={activeRoutes}
