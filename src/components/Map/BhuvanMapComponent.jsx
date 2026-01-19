@@ -111,8 +111,8 @@ const BhuvanMapComponent = ({
         roadSurface: false,
         busStop: false,
         block: false,
-        assamCombined: false,
         skytronAssamCombined: false,
+        assamTowns: false,
     });
 
     const soiLayersRef = useRef({
@@ -139,8 +139,8 @@ const BhuvanMapComponent = ({
         roadSurface: null,
         busStop: null,
         block: null,
-        assamCombined: null,
         skytronAssamCombined: null,
+        assamTowns: null,
     });
 
     // Bhuvan WMS Configuration
@@ -1542,29 +1542,6 @@ const BhuvanMapComponent = ({
 
             attachTileSourceDebug(soiBlockLayer.getSource?.(), "soi:block");
 
-            const soiAssamCombinedLayer = new TileLayer({
-                title: "Assam Combined (assam)",
-                source: new TileWMS({
-                    url: geoserverURL.replace('skytron', 'assam'),
-                    params: {
-                        LAYERS: "assam:assam_combined",
-                        TILED: true,
-                        VERSION: "1.1.1",
-                        FORMAT: "image/png",
-                        TRANSPARENT: "true",
-                        SRS: "EPSG:4326",
-                    },
-                    serverType: "geoserver",
-                    crossOrigin: "anonymous",
-                    transition: 0,
-                }),
-                opacity: 0.9,
-                visible: soiLayerVisibility.assamCombined,
-                zIndex: 29,
-            });
-
-            attachTileSourceDebug(soiAssamCombinedLayer.getSource?.(), "soi:assamCombined");
-
             const soiSkytronAssamCombinedLayer = new TileLayer({
                 title: "Assam Combined (skytron)",
                 source: new TileWMS({
@@ -1587,6 +1564,27 @@ const BhuvanMapComponent = ({
             });
 
             attachTileSourceDebug(soiSkytronAssamCombinedLayer.getSource?.(), "soi:skytronAssamCombined");
+
+            const soiAssamTownsLayer = new TileLayer({
+                title: "Assam Towns (skytron)",
+                source: new TileWMS({
+                    url: geoserverURL,
+                    params: {
+                        LAYERS: "skytron:AssamTowns",
+                        TILED: true,
+                        VERSION: "1.1.1",
+                        FORMAT: "image/png",
+                        TRANSPARENT: "true",
+                        SRS: "EPSG:4326",
+                    },
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                    transition: 0,
+                }),
+                opacity: 0.9,
+                visible: soiLayerVisibility.assamTowns,
+                zIndex: 31,
+            });
 
             const soiMap = new Map({
                 target: soiMapContainerRef.current,
@@ -1617,8 +1615,8 @@ const BhuvanMapComponent = ({
                     soiRoadSurfaceLayer,
                     soiBusStopLayer,
                     soiBlockLayer,
-                    soiAssamCombinedLayer,
                     soiSkytronAssamCombinedLayer,
+                    soiAssamTownsLayer,
                 ],
                 view: new View({
                     projection: "EPSG:4326",
@@ -1708,8 +1706,8 @@ const BhuvanMapComponent = ({
                 roadSurface: soiRoadSurfaceLayer,
                 busStop: soiBusStopLayer,
                 block: soiBlockLayer,
-                assamCombined: soiAssamCombinedLayer,
                 skytronAssamCombined: soiSkytronAssamCombinedLayer,
+                assamTowns: soiAssamTownsLayer,
             };
 
 
@@ -1810,8 +1808,8 @@ const BhuvanMapComponent = ({
         layers.roadSurface?.setVisible?.(!!soiLayerVisibility.roadSurface);
         layers.busStop?.setVisible?.(!!soiLayerVisibility.busStop);
         layers.block?.setVisible?.(!!soiLayerVisibility.block);
-        layers.assamCombined?.setVisible?.(!!soiLayerVisibility.assamCombined && showAssamCombined);
         layers.skytronAssamCombined?.setVisible?.(!!soiLayerVisibility.skytronAssamCombined && showAssamCombined);
+        layers.assamTowns?.setVisible?.(!!soiLayerVisibility.assamTowns);
     }, [mapType, soiLayerVisibility]);
 
     useEffect(() => {
@@ -1822,9 +1820,6 @@ const BhuvanMapComponent = ({
             const zoomLevel = soiMap.getView().getZoom();
             const showAssamCombined = zoomLevel >= 5;
             const layers = soiLayersRef.current;
-            if (layers.assamCombined) {
-                layers.assamCombined.setVisible(!!soiLayerVisibility.assamCombined && showAssamCombined);
-            }
             if (layers.skytronAssamCombined) {
                 layers.skytronAssamCombined.setVisible(!!soiLayerVisibility.skytronAssamCombined && showAssamCombined);
             }
@@ -2324,8 +2319,8 @@ const BhuvanMapComponent = ({
                                         { key: "roadSurface", label: "Road Surface" },
                                         { key: "busStop", label: "Bus Stop" },
                                         { key: "block", label: "Block" },
-                                        { key: "assamCombined", label: "Assam Combined (assam)" },
                                         { key: "skytronAssamCombined", label: "Assam Combined (skytron)" },
+                                        { key: "assamTowns", label: "Assam Towns (skytron)" },
                                     ]
                                 ).map((item) => (
                                     <Box key={item.key} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
