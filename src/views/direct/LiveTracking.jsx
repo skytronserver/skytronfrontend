@@ -1094,7 +1094,7 @@ const LiveTracking = () => {
             ref={listContainerRef}
             onScroll={handleListScroll}
           >
-            <Table stickyHeader>
+            <Table>
               {iconData && <TableHead>
                 <TableRow>
                   {iconData.slice(0, 3).map((item, index) => (
@@ -1175,7 +1175,7 @@ const LiveTracking = () => {
         </div>
 
         {/* HTML Content (iframe) */}
-        <div style={{ width: "80%", height: "100%" }}>
+        <div className="live-tracking-map-panel" style={{ width: "80%" }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <FormControl size="small" sx={{ minWidth: 220 }}>
               <InputLabel id="marker-label-mode-label">Marker Label</InputLabel>

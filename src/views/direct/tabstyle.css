@@ -31,13 +31,17 @@
 .container {
   display: flex;
   padding-top: 20px;
+  align-items: flex-start;
+  flex-wrap: nowrap;
 }
 
 /* First div */
 .first-div {
   width: 30%;
   margin-right: 20px;
-  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid #ccc;
   padding: 10px;
 }
@@ -84,6 +88,9 @@
 .table-container {
   margin-top: 16px;
   border-radius: 12px 12px 0px 0px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* Tracking icon table cell */
