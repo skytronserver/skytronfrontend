@@ -8,6 +8,13 @@ echo "Pulling the latest changes from the nic_prod branch..."
 git fetch origin nic_prod
 git reset --hard origin/nic_prod
 
+
+echo "Pulling the latest changes from the nic_prod branch..."
+if ! git pull origin nic_prod; then
+    echo "❌ Failed to pull latest changes"
+    exit 1
+fi
+
 echo "Rebuilding Docker images..."
 docker-compose build --no-cache
 
