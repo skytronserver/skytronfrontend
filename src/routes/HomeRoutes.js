@@ -7,6 +7,7 @@ import DeviceStats from "../views/public/DeviceStats";
 import RegistrationStatusTracker from "../views/homepage/RegistrationStatusTracker";
 import RegistrationAdminReview from "../views/homepage/RegistrationAdminReview";
 import UserRegistrationForm from "../views/homepage/UserRegistrationForm";
+import Test from "../views/homepage/Test";
 
 const HomeRoutes = {
   path: "/",
@@ -43,6 +44,10 @@ const HomeRoutes = {
     {
       path: "/device-stats",
       element: <DeviceStats />,
+    },
+    {
+      path: "/test",
+      element: <Test />,
     }
   ],
 };

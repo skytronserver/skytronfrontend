@@ -269,6 +269,9 @@ function Home() {
               <Link href="/user-registration-request" variant="body2">
                 {t('auth.noAccountCTA')}
               </Link>
+              <Link href="/test" variant="body2">
+                Test
+              </Link>
               <Link href="/forgot-password" variant="body2">
                 {t('login.forgotPassword')}
               </Link>
