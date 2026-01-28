@@ -5834,7 +5834,7 @@ const MapComponent = ({
           border: 1px solid #e5e7eb;
           background: #f9fafb;
           color: #374151;
-          font-size: 10px;
+          font-size: 12px;
           font-weight: 600;
           padding: 4px 8px;
           border-radius: 999px;
