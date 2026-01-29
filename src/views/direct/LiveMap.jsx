@@ -34,7 +34,8 @@ import {
   Satellite as SatelliteIcon,
   Public as PublicIcon,
   Hd as HdIcon,
-  Terrain as TerrainIcon
+  Terrain as TerrainIcon,
+  FastRewind
 } from "@mui/icons-material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
@@ -94,27 +95,27 @@ const ALERT_CODE_LABELS = {
   NR1: "Normal ",
   NR: "Normal ",  // Handle both NR1 and NR
   NR2: "Normal History",
-  
+
   // Battery Alerts
   BD3: "Battery Disconnected",
   BL4: "Low Battery",
   BH5: "Battery Charged",
   BR6: "Mains Reconnected",
-  
+
   // Ignition Alerts
   IN7: "Ignition On",
   IF8: "Ignition Off",
-  
+
   // Security Alerts
   TA9: "Tamper Alert",
-  
+
   // Emergency Alerts
   EA10: "Emergency Alert (Panic)",
   EA11: "Emergency Alert Cleared",
-  
+
   // System Alerts
   OT12: "Configuration Updated",
-  
+
   // Driving Behavior Alerts
   HB13: "Harsh Braking",
   HA14: "Harsh Acceleration",
@@ -279,13 +280,13 @@ const isEntryStale15Min = (entry) => {
 
 const resolveDeviceStatusLabel = (entry) => {
   if (!entry) return "Offline";
-  
+
   // Check for explicit online/offline status
   const raw =
     entry.device_status ||
     entry.deviceStatus ||
     entry.status;
-    
+
   if (raw === undefined || raw === null) {
     // If no explicit status, determine based on last update time
     const lastUpdate = entry.entry_time || entry.timestamp;
@@ -835,6 +836,23 @@ const resolveBhuvanWmsUrl = () => {
   return `${normalizedUrl}/bhuvan/wms`;
 };
 
+const resolveBhuvanAmrutWmsUrl = () => {
+  const envUrl =
+    process.env.REACT_APP_BHUVAN_AMRUT_WMS_URL ||
+    process.env.REACT_APP_BHUVAN_AMRUT_URL;
+
+  if (!envUrl) {
+    return "https://bhuvan-vec3.nrsc.gov.in/bhuvan/wms";
+  }
+
+  const normalizedUrl = envUrl.replace(/\/$/, "");
+  if (normalizedUrl.includes("/bhuvan/wms")) {
+    return normalizedUrl;
+  }
+
+  return `${normalizedUrl}/bhuvan/wms`;
+};
+
 const resolveBhuvanWmtsUrl = () => {
   const envUrl = process.env.REACT_APP_BHUVAN_WMTS_URL;
   if (!envUrl) {
@@ -906,11 +924,15 @@ const resolveBhuvanFloodAssamUrl = () => {
 };
 
 const BHUVAN_WMS_URL = resolveBhuvanWmsUrl();
+const BHUVAN_AMRUT_WMS_URL = resolveBhuvanAmrutWmsUrl();
 const BHUVAN_WMTS_URL = resolveBhuvanWmtsUrl();
 const BHUVAN_SI_URL = resolveBhuvanSiUrl();
 const BHUVAN_SISDP_URL = resolveBhuvanSisdpUrl();
 const BHUVAN_KAMRUP_METRO_URL = resolveBhuvanKamrupMetroUrl();
 const BHUVAN_FLOOD_ASSAM_URL = resolveBhuvanFloodAssamUrl();
+
+const BHUVAN_FLOOD_ASSAM_LAYER = "as_hz";
+const BHUVAN_FLOOD_ASSAM_EXTENT = [89.701, 24.135, 96.021, 27.977];
 
 const DEFAULT_BHUVAN_LAYER_NAMES = [
   "basemap:admin_group",
@@ -948,9 +970,9 @@ const createBhuvanSource = (layerName) => {
   return new TileWMS(options);
 };
 
-const createBhuvanFloodAssamSource = (layerName) => {
+const createBhuvanAmrutSource = (layerName) => {
   const options = {
-    url: BHUVAN_FLOOD_ASSAM_URL,
+    url: BHUVAN_AMRUT_WMS_URL,
     params: {
       LAYERS: layerName,
       STYLES: "",
@@ -963,6 +985,27 @@ const createBhuvanFloodAssamSource = (layerName) => {
       HEIGHT: 256,
     },
     serverType: "geoserver",
+    projection: "EPSG:4326",
+    transition: 0,
+  };
+
+  return new TileWMS(options);
+};
+
+const createBhuvanFloodAssamSource = (layerName) => {
+  const options = {
+    url: BHUVAN_FLOOD_ASSAM_URL,
+    params: {
+      LAYERS: BHUVAN_FLOOD_ASSAM_LAYER,
+      STYLES: "",
+      TILED: true,
+      VERSION: "1.1.1",
+      FORMAT: "image/png",
+      TRANSPARENT: "true",
+      SRS: "EPSG:4326",
+      WIDTH: 256,
+      HEIGHT: 256,
+    },
     projection: "EPSG:4326",
     transition: 0,
   };
@@ -1177,6 +1220,11 @@ const MapComponent = ({
     bhuvanFloodAssam: false,
     bhuvanManipur: false,
     bhuvanWestBengal: false,
+    bhuvanTripura: false,
+    bhuvanNagaland: false,
+    bhuvanMeghalaya: false,
+    bhuvanMizoram: false,
+    bhuvanArunachal: false,
   });
 
   const soiLayersRef = useRef({
@@ -1216,6 +1264,11 @@ const MapComponent = ({
     bhuvanFloodAssam: null,
     bhuvanManipur: null,
     bhuvanWestBengal: null,
+    bhuvanTripura: null,
+    bhuvanNagaland: null,
+    bhuvanMeghalaya: null,
+    bhuvanMizoram: null,
+    bhuvanArunachal: null,
   });
 
   // Map type state for 3-layer system
@@ -2358,22 +2411,22 @@ const MapComponent = ({
         zIndex: 31,
       });
 
-      const bhuvanSource = createBhuvanSource("amrut_ph1:AS_Nagaon_amrutph1_4k");
+      const bhuvanSource = createBhuvanAmrutSource("amrut_ph1:AS_Nagaon_amrutph1_4k");
 
       // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT using WMS URL:', BHUVAN_WMS_URL);
+      console.log('Bhuvan AMRUT using WMS URL:', BHUVAN_AMRUT_WMS_URL);
       console.log('Bhuvan AMRUT crossOrigin:', BHUVAN_CROSS_ORIGIN);
 
       // Add event listeners for debugging
-      bhuvanSource.on('tileloaderror', function(event) {
+      bhuvanSource.on('tileloaderror', function (event) {
         console.error('Bhuvan AMRUT WMS tile load error:', event);
       });
-      
-      bhuvanSource.on('tileloadstart', function(event) {
+
+      bhuvanSource.on('tileloadstart', function (event) {
         console.log('Bhuvan AMRUT WMS tile load start:', event);
       });
-      
-      bhuvanSource.on('tileloadend', function(event) {
+
+      bhuvanSource.on('tileloadend', function (event) {
         console.log('Bhuvan AMRUT WMS tile load end:', event);
       });
 
@@ -2384,27 +2437,27 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanAmrut,
         zIndex: 32,
       });
-      
+
       console.log('Bhuvan AMRUT WMS layer created:', soiBhuvanAmrutLayer);
       console.log('Bhuvan AMRUT WMS layer source URL:', soiBhuvanAmrutLayer.getSource().getUrls());
       console.log('Bhuvan AMRUT WMS layer params:', soiBhuvanAmrutLayer.getSource().getParams());
 
-      const bhuvanSilcharSource = createBhuvanSource("amrut_ph1:AS_Silchar_amrutph1_4k");
+      const bhuvanSilcharSource = createBhuvanAmrutSource("amrut_ph1:AS_Silchar_amrutph1_4k");
 
       // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT Silchar using WMS URL:', BHUVAN_WMS_URL);
+      console.log('Bhuvan AMRUT Silchar using WMS URL:', BHUVAN_AMRUT_WMS_URL);
       console.log('Bhuvan AMRUT Silchar crossOrigin:', BHUVAN_CROSS_ORIGIN);
 
       // Add event listeners for debugging
-      bhuvanSilcharSource.on('tileloaderror', function(event) {
+      bhuvanSilcharSource.on('tileloaderror', function (event) {
         console.error('Bhuvan AMRUT Silchar WMS tile load error:', event);
       });
-      
-      bhuvanSilcharSource.on('tileloadstart', function(event) {
+
+      bhuvanSilcharSource.on('tileloadstart', function (event) {
         console.log('Bhuvan AMRUT Silchar WMS tile load start:', event);
       });
-      
-      bhuvanSilcharSource.on('tileloadend', function(event) {
+
+      bhuvanSilcharSource.on('tileloadend', function (event) {
         console.log('Bhuvan AMRUT Silchar WMS tile load end:', event);
       });
 
@@ -2415,27 +2468,27 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanAmrutSilchar,
         zIndex: 32,
       });
-      
+
       console.log('Bhuvan AMRUT Silchar WMS layer created:', soiBhuvanAmrutSilcharLayer);
       console.log('Bhuvan AMRUT Silchar WMS layer source URL:', soiBhuvanAmrutSilcharLayer.getSource().getUrls());
       console.log('Bhuvan AMRUT Silchar WMS layer params:', soiBhuvanAmrutSilcharLayer.getSource().getParams());
 
-      const bhuvanDibrugarhSource = createBhuvanSource("amrut_ph1:AS_Dibrugarh_amrutph1_4k");
+      const bhuvanDibrugarhSource = createBhuvanAmrutSource("amrut_ph1:AS_Dibrugarh_amrutph1_4k");
 
       // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT Dibrugarh using WMS URL:', BHUVAN_WMS_URL);
+      console.log('Bhuvan AMRUT Dibrugarh using WMS URL:', BHUVAN_AMRUT_WMS_URL);
       console.log('Bhuvan AMRUT Dibrugarh crossOrigin:', BHUVAN_CROSS_ORIGIN);
 
       // Add event listeners for debugging
-      bhuvanDibrugarhSource.on('tileloaderror', function(event) {
+      bhuvanDibrugarhSource.on('tileloaderror', function (event) {
         console.error('Bhuvan AMRUT Dibrugarh WMS tile load error:', event);
       });
-      
-      bhuvanDibrugarhSource.on('tileloadstart', function(event) {
+
+      bhuvanDibrugarhSource.on('tileloadstart', function (event) {
         console.log('Bhuvan AMRUT Dibrugarh WMS tile load start:', event);
       });
-      
-      bhuvanDibrugarhSource.on('tileloadend', function(event) {
+
+      bhuvanDibrugarhSource.on('tileloadend', function (event) {
         console.log('Bhuvan AMRUT Dibrugarh WMS tile load end:', event);
       });
 
@@ -2446,27 +2499,27 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanAmrutDibrugarh,
         zIndex: 32,
       });
-      
+
       console.log('Bhuvan AMRUT Dibrugarh WMS layer created:', soiBhuvanAmrutDibrugarhLayer);
       console.log('Bhuvan AMRUT Dibrugarh WMS layer source URL:', soiBhuvanAmrutDibrugarhLayer.getSource().getUrls());
       console.log('Bhuvan AMRUT Dibrugarh WMS layer params:', soiBhuvanAmrutDibrugarhLayer.getSource().getParams());
 
-      const bhuvanGuwahatiSource = createBhuvanSource("amrut_ph1:AS_Guwahati_amrutph1_4k");
+      const bhuvanGuwahatiSource = createBhuvanAmrutSource("amrut_ph1:AS_Guwahati_amrutph1_4k");
 
       // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT Guwahati using WMS URL:', BHUVAN_WMS_URL);
+      console.log('Bhuvan AMRUT Guwahati using WMS URL:', BHUVAN_AMRUT_WMS_URL);
       console.log('Bhuvan AMRUT Guwahati crossOrigin:', BHUVAN_CROSS_ORIGIN);
 
       // Add event listeners for debugging
-      bhuvanGuwahatiSource.on('tileloaderror', function(event) {
+      bhuvanGuwahatiSource.on('tileloaderror', function (event) {
         console.error('Bhuvan AMRUT Guwahati WMS tile load error:', event);
       });
-      
-      bhuvanGuwahatiSource.on('tileloadstart', function(event) {
+
+      bhuvanGuwahatiSource.on('tileloadstart', function (event) {
         console.log('Bhuvan AMRUT Guwahati WMS tile load start:', event);
       });
-      
-      bhuvanGuwahatiSource.on('tileloadend', function(event) {
+
+      bhuvanGuwahatiSource.on('tileloadend', function (event) {
         console.log('Bhuvan AMRUT Guwahati WMS tile load end:', event);
       });
 
@@ -2477,7 +2530,7 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanAmrutGuwahati,
         zIndex: 32,
       });
-      
+
       console.log('Bhuvan AMRUT Guwahati WMS layer created:', soiBhuvanAmrutGuwahatiLayer);
       console.log('Bhuvan AMRUT Guwahati WMS layer source URL:', soiBhuvanAmrutGuwahatiLayer.getSource().getUrls());
       console.log('Bhuvan AMRUT Guwahati WMS layer params:', soiBhuvanAmrutGuwahatiLayer.getSource().getParams());
@@ -2489,15 +2542,15 @@ const MapComponent = ({
       console.log('Bhuvan SI using URL:', BHUVAN_SI_URL);
 
       // Add event listeners for debugging
-      bhuvanSiSource.on('tileloaderror', function(event) {
+      bhuvanSiSource.on('tileloaderror', function (event) {
         console.error('Bhuvan SI tile load error:', event);
       });
-      
-      bhuvanSiSource.on('tileloadstart', function(event) {
+
+      bhuvanSiSource.on('tileloadstart', function (event) {
         console.log('Bhuvan SI tile load start:', event);
       });
-      
-      bhuvanSiSource.on('tileloadend', function(event) {
+
+      bhuvanSiSource.on('tileloadend', function (event) {
         console.log('Bhuvan SI tile load end:', event);
       });
 
@@ -2508,7 +2561,7 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanSi,
         zIndex: 33,
       });
-      
+
       console.log('Bhuvan SI layer created:', soiBhuvanSiLayer);
       console.log('Bhuvan SI layer source URL:', soiBhuvanSiLayer.getSource().getUrls());
       console.log('Bhuvan SI layer params:', soiBhuvanSiLayer.getSource().getParams());
@@ -2520,15 +2573,15 @@ const MapComponent = ({
       console.log('Bhuvan SISDP using URL:', BHUVAN_SISDP_URL);
 
       // Add event listeners for debugging
-      bhuvanSisdpSource.on('tileloaderror', function(event) {
+      bhuvanSisdpSource.on('tileloaderror', function (event) {
         console.error('Bhuvan SISDP tile load error:', event);
       });
-      
-      bhuvanSisdpSource.on('tileloadstart', function(event) {
+
+      bhuvanSisdpSource.on('tileloadstart', function (event) {
         console.log('Bhuvan SISDP tile load start:', event);
       });
-      
-      bhuvanSisdpSource.on('tileloadend', function(event) {
+
+      bhuvanSisdpSource.on('tileloadend', function (event) {
         console.log('Bhuvan SISDP tile load end:', event);
       });
 
@@ -2539,7 +2592,7 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanSisdp,
         zIndex: 34,
       });
-      
+
       console.log('Bhuvan SISDP layer created:', soiBhuvanSisdpLayer);
       console.log('Bhuvan SISDP layer source URL:', soiBhuvanSisdpLayer.getSource().getUrls());
       console.log('Bhuvan SISDP layer params:', soiBhuvanSisdpLayer.getSource().getParams());
@@ -2551,15 +2604,15 @@ const MapComponent = ({
       console.log('Bhuvan Assam using URL:', BHUVAN_SISDP_URL);
 
       // Add event listeners for debugging
-      bhuvanAssamSource.on('tileloaderror', function(event) {
+      bhuvanAssamSource.on('tileloaderror', function (event) {
         console.error('Bhuvan Assam tile load error:', event);
       });
-      
-      bhuvanAssamSource.on('tileloadstart', function(event) {
+
+      bhuvanAssamSource.on('tileloadstart', function (event) {
         console.log('Bhuvan Assam tile load start:', event);
       });
-      
-      bhuvanAssamSource.on('tileloadend', function(event) {
+
+      bhuvanAssamSource.on('tileloadend', function (event) {
         console.log('Bhuvan Assam tile load end:', event);
       });
 
@@ -2570,7 +2623,7 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanAssam,
         zIndex: 35,
       });
-      
+
       console.log('Bhuvan Assam layer created:', soiBhuvanAssamLayer);
       console.log('Bhuvan Assam layer source URL:', soiBhuvanAssamLayer.getSource().getUrls());
       console.log('Bhuvan Assam layer params:', soiBhuvanAssamLayer.getSource().getParams());
@@ -2582,15 +2635,15 @@ const MapComponent = ({
       console.log('Bhuvan Manipur using URL:', BHUVAN_SISDP_URL);
 
       // Add event listeners for debugging
-      bhuvanManipurSource.on('tileloaderror', function(event) {
+      bhuvanManipurSource.on('tileloaderror', function (event) {
         console.error('Bhuvan Manipur tile load error:', event);
       });
-      
-      bhuvanManipurSource.on('tileloadstart', function(event) {
+
+      bhuvanManipurSource.on('tileloadstart', function (event) {
         console.log('Bhuvan Manipur tile load start:', event);
       });
-      
-      bhuvanManipurSource.on('tileloadend', function(event) {
+
+      bhuvanManipurSource.on('tileloadend', function (event) {
         console.log('Bhuvan Manipur tile load end:', event);
       });
 
@@ -2601,7 +2654,7 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanManipur,
         zIndex: 38,
       });
-      
+
       console.log('Bhuvan Manipur layer created:', soiBhuvanManipurLayer);
       console.log('Bhuvan Manipur layer source URL:', soiBhuvanManipurLayer.getSource().getUrls());
       console.log('Bhuvan Manipur layer params:', soiBhuvanManipurLayer.getSource().getParams());
@@ -2613,15 +2666,15 @@ const MapComponent = ({
       console.log('Bhuvan West Bengal using URL:', BHUVAN_SISDP_URL);
 
       // Add event listeners for debugging
-      bhuvanWestBengalSource.on('tileloaderror', function(event) {
+      bhuvanWestBengalSource.on('tileloaderror', function (event) {
         console.error('Bhuvan West Bengal tile load error:', event);
       });
-      
-      bhuvanWestBengalSource.on('tileloadstart', function(event) {
+
+      bhuvanWestBengalSource.on('tileloadstart', function (event) {
         console.log('Bhuvan West Bengal tile load start:', event);
       });
-      
-      bhuvanWestBengalSource.on('tileloadend', function(event) {
+
+      bhuvanWestBengalSource.on('tileloadend', function (event) {
         console.log('Bhuvan West Bengal tile load end:', event);
       });
 
@@ -2632,10 +2685,177 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanWestBengal,
         zIndex: 39,
       });
-      
+
       console.log('Bhuvan West Bengal layer created:', soiBhuvanWestBengalLayer);
       console.log('Bhuvan West Bengal layer source URL:', soiBhuvanWestBengalLayer.getSource().getUrls());
       console.log('Bhuvan West Bengal layer params:', soiBhuvanWestBengalLayer.getSource().getParams());
+
+      // Create Bhuvan Tripura layer
+      const bhuvanTripuraSource = createBhuvanSisdpSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_TR");
+
+      // Debug: Log the URL being used
+      console.log('Bhuvan Tripura using URL:', BHUVAN_SISDP_URL);
+
+      // Add event listeners for debugging
+      bhuvanTripuraSource.on('tileloaderror', function (event) {
+        console.error('Bhuvan Tripura tile load error:', event);
+      });
+
+      bhuvanTripuraSource.on('tileloadstart', function (event) {
+        console.log('Bhuvan Tripura tile load start:', event);
+      });
+
+      bhuvanTripuraSource.on('tileloadend', function (event) {
+        console.log('Bhuvan Tripura tile load end:', event);
+      });
+
+      const soiBhuvanTripuraLayer = new TileLayer({
+        title: "Bhuvan Tripura",
+        source: bhuvanTripuraSource,
+        opacity: 0.8,
+        visible: soiLayerVisibility.bhuvanTripura,
+        zIndex: 40,
+      });
+
+      console.log('Bhuvan Tripura layer created:', soiBhuvanTripuraLayer);
+      console.log('Bhuvan Tripura layer source URL:', soiBhuvanTripuraLayer.getSource().getUrls());
+      console.log('Bhuvan Tripura layer params:', soiBhuvanTripuraLayer.getSource().getParams());
+
+      // Create Bhuvan Nagaland layer
+      const bhuvanNagalandSource = createBhuvanSisdpSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_NL");
+
+      // Debug: Log the URL being used
+      console.log('Bhuvan Nagaland using URL:', BHUVAN_SISDP_URL);
+
+      // Add event listeners for debugging
+      bhuvanNagalandSource.on('tileloaderror', function (event) {
+        console.error('Bhuvan Nagaland tile load error:', event);
+      });
+
+      bhuvanNagalandSource.on('tileloadstart', function (event) {
+        console.log('Bhuvan Nagaland tile load start:', event);
+      });
+
+      bhuvanNagalandSource.on('tileloadend', function (event) {
+        console.log('Bhuvan Nagaland tile load end:', event);
+      });
+
+      const soiBhuvanNagalandLayer = new TileLayer({
+        title: "Bhuvan Nagaland",
+        source: bhuvanNagalandSource,
+        opacity: 0.8,
+        visible: soiLayerVisibility.bhuvanNagaland,
+        zIndex: 41,
+      });
+
+      console.log('Bhuvan Nagaland layer created:', soiBhuvanNagalandLayer);
+      console.log('Bhuvan Nagaland layer source URL:', soiBhuvanNagalandLayer.getSource().getUrls());
+      console.log('Bhuvan Nagaland layer params:', soiBhuvanNagalandLayer.getSource().getParams());
+
+      // Create Bhuvan Meghalaya layer
+      const bhuvanMeghalayaSource = createBhuvanSisdpSource(
+        "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_ML"
+      );
+
+      // Debug: Log the URL being used
+      console.log("Bhuvan Meghalaya using URL:", BHUVAN_SISDP_URL);
+
+      // Add event listeners for debugging
+      bhuvanMeghalayaSource.on("tileloaderror", function (event) {
+        console.error("Bhuvan Meghalaya tile load error:", event);
+      });
+
+      bhuvanMeghalayaSource.on("tileloadstart", function (event) {
+        console.log("Bhuvan Meghalaya tile load start:", event);
+      });
+
+      bhuvanMeghalayaSource.on("tileloadend", function (event) {
+        console.log("Bhuvan Meghalaya tile load end:", event);
+      });
+
+      const soiBhuvanMeghalayaLayer = new TileLayer({
+        title: "Bhuvan Meghalaya",
+        source: bhuvanMeghalayaSource,
+        opacity: 0.8,
+        visible: soiLayerVisibility.bhuvanMeghalaya,
+        zIndex: 42,
+      });
+
+      console.log("Bhuvan Meghalaya layer created:", soiBhuvanMeghalayaLayer);
+      console.log("Bhuvan Meghalaya layer source URL:", soiBhuvanMeghalayaLayer.getSource().getUrls());
+      console.log("Bhuvan Meghalaya layer params:", soiBhuvanMeghalayaLayer.getSource().getParams());
+
+      // Create Bhuvan Mizoram layer
+      const bhuvanMizoramSource = createBhuvanSisdpSource(
+        "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_MZ"
+      );
+
+      // Debug: Log the URL being used
+      console.log("Bhuvan Mizoram using URL:", BHUVAN_SISDP_URL);
+
+      // Add event listeners for debugging
+      bhuvanMizoramSource.on("tileloaderror", function (event) {
+        console.error("Bhuvan Mizoram tile load error:", event);
+      });
+
+      bhuvanMizoramSource.on("tileloadstart", function (event) {
+        console.log("Bhuvan Mizoram tile load start:", event);
+      });
+
+      bhuvanMizoramSource.on("tileloadend", function (event) {
+        console.log("Bhuvan Mizoram tile load end:", event);
+      });
+
+      const soiBhuvanMizoramLayer = new TileLayer({
+        title: "Bhuvan Mizoram",
+        source: bhuvanMizoramSource,
+        opacity: 0.8,
+        visible: soiLayerVisibility.bhuvanMizoram,
+        zIndex: 43,
+      });
+
+      console.log("Bhuvan Mizoram layer created:", soiBhuvanMizoramLayer);
+      console.log("Bhuvan Mizoram layer source URL:", soiBhuvanMizoramLayer.getSource().getUrls());
+      console.log("Bhuvan Mizoram layer params:", soiBhuvanMizoramLayer.getSource().getParams());
+
+      // Create Bhuvan Arunachal layer
+      const bhuvanArunachalSource = createBhuvanSisdpSource(
+        "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_AR"
+      );
+
+      // Debug: Log the URL being used
+      console.log("Bhuvan Arunachal using URL:", BHUVAN_SISDP_URL);
+
+      // Add event listeners for debugging
+      bhuvanArunachalSource.on("tileloaderror", function (event) {
+        console.error("Bhuvan Arunachal tile load error:", event);
+      });
+
+      bhuvanArunachalSource.on("tileloadstart", function (event) {
+        console.log("Bhuvan Arunachal tile load start:", event);
+      });
+
+      bhuvanArunachalSource.on("tileloadend", function (event) {
+        console.log("Bhuvan Arunachal tile load end:", event);
+      });
+
+      const soiBhuvanArunachalLayer = new TileLayer({
+        title: "Bhuvan Arunachal",
+        source: bhuvanArunachalSource,
+        opacity: 0.8,
+        visible: soiLayerVisibility.bhuvanArunachal,
+        zIndex: 44,
+      });
+
+      console.log("Bhuvan Arunachal layer created:", soiBhuvanArunachalLayer);
+      console.log(
+        "Bhuvan Arunachal layer source URL:",
+        soiBhuvanArunachalLayer.getSource().getUrls()
+      );
+      console.log(
+        "Bhuvan Arunachal layer params:",
+        soiBhuvanArunachalLayer.getSource().getParams()
+      );
 
       // Create Bhuvan Kamrup Metro layer
       const bhuvanKamrupMetroSource = createBhuvanKamrupMetroSource("AS_Kamrup_Metro_lulc_v2");
@@ -2644,15 +2864,15 @@ const MapComponent = ({
       console.log('Bhuvan Kamrup Metro using URL:', BHUVAN_KAMRUP_METRO_URL);
 
       // Add event listeners for debugging
-      bhuvanKamrupMetroSource.on('tileloaderror', function(event) {
+      bhuvanKamrupMetroSource.on('tileloaderror', function (event) {
         console.error('Bhuvan Kamrup Metro tile load error:', event);
       });
-      
-      bhuvanKamrupMetroSource.on('tileloadstart', function(event) {
+
+      bhuvanKamrupMetroSource.on('tileloadstart', function (event) {
         console.log('Bhuvan Kamrup Metro tile load start:', event);
       });
-      
-      bhuvanKamrupMetroSource.on('tileloadend', function(event) {
+
+      bhuvanKamrupMetroSource.on('tileloadend', function (event) {
         console.log('Bhuvan Kamrup Metro tile load end:', event);
       });
 
@@ -2663,27 +2883,27 @@ const MapComponent = ({
         visible: soiLayerVisibility.bhuvanKamrupMetro,
         zIndex: 36,
       });
-      
+
       console.log('Bhuvan Kamrup Metro layer created:', soiBhuvanKamrupMetroLayer);
       console.log('Bhuvan Kamrup Metro layer source URL:', soiBhuvanKamrupMetroLayer.getSource().getUrls());
       console.log('Bhuvan Kamrup Metro layer params:', soiBhuvanKamrupMetroLayer.getSource().getParams());
 
       // Create Bhuvan Flood Assam layer
-      const bhuvanFloodAssamSource = createBhuvanFloodAssamSource("as_hz");
+      const bhuvanFloodAssamSource = createBhuvanFloodAssamSource();
 
       // Debug: Log the URL being used
       console.log('Bhuvan Flood Assam using URL:', BHUVAN_FLOOD_ASSAM_URL);
 
       // Add event listeners for debugging
-      bhuvanFloodAssamSource.on('tileloaderror', function(event) {
+      bhuvanFloodAssamSource.on('tileloaderror', function (event) {
         console.error('Bhuvan Flood Assam tile load error:', event);
       });
-      
-      bhuvanFloodAssamSource.on('tileloadstart', function(event) {
+
+      bhuvanFloodAssamSource.on('tileloadstart', function (event) {
         console.log('Bhuvan Flood Assam tile load start:', event);
       });
-      
-      bhuvanFloodAssamSource.on('tileloadend', function(event) {
+
+      bhuvanFloodAssamSource.on('tileloadend', function (event) {
         console.log('Bhuvan Flood Assam tile load end:', event);
       });
 
@@ -2691,10 +2911,11 @@ const MapComponent = ({
         title: "Bhuvan Flood Assam",
         source: bhuvanFloodAssamSource,
         opacity: 0.8,
+        extent: BHUVAN_FLOOD_ASSAM_EXTENT,
         visible: soiLayerVisibility.bhuvanFloodAssam,
         zIndex: 37,
       });
-      
+
       console.log('Bhuvan Flood Assam layer created:', soiBhuvanFloodAssamLayer);
       console.log('Bhuvan Flood Assam layer source URL:', soiBhuvanFloodAssamLayer.getSource().getUrls());
       console.log('Bhuvan Flood Assam layer params:', soiBhuvanFloodAssamLayer.getSource().getParams());
@@ -2734,6 +2955,11 @@ const MapComponent = ({
         bhuvanAssam: soiBhuvanAssamLayer,
         bhuvanManipur: soiBhuvanManipurLayer,
         bhuvanWestBengal: soiBhuvanWestBengalLayer,
+        bhuvanTripura: soiBhuvanTripuraLayer,
+        bhuvanNagaland: soiBhuvanNagalandLayer,
+        bhuvanMeghalaya: soiBhuvanMeghalayaLayer,
+        bhuvanMizoram: soiBhuvanMizoramLayer,
+        bhuvanArunachal: soiBhuvanArunachalLayer,
         bhuvanKamrupMetro: soiBhuvanKamrupMetroLayer,
         bhuvanFloodAssam: soiBhuvanFloodAssamLayer,
       };
@@ -2778,6 +3004,11 @@ const MapComponent = ({
           soiBhuvanAssamLayer,
           soiBhuvanManipurLayer,
           soiBhuvanWestBengalLayer,
+          soiBhuvanTripuraLayer,
+          soiBhuvanNagalandLayer,
+          soiBhuvanMeghalayaLayer,
+          soiBhuvanMizoramLayer,
+          soiBhuvanArunachalLayer,
           soiBhuvanKamrupMetroLayer,
           soiBhuvanFloodAssamLayer,
         ],
@@ -2904,9 +3135,14 @@ const MapComponent = ({
     layers.bhuvanAssam?.setVisible?.(!!soiLayerVisibility.bhuvanAssam);
     layers.bhuvanManipur?.setVisible?.(!!soiLayerVisibility.bhuvanManipur);
     layers.bhuvanWestBengal?.setVisible?.(!!soiLayerVisibility.bhuvanWestBengal);
+    layers.bhuvanTripura?.setVisible?.(!!soiLayerVisibility.bhuvanTripura);
+    layers.bhuvanNagaland?.setVisible?.(!!soiLayerVisibility.bhuvanNagaland);
+    layers.bhuvanMeghalaya?.setVisible?.(!!soiLayerVisibility.bhuvanMeghalaya);
+    layers.bhuvanMizoram?.setVisible?.(!!soiLayerVisibility.bhuvanMizoram);
+    layers.bhuvanArunachal?.setVisible?.(!!soiLayerVisibility.bhuvanArunachal);
     layers.bhuvanKamrupMetro?.setVisible?.(!!soiLayerVisibility.bhuvanKamrupMetro);
     layers.bhuvanFloodAssam?.setVisible?.(!!soiLayerVisibility.bhuvanFloodAssam);
-    
+
     // Debug logging for Bhuvan AMRUT layer
     console.log('Bhuvan AMRUT layer visibility:', soiLayerVisibility.bhuvanAmrut);
     console.log('Bhuvan AMRUT layer object:', layers.bhuvanAmrut);
@@ -2977,6 +3213,49 @@ const MapComponent = ({
     if (layers.bhuvanWestBengal) {
       console.log('Bhuvan West Bengal layer actual visibility:', layers.bhuvanWestBengal.getVisible());
       console.log('Bhuvan West Bengal layer source:', layers.bhuvanWestBengal.getSource());
+    }
+
+    // Debug logging for Bhuvan Tripura layer
+    console.log('Bhuvan Tripura layer visibility:', soiLayerVisibility.bhuvanTripura);
+    console.log('Bhuvan Tripura layer object:', layers.bhuvanTripura);
+    if (layers.bhuvanTripura) {
+      console.log('Bhuvan Tripura layer actual visibility:', layers.bhuvanTripura.getVisible());
+      console.log('Bhuvan Tripura layer source:', layers.bhuvanTripura.getSource());
+    }
+
+    // Debug logging for Bhuvan Nagaland layer
+    console.log('Bhuvan Nagaland layer visibility:', soiLayerVisibility.bhuvanNagaland);
+    console.log('Bhuvan Nagaland layer object:', layers.bhuvanNagaland);
+    if (layers.bhuvanNagaland) {
+      console.log('Bhuvan Nagaland layer actual visibility:', layers.bhuvanNagaland.getVisible());
+      console.log('Bhuvan Nagaland layer source:', layers.bhuvanNagaland.getSource());
+    }
+
+    // Debug logging for Bhuvan Meghalaya layer
+    console.log("Bhuvan Meghalaya layer visibility:", soiLayerVisibility.bhuvanMeghalaya);
+    console.log("Bhuvan Meghalaya layer object:", layers.bhuvanMeghalaya);
+    if (layers.bhuvanMeghalaya) {
+      console.log("Bhuvan Meghalaya layer actual visibility:", layers.bhuvanMeghalaya.getVisible());
+      console.log("Bhuvan Meghalaya layer source:", layers.bhuvanMeghalaya.getSource());
+    }
+
+    // Debug logging for Bhuvan Mizoram layer
+    console.log("Bhuvan Mizoram layer visibility:", soiLayerVisibility.bhuvanMizoram);
+    console.log("Bhuvan Mizoram layer object:", layers.bhuvanMizoram);
+    if (layers.bhuvanMizoram) {
+      console.log("Bhuvan Mizoram layer actual visibility:", layers.bhuvanMizoram.getVisible());
+      console.log("Bhuvan Mizoram layer source:", layers.bhuvanMizoram.getSource());
+    }
+
+    // Debug logging for Bhuvan Arunachal layer
+    console.log("Bhuvan Arunachal layer visibility:", soiLayerVisibility.bhuvanArunachal);
+    console.log("Bhuvan Arunachal layer object:", layers.bhuvanArunachal);
+    if (layers.bhuvanArunachal) {
+      console.log(
+        "Bhuvan Arunachal layer actual visibility:",
+        layers.bhuvanArunachal.getVisible()
+      );
+      console.log("Bhuvan Arunachal layer source:", layers.bhuvanArunachal.getSource());
     }
 
     // Debug logging for Bhuvan Kamrup Metro layer
@@ -4398,9 +4677,9 @@ const MapComponent = ({
                         <div class="overlay-section-title">Police Support</div>
                         <div class="overlay-section-body">
                           ${policeInfoRows || policeDetailsRows
-                            ? `${policeInfoRows}${policeDetailsRows}`
-                            : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
-                          }
+                  ? `${policeInfoRows}${policeDetailsRows}`
+                  : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
+                }
                         </div>
                       </div>
                     </div>
@@ -4659,17 +4938,17 @@ const MapComponent = ({
       focusEntry?.device_tag_info?.route?.id ||
       focusEntry?.nearby_routes_within_100m?.[0]?.data?.id ||
       "-";
-      
+
     const routeData = focusEntry?.route_ref || focusEntry?.device_tag_info?.route || {};
-    
-    const routeName = 
+
+    const routeName =
       focusEntry?.route_name ||
       focusEntry?.route ||
       focusEntry?.route_info ||
       focusEntry?.routeInformation ||
       routeData?.name ||
       (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
-      
+
     const routeCode = routeData?.code || focusEntry?.route_code || "-";
     const routeType = routeData?.type || focusEntry?.route_type || "-";
     const startPoint = routeData?.start_point || focusEntry?.start_point || "-";
@@ -4790,9 +5069,9 @@ const MapComponent = ({
               <div class="overlay-section-title">Police Support</div>
               <div class="overlay-section-body">
                 ${policeInfoRows || policeDetailsRows
-                  ? `${policeInfoRows}${policeDetailsRows}`
-                  : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
-                }
+        ? `${policeInfoRows}${policeDetailsRows}`
+        : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
+      }
               </div>
             </div>
           </div>
@@ -5789,7 +6068,7 @@ const MapComponent = ({
                       }
                       label="Block"
                     />
-                                        {/*
+                    {/*
                     */}
                     <FormControlLabel
                       control={
@@ -5963,6 +6242,91 @@ const MapComponent = ({
                         />
                       }
                       label="Bhuvan West Bengal"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.bhuvanTripura}
+                          onChange={(e) => {
+                            console.log('Bhuvan Tripura toggle clicked:', e.target.checked);
+                            setSoiLayerVisibility((prev) => {
+                              const newState = { ...prev, bhuvanTripura: e.target.checked };
+                              console.log('New soiLayerVisibility state:', newState);
+                              return newState;
+                            });
+                          }}
+                        />
+                      }
+                      label="Bhuvan Tripura"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.bhuvanNagaland}
+                          onChange={(e) => {
+                            console.log('Bhuvan Nagaland toggle clicked:', e.target.checked);
+                            setSoiLayerVisibility((prev) => {
+                              const newState = { ...prev, bhuvanNagaland: e.target.checked };
+                              console.log('New soiLayerVisibility state:', newState);
+                              return newState;
+                            });
+                          }}
+                        />
+                      }
+                      label="Bhuvan Nagaland"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.bhuvanMeghalaya}
+                          onChange={(e) => {
+                            console.log("Bhuvan Meghalaya toggle clicked:", e.target.checked);
+                            setSoiLayerVisibility((prev) => {
+                              const newState = { ...prev, bhuvanMeghalaya: e.target.checked };
+                              console.log("New soiLayerVisibility state:", newState);
+                              return newState;
+                            });
+                          }}
+                        />
+                      }
+                      label="Bhuvan Meghalaya"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.bhuvanMizoram}
+                          onChange={(e) => {
+                            console.log("Bhuvan Mizoram toggle clicked:", e.target.checked);
+                            setSoiLayerVisibility((prev) => {
+                              const newState = { ...prev, bhuvanMizoram: e.target.checked };
+                              console.log("New soiLayerVisibility state:", newState);
+                              return newState;
+                            });
+                          }}
+                        />
+                      }
+                      label="Bhuvan Mizoram"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={soiLayerVisibility.bhuvanArunachal}
+                          onChange={(e) => {
+                            console.log("Bhuvan Arunachal toggle clicked:", e.target.checked);
+                            setSoiLayerVisibility((prev) => {
+                              const newState = { ...prev, bhuvanArunachal: e.target.checked };
+                              console.log("New soiLayerVisibility state:", newState);
+                              return newState;
+                            });
+                          }}
+                        />
+                      }
+                      label="Bhuvan Arunachal"
                     />
                     <FormControlLabel
                       control={
