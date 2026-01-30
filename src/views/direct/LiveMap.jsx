@@ -1154,7 +1154,7 @@ const createBhuvanKamrupMetroSource = (layerName) => {
   return new TileWMS(options);
 };
 
-const MapComponent = ({
+ const MapComponent = ({
   gpsData,
   policeData = [],
   incidentData = [],
@@ -1168,6 +1168,10 @@ const MapComponent = ({
   nmrArea = null,
   allMode = false,
 }) => {
+  const theme = useTheme();
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const lastAutoFocusedVehicleKeyRef = useRef(null);
   const overlayElement = useRef();
   const lastClickedVehicleRef = useRef(null);
   const trackingDetailCacheRef = useRef({});
@@ -1226,6 +1230,12 @@ const MapComponent = ({
     bhuvanMizoram: false,
     bhuvanArunachal: false,
   });
+
+  const SOI_CITY_ZOOM_MIN = 12;
+  const soiLayerVisibilityRef = useRef(soiLayerVisibility);
+  useEffect(() => {
+    soiLayerVisibilityRef.current = soiLayerVisibility;
+  }, [soiLayerVisibility]);
 
   const soiLayersRef = useRef({
     states: null,
@@ -1367,7 +1377,6 @@ const MapComponent = ({
   const [geoSearchLoading, setGeoSearchLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
-  const theme = useTheme();
 
   const USE_TYPE_COLORS = {
     school: "#1E88E5",
@@ -3097,54 +3106,59 @@ const MapComponent = ({
     };
   }, [mapType]);
 
-  useEffect(() => {
+  const applySoiLayerVisibility = (zoom) => {
     const layers = soiLayersRef.current;
-    if (!layers) return;
+    const vis = soiLayerVisibilityRef.current;
+    if (!layers || !vis) return;
 
-    layers.states?.setVisible?.(!!soiLayerVisibility.states);
-    layers.assamDistrict?.setVisible?.(!!soiLayerVisibility.assamDistrict);
-    layers.assamDistrictBdy2?.setVisible?.(!!soiLayerVisibility.assamDistrictBdy2);
-    layers.assamDistrictHq?.setVisible?.(!!soiLayerVisibility.assamDistrictHq);
-    layers.assamStateBdy?.setVisible?.(!!soiLayerVisibility.assamStateBdy);
-    layers.assamSubdistrictBdy?.setVisible?.(!!soiLayerVisibility.assamSubdistrictBdy);
-    layers.cartTrackHills?.setVisible?.(!!soiLayerVisibility.cartTrackHills);
-    layers.contours?.setVisible?.(!!soiLayerVisibility.contours);
-    layers.kamrupRural?.setVisible?.(!!soiLayerVisibility.kamrupRural);
-    layers.majorTowns?.setVisible?.(!!soiLayerVisibility.majorTowns);
-    layers.name?.setVisible?.(!!soiLayerVisibility.name);
-    layers.railwayTracks?.setVisible?.(!!soiLayerVisibility.railwayTracks);
-    layers.roads?.setVisible?.(!!soiLayerVisibility.roads);
-    layers.roadsAllWeatherMotorable?.setVisible?.(!!soiLayerVisibility.roadsAllWeatherMotorable);
-    layers.roadsMotorableInFairWeather?.setVisible?.(!!soiLayerVisibility.roadsMotorableInFairWeather);
-    layers.roadsNationalHighway?.setVisible?.(!!soiLayerVisibility.roadsNationalHighway);
-    layers.roadOthers?.setVisible?.(!!soiLayerVisibility.roadOthers);
-    layers.roadTunnel?.setVisible?.(!!soiLayerVisibility.roadTunnel);
-    layers.stateHighway?.setVisible?.(!!soiLayerVisibility.stateHighway);
-    layers.buildingFootprint?.setVisible?.(!!soiLayerVisibility.buildingFootprint);
-    layers.roadSurface?.setVisible?.(!!soiLayerVisibility.roadSurface);
-    layers.busStop?.setVisible?.(!!soiLayerVisibility.busStop);
-    layers.block?.setVisible?.(!!soiLayerVisibility.block);
-    layers.skytronAssamCombined?.setVisible?.(!!soiLayerVisibility.skytronAssamCombined);
-    layers.assamTowns?.setVisible?.(!!soiLayerVisibility.assamTowns);
-    layers.bhuvanAmrut?.setVisible?.(!!soiLayerVisibility.bhuvanAmrut);
-    layers.bhuvanAmrutSilchar?.setVisible?.(!!soiLayerVisibility.bhuvanAmrutSilchar);
-    layers.bhuvanAmrutDibrugarh?.setVisible?.(!!soiLayerVisibility.bhuvanAmrutDibrugarh);
-    layers.bhuvanAmrutGuwahati?.setVisible?.(!!soiLayerVisibility.bhuvanAmrutGuwahati);
-    layers.bhuvanSi?.setVisible?.(!!soiLayerVisibility.bhuvanSi);
-    layers.bhuvanSisdp?.setVisible?.(!!soiLayerVisibility.bhuvanSisdp);
-    layers.bhuvanAssam?.setVisible?.(!!soiLayerVisibility.bhuvanAssam);
-    layers.bhuvanManipur?.setVisible?.(!!soiLayerVisibility.bhuvanManipur);
-    layers.bhuvanWestBengal?.setVisible?.(!!soiLayerVisibility.bhuvanWestBengal);
-    layers.bhuvanTripura?.setVisible?.(!!soiLayerVisibility.bhuvanTripura);
-    layers.bhuvanNagaland?.setVisible?.(!!soiLayerVisibility.bhuvanNagaland);
-    layers.bhuvanMeghalaya?.setVisible?.(!!soiLayerVisibility.bhuvanMeghalaya);
-    layers.bhuvanMizoram?.setVisible?.(!!soiLayerVisibility.bhuvanMizoram);
-    layers.bhuvanArunachal?.setVisible?.(!!soiLayerVisibility.bhuvanArunachal);
-    layers.bhuvanKamrupMetro?.setVisible?.(!!soiLayerVisibility.bhuvanKamrupMetro);
-    layers.bhuvanFloodAssam?.setVisible?.(!!soiLayerVisibility.bhuvanFloodAssam);
+    const isCityZoom = typeof zoom === "number" && zoom >= SOI_CITY_ZOOM_MIN;
+
+    layers.states?.setVisible?.(!!vis.states);
+    layers.assamDistrict?.setVisible?.(!!vis.assamDistrict);
+    layers.assamDistrictBdy2?.setVisible?.(!!vis.assamDistrictBdy2);
+    layers.assamDistrictHq?.setVisible?.(!!vis.assamDistrictHq);
+    layers.assamStateBdy?.setVisible?.(!!vis.assamStateBdy);
+    layers.assamSubdistrictBdy?.setVisible?.(!!vis.assamSubdistrictBdy);
+    layers.cartTrackHills?.setVisible?.(!!vis.cartTrackHills);
+    layers.contours?.setVisible?.(!!vis.contours);
+    layers.kamrupRural?.setVisible?.(!!vis.kamrupRural);
+    layers.majorTowns?.setVisible?.(!!vis.majorTowns);
+    layers.name?.setVisible?.(!!vis.name);
+    layers.railwayTracks?.setVisible?.(!!vis.railwayTracks);
+    layers.roads?.setVisible?.(!!vis.roads);
+    layers.roadsAllWeatherMotorable?.setVisible?.(!!vis.roadsAllWeatherMotorable);
+    layers.roadsMotorableInFairWeather?.setVisible?.(!!vis.roadsMotorableInFairWeather);
+    layers.roadsNationalHighway?.setVisible?.(!!vis.roadsNationalHighway);
+    layers.roadOthers?.setVisible?.(!!vis.roadOthers);
+    layers.roadTunnel?.setVisible?.(!!vis.roadTunnel);
+    layers.stateHighway?.setVisible?.(!!vis.stateHighway);
+    layers.buildingFootprint?.setVisible?.(!!vis.buildingFootprint);
+    layers.roadSurface?.setVisible?.(!!vis.roadSurface);
+    layers.busStop?.setVisible?.(!!vis.busStop);
+    layers.block?.setVisible?.(!!vis.block);
+    layers.skytronAssamCombined?.setVisible?.(!!vis.skytronAssamCombined);
+
+    layers.assamTowns?.setVisible?.(!!vis.assamTowns && isCityZoom);
+    layers.bhuvanAmrut?.setVisible?.(!!vis.bhuvanAmrut && isCityZoom);
+    layers.bhuvanAmrutSilchar?.setVisible?.(!!vis.bhuvanAmrutSilchar && isCityZoom);
+    layers.bhuvanAmrutDibrugarh?.setVisible?.(!!vis.bhuvanAmrutDibrugarh && isCityZoom);
+    layers.bhuvanAmrutGuwahati?.setVisible?.(!!vis.bhuvanAmrutGuwahati && isCityZoom);
+    layers.bhuvanSi?.setVisible?.(!!vis.bhuvanSi && isCityZoom);
+    layers.bhuvanKamrupMetro?.setVisible?.(!!vis.bhuvanKamrupMetro && isCityZoom);
+    layers.bhuvanFloodAssam?.setVisible?.(!!vis.bhuvanFloodAssam && isCityZoom);
+
+    layers.bhuvanSisdp?.setVisible?.(!!vis.bhuvanSisdp);
+    layers.bhuvanAssam?.setVisible?.(!!vis.bhuvanAssam);
+    layers.bhuvanManipur?.setVisible?.(!!vis.bhuvanManipur);
+    layers.bhuvanWestBengal?.setVisible?.(!!vis.bhuvanWestBengal);
+    layers.bhuvanTripura?.setVisible?.(!!vis.bhuvanTripura);
+    layers.bhuvanNagaland?.setVisible?.(!!vis.bhuvanNagaland);
+    layers.bhuvanMeghalaya?.setVisible?.(!!vis.bhuvanMeghalaya);
+    layers.bhuvanMizoram?.setVisible?.(!!vis.bhuvanMizoram);
+    layers.bhuvanArunachal?.setVisible?.(!!vis.bhuvanArunachal);
 
     // Debug logging for Bhuvan AMRUT layer
-    console.log('Bhuvan AMRUT layer visibility:', soiLayerVisibility.bhuvanAmrut);
+    console.log('Bhuvan AMRUT layer visibility:', vis.bhuvanAmrut);
     console.log('Bhuvan AMRUT layer object:', layers.bhuvanAmrut);
     if (layers.bhuvanAmrut) {
       console.log('Bhuvan AMRUT layer actual visibility:', layers.bhuvanAmrut.getVisible());
@@ -3152,7 +3166,7 @@ const MapComponent = ({
     }
 
     // Debug logging for Bhuvan AMRUT Silchar layer
-    console.log('Bhuvan AMRUT Silchar layer visibility:', soiLayerVisibility.bhuvanAmrutSilchar);
+    console.log('Bhuvan AMRUT Silchar layer visibility:', vis.bhuvanAmrutSilchar);
     console.log('Bhuvan AMRUT Silchar layer object:', layers.bhuvanAmrutSilchar);
     if (layers.bhuvanAmrutSilchar) {
       console.log('Bhuvan AMRUT Silchar layer actual visibility:', layers.bhuvanAmrutSilchar.getVisible());
@@ -3160,7 +3174,7 @@ const MapComponent = ({
     }
 
     // Debug logging for Bhuvan AMRUT Dibrugarh layer
-    console.log('Bhuvan AMRUT Dibrugarh layer visibility:', soiLayerVisibility.bhuvanAmrutDibrugarh);
+    console.log('Bhuvan AMRUT Dibrugarh layer visibility:', vis.bhuvanAmrutDibrugarh);
     console.log('Bhuvan AMRUT Dibrugarh layer object:', layers.bhuvanAmrutDibrugarh);
     if (layers.bhuvanAmrutDibrugarh) {
       console.log('Bhuvan AMRUT Dibrugarh layer actual visibility:', layers.bhuvanAmrutDibrugarh.getVisible());
@@ -3168,7 +3182,7 @@ const MapComponent = ({
     }
 
     // Debug logging for Bhuvan AMRUT Guwahati layer
-    console.log('Bhuvan AMRUT Guwahati layer visibility:', soiLayerVisibility.bhuvanAmrutGuwahati);
+    console.log('Bhuvan AMRUT Guwahati layer visibility:', vis.bhuvanAmrutGuwahati);
     console.log('Bhuvan AMRUT Guwahati layer object:', layers.bhuvanAmrutGuwahati);
     if (layers.bhuvanAmrutGuwahati) {
       console.log('Bhuvan AMRUT Guwahati layer actual visibility:', layers.bhuvanAmrutGuwahati.getVisible());
@@ -3176,7 +3190,7 @@ const MapComponent = ({
     }
 
     // Debug logging for Bhuvan SI layer
-    console.log('Bhuvan SI layer visibility:', soiLayerVisibility.bhuvanSi);
+    console.log('Bhuvan SI layer visibility:', vis.bhuvanSi);
     console.log('Bhuvan SI layer object:', layers.bhuvanSi);
     if (layers.bhuvanSi) {
       console.log('Bhuvan SI layer actual visibility:', layers.bhuvanSi.getVisible());
@@ -3184,7 +3198,7 @@ const MapComponent = ({
     }
 
     // Debug logging for Bhuvan SISDP layer
-    console.log('Bhuvan SISDP layer visibility:', soiLayerVisibility.bhuvanSisdp);
+    console.log('Bhuvan SISDP layer visibility:', vis.bhuvanSisdp);
     console.log('Bhuvan SISDP layer object:', layers.bhuvanSisdp);
     if (layers.bhuvanSisdp) {
       console.log('Bhuvan SISDP layer actual visibility:', layers.bhuvanSisdp.getVisible());
@@ -3192,7 +3206,7 @@ const MapComponent = ({
     }
 
     // Debug logging for Bhuvan Assam layer
-    console.log('Bhuvan Assam layer visibility:', soiLayerVisibility.bhuvanAssam);
+    console.log('Bhuvan Assam layer visibility:', vis.bhuvanAssam);
     console.log('Bhuvan Assam layer object:', layers.bhuvanAssam);
     if (layers.bhuvanAssam) {
       console.log('Bhuvan Assam layer actual visibility:', layers.bhuvanAssam.getVisible());
@@ -3200,11 +3214,38 @@ const MapComponent = ({
     }
 
     // Debug logging for Bhuvan Manipur layer
-    console.log('Bhuvan Manipur layer visibility:', soiLayerVisibility.bhuvanManipur);
+    console.log('Bhuvan Manipur layer visibility:', vis.bhuvanManipur);
     console.log('Bhuvan Manipur layer object:', layers.bhuvanManipur);
     if (layers.bhuvanManipur) {
       console.log('Bhuvan Manipur layer actual visibility:', layers.bhuvanManipur.getVisible());
       console.log('Bhuvan Manipur layer source:', layers.bhuvanManipur.getSource());
+    }
+  };
+
+  useEffect(() => {
+    if (mapType !== "soi" || !map) return;
+    const view = map.getView?.();
+    if (!view) return;
+
+    const updateFromView = () => {
+      const zoom = view.getZoom?.();
+      applySoiLayerVisibility(zoom);
+    };
+
+    updateFromView();
+    view.on("change:resolution", updateFromView);
+    return () => {
+      view.un("change:resolution", updateFromView);
+    };
+  }, [mapType, map]);
+
+  useEffect(() => {
+    const layers = soiLayersRef.current;
+    if (!layers) return;
+
+    if (mapType === "soi") {
+      const zoom = map?.getView?.()?.getZoom?.();
+      applySoiLayerVisibility(zoom);
     }
 
     // Debug logging for Bhuvan West Bengal layer
@@ -3273,7 +3314,7 @@ const MapComponent = ({
       console.log('Bhuvan Flood Assam layer actual visibility:', layers.bhuvanFloodAssam.getVisible());
       console.log('Bhuvan Flood Assam layer source:', layers.bhuvanFloodAssam.getSource());
     }
-  }, [soiLayerVisibility]);
+  }, [soiLayerVisibility, mapType, map]);
 
   // Initialize HD Map (Mappls)
   useEffect(() => {
@@ -5223,7 +5264,22 @@ const MapComponent = ({
   }, [map, vectorLayer]);
 
   useEffect(() => {
-    if (!focusEntry) return;
+    if (!focusEntry) {
+      lastAutoFocusedVehicleKeyRef.current = null;
+      return;
+    }
+
+    // Only auto-focus when the focused vehicle changes.
+    // This prevents repeated re-centering during live updates for the same selected vehicle
+    // (e.g., when the user zooms out and the next refresh snaps back).
+    const focusKey =
+      focusEntry?.imei ||
+      focusEntry?.vehicle_registration_number ||
+      focusEntry?.vehicle_reg_no ||
+      focusEntry?.id;
+
+    if (focusKey && lastAutoFocusedVehicleKeyRef.current === focusKey) return;
+    if (focusKey) lastAutoFocusedVehicleKeyRef.current = focusKey;
 
     const longitude = Number(focusEntry.longitude);
     const latitude = Number(focusEntry.latitude);
