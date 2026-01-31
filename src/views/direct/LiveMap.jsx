@@ -1,54 +1,54 @@
 
+
+
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
-  Button,
-  ButtonGroup,
-  Tooltip,
-  Box,
-  IconButton,
-  Typography,
-  CircularProgress,
-  Paper,
-  List,
-  ListItemButton,
-  ListItemText,
-  ListItemIcon,
-  Snackbar,
-  Alert,
-  InputBase,
-  Divider,
-  Collapse,
-  Switch,
-  FormControlLabel
+Button,
+ButtonGroup,
+Tooltip,
+Box,
+IconButton,
+Typography,
+CircularProgress,
+Paper,
+List,
+ListItemButton,
+ListItemText,
+ListItemIcon,
+Snackbar,
+Alert,
+InputBase,
+Divider,
+Collapse,
+Switch,
+FormControlLabel
 } from "@mui/material";
 import {
-  Search as SearchIcon,
-  LocationOn as LocationOnIcon,
-  Close as CloseIcon,
-  Layers as LayersIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Check as CheckIcon,
-  Map as MapIcon,
-  Satellite as SatelliteIcon,
-  Public as PublicIcon,
-  Hd as HdIcon,
-  Terrain as TerrainIcon,
-  FastRewind
+Search as SearchIcon,
+LocationOn as LocationOnIcon,
+Close as CloseIcon,
+Layers as LayersIcon,
+Edit as EditIcon,
+Delete as DeleteIcon,
+Check as CheckIcon,
+Map as MapIcon,
+Satellite as SatelliteIcon,
+Public as PublicIcon,
+Hd as HdIcon,
+Terrain as TerrainIcon
 } from "@mui/icons-material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { Vector as VectorSource, TileWMS, XYZ, Cluster, WMTS } from "ol/source";
-import WMTSTileGrid from "ol/tilegrid/WMTS";
+import { Vector as VectorSource, TileWMS, XYZ, Cluster } from "ol/source";
 import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
 import {
-  Icon,
-  Style,
-  Fill,
-  Stroke,
-  Circle as CircleStyle,
-  Text,
+Icon,
+Style,
+Fill,
+Stroke,
+Circle as CircleStyle,
+Text,
 } from "ol/style";
 import { Draw } from "ol/interaction";
 import Feature from "ol/Feature";
@@ -66,6703 +66,6003 @@ import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
 
 const formatDateDDMMYY = (raw) => {
-  if (!raw || raw.length < 8) return raw || "-";
-  const d = raw.slice(0, 2);   // 16
-  const m = raw.slice(2, 4);   // 12
-  const y = raw.slice(6, 8);   // 25 from 2025
-  return `${d}-${m}-${y}`;
+if (!raw || raw.length < 8) return raw || "-";
+const d = raw.slice(0, 2); // 16
+const m = raw.slice(2, 4); // 12
+const y = raw.slice(6, 8); // 25 from 2025
+return `${d}-${m}-${y}`;
 };
 
 const formatTimeHHMMSS = (raw) => {
-  if (!raw || raw.length < 6) return raw || "-";
+if (!raw || raw.length < 6) return raw || "-";
 
-  const h24 = parseInt(raw.slice(0, 2), 10); // 0–23
-  const m = raw.slice(2, 4);
-  const s = raw.slice(4, 6);
+const h24 = parseInt(raw.slice(0, 2), 10); // 0–23
+const m = raw.slice(2, 4);
+const s = raw.slice(4, 6);
 
-  if (Number.isNaN(h24)) return raw;
+if (Number.isNaN(h24)) return raw;
 
-  const period = h24 >= 12 ? "PM" : "AM";
-  let h12 = h24 % 12;
-  if (h12 === 0) h12 = 12; // 0 -> 12 AM/PM
+const period = h24 >= 12 ? "PM" : "AM";
+let h12 = h24 % 12;
+if (h12 === 0) h12 = 12; // 0 -> 12 AM/PM
 
-  const h = String(h12).padStart(2, "0");
-  return `${h}:${m}:${s} ${period}`;
+const h = String(h12).padStart(2, "0");
+return `${h}:${m}:${s} ${period}`;
 };
 
 const ALERT_CODE_LABELS = {
-  // Normal
-  NR1: "Normal ",
-  NR: "Normal ",  // Handle both NR1 and NR
-  NR2: "Normal History",
+// Normal
+NR1: "Normal ",
+NR: "Normal ", // Handle both NR1 and NR
+NR2: "Normal History",
 
-  // Battery Alerts
-  BD3: "Battery Disconnected",
-  BL4: "Low Battery",
-  BH5: "Battery Charged",
-  BR6: "Mains Reconnected",
+// Battery Alerts
+BD3: "Battery Disconnected",
+BL4: "Low Battery",
+BH5: "Battery Charged",
+BR6: "Mains Reconnected",
 
-  // Ignition Alerts
-  IN7: "Ignition On",
-  IF8: "Ignition Off",
+// Ignition Alerts
+IN7: "Ignition On",
+IF8: "Ignition Off",
 
-  // Security Alerts
-  TA9: "Tamper Alert",
+// Security Alerts
+TA9: "Tamper Alert",
 
-  // Emergency Alerts
-  EA10: "Emergency Alert (Panic)",
-  EA11: "Emergency Alert Cleared",
+// Emergency Alerts
+EA10: "Emergency Alert (Panic)",
+EA11: "Emergency Alert Cleared",
 
-  // System Alerts
-  OT12: "Configuration Updated",
+// System Alerts
+OT12: "Configuration Updated",
 
-  // Driving Behavior Alerts
-  HB13: "Harsh Braking",
-  HA14: "Harsh Acceleration",
-  RT15: "Rash Turning"
+// Driving Behavior Alerts
+HB13: "Harsh Braking",
+HA14: "Harsh Acceleration",
+RT15: "Rash Turning"
 };
 
 const resolveAlertCode = (entry) => {
-  if (!entry) return "-";
-  const alertPrefix = entry.packet_type || entry.packetType;
-  const alertId = entry.alert_id;
-  if (
-    alertPrefix &&
-    alertId !== null &&
-    alertId !== undefined &&
-    alertId !== "" &&
-    /^[A-Za-z]{1,3}$/.test(String(alertPrefix)) &&
-    /^\d{1,3}$/.test(String(alertId))
-  ) {
-    const combined = `${String(alertPrefix).toUpperCase()}${String(alertId)}`;
-    if (ALERT_CODE_LABELS[combined]) return combined;
-  }
+if (!entry) return "-";
+const alertPrefix = entry.packet_type || entry.packetType;
+const alertId = entry.alert_id;
+if (
+alertPrefix &&
+alertId !== null &&
+alertId !== undefined &&
+alertId !== "" &&
+/^[A-Za-z]{1,3}$/.test(String(alertPrefix)) &&
+/^\d{1,3}$/.test(String(alertId))
+) {
+const combined = `${String(alertPrefix).toUpperCase()}${String(alertId)}`;
+if (ALERT_CODE_LABELS[combined]) return combined;
+}
 
-  const candidates = [
-    entry.alert_type,
-    entry.alert_code,
-    // some payloads send alert code in packet_type
-    entry.packet_type,
-    entry.packetType,
-    // fallback to numeric id (least preferred)
-    entry.alert_id,
-  ];
+const candidates = [
+entry.alert_type,
+entry.alert_code,
+// some payloads send alert code in packet_type
+entry.packet_type,
+entry.packetType,
+// fallback to numeric id (least preferred)
+entry.alert_id,
+];
 
-  const raw = candidates.find((value) => value !== null && value !== undefined && value !== "");
-  if (!raw) return "-";
+const raw = candidates.find((value) => value !== null && value !== undefined && value !== "");
+if (!raw) return "-";
 
-  const normalized = String(raw).toUpperCase().replace(/\s+/g, "");
-  // Prefer exact match if possible (e.g., NR1, EA10)
-  if (ALERT_CODE_LABELS[normalized]) return normalized;
+const normalized = String(raw).toUpperCase().replace(/\s+/g, "");
+// Prefer exact match if possible (e.g., NR1, EA10)
+if (ALERT_CODE_LABELS[normalized]) return normalized;
 
-  // Fallback: extract first CODE pattern like AA99, A9, AAA999
-  const match = normalized.match(/[A-Z]{1,3}\d{1,3}/);
-  return match?.[0] || normalized;
+// Fallback: extract first CODE pattern like AA99, A9, AAA999
+const match = normalized.match(/[A-Z]{1,3}\d{1,3}/);
+return match?.[0] || normalized;
 };
 
 const resolveAlertLabel = (entry) => {
-  const code = resolveAlertCode(entry);
-  if (!code || code === "-") return "-";
-  return ALERT_CODE_LABELS[code] ? `${ALERT_CODE_LABELS[code]} (${code})` : code;
+const code = resolveAlertCode(entry);
+if (!code || code === "-") return "-";
+return ALERT_CODE_LABELS[code] ? `${ALERT_CODE_LABELS[code]} (${code})` : code;
 };
 
 const resolvePacketTypeLabel = (entry) => {
-  if (!entry) return "-";
+if (!entry) return "-";
 
-  if (isEntryStale15Min(entry)) return "Offline";
-  // In your payload, packet_status often contains L/H (Live/History)
-  const raw =
-    entry.packet_status ||
-    entry.packetStatus ||
-    entry.packet_type_code ||
-    entry.packet_type_flag ||
-    entry.packetTypeFlag ||
-    entry.packet_category ||
-    entry.packetCategory ||
-    entry.packet_source ||
-    entry.packetSource;
+if (isEntryStale15Min(entry)) return "Offline";
+// In your payload, packet_status often contains L/H (Live/History)
+const raw =
+entry.packet_status ||
+entry.packetStatus ||
+entry.packet_type_code ||
+entry.packet_type_flag ||
+entry.packetTypeFlag ||
+entry.packet_category ||
+entry.packetCategory ||
+entry.packet_source ||
+entry.packetSource;
 
-  if (!raw) return "-";
-  const normalized = String(raw).toUpperCase();
-  if (normalized === "L" || normalized === "LIVE") return "Live";
-  if (normalized === "H" || normalized === "HISTORY") return "History";
-  return String(raw);
+if (!raw) return "-";
+const normalized = String(raw).toUpperCase();
+if (normalized === "L" || normalized === "LIVE") return "Live";
+if (normalized === "H" || normalized === "HISTORY") return "History";
+return String(raw);
 };
 
 const isEntryStale15Min = (entry) => {
-  if (!entry) return true;
+if (!entry) return true;
 
-  const parseDateTimeParts = (dateStr, timeStr) => {
-    if (!dateStr || !timeStr) return NaN;
+const parseDateTimeParts = (dateStr, timeStr) => {
+if (!dateStr || !timeStr) return NaN;
 
-    const dateTrimmed = String(dateStr).trim();
-    const timeTrimmed = String(timeStr).trim();
+const dateTrimmed = String(dateStr).trim();
+const timeTrimmed = String(timeStr).trim();
 
-    // Format: DDMMYYYY + HHMMSS
-    const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
-    const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
-    if (dmyCompact && hmsCompact) {
-      const day = Number(dmyCompact[1]);
-      const month = Number(dmyCompact[2]);
-      const year = Number(dmyCompact[3]);
-      const hours = Number(hmsCompact[1]);
-      const minutes = Number(hmsCompact[2]);
-      const seconds = Number(hmsCompact[3]);
-      const dt = new Date(year, month - 1, day, hours, minutes, seconds);
-      const ms = dt.getTime();
-      return Number.isFinite(ms) ? ms : NaN;
-    }
+// Format: DDMMYYYY + HHMMSS
+const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+if (dmyCompact && hmsCompact) {
+const day = Number(dmyCompact[1]);
+const month = Number(dmyCompact[2]);
+const year = Number(dmyCompact[3]);
+const hours = Number(hmsCompact[1]);
+const minutes = Number(hmsCompact[2]);
+const seconds = Number(hmsCompact[3]);
+const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+const ms = dt.getTime();
+return Number.isFinite(ms) ? ms : NaN;
+}
 
-    // Format: DD-MM-YY or DD-MM-YYYY
-    const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
-    if (dmy) {
-      const day = Number(dmy[1]);
-      const month = Number(dmy[2]);
-      let year = Number(dmy[3]);
-      if (String(dmy[3]).length === 2) year = 2000 + year;
+// Format: DD-MM-YY or DD-MM-YYYY
+const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+if (dmy) {
+const day = Number(dmy[1]);
+const month = Number(dmy[2]);
+let year = Number(dmy[3]);
+if (String(dmy[3]).length === 2) year = 2000 + year;
 
-      const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
-      if (!tm) return NaN;
-      let hours = Number(tm[1]);
-      const minutes = Number(tm[2]);
-      const seconds = Number(tm[3] ?? 0);
-      const ampm = tm[4]?.toUpperCase();
-      if (ampm === "AM") {
-        if (hours === 12) hours = 0;
-      } else if (ampm === "PM") {
-        if (hours !== 12) hours += 12;
-      }
+const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+if (!tm) return NaN;
+let hours = Number(tm[1]);
+const minutes = Number(tm[2]);
+const seconds = Number(tm[3] ?? 0);
+const ampm = tm[4]?.toUpperCase();
+if (ampm === "AM") {
+if (hours === 12) hours = 0;
+} else if (ampm === "PM") {
+if (hours !== 12) hours += 12;
+}
 
-      const dt = new Date(year, month - 1, day, hours, minutes, seconds);
-      const ms = dt.getTime();
-      return Number.isFinite(ms) ? ms : NaN;
-    }
+const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+const ms = dt.getTime();
+return Number.isFinite(ms) ? ms : NaN;
+}
 
-    const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
-    return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
-  };
+const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+};
 
-  const normalizeEpoch = (value) => {
-    const num = typeof value === "number" ? value : Number(value);
-    if (!Number.isFinite(num)) return NaN;
-    return num < 1e12 ? num * 1000 : num;
-  };
+const normalizeEpoch = (value) => {
+const num = typeof value === "number" ? value : Number(value);
+if (!Number.isFinite(num)) return NaN;
+return num < 1e12 ? num * 1000 : num;
+};
 
-  const candidate = entry.entry_time ?? entry.timestamp ?? null;
-  let lastUpdateTime = NaN;
+const candidate = entry.entry_time ?? entry.timestamp ?? null;
+let lastUpdateTime = NaN;
 
-  if (typeof candidate === "number") {
-    lastUpdateTime = normalizeEpoch(candidate);
-  } else if (typeof candidate === "string") {
-    const trimmed = candidate.trim();
-    if (/^\d+$/.test(trimmed)) {
-      lastUpdateTime = normalizeEpoch(trimmed);
-    } else {
-      lastUpdateTime = new Date(trimmed).getTime();
-    }
-  }
+if (typeof candidate === "number") {
+lastUpdateTime = normalizeEpoch(candidate);
+} else if (typeof candidate === "string") {
+const trimmed = candidate.trim();
+if (/^\d+$/.test(trimmed)) {
+lastUpdateTime = normalizeEpoch(trimmed);
+} else {
+lastUpdateTime = new Date(trimmed).getTime();
+}
+}
 
-  if (!Number.isFinite(lastUpdateTime)) {
-    const datePart = entry?.date;
-    const timePart = entry?.time;
-    if (datePart && timePart) {
-      lastUpdateTime = parseDateTimeParts(datePart, timePart);
-      if (!Number.isFinite(lastUpdateTime)) {
-        lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
-      }
-    }
-  }
+if (!Number.isFinite(lastUpdateTime)) {
+const datePart = entry?.date;
+const timePart = entry?.time;
+if (datePart && timePart) {
+lastUpdateTime = parseDateTimeParts(datePart, timePart);
+if (!Number.isFinite(lastUpdateTime)) {
+lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
+}
+}
+}
 
-  if (!Number.isFinite(lastUpdateTime)) return true;
-  const now = new Date().getTime();
-  return now - lastUpdateTime > 15 * 60 * 1000;
+if (!Number.isFinite(lastUpdateTime)) return true;
+const now = new Date().getTime();
+return now - lastUpdateTime > 15 * 60 * 1000;
 };
 
 const resolveDeviceStatusLabel = (entry) => {
-  if (!entry) return "Offline";
+if (!entry) return "Offline";
 
-  // Check for explicit online/offline status
-  const raw =
-    entry.device_status ||
-    entry.deviceStatus ||
-    entry.status;
+// Check for explicit online/offline status
+const raw =
+entry.device_status ||
+entry.deviceStatus ||
+entry.status;
 
-  if (raw === undefined || raw === null) {
-    // If no explicit status, determine based on last update time
-    const lastUpdate = entry.entry_time || entry.timestamp;
-    let lastUpdateTime = lastUpdate ? new Date(lastUpdate).getTime() : NaN;
+if (raw === undefined || raw === null) {
+// If no explicit status, determine based on last update time
+const lastUpdate = entry.entry_time || entry.timestamp;
+let lastUpdateTime = lastUpdate ? new Date(lastUpdate).getTime() : NaN;
 
-    const parseDateTimeParts = (dateStr, timeStr) => {
-      if (!dateStr || !timeStr) return NaN;
+const parseDateTimeParts = (dateStr, timeStr) => {
+if (!dateStr || !timeStr) return NaN;
 
-      const dateTrimmed = String(dateStr).trim();
-      const timeTrimmed = String(timeStr).trim();
+const dateTrimmed = String(dateStr).trim();
+const timeTrimmed = String(timeStr).trim();
 
-      // Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
-      const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
-      const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
-      if (dmyCompact && hmsCompact) {
-        const day = Number(dmyCompact[1]);
-        const month = Number(dmyCompact[2]);
-        const year = Number(dmyCompact[3]);
-        const hours = Number(hmsCompact[1]);
-        const minutes = Number(hmsCompact[2]);
-        const seconds = Number(hmsCompact[3]);
-        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
-        const ms = dt.getTime();
-        return Number.isFinite(ms) ? ms : NaN;
-      }
+// Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
+const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+if (dmyCompact && hmsCompact) {
+const day = Number(dmyCompact[1]);
+const month = Number(dmyCompact[2]);
+const year = Number(dmyCompact[3]);
+const hours = Number(hmsCompact[1]);
+const minutes = Number(hmsCompact[2]);
+const seconds = Number(hmsCompact[3]);
+const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+const ms = dt.getTime();
+return Number.isFinite(ms) ? ms : NaN;
+}
 
-      const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
-      if (dmy) {
-        const day = Number(dmy[1]);
-        const month = Number(dmy[2]);
-        let year = Number(dmy[3]);
-        if (String(dmy[3]).length === 2) year = 2000 + year;
+const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+if (dmy) {
+const day = Number(dmy[1]);
+const month = Number(dmy[2]);
+let year = Number(dmy[3]);
+if (String(dmy[3]).length === 2) year = 2000 + year;
 
-        const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
-        if (!tm) return NaN;
-        let hours = Number(tm[1]);
-        const minutes = Number(tm[2]);
-        const seconds = Number(tm[3] ?? 0);
-        const ampm = tm[4]?.toUpperCase();
-        if (ampm === "AM") {
-          if (hours === 12) hours = 0;
-        } else if (ampm === "PM") {
-          if (hours !== 12) hours += 12;
-        }
+const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+if (!tm) return NaN;
+let hours = Number(tm[1]);
+const minutes = Number(tm[2]);
+const seconds = Number(tm[3] ?? 0);
+const ampm = tm[4]?.toUpperCase();
+if (ampm === "AM") {
+if (hours === 12) hours = 0;
+} else if (ampm === "PM") {
+if (hours !== 12) hours += 12;
+}
 
-        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
-        const ms = dt.getTime();
-        return Number.isFinite(ms) ? ms : NaN;
-      }
+const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+const ms = dt.getTime();
+return Number.isFinite(ms) ? ms : NaN;
+}
 
-      const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
-      return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
-    };
+const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+};
 
-    if (!Number.isFinite(lastUpdateTime)) {
-      const datePart = entry?.date;
-      const timePart = entry?.time;
-      if (datePart && timePart) {
-        lastUpdateTime = parseDateTimeParts(datePart, timePart);
+if (!Number.isFinite(lastUpdateTime)) {
+const datePart = entry?.date;
+const timePart = entry?.time;
+if (datePart && timePart) {
+lastUpdateTime = parseDateTimeParts(datePart, timePart);
 
-        if (!Number.isFinite(lastUpdateTime)) {
-          lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
-        }
-      }
-    }
+if (!Number.isFinite(lastUpdateTime)) {
+lastUpdateTime = new Date(`${datePart}T${timePart}`).getTime();
+}
+}
+}
 
-    if (Number.isFinite(lastUpdateTime)) {
-      const currentTime = new Date().getTime();
-      // Consider offline if no update in last 15 minutes
-      return (currentTime - lastUpdateTime) < (15 * 60 * 1000) ? "Online" : "Offline";
-    }
-    return "Offline";
-  }
+if (Number.isFinite(lastUpdateTime)) {
+const currentTime = new Date().getTime();
+// Consider offline if no update in last 15 minutes
+return (currentTime - lastUpdateTime) < (15 * 60 * 1000) ? "Online" : "Offline";
+}
+return "Offline";
+}
 
-  if (raw === null || raw === undefined || raw === "") return "-";
+if (raw === null || raw === undefined || raw === "") return "-";
 
-  const normalized = String(raw).toLowerCase();
-  if (["online", "on", "1", "true", "connected"].includes(normalized)) return "Online";
-  if (["offline", "off", "0", "false", "disconnected"].includes(normalized)) return "Offline";
-  return String(raw);
+const normalized = String(raw).toLowerCase();
+if (["online", "on", "1", "true", "connected"].includes(normalized)) return "Online";
+if (["offline", "off", "0", "false", "disconnected"].includes(normalized)) return "Offline";
+return String(raw);
 };
 
 const resolveNearestPoiLabel = (entry) => {
-  if (!entry) return "-";
-  const poiName =
-    entry?.nearest_poi?.data?.name ||
-    entry?.nearestPoi?.name ||
-    entry?.nearest_poi_name ||
-    entry?.nearestPoiName;
-  const poiAddress =
-    entry?.nearest_poi?.data?.address ||
-    entry?.nearestPoi?.address ||
-    entry?.nearest_poi_address ||
-    entry?.nearestPoiAddress;
+if (!entry) return "-";
+const poiName =
+entry?.nearest_poi?.data?.name ||
+entry?.nearestPoi?.name ||
+entry?.nearest_poi_name ||
+entry?.nearestPoiName;
+const poiAddress =
+entry?.nearest_poi?.data?.address ||
+entry?.nearestPoi?.address ||
+entry?.nearest_poi_address ||
+entry?.nearestPoiAddress;
 
-  const best = poiName || poiAddress;
-  if (!best) return "-";
+const best = poiName || poiAddress;
+if (!best) return "-";
 
-  const details = poiName && poiAddress ? `${poiName} - ${poiAddress}` : best;
-  return `Near to ${details}`;
+const details = poiName && poiAddress ? `${poiName} - ${poiAddress}` : best;
+return `Near to ${details}`;
 };
 
 const resolveNearestPoliceDetails = (entry) => {
-  if (!entry) return { name: "-", address: "-", lat: "-", lng: "-" };
+if (!entry) return { name: "-", address: "-", lat: "-", lng: "-" };
 
-  const name =
-    entry?.nearestPoliceStation ||
-    entry?.nearest_police_station_name ||
-    entry?.nearest_police_name ||
-    entry?.nearest_police?.data?.name ||
-    entry?.nearest_police?.name ||
-    entry?.nearest_police_station?.data?.name ||
-    entry?.nearest_police_station?.name ||
-    entry?.nearestPolice?.name ||
-    "-";
+const name =
+entry?.nearestPoliceStation ||
+entry?.nearest_police_station_name ||
+entry?.nearest_police_name ||
+entry?.nearest_police?.data?.name ||
+entry?.nearest_police?.name ||
+entry?.nearest_police_station?.data?.name ||
+entry?.nearest_police_station?.name ||
+entry?.nearestPolice?.name ||
+"-";
 
-  const address =
-    entry?.nearestPoliceAddress ||
-    entry?.nearest_police_address ||
-    entry?.nearest_police_station_address ||
-    entry?.nearest_police?.data?.address ||
-    entry?.nearest_police?.address ||
-    entry?.nearest_police_station?.data?.address ||
-    entry?.nearest_police_station?.address ||
-    entry?.nearestPolice?.address ||
-    "-";
+const address =
+entry?.nearestPoliceAddress ||
+entry?.nearest_police_address ||
+entry?.nearest_police_station_address ||
+entry?.nearest_police?.data?.address ||
+entry?.nearest_police?.address ||
+entry?.nearest_police_station?.data?.address ||
+entry?.nearest_police_station?.address ||
+entry?.nearestPolice?.address ||
+"-";
 
-  const lat =
-    entry?.nearestPoliceLat ||
-    entry?.nearest_police?.data?.lat ||
-    entry?.nearest_police?.data?.latitude ||
-    entry?.nearest_police_station?.data?.latitude ||
-    entry?.nearest_police_station?.latitude ||
-    entry?.nearestPolice?.latitude ||
-    "-";
+const lat =
+entry?.nearestPoliceLat ||
+entry?.nearest_police?.data?.lat ||
+entry?.nearest_police?.data?.latitude ||
+entry?.nearest_police_station?.data?.latitude ||
+entry?.nearest_police_station?.latitude ||
+entry?.nearestPolice?.latitude ||
+"-";
 
-  const lng =
-    entry?.nearestPoliceLng ||
-    entry?.nearest_police?.data?.lon ||
-    entry?.nearest_police?.data?.lng ||
-    entry?.nearest_police?.data?.longitude ||
-    entry?.nearest_police_station?.data?.longitude ||
-    entry?.nearest_police_station?.longitude ||
-    entry?.nearestPolice?.longitude ||
-    "-";
+const lng =
+entry?.nearestPoliceLng ||
+entry?.nearest_police?.data?.lon ||
+entry?.nearest_police?.data?.lng ||
+entry?.nearest_police?.data?.longitude ||
+entry?.nearest_police_station?.data?.longitude ||
+entry?.nearest_police_station?.longitude ||
+entry?.nearestPolice?.longitude ||
+"-";
 
-  return {
-    name: name ? String(name) : "-",
-    address: address ? String(address) : "-",
-    lat: lat === null || lat === undefined || lat === "" ? "-" : String(lat),
-    lng: lng === null || lng === undefined || lng === "" ? "-" : String(lng),
-  };
+return {
+name: name ? String(name) : "-",
+address: address ? String(address) : "-",
+lat: lat === null || lat === undefined || lat === "" ? "-" : String(lat),
+lng: lng === null || lng === undefined || lng === "" ? "-" : String(lng),
+};
 };
 
 const resolveEntrySpeedValue = (entry) => {
-  const raw = entry?.speed ?? entry?.vehicle_speed ?? entry?.vehicleSpeed;
-  const num = typeof raw === "number" ? raw : Number(raw);
-  return Number.isFinite(num) ? num : 0;
+const raw = entry?.speed ?? entry?.vehicle_speed ?? entry?.vehicleSpeed;
+const num = typeof raw === "number" ? raw : Number(raw);
+return Number.isFinite(num) ? num : 0;
 };
 
 const MAPPLS_TOKEN_ENV_KEYS = [
-  "REACT_APP_MAPPLS_TOKEN",
-  "REACT_APP_MAPPLS_REST_KEY",
-  "REACT_APP_MAPPLS_MAP_KEY",
-  "REACT_APP_MAPPLS_API_KEY",
+"REACT_APP_MAPPLS_TOKEN",
+"REACT_APP_MAPPLS_REST_KEY",
+"REACT_APP_MAPPLS_MAP_KEY",
+"REACT_APP_MAPPLS_API_KEY",
 ];
 
 const DEFAULT_HD_CENTER = { lat: 26.1445, lng: 91.7362 };
 
 const resolveMapplsToken = () => {
-  if (typeof process !== "undefined" && process?.env) {
-    for (const key of MAPPLS_TOKEN_ENV_KEYS) {
-      const value = process.env[key];
-      if (value) {
-        return value;
-      }
-    }
-  }
+if (typeof process !== "undefined" && process?.env) {
+for (const key of MAPPLS_TOKEN_ENV_KEYS) {
+const value = process.env[key];
+if (value) {
+return value;
+}
+}
+}
 
-  if (typeof document !== "undefined") {
-    const scripts = Array.from(document.getElementsByTagName("script"));
-    const sdkScript = scripts.find((script) =>
-      script.src && (
-        script.src.includes("mappls.com/advancedmaps/api/") ||
-        script.src.includes("mappls.com/map/sdk/")
-      )
-    );
+if (typeof document !== "undefined") {
+const scripts = Array.from(document.getElementsByTagName("script"));
+const sdkScript = scripts.find((script) =>
+script.src && (
+script.src.includes("mappls.com/advancedmaps/api/") ||
+script.src.includes("mappls.com/map/sdk/")
+)
+);
 
-    if (sdkScript) {
-      // Try legacy path-based token
-      const match = sdkScript.src.match(/api\/([^/]+)\/map_sdk/i);
-      if (match && match[1]) {
-        return match[1];
-      }
+if (sdkScript) {
+// Try legacy path-based token
+const match = sdkScript.src.match(/api\/([^/]+)\/map_sdk/i);
+if (match && match[1]) {
+return match[1];
+}
 
-      // Try query param based token (new SDK)
-      try {
-        const url = new URL(sdkScript.src);
-        const accessToken = url.searchParams.get("access_token");
-        if (accessToken) return accessToken;
-      } catch (e) {
-        // Fallback regex if URL parsing fails
-        const tokenMatch = sdkScript.src.match(/[?&]access_token=([^&]+)/);
-        if (tokenMatch && tokenMatch[1]) return tokenMatch[1];
-      }
-    }
-  }
+// Try query param based token (new SDK)
+try {
+const url = new URL(sdkScript.src);
+const accessToken = url.searchParams.get("access_token");
+if (accessToken) return accessToken;
+} catch (e) {
+// Fallback regex if URL parsing fails
+const tokenMatch = sdkScript.src.match(/[?&]access_token=([^&]+)/);
+if (tokenMatch && tokenMatch[1]) return tokenMatch[1];
+}
+}
+}
 
-  return null;
+return null;
 };
 
 const findFirstValidLatLng = (entries) => {
-  if (!Array.isArray(entries)) return null;
+if (!Array.isArray(entries)) return null;
 
-  for (const item of entries) {
-    const latValue = item?.latitude ?? item?.lat;
-    const lngValue = item?.longitude ?? item?.lng ?? item?.lon;
+for (const item of entries) {
+const latValue = item?.latitude ?? item?.lat;
+const lngValue = item?.longitude ?? item?.lng ?? item?.lon;
 
-    const lat = Number(latValue);
-    const lng = Number(lngValue);
+const lat = Number(latValue);
+const lng = Number(lngValue);
 
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      return { lat, lng };
-    }
-  }
+if (Number.isFinite(lat) && Number.isFinite(lng)) {
+return { lat, lng };
+}
+}
 
-  return null;
+return null;
 };
 
 const setMapCenterSafely = (mapInstance, lat, lng) => {
-  if (!mapInstance || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+if (!mapInstance || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-  // Mappls prefers object format {lat, lng}, but we try both formats
-  try {
-    if (typeof mapInstance.setCenter === "function") {
-      mapInstance.setCenter([lng, lat]);
-      return;
-    }
-  } catch (primaryError) {
-    try {
-      mapInstance.setCenter({ lat, lng });
-      return;
-    } catch (secondaryError) {
-      try {
-        mapInstance.panTo?.([lng, lat]);
-        return;
-      } catch (tertiaryError) {
-        console.warn(
-          "Unable to update Mappls map center",
-          primaryError,
-          secondaryError,
-          tertiaryError
-        );
-      }
-    }
-  }
+// Mappls prefers object format {lat, lng}, but we try both formats
+try {
+if (typeof mapInstance.setCenter === "function") {
+mapInstance.setCenter([lng, lat]);
+return;
+}
+} catch (primaryError) {
+try {
+mapInstance.setCenter({ lat, lng });
+return;
+} catch (secondaryError) {
+try {
+mapInstance.panTo?.([lng, lat]);
+return;
+} catch (tertiaryError) {
+console.warn(
+"Unable to update Mappls map center",
+primaryError,
+secondaryError,
+tertiaryError
+);
+}
+}
+}
 
-  try {
-    mapInstance.panTo?.({ lat, lng });
-  } catch (error) {
-    // Silently ignore - best effort
-  }
+try {
+mapInstance.panTo?.({ lat, lng });
+} catch (error) {
+// Silently ignore - best effort
+}
 };
 
 const MAPPLS_HD_POPUP_STYLE_ID = "mappls-hd-popup-styles";
 
 const ensureHdPopupStyles = () => {
-  if (typeof document === "undefined") return;
+if (typeof document === "undefined") return;
 
-  if (document.getElementById(MAPPLS_HD_POPUP_STYLE_ID)) {
-    return;
-  }
+if (document.getElementById(MAPPLS_HD_POPUP_STYLE_ID)) {
+return;
+}
 
-  const styleElement = document.createElement("style");
-  styleElement.id = MAPPLS_HD_POPUP_STYLE_ID;
-  styleElement.textContent = `
-    .mappls-hd-popup-card {
-      background-color: #ffffff;
-      border-radius: 10px;
-      padding: 8px 10px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      min-width: 170px;
-      max-width: 200px;
-      font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 11px;
-      color: #1f2933;
-    }
+const styleElement = document.createElement("style");
+styleElement.id = MAPPLS_HD_POPUP_STYLE_ID;
+styleElement.textContent = `
+.mappls-hd-popup-card {
+background-color: #ffffff;
+border-radius: 10px;
+padding: 8px 10px;
+box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+border: 1px solid rgba(0, 0, 0, 0.08);
+min-width: 170px;
+max-width: 200px;
+font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: 11px;
+color: #1f2933;
+}
 
-    /*
-      Mappls HD marker label positioning:
-      Their SDK renders a marker container with an icon + a separate label element.
-      Default placement varies (often label below icon). We normalize to label ABOVE icon.
-      This is best-effort across SDK versions by targeting common class names.
-    */
-    .mappls-marker,
-    .mappls-marker-container,
-    .mappls-marker-container > div {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-    }
+/*
+Mappls HD marker label positioning:
+Their SDK renders a marker container with an icon + a separate label element.
+Default placement varies (often label below icon). We normalize to label ABOVE icon.
+This is best-effort across SDK versions by targeting common class names.
+*/
+.mappls-marker,
+.mappls-marker-container,
+.mappls-marker-container > div {
+display: flex !important;
+flex-direction: column !important;
+align-items: center !important;
+}
 
-    .mappls-marker-label,
-    .mappls-marker-text,
-    .mappls-label {
-      order: -1 !important;
-      margin: 0 0 4px 0 !important;
-      white-space: nowrap !important;
-    }
+.mappls-marker-label,
+.mappls-marker-text,
+.mappls-label {
+order: -1 !important;
+margin: 0 0 4px 0 !important;
+white-space: nowrap !important;
+}
 
-    .mappls-hd-popup-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      gap: 8px;
-    }
+.mappls-hd-popup-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 6px;
+gap: 8px;
+}
 
-    .mappls-hd-popup-title {
-      font-weight: 600;
-      font-size: 13px;
-      color: #111827;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+.mappls-hd-popup-title {
+font-weight: 600;
+font-size: 13px;
+color: #111827;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
 
-    .mappls-hd-popup-pill {
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      border: 1px solid transparent;
-    }
+.mappls-hd-popup-pill {
+padding: 2px 8px;
+border-radius: 999px;
+font-size: 10px;
+font-weight: 600;
+letter-spacing: 0.03em;
+text-transform: uppercase;
+border: 1px solid transparent;
+}
 
-    .mappls-hd-popup-pill--normal {
-      background-color: #ecfdf3;
-      color: #15803d;
-      border-color: #bbf7d0;
-    }
+.mappls-hd-popup-pill--normal {
+background-color: #ecfdf3;
+color: #15803d;
+border-color: #bbf7d0;
+}
 
-    .mappls-hd-popup-pill--offline {
-      background-color: #f3f4f6;
-      color: #4b5563;
-      border-color: #d1d5db;
-    }
+.mappls-hd-popup-pill--offline {
+background-color: #f3f4f6;
+color: #4b5563;
+border-color: #d1d5db;
+}
 
-    .mappls-hd-popup-pill--alert {
-      background-color: #fef2f2;
-      color: #b91c1c;
-      border-color: #fecaca;
-    }
+.mappls-hd-popup-pill--alert {
+background-color: #fef2f2;
+color: #b91c1c;
+border-color: #fecaca;
+}
 
-    .mappls-hd-popup-body {
-      border-top: 1px solid #f1f5f9;
-      padding-top: 6px;
-      margin-top: 4px;
-      display: grid;
-      row-gap: 4px;
-    }
+.mappls-hd-popup-body {
+border-top: 1px solid #f1f5f9;
+padding-top: 6px;
+margin-top: 4px;
+display: grid;
+row-gap: 4px;
+}
 
-    .mappls-hd-popup-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
+.mappls-hd-popup-row {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+gap: 8px;
+}
 
-    .mappls-hd-popup-label {
-      font-size: 11px;
-      color: #6b7280;
-    }
+.mappls-hd-popup-label {
+font-size: 11px;
+color: #6b7280;
+}
 
-    .mappls-hd-popup-value {
-      font-size: 11px;
-      font-weight: 500;
-      color: #111827;
-      white-space: nowrap;
-    }
+.mappls-hd-popup-value {
+font-size: 11px;
+font-weight: 500;
+color: #111827;
+white-space: nowrap;
+}
 
-    .drawing-mode-active, 
-    .drawing-mode-active * {
-      cursor: crosshair!important;
-    }
-  `;
+.drawing-mode-active,
+.drawing-mode-active * {
+cursor: crosshair!important;
+}
+`;
 
-  document.head.appendChild(styleElement);
+document.head.appendChild(styleElement);
 };
 
 const formatDisplayValue = (value, fallback = "-") => {
-  if (value === null || value === undefined || value === "") {
-    return fallback;
-  }
+if (value === null || value === undefined || value === "") {
+return fallback;
+}
 
-  return String(value);
+return String(value);
 };
 
 const getMarkerLabelText = (entry, mode = "vehicle") => {
-  if (!entry) return "";
+if (!entry) return "";
 
-  switch (mode) {
-    case "block": {
-      return (
-        entry.block_name ||
-        entry.block ||
-        entry.blockName ||
-        entry.area_name ||
-        entry.area ||
-        entry.device_tag_info?.block?.name ||
-        entry.device_tag_info?.block_name ||
-        entry.device_tag_info?.device?.block_name ||
-        entry.device_tag_info?.device?.district ||
-        entry.district ||
-        entry.address ||
-        entry.nearest_poi?.data?.address ||
-        ""
-      );
-    }
-    case "route": {
-      const routeId = entry.route_id ||
-        entry.route_ref?.id ||
-        entry.device_tag_info?.route?.id ||
-        entry.nearby_routes_within_100m?.[0]?.data?.id;
-      return (
-        entry.route_name ||
-        entry.route ||
-        (routeId ? `Route: ${routeId}` : "") ||
-        entry.route_info ||
-        entry.routeInformation ||
-        entry.route_ref?.name ||
-        ""
-      );
-    }
-    case "vehicle":
-    default: {
-      return (
-        entry.vehicle_registration_number ||
-        entry.vehicle_reg_no ||
-        entry.device_tag_info?.device?.vehicle_reg_no ||
-        entry.device_tag_info?.vehicle?.vehicle_reg_no ||
-        entry.imei ||
-        ""
-      );
-    }
-  }
+switch (mode) {
+case "block": {
+return (
+entry.block_name ||
+entry.block ||
+entry.blockName ||
+entry.area_name ||
+entry.area ||
+entry.device_tag_info?.block?.name ||
+entry.device_tag_info?.block_name ||
+entry.device_tag_info?.device?.block_name ||
+entry.device_tag_info?.device?.district ||
+entry.district ||
+entry.address ||
+entry.nearest_poi?.data?.address ||
+""
+);
+}
+case "route": {
+const routeId = entry.route_id ||
+entry.route_ref?.id ||
+entry.device_tag_info?.route?.id ||
+entry.nearby_routes_within_100m?.[0]?.data?.id;
+return (
+entry.route_name ||
+entry.route ||
+(routeId ? `Route: ${routeId}` : "") ||
+entry.route_info ||
+entry.routeInformation ||
+entry.route_ref?.name ||
+""
+);
+}
+case "vehicle":
+default: {
+return (
+entry.vehicle_registration_number ||
+entry.vehicle_reg_no ||
+entry.device_tag_info?.device?.vehicle_reg_no ||
+entry.device_tag_info?.vehicle?.vehicle_reg_no ||
+entry.imei ||
+""
+);
+}
+}
 };
 
 const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
-  const displayLabel = getMarkerLabelText(entry, markerLabelMode) || "-";
-  const isStale = isEntryStale15Min(entry);
-  const alertType = isStale ? "Offline" : formatDisplayValue(entry?.packet_type, "NR");
-  const normalizedAlertType = String(alertType).trim().toUpperCase();
-  const alertClass =
-    normalizedAlertType === "OFFLINE"
-      ? "mappls-hd-popup-pill--offline"
-      : (normalizedAlertType === "NR" || normalizedAlertType === "NORMAL")
-        ? "mappls-hd-popup-pill--normal"
-        : "mappls-hd-popup-pill--alert";
+const displayLabel = getMarkerLabelText(entry, markerLabelMode) || "-";
+const isStale = isEntryStale15Min(entry);
+const alertType = isStale ? "Offline" : formatDisplayValue(entry?.packet_type, "NR");
+const normalizedAlertType = String(alertType).trim().toUpperCase();
+const alertClass =
+normalizedAlertType === "OFFLINE"
+? "mappls-hd-popup-pill--offline"
+: (normalizedAlertType === "NR" || normalizedAlertType === "NORMAL")
+? "mappls-hd-popup-pill--normal"
+: "mappls-hd-popup-pill--alert";
 
-  const speedValue =
-    typeof entry?.speed === "number" && entry.speed > 2
-      ? `${entry.speed.toFixed(2)} km / h`
-      : "0 km/h";
+const speedValue =
+typeof entry?.speed === "number" && entry.speed > 2
+? `${entry.speed.toFixed(2)} km / h`
+: "0 km/h";
 
-  const dateValue = formatDisplayValue(entry?.date);
-  const timeValue = formatDisplayValue(entry?.time);
-  const addressValue = formatDisplayValue(entry?.address);
-  const nearestPolice = resolveNearestPoliceDetails(entry);
-  const nearestStationValue =
-    nearestPolice?.name && nearestPolice.name !== "-" ? formatDisplayValue(nearestPolice.name) : null;
-  const policeContactValue = formatDisplayValue(
-    entry?.nearestPoliceContact || entry?.nearest_police?.data?.phone
-  );
-  const batteryValue = `${formatDisplayValue(
-    entry?.internal_battery_voltage
-  )
-    } - ${formatDisplayValue(entry?.main_input_voltage)} `;
+const dateValue = formatDisplayValue(entry?.date);
+const timeValue = formatDisplayValue(entry?.time);
+const addressValue = formatDisplayValue(entry?.address);
+const nearestPolice = resolveNearestPoliceDetails(entry);
+const nearestStationValue =
+nearestPolice?.name && nearestPolice.name !== "-" ? formatDisplayValue(nearestPolice.name) : null;
+const policeContactValue = formatDisplayValue(
+entry?.nearestPoliceContact || entry?.nearest_police?.data?.phone
+);
+const batteryValue = `${formatDisplayValue(
+entry?.internal_battery_voltage
+)
+} - ${formatDisplayValue(entry?.main_input_voltage)} `;
 
-  const policeRows = [
-    nearestStationValue
-      ? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Nearest Police Station</span><span class="mappls-hd-popup-value">${nearestStationValue}</span></div>`
-      : "",
-    policeContactValue
-      ? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Police Contact</span><span class="mappls-hd-popup-value">${policeContactValue}</span></div>`
-      : "",
-  ].join("");
+const policeRows = [
+nearestStationValue
+? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Nearest Police Station</span><span class="mappls-hd-popup-value">${nearestStationValue}</span></div>`
+: "",
+policeContactValue
+? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Police Contact</span><span class="mappls-hd-popup-value">${policeContactValue}</span></div>`
+: "",
+].join("");
 
-  return `
-  < div class="mappls-hd-popup-card" >
-      <div class="mappls-hd-popup-header">
-        <div class="mappls-hd-popup-title">${displayLabel}</div>
-        <div class="mappls-hd-popup-pill ${alertClass}">${alertType}</div>
-      </div>
-      <div class="mappls-hd-popup-body">
-        <div class="mappls-hd-popup-row">
-          <span class="mappls-hd-popup-label">Date</span>
-          <span class="mappls-hd-popup-value">${dateValue}</span>
-        </div>
-        <div class="mappls-hd-popup-row">
-          <span class="mappls-hd-popup-label">Time</span>
-          <span class="mappls-hd-popup-value">${timeValue}</span>
-        </div>
-        <div class="mappls-hd-popup-row">
-          <span class="mappls-hd-popup-label">Address</span>
-          <span class="mappls-hd-popup-value">${addressValue}</span>
-        </div>
-        ${policeRows}
-        <div class="mappls-hd-popup-row">
-          <span class="mappls-hd-popup-label">Battery</span>
-          <span class="mappls-hd-popup-value">${batteryValue}</span>
-        </div>
-      </div>
-    </div >
-  `;
+return `
+< div class="mappls-hd-popup-card" >
+<div class="mappls-hd-popup-header">
+<div class="mappls-hd-popup-title">${displayLabel}</div>
+<div class="mappls-hd-popup-pill ${alertClass}">${alertType}</div>
+</div>
+<div class="mappls-hd-popup-body">
+<div class="mappls-hd-popup-row">
+<span class="mappls-hd-popup-label">Date</span>
+<span class="mappls-hd-popup-value">${dateValue}</span>
+</div>
+<div class="mappls-hd-popup-row">
+<span class="mappls-hd-popup-label">Time</span>
+<span class="mappls-hd-popup-value">${timeValue}</span>
+</div>
+<div class="mappls-hd-popup-row">
+<span class="mappls-hd-popup-label">Address</span>
+<span class="mappls-hd-popup-value">${addressValue}</span>
+</div>
+${policeRows}
+<div class="mappls-hd-popup-row">
+<span class="mappls-hd-popup-label">Battery</span>
+<span class="mappls-hd-popup-value">${batteryValue}</span>
+</div>
+</div>
+</div >
+`;
 };
 
 const ensureHdZoomLevel = (mapInstance, targetZoom = 12) => {
-  if (!mapInstance) return;
+if (!mapInstance) return;
 
-  try {
-    const currentZoom =
-      typeof mapInstance.getZoom === "function" ? mapInstance.getZoom() : null;
-    if (!Number.isFinite(currentZoom) || currentZoom < targetZoom) {
-      if (typeof mapInstance.setZoom === "function") {
-        mapInstance.setZoom(targetZoom);
-      }
-    }
-  } catch (error) {
-    // Ignore zoom errors - best effort only
-  }
+try {
+const currentZoom =
+typeof mapInstance.getZoom === "function" ? mapInstance.getZoom() : null;
+if (!Number.isFinite(currentZoom) || currentZoom < targetZoom) {
+if (typeof mapInstance.setZoom === "function") {
+mapInstance.setZoom(targetZoom);
+}
+}
+} catch (error) {
+// Ignore zoom errors - best effort only
+}
 };
 
 const resolveBhuvanWmsUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec3.nrsc.gov.in/bhuvan/wms";
-  }
+const envUrl = process.env.REACT_APP_BHUVAN_URL;
+if (!envUrl) {
+return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
+}
 
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/wms")) {
-    return normalizedUrl;
-  }
+const normalizedUrl = envUrl.replace(/\/$/, "");
+if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
+return normalizedUrl;
+}
 
-  return `${normalizedUrl}/bhuvan/wms`;
-};
-
-const resolveBhuvanAmrutWmsUrl = () => {
-  const envUrl =
-    process.env.REACT_APP_BHUVAN_AMRUT_WMS_URL ||
-    process.env.REACT_APP_BHUVAN_AMRUT_URL;
-
-  if (!envUrl) {
-    return "https://bhuvan-vec3.nrsc.gov.in/bhuvan/wms";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/wms")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/bhuvan/wms`;
-};
-
-const resolveBhuvanWmtsUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_WMTS_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec3.nrsc.gov.in/bhuvan/gwc/service/wmts/";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/gwc/service/wmts")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/bhuvan/gwc/service/wmts/`;
-};
-
-const resolveBhuvanSiUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_SI_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/nuis/ows";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/nuis/ows")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/bhuvan/nuis/ows`;
-};
-
-const resolveBhuvanSisdpUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_SISDP_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/wms")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/bhuvan/wms`;
-};
-
-const resolveBhuvanKamrupMetroUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_KAMRUP_METRO_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec2.nrsc.gov.in/bhuvan/sisdpv2/wms";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/bhuvan/sisdpv2/wms")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/bhuvan/sisdpv2/wms`;
-};
-
-const resolveBhuvanFloodAssamUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_FLOOD_ASSAM_URL;
-  if (!envUrl) {
-    return "https://bhuvan-ras2.nrsc.gov.in/cgi-bin/hazard.exe";
-  }
-
-  const normalizedUrl = envUrl.replace(/\/$/, "");
-  if (normalizedUrl.includes("/cgi-bin/hazard.exe")) {
-    return normalizedUrl;
-  }
-
-  return `${normalizedUrl}/cgi-bin/hazard.exe`;
+return `${normalizedUrl}/bhuvan/gwc/service/wms`;
 };
 
 const BHUVAN_WMS_URL = resolveBhuvanWmsUrl();
-const BHUVAN_AMRUT_WMS_URL = resolveBhuvanAmrutWmsUrl();
-const BHUVAN_WMTS_URL = resolveBhuvanWmtsUrl();
-const BHUVAN_SI_URL = resolveBhuvanSiUrl();
-const BHUVAN_SISDP_URL = resolveBhuvanSisdpUrl();
-const BHUVAN_KAMRUP_METRO_URL = resolveBhuvanKamrupMetroUrl();
-const BHUVAN_FLOOD_ASSAM_URL = resolveBhuvanFloodAssamUrl();
-
-const BHUVAN_FLOOD_ASSAM_LAYER = "as_hz";
-const BHUVAN_FLOOD_ASSAM_EXTENT = [89.701, 24.135, 96.021, 27.977];
 
 const DEFAULT_BHUVAN_LAYER_NAMES = [
-  "basemap:admin_group",
-  "india3",
-  "mmi:mmi_india",
+"basemap:admin_group",
+"india3",
+"mmi:mmi_india",
 ];
 
 const BHUVAN_CROSS_ORIGIN =
-  process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined;
+process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined;
 
 const createBhuvanSource = (layerName) => {
-  const options = {
-    url: BHUVAN_WMS_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  // Temporarily remove crossOrigin to bypass CORS
-  // if (BHUVAN_CROSS_ORIGIN) {
-  //   options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  // }
-
-  return new TileWMS(options);
+const options = {
+url: BHUVAN_WMS_URL,
+params: {
+LAYERS: layerName,
+STYLES: "",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+projection: "EPSG:4326",
+transition: 0,
 };
 
-const createBhuvanAmrutSource = (layerName) => {
-  const options = {
-    url: BHUVAN_AMRUT_WMS_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
+if (BHUVAN_CROSS_ORIGIN) {
+options.crossOrigin = BHUVAN_CROSS_ORIGIN;
+}
 
-  return new TileWMS(options);
+return new TileWMS(options);
 };
 
-const createBhuvanFloodAssamSource = (layerName) => {
-  const options = {
-    url: BHUVAN_FLOOD_ASSAM_URL,
-    params: {
-      LAYERS: BHUVAN_FLOOD_ASSAM_LAYER,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  // Temporarily remove crossOrigin to bypass CORS
-  // if (BHUVAN_CROSS_ORIGIN) {
-  //   options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  // }
-
-  return new TileWMS(options);
-};
-
-const createBhuvanWmtsSource = (layerName) => {
-  const options = {
-    url: BHUVAN_WMTS_URL,
-    layer: layerName,
-    matrixSet: "EPSG:4326",
-    format: "image/png",
-    projection: "EPSG:4326",
-    tileGrid: new WMTSTileGrid({
-      origin: [-180, 90],
-      resolutions: [
-        0.703125, 0.3515625, 0.17578125, 0.087890625, 0.0439453125,
-        0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125
-      ],
-      matrixIds: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-    }),
-    style: "",
-    wrapX: true,
-    transition: 0,
-  };
-
-  // Temporarily remove crossOrigin to bypass CORS
-  // if (BHUVAN_CROSS_ORIGIN) {
-  //   options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  // }
-
-  return new WMTS(options);
-};
-
-const createBhuvanSiSource = (layerName) => {
-  const options = {
-    url: BHUVAN_SI_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  // Temporarily remove crossOrigin to bypass CORS
-  // if (BHUVAN_CROSS_ORIGIN) {
-  //   options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  // }
-
-  return new TileWMS(options);
-};
-
-const createBhuvanSisdpSource = (layerName) => {
-  const options = {
-    url: BHUVAN_SISDP_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  // Temporarily remove crossOrigin to bypass CORS
-  // if (BHUVAN_CROSS_ORIGIN) {
-  //   options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  // }
-
-  return new TileWMS(options);
-};
-
-const createBhuvanAssamSource = (layerName) => {
-  const options = {
-    url: BHUVAN_SISDP_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  // Temporarily remove crossOrigin to bypass CORS
-  // if (BHUVAN_CROSS_ORIGIN) {
-  //   options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  // }
-
-  return new TileWMS(options);
-};
-
-const createBhuvanKamrupMetroSource = (layerName) => {
-  const options = {
-    url: BHUVAN_KAMRUP_METRO_URL,
-    params: {
-      LAYERS: layerName,
-      STYLES: "",
-      TILED: true,
-      VERSION: "1.1.1",
-      FORMAT: "image/png",
-      TRANSPARENT: "true",
-      SRS: "EPSG:4326",
-      WIDTH: 256,
-      HEIGHT: 256,
-    },
-    serverType: "geoserver",
-    projection: "EPSG:4326",
-    transition: 0,
-  };
-
-  // Temporarily remove crossOrigin to bypass CORS
-  // if (BHUVAN_CROSS_ORIGIN) {
-  //   options.crossOrigin = BHUVAN_CROSS_ORIGIN;
-  // }
-
-  return new TileWMS(options);
-};
-
- const MapComponent = ({
-  gpsData,
-  policeData = [],
-  incidentData = [],
-  width = "100%",
-  height = "400px",
-  onVehicleClick,
-  onPolygonComplete,
-  autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
-  focusEntry = null,
-  markerLabelMode = "vehicle",
-  nmrArea = null,
-  allMode = false,
+const MapComponent = ({
+gpsData,
+policeData = [],
+incidentData = [],
+width = "100%",
+height = "400px",
+onVehicleClick,
+onPolygonComplete,
+autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
+focusEntry = null,
+markerLabelMode = "vehicle",
+nmrArea = null,
+allMode = false,
 }) => {
-  const theme = useTheme();
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const lastAutoFocusedVehicleKeyRef = useRef(null);
-  const overlayElement = useRef();
-  const lastClickedVehicleRef = useRef(null);
-  const trackingDetailCacheRef = useRef({});
-  const trackingDetailInFlightRef = useRef({});
-  const trackingDetailLastFetchAtRef = useRef({});
-  const [map, setMap] = useState(null);
-  const [vectorLayer, setVectorLayer] = useState(null);
-  const [dynamicOverlay, setDynamicOverlay] = useState(null);
-  const [drawVectorLayer, setDrawVectorLayer] = useState(null);
-  const [drawInteraction, setDrawInteraction] = useState(null);
-  const [poiVectorLayer, setPoiVectorLayer] = useState(null);
-  const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
-  const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
-  const [pois, setPois] = useState([]);
-
-  const [soiLayerVisibility, setSoiLayerVisibility] = useState({
-    states: false,
-    assamDistrict: false,
-    assamDistrictBdy2: false,
-    assamDistrictHq: false,
-    assamStateBdy: false,
-    assamSubdistrictBdy: false,
-    cartTrackHills: false,
-    contours: false,
-    kamrupRural: false,
-    majorTowns: false,
-    name: false,
-    railwayTracks: false,
-    roads: false,
-    roadsAllWeatherMotorable: false,
-    roadsMotorableInFairWeather: false,
-    roadsNationalHighway: false,
-    roadOthers: false,
-    roadTunnel: false,
-    stateHighway: false,
-    buildingFootprint: false,
-    roadSurface: false,
-    busStop: false,
-    block: false,
-    skytronAssamCombined: false,
-    assamTowns: false,
-    bhuvanAmrut: false,
-    bhuvanAmrutSilchar: false,
-    bhuvanAmrutDibrugarh: false,
-    bhuvanAmrutGuwahati: false,
-    bhuvanSi: false,
-    bhuvanSisdp: false,
-    bhuvanAssam: false,
-    bhuvanKamrupMetro: false,
-    bhuvanFloodAssam: false,
-    bhuvanManipur: false,
-    bhuvanWestBengal: false,
-    bhuvanTripura: false,
-    bhuvanNagaland: false,
-    bhuvanMeghalaya: false,
-    bhuvanMizoram: false,
-    bhuvanArunachal: false,
-  });
-
-  const SOI_CITY_ZOOM_MIN = 12;
-  const soiLayerVisibilityRef = useRef(soiLayerVisibility);
-  useEffect(() => {
-    soiLayerVisibilityRef.current = soiLayerVisibility;
-  }, [soiLayerVisibility]);
-
-  const soiLayersRef = useRef({
-    states: null,
-    assamDistrict: null,
-    assamDistrictBdy2: null,
-    assamDistrictHq: null,
-    assamStateBdy: null,
-    assamSubdistrictBdy: null,
-    cartTrackHills: null,
-    contours: null,
-    kamrupRural: null,
-    majorTowns: null,
-    name: null,
-    railwayTracks: null,
-    roads: null,
-    roadsAllWeatherMotorable: null,
-    roadsMotorableInFairWeather: null,
-    roadsNationalHighway: null,
-    roadOthers: null,
-    roadTunnel: null,
-    stateHighway: null,
-    buildingFootprint: null,
-    roadSurface: null,
-    busStop: null,
-    block: null,
-    skytronAssamCombined: null,
-    assamTowns: null,
-    bhuvanAmrut: null,
-    bhuvanAmrutSilchar: null,
-    bhuvanAmrutDibrugarh: null,
-    bhuvanAmrutGuwahati: null,
-    bhuvanSi: null,
-    bhuvanSisdp: null,
-    bhuvanAssam: null,
-    bhuvanKamrupMetro: null,
-    bhuvanFloodAssam: null,
-    bhuvanManipur: null,
-    bhuvanWestBengal: null,
-    bhuvanTripura: null,
-    bhuvanNagaland: null,
-    bhuvanMeghalaya: null,
-    bhuvanMizoram: null,
-    bhuvanArunachal: null,
-  });
-
-  // Map type state for 3-layer system
-  const [mapType, setMapType] = useState("normal"); // 'normal', 'satellite', 'hd'
-  const mapplsMapRef = useRef(null);
-  const olMapRef = useRef(null);
-  const normalMapRef = useRef(null);
-  const olWasDraggingRef = useRef(false);
-  const normalMapContainerRef = useRef(null);
-  const satelliteMapContainerRef = useRef(null);
-  const soiMapContainerRef = useRef(null);
-  const hdMapContainerRef = useRef(null); // Mappls SDK Refs
-  const hdMapInnerRef = useRef(null);
-  const hdVehicleMarkersRef = useRef([]); // Store vehicle markers for HD map
-  const hdPoiMarkersRef = useRef([]);     // Store POI markers for HD map
-  const hdIncidentMarkersRef = useRef([]); // Store incident markers for HD map
-  const mapplsInstanceRef = useRef(null);
-  const mapplsInitializedRef = useRef(false);
-  const mapplsInitInProgressRef = useRef(false);
-  const mapplsLibraryPollRef = useRef(null);
-  const hdMapContainerIdRef = useRef(null);
-
-  // HD Map Drawing State & Refs
-  const [drawingMode, setDrawingMode] = useState(null); // 'polygon' or null
-  const [drawingPoints, setDrawingPoints] = useState([]);
-  const tempPolyRef = useRef(null);
-  const tempMarkersRef = useRef([]);
-
-  const fetchVehicleTrackingDetail = async (entry) => {
-    const imei =
-      entry?.imei ||
-      entry?.imei_no ||
-      entry?.imeiNo ||
-      entry?.device_tag_info?.device?.imei ||
-      entry?.device_tag_info?.imei;
-    const regno =
-      entry?.vehicle_registration_number ||
-      entry?.vehicle_reg_no ||
-      entry?.device_tag_info?.device?.vehicle_reg_no ||
-      entry?.device_tag_info?.vehicle?.vehicle_reg_no ||
-      "";
-
-    const cacheKey = imei ? `imei:${imei}` : regno ? `regno:${regno}` : null;
-    if (!cacheKey) return null;
-
-    const cached = trackingDetailCacheRef.current[cacheKey];
-    if (cached) return cached;
-
-    const inFlight = trackingDetailInFlightRef.current[cacheKey];
-    if (inFlight) return inFlight;
-
-    const now = Date.now();
-    const lastFetchAt = trackingDetailLastFetchAtRef.current[cacheKey];
-    if (lastFetchAt && now - lastFetchAt < 15000) {
-      return null;
-    }
-    trackingDetailLastFetchAtRef.current[cacheKey] = now;
-
-    const reqPromise = HomePageService.getLiveTracking_data({
-      imei: imei || "",
-      regno,
-      owner: "",
-      poi: "",
-      roads: "",
-      polygon: "",
-      category: "",
-      make: "",
-      dto_code: "",
-      poi_id: "",
-      in_range: false,
-      poi_as_polygon: false,
-    })
-      .then((resp) => {
-        const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
-        if (detail) {
-          trackingDetailCacheRef.current[cacheKey] = detail;
-          return detail;
-        }
-        return null;
-      })
-      .catch(() => null)
-      .finally(() => {
-        delete trackingDetailInFlightRef.current[cacheKey];
-      });
-
-    trackingDetailInFlightRef.current[cacheKey] = reqPromise;
-    return reqPromise;
-  };
-
-  // Geocoding State
-  const [geoSearchQuery, setGeoSearchQuery] = useState('');
-  const [geoSearchResults, setGeoSearchResults] = useState([]); // Store search results
-  const [showVehicles, setShowVehicles] = useState(true);
-  const [showPois, setShowPois] = useState(false);
-  const [showIncidents, setShowIncidents] = useState(false);
-  const [geoSearchLoading, setGeoSearchLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
-
-  const USE_TYPE_COLORS = {
-    school: "#1E88E5",
-    hospital: "#E53935",
-    dealership: "#8E24AA",
-    dealer: "#8E24AA",
-    personal: "#43A047",
-    prohibited_area: "#D81B60",
-    permitroute: "#FB8C00",
-    tollgate: "#6D4C41",
-    parking: "#00897B",
-    no_parking: "#C62828",
-    villageboundary: "#5E35B1",
-    cityboundary: "#3949AB",
-    districtboundary: "#00838F",
-    stateboundary: "#00695C",
-    fuelstation: "#FDD835",
-    busstop: "#7CB342",
-    railwaystation: "#5C6BC0",
-    airport: "#039BE5",
-    other: "#546E7A",
-  };
-
-  const hexToRgba = (hex, alpha) => {
-    if (!hex) {
-      return `rgba(30, 136, 229, ${alpha})`;
-    }
-
-    let normalized = hex.replace("#", "");
-    if (normalized.length === 3) {
-      normalized = normalized
-        .split("")
-        .map((char) => char + char)
-        .join("");
-    }
-
-    const bigint = parseInt(normalized, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
-
-  const getUseTypeColor = (poi) => {
-    const key = poi?.use_type?.toLowerCase();
-    return USE_TYPE_COLORS[key] || "#1E88E5";
-  };
-
-  const createIconStyle = (color, vehicleType, labelText, forceLightBlue = false) => {
-    const normalizedVehicleType = vehicleType
-      ? vehicleType.toLowerCase().replace(/\s+/g, "_")
-      : "bus";
-
-    const availableTypes = [
-      "ambulance",
-      "bus",
-      "dumper",
-      "police",
-      "school_bus",
-      "tanker",
-      "taxi",
-      "truck",
-    ];
-    const iconType = availableTypes.includes(normalizedVehicleType)
-      ? normalizedVehicleType
-      : "bus";
-
-    let iconPath;
-    try {
-      iconPath = vehicleIconContext(`./${color}/${iconType}.png`);
-    } catch (error) {
-      try {
-        iconPath = vehicleIconContext(`./${color}/bus.png`);
-      } catch (fallbackError) {
-        iconPath = vehicleIconContext(`./default/bus.png`);
-      }
-    }
-
-    const scaleByColor = {
-      blue: 0.055,
-      green: 0.065,
-      red: 0.065,
-      orange: 0.065,
-      grey: 0.065,
-      default: 0.065,
-    };
-
-    const iconScale = scaleByColor[color] || scaleByColor.default;
-    const labelGap = color === "grey" ? 15 : 5;
-    const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
-
-    const textStyle = labelText
-      ? new Text({
-        text: labelText,
-        font: '11px "Roboto", sans-serif',
-        fill: new Fill({ color: "#0D47A1" }),
-        stroke: new Stroke({ color: "#ffffff", width: 3 }),
-        backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
-        padding: [1, 3, 1, 3],
-        textAlign: 'center',
-        textBaseline: 'bottom',
-        offsetY: labelOffsetY,
-      })
-      : undefined;
-
-    if (forceLightBlue) {
-      return [
-        new Style({
-          image: new CircleStyle({
-            radius: 18,
-            fill: new Fill({ color: "rgba(33, 150, 243, 0.30)" }),
-            stroke: new Stroke({ color: "rgba(33, 150, 243, 0.75)", width: 2 }),
-          }),
-          text: textStyle,
-        }),
-        new Style({
-          image: new Icon({
-            anchor: [0.5, 1],
-            src: iconPath,
-            scale: iconScale,
-          }),
-          text: textStyle,
-        }),
-      ];
-    }
-
-    return new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: iconPath,
-        scale: iconScale,
-      }),
-      text: textStyle,
-    });
-  };
-
-  const getMarkerLabel = (entry, mode) => {
-    if (!entry) return "";
-    switch (mode) {
-      case "block": {
-        return (
-          entry.block_name ||
-          entry.block ||
-          entry.blockName ||
-          entry.area_name ||
-          entry.area ||
-          entry.device_tag_info?.block?.name ||
-          entry.device_tag_info?.block_name ||
-          entry.device_tag_info?.device?.block_name ||
-          entry.device_tag_info?.device?.district ||
-          entry.device_tag_info?.state_info?.state ||
-          entry.district ||
-          entry.address ||
-          entry.nearest_poi?.data?.address ||
-          ""
-        );
-      }
-      case "route": {
-        const routeId = entry.route_id ||
-          entry.route_ref?.id ||
-          entry.device_tag_info?.route?.id ||
-          entry.nearby_routes_within_100m?.[0]?.data?.id;
-        return (
-          entry.route_name ||
-          entry.route ||
-          (routeId ? `Route: ${routeId}` : "") ||
-          entry.route_info ||
-          entry.routeInformation ||
-          entry.route_ref?.name ||
-          ""
-        );
-      }
-      case "vehicle":
-      default: {
-        return (
-          entry.vehicle_registration_number ||
-          entry.vehicle_reg_no ||
-          entry.device_tag_info?.device?.vehicle_reg_no ||
-          entry.device_tag_info?.vehicle?.vehicle_reg_no ||
-          entry.imei ||
-          ""
-        );
-      }
-    }
-  };
-
-  const getVehicleMarkerIconUrl = (color, vehicleType) => {
-    const categoryName = typeof vehicleType === 'object' ? vehicleType?.category : vehicleType;
-    const normalizedVehicleType = categoryName
-      ? categoryName.toLowerCase().replace(/\s+/g, "_")
-      : "bus";
-    const availableTypes = [
-      "ambulance",
-      "bus",
-      "dumper",
-      "police",
-      "school_bus",
-      "tanker",
-      "taxi",
-      "truck",
-    ];
-    const iconType = availableTypes.includes(normalizedVehicleType)
-      ? normalizedVehicleType
-      : "bus";
-
-    const allowedColors = ["red", "orange", "blue", "green", "grey", "default"];
-    const safeColor = allowedColors.includes(color) ? color : "default";
-
-    try {
-      return require(`../../assets/images/${safeColor}/${iconType}.png`);
-    } catch (error) {
-      try {
-        return require(`../../assets/images/default/bus.png`);
-      } catch (fallbackError) {
-        console.error("Failed to resolve vehicle icon for HD map marker", {
-          error,
-          fallbackError,
-        });
-        return null;
-      }
-    }
-  };
-
-  const getPoiMarkerIcon = (color) => {
-    const safeColor = color || "#1E88E5";
-    const svg = `<?xml version="1.0" encoding="UTF-8"?>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <g fill="none" fill-rule="evenodd">
-          <path d="M0 0h24v24H0z"/>
-          <path fill="${safeColor}" d="M12 2c4.418 0 8 3.134 8 7 0 5.25-8 13-8 13S4 14.25 4 9c0-3.866 3.582-7 8-7Zm0 4a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 6Z"/>
-        </g>
-      </svg>`;
-
-    if (typeof window !== "undefined" && typeof window.btoa === "function") {
-      return `data:image/svg+xml;base64,${window.btoa(svg)}`;
-    }
-
-    return null;
-  };
-
-  const getPoiStyles = (poi) => {
-    const baseColor = getUseTypeColor(poi);
-    const fillColor = hexToRgba(baseColor, 0.18);
-
-    const primaryLabel = poi?.name?.trim();
-    const secondaryLabel = poi?.use_type?.trim();
-    const fallbackLabel = poi?.description?.trim();
-    const displayText =
-      primaryLabel || secondaryLabel || fallbackLabel || `POI ${poi?.id ?? ""}`;
-
-    const createText = (overrides = {}) =>
-      new Text({
-        text: displayText,
-        font: '12px "Roboto", sans-serif',
-        fill: new Fill({ color: "#0D47A1" }),
-        stroke: new Stroke({ color: "#ffffff", width: 3 }),
-        backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
-        padding: [2, 4, 2, 4],
-        ...overrides,
-      });
-
-    switch (poi?.mark_type) {
-      case "Point":
-        return [
-          new Style({
-            image: new CircleStyle({
-              radius: 7,
-              fill: new Fill({ color: baseColor }),
-              stroke: new Stroke({ color: "#ffffff", width: 2 }),
-            }),
-            text: createText({ offsetY: -20 }),
-            zIndex: 1000,
-          }),
-        ];
-
-      case "Circle":
-        return [
-          new Style({
-            fill: new Fill({ color: fillColor }),
-            stroke: new Stroke({ color: baseColor, width: 2 }),
-            zIndex: 900,
-          }),
-          new Style({
-            text: createText(),
-            geometry: (feature) => {
-              const geometry = feature.getGeometry();
-              if (!geometry || !geometry.getCenter) return null;
-              return new Point(geometry.getCenter());
-            },
-            zIndex: 950,
-          }),
-        ];
-
-      case "Polygon":
-        return [
-          new Style({
-            fill: new Fill({ color: fillColor }),
-            stroke: new Stroke({ color: baseColor, width: 2 }),
-            zIndex: 900,
-          }),
-          new Style({
-            text: createText(),
-            geometry: (feature) => {
-              const geometry = feature.getGeometry();
-              return geometry && geometry.getInteriorPoint
-                ? geometry.getInteriorPoint()
-                : null;
-            },
-            zIndex: 950,
-          }),
-        ];
-
-      case "Road":
-        return [
-          new Style({
-            stroke: new Stroke({ color: baseColor, width: 3 }),
-            zIndex: 900,
-          }),
-          new Style({
-            text: createText(),
-            geometry: (feature) => {
-              const geometry = feature.getGeometry();
-              if (!geometry || !geometry.getCoordinateAt) return null;
-              const coordinate = geometry.getCoordinateAt(0.5);
-              return coordinate ? new Point(coordinate) : null;
-            },
-            zIndex: 950,
-          }),
-        ];
-
-      default:
-        return [
-          new Style({
-            image: new CircleStyle({
-              radius: 7,
-              fill: new Fill({ color: baseColor }),
-              stroke: new Stroke({ color: "#ffffff", width: 2 }),
-            }),
-            text: createText({ offsetY: -20 }),
-            zIndex: 1000,
-          }),
-        ];
-    }
-  };
-
-  const clusterStyleFunction = (feature) => {
-    const features = feature.get('features');
-    const size = features.length;
-
-    if (size === 1) {
-      // Return the style of the original feature
-      return features[0].getStyle();
-    }
-
-    return new Style({
-      image: new CircleStyle({
-        radius: 12 + Math.min(size * 0.5, 8),
-        stroke: new Stroke({ color: '#fff', width: 2 }),
-        fill: new Fill({ color: '#1976d2' }),
-      }),
-      text: new Text({
-        text: size.toString(),
-        fill: new Fill({ color: '#fff' }),
-        font: 'bold 12px "Roboto", sans-serif',
-      }),
-    });
-  };
-
-  // Initialize Normal Map (Default)
-  useEffect(() => {
-    if (mapType !== "normal" || !normalMapContainerRef.current) return;
-
-    // Create the three WMS layers matching POIViewer.jsx configuration exactly
-    const india3Layer = new TileLayer({
-      source: createBhuvanSource("india3"),
-      zIndex: 1,
-    });
-
-    const adminGroupLayer = new TileLayer({
-      source: createBhuvanSource("basemap%3Aadmin_group"),
-      zIndex: 2,
-    });
-
-    const roadsLayer = new TileLayer({
-      source: createBhuvanSource("mmi:mmi_india"),
-      zIndex: 3,
-    });
-
-    const initialMap = new Map({
-      target: normalMapContainerRef.current,
-      layers: [india3Layer, adminGroupLayer, roadsLayer],
-
-      view: new View({
-        projection: "EPSG:4326",
-        center: [91.7362, 26.1445], // Guwahati, Assam
-        zoom: 6,
-        maxZoom: 32,
-        constrainResolution: true,
-      }),
-
-      controls: [
-        new ZoomSlider(),
-        new FullScreen(),
-        // new ScaleLine()
-      ],
-
-      pixelRatio: 1,
-    });
-
-    // Initialize vector layer for markers
-    // Initialize vector layer for markers (with Clustering)
-    const initialVectorLayer = new VectorLayer({
-      source: new Cluster({
-        distance: 40,
-        source: new VectorSource(),
-      }),
-      zIndex: 200,
-      style: clusterStyleFunction,
-    });
-    initialMap.addLayer(initialVectorLayer);
-
-    // Initialize POI vector layer
-    const poiSource = new VectorSource();
-    const initialPoiVectorLayer = new VectorLayer({
-      source: poiSource,
-      zIndex: 100,
-      declutter: true,
-      visible: false,
-    });
-    initialMap.addLayer(initialPoiVectorLayer);
-    setPoiVectorLayer(initialPoiVectorLayer);
-
-    // Initialize incident vector layer
-    const incidentSource = new VectorSource();
-    const initialIncidentVectorLayer = new VectorLayer({
-      source: incidentSource,
-      zIndex: 300,
-      visible: false,
-    });
-    initialMap.addLayer(initialIncidentVectorLayer);
-    setIncidentVectorLayer(initialIncidentVectorLayer);
-
-    // Initialize NMR circle vector layer
-    const nmrSource = new VectorSource();
-    const initialNmrVectorLayer = new VectorLayer({
-      source: nmrSource,
-      zIndex: 250,
-      visible: true,
-    });
-    initialMap.addLayer(initialNmrVectorLayer);
-    setNmrVectorLayer(initialNmrVectorLayer);
-
-    // Initialize vector layer for drawing
-    const drawSource = new VectorSource();
-    const drawLayer = new VectorLayer({
-      source: drawSource,
-      style: new Style({
-        fill: new Fill({
-          color: "rgba(255, 255, 255, 0.2)",
-        }),
-        stroke: new Stroke({
-          color: "#ffcc33",
-          width: 2,
-        }),
-        image: new CircleStyle({
-          radius: 7,
-          fill: new Fill({
-            color: "#ffcc33",
-          }),
-        }),
-      }),
-    });
-    initialMap.addLayer(drawLayer);
-
-    // Create dynamic overlay
-    const initialOverlay = new Overlay({
-      element: overlayElement.current,
-    });
-    initialMap.addOverlay(initialOverlay);
-
-    setMap(initialMap);
-    setVectorLayer(initialVectorLayer);
-    setDynamicOverlay(initialOverlay);
-    setDrawVectorLayer(drawLayer);
-    normalMapRef.current = initialMap;
-
-    return () => {
-      if (normalMapRef.current) {
-        normalMapRef.current.setTarget(null);
-        normalMapRef.current = null;
-      }
-    };
-  }, [mapType]);
-
-  // Initialize Satellite Map (OpenLayers)
-  useEffect(() => {
-    if (mapType !== "satellite" || !satelliteMapContainerRef.current) return;
-
-    try {
-
-      // OSM Satellite layer
-      const osmLayer = new TileLayer({
-        title: "OSM Satellite",
-        source: new XYZ({
-          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          attributions: " Esri",
-          maxZoom: 18,
-        }),
-        zIndex: 0,
-      });
-
-      const satelliteMap = new Map({
-        target: satelliteMapContainerRef.current,
-        layers: [osmLayer],
-        view: new View({
-          projection: "EPSG:4326",
-          center: [91.7362, 26.1445],
-          zoom: 13,
-          maxZoom: 22,
-          constrainResolution: true,
-        }),
-        controls: [
-          new ZoomSlider(),
-          new FullScreen(),
-          new ScaleLine()
-        ],
-        pixelRatio: 1,
-      });
-
-      // Initialize vector layer for markers
-      // Initialize vector layer for markers (with Clustering)
-      const initialVectorLayer = new VectorLayer({
-        source: new Cluster({
-          distance: 40,
-          source: new VectorSource(),
-        }),
-        zIndex: 200,
-        style: clusterStyleFunction,
-      });
-      satelliteMap.addLayer(initialVectorLayer);
-
-      // Initialize POI vector layer
-      const poiSource = new VectorSource();
-      const initialPoiVectorLayer = new VectorLayer({
-        source: poiSource,
-        zIndex: 100,
-        declutter: true,
-        visible: false,
-      });
-      satelliteMap.addLayer(initialPoiVectorLayer);
-      setPoiVectorLayer(initialPoiVectorLayer);
-
-      // Initialize incident vector layer for satellite
-      const incidentSource = new VectorSource();
-      const initialIncidentVectorLayer = new VectorLayer({
-        source: incidentSource,
-        zIndex: 300,
-        visible: false,
-      });
-      satelliteMap.addLayer(initialIncidentVectorLayer);
-      setIncidentVectorLayer(initialIncidentVectorLayer);
-
-      // Initialize NMR circle vector layer for satellite
-      const nmrSource = new VectorSource();
-      const initialNmrVectorLayer = new VectorLayer({
-        source: nmrSource,
-        zIndex: 250,
-        visible: true,
-      });
-      satelliteMap.addLayer(initialNmrVectorLayer);
-      setNmrVectorLayer(initialNmrVectorLayer);
-
-      // Initialize vector layer for drawing
-      const drawSource = new VectorSource();
-      const drawLayer = new VectorLayer({
-        source: drawSource,
-        style: new Style({
-          fill: new Fill({
-            color: "rgba(255, 255, 255, 0.2)",
-          }),
-          stroke: new Stroke({
-            color: "#ffcc33",
-            width: 2,
-          }),
-          image: new CircleStyle({
-            radius: 7,
-            fill: new Fill({
-              color: "#ffcc33",
-            }),
-          }),
-        }),
-      });
-      satelliteMap.addLayer(drawLayer);
-
-      // Create dynamic overlay
-      const initialOverlay = new Overlay({
-        element: overlayElement.current,
-      });
-      satelliteMap.addOverlay(initialOverlay);
-
-      setMap(satelliteMap);
-      setVectorLayer(initialVectorLayer);
-      setDynamicOverlay(initialOverlay);
-      setDrawVectorLayer(drawLayer);
-      olMapRef.current = satelliteMap;
-    } catch (error) {
-      console.error("Error initializing satellite map:", error);
-    }
-
-    return () => {
-      if (olMapRef.current) {
-        olMapRef.current.setTarget(null);
-        olMapRef.current = null;
-      }
-    };
-  }, [mapType]);
-
-  // Initialize Survey of India Map
-  useEffect(() => {
-    if (mapType !== "soi" || !soiMapContainerRef.current) return;
-
-    try {
-      const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
-      const assamGeoserverURL = "https://map.gromed.in/geoserver/assam/wms";
-
-      // Bhuvan base map (same as normal map)
-      const bhuvanIndia3Layer = new TileLayer({
-        source: createBhuvanSource("india3"),
-        zIndex: 0,
-      });
-
-      const bhuvanAdminLayer = new TileLayer({
-        source: createBhuvanSource("basemap%3Aadmin_group"),
-        zIndex: 1,
-      });
-
-      const bhuvanRoadsLayer = new TileLayer({
-        source: createBhuvanSource("mmi:mmi_india"),
-        zIndex: 2,
-      });
-
-      // SOI / skytron overlays
-      const soiStatesLayer = new TileLayer({
-        title: "States",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:states",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.7,
-        visible: soiLayerVisibility.states,
-        zIndex: 10,
-      });
-
-      const soiAssamDistrictLayer = new TileLayer({
-        title: "ASSAM District Boundary",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ASSAM_DISTRICT_BDY",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.8,
-        visible: soiLayerVisibility.assamDistrict,
-        zIndex: 11,
-      });
-
-      const soiAssamDistrictBdy2Layer = new TileLayer({
-        title: "ASSAM District Boundary 2",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ASSAM_DISTRICT_BDY2",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.8,
-        visible: soiLayerVisibility.assamDistrictBdy2,
-        zIndex: 12,
-      });
-
-      const soiAssamDistrictHqLayer = new TileLayer({
-        title: "ASSAM District HQ",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ASSAM_DISTRICT_HQ",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.assamDistrictHq,
-        zIndex: 13,
-      });
-
-      const soiAssamStateBdyLayer = new TileLayer({
-        title: "ASSAM State Boundary",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ASSAM_STATE_BDY",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.8,
-        visible: soiLayerVisibility.assamStateBdy,
-        zIndex: 14,
-      });
-
-      const soiAssamSubdistrictBdyLayer = new TileLayer({
-        title: "ASSAM Subdistrict Boundary",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ASSAM_SUBDISTRICT_BDY",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.8,
-        visible: soiLayerVisibility.assamSubdistrictBdy,
-        zIndex: 15,
-      });
-
-      const soiCartTrackHillsLayer = new TileLayer({
-        title: "Cart Track Hills",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:CART_TRACK_HILLS",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.cartTrackHills,
-        zIndex: 16,
-      });
-
-      const soiContoursLayer = new TileLayer({
-        title: "Contours",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:Contours",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.8,
-        visible: soiLayerVisibility.contours,
-        zIndex: 12,
-      });
-
-      const soiKamrupRuralLayer = new TileLayer({
-        title: "Kamrup Rural",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:KAMRUP_RURAL",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.kamrupRural,
-        zIndex: 17,
-      });
-
-      const soiMajorTownsLayer = new TileLayer({
-        title: "Major Towns / Headquarters",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:MajortownsHeadquarters",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.majorTowns,
-        zIndex: 13,
-      });
-
-      const soiNameLayer = new TileLayer({
-        title: "Name",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:NAME",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.name,
-        zIndex: 18,
-      });
-
-      const soiRailwayTracksLayer = new TileLayer({
-        title: "Railway Tracks",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:RailwayTracks",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.railwayTracks,
-        zIndex: 14,
-      });
-
-      const soiRoadsLayer = new TileLayer({
-        title: "SOI Roads",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:Roads",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.roads,
-        zIndex: 15,
-      });
-
-      const soiRoadsAllWeatherMotorableLayer = new TileLayer({
-        title: "Roads (All Weather Motorable)",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ROADS_ALL_WEATHER_MOTORABLE",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.roadsAllWeatherMotorable,
-        zIndex: 19,
-      });
-
-      const soiRoadsMotorableInFairWeatherLayer = new TileLayer({
-        title: "Roads (Motorable in Fair Weather)",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ROADS_MOTORABLE_IN_FAIR_WEATHER",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.roadsMotorableInFairWeather,
-        zIndex: 20,
-      });
-
-      const soiRoadsNationalHighwayLayer = new TileLayer({
-        title: "Roads (National Highway)",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ROADS_NATIONAL_HIGHWAY",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.roadsNationalHighway,
-        zIndex: 21,
-      });
-
-      const soiRoadOthersLayer = new TileLayer({
-        title: "Road Others",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ROAD_OTHERS",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.roadOthers,
-        zIndex: 22,
-      });
-
-      const soiRoadTunnelLayer = new TileLayer({
-        title: "Road Tunnel",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:ROAD_TUNNEL",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.roadTunnel,
-        zIndex: 23,
-      });
-
-      const soiStateHighwayLayer = new TileLayer({
-        title: "State Highway",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:STATE_HIGHWAY",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.stateHighway,
-        zIndex: 24,
-      });
-
-      const soiBuildingFootprintLayer = new TileLayer({
-        title: "Building Footprint",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:building_footprint",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.buildingFootprint,
-        zIndex: 25,
-      });
-
-      const soiRoadSurfaceLayer = new TileLayer({
-        title: "Road Surface",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:road_surface",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.roadSurface,
-        zIndex: 26,
-      });
-
-      const soiBusStopLayer = new TileLayer({
-        title: "Bus Stop",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:bus_stop",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.busStop,
-        zIndex: 27,
-      });
-
-      const soiBlockLayer = new TileLayer({
-        title: "Block",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:block",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.block,
-        zIndex: 28,
-      });
-
-      const soiSkytronAssamCombinedLayer = new TileLayer({
-        title: "Assam Combined (skytron)",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:assam_combined",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.skytronAssamCombined,
-        zIndex: 30,
-      });
-
-      const soiAssamTownsLayer = new TileLayer({
-        title: "Assam Towns (skytron)",
-        source: new TileWMS({
-          url: geoserverURL,
-          params: {
-            LAYERS: "skytron:AssamTowns",
-            TILED: true,
-          },
-          serverType: "geoserver",
-          crossOrigin: "anonymous",
-        }),
-        opacity: 0.9,
-        visible: soiLayerVisibility.assamTowns,
-        zIndex: 31,
-      });
-
-      const bhuvanSource = createBhuvanAmrutSource("amrut_ph1:AS_Nagaon_amrutph1_4k");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT using WMS URL:', BHUVAN_AMRUT_WMS_URL);
-      console.log('Bhuvan AMRUT crossOrigin:', BHUVAN_CROSS_ORIGIN);
-
-      // Add event listeners for debugging
-      bhuvanSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan AMRUT WMS tile load error:', event);
-      });
-
-      bhuvanSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan AMRUT WMS tile load start:', event);
-      });
-
-      bhuvanSource.on('tileloadend', function (event) {
-        console.log('Bhuvan AMRUT WMS tile load end:', event);
-      });
-
-      const soiBhuvanAmrutLayer = new TileLayer({
-        title: "Bhuvan AMRUT Nagaon",
-        source: bhuvanSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanAmrut,
-        zIndex: 32,
-      });
-
-      console.log('Bhuvan AMRUT WMS layer created:', soiBhuvanAmrutLayer);
-      console.log('Bhuvan AMRUT WMS layer source URL:', soiBhuvanAmrutLayer.getSource().getUrls());
-      console.log('Bhuvan AMRUT WMS layer params:', soiBhuvanAmrutLayer.getSource().getParams());
-
-      const bhuvanSilcharSource = createBhuvanAmrutSource("amrut_ph1:AS_Silchar_amrutph1_4k");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT Silchar using WMS URL:', BHUVAN_AMRUT_WMS_URL);
-      console.log('Bhuvan AMRUT Silchar crossOrigin:', BHUVAN_CROSS_ORIGIN);
-
-      // Add event listeners for debugging
-      bhuvanSilcharSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan AMRUT Silchar WMS tile load error:', event);
-      });
-
-      bhuvanSilcharSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan AMRUT Silchar WMS tile load start:', event);
-      });
-
-      bhuvanSilcharSource.on('tileloadend', function (event) {
-        console.log('Bhuvan AMRUT Silchar WMS tile load end:', event);
-      });
-
-      const soiBhuvanAmrutSilcharLayer = new TileLayer({
-        title: "Bhuvan AMRUT Silchar",
-        source: bhuvanSilcharSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanAmrutSilchar,
-        zIndex: 32,
-      });
-
-      console.log('Bhuvan AMRUT Silchar WMS layer created:', soiBhuvanAmrutSilcharLayer);
-      console.log('Bhuvan AMRUT Silchar WMS layer source URL:', soiBhuvanAmrutSilcharLayer.getSource().getUrls());
-      console.log('Bhuvan AMRUT Silchar WMS layer params:', soiBhuvanAmrutSilcharLayer.getSource().getParams());
-
-      const bhuvanDibrugarhSource = createBhuvanAmrutSource("amrut_ph1:AS_Dibrugarh_amrutph1_4k");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT Dibrugarh using WMS URL:', BHUVAN_AMRUT_WMS_URL);
-      console.log('Bhuvan AMRUT Dibrugarh crossOrigin:', BHUVAN_CROSS_ORIGIN);
-
-      // Add event listeners for debugging
-      bhuvanDibrugarhSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan AMRUT Dibrugarh WMS tile load error:', event);
-      });
-
-      bhuvanDibrugarhSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan AMRUT Dibrugarh WMS tile load start:', event);
-      });
-
-      bhuvanDibrugarhSource.on('tileloadend', function (event) {
-        console.log('Bhuvan AMRUT Dibrugarh WMS tile load end:', event);
-      });
-
-      const soiBhuvanAmrutDibrugarhLayer = new TileLayer({
-        title: "Bhuvan AMRUT Dibrugarh",
-        source: bhuvanDibrugarhSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanAmrutDibrugarh,
-        zIndex: 32,
-      });
-
-      console.log('Bhuvan AMRUT Dibrugarh WMS layer created:', soiBhuvanAmrutDibrugarhLayer);
-      console.log('Bhuvan AMRUT Dibrugarh WMS layer source URL:', soiBhuvanAmrutDibrugarhLayer.getSource().getUrls());
-      console.log('Bhuvan AMRUT Dibrugarh WMS layer params:', soiBhuvanAmrutDibrugarhLayer.getSource().getParams());
-
-      const bhuvanGuwahatiSource = createBhuvanAmrutSource("amrut_ph1:AS_Guwahati_amrutph1_4k");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan AMRUT Guwahati using WMS URL:', BHUVAN_AMRUT_WMS_URL);
-      console.log('Bhuvan AMRUT Guwahati crossOrigin:', BHUVAN_CROSS_ORIGIN);
-
-      // Add event listeners for debugging
-      bhuvanGuwahatiSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan AMRUT Guwahati WMS tile load error:', event);
-      });
-
-      bhuvanGuwahatiSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan AMRUT Guwahati WMS tile load start:', event);
-      });
-
-      bhuvanGuwahatiSource.on('tileloadend', function (event) {
-        console.log('Bhuvan AMRUT Guwahati WMS tile load end:', event);
-      });
-
-      const soiBhuvanAmrutGuwahatiLayer = new TileLayer({
-        title: "Bhuvan AMRUT Guwahati",
-        source: bhuvanGuwahatiSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanAmrutGuwahati,
-        zIndex: 32,
-      });
-
-      console.log('Bhuvan AMRUT Guwahati WMS layer created:', soiBhuvanAmrutGuwahatiLayer);
-      console.log('Bhuvan AMRUT Guwahati WMS layer source URL:', soiBhuvanAmrutGuwahatiLayer.getSource().getUrls());
-      console.log('Bhuvan AMRUT Guwahati WMS layer params:', soiBhuvanAmrutGuwahatiLayer.getSource().getParams());
-
-      // Create Bhuvan SI layer
-      const bhuvanSiSource = createBhuvanSiSource("AS_SI_UL10K");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan SI using URL:', BHUVAN_SI_URL);
-
-      // Add event listeners for debugging
-      bhuvanSiSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan SI tile load error:', event);
-      });
-
-      bhuvanSiSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan SI tile load start:', event);
-      });
-
-      bhuvanSiSource.on('tileloadend', function (event) {
-        console.log('Bhuvan SI tile load end:', event);
-      });
-
-      const soiBhuvanSiLayer = new TileLayer({
-        title: "Bhuvan SI layer",
-        source: bhuvanSiSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanSi,
-        zIndex: 33,
-      });
-
-      console.log('Bhuvan SI layer created:', soiBhuvanSiLayer);
-      console.log('Bhuvan SI layer source URL:', soiBhuvanSiLayer.getSource().getUrls());
-      console.log('Bhuvan SI layer params:', soiBhuvanSiLayer.getSource().getParams());
-
-      // Create Bhuvan SISDP layer
-      const bhuvanSisdpSource = createBhuvanSisdpSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_SK");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan SISDP using URL:', BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanSisdpSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan SISDP tile load error:', event);
-      });
-
-      bhuvanSisdpSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan SISDP tile load start:', event);
-      });
-
-      bhuvanSisdpSource.on('tileloadend', function (event) {
-        console.log('Bhuvan SISDP tile load end:', event);
-      });
-
-      const soiBhuvanSisdpLayer = new TileLayer({
-        title: "Bhuvan Sikkim",
-        source: bhuvanSisdpSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanSisdp,
-        zIndex: 34,
-      });
-
-      console.log('Bhuvan SISDP layer created:', soiBhuvanSisdpLayer);
-      console.log('Bhuvan SISDP layer source URL:', soiBhuvanSisdpLayer.getSource().getUrls());
-      console.log('Bhuvan SISDP layer params:', soiBhuvanSisdpLayer.getSource().getParams());
-
-      // Create Bhuvan Assam layer
-      const bhuvanAssamSource = createBhuvanAssamSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_AS");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan Assam using URL:', BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanAssamSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan Assam tile load error:', event);
-      });
-
-      bhuvanAssamSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan Assam tile load start:', event);
-      });
-
-      bhuvanAssamSource.on('tileloadend', function (event) {
-        console.log('Bhuvan Assam tile load end:', event);
-      });
-
-      const soiBhuvanAssamLayer = new TileLayer({
-        title: "Bhuvan Assam",
-        source: bhuvanAssamSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanAssam,
-        zIndex: 35,
-      });
-
-      console.log('Bhuvan Assam layer created:', soiBhuvanAssamLayer);
-      console.log('Bhuvan Assam layer source URL:', soiBhuvanAssamLayer.getSource().getUrls());
-      console.log('Bhuvan Assam layer params:', soiBhuvanAssamLayer.getSource().getParams());
-
-      // Create Bhuvan Manipur layer
-      const bhuvanManipurSource = createBhuvanSisdpSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_MN");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan Manipur using URL:', BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanManipurSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan Manipur tile load error:', event);
-      });
-
-      bhuvanManipurSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan Manipur tile load start:', event);
-      });
-
-      bhuvanManipurSource.on('tileloadend', function (event) {
-        console.log('Bhuvan Manipur tile load end:', event);
-      });
-
-      const soiBhuvanManipurLayer = new TileLayer({
-        title: "Bhuvan Manipur",
-        source: bhuvanManipurSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanManipur,
-        zIndex: 38,
-      });
-
-      console.log('Bhuvan Manipur layer created:', soiBhuvanManipurLayer);
-      console.log('Bhuvan Manipur layer source URL:', soiBhuvanManipurLayer.getSource().getUrls());
-      console.log('Bhuvan Manipur layer params:', soiBhuvanManipurLayer.getSource().getParams());
-
-      // Create Bhuvan West Bengal layer
-      const bhuvanWestBengalSource = createBhuvanSisdpSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_WB");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan West Bengal using URL:', BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanWestBengalSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan West Bengal tile load error:', event);
-      });
-
-      bhuvanWestBengalSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan West Bengal tile load start:', event);
-      });
-
-      bhuvanWestBengalSource.on('tileloadend', function (event) {
-        console.log('Bhuvan West Bengal tile load end:', event);
-      });
-
-      const soiBhuvanWestBengalLayer = new TileLayer({
-        title: "Bhuvan West Bengal",
-        source: bhuvanWestBengalSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanWestBengal,
-        zIndex: 39,
-      });
-
-      console.log('Bhuvan West Bengal layer created:', soiBhuvanWestBengalLayer);
-      console.log('Bhuvan West Bengal layer source URL:', soiBhuvanWestBengalLayer.getSource().getUrls());
-      console.log('Bhuvan West Bengal layer params:', soiBhuvanWestBengalLayer.getSource().getParams());
-
-      // Create Bhuvan Tripura layer
-      const bhuvanTripuraSource = createBhuvanSisdpSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_TR");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan Tripura using URL:', BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanTripuraSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan Tripura tile load error:', event);
-      });
-
-      bhuvanTripuraSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan Tripura tile load start:', event);
-      });
-
-      bhuvanTripuraSource.on('tileloadend', function (event) {
-        console.log('Bhuvan Tripura tile load end:', event);
-      });
-
-      const soiBhuvanTripuraLayer = new TileLayer({
-        title: "Bhuvan Tripura",
-        source: bhuvanTripuraSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanTripura,
-        zIndex: 40,
-      });
-
-      console.log('Bhuvan Tripura layer created:', soiBhuvanTripuraLayer);
-      console.log('Bhuvan Tripura layer source URL:', soiBhuvanTripuraLayer.getSource().getUrls());
-      console.log('Bhuvan Tripura layer params:', soiBhuvanTripuraLayer.getSource().getParams());
-
-      // Create Bhuvan Nagaland layer
-      const bhuvanNagalandSource = createBhuvanSisdpSource("sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_NL");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan Nagaland using URL:', BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanNagalandSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan Nagaland tile load error:', event);
-      });
-
-      bhuvanNagalandSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan Nagaland tile load start:', event);
-      });
-
-      bhuvanNagalandSource.on('tileloadend', function (event) {
-        console.log('Bhuvan Nagaland tile load end:', event);
-      });
-
-      const soiBhuvanNagalandLayer = new TileLayer({
-        title: "Bhuvan Nagaland",
-        source: bhuvanNagalandSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanNagaland,
-        zIndex: 41,
-      });
-
-      console.log('Bhuvan Nagaland layer created:', soiBhuvanNagalandLayer);
-      console.log('Bhuvan Nagaland layer source URL:', soiBhuvanNagalandLayer.getSource().getUrls());
-      console.log('Bhuvan Nagaland layer params:', soiBhuvanNagalandLayer.getSource().getParams());
-
-      // Create Bhuvan Meghalaya layer
-      const bhuvanMeghalayaSource = createBhuvanSisdpSource(
-        "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_ML"
-      );
-
-      // Debug: Log the URL being used
-      console.log("Bhuvan Meghalaya using URL:", BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanMeghalayaSource.on("tileloaderror", function (event) {
-        console.error("Bhuvan Meghalaya tile load error:", event);
-      });
-
-      bhuvanMeghalayaSource.on("tileloadstart", function (event) {
-        console.log("Bhuvan Meghalaya tile load start:", event);
-      });
-
-      bhuvanMeghalayaSource.on("tileloadend", function (event) {
-        console.log("Bhuvan Meghalaya tile load end:", event);
-      });
-
-      const soiBhuvanMeghalayaLayer = new TileLayer({
-        title: "Bhuvan Meghalaya",
-        source: bhuvanMeghalayaSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanMeghalaya,
-        zIndex: 42,
-      });
-
-      console.log("Bhuvan Meghalaya layer created:", soiBhuvanMeghalayaLayer);
-      console.log("Bhuvan Meghalaya layer source URL:", soiBhuvanMeghalayaLayer.getSource().getUrls());
-      console.log("Bhuvan Meghalaya layer params:", soiBhuvanMeghalayaLayer.getSource().getParams());
-
-      // Create Bhuvan Mizoram layer
-      const bhuvanMizoramSource = createBhuvanSisdpSource(
-        "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_MZ"
-      );
-
-      // Debug: Log the URL being used
-      console.log("Bhuvan Mizoram using URL:", BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanMizoramSource.on("tileloaderror", function (event) {
-        console.error("Bhuvan Mizoram tile load error:", event);
-      });
-
-      bhuvanMizoramSource.on("tileloadstart", function (event) {
-        console.log("Bhuvan Mizoram tile load start:", event);
-      });
-
-      bhuvanMizoramSource.on("tileloadend", function (event) {
-        console.log("Bhuvan Mizoram tile load end:", event);
-      });
-
-      const soiBhuvanMizoramLayer = new TileLayer({
-        title: "Bhuvan Mizoram",
-        source: bhuvanMizoramSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanMizoram,
-        zIndex: 43,
-      });
-
-      console.log("Bhuvan Mizoram layer created:", soiBhuvanMizoramLayer);
-      console.log("Bhuvan Mizoram layer source URL:", soiBhuvanMizoramLayer.getSource().getUrls());
-      console.log("Bhuvan Mizoram layer params:", soiBhuvanMizoramLayer.getSource().getParams());
-
-      // Create Bhuvan Arunachal layer
-      const bhuvanArunachalSource = createBhuvanSisdpSource(
-        "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_AR"
-      );
-
-      // Debug: Log the URL being used
-      console.log("Bhuvan Arunachal using URL:", BHUVAN_SISDP_URL);
-
-      // Add event listeners for debugging
-      bhuvanArunachalSource.on("tileloaderror", function (event) {
-        console.error("Bhuvan Arunachal tile load error:", event);
-      });
-
-      bhuvanArunachalSource.on("tileloadstart", function (event) {
-        console.log("Bhuvan Arunachal tile load start:", event);
-      });
-
-      bhuvanArunachalSource.on("tileloadend", function (event) {
-        console.log("Bhuvan Arunachal tile load end:", event);
-      });
-
-      const soiBhuvanArunachalLayer = new TileLayer({
-        title: "Bhuvan Arunachal",
-        source: bhuvanArunachalSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanArunachal,
-        zIndex: 44,
-      });
-
-      console.log("Bhuvan Arunachal layer created:", soiBhuvanArunachalLayer);
-      console.log(
-        "Bhuvan Arunachal layer source URL:",
-        soiBhuvanArunachalLayer.getSource().getUrls()
-      );
-      console.log(
-        "Bhuvan Arunachal layer params:",
-        soiBhuvanArunachalLayer.getSource().getParams()
-      );
-
-      // Create Bhuvan Kamrup Metro layer
-      const bhuvanKamrupMetroSource = createBhuvanKamrupMetroSource("AS_Kamrup_Metro_lulc_v2");
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan Kamrup Metro using URL:', BHUVAN_KAMRUP_METRO_URL);
-
-      // Add event listeners for debugging
-      bhuvanKamrupMetroSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan Kamrup Metro tile load error:', event);
-      });
-
-      bhuvanKamrupMetroSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan Kamrup Metro tile load start:', event);
-      });
-
-      bhuvanKamrupMetroSource.on('tileloadend', function (event) {
-        console.log('Bhuvan Kamrup Metro tile load end:', event);
-      });
-
-      const soiBhuvanKamrupMetroLayer = new TileLayer({
-        title: "Bhuvan Kamrup Metro",
-        source: bhuvanKamrupMetroSource,
-        opacity: 0.8,
-        visible: soiLayerVisibility.bhuvanKamrupMetro,
-        zIndex: 36,
-      });
-
-      console.log('Bhuvan Kamrup Metro layer created:', soiBhuvanKamrupMetroLayer);
-      console.log('Bhuvan Kamrup Metro layer source URL:', soiBhuvanKamrupMetroLayer.getSource().getUrls());
-      console.log('Bhuvan Kamrup Metro layer params:', soiBhuvanKamrupMetroLayer.getSource().getParams());
-
-      // Create Bhuvan Flood Assam layer
-      const bhuvanFloodAssamSource = createBhuvanFloodAssamSource();
-
-      // Debug: Log the URL being used
-      console.log('Bhuvan Flood Assam using URL:', BHUVAN_FLOOD_ASSAM_URL);
-
-      // Add event listeners for debugging
-      bhuvanFloodAssamSource.on('tileloaderror', function (event) {
-        console.error('Bhuvan Flood Assam tile load error:', event);
-      });
-
-      bhuvanFloodAssamSource.on('tileloadstart', function (event) {
-        console.log('Bhuvan Flood Assam tile load start:', event);
-      });
-
-      bhuvanFloodAssamSource.on('tileloadend', function (event) {
-        console.log('Bhuvan Flood Assam tile load end:', event);
-      });
-
-      const soiBhuvanFloodAssamLayer = new TileLayer({
-        title: "Bhuvan Flood Assam",
-        source: bhuvanFloodAssamSource,
-        opacity: 0.8,
-        extent: BHUVAN_FLOOD_ASSAM_EXTENT,
-        visible: soiLayerVisibility.bhuvanFloodAssam,
-        zIndex: 37,
-      });
-
-      console.log('Bhuvan Flood Assam layer created:', soiBhuvanFloodAssamLayer);
-      console.log('Bhuvan Flood Assam layer source URL:', soiBhuvanFloodAssamLayer.getSource().getUrls());
-      console.log('Bhuvan Flood Assam layer params:', soiBhuvanFloodAssamLayer.getSource().getParams());
-
-      soiLayersRef.current = {
-        states: soiStatesLayer,
-        assamDistrict: soiAssamDistrictLayer,
-        assamDistrictBdy2: soiAssamDistrictBdy2Layer,
-        assamDistrictHq: soiAssamDistrictHqLayer,
-        assamStateBdy: soiAssamStateBdyLayer,
-        assamSubdistrictBdy: soiAssamSubdistrictBdyLayer,
-        cartTrackHills: soiCartTrackHillsLayer,
-        contours: soiContoursLayer,
-        kamrupRural: soiKamrupRuralLayer,
-        majorTowns: soiMajorTownsLayer,
-        name: soiNameLayer,
-        railwayTracks: soiRailwayTracksLayer,
-        roads: soiRoadsLayer,
-        roadsAllWeatherMotorable: soiRoadsAllWeatherMotorableLayer,
-        roadsMotorableInFairWeather: soiRoadsMotorableInFairWeatherLayer,
-        roadsNationalHighway: soiRoadsNationalHighwayLayer,
-        roadOthers: soiRoadOthersLayer,
-        roadTunnel: soiRoadTunnelLayer,
-        stateHighway: soiStateHighwayLayer,
-        buildingFootprint: soiBuildingFootprintLayer,
-        roadSurface: soiRoadSurfaceLayer,
-        busStop: soiBusStopLayer,
-        block: soiBlockLayer,
-        skytronAssamCombined: soiSkytronAssamCombinedLayer,
-        assamTowns: soiAssamTownsLayer,
-        bhuvanAmrut: soiBhuvanAmrutLayer,
-        bhuvanAmrutSilchar: soiBhuvanAmrutSilcharLayer,
-        bhuvanAmrutDibrugarh: soiBhuvanAmrutDibrugarhLayer,
-        bhuvanAmrutGuwahati: soiBhuvanAmrutGuwahatiLayer,
-        bhuvanSi: soiBhuvanSiLayer,
-        bhuvanSisdp: soiBhuvanSisdpLayer,
-        bhuvanAssam: soiBhuvanAssamLayer,
-        bhuvanManipur: soiBhuvanManipurLayer,
-        bhuvanWestBengal: soiBhuvanWestBengalLayer,
-        bhuvanTripura: soiBhuvanTripuraLayer,
-        bhuvanNagaland: soiBhuvanNagalandLayer,
-        bhuvanMeghalaya: soiBhuvanMeghalayaLayer,
-        bhuvanMizoram: soiBhuvanMizoramLayer,
-        bhuvanArunachal: soiBhuvanArunachalLayer,
-        bhuvanKamrupMetro: soiBhuvanKamrupMetroLayer,
-        bhuvanFloodAssam: soiBhuvanFloodAssamLayer,
-      };
-
-      const soiMap = new Map({
-        target: soiMapContainerRef.current,
-        layers: [
-          bhuvanIndia3Layer,
-          bhuvanAdminLayer,
-          bhuvanRoadsLayer,
-          soiStatesLayer,
-          soiAssamDistrictLayer,
-          soiAssamDistrictBdy2Layer,
-          soiAssamDistrictHqLayer,
-          soiAssamStateBdyLayer,
-          soiAssamSubdistrictBdyLayer,
-          soiCartTrackHillsLayer,
-          soiContoursLayer,
-          soiKamrupRuralLayer,
-          soiMajorTownsLayer,
-          soiNameLayer,
-          soiRailwayTracksLayer,
-          soiRoadsLayer,
-          soiRoadsAllWeatherMotorableLayer,
-          soiRoadsMotorableInFairWeatherLayer,
-          soiRoadsNationalHighwayLayer,
-          soiRoadOthersLayer,
-          soiRoadTunnelLayer,
-          soiStateHighwayLayer,
-          soiBuildingFootprintLayer,
-          soiRoadSurfaceLayer,
-          soiBusStopLayer,
-          soiBlockLayer,
-          soiSkytronAssamCombinedLayer,
-          soiAssamTownsLayer,
-          soiBhuvanAmrutLayer,
-          soiBhuvanAmrutSilcharLayer,
-          soiBhuvanAmrutDibrugarhLayer,
-          soiBhuvanAmrutGuwahatiLayer,
-          soiBhuvanSiLayer,
-          soiBhuvanSisdpLayer,
-          soiBhuvanAssamLayer,
-          soiBhuvanManipurLayer,
-          soiBhuvanWestBengalLayer,
-          soiBhuvanTripuraLayer,
-          soiBhuvanNagalandLayer,
-          soiBhuvanMeghalayaLayer,
-          soiBhuvanMizoramLayer,
-          soiBhuvanArunachalLayer,
-          soiBhuvanKamrupMetroLayer,
-          soiBhuvanFloodAssamLayer,
-        ],
-        view: new View({
-          projection: "EPSG:4326",
-          center: [91.7362, 26.1445],
-          zoom: 13,
-          maxZoom: 19,
-          constrainResolution: true,
-        }),
-        pixelRatio: 1,
-      });
-
-      // Initialize vector layer for markers
-      // Initialize vector layer for markers (with Clustering)
-      const initialVectorLayer = new VectorLayer({
-        source: new Cluster({
-          distance: 40,
-          source: new VectorSource(),
-        }),
-        zIndex: 200,
-        style: clusterStyleFunction,
-      });
-      soiMap.addLayer(initialVectorLayer);
-
-      // Initialize POI vector layer
-      const poiSource = new VectorSource();
-      const initialPoiVectorLayer = new VectorLayer({
-        source: poiSource,
-        zIndex: 100,
-        declutter: true,
-      });
-      soiMap.addLayer(initialPoiVectorLayer);
-      setPoiVectorLayer(initialPoiVectorLayer);
-
-      // Initialize incident vector layer for SOI
-      const incidentSource = new VectorSource();
-      const initialIncidentVectorLayer = new VectorLayer({
-        source: incidentSource,
-        zIndex: 300,
-        visible: false,
-      });
-      soiMap.addLayer(initialIncidentVectorLayer);
-      setIncidentVectorLayer(initialIncidentVectorLayer);
-
-      // Initialize vector layer for drawing
-      const drawSource = new VectorSource();
-      const drawLayer = new VectorLayer({
-        source: drawSource,
-        style: new Style({
-          fill: new Fill({
-            color: "rgba(255, 255, 255, 0.2)",
-          }),
-          stroke: new Stroke({
-            color: "#ffcc33",
-            width: 2,
-          }),
-          image: new CircleStyle({
-            radius: 7,
-            fill: new Fill({
-              color: "#ffcc33",
-            }),
-          }),
-        }),
-      });
-      soiMap.addLayer(drawLayer);
-
-      // Create dynamic overlay
-      const initialOverlay = new Overlay({
-        element: overlayElement.current,
-      });
-      soiMap.addOverlay(initialOverlay);
-
-      setMap(soiMap);
-      setVectorLayer(initialVectorLayer);
-      setDynamicOverlay(initialOverlay);
-      setDrawVectorLayer(drawLayer);
-
-    } catch (error) {
-      console.error("Error initializing SOI map:", error);
-    }
-
-    return () => {
-      // Cleanup logic if needed, but usually strictly setting target null is enough for OL
-      // React strict mode might cause double init so we just let it be replaced
-    };
-  }, [mapType]);
-
-  const applySoiLayerVisibility = (zoom) => {
-    const layers = soiLayersRef.current;
-    const vis = soiLayerVisibilityRef.current;
-    if (!layers || !vis) return;
-
-    const isCityZoom = typeof zoom === "number" && zoom >= SOI_CITY_ZOOM_MIN;
-
-    layers.states?.setVisible?.(!!vis.states);
-    layers.assamDistrict?.setVisible?.(!!vis.assamDistrict);
-    layers.assamDistrictBdy2?.setVisible?.(!!vis.assamDistrictBdy2);
-    layers.assamDistrictHq?.setVisible?.(!!vis.assamDistrictHq);
-    layers.assamStateBdy?.setVisible?.(!!vis.assamStateBdy);
-    layers.assamSubdistrictBdy?.setVisible?.(!!vis.assamSubdistrictBdy);
-    layers.cartTrackHills?.setVisible?.(!!vis.cartTrackHills);
-    layers.contours?.setVisible?.(!!vis.contours);
-    layers.kamrupRural?.setVisible?.(!!vis.kamrupRural);
-    layers.majorTowns?.setVisible?.(!!vis.majorTowns);
-    layers.name?.setVisible?.(!!vis.name);
-    layers.railwayTracks?.setVisible?.(!!vis.railwayTracks);
-    layers.roads?.setVisible?.(!!vis.roads);
-    layers.roadsAllWeatherMotorable?.setVisible?.(!!vis.roadsAllWeatherMotorable);
-    layers.roadsMotorableInFairWeather?.setVisible?.(!!vis.roadsMotorableInFairWeather);
-    layers.roadsNationalHighway?.setVisible?.(!!vis.roadsNationalHighway);
-    layers.roadOthers?.setVisible?.(!!vis.roadOthers);
-    layers.roadTunnel?.setVisible?.(!!vis.roadTunnel);
-    layers.stateHighway?.setVisible?.(!!vis.stateHighway);
-    layers.buildingFootprint?.setVisible?.(!!vis.buildingFootprint);
-    layers.roadSurface?.setVisible?.(!!vis.roadSurface);
-    layers.busStop?.setVisible?.(!!vis.busStop);
-    layers.block?.setVisible?.(!!vis.block);
-    layers.skytronAssamCombined?.setVisible?.(!!vis.skytronAssamCombined);
-
-    layers.assamTowns?.setVisible?.(!!vis.assamTowns && isCityZoom);
-    layers.bhuvanAmrut?.setVisible?.(!!vis.bhuvanAmrut && isCityZoom);
-    layers.bhuvanAmrutSilchar?.setVisible?.(!!vis.bhuvanAmrutSilchar && isCityZoom);
-    layers.bhuvanAmrutDibrugarh?.setVisible?.(!!vis.bhuvanAmrutDibrugarh && isCityZoom);
-    layers.bhuvanAmrutGuwahati?.setVisible?.(!!vis.bhuvanAmrutGuwahati && isCityZoom);
-    layers.bhuvanSi?.setVisible?.(!!vis.bhuvanSi && isCityZoom);
-    layers.bhuvanKamrupMetro?.setVisible?.(!!vis.bhuvanKamrupMetro && isCityZoom);
-    layers.bhuvanFloodAssam?.setVisible?.(!!vis.bhuvanFloodAssam && isCityZoom);
-
-    layers.bhuvanSisdp?.setVisible?.(!!vis.bhuvanSisdp);
-    layers.bhuvanAssam?.setVisible?.(!!vis.bhuvanAssam);
-    layers.bhuvanManipur?.setVisible?.(!!vis.bhuvanManipur);
-    layers.bhuvanWestBengal?.setVisible?.(!!vis.bhuvanWestBengal);
-    layers.bhuvanTripura?.setVisible?.(!!vis.bhuvanTripura);
-    layers.bhuvanNagaland?.setVisible?.(!!vis.bhuvanNagaland);
-    layers.bhuvanMeghalaya?.setVisible?.(!!vis.bhuvanMeghalaya);
-    layers.bhuvanMizoram?.setVisible?.(!!vis.bhuvanMizoram);
-    layers.bhuvanArunachal?.setVisible?.(!!vis.bhuvanArunachal);
-
-    // Debug logging for Bhuvan AMRUT layer
-    console.log('Bhuvan AMRUT layer visibility:', vis.bhuvanAmrut);
-    console.log('Bhuvan AMRUT layer object:', layers.bhuvanAmrut);
-    if (layers.bhuvanAmrut) {
-      console.log('Bhuvan AMRUT layer actual visibility:', layers.bhuvanAmrut.getVisible());
-      console.log('Bhuvan AMRUT layer source:', layers.bhuvanAmrut.getSource());
-    }
-
-    // Debug logging for Bhuvan AMRUT Silchar layer
-    console.log('Bhuvan AMRUT Silchar layer visibility:', vis.bhuvanAmrutSilchar);
-    console.log('Bhuvan AMRUT Silchar layer object:', layers.bhuvanAmrutSilchar);
-    if (layers.bhuvanAmrutSilchar) {
-      console.log('Bhuvan AMRUT Silchar layer actual visibility:', layers.bhuvanAmrutSilchar.getVisible());
-      console.log('Bhuvan AMRUT Silchar layer source:', layers.bhuvanAmrutSilchar.getSource());
-    }
-
-    // Debug logging for Bhuvan AMRUT Dibrugarh layer
-    console.log('Bhuvan AMRUT Dibrugarh layer visibility:', vis.bhuvanAmrutDibrugarh);
-    console.log('Bhuvan AMRUT Dibrugarh layer object:', layers.bhuvanAmrutDibrugarh);
-    if (layers.bhuvanAmrutDibrugarh) {
-      console.log('Bhuvan AMRUT Dibrugarh layer actual visibility:', layers.bhuvanAmrutDibrugarh.getVisible());
-      console.log('Bhuvan AMRUT Dibrugarh layer source:', layers.bhuvanAmrutDibrugarh.getSource());
-    }
-
-    // Debug logging for Bhuvan AMRUT Guwahati layer
-    console.log('Bhuvan AMRUT Guwahati layer visibility:', vis.bhuvanAmrutGuwahati);
-    console.log('Bhuvan AMRUT Guwahati layer object:', layers.bhuvanAmrutGuwahati);
-    if (layers.bhuvanAmrutGuwahati) {
-      console.log('Bhuvan AMRUT Guwahati layer actual visibility:', layers.bhuvanAmrutGuwahati.getVisible());
-      console.log('Bhuvan AMRUT Guwahati layer source:', layers.bhuvanAmrutGuwahati.getSource());
-    }
-
-    // Debug logging for Bhuvan SI layer
-    console.log('Bhuvan SI layer visibility:', vis.bhuvanSi);
-    console.log('Bhuvan SI layer object:', layers.bhuvanSi);
-    if (layers.bhuvanSi) {
-      console.log('Bhuvan SI layer actual visibility:', layers.bhuvanSi.getVisible());
-      console.log('Bhuvan SI layer source:', layers.bhuvanSi.getSource());
-    }
-
-    // Debug logging for Bhuvan SISDP layer
-    console.log('Bhuvan SISDP layer visibility:', vis.bhuvanSisdp);
-    console.log('Bhuvan SISDP layer object:', layers.bhuvanSisdp);
-    if (layers.bhuvanSisdp) {
-      console.log('Bhuvan SISDP layer actual visibility:', layers.bhuvanSisdp.getVisible());
-      console.log('Bhuvan SISDP layer source:', layers.bhuvanSisdp.getSource());
-    }
-
-    // Debug logging for Bhuvan Assam layer
-    console.log('Bhuvan Assam layer visibility:', vis.bhuvanAssam);
-    console.log('Bhuvan Assam layer object:', layers.bhuvanAssam);
-    if (layers.bhuvanAssam) {
-      console.log('Bhuvan Assam layer actual visibility:', layers.bhuvanAssam.getVisible());
-      console.log('Bhuvan Assam layer source:', layers.bhuvanAssam.getSource());
-    }
-
-    // Debug logging for Bhuvan Manipur layer
-    console.log('Bhuvan Manipur layer visibility:', vis.bhuvanManipur);
-    console.log('Bhuvan Manipur layer object:', layers.bhuvanManipur);
-    if (layers.bhuvanManipur) {
-      console.log('Bhuvan Manipur layer actual visibility:', layers.bhuvanManipur.getVisible());
-      console.log('Bhuvan Manipur layer source:', layers.bhuvanManipur.getSource());
-    }
-  };
-
-  useEffect(() => {
-    if (mapType !== "soi" || !map) return;
-    const view = map.getView?.();
-    if (!view) return;
-
-    const updateFromView = () => {
-      const zoom = view.getZoom?.();
-      applySoiLayerVisibility(zoom);
-    };
-
-    updateFromView();
-    view.on("change:resolution", updateFromView);
-    return () => {
-      view.un("change:resolution", updateFromView);
-    };
-  }, [mapType, map]);
-
-  useEffect(() => {
-    const layers = soiLayersRef.current;
-    if (!layers) return;
-
-    if (mapType === "soi") {
-      const zoom = map?.getView?.()?.getZoom?.();
-      applySoiLayerVisibility(zoom);
-    }
-
-    // Debug logging for Bhuvan West Bengal layer
-    console.log('Bhuvan West Bengal layer visibility:', soiLayerVisibility.bhuvanWestBengal);
-    console.log('Bhuvan West Bengal layer object:', layers.bhuvanWestBengal);
-    if (layers.bhuvanWestBengal) {
-      console.log('Bhuvan West Bengal layer actual visibility:', layers.bhuvanWestBengal.getVisible());
-      console.log('Bhuvan West Bengal layer source:', layers.bhuvanWestBengal.getSource());
-    }
-
-    // Debug logging for Bhuvan Tripura layer
-    console.log('Bhuvan Tripura layer visibility:', soiLayerVisibility.bhuvanTripura);
-    console.log('Bhuvan Tripura layer object:', layers.bhuvanTripura);
-    if (layers.bhuvanTripura) {
-      console.log('Bhuvan Tripura layer actual visibility:', layers.bhuvanTripura.getVisible());
-      console.log('Bhuvan Tripura layer source:', layers.bhuvanTripura.getSource());
-    }
-
-    // Debug logging for Bhuvan Nagaland layer
-    console.log('Bhuvan Nagaland layer visibility:', soiLayerVisibility.bhuvanNagaland);
-    console.log('Bhuvan Nagaland layer object:', layers.bhuvanNagaland);
-    if (layers.bhuvanNagaland) {
-      console.log('Bhuvan Nagaland layer actual visibility:', layers.bhuvanNagaland.getVisible());
-      console.log('Bhuvan Nagaland layer source:', layers.bhuvanNagaland.getSource());
-    }
-
-    // Debug logging for Bhuvan Meghalaya layer
-    console.log("Bhuvan Meghalaya layer visibility:", soiLayerVisibility.bhuvanMeghalaya);
-    console.log("Bhuvan Meghalaya layer object:", layers.bhuvanMeghalaya);
-    if (layers.bhuvanMeghalaya) {
-      console.log("Bhuvan Meghalaya layer actual visibility:", layers.bhuvanMeghalaya.getVisible());
-      console.log("Bhuvan Meghalaya layer source:", layers.bhuvanMeghalaya.getSource());
-    }
-
-    // Debug logging for Bhuvan Mizoram layer
-    console.log("Bhuvan Mizoram layer visibility:", soiLayerVisibility.bhuvanMizoram);
-    console.log("Bhuvan Mizoram layer object:", layers.bhuvanMizoram);
-    if (layers.bhuvanMizoram) {
-      console.log("Bhuvan Mizoram layer actual visibility:", layers.bhuvanMizoram.getVisible());
-      console.log("Bhuvan Mizoram layer source:", layers.bhuvanMizoram.getSource());
-    }
-
-    // Debug logging for Bhuvan Arunachal layer
-    console.log("Bhuvan Arunachal layer visibility:", soiLayerVisibility.bhuvanArunachal);
-    console.log("Bhuvan Arunachal layer object:", layers.bhuvanArunachal);
-    if (layers.bhuvanArunachal) {
-      console.log(
-        "Bhuvan Arunachal layer actual visibility:",
-        layers.bhuvanArunachal.getVisible()
-      );
-      console.log("Bhuvan Arunachal layer source:", layers.bhuvanArunachal.getSource());
-    }
-
-    // Debug logging for Bhuvan Kamrup Metro layer
-    console.log('Bhuvan Kamrup Metro layer visibility:', soiLayerVisibility.bhuvanKamrupMetro);
-    console.log('Bhuvan Kamrup Metro layer object:', layers.bhuvanKamrupMetro);
-    if (layers.bhuvanKamrupMetro) {
-      console.log('Bhuvan Kamrup Metro layer actual visibility:', layers.bhuvanKamrupMetro.getVisible());
-      console.log('Bhuvan Kamrup Metro layer source:', layers.bhuvanKamrupMetro.getSource());
-    }
-
-    // Debug logging for Bhuvan Flood Assam layer
-    console.log('Bhuvan Flood Assam layer visibility:', soiLayerVisibility.bhuvanFloodAssam);
-    console.log('Bhuvan Flood Assam layer object:', layers.bhuvanFloodAssam);
-    if (layers.bhuvanFloodAssam) {
-      console.log('Bhuvan Flood Assam layer actual visibility:', layers.bhuvanFloodAssam.getVisible());
-      console.log('Bhuvan Flood Assam layer source:', layers.bhuvanFloodAssam.getSource());
-    }
-  }, [soiLayerVisibility, mapType, map]);
-
-  // Initialize HD Map (Mappls)
-  useEffect(() => {
-    if (mapType !== "hd" || !hdMapContainerRef.current) return;
-
-    let isMounted = true;
-
-    const cleanup = () => {
-      if (mapplsLibraryPollRef.current) {
-        clearInterval(mapplsLibraryPollRef.current);
-        mapplsLibraryPollRef.current = null;
-      }
-
-      // Clear all markers first
-      hdVehicleMarkersRef.current.forEach((marker) => {
-        try {
-          marker?.remove?.();
-        } catch (e) { }
-      });
-      hdPoiMarkersRef.current.forEach((marker) => {
-        try {
-          marker?.remove?.();
-        } catch (e) { }
-      });
-
-      // Try to remove/destroy the map instance
-      if (mapplsMapRef.current) {
-        try {
-          if (typeof mapplsMapRef.current.remove === "function") {
-            mapplsMapRef.current.remove();
-          }
-        } catch (e) {
-          console.warn("Error removing HD map:", e);
-        }
-      }
-
-      if (hdMapInnerRef.current) {
-        hdMapInnerRef.current.innerHTML = "";
-      }
-
-      hdMapContainerIdRef.current = null;
-      mapplsMapRef.current = null;
-      hdVehicleMarkersRef.current = [];
-      hdPoiMarkersRef.current = [];
-    };
-
-    const instantiateHdMap = () => {
-      if (!isMounted || !hdMapInnerRef.current) return;
-
-      const mapplsInstance = mapplsInstanceRef.current;
-      if (!mapplsInstance || typeof mapplsInstance.Map !== "function") {
-        console.error("Mappls instance is not ready or Map method unavailable");
-        return;
-      }
-
-      // If map already exists, don't reset it - just return
-      if (mapplsMapRef.current) {
-        return;
-      }
-
-      // Use fixed Guwahati center like normal map, not dynamic GPS data
-      const initialCenter = DEFAULT_HD_CENTER;
-
-      const hostElement = hdMapInnerRef.current;
-      if (!hostElement) return;
-      hostElement.innerHTML = "";
-
-      const mapElement = document.createElement("div");
-      mapElement.style.width = "100%";
-      mapElement.style.height = "100%";
-      const containerId = `mappls-hd-map-${Date.now()}`;
-      mapElement.id = containerId;
-      hdMapContainerIdRef.current = containerId;
-      hostElement.appendChild(mapElement);
-
-      try {
-        const centerToUse = { lng: 91.7362, lat: 26.1445 };
-        console.log('Creating HD map with center:', centerToUse);
-
-        const hdMap = mapplsInstance.Map({
-          id: containerId,
-          properties: {
-            center: [26.1445, 91.7362], // Guwahati - [lat, lng] array format
-            draggable: true,
-            zoom: 13,
-            minZoom: 4,
-            maxZoom: 18,
-            backgroundColor: "#fff",
-            traffic: false,
-            geolocation: false,
-            disableDoubleClickZoom: false,
-            fullscreenControl: false,
-            scrollWheel: true,
-            scrollZoom: true,
-            rotateControl: false,
-            scaleControl: false,
-            zoomControl: false,
-            clickableIcons: true,
-          },
-        });
-
-        console.log('HD map created, instance:', hdMap);
-
-        // Mappls ignores center in properties, set it explicitly
-        const guwahatiCenter = { lng: 91.7362, lat: 26.1445 };
-
-        if (typeof hdMap.setCenter === 'function') {
-          hdMap.setCenter(guwahatiCenter);
-        }
-
-        if (typeof hdMap.setZoom === 'function') {
-          hdMap.setZoom(14);
-        }
-
-        // Verify after a short delay
-        setTimeout(() => {
-          if (typeof hdMap.getCenter === 'function') {
-            const actualCenter = hdMap.getCenter();
-            console.log('HD map center after setCenter:', actualCenter);
-          }
-        }, 100);
-
-        mapplsMapRef.current = hdMap;
-
-        // Hide Mappls controls using CSS after map loads
-        setTimeout(() => {
-          try {
-            const mapContainer = document.getElementById(containerId);
-            if (mapContainer) {
-              // Hide all Mappls control elements
-              const style = document.createElement('style');
-              style.id = 'mappls-controls-hide';
-              style.textContent = `
-                #${containerId} .mappls-ctrl-zoom,
-                #${containerId} .mappls-ctrl-fullscreen,
-                #${containerId} .mappls-ctrl-rotate,
-                #${containerId} .mappls-ctrl-scale,
-                #${containerId} .mappls-ctrl-geolocate,
-                #${containerId} .mapboxgl-ctrl-zoom-in,
-                #${containerId} .mapboxgl-ctrl-zoom-out,
-                #${containerId} .mapboxgl-ctrl-compass,
-                #${containerId} .mapboxgl-ctrl-scale,
-                #${containerId} .mapboxgl-ctrl-group,
-                #${containerId} .mapboxgl-ctrl-top-right,
-                #${containerId} .mapboxgl-ctrl-bottom-right,
-                #${containerId} .mapboxgl-ctrl-bottom-left {
-                  display: none !important;
-                }
-              `;
-              // Remove existing style if present
-              const existingStyle = document.getElementById('mappls-controls-hide');
-              if (existingStyle) {
-                existingStyle.remove();
-              }
-              document.head.appendChild(style);
-            }
-          } catch (error) {
-            console.warn('Could not hide Mappls controls:', error);
-          }
-        }, 500);
-
-        // Map will use the initial center set in properties above
-        // Don't reset on load event to preserve user's zoom/pan
-      } catch (error) {
-        console.error("Failed to create Mappls HD map instance", error);
-      }
-    };
-
-    const ensureMapplsInitialized = () => {
-      if (!isMounted) return;
-
-      if (!mapplsInstanceRef.current) {
-        try {
-          let instanceCandidate = null;
-
-          if (typeof window.mappls === "function") {
-            try {
-              instanceCandidate = new window.mappls();
-            } catch (ctorError) {
-              instanceCandidate = window.mappls();
-            }
-          } else if (window.mappls) {
-            instanceCandidate = window.mappls;
-          }
-
-          if (!instanceCandidate) {
-            throw new Error("Mappls SDK instance could not be created");
-          }
-
-          mapplsInstanceRef.current = instanceCandidate;
-        } catch (error) {
-          console.error("Unable to instantiate Mappls SDK", error);
-          return;
-        }
-      }
-
-      const mapplsInstance = mapplsInstanceRef.current;
-      const initializeFn = mapplsInstance?.initialize;
-
-      if (mapplsInitializedRef.current) {
-        instantiateHdMap();
-        return;
-      }
-
-      if (mapplsInitInProgressRef.current) {
-        return;
-      }
-
-      const token = resolveMapplsToken();
-
-      if (!token) {
-        console.error(
-          "Mappls SDK token not found. Set REACT_APP_MAPPLS_TOKEN or include key in script URL."
-        );
-        return;
-      }
-
-      const markReady = () => {
-        if (!isMounted) return;
-        mapplsInitInProgressRef.current = false;
-        mapplsInitializedRef.current = true;
-        instantiateHdMap();
-      };
-
-      if (typeof initializeFn === "function") {
-        mapplsInitInProgressRef.current = true;
-
-        try {
-          initializeFn.call(
-            mapplsInstance,
-            token,
-            { map: true, plugins: ["marker"] },
-            markReady
-          );
-        } catch (error) {
-          mapplsInitInProgressRef.current = false;
-          console.error("Failed to initialize Mappls SDK", error);
-        }
-
-        return;
-      }
-
-      // Some SDK variants expose a pre-initialized object without explicit initialize call.
-      markReady();
-    };
-
-    if (window.mappls) {
-      ensureMapplsInitialized();
-    } else {
-      mapplsLibraryPollRef.current = setInterval(() => {
-        if (window.mappls) {
-          clearInterval(mapplsLibraryPollRef.current);
-          mapplsLibraryPollRef.current = null;
-          ensureMapplsInitialized();
-        }
-      }, 400);
-    }
-
-    return () => {
-      isMounted = false;
-      cleanup();
-    };
-  }, [mapType]); // Only reinitialize when map type changes, not on data updates
-
-  // Plot vehicles and POIs on HD map
-  useEffect(() => {
-    if (mapType !== "hd" || !mapplsMapRef.current) return;
-
-    const hdMap = mapplsMapRef.current;
-    const mapplsInstance = mapplsInstanceRef.current;
-
-    const markerFactoryAvailable =
-      typeof mapplsInstance?.marker === "function" ||
-      typeof window.mappls?.Marker === "function";
-
-    if (!mapplsInstance || !markerFactoryAvailable) {
-      console.warn(
-        "Mappls marker plugin not ready. Skipping HD markers render for now."
-      );
-      return;
-    }
-
-    const clearVehicleMarkers = () => {
-      hdVehicleMarkersRef.current.forEach((marker) => {
-        try {
-          marker?.remove?.();
-        } catch (error) {
-          console.warn("Error removing vehicle marker from HD map", error);
-        }
-      });
-      hdVehicleMarkersRef.current = [];
-    };
-
-    const clearPoiMarkers = () => {
-      hdPoiMarkersRef.current.forEach((marker) => {
-        try {
-          marker?.remove?.();
-        } catch (error) {
-          console.warn("Error removing POI marker from HD map", error);
-        }
-      });
-      hdPoiMarkersRef.current = [];
-    };
-
-    const clearIncidentMarkers = () => {
-      hdIncidentMarkersRef.current.forEach((marker) => {
-        try {
-          marker?.remove?.();
-        } catch (error) {
-          console.warn("Error removing incident marker from HD map", error);
-        }
-      });
-      hdIncidentMarkersRef.current = [];
-    };
-
-    const createMarker = (options) => {
-      const markerFactory = mapplsInstance?.marker;
-
-      try {
-        if (typeof markerFactory === "function") {
-          return markerFactory.call(mapplsInstance, options);
-        }
-
-        if (typeof window.mappls?.Marker === "function") {
-          try {
-            return new window.mappls.Marker(options);
-          } catch (ctorError) {
-            return window.mappls.Marker(options);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to create Mappls marker", { options, error });
-      }
-
-      return null;
-    };
-
-    clearVehicleMarkers();
-    clearPoiMarkers();
-    clearIncidentMarkers();
-
-    let allMarkers = [];
-
-    try {
-      // Add vehicle markers
-      allMarkers = [...gpsData, ...policeData];
-      if (allMarkers.length > 0) {
-        allMarkers.forEach((entry) => {
-          const longitude = Number(entry.longitude);
-          const latitude = Number(entry.latitude);
-
-          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-            return;
-          }
-
-          const entryTimeMs = resolveEntryTimestampMs(entry);
-          const currentTimeMs = new Date().getTime();
-          const timeDifference = Number.isFinite(entryTimeMs)
-            ? calculateTimeDifference(entryTimeMs, currentTimeMs)
-            : Number.POSITIVE_INFINITY;
-          const isStale = timeDifference > 15;
-          const isPoliceMarker = entry.markerCategory === "police";
-
-          let markerColor = "blue";
-          if (isPoliceMarker) {
-            markerColor = "blue";
-            if (isEntryStale15Min(entry)) {
-              markerColor = "grey";
-            } else if (entry.packet_type === "EA") {
-              markerColor = "red";
-            } else if (entry.packet_type !== "NR") {
-              markerColor = "orange";
-            } else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) > 1) {
-              markerColor = "green";
-            } else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) <= 1) {
-              markerColor = "blue";
-            }
-          }
-
-          const vehicleType = entry?.device_tag_info?.category_info?.category;
-          const iconUrl = getVehicleMarkerIconUrl(markerColor, vehicleType);
-
-          // Build the styled popup HTML matching normal map
-          ensureHdPopupStyles();
-          const popupContent = buildHdPopupHtml(entry, markerLabelMode);
-          const labelText = getMarkerLabelText(entry, markerLabelMode) || undefined;
-
-          const markerOptions = iconUrl
-            ? {
-              map: hdMap,
-              position: { lat: latitude, lng: longitude },
-              icon: iconUrl,
-              label: labelText,
-              title: labelText,
-              width: 60,
-              height: 60,
-              popupHtml: popupContent,
-              popupOptions: {
-                openPopup: false,
-              },
-            }
-            : {
-              map: hdMap,
-              position: { lat: latitude, lng: longitude },
-              label: labelText,
-              title: labelText,
-              popupHtml: popupContent,
-              popupOptions: {
-                openPopup: false,
-              },
-            };
-
-          const markerInstance = createMarker(markerOptions);
-          if (markerInstance) {
-            hdVehicleMarkersRef.current.push(markerInstance);
-          }
-        });
-      }
-
-      // Add POI markers
-      if (pois.length > 0) {
-        pois.forEach((poi) => {
-          try {
-            const location = JSON.parse(poi.location);
-            if (!Array.isArray(location) || location.length === 0) return;
-
-            if (
-              poi.mark_type === "Point" &&
-              location[0] &&
-              location[0].length === 2
-            ) {
-              const [lat, lon] = location[0];
-              const longitude = Number(lon);
-              const latitude = Number(lat);
-
-              if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-                return;
-              }
-
-              const poiColor = getUseTypeColor(poi);
-              const poiIconUrl = getPoiMarkerIcon(poiColor);
-
-              const markerOptions = {
-                map: showPois ? hdMap : null,
-                position: { lat: latitude, lng: longitude },
-                label: poi.name || undefined,
-                title: poi.name || "Point of Interest",
-                draggable: false,
-                icon: poiIconUrl
-                  ? {
-                    url: poiIconUrl,
-                    width: 28,
-                    height: 36,
-                  }
-                  : undefined,
-              };
-
-              const markerInstance = createMarker(markerOptions);
-              if (markerInstance) {
-                hdPoiMarkersRef.current.push(markerInstance);
-              }
-            }
-          } catch (error) {
-            console.error("Error processing POI for HD map:", poi?.id, error);
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error updating HD map markers:", error);
-    }
-
-    // Add Incident Markers
-    if (incidentData.length > 0) {
-      incidentData.forEach((incident) => {
-        try {
-          const longitude = Number(incident.longitude);
-          const latitude = Number(incident.latitude);
-
-          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
-
-          const hdMediaContainerId = `incident-media-hd-${incident.id}-${Date.now()}`;
-
-          const popupContent = `
-            <div style="padding: 12px; min-width: 250px; font-family: 'Roboto', sans-serif;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                 <h4 style="margin: 0; color: #d32f2f; font-size: 16px;">Incident #${incident.id}</h4>
-                 <span style="background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; border: 1px solid #ffcdd2;">ALERT</span>
-              </div>
-              <p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
-              ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;"></div>` : ''}
-              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
-                 <span>Registered:</span>
-                 <span style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
-              </div>
-            </div>
-          `;
-
-          const svgIcon = `
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L1 21H23L12 2Z" fill="#F44336" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M12 9V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          `;
-          const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
-
-          const markerOptions = {
-            map: showIncidents ? hdMap : null,
-            position: { lat: latitude, lng: longitude },
-            icon: {
-              url: iconUrl,
-              width: 40,
-              height: 40
-            },
-            popupHtml: popupContent,
-          };
-
-          const markerInstance = createMarker(markerOptions);
-          if (markerInstance) {
-            hdIncidentMarkersRef.current.push(markerInstance);
-
-            if (incident.image_file) {
-              const loadMedia = () => {
-                // Wait a tick for popup DOM to be mounted
-                setTimeout(() => {
-                  try {
-                    renderSecureIncidentMedia(incident.image_file, hdMediaContainerId, {
-                      maxWidth: "100%",
-                      maxHeight: "160px",
-                      borderRadius: "6px",
-                    });
-                  } catch (e) {
-                    console.error("Failed to load secure incident media in HD popup", e);
-                  }
-                }, 50);
-              };
-
-              try {
-                if (typeof markerInstance.addListener === "function") {
-                  markerInstance.addListener("click", loadMedia);
-                } else if (typeof markerInstance.on === "function") {
-                  markerInstance.on("click", loadMedia);
-                }
-              } catch (e) {
-                // Best-effort only (SDK variants differ)
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Error creating incident marker", error);
-        }
-      });
-    }
-
-    // Don't reset center/zoom on marker updates - let user control the map
-    // Only set initial center/zoom when map is first created
-
-    return () => {
-      clearVehicleMarkers();
-      clearPoiMarkers();
-      clearIncidentMarkers();
-    };
-  }, [mapType, gpsData, policeData, pois, incidentData]);
-
-  // HD Map Drawing Logic - Handle Clicks
-  useEffect(() => {
-    if (mapType !== 'hd' || !mapplsMapRef.current) return;
-
-    const hdMap = mapplsMapRef.current;
-
-    // Manage Cursor with CSS Class
-    if (hdMapContainerIdRef.current) {
-      const container = document.getElementById(hdMapContainerIdRef.current);
-      if (container) {
-        if (drawingMode === 'polygon') {
-          container.classList.add('drawing-mode-active');
-        } else {
-          container.classList.remove('drawing-mode-active');
-        }
-      }
-    }
-
-    if (drawingMode !== 'polygon') return;
-
-    const clickHandler = (e) => {
-      let lat, lng;
-      if (e.lngLat) { lat = e.lngLat.lat; lng = e.lngLat.lng; }
-      else if (e.latLng) { lat = e.latLng.lat; lng = e.latLng.lng; }
-
-      if (lat && lng) {
-        setDrawingPoints(prev => [...prev, [lat, lng]]);
-      }
-    };
-
-    if (hdMap.addListener) hdMap.addListener('click', clickHandler);
-    else if (hdMap.on) hdMap.on('click', clickHandler);
-
-    return () => {
-      if (hdMap.removeListener) hdMap.removeListener('click', clickHandler);
-      else if (hdMap.off) hdMap.off('click', clickHandler);
-
-      // Cleanup cursor class
-      if (hdMapContainerIdRef.current) {
-        const container = document.getElementById(hdMapContainerIdRef.current);
-        if (container) container.classList.remove('drawing-mode-active');
-      }
-    };
-  }, [mapType, drawingMode]);
-
-  // HD Map Drawing Logic - Visualization
-  useEffect(() => {
-    if (mapType !== 'hd' || !mapplsMapRef.current) return;
-    const hdMap = mapplsMapRef.current;
-
-    // Cleanup temp poly
-    if (tempPolyRef.current) {
-      try { tempPolyRef.current.remove(); } catch (e) { }
-      tempPolyRef.current = null;
-    }
-
-    // Cleanup temp markers
-    if (tempMarkersRef.current) {
-      tempMarkersRef.current.forEach(m => {
-        try { m.remove(); } catch (e) { }
-      });
-      tempMarkersRef.current = [];
-    }
-
-    if (drawingMode === 'polygon' && drawingPoints.length > 0) {
-      const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
-
-      // Draw markers for each point to give feedback
-      paths.forEach(pt => {
-        // Create a small dot icon
-        const dotSvg = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
-                  <circle cx="6" cy="6" r="4" fill="#333" stroke="#fff" stroke-width="2"/>
-                </svg>`;
-        const iconUrl = `data:image/svg+xml;base64,${window.btoa(dotSvg)}`;
-
-        try {
-          if (window.mappls && window.mappls.Marker) {
-            const marker = new window.mappls.Marker({
-              map: hdMap,
-              position: pt,
-              icon: iconUrl,
-              width: 12,
-              height: 12
-            });
-            tempMarkersRef.current.push(marker);
-          }
-        } catch (e) {
-          console.error("Error creating temp marker", e);
-        }
-      });
-
-      if (drawingPoints.length > 1) {
-        try {
-          if (window.mappls && window.mappls.Polyline) {
-            const tempPoly = new window.mappls.Polyline({
-              map: hdMap,
-              paths: paths,
-              strokeColor: '#333333',
-              strokeWeight: 2,
-              strokeOpacity: 0.8,
-              strokeStyle: 'dashed'
-            });
-            tempPolyRef.current = tempPoly;
-          }
-        } catch (e) {
-          console.error("Error drawing temp polyline", e);
-        }
-      }
-    }
-  }, [mapType, drawingMode, drawingPoints]);
-
-  const startHdDrawing = () => {
-    setDrawingMode('polygon');
-    setDrawingPoints([]);
-    if (onPolygonComplete) onPolygonComplete([]);
-  };
-
-  const clearHdDrawing = () => {
-    setDrawingMode(null);
-    setDrawingPoints([]);
-
-    // Cleanup temp elements immediately
-    if (tempPolyRef.current) {
-      try { tempPolyRef.current.remove(); } catch (e) { }
-      tempPolyRef.current = null;
-    }
-    if (tempMarkersRef.current) {
-      tempMarkersRef.current.forEach(m => {
-        try { m.remove(); } catch (e) { }
-      });
-      tempMarkersRef.current = [];
-    }
-
-    if (onPolygonComplete) onPolygonComplete([]);
-  };
-
-  const finishHdDrawing = () => {
-    setDrawingMode(null);
-    if (onPolygonComplete && drawingPoints.length >= 3) {
-      onPolygonComplete(drawingPoints);
-
-      // We keep the drawing visualized until cleared? 
-      // Or maybe we change style to closed polygon?
-      // For now, let's just leave the temp drawing or clear it?
-      // Usually "Finish" implies committing. 
-      // The calling component might use these points to filter.
-      // But we should probably visualize the closed polygon if we want to be nice.
-      // However, LiveMap seems to use 'drawVectorLayer' for OL. 
-      // Let's create a "closed" polygon visualization if needed or just leave it.
-      // Modifying behavior: we will clear temp drawing and let the parent component handle it?
-      // Actually, if onPolygonComplete is used for filtering, maybe we should keep the polygon visible.
-      // But let's stick to simple "Finish" -> Callback flow.
-      // We will create a closed polygon to show "it is done" if we want, 
-      // but simplistic approach is fine.
-
-      // Let's create a closed polygon visualization for persistency until cleared
-      if (mapplsMapRef.current && window.mappls && window.mappls.Polygon) {
-        // Clear temp lines/dots
-        if (tempPolyRef.current) try { tempPolyRef.current.remove(); } catch (e) { }
-        tempMarkersRef.current.forEach(m => { try { m.remove(); } catch (e) { } });
-        tempMarkersRef.current = [];
-
-        // Draw closed polygon
-        const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
-        try {
-          const finalPoly = new window.mappls.Polygon({
-            map: mapplsMapRef.current,
-            paths: paths,
-            fillColor: 'rgba(255, 255, 255, 0.2)',
-            strokeColor: '#ffcc33',
-            strokeWeight: 2
-          });
-          // Store it in tempPolyRef so "Clear" can remove it
-          tempPolyRef.current = finalPoly;
-        } catch (e) { console.error("Error drawing final polygon", e); }
-      }
-    }
-  };
-
-  // Fetch POIs on component mount
-  useEffect(() => {
-    const fetchPOIs = async () => {
-      try {
-        const response = await POIService.getAllPOIs();
-        if (response && response.data) {
-          setPois(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching POIs:", error);
-      }
-    };
-
-    fetchPOIs();
-  }, []);
-
-  // Update POI markers when POIs change
-  useEffect(() => {
-    if (!poiVectorLayer || pois.length === 0) return;
-
-    const poiSource = poiVectorLayer.getSource();
-    poiSource.clear();
-
-    pois.forEach((poi) => {
-      try {
-        const location = JSON.parse(poi.location);
-        if (Array.isArray(location) && location.length > 0) {
-          let feature;
-
-          switch (poi.mark_type) {
-            case "Point":
-              if (location[0] && location[0].length === 2) {
-                const [lat, lon] = location[0];
-                const longitude = Number(lon);
-                const latitude = Number(lat);
-                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                  const coordinates = [longitude, latitude];
-                  feature = new Feature({
-                    geometry: new Point(coordinates),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-
-            case "Circle":
-              if (location[0] && location[0].length === 2) {
-                const [lat, lon] = location[0];
-                const longitude = Number(lon);
-                const latitude = Number(lat);
-                if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
-                  const center = [longitude, latitude];
-                  const radiusMeters = parseFloat(poi.radius) || 100;
-                  const metersPerDegree =
-                    111320 * Math.cos((latitude * Math.PI) / 180) || 111320;
-                  const radiusDegrees = radiusMeters / metersPerDegree;
-                  feature = new Feature({
-                    geometry: new Circle(center, radiusDegrees),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-
-            case "Polygon":
-              if (location.length >= 3) {
-                const polygonCoords = location
-                  .map((coord) => {
-                    if (coord && coord.length === 2) {
-                      const [lat, lon] = coord;
-                      const longitude = Number(lon);
-                      const latitude = Number(lat);
-                      if (
-                        Number.isFinite(longitude) &&
-                        Number.isFinite(latitude)
-                      ) {
-                        return [longitude, latitude];
-                      }
-                    }
-                    return null;
-                  })
-                  .filter((coord) => coord !== null);
-
-                if (polygonCoords.length >= 3) {
-                  feature = new Feature({
-                    geometry: new Polygon([polygonCoords]),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-
-            case "Road":
-              if (location.length >= 2) {
-                const roadCoords = location
-                  .map((coord) => {
-                    if (coord && coord.length === 2) {
-                      const [lat, lon] = coord;
-                      const longitude = Number(lon);
-                      const latitude = Number(lat);
-                      if (
-                        Number.isFinite(longitude) &&
-                        Number.isFinite(latitude)
-                      ) {
-                        return [longitude, latitude];
-                      }
-                    }
-                    return null;
-                  })
-                  .filter((coord) => coord !== null);
-
-                if (roadCoords.length >= 2) {
-                  feature = new Feature({
-                    geometry: new LineString(roadCoords),
-                    data: poi,
-                  });
-                }
-              }
-              break;
-          }
-
-          if (feature) {
-            const styles = getPoiStyles(poi);
-            feature.setStyle(styles);
-            poiSource.addFeature(feature);
-          }
-        }
-      } catch (error) {
-        console.error("Error processing POI:", poi.id, error);
-      }
-    });
-  }, [pois, poiVectorLayer]);
-
-  // Helper to calculate time difference in minutes
-  const calculateTimeDifference = (startTime, endTime) => {
-    const timeDifferenceMillis = endTime - startTime;
-    return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
-  };
-
-  const resolveEntryTimestampMs = (data) => {
-    if (!data) return NaN;
-
-    const raw = data.entry_time ?? data.timestamp ?? null;
-
-    const normalizeEpoch = (value) => {
-      const num = typeof value === "number" ? value : Number(value);
-      if (!Number.isFinite(num)) return NaN;
-      return num < 1e12 ? num * 1000 : num;
-    };
-
-    if (typeof raw === "number") {
-      return normalizeEpoch(raw);
-    }
-
-    if (typeof raw === "string") {
-      const trimmed = raw.trim();
-      if (/^\d+$/.test(trimmed)) {
-        return normalizeEpoch(trimmed);
-      }
-      const parsed = new Date(trimmed).getTime();
-      if (Number.isFinite(parsed)) return parsed;
-    }
-
-    const parseDateTimeParts = (dateStr, timeStr) => {
-      if (!dateStr || !timeStr) return NaN;
-
-      const dateTrimmed = String(dateStr).trim();
-      const timeTrimmed = String(timeStr).trim();
-
-      // Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
-      const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
-      const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
-      if (dmyCompact && hmsCompact) {
-        const day = Number(dmyCompact[1]);
-        const month = Number(dmyCompact[2]);
-        const year = Number(dmyCompact[3]);
-        const hours = Number(hmsCompact[1]);
-        const minutes = Number(hmsCompact[2]);
-        const seconds = Number(hmsCompact[3]);
-        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
-        const ms = dt.getTime();
-        return Number.isFinite(ms) ? ms : NaN;
-      }
-
-      // Format: DD-MM-YY or DD-MM-YYYY
-      const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
-      if (dmy) {
-        const day = Number(dmy[1]);
-        const month = Number(dmy[2]);
-        let year = Number(dmy[3]);
-        if (String(dmy[3]).length === 2) year = 2000 + year;
-
-        const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
-        if (!tm) return NaN;
-        let hours = Number(tm[1]);
-        const minutes = Number(tm[2]);
-        const seconds = Number(tm[3] ?? 0);
-        const ampm = tm[4]?.toUpperCase();
-        if (ampm === "AM") {
-          if (hours === 12) hours = 0;
-        } else if (ampm === "PM") {
-          if (hours !== 12) hours += 12;
-        }
-
-        const dt = new Date(year, month - 1, day, hours, minutes, seconds);
-        const ms = dt.getTime();
-        return Number.isFinite(ms) ? ms : NaN;
-      }
-
-      const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
-      return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
-    };
-
-    const datePart = data?.date;
-    const timePart = data?.time;
-    if (datePart && timePart) {
-      const compositeMs = parseDateTimeParts(datePart, timePart);
-      if (Number.isFinite(compositeMs)) return compositeMs;
-
-      const compositeParsed = new Date(`${datePart}T${timePart}`).getTime();
-      if (Number.isFinite(compositeParsed)) return compositeParsed;
-    }
-
-    return NaN;
-  };
-
-  // Set the correct icon style based on data conditions and vehicle type
-  const getIconStyle = (data, vehicleType, labelMode, forceDefault = false) => {
-    const entryTimeMs = resolveEntryTimestampMs(data);
-    const currentTimeMs = new Date().getTime();
-    const timeDifference = Number.isFinite(entryTimeMs)
-      ? calculateTimeDifference(entryTimeMs, currentTimeMs)
-      : Number.POSITIVE_INFINITY;
-    const isStale = timeDifference > 15;
-
-    const isPoliceMarker = data.markerCategory === "police";
-    let color;
-
-    if (forceDefault) {
-      color = "default";
-    } else if (isPoliceMarker) {
-      color = "blue";
-    } else if (isStale) {
-      color = "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
-    } else if (data.packet_type === "EA") {
-      color = "red"; // EA Packet - Red Icon
-    } else if (data.packet_type !== "NR") {
-      color = "orange"; // Any Alert Packet except EA - Orange Icon
-    } else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) <= 1) {
-      color = "blue"; // Ignition ON but stationary - Blue Icon
-    } else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) > 1) {
-      color = "green"; // Ignition ON and moving - Green Icon
-    } else {
-      color = "default"; // Default color
-    }
-
-    const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
-    const labelText = getMarkerLabel(data, labelMode);
-    console.debug(`[LiveMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
-    return createIconStyle(color, iconVehicleType, labelText, false);
-  };
-
-  useEffect(() => {
-    if (!map || !vectorLayer) {
-      return;
-    }
-
-    const allMarkers = [...gpsData, ...policeData];
-
-    if (allMarkers.length > 0) {
-      // Clear the previous markers (Access inner source from Cluster)
-      const vectorSource = vectorLayer.getSource().getSource();
-      vectorSource.clear();
-
-      const features = allMarkers
-        .map((entry) => {
-          const longitude = Number(entry.longitude);
-          const latitude = Number(entry.latitude);
-
-          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-            return null;
-          }
-
-          // Get vehicle type from entry data
-          const vehicleType = entry?.device_tag_info?.category_info?.category;
-
-
-          // Create the marker feature
-          const markerFeature = new Feature({
-            geometry: new Point([longitude, latitude]),
-            entryData: entry, // Store entry data for overlay
-            vehicleType: vehicleType, // Store vehicle type on the feature
-          });
-
-          // Set the appropriate style for the marker with vehicle type
-          markerFeature.setStyle(
-            getIconStyle(entry, vehicleType, markerLabelMode, allMode)
-          );
-
-          return markerFeature;
-        })
-        .filter(Boolean);
-
-      // Add all features (markers) to the vector layer
-      vectorSource.addFeatures(features);
-
-      // Only auto-fit if autoFit prop is true and there are markers
-      if (autoFit && features.length > 0) {
-        // Use Cluster source extent (which covers all features)
-        const extent = vectorLayer.getSource().getExtent();
-        map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
-      }
-
-      // Handle map click to display the overlay and zoom to street level or expand cluster
-      const clickHandler = function (event) {
-        // Ignore clicks that are actually the end of a drag-pan.
-        // OpenLayers may still emit a click/singleclick after small drags on some devices.
-        if (olWasDraggingRef.current || event?.dragging) {
-          olWasDraggingRef.current = false;
-          return;
-        }
-
-        dynamicOverlay.getElement().style.display = "none";
-
-        let allHits = [];
-        // Collect ALL features at pixel
-        map.forEachFeatureAtPixel(event.pixel, (feature) => {
-          allHits.push(feature);
-        }, { hitTolerance: 5 });
-
-        if (allHits.length === 0) return;
-
-        // Temporary compatibility: define 'feature' as the first hit so subsequent code works
-        const feature = allHits[0];
-
-        const aggregatedItems = [];
-
-        allHits.forEach(f => {
-          if (f.get("isIncident")) {
-            aggregatedItems.push({ type: 'incident', data: f.get("data"), coord: f.getGeometry().getCoordinates() });
-            return;
-          }
-          const subFeatures = f.get('features');
-          if (subFeatures && subFeatures.length > 0) {
-            subFeatures.forEach(sf => {
-              const entry = sf.get('entryData');
-              if (entry) aggregatedItems.push({ type: 'vehicle', data: entry, coord: sf.getGeometry().getCoordinates() });
-            });
-          } else {
-            const entry = f.get('entryData');
-            if (entry) aggregatedItems.push({ type: 'vehicle', data: entry, coord: f.getGeometry().getCoordinates() });
-          }
-        });
-
-        const uniqueItems = [];
-        const seen = new Set();
-        aggregatedItems.forEach(item => {
-          const id = item.type === 'incident' ? `inc_${item.data.id}` : `veh_${item.data.vehicle_registration_number}`;
-          if (!seen.has(id)) {
-            seen.add(id);
-            uniqueItems.push(item);
-          }
-        });
-
-        if (uniqueItems.length > 0) {
-          // Logic for Handling Consolidated Items
-          const firstHit = allHits[0];
-          const firstHitFeatures = firstHit.get('features');
-          const isVisualCluster = allHits.length === 1 && firstHitFeatures && firstHitFeatures.length > 1;
-
-          if (isVisualCluster) {
-            const currentZoom = map.getView().getZoom();
-            const isSameLocation = firstHitFeatures.every(f => {
-              const c = f.getGeometry().getCoordinates();
-              const c0 = firstHitFeatures[0].getGeometry().getCoordinates();
-              return c[0] === c0[0] && c[1] === c0[1];
-            });
-
-            if (!isSameLocation && currentZoom < 16) {
-              let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-              firstHitFeatures.forEach(f => {
-                const c = f.getGeometry().getCoordinates();
-                if (c[0] < minX) minX = c[0];
-                if (c[0] > maxX) maxX = c[0];
-                if (c[1] < minY) minY = c[1];
-                if (c[1] > maxY) maxY = c[1];
-              });
-              map.getView().fit([minX, minY, maxX, maxY], { padding: [100, 100, 100, 100], duration: 500 });
-              return;
-            }
-          }
-
-          if (uniqueItems.length > 1) {
-            renderListView(uniqueItems);
-            return;
-          }
-
-          void renderSingleView(uniqueItems[0]);
-          return; // Important: Stop processing OLD logic
-        }
-
-        // --- Helper Functions Definitions ---
-        function renderListView(items) {
-          let listHtml = `
-              <div class="overlay-card" style="min-width: 280px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
-                <div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
-                  <div class="overlay-title">${items.length} Items Here</div>
-                </div>
-                <div class="overlay-body" style="padding: 0;">
-            `;
-
-          items.forEach(item => {
-            if (item.type === 'incident') {
-              listHtml += `
-                 <div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #ffebee; background: #fff5f5; cursor: pointer;">
-                    <div style="font-weight: 600; color: #b71c1c; margin-bottom: 2px;">Incident #${item.data.id}</div> 
-                    <div style="font-size: 11px; color: #6b7280;">${item.data.details || "Alert"}</div>
-                 </div>`;
-            } else {
-              const entry = item.data;
-              const title = entry.vehicle_registration_number || entry.imei || "Unknown";
-              const speed = entry.speed > 0 ? `${entry.speed} km/h` : "Stopped";
-              listHtml += `
-                 <div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
-                    <div style="font-weight: 600; color: #111827; margin-bottom: 2px;">${title}</div>
-                    <div style="font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
-                       <span>${speed}</span>
-                       <span>${entry.time || ""}</span>
-                    </div>
-                 </div>`;
-            }
-          });
-          listHtml += `</div></div>`;
-
-          const el = document.getElementById("overlay-content");
-          if (el) el.innerHTML = listHtml;
-          dynamicOverlay.setPosition(items[0].coord);
-          dynamicOverlay.getElement().style.display = "block";
-        }
-
-        async function renderSingleView(item) {
-          const coordinates = item.coord;
-
-          if (item.type === 'incident') {
-            const incident = item.data;
-            const imageContainerId = `incident-media-${incident.id}-${Date.now()}`;
-            document.getElementById("overlay-content").innerHTML = `
-                <div class="overlay-card" style="min-width: 250px; font-family: 'Roboto', sans-serif;">
-                  <div class="overlay-header">
-                    <div class="overlay-title">Incident #${incident.id}</div> 
-                    <div class="overlay-pill overlay-pill--alert">ALERT</div>
-                  </div>
-                  <div class="overlay-body">
-                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
-                    ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;"></div>` : ''}
-                    <div class="overlay-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
-                      <span class="overlay-label">Registered:</span>
-                      <span class="overlay-value" style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-            dynamicOverlay.setPosition(coordinates);
-            dynamicOverlay.getElement().style.display = "block";
-
-            const currentZoom = map.getView().getZoom();
-            const targetZoom = currentZoom > 16 ? currentZoom : 16;
-            map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
-
-            // Load secure incident media asynchronously if it exists
-            if (incident.image_file) {
-              renderSecureIncidentMedia(incident.image_file, imageContainerId, {
-                maxWidth: "100%",
-                maxHeight: "160px",
-                borderRadius: "6px",
-              }).catch((err) => {
-                console.error("Failed to load incident media:", err);
-              });
-            }
-
-          } else {
-            const entryDataRaw = item.data;
-            const renderVehicleOverlay = (entryData) => {
-              const isStale = isEntryStale15Min(entryData);
-              const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-              const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
-              const isOfflineResolved = deviceStatusLabel === "Offline";
-              const packetTypeCode = (isStale || isOfflineResolved)
-                ? "Offline"
-                : (resolveAlertCode(entryData) || "NR1");
-              const alertLabel = (isStale || isOfflineResolved)
-                ? "Offline"
-                : resolveAlertLabel(entryData);
-              const pillText = (isStale || isOfflineResolved)
-                ? "Offline"
-                : alertLabel.split(' (')[0];
-              const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
-              const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
-                ? "overlay-pill--offline"
-                : (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
-                  ? "overlay-pill--normal"
-                  : "overlay-pill--alert";
-
-              if (typeof onVehicleClick === "function") {
-                onVehicleClick(entryData);
-              }
-
-              lastClickedVehicleRef.current = {
-                imei: entryData?.imei,
-                coordinates,
-              };
-
-              const addressValue = entryData?.address ? entryData.address : "-";
-              const packetTypeLabel = (isStale || isOfflineResolved)
-                ? "Offline"
-                : resolvePacketTypeLabel(entryData);
-              const nearestPoiLabel = resolveNearestPoiLabel(entryData);
-              const nearestPolice = resolveNearestPoliceDetails(entryData);
-              const policeContactValue =
-                entryData?.nearestPoliceContact || entryData?.nearest_police?.data?.phone || null;
-
-              const routeId =
-                entryData?.route_id ||
-                entryData?.route_ref?.id ||
-                entryData?.device_tag_info?.route?.id ||
-                entryData?.nearby_routes_within_100m?.[0]?.data?.id ||
-                "-";
-
-              const routeData = entryData?.route_ref || entryData?.device_tag_info?.route || {};
-
-              const routeName =
-                entryData?.route_name ||
-                entryData?.route ||
-                entryData?.route_info ||
-                entryData?.routeInformation ||
-                routeData?.name ||
-                (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
-
-              const policeInfoRows = [
-                nearestPolice?.name && nearestPolice.name !== "-"
-                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Station</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-                  : "",
-                nearestPolice?.address && nearestPolice.address !== "-"
-                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Address</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
-                  : "",
-                nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-                  ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-                  : "",
-                policeContactValue
-                  ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
-                  : "",
-              ].filter(Boolean).join("");
-
-              const policeDetailsRows = [
-                nearestPolice?.name && nearestPolice.name !== "-"
-                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-                  : "",
-                nearestPolice?.address && nearestPolice.description !== "-"
-                  ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.description}</span></div>`
-                  : "",
-                nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-                  ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-                  : "",
-              ].join("");
-
-              document.getElementById("overlay-content").innerHTML = `
-                <div class="overlay-card">
-                  <div class="overlay-header">
-                    <div class="overlay-header-content">
-                      <div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
-                    </div>
-                    <div class="overlay-pill ${pillClass}">${pillText}</div>
-                  </div>
-                  <div class="overlay-tabs" data-overlay-tabs>
-                    <div class="overlay-tab-list" role="tablist">
-                      <button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
-                      <button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
-                      <button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
-                      <button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
-                    </div>
-
-                    <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
-                      <div class="overlay-section">
-                        <div class="overlay-section-title">Vehicle Information</div>
-                        <div class="overlay-section-body">
-                        <div class="overlay-row">
-                          <span class="overlay-label">Packet Status</span>
-                          <span class="overlay-value">${packetTypeLabel}</span>
-                        </div>
-                        <div class="overlay-row">
-                          <span class="overlay-label">Device Status</span>
-                          <span class="overlay-value">${deviceStatusLabel}</span>
-                        </div>
-                        <div class="overlay-row">
-                          <span class="overlay-label">Date</span>
-                          <span class="overlay-value">${formatDateDDMMYY(entryData.date)}</span>
-                        </div>
-                        <div class="overlay-row">
-                          <span class="overlay-label">Time</span>
-                          <span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
-                        </div>
-                        <div class="overlay-row">
-                          <span class="overlay-label">Speed</span>
-                          <span class="overlay-value">${speedValue} km/h</span>
-                        </div>
-                        <div class="overlay-row">
-                          <span class="overlay-label">Battery</span>
-                          <span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
-                        </div>
-                        <div class="overlay-row">
-                          <span class="overlay-label">Latitude</span>
-                          <span class="overlay-value">${entryData.latitude || "-"}</span>
-                        </div>
-                        <div class="overlay-row">
-                          <span class="overlay-label">Longitude</span>
-                          <span class="overlay-value">${entryData.longitude || "-"}</span>
-                        </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
-                      <div class="overlay-section">
-                        <div class="overlay-section-body">
-                        <div class="overlay-row overlay-row--multiline">
-                          <span class="overlay-label">Address</span>
-                          <span class="overlay-value overlay-value--multiline">${addressValue}</span>
-                        </div>
-                        <div class="overlay-row overlay-row--multiline">
-                          <span class="overlay-label">Nearest Poi</span>
-                          <span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
-                        </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
-                      <div class="overlay-section">
-                        <div class="overlay-section-title">Route Information</div>
-                        <div class="overlay-section-body">
-                          <!-- Basic Route Info -->
-                          <div class="overlay-row">
-                            <span class="overlay-label">Route Name</span>
-                            <span class="overlay-value">${routeName}</span>
-                          </div>
-                          <div class="overlay-row">
-                            <span class="overlay-label">Route ID</span>
-                            <span class="overlay-value">${routeId}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
-                      <div class="overlay-section">
-                        <div class="overlay-section-title">Police Support</div>
-                        <div class="overlay-section-body">
-                          ${policeInfoRows || policeDetailsRows
-                  ? `${policeInfoRows}${policeDetailsRows}`
-                  : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
-                }
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              `;
-            };
-
-            renderVehicleOverlay(entryDataRaw);
-
-            dynamicOverlay.setPosition(coordinates);
-            dynamicOverlay.getElement().style.display = "block";
-
-            fetchVehicleTrackingDetail(entryDataRaw)
-              .then((trackingDetail) => {
-                if (!trackingDetail) return;
-                const lastClick = lastClickedVehicleRef.current;
-                if (!lastClick?.imei || lastClick.imei !== trackingDetail?.imei) return;
-                renderVehicleOverlay(trackingDetail);
-              })
-              .catch(() => {
-                // best-effort only
-              });
-
-            const currentZoom = map.getView().getZoom();
-            // Only zoom if we're significantly below the target zoom level
-            // This prevents redundant zoom animations when clicking on an already-selected vehicle
-            if (currentZoom < 15) {
-              const targetZoom = currentZoom > 18 ? currentZoom : 18;
-              map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
-            } else {
-              // Just pan to the coordinate without zooming
-              map.getView().animate({ center: coordinates, duration: 300 });
-            }
-          }
-        }
-
-
-
-        if (false) {
-          // Check if we can't separate them further (same duplicate location or max zoom)
-          const currentZoom = map.getView().getZoom();
-          const isSameLocation = features.every(f => {
-            const c = f.getGeometry().getCoordinates();
-            const c0 = features[0].getGeometry().getCoordinates();
-            return c[0] === c0[0] && c[1] === c0[1];
-          });
-
-          if (currentZoom >= 16 || isSameLocation) {
-            // Show list of vehicles
-            let listHtml = `
-              <div class="overlay-card" style="min-width: 260px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
-                <div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
-                  <div class="overlay-title">${features.length} Vehicles Here</div>
-                </div>
-                <div class="overlay-body" style="padding: 0;">
-            `;
-
-            features.forEach(f => {
-              const entry = f.get('entryData');
-              if (!entry) return;
-
-              const vehicleNum = entry.vehicle_registration_number || entry.imei || "Unknown";
-              const speed = entry.speed > 0 ? `${entry.speed} km/h` : "Stopped";
-
-              listHtml += `
-                 <div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
-                    <div style="font-weight: 600; color: #111827; margin-bottom: 2px;">${vehicleNum}</div>
-                    <div style="font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
-                       <span>${speed}</span>
-                       <span>${entry.time || ""}</span>
-                    </div>
-                 </div>
-              `;
-            });
-
-            listHtml += `</div></div>`;
-
-            document.getElementById("overlay-content").innerHTML = listHtml;
-            dynamicOverlay.setPosition(features[0].getGeometry().getCoordinates());
-            dynamicOverlay.getElement().style.display = "block";
-            return;
-          }
-
-          // Calculate extent of all features in cluster
-          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-          features.forEach(f => {
-            const coords = f.getGeometry().getCoordinates();
-            if (coords[0] < minX) minX = coords[0];
-            if (coords[0] > maxX) maxX = coords[0];
-            if (coords[1] < minY) minY = coords[1];
-            if (coords[1] > maxY) maxY = coords[1];
-          });
-          map.getView().fit([minX, minY, maxX, maxY], { padding: [100, 100, 100, 100], duration: 500 });
-          return;
-        }
-
-        if (false) {
-          const originalFeature = features[0];
-          const entryData = originalFeature.get("entryData");
-          const coordinates = originalFeature.getGeometry().getCoordinates();
-
-          if (!entryData) return;
-
-          const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-          const alertType = entryData.packet_type || "NR";
-          const alertClass =
-            alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
-
-          // Set overlay content with styled card layout
-          document.getElementById("overlay-content").innerHTML = `
-            <div class="overlay-card">
-              <div class="overlay-header">
-                <div class="overlay-title">${entryData.vehicle_registration_number || "-"
-            }</div>
-                <div class="overlay-pill ${alertClass}">${alertType}</div>
-              </div>
-              <div class="overlay-body">
-                <div class="overlay-row">
-                  <span class="overlay-label">Date</span>
-                  <span class="overlay-value">${entryData.date || "-"}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Time</span>
-                  <span class="overlay-value">${entryData.time || "-"}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Speed</span>
-                  <span class="overlay-value">${speedValue} km/h</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Battery</span>
-                  <span class="overlay-value">${entryData.internal_battery_voltage || "-"
-            } - ${entryData.main_input_voltage || "-"}</span>
-                </div>
-              </div>
-            </div>
-          `;
-
-          dynamicOverlay.setPosition(coordinates);
-          dynamicOverlay.getElement().style.display = "block";
-
-          // Zoom to street level when clicked (zoom level 18)
-          map.getView().animate({
-            center: coordinates,
-            zoom: 18,
-            duration: 500, // Animate the zoom for 500ms
-          });
-        }
-      };
-
-      const pointerDownHandler = () => {
-        olWasDraggingRef.current = false;
-      };
-
-      const pointerDragHandler = () => {
-        olWasDraggingRef.current = true;
-      };
-
-      map.on("pointerdown", pointerDownHandler);
-      map.on("pointerdrag", pointerDragHandler);
-      map.on("singleclick", clickHandler);
-
-      return () => {
-        map.un("singleclick", clickHandler);
-        map.un("pointerdown", pointerDownHandler);
-        map.un("pointerdrag", pointerDragHandler);
-      };
-    } else {
-      vectorLayer.getSource().clear();
-    }
-  }, [
-    gpsData,
-    policeData,
-    map,
-    vectorLayer,
-    dynamicOverlay,
-    onVehicleClick,
-    markerLabelMode,
-    autoFit,
-  ]);
-
-  useEffect(() => {
-    if (!dynamicOverlay || !map || !focusEntry?.address) return;
-
-    const lastClicked = lastClickedVehicleRef.current;
-    if (!lastClicked?.imei || lastClicked.imei !== focusEntry?.imei) return;
-
-    const overlayContent = document.getElementById("overlay-content");
-    if (!overlayContent) return;
-
-    const isStale = isEntryStale15Min(focusEntry);
-    const speedValue = focusEntry.speed > 2 ? focusEntry.speed : 0;
-    const deviceStatusLabel = resolveDeviceStatusLabel(focusEntry);
-    const isOfflineResolved = deviceStatusLabel === "Offline";
-    const packetTypeCode = (isStale || isOfflineResolved)
-      ? "Offline"
-      : (resolveAlertCode(focusEntry) || "NR1");
-    const alertLabel = (isStale || isOfflineResolved)
-      ? "Offline"
-      : resolveAlertLabel(focusEntry);
-    // Extract just the name part (without the code in parentheses if present)
-    const pillText = (isStale || isOfflineResolved)
-      ? "Offline"
-      : alertLabel.split(' (')[0];
-    const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
-    const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
-      ? "overlay-pill--offline"
-      : (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
-        ? "overlay-pill--normal"
-        : "overlay-pill--alert";
-
-    const packetTypeLabel = (isStale || isOfflineResolved)
-      ? "Offline"
-      : resolvePacketTypeLabel(focusEntry);
-    const nearestPoiLabel = resolveNearestPoiLabel(focusEntry);
-    const nearestPolice = resolveNearestPoliceDetails(focusEntry);
-
-    const nearestPoliceStationValue =
-      focusEntry?.markerCategory === "police"
-        ? (focusEntry.nearestPoliceStation || "uzanbazr policestation")
-        : null;
-    const policeContactValue =
-      focusEntry?.markerCategory === "police"
-        ? (focusEntry.nearestPoliceContact || "987654123")
-        : null;
-
-    const wardValue =
-      focusEntry?.ward_name ||
-      focusEntry?.ward ||
-      focusEntry?.wardName ||
-      focusEntry?.device_tag_info?.ward?.name ||
-      focusEntry?.device_tag_info?.ward_name ||
-      "-";
-    const districtValue =
-      focusEntry?.district ||
-      focusEntry?.district_name ||
-      focusEntry?.districtName ||
-      focusEntry?.device_tag_info?.device?.district ||
-      focusEntry?.device_tag_info?.district?.name ||
-      focusEntry?.device_tag_info?.district_name ||
-      "-";
-    const stateValue =
-      focusEntry?.state ||
-      focusEntry?.state_name ||
-      focusEntry?.stateName ||
-      focusEntry?.device_tag_info?.state_info?.state ||
-      focusEntry?.device_tag_info?.state?.name ||
-      focusEntry?.device_tag_info?.state_name ||
-      "-";
-
-    // Extract route information with fallbacks
-    const routeId =
-      focusEntry?.route_id ||
-      focusEntry?.route_ref?.id ||
-      focusEntry?.device_tag_info?.route?.id ||
-      focusEntry?.nearby_routes_within_100m?.[0]?.data?.id ||
-      "-";
-
-    const routeData = focusEntry?.route_ref || focusEntry?.device_tag_info?.route || {};
-
-    const routeName =
-      focusEntry?.route_name ||
-      focusEntry?.route ||
-      focusEntry?.route_info ||
-      focusEntry?.routeInformation ||
-      routeData?.name ||
-      (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
-
-    const routeCode = routeData?.code || focusEntry?.route_code || "-";
-    const routeType = routeData?.type || focusEntry?.route_type || "-";
-    const startPoint = routeData?.start_point || focusEntry?.start_point || "-";
-    const endPoint = routeData?.end_point || focusEntry?.end_point || "-";
-    const stops = routeData?.stops || focusEntry?.route_stops || [];
-    const distance = routeData?.distance ? `${routeData.distance} km` : "-";
-    const duration = routeData?.duration || focusEntry?.route_duration || "-";
-    const schedule = routeData?.schedule || focusEntry?.route_schedule || "-";
-    const operator = routeData?.operator || focusEntry?.route_operator || "-";
-
-    const policeInfoRows = [
-      nearestPoliceStationValue
-        ? `<div class="overlay-row"><span class="overlay-label">Nearest Police Station</span><span class="overlay-value">${nearestPoliceStationValue}</span></div>`
-        : "",
-      policeContactValue
-        ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
-        : "",
-    ].join("");
-
-    const policeDetailsRows = [
-      nearestPolice?.name && nearestPolice.name !== "-"
-        ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-        : "",
-      nearestPolice?.address && nearestPolice.address !== "-"
-        ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
-        : "",
-      nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-        ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-        : "",
-    ].join("");
-
-    overlayContent.innerHTML = `
-      <div class="overlay-card">
-        <div class="overlay-header">
-          <div class="overlay-header-content">
-            <div class="overlay-title">${focusEntry.vehicle_registration_number || "-"}</div>
-          </div>
-          <div class="overlay-pill ${pillClass}">${pillText}</div>
-        </div>
-        <div class="overlay-tabs" data-overlay-tabs>
-          <div class="overlay-tab-list" role="tablist">
-            <button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
-            <button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
-            <button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
-            <button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
-          </div>
-
-          <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
-            <div class="overlay-section">
-              <div class="overlay-section-title">Vehicle Information</div>
-              <div class="overlay-section-body">
-              <div class="overlay-row">
-                <span class="overlay-label">Packet Status</span>
-                <span class="overlay-value">${packetTypeLabel}</span>
-              </div>
-              <div class="overlay-row">
-                <span class="overlay-label">Date</span>
-                <span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
-              </div>
-              <div class="overlay-row">
-                <span class="overlay-label">Time</span>
-                <span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
-              </div>
-              <div class="overlay-row">
-                <span class="overlay-label">Speed</span>
-                <span class="overlay-value">${speedValue} km/h</span>
-              </div>
-              <div class="overlay-row">
-                <span class="overlay-label">Battery</span>
-                <span class="overlay-value">${focusEntry.internal_battery_voltage || "-"} - ${focusEntry.main_input_voltage || "-"}</span>
-              </div>
-              <div class="overlay-row">
-                <span class="overlay-label">Latitude</span>
-                <span class="overlay-value">${focusEntry.latitude || "-"}</span>
-              </div>
-              <div class="overlay-row">
-                <span class="overlay-label">Longitude</span>
-                <span class="overlay-value">${focusEntry.longitude || "-"}</span>
-              </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
-            <div class="overlay-section">
-              <div class="overlay-section-body">
-                <div class="overlay-row overlay-row--multiline">
-                  <span class="overlay-label">Address</span>
-                  <span class="overlay-value overlay-value--multiline">${focusEntry.address || '-'}</span>
-                </div>
-                <div class="overlay-row overlay-row--multiline">
-                  <span class="overlay-label">Nearest Poi</span>
-                  <span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
-            <div class="overlay-section">
-              <div class="overlay-section-title">Route Information</div>
-              <div class="overlay-section-body">
-                <!-- Basic Route Info -->
-                <div class="overlay-row">
-                  <span class="overlay-label">Route Name</span>
-                  <span class="overlay-value">${routeName}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Route ID</span>
-                  <span class="overlay-value">${routeId}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
-            <div class="overlay-section">
-              <div class="overlay-section-title">Police Support</div>
-              <div class="overlay-section-body">
-                ${policeInfoRows || policeDetailsRows
-        ? `${policeInfoRows}${policeDetailsRows}`
-        : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
-      }
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
-
-  useEffect(() => {
-    const container = overlayElement.current;
-    if (!container) return;
-
-    const handleClick = (event) => {
-      const tabButton = event.target?.closest?.("[data-overlay-tab]");
-      if (!tabButton) return;
-
-      const tabName = tabButton.getAttribute("data-overlay-tab");
-      if (!tabName) return;
-
-      const tabsRoot = tabButton.closest("[data-overlay-tabs]");
-      if (!tabsRoot) return;
-
-      const allTabs = tabsRoot.querySelectorAll("[data-overlay-tab]");
-      allTabs.forEach((btn) => {
-        btn.classList.toggle("overlay-tab--active", btn === tabButton);
-      });
-
-      const panels = tabsRoot.querySelectorAll("[data-overlay-panel]");
-      panels.forEach((panel) => {
-        panel.classList.toggle(
-          "overlay-panel--active",
-          panel.getAttribute("data-overlay-panel") === tabName
-        );
-      });
-    };
-
-    container.addEventListener("click", handleClick);
-    return () => container.removeEventListener("click", handleClick);
-  }, []);
-
-  // Handle Incident Data for OpenLayers (Normal/Satellite)
-  useEffect(() => {
-    if (!map || !incidentVectorLayer) return;
-
-    const source = incidentVectorLayer.getSource();
-    source.clear();
-
-    if (incidentData.length > 0) {
-      const features = incidentData
-        .map((incident) => {
-          const longitude = Number(incident.longitude);
-          const latitude = Number(incident.latitude);
-
-          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
-
-          const feature = new Feature({
-            geometry: new Point([longitude, latitude]),
-            data: incident,
-            isIncident: true,
-          });
-
-          // Style for incident
-          const svgIcon = `
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L1 21H23L12 2Z" fill="#F44336" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M12 9V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          `;
-          const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
-
-          feature.setStyle(
-            new Style({
-              image: new Icon({
-                anchor: [0.5, 1],
-                src: iconUrl,
-                scale: 1.0,
-              }),
-            })
-          );
-          return feature;
-        })
-        .filter(Boolean);
-
-      source.addFeatures(features);
-    }
-  }, [incidentData, map, incidentVectorLayer]);
-
-  // Handle NMR circular area (normal / satellite OpenLayers maps)
-  useEffect(() => {
-    if (!map || !nmrVectorLayer) return;
-
-    const source = nmrVectorLayer.getSource();
-    source.clear();
-
-    if (!nmrArea) return;
-
-    const lat = Number(nmrArea.latitude);
-    const lon = Number(nmrArea.longitude);
-    const radiusKm = Number(nmrArea.radiusKm) || 5;
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
-
-    // Approximate conversion: 1 degree of latitude ~ 111.32 km
-    const radiusDeg = radiusKm / 111.32;
-
-    const circleGeom = new Circle([lon, lat], radiusDeg);
-    const feature = new Feature({ geometry: circleGeom });
-
-    feature.setStyle(
-      new Style({
-        fill: new Fill({ color: 'rgba(33, 150, 243, 0.15)' }), // light blue fill
-        stroke: new Stroke({ color: '#2196F3', width: 2 }), // blue border
-      })
-    );
-
-    source.addFeature(feature);
-  }, [map, nmrVectorLayer, nmrArea]);
-
-  // Handle clustering distance based on zoom level to reveal tight clusters
-  useEffect(() => {
-    if (!map || !vectorLayer) return;
-
-    const source = vectorLayer.getSource();
-    // Ensure we are working with a Cluster source which supports setDistance
-    if (!source || typeof source.setDistance !== 'function') return;
-
-    const handleZoomChange = () => {
-      const zoom = map.getView().getZoom();
-      // Disable clustering at high zoom levels (e.g., >= 17) to reveal individual items
-      // 40 is the default distance we set during initialization
-      const targetDistance = zoom >= 14 ? 0 : 30;
-
-      if (source.getDistance() !== targetDistance) {
-        source.setDistance(targetDistance);
-      }
-    };
-
-    const view = map.getView();
-    // Initial check
-    handleZoomChange();
-
-    // Listen to changes
-    view.on('change:resolution', handleZoomChange);
-
-    return () => {
-      view.un('change:resolution', handleZoomChange);
-    };
-  }, [map, vectorLayer]);
-
-  useEffect(() => {
-    if (!focusEntry) {
-      lastAutoFocusedVehicleKeyRef.current = null;
-      return;
-    }
-
-    // Only auto-focus when the focused vehicle changes.
-    // This prevents repeated re-centering during live updates for the same selected vehicle
-    // (e.g., when the user zooms out and the next refresh snaps back).
-    const focusKey =
-      focusEntry?.imei ||
-      focusEntry?.vehicle_registration_number ||
-      focusEntry?.vehicle_reg_no ||
-      focusEntry?.id;
-
-    if (focusKey && lastAutoFocusedVehicleKeyRef.current === focusKey) return;
-    if (focusKey) lastAutoFocusedVehicleKeyRef.current = focusKey;
-
-    const longitude = Number(focusEntry.longitude);
-    const latitude = Number(focusEntry.latitude);
-
-    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
-
-    // Handle OpenLayers maps (normal and satellite)
-    if (map && mapType !== "hd") {
-      map
-        .getView()
-        .animate({ center: [longitude, latitude], zoom: 16, duration: 500 });
-    }
-
-    // Handle HD Mappls map
-    if (mapType === "hd" && mapplsMapRef.current) {
-      const hdMap = mapplsMapRef.current;
-
-      // Try to pan to the location
-      // Note: Mappls expects object format {lat, lng}
-      try {
-        if (typeof hdMap.setCenter === "function") {
-          hdMap.setCenter({ lat: latitude, lng: longitude });
-        } else if (typeof hdMap.panTo === "function") {
-          hdMap.panTo({ lat: latitude, lng: longitude });
-        }
-
-        // Set zoom level
-        if (typeof hdMap.setZoom === "function") {
-          hdMap.setZoom(16);
-        }
-      } catch (error) {
-        console.warn("Could not focus on vehicle in HD map:", error);
-      }
-    }
-  }, [focusEntry, map, mapType]);
-
-  const startDrawing = () => {
-    if (!map || !drawVectorLayer) return;
-
-    // Clear previous drawings
-    drawVectorLayer.getSource().clear();
-
-    // Remove existing interaction if any
-    if (drawInteraction) {
-      map.removeInteraction(drawInteraction);
-    }
-
-    const draw = new Draw({
-      source: drawVectorLayer.getSource(),
-      type: "Polygon",
-    });
-
-    draw.on("drawend", (event) => {
-      const feature = event.feature;
-      const geometry = feature.getGeometry();
-      const coordinates = geometry.getCoordinates()[0]; // Outer ring
-
-      // Transform to [Lat, Lon]
-      const transformedCoords = coordinates.map((coord) => {
-        const [longitude, latitude] = coord;
-        return [latitude, longitude];
-      });
-
-      if (onPolygonComplete) {
-        onPolygonComplete(transformedCoords);
-      }
-
-      // Remove interaction after drawing
-      map.removeInteraction(draw);
-      setDrawInteraction(null);
-    });
-
-    map.addInteraction(draw);
-    setDrawInteraction(draw);
-  };
-
-  const clearPolygon = () => {
-    if (drawVectorLayer) {
-      drawVectorLayer.getSource().clear();
-    }
-    if (drawInteraction) {
-      map.removeInteraction(drawInteraction);
-      setDrawInteraction(null);
-    }
-    if (onPolygonComplete) {
-      onPolygonComplete([]);
-    }
-  };
-
-  // Geocoding Handlers
-  const showSnackbar = (message, severity = 'error') => {
-    setSnackbar({ open: true, message, severity });
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
-
-  const handleGeoSearch = async () => {
-    if (!geoSearchQuery.trim()) return;
-
-    try {
-      setGeoSearchLoading(true);
-      // const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
-      const url = `https://api.gromed.in/api/geocode/?q=${encodeURIComponent(geoSearchQuery)}`;
-      console.log('Fetching geocode via Axios (Proxy):', url);
-      const response = await axios.get(url);
-
-      if (response.status === 200) {
-        const data = response.data;
-        console.log('Geocoding response data:', data);
-
-        let results = [];
-        if (data.copResults) {
-          if (Array.isArray(data.copResults)) {
-            results = data.copResults;
-          } else {
-            results = [data.copResults];
-          }
-        } else if (Array.isArray(data)) {
-          results = data;
-        } else if (Array.isArray(data.results)) {
-          // Support gromed.in geocode format: { results: [...] }
-          results = data.results;
-        }
-
-        setGeoSearchResults(results);
-        if (results.length === 0) {
-          showSnackbar('No results found', 'info');
-        } else {
-          // Auto-focus map on the first geocode result
-          try {
-            handleGeoResultClick(results[0]);
-          } catch (e) {
-            console.error('Error focusing map on geocode result:', e);
-          }
-        }
-      } else {
-        console.warn('Geocoding status:', response.status);
-        showSnackbar(`Error: ${response.statusText}`, 'error');
-      }
-    } catch (error) {
-      console.error('Geocoding exception:', error);
-      if (error.code === "ERR_NETWORK") {
-        showSnackbar('Network Error (Likely CORS). Try using the SDK or a proxy.', 'error');
-      } else {
-        showSnackbar('Error searching address', 'error');
-      }
-    } finally {
-      setGeoSearchLoading(false);
-    }
-  };
-
-  const handleGeoResultClick = async (result) => {
-    console.log('Selected geo result:', result);
-
-    // Support multiple response formats:
-    // - Mappls: { latitude, longitude }
-    // - Generic: { lat, lng }
-    // - Gromed geocode: { lat, lon, address }
-    let lat = result.latitude || result.lat;
-    let lng = result.longitude || result.lng || result.lon;
-
-    // If lat/lng are missing, try to fetch them using eLoc
-    if (!lat || !lng && result.eLoc) {
-      try {
-        const url = `https://place.mappls.com/O2O/entity/place-details/${result.eLoc}?access_token=${MAPPLS_GEOCODING_TOKEN}`;
-        console.log('Fetching detailed place info for eLoc:', result.eLoc);
-        const response = await axios.get(url);
-        if (response.status === 200 && response.data) {
-          lat = response.data.latitude;
-          lng = response.data.longitude;
-          console.log('Resolved eLoc to coordinates:', lat, lng);
-        }
-      } catch (err) {
-        console.error('Error resolving eLoc details:', err);
-      }
-    }
-
-    if (lat && lng) {
-      const latNum = parseFloat(lat);
-      const lngNum = parseFloat(lng);
-
-      // Handle HD Map (Mappls)
-      if (mapType === "hd" && mapplsMapRef.current) {
-        const hdMap = mapplsMapRef.current;
-        const pos = { lat: latNum, lng: lngNum };
-
-        try {
-          if (typeof hdMap.panTo === 'function') {
-            hdMap.panTo({ lat: pos.lat, lng: pos.lng });
-          }
-          if (typeof hdMap.setCenter === 'function') {
-            hdMap.setCenter({ lat: pos.lat, lng: pos.lng });
-          }
-          if (typeof hdMap.setZoom === 'function') {
-            hdMap.setZoom(16);
-          }
-
-          // Clear previous search marker if exists
-          if (window.searchMarker) {
-            try { window.searchMarker.remove(); } catch (e) { }
-          }
-
-          // Add marker at the searched location
-          if (window.mappls && window.mappls.Marker) {
-            const iconUrl = getPoiMarkerIcon('#FF0000');
-            const marker = new window.mappls.Marker({
-              map: hdMap,
-              position: pos,
-              icon: iconUrl,
-              width: 30,
-              height: 40,
-              popupHtml: `
-                <div style="padding: 10px; width: 250px; font-family: 'Roboto', sans-serif;">
-                  <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #333; line-height: 1.3; overflow-wrap: break-word;">
-                    ${result.poi || result.placeName || result.locality || result.name || 'Location'}
-                  </h3>
-                  <p style="margin: 0 0 5px 0; font-size: 12px; color: #666; line-height: 1.4; overflow-wrap: break-word;">
-                    ${result.formattedAddress || result.address || result.description || 'No address available'}
-                  </p>
-                  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
-                    ${result.district ? `<span style="font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${result.district}</span>` : ''}
-                    ${result.state ? `<span style="font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${result.state}</span>` : ''}
-                  </div>
-                  <p style="margin: 8px 0 0 0; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 6px;">
-                    ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
-                  </p>
-                </div>
-              `
-            });
-            window.searchMarker = marker;
-          }
-        } catch (error) {
-          console.error('Error during pan on HD map:', error);
-          showSnackbar('Error moving map to location', 'error');
-        }
-      }
-      // Handle OpenLayers maps (Normal, Satellite, SOI)
-      else if (map && ["normal", "satellite", "soi"].includes(mapType)) {
-        try {
-          // Pan to location
-          map.getView().animate({
-            center: [lngNum, latNum],
-            zoom: 16,
-            duration: 500
-          });
-
-          // Clear previous search marker if exists
-          if (window.olSearchMarker) {
-            try {
-              vectorLayer.getSource().removeFeature(window.olSearchMarker);
-            } catch (e) { }
-          }
-
-          // Add marker at the searched location
-          const markerFeature = new Feature({
-            geometry: new Point([lngNum, latNum]),
-          });
-
-          markerFeature.setStyle(new Style({
-            image: new Icon({
-              anchor: [0.5, 1],
-              src: 'data:image/svg+xml;base64,' + window.btoa(`
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 24 24">
-                  <path fill="#FF0000" d="M12 2c4.418 0 8 3.134 8 7 0 5.25-8 13-8 13S4 14.25 4 9c0-3.866 3.582-7 8-7Zm0 4a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 6Z"/>
-                </svg>
-              `),
-              scale: 1.2,
-            }),
-          }));
-
-          vectorLayer.getSource().addFeature(markerFeature);
-          window.olSearchMarker = markerFeature;
-
-          // Show popup with location info
-          if (dynamicOverlay) {
-            const overlayContent = document.getElementById('overlay-content');
-            if (overlayContent) {
-              overlayContent.innerHTML = `
-                <div class="overlay-card" style="max-width: 250px; overflow: hidden;">
-                  <div class="overlay-header">
-                    <div class="overlay-title" style="word-wrap: break-word;">${result.poi || result.placeName || result.locality || 'Location'}</div>
-                  </div>
-                  <div class="overlay-body">
-                    <div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;">
-                      <span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">Address</span>
-                      <span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.formattedAddress || result.address || 'N/A'}</span>
-                    </div>
-                    ${result.district ? `<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;"><span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">District</span><span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.district}</span></div>` : ''}
-                    ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;"><span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">State</span><span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.state}</span></div>` : ''}
-                    <div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;">
-                      <span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">Coordinates</span>
-                      <span class="overlay-value" style="flex: 1; word-break: break-all; color: #333;">${latNum.toFixed(6)}, ${lngNum.toFixed(6)}</span>
-                    </div>
-                  </div>
-                </div>
-              `;
-              dynamicOverlay.setPosition([lngNum, latNum]);
-              overlayElement.current.style.display = 'block';
-            }
-          }
-        } catch (error) {
-          console.error('Error during pan on OpenLayers map:', error);
-          showSnackbar('Error moving map to location', 'error');
-        }
-      }
-    } else {
-      showSnackbar('Could not determine location coordinates', 'error');
-    }
-
-    // Clear search results and query after selection
-    setGeoSearchResults([]);
-    setGeoSearchQuery('');
-  };
-
-
-  // Handle Layer Visibility Toggles (OpenLayers)
-  useEffect(() => {
-    if (vectorLayer) {
-      vectorLayer.setVisible(showVehicles);
-    }
-  }, [showVehicles, vectorLayer]);
-
-  useEffect(() => {
-    if (poiVectorLayer) {
-      poiVectorLayer.setVisible(showPois);
-    }
-  }, [showPois, poiVectorLayer]);
-
-  useEffect(() => {
-    if (incidentVectorLayer) {
-      incidentVectorLayer.setVisible(showIncidents);
-    }
-  }, [showIncidents, incidentVectorLayer]);
-
-  // Handle Layer Visibility Toggles (Mappls HD)
-  useEffect(() => {
-    // Toggle Vehicle Markers
-    if (hdVehicleMarkersRef.current) {
-      hdVehicleMarkersRef.current.forEach(marker => {
-        try {
-          if (showVehicles) {
-            if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
-          } else {
-            marker.remove();
-          }
-        } catch (e) { console.warn("Error toggling HD vehicle marker", e); }
-      });
-    }
-
-    // Toggle POI Markers
-    if (hdPoiMarkersRef.current) {
-      hdPoiMarkersRef.current.forEach(marker => {
-        try {
-          if (showPois) {
-            if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
-          } else {
-            marker.remove();
-          }
-        } catch (e) { console.warn("Error toggling HD POI marker", e); }
-      });
-    }
-    // Toggle Incident Markers
-    if (hdIncidentMarkersRef.current) {
-      hdIncidentMarkersRef.current.forEach(marker => {
-        try {
-          if (showIncidents) {
-            if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
-          } else {
-            marker.remove();
-          }
-        } catch (e) { console.warn("Error toggling HD incident marker", e); }
-      });
-    }
-  }, [showVehicles, showPois, showIncidents, mapType]);
-
-
-  // Controls State
-  const [showLayerMenu, setShowLayerMenu] = useState(false);
-
-  return (
-    <div style={{ width, height, position: "relative", overflow: "hidden", borderRadius: '12px' }}>
-
-      {/* --- Top Left: Search Bar --- */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 6,
-          left: 30,
-          zIndex: 1100,
-          width: '320px',
-          maxWidth: 'calc(100% - 80px)', // Leave room for right controls
-        }}
-      >
-        <Paper
-          elevation={4}
-          sx={{
-            p: '2px 4px',
-            display: 'flex',
-            alignItems: 'center',
-            width: '100%',
-            borderRadius: '12px',
-            backgroundColor: alpha(theme.palette.background.paper, 0.9),
-            backdropFilter: 'blur(8px)',
-            border: '1px solid',
-            borderColor: alpha(theme.palette.divider, 0.1),
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              boxShadow: '0 8px 20px rgba(0,0,0,0.12)',
-              backgroundColor: alpha(theme.palette.background.paper, 0.98),
-            }
-          }}
-        >
-          <IconButton sx={{ p: '8px' }} aria-label="search">
-            <SearchIcon color="action" />
-          </IconButton>
-          <InputBase
-            sx={{ ml: 1, flex: 1, fontSize: '0.95rem' }}
-            placeholder="Search location..."
-            value={geoSearchQuery}
-            onChange={(e) => setGeoSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleGeoSearch();
-              if (e.key === 'Escape') {
-                setGeoSearchQuery('');
-                setGeoSearchResults([]);
-              }
-            }}
-          />
-          {geoSearchQuery && (
-            <IconButton
-              size="small"
-              onClick={() => {
-                setGeoSearchQuery('');
-                setGeoSearchResults([]);
-              }}
-              sx={{ p: '8px' }}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          )}
-          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-          <IconButton
-            color="primary"
-            sx={{ p: '8px' }}
-            onClick={handleGeoSearch}
-            disabled={geoSearchLoading}
-          >
-            {geoSearchLoading ? <CircularProgress size={20} /> : <SearchIcon />}
-          </IconButton>
-        </Paper>
-
-        {/* Search Results Dropdown */}
-        {geoSearchResults && geoSearchResults.length > 0 && (
-          <Paper
-            elevation={6}
-            sx={{
-              mt: 1,
-              maxHeight: '300px',
-              overflowY: 'auto',
-              borderRadius: '12px',
-              backgroundColor: alpha(theme.palette.background.paper, 0.95),
-              backdropFilter: 'blur(12px)',
-            }}
-          >
-            <List disablePadding>
-              {geoSearchResults.map((result, index) => (
-                <ListItemButton
-                  key={index}
-                  onClick={() => handleGeoResultClick(result)}
-                  divider={index !== geoSearchResults.length - 1}
-                >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    <LocationOnIcon color="error" fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={result.poi || result.formattedAddress || result.locality}
-                    secondary={[result.district, result.state].filter(Boolean).join(', ')}
-                    primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItemButton>
-              ))}
-            </List>
-          </Paper>
-        )}
-      </Box>
-
-      {/* --- Top Right: Map Controls (Layers & Tools) --- */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          zIndex: 1100,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1.5,
-          alignItems: 'end',
-        }}
-      >
-        {/* Layer Toggle */}
-        <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', flexDirection: 'row-reverse' }}>
-          <Tooltip title="Map Layers" placement="left">
-            <Paper
-              elevation={4}
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                backdropFilter: 'blur(8px)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                '&:hover': { bgcolor: 'white', transform: 'scale(1.05)' }
-              }}
-              onClick={() => setShowLayerMenu(!showLayerMenu)}
-            >
-              <LayersIcon color="primary" />
-            </Paper>
-          </Tooltip>
-
-          {/* Expanded Layer Menu */}
-          {showLayerMenu && (
-            <Paper
-              elevation={6}
-              sx={{
-                mr: 1,
-                p: 1.5,
-                borderRadius: '12px',
-                backgroundColor: alpha(theme.palette.background.paper, 0.95),
-                backdropFilter: 'blur(10px)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1,
-                maxHeight: '70vh',
-                overflowY: 'auto'
-              }}
-            >
-              {/* Map Type Selection */}
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                {[
-                  { id: 'normal', label: 'Normal', icon: <MapIcon /> },
-                  { id: 'satellite', label: 'Satellite', icon: <SatelliteIcon /> },
-                  // { id: 'hd', label: 'Mappls HD', icon: <HdIcon /> },
-                  { id: 'soi', label: 'SOI', icon: <PublicIcon /> }
-                ].map((type) => (
-                  <Tooltip key={type.id} title={type.label} arrow>
-                    <IconButton
-                      size="small"
-                      onClick={() => setMapType(type.id)}
-                      sx={{
-                        color: mapType === type.id ? 'primary.main' : 'text.secondary',
-                        bgcolor: mapType === type.id ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-                        borderRadius: '8px',
-                        border: mapType === type.id ? `1px solid ${theme.palette.primary.main}` : '1px solid transparent'
-                      }}
-                    >
-                      {type.icon}
-                    </IconButton>
-                  </Tooltip>
-                ))}
-              </Box>
-
-              <Divider />
-
-              {/* Layer Toggles */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      size="small"
-                      checked={showVehicles}
-                      onChange={(e) => setShowVehicles(e.target.checked)}
-                    />
-                  }
-                  label={<Typography variant="caption" fontWeight={500}>Vehicles</Typography>}
-                  sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      size="small"
-                      checked={showPois}
-                      onChange={(e) => setShowPois(e.target.checked)}
-                    />
-                  }
-                  label={<Typography variant="caption" fontWeight={500}>POIs</Typography>}
-                  sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      size="small"
-                      checked={showIncidents}
-                      onChange={(e) => setShowIncidents(e.target.checked)}
-                    />
-                  }
-                  label={<Typography variant="caption" fontWeight={500}>Incidents</Typography>}
-                  sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
-                />
-              </Box>
-
-              {mapType === 'soi' && (
-                <>
-                  <Divider />
-                  <Typography variant="caption" fontWeight={700} sx={{ px: 0.5, color: 'text.secondary' }}>
-                    SOI Layers
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxHeight: 280, overflowY: 'auto', pr: 0.5 }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.assamStateBdy}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamStateBdy: e.target.checked }))}
-                        />
-                      }
-                      label="ASSAM State BDY"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.states}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, states: e.target.checked }))}
-                        />
-                      }
-                      label="States"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.assamDistrict}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrict: e.target.checked }))}
-                        />
-                      }
-                      label="ASSAM District BDY"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.assamDistrictBdy2}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrictBdy2: e.target.checked }))}
-                        />
-                      }
-                      label="ASSAM District BDY2"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.assamDistrictHq}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrictHq: e.target.checked }))}
-                        />
-                      }
-                      label="ASSAM District HQ"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.assamSubdistrictBdy}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamSubdistrictBdy: e.target.checked }))}
-                        />
-                      }
-                      label="ASSAM Subdistrict BDY"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.kamrupRural}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, kamrupRural: e.target.checked }))}
-                        />
-                      }
-                      label="Kamrup Rural"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.cartTrackHills}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, cartTrackHills: e.target.checked }))}
-                        />
-                      }
-                      label="Cart Track Hills"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.contours}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, contours: e.target.checked }))}
-                        />
-                      }
-                      label="Contours"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.majorTowns}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, majorTowns: e.target.checked }))}
-                        />
-                      }
-                      label="Major Towns HQ"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.name}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, name: e.target.checked }))}
-                        />
-                      }
-                      label="Name"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.railwayTracks}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, railwayTracks: e.target.checked }))}
-                        />
-                      }
-                      label="Railway Tracks"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.roads}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roads: e.target.checked }))}
-                        />
-                      }
-                      label="Roads"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.roadsAllWeatherMotorable}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsAllWeatherMotorable: e.target.checked }))}
-                        />
-                      }
-                      label="Roads All Weather"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.roadsMotorableInFairWeather}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsMotorableInFairWeather: e.target.checked }))}
-                        />
-                      }
-                      label="Roads Fair Weather"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.roadsNationalHighway}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsNationalHighway: e.target.checked }))}
-                        />
-                      }
-                      label="National Highway"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.stateHighway}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, stateHighway: e.target.checked }))}
-                        />
-                      }
-                      label="State Highway"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.roadTunnel}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadTunnel: e.target.checked }))}
-                        />
-                      }
-                      label="Road Tunnel"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.roadOthers}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadOthers: e.target.checked }))}
-                        />
-                      }
-                      label="Road Others"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.buildingFootprint}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, buildingFootprint: e.target.checked }))}
-                        />
-                      }
-                      label="Building Footprint"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.roadSurface}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadSurface: e.target.checked }))}
-                        />
-                      }
-                      label="Road Surface"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.busStop}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, busStop: e.target.checked }))}
-                        />
-                      }
-                      label="Bus Stop"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.block}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, block: e.target.checked }))}
-                        />
-                      }
-                      label="Block"
-                    />
-                    {/*
-                    */}
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.skytronAssamCombined}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, skytronAssamCombined: e.target.checked }))}
-                        />
-                      }
-                      label="Assam Combined (skytron)"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.assamTowns}
-                          onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamTowns: e.target.checked }))}
-                        />
-                      }
-                      label="Assam Towns (skytron)"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanAmrut}
-                          onChange={(e) => {
-                            console.log('Bhuvan AMRUT toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanAmrut: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan AMRUT Nagaon"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanAmrutSilchar}
-                          onChange={(e) => {
-                            console.log('Bhuvan AMRUT Silchar toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanAmrutSilchar: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan AMRUT Silchar"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanAmrutDibrugarh}
-                          onChange={(e) => {
-                            console.log('Bhuvan AMRUT Dibrugarh toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanAmrutDibrugarh: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan AMRUT Dibrugarh"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanAmrutGuwahati}
-                          onChange={(e) => {
-                            console.log('Bhuvan AMRUT Guwahati toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanAmrutGuwahati: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan AMRUT Guwahati"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanSi}
-                          onChange={(e) => {
-                            console.log('Bhuvan SI toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanSi: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan NUIS Silchar"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanSisdp}
-                          onChange={(e) => {
-                            console.log('Bhuvan SISDP toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanSisdp: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Sikkim"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanAssam}
-                          onChange={(e) => {
-                            console.log('Bhuvan Assam toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanAssam: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Assam"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanManipur}
-                          onChange={(e) => {
-                            console.log('Bhuvan Manipur toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanManipur: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Manipur"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanWestBengal}
-                          onChange={(e) => {
-                            console.log('Bhuvan West Bengal toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanWestBengal: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan West Bengal"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanTripura}
-                          onChange={(e) => {
-                            console.log('Bhuvan Tripura toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanTripura: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Tripura"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanNagaland}
-                          onChange={(e) => {
-                            console.log('Bhuvan Nagaland toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanNagaland: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Nagaland"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanMeghalaya}
-                          onChange={(e) => {
-                            console.log("Bhuvan Meghalaya toggle clicked:", e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanMeghalaya: e.target.checked };
-                              console.log("New soiLayerVisibility state:", newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Meghalaya"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanMizoram}
-                          onChange={(e) => {
-                            console.log("Bhuvan Mizoram toggle clicked:", e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanMizoram: e.target.checked };
-                              console.log("New soiLayerVisibility state:", newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Mizoram"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanArunachal}
-                          onChange={(e) => {
-                            console.log("Bhuvan Arunachal toggle clicked:", e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanArunachal: e.target.checked };
-                              console.log("New soiLayerVisibility state:", newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Arunachal"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanKamrupMetro}
-                          onChange={(e) => {
-                            console.log('Bhuvan Kamrup Metro toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanKamrupMetro: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Kamrup Metro"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={soiLayerVisibility.bhuvanFloodAssam}
-                          onChange={(e) => {
-                            console.log('Bhuvan Flood Assam toggle clicked:', e.target.checked);
-                            setSoiLayerVisibility((prev) => {
-                              const newState = { ...prev, bhuvanFloodAssam: e.target.checked };
-                              console.log('New soiLayerVisibility state:', newState);
-                              return newState;
-                            });
-                          }}
-                        />
-                      }
-                      label="Bhuvan Flood Assam"
-                    />
-                  </Box>
-                </>
-              )}
-
-            </Paper>
-          )}
-        </Box>
-
-        {/* Drawing Tools */}
-        {(mapType !== "soi") && ( // Only show drawing tools if supported (Normal, Sat, HD)
-          <Paper
-            elevation={4}
-            sx={{
-              p: 0.5,
-              borderRadius: '12px',
-              backgroundColor: alpha(theme.palette.background.paper, 0.9),
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 0.5
-            }}
-          >
-            <Tooltip title={drawingMode === 'polygon' || drawInteraction ? "Drawing Active" : "Draw Polygon"} placement="left">
-              <IconButton
-                onClick={mapType === 'hd' ? startHdDrawing : startDrawing}
-                color={(drawingMode === 'polygon' || drawInteraction) ? "secondary" : "default"}
-                sx={{
-                  borderRadius: '8px',
-                  '&.Mui-active': { bgcolor: alpha(theme.palette.secondary.main, 0.1) }
-                }}
-              >
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
-
-            {/* Clear Button - Show only if something is drawn or drawing */}
-            <Tooltip title="Clear Map" placement="left">
-              <IconButton
-                onClick={mapType === 'hd' ? clearHdDrawing : clearPolygon}
-                color="error"
-                size="small"
-                sx={{ borderRadius: '8px' }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </Paper>
-        )}
-      </Box>
-
-      {/* --- Finish Drawing Action (Floating Bottom Center) --- */}
-      {((drawingMode === 'polygon' && drawingPoints.length > 2) || (drawInteraction)) && (
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 30,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1100,
-          }}
-        >
-          <Button
-            variant="contained"
-            color="success"
-            startIcon={<CheckIcon />}
-            onClick={mapType === 'hd' ? finishHdDrawing : () => { /* OpenLayers handles finish automatically on double click usually, but we can add manual finish if customization allows */ }}
-            sx={{
-              borderRadius: '24px',
-              px: 3,
-              boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
-              textTransform: 'none',
-              fontWeight: 600
-            }}
-          >
-            Finish Drawing
-          </Button>
-        </Box>
-      )}
-
-      {/* --- Map Containers --- */}
-      <div style={{ width: "100%", height: "100%", position: "relative" }}>
-        {/* Normal Map */}
-        <div
-          ref={normalMapContainerRef}
-          style={{
-            width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
-            visibility: mapType === "normal" ? "visible" : "hidden",
-            zIndex: mapType === "normal" ? 1 : 0
-          }}
-        />
-
-        {/* Satellite Map */}
-        <div
-          ref={satelliteMapContainerRef}
-          style={{
-            width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
-            visibility: mapType === "satellite" ? "visible" : "hidden",
-            zIndex: mapType === "satellite" ? 1 : 0
-          }}
-        />
-
-        {/* HD Map */}
-        <div
-          ref={hdMapContainerRef}
-          style={{
-            width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
-            visibility: mapType === "hd" ? "visible" : "hidden",
-            zIndex: mapType === "hd" ? 1 : 0
-          }}
-        >
-          <div ref={hdMapInnerRef} style={{ width: "100%", height: "100%", position: "absolute" }} />
-        </div>
-
-        {/* SOI Map */}
-        <div
-          ref={soiMapContainerRef}
-          style={{
-            width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
-            visibility: mapType === "soi" ? "visible" : "hidden",
-            zIndex: mapType === "soi" ? 1 : 0
-          }}
-        >
-          {/* Map div injected by useEffect */}
-        </div>
-      </div>
-
-      {/* --- Attribution Logos --- */}
-      <Box sx={{ position: 'absolute', bottom: 4, right: 4, zIndex: 1000, pointerEvents: 'none' }}>
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ height: '50px' }} alt="Skytron" />
-      </Box>
-
-      {/* Overlay for displaying marker details */}
-      <div ref={overlayElement} className="dynamic-overlay">
-        <div id="overlay-content"></div>
-      </div>
-
-      <style>{`
-        .dynamic-overlay {
-          position: absolute;
-          display: none;
-          transform: translate(-5%, 0%);
-          z-index: 1200; /* above all else */
-        }
-
-        .overlay-card {
-          background-color: #ffffff;
-          border-radius: 10px;
-          padding: 8px 10px;
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          min-width: 160px;
-          max-width: 320px;
-          font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          font-size: 11px;
-          color: #1f2933;
-        }
-
-        .overlay-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          padding: 12px 16px;
-          border-bottom: 1px solid #e5e7eb;
-          gap: 8px;
-        }
-        
-        .overlay-header-content {
-          flex: 1;
-          min-width: 0; /* Allows text truncation */
-        }
-        
-        .overlay-title {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          font-size: 16px;
-          font-weight: 600;
-          color: #111827;
-        }
-
-        .overlay-pill {
-          padding: 2px 8px;
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          border: 1px solid transparent;
-          white-space: nowrap;
-          flex-shrink: 0;
-          margin-left: 8px;
-        }
-
-        .overlay-pill--normal {
-          background-color: #ecfdf3;
-          color: #15803d;
-          border-color: #bbf7d0;
-        }
-
-        .overlay-pill--offline {
-          background-color: #f3f4f6;
-          color: #4b5563;
-          border-color: #d1d5db;
-        }
-
-        .overlay-pill--alert {
-          background-color: #fef2f2;
-          color: #b91c1c;
-          border-color: #fecaca;
-        }
-
-        .overlay-body {
-          border-top: 1px solid #f1f5f9;
-          padding-top: 6px;
-          margin-top: 4px;
-          display: grid;
-          row-gap: 4px;
-        }
-
-        .overlay-sections {
-          display: grid;
-          row-gap: 8px;
-          border-top: 1px solid #f1f5f9;
-          padding-top: 8px;
-          margin-top: 4px;
-        }
-
-        .overlay-tabs {
-          border-top: 1px solid #f1f5f9;
-          padding-top: 8px;
-          margin-top: 4px;
-        }
-
-        .overlay-tab-list {
-          display: flex;
-          gap: 6px;
-          margin-bottom: 8px;
-        }
-
-        .overlay-tab {
-          appearance: none;
-          border: 1px solid #e5e7eb;
-          background: #f9fafb;
-          color: #374151;
-          font-size: 12px;
-          font-weight: 600;
-          padding: 4px 8px;
-          border-radius: 999px;
-          cursor: pointer;
-        }
-
-        .overlay-tab--active {
-          background: #eef2ff;
-          border-color: #c7d2fe;
-          color: #1e3a8a;
-        }
-
-        .overlay-panel {
-          display: none;
-          max-height: 220px;
-          overflow: auto;
-          padding-right: 2px;
-        }
-
-        .overlay-panel {
-          overflow-x: hidden;
-        }
-
-        .overlay-panel--active {
-          display: block;
-        }
-
-        .overlay-section {
-          border: 1px solid #eef2f7;
-          border-radius: 8px;
-          padding: 8px 10px;
-          background: #ffffff;
-        }
-
-        .overlay-section-title {
-          font-size: 12px;
-          font-weight: 700;
-          color: #111827;
-          margin-bottom: 6px;
-        }
-
-        .overlay-section-body {
-          display: grid;
-          row-gap: 4px;
-        }
-
-        .overlay-row {
-          display: grid;
-          grid-template-columns: 84px 1fr;
-          gap: 10px;
-          align-items: baseline;
-        }
-
-        .overlay-row--multiline {
-          align-items: start;
-        }
-
-        .overlay-label {
-          font-size: 11px;
-          color: #6b7280;
-          white-space: nowrap;
-        }
-
-        .overlay-value {
-          font-size: 11px;
-          font-weight: 500;
-          color: #111827;
-          text-align: left;
-        }
-
-        .overlay-value--multiline {
-          white-space: normal;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-          text-align: left;
-          max-width: none;
-          line-height: 1.2;
-          overflow: visible;
-        }
-      `}</style>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-
-    </div>
-  );
+const overlayElement = useRef();
+const lastClickedVehicleRef = useRef(null);
+const lastCenteredFocusImeiRef = useRef(null);
+const trackingDetailCacheRef = useRef({});
+const trackingDetailInFlightRef = useRef({});
+const trackingDetailLastFetchAtRef = useRef({});
+const [map, setMap] = useState(null);
+const [vectorLayer, setVectorLayer] = useState(null);
+const [dynamicOverlay, setDynamicOverlay] = useState(null);
+const [drawVectorLayer, setDrawVectorLayer] = useState(null);
+const [drawInteraction, setDrawInteraction] = useState(null);
+const [poiVectorLayer, setPoiVectorLayer] = useState(null);
+const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
+const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
+const [pois, setPois] = useState([]);
+
+const [soiLayerVisibility, setSoiLayerVisibility] = useState({
+states: false,
+assamDistrict: false,
+assamDistrictBdy2: false,
+assamDistrictHq: false,
+assamStateBdy: false,
+assamSubdistrictBdy: false,
+cartTrackHills: false,
+contours: false,
+kamrupRural: false,
+majorTowns: false,
+name: false,
+railwayTracks: false,
+roads: false,
+roadsAllWeatherMotorable: false,
+roadsMotorableInFairWeather: false,
+roadsNationalHighway: false,
+roadOthers: false,
+roadTunnel: false,
+stateHighway: false,
+buildingFootprint: false,
+roadSurface: false,
+busStop: false,
+block: false,
+skytronAssamCombined: false,
+assamTowns: false,
+bhuvanAmrutNogaon: false,
+bhuvanNuisSilchar: false,
+bhuvanSikkim: false,
+bhuvanAssam: false,
+bhuvanKamrupMetro: false,
+bhuvanFloodAssam: false,
+bhuvanAmrutSilchar: false,
+bhuvanAmrutDibrugarh: false,
+bhuvanAmrutGuwahati: false,
+bhuvanManipur: false,
+bhuvanWestBengal: false,
+bhuvanTripura: false,
+bhuvanNagaland: false,
+bhuvanMeghalaya: false,
+bhuvanMizoram: false,
+bhuvanArunachal: false,
+});
+
+const soiLayersRef = useRef({
+states: null,
+assamDistrict: null,
+assamDistrictBdy2: null,
+assamDistrictHq: null,
+assamStateBdy: null,
+assamSubdistrictBdy: null,
+cartTrackHills: null,
+contours: null,
+kamrupRural: null,
+majorTowns: null,
+name: null,
+railwayTracks: null,
+roads: null,
+roadsAllWeatherMotorable: null,
+roadsMotorableInFairWeather: null,
+roadsNationalHighway: null,
+roadOthers: null,
+roadTunnel: null,
+stateHighway: null,
+buildingFootprint: null,
+roadSurface: null,
+busStop: null,
+block: null,
+skytronAssamCombined: null,
+assamTowns: null,
+bhuvanAmrutNogaon: null,
+bhuvanNuisSilchar: null,
+bhuvanSikkim: null,
+bhuvanAssam: null,
+bhuvanKamrupMetro: null,
+bhuvanFloodAssam: null,
+bhuvanAmrutSilchar: null,
+bhuvanAmrutDibrugarh: null,
+bhuvanAmrutGuwahati: null,
+bhuvanManipur: null,
+bhuvanWestBengal: null,
+bhuvanTripura: null,
+bhuvanNagaland: null,
+bhuvanMeghalaya: null,
+bhuvanMizoram: null,
+bhuvanArunachal: null,
+});
+
+// Map type state for 3-layer system
+const [mapType, setMapType] = useState("normal"); // 'normal', 'satellite', 'hd'
+const mapplsMapRef = useRef(null);
+const olMapRef = useRef(null);
+const normalMapRef = useRef(null);
+const olWasDraggingRef = useRef(false);
+const normalMapContainerRef = useRef(null);
+const satelliteMapContainerRef = useRef(null);
+const soiMapContainerRef = useRef(null);
+const hdMapContainerRef = useRef(null); // Mappls SDK Refs
+const hdMapInnerRef = useRef(null);
+const hdVehicleMarkersRef = useRef([]); // Store vehicle markers for HD map
+const hdPoiMarkersRef = useRef([]); // Store POI markers for HD map
+const hdIncidentMarkersRef = useRef([]); // Store incident markers for HD map
+const mapplsInstanceRef = useRef(null);
+const mapplsInitializedRef = useRef(false);
+const mapplsInitInProgressRef = useRef(false);
+const mapplsLibraryPollRef = useRef(null);
+const hdMapContainerIdRef = useRef(null);
+
+// HD Map Drawing State & Refs
+const [drawingMode, setDrawingMode] = useState(null); // 'polygon' or null
+const [drawingPoints, setDrawingPoints] = useState([]);
+const tempPolyRef = useRef(null);
+const tempMarkersRef = useRef([]);
+
+const fetchVehicleTrackingDetail = async (entry) => {
+const imei =
+entry?.imei ||
+entry?.imei_no ||
+entry?.imeiNo ||
+entry?.device_tag_info?.device?.imei ||
+entry?.device_tag_info?.imei;
+const regno =
+entry?.vehicle_registration_number ||
+entry?.vehicle_reg_no ||
+entry?.device_tag_info?.device?.vehicle_reg_no ||
+entry?.device_tag_info?.vehicle?.vehicle_reg_no ||
+"";
+
+const cacheKey = imei ? `imei:${imei}` : regno ? `regno:${regno}` : null;
+if (!cacheKey) return null;
+
+const cached = trackingDetailCacheRef.current[cacheKey];
+if (cached) return cached;
+
+const inFlight = trackingDetailInFlightRef.current[cacheKey];
+if (inFlight) return inFlight;
+
+const now = Date.now();
+const lastFetchAt = trackingDetailLastFetchAtRef.current[cacheKey];
+if (lastFetchAt && now - lastFetchAt < 15000) {
+return null;
+}
+trackingDetailLastFetchAtRef.current[cacheKey] = now;
+
+const reqPromise = HomePageService.getLiveTracking_data({
+imei: imei || "",
+regno,
+owner: "",
+poi: "",
+roads: "",
+polygon: "",
+category: "",
+make: "",
+dto_code: "",
+poi_id: "",
+in_range: false,
+poi_as_polygon: false,
+})
+.then((resp) => {
+const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
+if (detail) {
+trackingDetailCacheRef.current[cacheKey] = detail;
+return detail;
+}
+return null;
+})
+.catch(() => null)
+.finally(() => {
+delete trackingDetailInFlightRef.current[cacheKey];
+});
+
+trackingDetailInFlightRef.current[cacheKey] = reqPromise;
+return reqPromise;
+};
+
+// Geocoding State
+const [geoSearchQuery, setGeoSearchQuery] = useState('');
+const [geoSearchResults, setGeoSearchResults] = useState([]); // Store search results
+const [showVehicles, setShowVehicles] = useState(true);
+const [showPois, setShowPois] = useState(false);
+const [showIncidents, setShowIncidents] = useState(false);
+const [geoSearchLoading, setGeoSearchLoading] = useState(false);
+const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
+const theme = useTheme();
+
+const USE_TYPE_COLORS = {
+school: "#1E88E5",
+hospital: "#E53935",
+dealership: "#8E24AA",
+dealer: "#8E24AA",
+personal: "#43A047",
+prohibited_area: "#D81B60",
+permitroute: "#FB8C00",
+tollgate: "#6D4C41",
+parking: "#00897B",
+no_parking: "#C62828",
+villageboundary: "#5E35B1",
+cityboundary: "#3949AB",
+districtboundary: "#00838F",
+stateboundary: "#00695C",
+fuelstation: "#FDD835",
+busstop: "#7CB342",
+railwaystation: "#5C6BC0",
+airport: "#039BE5",
+other: "#546E7A",
+};
+
+const hexToRgba = (hex, alpha) => {
+if (!hex) {
+return `rgba(30, 136, 229, ${alpha})`;
+}
+
+let normalized = hex.replace("#", "");
+if (normalized.length === 3) {
+normalized = normalized
+.split("")
+.map((char) => char + char)
+.join("");
+}
+
+const bigint = parseInt(normalized, 16);
+const r = (bigint >> 16) & 255;
+const g = (bigint >> 8) & 255;
+const b = bigint & 255;
+
+return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const getUseTypeColor = (poi) => {
+const key = poi?.use_type?.toLowerCase();
+return USE_TYPE_COLORS[key] || "#1E88E5";
+};
+
+const createIconStyle = (color, vehicleType, labelText, forceLightBlue = false) => {
+const normalizedVehicleType = vehicleType
+? vehicleType.toLowerCase().replace(/\s+/g, "_")
+: "bus";
+
+const availableTypes = [
+"ambulance",
+"bus",
+"dumper",
+"police",
+"school_bus",
+"tanker",
+"taxi",
+"truck",
+];
+const iconType = availableTypes.includes(normalizedVehicleType)
+? normalizedVehicleType
+: "bus";
+
+let iconPath;
+try {
+iconPath = vehicleIconContext(`./${color}/${iconType}.png`);
+} catch (error) {
+try {
+iconPath = vehicleIconContext(`./${color}/bus.png`);
+} catch (fallbackError) {
+iconPath = vehicleIconContext(`./default/bus.png`);
+}
+}
+
+const scaleByColor = {
+blue: 0.055,
+green: 0.065,
+red: 0.065,
+orange: 0.065,
+grey: 0.065,
+default: 0.065,
+};
+
+const iconScale = scaleByColor[color] || scaleByColor.default;
+const labelGap = color === "grey" ? 15 : 5;
+const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
+
+const textStyle = labelText
+? new Text({
+text: labelText,
+font: '11px "Roboto", sans-serif',
+fill: new Fill({ color: "#0D47A1" }),
+stroke: new Stroke({ color: "#ffffff", width: 3 }),
+backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
+padding: [1, 3, 1, 3],
+textAlign: 'center',
+textBaseline: 'bottom',
+offsetY: labelOffsetY,
+})
+: undefined;
+
+if (forceLightBlue) {
+return [
+new Style({
+image: new CircleStyle({
+radius: 18,
+fill: new Fill({ color: "rgba(33, 150, 243, 0.30)" }),
+stroke: new Stroke({ color: "rgba(33, 150, 243, 0.75)", width: 2 }),
+}),
+text: textStyle,
+}),
+new Style({
+image: new Icon({
+anchor: [0.5, 1],
+src: iconPath,
+scale: iconScale,
+}),
+text: textStyle,
+}),
+];
+}
+
+return new Style({
+image: new Icon({
+anchor: [0.5, 1],
+src: iconPath,
+scale: iconScale,
+}),
+text: textStyle,
+});
+};
+
+const getMarkerLabel = (entry, mode) => {
+if (!entry) return "";
+switch (mode) {
+case "block": {
+return (
+entry.block_name ||
+entry.block ||
+entry.blockName ||
+entry.area_name ||
+entry.area ||
+entry.device_tag_info?.block?.name ||
+entry.device_tag_info?.block_name ||
+entry.device_tag_info?.device?.block_name ||
+entry.device_tag_info?.device?.district ||
+entry.device_tag_info?.state_info?.state ||
+entry.district ||
+entry.address ||
+entry.nearest_poi?.data?.address ||
+""
+);
+}
+case "route": {
+const routeId = entry.route_id ||
+entry.route_ref?.id ||
+entry.device_tag_info?.route?.id ||
+entry.nearby_routes_within_100m?.[0]?.data?.id;
+return (
+entry.route_name ||
+entry.route ||
+(routeId ? `Route: ${routeId}` : "") ||
+entry.route_info ||
+entry.routeInformation ||
+entry.route_ref?.name ||
+""
+);
+}
+case "vehicle":
+default: {
+return (
+entry.vehicle_registration_number ||
+entry.vehicle_reg_no ||
+entry.device_tag_info?.device?.vehicle_reg_no ||
+entry.device_tag_info?.vehicle?.vehicle_reg_no ||
+entry.imei ||
+""
+);
+}
+}
+};
+
+const getVehicleMarkerIconUrl = (color, vehicleType) => {
+const categoryName = typeof vehicleType === 'object' ? vehicleType?.category : vehicleType;
+const normalizedVehicleType = categoryName
+? categoryName.toLowerCase().replace(/\s+/g, "_")
+: "bus";
+const availableTypes = [
+"ambulance",
+"bus",
+"dumper",
+"police",
+"school_bus",
+"tanker",
+"taxi",
+"truck",
+];
+const iconType = availableTypes.includes(normalizedVehicleType)
+? normalizedVehicleType
+: "bus";
+
+const allowedColors = ["red", "orange", "blue", "green", "grey", "default"];
+const safeColor = allowedColors.includes(color) ? color : "default";
+
+try {
+return require(`../../assets/images/${safeColor}/${iconType}.png`);
+} catch (error) {
+try {
+return require(`../../assets/images/default/bus.png`);
+} catch (fallbackError) {
+console.error("Failed to resolve vehicle icon for HD map marker", {
+error,
+fallbackError,
+});
+return null;
+}
+}
+};
+
+const getPoiMarkerIcon = (color) => {
+const safeColor = color || "#1E88E5";
+const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<g fill="none" fill-rule="evenodd">
+<path d="M0 0h24v24H0z"/>
+<path fill="${safeColor}" d="M12 2c4.418 0 8 3.134 8 7 0 5.25-8 13-8 13S4 14.25 4 9c0-3.866 3.582-7 8-7Zm0 4a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 6Z"/>
+</g>
+</svg>`;
+
+if (typeof window !== "undefined" && typeof window.btoa === "function") {
+return `data:image/svg+xml;base64,${window.btoa(svg)}`;
+}
+
+return null;
+};
+
+const getPoiStyles = (poi) => {
+const baseColor = getUseTypeColor(poi);
+const fillColor = hexToRgba(baseColor, 0.18);
+
+const primaryLabel = poi?.name?.trim();
+const secondaryLabel = poi?.use_type?.trim();
+const fallbackLabel = poi?.description?.trim();
+const displayText =
+primaryLabel || secondaryLabel || fallbackLabel || `POI ${poi?.id ?? ""}`;
+
+const createText = (overrides = {}) =>
+new Text({
+text: displayText,
+font: '12px "Roboto", sans-serif',
+fill: new Fill({ color: "#0D47A1" }),
+stroke: new Stroke({ color: "#ffffff", width: 3 }),
+backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
+padding: [2, 4, 2, 4],
+...overrides,
+});
+
+switch (poi?.mark_type) {
+case "Point":
+return [
+new Style({
+image: new CircleStyle({
+radius: 7,
+fill: new Fill({ color: baseColor }),
+stroke: new Stroke({ color: "#ffffff", width: 2 }),
+}),
+text: createText({ offsetY: -20 }),
+zIndex: 1000,
+}),
+];
+
+case "Circle":
+return [
+new Style({
+fill: new Fill({ color: fillColor }),
+stroke: new Stroke({ color: baseColor, width: 2 }),
+zIndex: 900,
+}),
+new Style({
+text: createText(),
+geometry: (feature) => {
+const geometry = feature.getGeometry();
+if (!geometry || !geometry.getCenter) return null;
+return new Point(geometry.getCenter());
+},
+zIndex: 950,
+}),
+];
+
+case "Polygon":
+return [
+new Style({
+fill: new Fill({ color: fillColor }),
+stroke: new Stroke({ color: baseColor, width: 2 }),
+zIndex: 900,
+}),
+new Style({
+text: createText(),
+geometry: (feature) => {
+const geometry = feature.getGeometry();
+return geometry && geometry.getInteriorPoint
+? geometry.getInteriorPoint()
+: null;
+},
+zIndex: 950,
+}),
+];
+
+case "Road":
+return [
+new Style({
+stroke: new Stroke({ color: baseColor, width: 3 }),
+zIndex: 900,
+}),
+new Style({
+text: createText(),
+geometry: (feature) => {
+const geometry = feature.getGeometry();
+if (!geometry || !geometry.getCoordinateAt) return null;
+const coordinate = geometry.getCoordinateAt(0.5);
+return coordinate ? new Point(coordinate) : null;
+},
+zIndex: 950,
+}),
+];
+
+default:
+return [
+new Style({
+image: new CircleStyle({
+radius: 7,
+fill: new Fill({ color: baseColor }),
+stroke: new Stroke({ color: "#ffffff", width: 2 }),
+}),
+text: createText({ offsetY: -20 }),
+zIndex: 1000,
+}),
+];
+}
+};
+
+const clusterStyleFunction = (feature) => {
+const features = feature.get('features');
+const size = features.length;
+
+if (size === 1) {
+// Return the style of the original feature
+return features[0].getStyle();
+}
+
+return new Style({
+image: new CircleStyle({
+radius: 12 + Math.min(size * 0.5, 8),
+stroke: new Stroke({ color: '#fff', width: 2 }),
+fill: new Fill({ color: '#1976d2' }),
+}),
+text: new Text({
+text: size.toString(),
+fill: new Fill({ color: '#fff' }),
+font: 'bold 12px "Roboto", sans-serif',
+}),
+});
+};
+
+// Initialize Normal Map (Default)
+useEffect(() => {
+if (mapType !== "normal" || !normalMapContainerRef.current) return;
+
+// Create the three WMS layers matching POIViewer.jsx configuration exactly
+const india3Layer = new TileLayer({
+source: createBhuvanSource("india3"),
+zIndex: 1,
+});
+
+const adminGroupLayer = new TileLayer({
+source: createBhuvanSource("basemap%3Aadmin_group"),
+zIndex: 2,
+});
+
+const roadsLayer = new TileLayer({
+source: createBhuvanSource("mmi:mmi_india"),
+zIndex: 3,
+});
+
+const initialMap = new Map({
+target: normalMapContainerRef.current,
+layers: [india3Layer, adminGroupLayer, roadsLayer],
+
+view: new View({
+projection: "EPSG:4326",
+center: [91.7362, 26.1445], // Guwahati, Assam
+zoom: 6,
+maxZoom: 32,
+constrainResolution: true,
+}),
+
+controls: [
+new ZoomSlider(),
+new FullScreen(),
+// new ScaleLine()
+],
+
+pixelRatio: 1,
+});
+
+// Initialize vector layer for markers
+// Initialize vector layer for markers (with Clustering)
+const initialVectorLayer = new VectorLayer({
+source: new Cluster({
+distance: 40,
+source: new VectorSource(),
+}),
+zIndex: 200,
+style: clusterStyleFunction,
+});
+initialMap.addLayer(initialVectorLayer);
+
+// Initialize POI vector layer
+const poiSource = new VectorSource();
+const initialPoiVectorLayer = new VectorLayer({
+source: poiSource,
+zIndex: 100,
+declutter: true,
+visible: false,
+});
+initialMap.addLayer(initialPoiVectorLayer);
+setPoiVectorLayer(initialPoiVectorLayer);
+
+// Initialize incident vector layer
+const incidentSource = new VectorSource();
+const initialIncidentVectorLayer = new VectorLayer({
+source: incidentSource,
+zIndex: 300,
+visible: false,
+});
+initialMap.addLayer(initialIncidentVectorLayer);
+setIncidentVectorLayer(initialIncidentVectorLayer);
+
+// Initialize NMR circle vector layer
+const nmrSource = new VectorSource();
+const initialNmrVectorLayer = new VectorLayer({
+source: nmrSource,
+zIndex: 250,
+visible: true,
+});
+initialMap.addLayer(initialNmrVectorLayer);
+setNmrVectorLayer(initialNmrVectorLayer);
+
+// Initialize vector layer for drawing
+const drawSource = new VectorSource();
+const drawLayer = new VectorLayer({
+source: drawSource,
+style: new Style({
+fill: new Fill({
+color: "rgba(255, 255, 255, 0.2)",
+}),
+stroke: new Stroke({
+color: "#ffcc33",
+width: 2,
+}),
+image: new CircleStyle({
+radius: 7,
+fill: new Fill({
+color: "#ffcc33",
+}),
+}),
+}),
+});
+initialMap.addLayer(drawLayer);
+
+// Create dynamic overlay
+const initialOverlay = new Overlay({
+element: overlayElement.current,
+});
+initialMap.addOverlay(initialOverlay);
+
+setMap(initialMap);
+setVectorLayer(initialVectorLayer);
+setDynamicOverlay(initialOverlay);
+setDrawVectorLayer(drawLayer);
+normalMapRef.current = initialMap;
+
+return () => {
+if (normalMapRef.current) {
+normalMapRef.current.setTarget(null);
+normalMapRef.current = null;
+}
+};
+}, [mapType]);
+
+// Initialize Satellite Map (OpenLayers)
+useEffect(() => {
+if (mapType !== "satellite" || !satelliteMapContainerRef.current) return;
+
+try {
+
+// OSM Satellite layer
+const osmLayer = new TileLayer({
+title: "OSM Satellite",
+source: new XYZ({
+url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+attributions: " Esri",
+maxZoom: 18,
+}),
+zIndex: 0,
+});
+
+const satelliteMap = new Map({
+target: satelliteMapContainerRef.current,
+layers: [osmLayer],
+view: new View({
+projection: "EPSG:4326",
+center: [91.7362, 26.1445],
+zoom: 13,
+maxZoom: 22,
+constrainResolution: true,
+}),
+controls: [
+new ZoomSlider(),
+new FullScreen(),
+new ScaleLine()
+],
+pixelRatio: 1,
+});
+
+// Initialize vector layer for markers
+// Initialize vector layer for markers (with Clustering)
+const initialVectorLayer = new VectorLayer({
+source: new Cluster({
+distance: 40,
+source: new VectorSource(),
+}),
+zIndex: 200,
+style: clusterStyleFunction,
+});
+satelliteMap.addLayer(initialVectorLayer);
+
+// Initialize POI vector layer
+const poiSource = new VectorSource();
+const initialPoiVectorLayer = new VectorLayer({
+source: poiSource,
+zIndex: 100,
+declutter: true,
+visible: false,
+});
+satelliteMap.addLayer(initialPoiVectorLayer);
+setPoiVectorLayer(initialPoiVectorLayer);
+
+// Initialize incident vector layer for satellite
+const incidentSource = new VectorSource();
+const initialIncidentVectorLayer = new VectorLayer({
+source: incidentSource,
+zIndex: 300,
+visible: false,
+});
+satelliteMap.addLayer(initialIncidentVectorLayer);
+setIncidentVectorLayer(initialIncidentVectorLayer);
+
+// Initialize NMR circle vector layer for satellite
+const nmrSource = new VectorSource();
+const initialNmrVectorLayer = new VectorLayer({
+source: nmrSource,
+zIndex: 250,
+visible: true,
+});
+satelliteMap.addLayer(initialNmrVectorLayer);
+setNmrVectorLayer(initialNmrVectorLayer);
+
+// Initialize vector layer for drawing
+const drawSource = new VectorSource();
+const drawLayer = new VectorLayer({
+source: drawSource,
+style: new Style({
+fill: new Fill({
+color: "rgba(255, 255, 255, 0.2)",
+}),
+stroke: new Stroke({
+color: "#ffcc33",
+width: 2,
+}),
+image: new CircleStyle({
+radius: 7,
+fill: new Fill({
+color: "#ffcc33",
+}),
+}),
+}),
+});
+satelliteMap.addLayer(drawLayer);
+
+// Create dynamic overlay
+const initialOverlay = new Overlay({
+element: overlayElement.current,
+});
+satelliteMap.addOverlay(initialOverlay);
+
+setMap(satelliteMap);
+setVectorLayer(initialVectorLayer);
+setDynamicOverlay(initialOverlay);
+setDrawVectorLayer(drawLayer);
+olMapRef.current = satelliteMap;
+} catch (error) {
+console.error("Error initializing satellite map:", error);
+}
+
+return () => {
+if (olMapRef.current) {
+olMapRef.current.setTarget(null);
+olMapRef.current = null;
+}
+};
+}, [mapType]);
+
+// Initialize Survey of India Map
+useEffect(() => {
+if (mapType !== "soi" || !soiMapContainerRef.current) return;
+
+try {
+const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
+const assamGeoserverURL = "https://map.gromed.in/geoserver/assam/wms";
+const bhuvanAmrutWmsUrl = "https://bhuvan-vec3.nrsc.gov.in/bhuvan/wms";
+const bhuvanNuisWmsUrl = "https://bhuvan-vec1.nrsc.gov.in/bhuvan/nuis/ows";
+const bhuvanSikkimWmsUrl = "https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms";
+const bhuvanSisdpv2WmsUrl = "https://bhuvan-vec2.nrsc.gov.in/bhuvan/sisdpv2/wms";
+const bhuvanHazardWmsUrl = "https://bhuvan-ras2.nrsc.gov.in/cgi-bin/hazard.exe";
+
+// Bhuvan base map (same as normal map)
+const bhuvanIndia3Layer = new TileLayer({
+source: createBhuvanSource("india3"),
+zIndex: 0,
+});
+
+const bhuvanAdminLayer = new TileLayer({
+source: createBhuvanSource("basemap%3Aadmin_group"),
+zIndex: 1,
+});
+
+const bhuvanRoadsLayer = new TileLayer({
+source: createBhuvanSource("mmi:mmi_india"),
+zIndex: 2,
+});
+
+// SOI / skytron overlays
+const soiStatesLayer = new TileLayer({
+title: "States",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:states",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.7,
+visible: soiLayerVisibility.states,
+zIndex: 10,
+});
+
+const soiAssamDistrictLayer = new TileLayer({
+title: "ASSAM District Boundary",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ASSAM_DISTRICT_BDY",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.8,
+visible: soiLayerVisibility.assamDistrict,
+zIndex: 11,
+});
+
+const soiAssamDistrictBdy2Layer = new TileLayer({
+title: "ASSAM District Boundary 2",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ASSAM_DISTRICT_BDY2",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.8,
+visible: soiLayerVisibility.assamDistrictBdy2,
+zIndex: 12,
+});
+
+const soiAssamDistrictHqLayer = new TileLayer({
+title: "ASSAM District HQ",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ASSAM_DISTRICT_HQ",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.assamDistrictHq,
+zIndex: 13,
+});
+
+const soiAssamStateBdyLayer = new TileLayer({
+title: "ASSAM State Boundary",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ASSAM_STATE_BDY",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.8,
+visible: soiLayerVisibility.assamStateBdy,
+zIndex: 14,
+});
+
+const soiAssamSubdistrictBdyLayer = new TileLayer({
+title: "ASSAM Subdistrict Boundary",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ASSAM_SUBDISTRICT_BDY",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.8,
+visible: soiLayerVisibility.assamSubdistrictBdy,
+zIndex: 15,
+});
+
+const soiCartTrackHillsLayer = new TileLayer({
+title: "Cart Track Hills",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:CART_TRACK_HILLS",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.cartTrackHills,
+zIndex: 16,
+});
+
+const soiContoursLayer = new TileLayer({
+title: "Contours",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:Contours",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.8,
+visible: soiLayerVisibility.contours,
+zIndex: 12,
+});
+
+const soiKamrupRuralLayer = new TileLayer({
+title: "Kamrup Rural",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:KAMRUP_RURAL",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.kamrupRural,
+zIndex: 17,
+});
+
+const soiMajorTownsLayer = new TileLayer({
+title: "Major Towns / Headquarters",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:MajortownsHeadquarters",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.majorTowns,
+zIndex: 13,
+});
+
+const soiNameLayer = new TileLayer({
+title: "Name",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:NAME",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.name,
+zIndex: 18,
+});
+
+const soiRailwayTracksLayer = new TileLayer({
+title: "Railway Tracks",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:RailwayTracks",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.railwayTracks,
+zIndex: 14,
+});
+
+const soiRoadsLayer = new TileLayer({
+title: "SOI Roads",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:Roads",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.roads,
+zIndex: 15,
+});
+
+const soiRoadsAllWeatherMotorableLayer = new TileLayer({
+title: "Roads (All Weather Motorable)",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ROADS_ALL_WEATHER_MOTORABLE",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.roadsAllWeatherMotorable,
+zIndex: 19,
+});
+
+const soiRoadsMotorableInFairWeatherLayer = new TileLayer({
+title: "Roads (Motorable in Fair Weather)",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ROADS_MOTORABLE_IN_FAIR_WEATHER",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.roadsMotorableInFairWeather,
+zIndex: 20,
+});
+
+const soiRoadsNationalHighwayLayer = new TileLayer({
+title: "Roads (National Highway)",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ROADS_NATIONAL_HIGHWAY",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.roadsNationalHighway,
+zIndex: 21,
+});
+
+const soiRoadOthersLayer = new TileLayer({
+title: "Road Others",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ROAD_OTHERS",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.roadOthers,
+zIndex: 22,
+});
+
+const soiRoadTunnelLayer = new TileLayer({
+title: "Road Tunnel",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:ROAD_TUNNEL",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.roadTunnel,
+zIndex: 23,
+});
+
+const soiStateHighwayLayer = new TileLayer({
+title: "State Highway",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:STATE_HIGHWAY",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.stateHighway,
+zIndex: 24,
+});
+
+const soiBuildingFootprintLayer = new TileLayer({
+title: "Building Footprint",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:building_footprint",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.buildingFootprint,
+zIndex: 25,
+});
+
+const soiRoadSurfaceLayer = new TileLayer({
+title: "Road Surface",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:road_surface",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.roadSurface,
+zIndex: 26,
+});
+
+const soiBusStopLayer = new TileLayer({
+title: "Bus Stop",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:bus_stop",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.busStop,
+zIndex: 27,
+});
+
+const soiBlockLayer = new TileLayer({
+title: "Block",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:block",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.block,
+zIndex: 28,
+});
+
+const soiSkytronAssamCombinedLayer = new TileLayer({
+title: "Assam Combined (skytron)",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:assam_combined",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.skytronAssamCombined,
+zIndex: 30,
+});
+
+const soiAssamTownsLayer = new TileLayer({
+title: "Assam Towns (skytron)",
+source: new TileWMS({
+url: geoserverURL,
+params: {
+LAYERS: "skytron:AssamTowns",
+TILED: true,
+},
+serverType: "geoserver",
+crossOrigin: "anonymous",
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.assamTowns,
+zIndex: 31,
+});
+
+const bhuvanAmrutNogaonLayer = new TileLayer({
+title: "Bhuvan AMRUT Nogaon",
+source: new TileWMS({
+url: bhuvanAmrutWmsUrl,
+params: {
+LAYERS: "amrut_ph1:AS_Nagaon_amrutph1_4k",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanAmrutNogaon,
+zIndex: 32,
+});
+
+const bhuvanAmrutSilcharLayer = new TileLayer({
+title: "Bhuvan AMRUT Silchar",
+source: new TileWMS({
+url: bhuvanAmrutWmsUrl,
+params: {
+LAYERS: "amrut_ph1:AS_Silchar_amrutph1_4k",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanAmrutSilchar,
+zIndex: 38,
+});
+
+const bhuvanAmrutDibrugarhLayer = new TileLayer({
+title: "Bhuvan AMRUT Dibrugarh",
+source: new TileWMS({
+url: bhuvanAmrutWmsUrl,
+params: {
+LAYERS: "amrut_ph1:AS_Dibrugarh_amrutph1_4k",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanAmrutDibrugarh,
+zIndex: 39,
+});
+
+const bhuvanAmrutGuwahatiLayer = new TileLayer({
+title: "Bhuvan AMRUT Guwahati",
+source: new TileWMS({
+url: bhuvanAmrutWmsUrl,
+params: {
+LAYERS: "amrut_ph1:AS_Guwahati_amrutph1_4k",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanAmrutGuwahati,
+zIndex: 40,
+});
+
+const bhuvanNuisSilcharLayer = new TileLayer({
+title: "Bhuvan NUIS Silchar",
+source: new TileWMS({
+url: bhuvanNuisWmsUrl,
+params: {
+LAYERS: "AS_SI_UL10K",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [92.75, 24.75, 92.817, 24.875],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanNuisSilchar,
+zIndex: 33,
+});
+
+const bhuvanSikkimLayer = new TileLayer({
+title: "Bhuvan Sikkim",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_SK",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [88.012, 27.082, 88.922, 28.131],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanSikkim,
+zIndex: 34,
+});
+
+const bhuvanAssamLayer = new TileLayer({
+title: "Bhuvan Assam",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_AS",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [89.701, 24.135, 96.021, 27.977],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanAssam,
+zIndex: 35,
+});
+
+const bhuvanManipurLayer = new TileLayer({
+title: "Bhuvan Manipur",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_MN",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [92.974, 23.843, 94.747, 25.968],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanManipur,
+zIndex: 41,
+});
+
+const bhuvanWestBengalLayer = new TileLayer({
+title: "Bhuvan WestBengal",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_WB",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [85.82, 21.481, 89.886, 27.22],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanWestBengal,
+zIndex: 42,
+});
+
+const bhuvanTripuraLayer = new TileLayer({
+title: "Bhuvan Tripura",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_TR",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanTripura,
+zIndex: 43,
+});
+
+const bhuvanNagalandLayer = new TileLayer({
+title: "Bhuvan Nagaland",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_NL",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [93.332, 25.202, 95.245, 27.043],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanNagaland,
+zIndex: 44,
+});
+
+const bhuvanMeghalayaLayer = new TileLayer({
+title: "Bhuvan Meghalaya",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_ML",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [89.822, 25.032, 92.804, 26.119],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanMeghalaya,
+zIndex: 45,
+});
+
+const bhuvanMizoramLayer = new TileLayer({
+title: "Bhuvan Mizoram",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_MZ",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [92.259, 21.948, 93.438, 24.521],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanMizoram,
+zIndex: 46,
+});
+
+const bhuvanArunachalLayer = new TileLayer({
+title: "Bhuvan Arunachal",
+source: new TileWMS({
+url: bhuvanSikkimWmsUrl,
+params: {
+LAYERS: "sisdp_phase2:SISDP_P2_LULC_10K_2016_2019_AR",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [91.605, 26.656, 97.415, 29.376],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanArunachal,
+zIndex: 47,
+});
+
+const bhuvanKamrupMetroLayer = new TileLayer({
+title: "Bhuvan Kamrup Metro",
+source: new TileWMS({
+url: bhuvanSisdpv2WmsUrl,
+params: {
+LAYERS: "AS_Kamrup_Metro_lulc_v2",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+serverType: "geoserver",
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [91.550399, 25.996357, 92.17674, 26.274106],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanKamrupMetro,
+zIndex: 36,
+});
+
+const bhuvanFloodAssamLayer = new TileLayer({
+title: "Bhuvan Flood Assam",
+source: new TileWMS({
+url: bhuvanHazardWmsUrl,
+params: {
+LAYERS: "as_hz",
+TILED: true,
+VERSION: "1.1.1",
+FORMAT: "image/png",
+TRANSPARENT: "true",
+SRS: "EPSG:4326",
+WIDTH: 256,
+HEIGHT: 256,
+},
+crossOrigin: BHUVAN_CROSS_ORIGIN,
+transition: 0,
+}),
+extent: [89.701, 24.135, 96.021, 27.977],
+opacity: 0.9,
+visible: soiLayerVisibility.bhuvanFloodAssam,
+zIndex: 37,
+});
+
+soiLayersRef.current = {
+states: soiStatesLayer,
+assamDistrict: soiAssamDistrictLayer,
+assamDistrictBdy2: soiAssamDistrictBdy2Layer,
+assamDistrictHq: soiAssamDistrictHqLayer,
+assamStateBdy: soiAssamStateBdyLayer,
+assamSubdistrictBdy: soiAssamSubdistrictBdyLayer,
+cartTrackHills: soiCartTrackHillsLayer,
+contours: soiContoursLayer,
+kamrupRural: soiKamrupRuralLayer,
+majorTowns: soiMajorTownsLayer,
+name: soiNameLayer,
+railwayTracks: soiRailwayTracksLayer,
+roads: soiRoadsLayer,
+roadsAllWeatherMotorable: soiRoadsAllWeatherMotorableLayer,
+roadsMotorableInFairWeather: soiRoadsMotorableInFairWeatherLayer,
+roadsNationalHighway: soiRoadsNationalHighwayLayer,
+roadOthers: soiRoadOthersLayer,
+roadTunnel: soiRoadTunnelLayer,
+stateHighway: soiStateHighwayLayer,
+buildingFootprint: soiBuildingFootprintLayer,
+roadSurface: soiRoadSurfaceLayer,
+busStop: soiBusStopLayer,
+block: soiBlockLayer,
+skytronAssamCombined: soiSkytronAssamCombinedLayer,
+assamTowns: soiAssamTownsLayer,
+bhuvanAmrutNogaon: bhuvanAmrutNogaonLayer,
+bhuvanAmrutSilchar: bhuvanAmrutSilcharLayer,
+bhuvanAmrutDibrugarh: bhuvanAmrutDibrugarhLayer,
+bhuvanAmrutGuwahati: bhuvanAmrutGuwahatiLayer,
+bhuvanNuisSilchar: bhuvanNuisSilcharLayer,
+bhuvanSikkim: bhuvanSikkimLayer,
+bhuvanAssam: bhuvanAssamLayer,
+bhuvanKamrupMetro: bhuvanKamrupMetroLayer,
+bhuvanFloodAssam: bhuvanFloodAssamLayer,
+bhuvanManipur: bhuvanManipurLayer,
+bhuvanWestBengal: bhuvanWestBengalLayer,
+bhuvanTripura: bhuvanTripuraLayer,
+bhuvanNagaland: bhuvanNagalandLayer,
+bhuvanMeghalaya: bhuvanMeghalayaLayer,
+bhuvanMizoram: bhuvanMizoramLayer,
+bhuvanArunachal: bhuvanArunachalLayer,
+};
+
+const soiMap = new Map({
+target: soiMapContainerRef.current,
+layers: [
+bhuvanIndia3Layer,
+bhuvanAdminLayer,
+bhuvanRoadsLayer,
+soiStatesLayer,
+soiAssamDistrictLayer,
+soiAssamDistrictBdy2Layer,
+soiAssamDistrictHqLayer,
+soiAssamStateBdyLayer,
+soiAssamSubdistrictBdyLayer,
+soiCartTrackHillsLayer,
+soiContoursLayer,
+soiKamrupRuralLayer,
+soiMajorTownsLayer,
+soiNameLayer,
+soiRailwayTracksLayer,
+soiRoadsLayer,
+soiRoadsAllWeatherMotorableLayer,
+soiRoadsMotorableInFairWeatherLayer,
+soiRoadsNationalHighwayLayer,
+soiRoadOthersLayer,
+soiRoadTunnelLayer,
+soiStateHighwayLayer,
+soiBuildingFootprintLayer,
+soiRoadSurfaceLayer,
+soiBusStopLayer,
+soiBlockLayer,
+soiSkytronAssamCombinedLayer,
+soiAssamTownsLayer,
+bhuvanAmrutNogaonLayer,
+bhuvanAmrutSilcharLayer,
+bhuvanAmrutDibrugarhLayer,
+bhuvanAmrutGuwahatiLayer,
+bhuvanNuisSilcharLayer,
+bhuvanSikkimLayer,
+bhuvanAssamLayer,
+bhuvanKamrupMetroLayer,
+bhuvanFloodAssamLayer,
+bhuvanManipurLayer,
+bhuvanWestBengalLayer,
+bhuvanTripuraLayer,
+bhuvanNagalandLayer,
+bhuvanMeghalayaLayer,
+bhuvanMizoramLayer,
+bhuvanArunachalLayer,
+],
+view: new View({
+projection: "EPSG:4326",
+center: [91.7362, 26.1445],
+zoom: 13,
+maxZoom: 19,
+constrainResolution: true,
+}),
+pixelRatio: 1,
+});
+
+// Initialize vector layer for markers
+// Initialize vector layer for markers (with Clustering)
+const initialVectorLayer = new VectorLayer({
+source: new Cluster({
+distance: 40,
+source: new VectorSource(),
+}),
+zIndex: 200,
+style: clusterStyleFunction,
+});
+soiMap.addLayer(initialVectorLayer);
+
+// Initialize POI vector layer
+const poiSource = new VectorSource();
+const initialPoiVectorLayer = new VectorLayer({
+source: poiSource,
+zIndex: 100,
+declutter: true,
+});
+soiMap.addLayer(initialPoiVectorLayer);
+setPoiVectorLayer(initialPoiVectorLayer);
+
+// Initialize incident vector layer for SOI
+const incidentSource = new VectorSource();
+const initialIncidentVectorLayer = new VectorLayer({
+source: incidentSource,
+zIndex: 300,
+visible: false,
+});
+soiMap.addLayer(initialIncidentVectorLayer);
+setIncidentVectorLayer(initialIncidentVectorLayer);
+
+// Initialize vector layer for drawing
+const drawSource = new VectorSource();
+const drawLayer = new VectorLayer({
+source: drawSource,
+style: new Style({
+fill: new Fill({
+color: "rgba(255, 255, 255, 0.2)",
+}),
+stroke: new Stroke({
+color: "#ffcc33",
+width: 2,
+}),
+image: new CircleStyle({
+radius: 7,
+fill: new Fill({
+color: "#ffcc33",
+}),
+}),
+}),
+});
+soiMap.addLayer(drawLayer);
+
+// Create dynamic overlay
+const initialOverlay = new Overlay({
+element: overlayElement.current,
+});
+soiMap.addOverlay(initialOverlay);
+
+setMap(soiMap);
+setVectorLayer(initialVectorLayer);
+setDynamicOverlay(initialOverlay);
+setDrawVectorLayer(drawLayer);
+
+} catch (error) {
+console.error("Error initializing SOI map:", error);
+}
+
+return () => {
+// Cleanup logic if needed, but usually strictly setting target null is enough for OL
+// React strict mode might cause double init so we just let it be replaced
+};
+}, [mapType]);
+
+useEffect(() => {
+const layers = soiLayersRef.current;
+if (!layers) return;
+
+layers.states?.setVisible?.(!!soiLayerVisibility.states);
+layers.assamDistrict?.setVisible?.(!!soiLayerVisibility.assamDistrict);
+layers.assamDistrictBdy2?.setVisible?.(!!soiLayerVisibility.assamDistrictBdy2);
+layers.assamDistrictHq?.setVisible?.(!!soiLayerVisibility.assamDistrictHq);
+layers.assamStateBdy?.setVisible?.(!!soiLayerVisibility.assamStateBdy);
+layers.assamSubdistrictBdy?.setVisible?.(!!soiLayerVisibility.assamSubdistrictBdy);
+layers.cartTrackHills?.setVisible?.(!!soiLayerVisibility.cartTrackHills);
+layers.contours?.setVisible?.(!!soiLayerVisibility.contours);
+layers.kamrupRural?.setVisible?.(!!soiLayerVisibility.kamrupRural);
+layers.majorTowns?.setVisible?.(!!soiLayerVisibility.majorTowns);
+layers.name?.setVisible?.(!!soiLayerVisibility.name);
+layers.railwayTracks?.setVisible?.(!!soiLayerVisibility.railwayTracks);
+layers.roads?.setVisible?.(!!soiLayerVisibility.roads);
+layers.roadsAllWeatherMotorable?.setVisible?.(!!soiLayerVisibility.roadsAllWeatherMotorable);
+layers.roadsMotorableInFairWeather?.setVisible?.(!!soiLayerVisibility.roadsMotorableInFairWeather);
+layers.roadsNationalHighway?.setVisible?.(!!soiLayerVisibility.roadsNationalHighway);
+layers.roadOthers?.setVisible?.(!!soiLayerVisibility.roadOthers);
+layers.roadTunnel?.setVisible?.(!!soiLayerVisibility.roadTunnel);
+layers.stateHighway?.setVisible?.(!!soiLayerVisibility.stateHighway);
+layers.buildingFootprint?.setVisible?.(!!soiLayerVisibility.buildingFootprint);
+layers.roadSurface?.setVisible?.(!!soiLayerVisibility.roadSurface);
+layers.busStop?.setVisible?.(!!soiLayerVisibility.busStop);
+layers.block?.setVisible?.(!!soiLayerVisibility.block);
+layers.skytronAssamCombined?.setVisible?.(!!soiLayerVisibility.skytronAssamCombined);
+layers.assamTowns?.setVisible?.(!!soiLayerVisibility.assamTowns);
+layers.bhuvanAmrutNogaon?.setVisible?.(!!soiLayerVisibility.bhuvanAmrutNogaon);
+layers.bhuvanAmrutSilchar?.setVisible?.(!!soiLayerVisibility.bhuvanAmrutSilchar);
+layers.bhuvanAmrutDibrugarh?.setVisible?.(!!soiLayerVisibility.bhuvanAmrutDibrugarh);
+layers.bhuvanAmrutGuwahati?.setVisible?.(!!soiLayerVisibility.bhuvanAmrutGuwahati);
+layers.bhuvanNuisSilchar?.setVisible?.(!!soiLayerVisibility.bhuvanNuisSilchar);
+layers.bhuvanSikkim?.setVisible?.(!!soiLayerVisibility.bhuvanSikkim);
+layers.bhuvanAssam?.setVisible?.(!!soiLayerVisibility.bhuvanAssam);
+layers.bhuvanKamrupMetro?.setVisible?.(!!soiLayerVisibility.bhuvanKamrupMetro);
+layers.bhuvanFloodAssam?.setVisible?.(!!soiLayerVisibility.bhuvanFloodAssam);
+layers.bhuvanManipur?.setVisible?.(!!soiLayerVisibility.bhuvanManipur);
+layers.bhuvanWestBengal?.setVisible?.(!!soiLayerVisibility.bhuvanWestBengal);
+layers.bhuvanTripura?.setVisible?.(!!soiLayerVisibility.bhuvanTripura);
+layers.bhuvanNagaland?.setVisible?.(!!soiLayerVisibility.bhuvanNagaland);
+layers.bhuvanMeghalaya?.setVisible?.(!!soiLayerVisibility.bhuvanMeghalaya);
+layers.bhuvanMizoram?.setVisible?.(!!soiLayerVisibility.bhuvanMizoram);
+layers.bhuvanArunachal?.setVisible?.(!!soiLayerVisibility.bhuvanArunachal);
+}, [soiLayerVisibility]);
+
+// Initialize HD Map (Mappls)
+useEffect(() => {
+if (mapType !== "hd" || !hdMapContainerRef.current) return;
+
+let isMounted = true;
+
+const cleanup = () => {
+if (mapplsLibraryPollRef.current) {
+clearInterval(mapplsLibraryPollRef.current);
+mapplsLibraryPollRef.current = null;
+}
+
+// Clear all markers first
+hdVehicleMarkersRef.current.forEach((marker) => {
+try {
+marker?.remove?.();
+} catch (e) { }
+});
+hdPoiMarkersRef.current.forEach((marker) => {
+try {
+marker?.remove?.();
+} catch (e) { }
+});
+
+// Try to remove/destroy the map instance
+if (mapplsMapRef.current) {
+try {
+if (typeof mapplsMapRef.current.remove === "function") {
+mapplsMapRef.current.remove();
+}
+} catch (e) {
+console.warn("Error removing HD map:", e);
+}
+}
+
+if (hdMapInnerRef.current) {
+hdMapInnerRef.current.innerHTML = "";
+}
+
+hdMapContainerIdRef.current = null;
+mapplsMapRef.current = null;
+hdVehicleMarkersRef.current = [];
+hdPoiMarkersRef.current = [];
+};
+
+const instantiateHdMap = () => {
+if (!isMounted || !hdMapInnerRef.current) return;
+
+const mapplsInstance = mapplsInstanceRef.current;
+if (!mapplsInstance || typeof mapplsInstance.Map !== "function") {
+console.error("Mappls instance is not ready or Map method unavailable");
+return;
+}
+
+// If map already exists, don't reset it - just return
+if (mapplsMapRef.current) {
+return;
+}
+
+// Use fixed Guwahati center like normal map, not dynamic GPS data
+const initialCenter = DEFAULT_HD_CENTER;
+
+const hostElement = hdMapInnerRef.current;
+if (!hostElement) return;
+hostElement.innerHTML = "";
+
+const mapElement = document.createElement("div");
+mapElement.style.width = "100%";
+mapElement.style.height = "100%";
+const containerId = `mappls-hd-map-${Date.now()}`;
+mapElement.id = containerId;
+hdMapContainerIdRef.current = containerId;
+hostElement.appendChild(mapElement);
+
+try {
+const centerToUse = { lng: 91.7362, lat: 26.1445 };
+console.log('Creating HD map with center:', centerToUse);
+
+const hdMap = mapplsInstance.Map({
+id: containerId,
+properties: {
+center: [26.1445, 91.7362], // Guwahati - [lat, lng] array format
+draggable: true,
+zoom: 13,
+minZoom: 4,
+maxZoom: 18,
+backgroundColor: "#fff",
+traffic: false,
+geolocation: false,
+disableDoubleClickZoom: false,
+fullscreenControl: false,
+scrollWheel: true,
+scrollZoom: true,
+rotateControl: false,
+scaleControl: false,
+zoomControl: false,
+clickableIcons: true,
+},
+});
+
+console.log('HD map created, instance:', hdMap);
+
+// Mappls ignores center in properties, set it explicitly
+const guwahatiCenter = { lng: 91.7362, lat: 26.1445 };
+
+if (typeof hdMap.setCenter === 'function') {
+hdMap.setCenter(guwahatiCenter);
+}
+
+if (typeof hdMap.setZoom === 'function') {
+hdMap.setZoom(14);
+}
+
+// Verify after a short delay
+setTimeout(() => {
+if (typeof hdMap.getCenter === 'function') {
+const actualCenter = hdMap.getCenter();
+console.log('HD map center after setCenter:', actualCenter);
+}
+}, 100);
+
+mapplsMapRef.current = hdMap;
+
+// Hide Mappls controls using CSS after map loads
+setTimeout(() => {
+try {
+const mapContainer = document.getElementById(containerId);
+if (mapContainer) {
+// Hide all Mappls control elements
+const style = document.createElement('style');
+style.id = 'mappls-controls-hide';
+style.textContent = `
+#${containerId} .mappls-ctrl-zoom,
+#${containerId} .mappls-ctrl-fullscreen,
+#${containerId} .mappls-ctrl-rotate,
+#${containerId} .mappls-ctrl-scale,
+#${containerId} .mappls-ctrl-geolocate,
+#${containerId} .mapboxgl-ctrl-zoom-in,
+#${containerId} .mapboxgl-ctrl-zoom-out,
+#${containerId} .mapboxgl-ctrl-compass,
+#${containerId} .mapboxgl-ctrl-scale,
+#${containerId} .mapboxgl-ctrl-group,
+#${containerId} .mapboxgl-ctrl-top-right,
+#${containerId} .mapboxgl-ctrl-bottom-right,
+#${containerId} .mapboxgl-ctrl-bottom-left {
+display: none !important;
+}
+`;
+// Remove existing style if present
+const existingStyle = document.getElementById('mappls-controls-hide');
+if (existingStyle) {
+existingStyle.remove();
+}
+document.head.appendChild(style);
+}
+} catch (error) {
+console.warn('Could not hide Mappls controls:', error);
+}
+}, 500);
+
+// Map will use the initial center set in properties above
+// Don't reset on load event to preserve user's zoom/pan
+} catch (error) {
+console.error("Failed to create Mappls HD map instance", error);
+}
+};
+
+const ensureMapplsInitialized = () => {
+if (!isMounted) return;
+
+if (!mapplsInstanceRef.current) {
+try {
+let instanceCandidate = null;
+
+if (typeof window.mappls === "function") {
+try {
+instanceCandidate = new window.mappls();
+} catch (ctorError) {
+instanceCandidate = window.mappls();
+}
+} else if (window.mappls) {
+instanceCandidate = window.mappls;
+}
+
+if (!instanceCandidate) {
+throw new Error("Mappls SDK instance could not be created");
+}
+
+mapplsInstanceRef.current = instanceCandidate;
+} catch (error) {
+console.error("Unable to instantiate Mappls SDK", error);
+return;
+}
+}
+
+const mapplsInstance = mapplsInstanceRef.current;
+const initializeFn = mapplsInstance?.initialize;
+
+if (mapplsInitializedRef.current) {
+instantiateHdMap();
+return;
+}
+
+if (mapplsInitInProgressRef.current) {
+return;
+}
+
+const token = resolveMapplsToken();
+
+if (!token) {
+console.error(
+"Mappls SDK token not found. Set REACT_APP_MAPPLS_TOKEN or include key in script URL."
+);
+return;
+}
+
+const markReady = () => {
+if (!isMounted) return;
+mapplsInitInProgressRef.current = false;
+mapplsInitializedRef.current = true;
+instantiateHdMap();
+};
+
+if (typeof initializeFn === "function") {
+mapplsInitInProgressRef.current = true;
+
+try {
+initializeFn.call(
+mapplsInstance,
+token,
+{ map: true, plugins: ["marker"] },
+markReady
+);
+} catch (error) {
+mapplsInitInProgressRef.current = false;
+console.error("Failed to initialize Mappls SDK", error);
+}
+
+return;
+}
+
+// Some SDK variants expose a pre-initialized object without explicit initialize call.
+markReady();
+};
+
+if (window.mappls) {
+ensureMapplsInitialized();
+} else {
+mapplsLibraryPollRef.current = setInterval(() => {
+if (window.mappls) {
+clearInterval(mapplsLibraryPollRef.current);
+mapplsLibraryPollRef.current = null;
+ensureMapplsInitialized();
+}
+}, 400);
+}
+
+return () => {
+isMounted = false;
+cleanup();
+};
+}, [mapType]); // Only reinitialize when map type changes, not on data updates
+
+// Plot vehicles and POIs on HD map
+useEffect(() => {
+if (mapType !== "hd" || !mapplsMapRef.current) return;
+
+const hdMap = mapplsMapRef.current;
+const mapplsInstance = mapplsInstanceRef.current;
+
+const markerFactoryAvailable =
+typeof mapplsInstance?.marker === "function" ||
+typeof window.mappls?.Marker === "function";
+
+if (!mapplsInstance || !markerFactoryAvailable) {
+console.warn(
+"Mappls marker plugin not ready. Skipping HD markers render for now."
+);
+return;
+}
+
+const clearVehicleMarkers = () => {
+hdVehicleMarkersRef.current.forEach((marker) => {
+try {
+marker?.remove?.();
+} catch (error) {
+console.warn("Error removing vehicle marker from HD map", error);
+}
+});
+hdVehicleMarkersRef.current = [];
+};
+
+const clearPoiMarkers = () => {
+hdPoiMarkersRef.current.forEach((marker) => {
+try {
+marker?.remove?.();
+} catch (error) {
+console.warn("Error removing POI marker from HD map", error);
+}
+});
+hdPoiMarkersRef.current = [];
+};
+
+const clearIncidentMarkers = () => {
+hdIncidentMarkersRef.current.forEach((marker) => {
+try {
+marker?.remove?.();
+} catch (error) {
+console.warn("Error removing incident marker from HD map", error);
+}
+});
+hdIncidentMarkersRef.current = [];
+};
+
+const createMarker = (options) => {
+const markerFactory = mapplsInstance?.marker;
+
+try {
+if (typeof markerFactory === "function") {
+return markerFactory.call(mapplsInstance, options);
+}
+
+if (typeof window.mappls?.Marker === "function") {
+try {
+return new window.mappls.Marker(options);
+} catch (ctorError) {
+return window.mappls.Marker(options);
+}
+}
+} catch (error) {
+console.error("Failed to create Mappls marker", { options, error });
+}
+
+return null;
+};
+
+clearVehicleMarkers();
+clearPoiMarkers();
+clearIncidentMarkers();
+
+let allMarkers = [];
+
+try {
+// Add vehicle markers
+allMarkers = [...gpsData, ...policeData];
+if (allMarkers.length > 0) {
+allMarkers.forEach((entry) => {
+const longitude = Number(entry.longitude);
+const latitude = Number(entry.latitude);
+
+if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+return;
+}
+
+const entryTimeMs = resolveEntryTimestampMs(entry);
+const currentTimeMs = new Date().getTime();
+const timeDifference = Number.isFinite(entryTimeMs)
+? calculateTimeDifference(entryTimeMs, currentTimeMs)
+: Number.POSITIVE_INFINITY;
+const isStale = timeDifference > 15;
+const isPoliceMarker = entry.markerCategory === "police";
+
+let markerColor = "blue";
+if (isPoliceMarker) {
+markerColor = "blue";
+if (isEntryStale15Min(entry)) {
+markerColor = "grey";
+} else if (entry.packet_type === "EA") {
+markerColor = "red";
+} else if (entry.packet_type !== "NR") {
+markerColor = "orange";
+} else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) > 1) {
+markerColor = "green";
+} else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) <= 1) {
+markerColor = "blue";
+}
+}
+
+const vehicleType = entry?.device_tag_info?.category_info?.category;
+const iconUrl = getVehicleMarkerIconUrl(markerColor, vehicleType);
+
+// Build the styled popup HTML matching normal map
+ensureHdPopupStyles();
+const popupContent = buildHdPopupHtml(entry, markerLabelMode);
+const labelText = getMarkerLabelText(entry, markerLabelMode) || undefined;
+
+const markerOptions = iconUrl
+? {
+map: hdMap,
+position: { lat: latitude, lng: longitude },
+icon: iconUrl,
+label: labelText,
+title: labelText,
+width: 60,
+height: 60,
+popupHtml: popupContent,
+popupOptions: {
+openPopup: false,
+},
+}
+: {
+map: hdMap,
+position: { lat: latitude, lng: longitude },
+label: labelText,
+title: labelText,
+popupHtml: popupContent,
+popupOptions: {
+openPopup: false,
+},
+};
+
+const markerInstance = createMarker(markerOptions);
+if (markerInstance) {
+hdVehicleMarkersRef.current.push(markerInstance);
+}
+});
+}
+
+// Add POI markers
+if (pois.length > 0) {
+pois.forEach((poi) => {
+try {
+const location = JSON.parse(poi.location);
+if (!Array.isArray(location) || location.length === 0) return;
+
+if (
+poi.mark_type === "Point" &&
+location[0] &&
+location[0].length === 2
+) {
+const [lat, lon] = location[0];
+const longitude = Number(lon);
+const latitude = Number(lat);
+
+if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+return;
+}
+
+const poiColor = getUseTypeColor(poi);
+const poiIconUrl = getPoiMarkerIcon(poiColor);
+
+const markerOptions = {
+map: showPois ? hdMap : null,
+position: { lat: latitude, lng: longitude },
+label: poi.name || undefined,
+title: poi.name || "Point of Interest",
+draggable: false,
+icon: poiIconUrl
+? {
+url: poiIconUrl,
+width: 28,
+height: 36,
+}
+: undefined,
+};
+
+const markerInstance = createMarker(markerOptions);
+if (markerInstance) {
+hdPoiMarkersRef.current.push(markerInstance);
+}
+}
+} catch (error) {
+console.error("Error processing POI for HD map:", poi?.id, error);
+}
+});
+}
+} catch (error) {
+console.error("Error updating HD map markers:", error);
+}
+
+// Add Incident Markers
+if (incidentData.length > 0) {
+incidentData.forEach((incident) => {
+try {
+const longitude = Number(incident.longitude);
+const latitude = Number(incident.latitude);
+
+if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
+
+const hdMediaContainerId = `incident-media-hd-${incident.id}-${Date.now()}`;
+
+const popupContent = `
+<div style="padding: 12px; min-width: 250px; font-family: 'Roboto', sans-serif;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+<h4 style="margin: 0; color: #d32f2f; font-size: 16px;">Incident #${incident.id}</h4>
+<span style="background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; border: 1px solid #ffcdd2;">ALERT</span>
+</div>
+<p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
+${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;"></div>` : ''}
+<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+<span>Registered:</span>
+<span style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
+</div>
+</div>
+`;
+
+const svgIcon = `
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2L1 21H23L12 2Z" fill="#F44336" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M12 9V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+<path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>
+`;
+const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
+
+const markerOptions = {
+map: showIncidents ? hdMap : null,
+position: { lat: latitude, lng: longitude },
+icon: {
+url: iconUrl,
+width: 40,
+height: 40
+},
+popupHtml: popupContent,
+};
+
+const markerInstance = createMarker(markerOptions);
+if (markerInstance) {
+hdIncidentMarkersRef.current.push(markerInstance);
+
+if (incident.image_file) {
+const loadMedia = () => {
+// Wait a tick for popup DOM to be mounted
+setTimeout(() => {
+try {
+renderSecureIncidentMedia(incident.image_file, hdMediaContainerId, {
+maxWidth: "100%",
+maxHeight: "160px",
+borderRadius: "6px",
+});
+} catch (e) {
+console.error("Failed to load secure incident media in HD popup", e);
+}
+}, 50);
+};
+
+try {
+if (typeof markerInstance.addListener === "function") {
+markerInstance.addListener("click", loadMedia);
+} else if (typeof markerInstance.on === "function") {
+markerInstance.on("click", loadMedia);
+}
+} catch (e) {
+// Best-effort only (SDK variants differ)
+}
+}
+}
+} catch (error) {
+console.error("Error creating incident marker", error);
+}
+});
+}
+
+// Don't reset center/zoom on marker updates - let user control the map
+// Only set initial center/zoom when map is first created
+
+return () => {
+clearVehicleMarkers();
+clearPoiMarkers();
+clearIncidentMarkers();
+};
+}, [mapType, gpsData, policeData, pois, incidentData]);
+
+// HD Map Drawing Logic - Handle Clicks
+useEffect(() => {
+if (mapType !== 'hd' || !mapplsMapRef.current) return;
+
+const hdMap = mapplsMapRef.current;
+
+// Manage Cursor with CSS Class
+if (hdMapContainerIdRef.current) {
+const container = document.getElementById(hdMapContainerIdRef.current);
+if (container) {
+if (drawingMode === 'polygon') {
+container.classList.add('drawing-mode-active');
+} else {
+container.classList.remove('drawing-mode-active');
+}
+}
+}
+
+if (drawingMode !== 'polygon') return;
+
+const clickHandler = (e) => {
+let lat, lng;
+if (e.lngLat) { lat = e.lngLat.lat; lng = e.lngLat.lng; }
+else if (e.latLng) { lat = e.latLng.lat; lng = e.latLng.lng; }
+
+if (lat && lng) {
+setDrawingPoints(prev => [...prev, [lat, lng]]);
+}
+};
+
+if (hdMap.addListener) hdMap.addListener('click', clickHandler);
+else if (hdMap.on) hdMap.on('click', clickHandler);
+
+return () => {
+if (hdMap.removeListener) hdMap.removeListener('click', clickHandler);
+else if (hdMap.off) hdMap.off('click', clickHandler);
+
+// Cleanup cursor class
+if (hdMapContainerIdRef.current) {
+const container = document.getElementById(hdMapContainerIdRef.current);
+if (container) container.classList.remove('drawing-mode-active');
+}
+};
+}, [mapType, drawingMode]);
+
+// HD Map Drawing Logic - Visualization
+useEffect(() => {
+if (mapType !== 'hd' || !mapplsMapRef.current) return;
+const hdMap = mapplsMapRef.current;
+
+// Cleanup temp poly
+if (tempPolyRef.current) {
+try { tempPolyRef.current.remove(); } catch (e) { }
+tempPolyRef.current = null;
+}
+
+// Cleanup temp markers
+if (tempMarkersRef.current) {
+tempMarkersRef.current.forEach(m => {
+try { m.remove(); } catch (e) { }
+});
+tempMarkersRef.current = [];
+}
+
+if (drawingMode === 'polygon' && drawingPoints.length > 0) {
+const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
+
+// Draw markers for each point to give feedback
+paths.forEach(pt => {
+// Create a small dot icon
+const dotSvg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
+<circle cx="6" cy="6" r="4" fill="#333" stroke="#fff" stroke-width="2"/>
+</svg>`;
+const iconUrl = `data:image/svg+xml;base64,${window.btoa(dotSvg)}`;
+
+try {
+if (window.mappls && window.mappls.Marker) {
+const marker = new window.mappls.Marker({
+map: hdMap,
+position: pt,
+icon: iconUrl,
+width: 12,
+height: 12
+});
+tempMarkersRef.current.push(marker);
+}
+} catch (e) {
+console.error("Error creating temp marker", e);
+}
+});
+
+if (drawingPoints.length > 1) {
+try {
+if (window.mappls && window.mappls.Polyline) {
+const tempPoly = new window.mappls.Polyline({
+map: hdMap,
+paths: paths,
+strokeColor: '#333333',
+strokeWeight: 2,
+strokeOpacity: 0.8,
+strokeStyle: 'dashed'
+});
+tempPolyRef.current = tempPoly;
+}
+} catch (e) {
+console.error("Error drawing temp polyline", e);
+}
+}
+}
+}, [mapType, drawingMode, drawingPoints]);
+
+const startHdDrawing = () => {
+setDrawingMode('polygon');
+setDrawingPoints([]);
+if (onPolygonComplete) onPolygonComplete([]);
+};
+
+const clearHdDrawing = () => {
+setDrawingMode(null);
+setDrawingPoints([]);
+
+// Cleanup temp elements immediately
+if (tempPolyRef.current) {
+try { tempPolyRef.current.remove(); } catch (e) { }
+tempPolyRef.current = null;
+}
+if (tempMarkersRef.current) {
+tempMarkersRef.current.forEach(m => {
+try { m.remove(); } catch (e) { }
+});
+tempMarkersRef.current = [];
+}
+
+if (onPolygonComplete) onPolygonComplete([]);
+};
+
+const finishHdDrawing = () => {
+setDrawingMode(null);
+if (onPolygonComplete && drawingPoints.length >= 3) {
+onPolygonComplete(drawingPoints);
+
+// We keep the drawing visualized until cleared?
+// Or maybe we change style to closed polygon?
+// For now, let's just leave the temp drawing or clear it?
+// Usually "Finish" implies committing.
+// The calling component might use these points to filter.
+// But we should probably visualize the closed polygon if we want to be nice.
+// However, LiveMap seems to use 'drawVectorLayer' for OL.
+// Let's create a "closed" polygon visualization if needed or just leave it.
+// Modifying behavior: we will clear temp drawing and let the parent component handle it?
+// Actually, if onPolygonComplete is used for filtering, maybe we should keep the polygon visible.
+// But let's stick to simple "Finish" -> Callback flow.
+// We will create a closed polygon to show "it is done" if we want,
+// but simplistic approach is fine.
+
+// Let's create a closed polygon visualization for persistency until cleared
+if (mapplsMapRef.current && window.mappls && window.mappls.Polygon) {
+// Clear temp lines/dots
+if (tempPolyRef.current) try { tempPolyRef.current.remove(); } catch (e) { }
+tempMarkersRef.current.forEach(m => { try { m.remove(); } catch (e) { } });
+tempMarkersRef.current = [];
+
+// Draw closed polygon
+const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
+try {
+const finalPoly = new window.mappls.Polygon({
+map: mapplsMapRef.current,
+paths: paths,
+fillColor: 'rgba(255, 255, 255, 0.2)',
+strokeColor: '#ffcc33',
+strokeWeight: 2
+});
+// Store it in tempPolyRef so "Clear" can remove it
+tempPolyRef.current = finalPoly;
+} catch (e) { console.error("Error drawing final polygon", e); }
+}
+}
+};
+
+// Fetch POIs on component mount
+useEffect(() => {
+const fetchPOIs = async () => {
+try {
+const response = await POIService.getAllPOIs();
+if (response && response.data) {
+setPois(response.data);
+}
+} catch (error) {
+console.error("Error fetching POIs:", error);
+}
+};
+
+fetchPOIs();
+}, []);
+
+// Update POI markers when POIs change
+useEffect(() => {
+if (!poiVectorLayer || pois.length === 0) return;
+
+const poiSource = poiVectorLayer.getSource();
+poiSource.clear();
+
+pois.forEach((poi) => {
+try {
+const location = JSON.parse(poi.location);
+if (Array.isArray(location) && location.length > 0) {
+let feature;
+
+switch (poi.mark_type) {
+case "Point":
+if (location[0] && location[0].length === 2) {
+const [lat, lon] = location[0];
+const longitude = Number(lon);
+const latitude = Number(lat);
+if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+const coordinates = [longitude, latitude];
+feature = new Feature({
+geometry: new Point(coordinates),
+data: poi,
+});
+}
+}
+break;
+
+case "Circle":
+if (location[0] && location[0].length === 2) {
+const [lat, lon] = location[0];
+const longitude = Number(lon);
+const latitude = Number(lat);
+if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+const center = [longitude, latitude];
+const radiusMeters = parseFloat(poi.radius) || 100;
+const metersPerDegree =
+111320 * Math.cos((latitude * Math.PI) / 180) || 111320;
+const radiusDegrees = radiusMeters / metersPerDegree;
+feature = new Feature({
+geometry: new Circle(center, radiusDegrees),
+data: poi,
+});
+}
+}
+break;
+
+case "Polygon":
+if (location.length >= 3) {
+const polygonCoords = location
+.map((coord) => {
+if (coord && coord.length === 2) {
+const [lat, lon] = coord;
+const longitude = Number(lon);
+const latitude = Number(lat);
+if (
+Number.isFinite(longitude) &&
+Number.isFinite(latitude)
+) {
+return [longitude, latitude];
+}
+}
+return null;
+})
+.filter((coord) => coord !== null);
+
+if (polygonCoords.length >= 3) {
+feature = new Feature({
+geometry: new Polygon([polygonCoords]),
+data: poi,
+});
+}
+}
+break;
+
+case "Road":
+if (location.length >= 2) {
+const roadCoords = location
+.map((coord) => {
+if (coord && coord.length === 2) {
+const [lat, lon] = coord;
+const longitude = Number(lon);
+const latitude = Number(lat);
+if (
+Number.isFinite(longitude) &&
+Number.isFinite(latitude)
+) {
+return [longitude, latitude];
+}
+}
+return null;
+})
+.filter((coord) => coord !== null);
+
+if (roadCoords.length >= 2) {
+feature = new Feature({
+geometry: new LineString(roadCoords),
+data: poi,
+});
+}
+}
+break;
+}
+
+if (feature) {
+const styles = getPoiStyles(poi);
+feature.setStyle(styles);
+poiSource.addFeature(feature);
+}
+}
+} catch (error) {
+console.error("Error processing POI:", poi.id, error);
+}
+});
+}, [pois, poiVectorLayer]);
+
+// Helper to calculate time difference in minutes
+const calculateTimeDifference = (startTime, endTime) => {
+const timeDifferenceMillis = endTime - startTime;
+return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
+};
+
+const resolveEntryTimestampMs = (data) => {
+if (!data) return NaN;
+
+const raw = data.entry_time ?? data.timestamp ?? null;
+
+const normalizeEpoch = (value) => {
+const num = typeof value === "number" ? value : Number(value);
+if (!Number.isFinite(num)) return NaN;
+return num < 1e12 ? num * 1000 : num;
+};
+
+if (typeof raw === "number") {
+return normalizeEpoch(raw);
+}
+
+if (typeof raw === "string") {
+const trimmed = raw.trim();
+if (/^\d+$/.test(trimmed)) {
+return normalizeEpoch(trimmed);
+}
+const parsed = new Date(trimmed).getTime();
+if (Number.isFinite(parsed)) return parsed;
+}
+
+const parseDateTimeParts = (dateStr, timeStr) => {
+if (!dateStr || !timeStr) return NaN;
+
+const dateTrimmed = String(dateStr).trim();
+const timeTrimmed = String(timeStr).trim();
+
+// Format: DDMMYYYY + HHMMSS (e.g., 15122025 + 234041)
+const dmyCompact = dateTrimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+const hmsCompact = timeTrimmed.match(/^(\d{2})(\d{2})(\d{2})$/);
+if (dmyCompact && hmsCompact) {
+const day = Number(dmyCompact[1]);
+const month = Number(dmyCompact[2]);
+const year = Number(dmyCompact[3]);
+const hours = Number(hmsCompact[1]);
+const minutes = Number(hmsCompact[2]);
+const seconds = Number(hmsCompact[3]);
+const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+const ms = dt.getTime();
+return Number.isFinite(ms) ? ms : NaN;
+}
+
+// Format: DD-MM-YY or DD-MM-YYYY
+const dmy = dateTrimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+if (dmy) {
+const day = Number(dmy[1]);
+const month = Number(dmy[2]);
+let year = Number(dmy[3]);
+if (String(dmy[3]).length === 2) year = 2000 + year;
+
+const tm = timeTrimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+if (!tm) return NaN;
+let hours = Number(tm[1]);
+const minutes = Number(tm[2]);
+const seconds = Number(tm[3] ?? 0);
+const ampm = tm[4]?.toUpperCase();
+if (ampm === "AM") {
+if (hours === 12) hours = 0;
+} else if (ampm === "PM") {
+if (hours !== 12) hours += 12;
+}
+
+const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+const ms = dt.getTime();
+return Number.isFinite(ms) ? ms : NaN;
+}
+
+const fallbackMs = new Date(`${dateTrimmed} ${timeTrimmed}`).getTime();
+return Number.isFinite(fallbackMs) ? fallbackMs : NaN;
+};
+
+const datePart = data?.date;
+const timePart = data?.time;
+if (datePart && timePart) {
+const compositeMs = parseDateTimeParts(datePart, timePart);
+if (Number.isFinite(compositeMs)) return compositeMs;
+
+const compositeParsed = new Date(`${datePart}T${timePart}`).getTime();
+if (Number.isFinite(compositeParsed)) return compositeParsed;
+}
+
+return NaN;
+};
+
+// Set the correct icon style based on data conditions and vehicle type
+const getIconStyle = (data, vehicleType, labelMode, forceDefault = false) => {
+const entryTimeMs = resolveEntryTimestampMs(data);
+const currentTimeMs = new Date().getTime();
+const timeDifference = Number.isFinite(entryTimeMs)
+? calculateTimeDifference(entryTimeMs, currentTimeMs)
+: Number.POSITIVE_INFINITY;
+const isStale = timeDifference > 15;
+
+const isPoliceMarker = data.markerCategory === "police";
+let color;
+
+if (forceDefault) {
+color = "default";
+} else if (isPoliceMarker) {
+color = "blue";
+} else if (isStale) {
+color = "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
+} else if (data.packet_type === "EA") {
+color = "red"; // EA Packet - Red Icon
+} else if (data.packet_type !== "NR") {
+color = "orange"; // Any Alert Packet except EA - Orange Icon
+} else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) <= 1) {
+color = "blue"; // Ignition ON but stationary - Blue Icon
+} else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) > 1) {
+color = "green"; // Ignition ON and moving - Green Icon
+} else {
+color = "default"; // Default color
+}
+
+const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
+const labelText = getMarkerLabel(data, labelMode);
+console.debug(`[LiveMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
+return createIconStyle(color, iconVehicleType, labelText, false);
+};
+
+useEffect(() => {
+if (!map || !vectorLayer) {
+return;
+}
+
+const allMarkers = [...gpsData, ...policeData];
+
+if (allMarkers.length > 0) {
+// Clear the previous markers (Access inner source from Cluster)
+const vectorSource = vectorLayer.getSource().getSource();
+vectorSource.clear();
+
+const features = allMarkers
+.map((entry) => {
+const longitude = Number(entry.longitude);
+const latitude = Number(entry.latitude);
+
+if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+return null;
+}
+
+// Get vehicle type from entry data
+const vehicleType = entry?.device_tag_info?.category_info?.category;
+
+
+// Create the marker feature
+const markerFeature = new Feature({
+geometry: new Point([longitude, latitude]),
+entryData: entry, // Store entry data for overlay
+vehicleType: vehicleType, // Store vehicle type on the feature
+});
+
+// Set the appropriate style for the marker with vehicle type
+markerFeature.setStyle(
+getIconStyle(entry, vehicleType, markerLabelMode, allMode)
+);
+
+return markerFeature;
+})
+.filter(Boolean);
+
+// Add all features (markers) to the vector layer
+vectorSource.addFeatures(features);
+
+// Only auto-fit if autoFit prop is true and there are markers
+if (autoFit && features.length > 0) {
+// Use Cluster source extent (which covers all features)
+const extent = vectorLayer.getSource().getExtent();
+map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+}
+
+// Handle map click to display the overlay and zoom to street level or expand cluster
+const clickHandler = function (event) {
+// Ignore clicks that are actually the end of a drag-pan.
+// OpenLayers may still emit a click/singleclick after small drags on some devices.
+if (olWasDraggingRef.current || event?.dragging) {
+olWasDraggingRef.current = false;
+return;
+}
+
+dynamicOverlay.getElement().style.display = "none";
+
+let allHits = [];
+// Collect ALL features at pixel
+map.forEachFeatureAtPixel(event.pixel, (feature) => {
+allHits.push(feature);
+}, { hitTolerance: 5 });
+
+if (allHits.length === 0) return;
+
+// Temporary compatibility: define 'feature' as the first hit so subsequent code works
+const feature = allHits[0];
+
+const aggregatedItems = [];
+
+allHits.forEach(f => {
+if (f.get("isIncident")) {
+aggregatedItems.push({ type: 'incident', data: f.get("data"), coord: f.getGeometry().getCoordinates() });
+return;
+}
+const subFeatures = f.get('features');
+if (subFeatures && subFeatures.length > 0) {
+subFeatures.forEach(sf => {
+const entry = sf.get('entryData');
+if (entry) aggregatedItems.push({ type: 'vehicle', data: entry, coord: sf.getGeometry().getCoordinates() });
+});
+} else {
+const entry = f.get('entryData');
+if (entry) aggregatedItems.push({ type: 'vehicle', data: entry, coord: f.getGeometry().getCoordinates() });
+}
+});
+
+const uniqueItems = [];
+const seen = new Set();
+aggregatedItems.forEach(item => {
+const id = item.type === 'incident' ? `inc_${item.data.id}` : `veh_${item.data.vehicle_registration_number}`;
+if (!seen.has(id)) {
+seen.add(id);
+uniqueItems.push(item);
+}
+});
+
+if (uniqueItems.length > 0) {
+// Logic for Handling Consolidated Items
+const firstHit = allHits[0];
+const firstHitFeatures = firstHit.get('features');
+const isVisualCluster = allHits.length === 1 && firstHitFeatures && firstHitFeatures.length > 1;
+
+if (isVisualCluster) {
+const currentZoom = map.getView().getZoom();
+const isSameLocation = firstHitFeatures.every(f => {
+const c = f.getGeometry().getCoordinates();
+const c0 = firstHitFeatures[0].getGeometry().getCoordinates();
+return c[0] === c0[0] && c[1] === c0[1];
+});
+
+if (!isSameLocation && currentZoom < 16) {
+let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+firstHitFeatures.forEach(f => {
+const c = f.getGeometry().getCoordinates();
+if (c[0] < minX) minX = c[0];
+if (c[0] > maxX) maxX = c[0];
+if (c[1] < minY) minY = c[1];
+if (c[1] > maxY) maxY = c[1];
+});
+map.getView().fit([minX, minY, maxX, maxY], { padding: [100, 100, 100, 100], duration: 500 });
+return;
+}
+}
+
+if (uniqueItems.length > 1) {
+renderListView(uniqueItems);
+return;
+}
+
+void renderSingleView(uniqueItems[0]);
+return; // Important: Stop processing OLD logic
+}
+
+// --- Helper Functions Definitions ---
+function renderListView(items) {
+let listHtml = `
+<div class="overlay-card" style="min-width: 280px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
+<div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
+<div class="overlay-title">${items.length} Items Here</div>
+</div>
+<div class="overlay-body" style="padding: 0;">
+`;
+
+items.forEach(item => {
+if (item.type === 'incident') {
+listHtml += `
+<div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #ffebee; background: #fff5f5; cursor: pointer;">
+<div style="font-weight: 600; color: #b71c1c; margin-bottom: 2px;">Incident #${item.data.id}</div>
+<div style="font-size: 11px; color: #6b7280;">${item.data.details || "Alert"}</div>
+</div>`;
+} else {
+const entry = item.data;
+const title = entry.vehicle_registration_number || entry.imei || "Unknown";
+const speed = entry.speed > 0 ? `${entry.speed} km/h` : "Stopped";
+listHtml += `
+<div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
+<div style="font-weight: 600; color: #111827; margin-bottom: 2px;">${title}</div>
+<div style="font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+<span>${speed}</span>
+<span>${entry.time || ""}</span>
+</div>
+</div>`;
+}
+});
+listHtml += `</div></div>`;
+
+const el = document.getElementById("overlay-content");
+if (el) el.innerHTML = listHtml;
+dynamicOverlay.setPosition(items[0].coord);
+dynamicOverlay.getElement().style.display = "block";
+}
+
+async function renderSingleView(item) {
+const coordinates = item.coord;
+
+if (item.type === 'incident') {
+const incident = item.data;
+const imageContainerId = `incident-media-${incident.id}-${Date.now()}`;
+document.getElementById("overlay-content").innerHTML = `
+<div class="overlay-card" style="min-width: 250px; font-family: 'Roboto', sans-serif;">
+<div class="overlay-header">
+<div class="overlay-title">Incident #${incident.id}</div>
+<div class="overlay-pill overlay-pill--alert">ALERT</div>
+</div>
+<div class="overlay-body">
+<p style="margin: 0 0 10px 0; font-size: 13px; color: #374151; line-height: 1.4;">${incident.details || "No details available."}</p>
+${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;"></div>` : ''}
+<div class="overlay-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+<span class="overlay-label">Registered:</span>
+<span class="overlay-value" style="font-weight: 500;">${incident.registered_at ? new Date(incident.registered_at).toLocaleString() : '-'}</span>
+</div>
+</div>
+</div>
+`;
+
+dynamicOverlay.setPosition(coordinates);
+dynamicOverlay.getElement().style.display = "block";
+
+const currentZoom = map.getView().getZoom();
+const targetZoom = currentZoom > 16 ? currentZoom : 16;
+map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+
+// Load secure incident media asynchronously if it exists
+if (incident.image_file) {
+renderSecureIncidentMedia(incident.image_file, imageContainerId, {
+maxWidth: "100%",
+maxHeight: "160px",
+borderRadius: "6px",
+}).catch((err) => {
+console.error("Failed to load incident media:", err);
+});
+}
+
+} else {
+const entryDataRaw = item.data;
+const renderVehicleOverlay = (entryData) => {
+const isStale = isEntryStale15Min(entryData);
+const speedValue = entryData.speed > 2 ? entryData.speed : 0;
+const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
+const isOfflineResolved = deviceStatusLabel === "Offline";
+const packetTypeCode = (isStale || isOfflineResolved)
+? "Offline"
+: (resolveAlertCode(entryData) || "NR1");
+const alertLabel = (isStale || isOfflineResolved)
+? "Offline"
+: resolveAlertLabel(entryData);
+const pillText = (isStale || isOfflineResolved)
+? "Offline"
+: alertLabel.split(' (')[0];
+const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
+const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
+? "overlay-pill--offline"
+: (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
+? "overlay-pill--normal"
+: "overlay-pill--alert";
+
+if (typeof onVehicleClick === "function") {
+onVehicleClick(entryData);
+}
+
+lastClickedVehicleRef.current = {
+imei: entryData?.imei,
+coordinates,
+};
+
+const addressValue = entryData?.address ? entryData.address : "-";
+const packetTypeLabel = (isStale || isOfflineResolved)
+? "Offline"
+: resolvePacketTypeLabel(entryData);
+const nearestPoiLabel = resolveNearestPoiLabel(entryData);
+const nearestPolice = resolveNearestPoliceDetails(entryData);
+const policeContactValue =
+entryData?.nearestPoliceContact || entryData?.nearest_police?.data?.phone || null;
+
+const routeId =
+entryData?.route_id ||
+entryData?.route_ref?.id ||
+entryData?.device_tag_info?.route?.id ||
+entryData?.nearby_routes_within_100m?.[0]?.data?.id ||
+"-";
+
+const routeData = entryData?.route_ref || entryData?.device_tag_info?.route || {};
+
+const routeName =
+entryData?.route_name ||
+entryData?.route ||
+entryData?.route_info ||
+entryData?.routeInformation ||
+routeData?.name ||
+(routeId && routeId !== "-" ? `Route ${routeId}` : "-");
+
+const policeInfoRows = [
+nearestPolice?.name && nearestPolice.name !== "-"
+? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Station</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
+: "",
+nearestPolice?.address && nearestPolice.address !== "-"
+? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Address</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
+: "",
+nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
+: "",
+policeContactValue
+? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
+: "",
+].filter(Boolean).join("");
+
+const policeDetailsRows = [
+nearestPolice?.name && nearestPolice.name !== "-"
+? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
+: "",
+nearestPolice?.address && nearestPolice.description !== "-"
+? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.description}</span></div>`
+: "",
+nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
+: "",
+].join("");
+
+document.getElementById("overlay-content").innerHTML = `
+<div class="overlay-card">
+<div class="overlay-header">
+<div class="overlay-header-content">
+<div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
+</div>
+<div class="overlay-pill ${pillClass}">${pillText}</div>
+</div>
+<div class="overlay-tabs" data-overlay-tabs>
+<div class="overlay-tab-list" role="tablist">
+<button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
+<button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
+<button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
+<button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
+</div>
+
+<div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-title">Vehicle Information</div>
+<div class="overlay-section-body">
+<div class="overlay-row">
+<span class="overlay-label">Packet Status</span>
+<span class="overlay-value">${packetTypeLabel}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Device Status</span>
+<span class="overlay-value">${deviceStatusLabel}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Date</span>
+<span class="overlay-value">${formatDateDDMMYY(entryData.date)}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Time</span>
+<span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Speed</span>
+<span class="overlay-value">${speedValue} km/h</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Battery</span>
+<span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Latitude</span>
+<span class="overlay-value">${entryData.latitude || "-"}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Longitude</span>
+<span class="overlay-value">${entryData.longitude || "-"}</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-body">
+<div class="overlay-row overlay-row--multiline">
+<span class="overlay-label">Address</span>
+<span class="overlay-value overlay-value--multiline">${addressValue}</span>
+</div>
+<div class="overlay-row overlay-row--multiline">
+<span class="overlay-label">Nearest Poi</span>
+<span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-title">Route Information</div>
+<div class="overlay-section-body">
+<!-- Basic Route Info -->
+<div class="overlay-row">
+<span class="overlay-label">Route Name</span>
+<span class="overlay-value">${routeName}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Route ID</span>
+<span class="overlay-value">${routeId}</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-title">Police Support</div>
+<div class="overlay-section-body">
+${policeInfoRows || policeDetailsRows
+? `${policeInfoRows}${policeDetailsRows}`
+: `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
+}
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
+};
+
+renderVehicleOverlay(entryDataRaw);
+
+dynamicOverlay.setPosition(coordinates);
+dynamicOverlay.getElement().style.display = "block";
+
+fetchVehicleTrackingDetail(entryDataRaw)
+.then((trackingDetail) => {
+if (!trackingDetail) return;
+const lastClick = lastClickedVehicleRef.current;
+if (!lastClick?.imei || lastClick.imei !== trackingDetail?.imei) return;
+renderVehicleOverlay(trackingDetail);
+})
+.catch(() => {
+// best-effort only
+});
+
+const currentZoom = map.getView().getZoom();
+// Only zoom if we're significantly below the target zoom level
+// This prevents redundant zoom animations when clicking on an already-selected vehicle
+if (currentZoom < 15) {
+const targetZoom = currentZoom > 18 ? currentZoom : 18;
+map.getView().animate({ center: coordinates, zoom: targetZoom, duration: 500 });
+} else {
+// Just pan to the coordinate without zooming
+map.getView().animate({ center: coordinates, duration: 300 });
+}
+}
+}
+
+
+
+if (false) {
+// Check if we can't separate them further (same duplicate location or max zoom)
+const currentZoom = map.getView().getZoom();
+const isSameLocation = features.every(f => {
+const c = f.getGeometry().getCoordinates();
+const c0 = features[0].getGeometry().getCoordinates();
+return c[0] === c0[0] && c[1] === c0[1];
+});
+
+if (currentZoom >= 16 || isSameLocation) {
+// Show list of vehicles
+let listHtml = `
+<div class="overlay-card" style="min-width: 260px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
+<div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
+<div class="overlay-title">${features.length} Vehicles Here</div>
+</div>
+<div class="overlay-body" style="padding: 0;">
+`;
+
+features.forEach(f => {
+const entry = f.get('entryData');
+if (!entry) return;
+
+const vehicleNum = entry.vehicle_registration_number || entry.imei || "Unknown";
+const speed = entry.speed > 0 ? `${entry.speed} km/h` : "Stopped";
+
+listHtml += `
+<div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
+<div style="font-weight: 600; color: #111827; margin-bottom: 2px;">${vehicleNum}</div>
+<div style="font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+<span>${speed}</span>
+<span>${entry.time || ""}</span>
+</div>
+</div>
+`;
+});
+
+listHtml += `</div></div>`;
+
+document.getElementById("overlay-content").innerHTML = listHtml;
+dynamicOverlay.setPosition(features[0].getGeometry().getCoordinates());
+dynamicOverlay.getElement().style.display = "block";
+return;
+}
+
+// Calculate extent of all features in cluster
+let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+features.forEach(f => {
+const coords = f.getGeometry().getCoordinates();
+if (coords[0] < minX) minX = coords[0];
+if (coords[0] > maxX) maxX = coords[0];
+if (coords[1] < minY) minY = coords[1];
+if (coords[1] > maxY) maxY = coords[1];
+});
+map.getView().fit([minX, minY, maxX, maxY], { padding: [100, 100, 100, 100], duration: 500 });
+return;
+}
+
+if (false) {
+const originalFeature = features[0];
+const entryData = originalFeature.get("entryData");
+const coordinates = originalFeature.getGeometry().getCoordinates();
+
+if (!entryData) return;
+
+const speedValue = entryData.speed > 2 ? entryData.speed : 0;
+const alertType = entryData.packet_type || "NR";
+const alertClass =
+alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
+
+// Set overlay content with styled card layout
+document.getElementById("overlay-content").innerHTML = `
+<div class="overlay-card">
+<div class="overlay-header">
+<div class="overlay-title">${entryData.vehicle_registration_number || "-"
+}</div>
+<div class="overlay-pill ${alertClass}">${alertType}</div>
+</div>
+<div class="overlay-body">
+<div class="overlay-row">
+<span class="overlay-label">Date</span>
+<span class="overlay-value">${entryData.date || "-"}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Time</span>
+<span class="overlay-value">${entryData.time || "-"}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Speed</span>
+<span class="overlay-value">${speedValue} km/h</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Battery</span>
+<span class="overlay-value">${entryData.internal_battery_voltage || "-"
+} - ${entryData.main_input_voltage || "-"}</span>
+</div>
+</div>
+</div>
+`;
+
+dynamicOverlay.setPosition(coordinates);
+dynamicOverlay.getElement().style.display = "block";
+
+// Zoom to street level when clicked (zoom level 18)
+map.getView().animate({
+center: coordinates,
+zoom: 18,
+duration: 500, // Animate the zoom for 500ms
+});
+}
+};
+
+const pointerDownHandler = () => {
+olWasDraggingRef.current = false;
+};
+
+const pointerDragHandler = () => {
+olWasDraggingRef.current = true;
+};
+
+map.on("pointerdown", pointerDownHandler);
+map.on("pointerdrag", pointerDragHandler);
+map.on("singleclick", clickHandler);
+
+return () => {
+map.un("singleclick", clickHandler);
+map.un("pointerdown", pointerDownHandler);
+map.un("pointerdrag", pointerDragHandler);
+};
+} else {
+vectorLayer.getSource().clear();
+}
+}, [
+gpsData,
+policeData,
+map,
+vectorLayer,
+dynamicOverlay,
+onVehicleClick,
+markerLabelMode,
+autoFit,
+]);
+
+useEffect(() => {
+if (!dynamicOverlay || !map || !focusEntry?.address) return;
+
+const lastClicked = lastClickedVehicleRef.current;
+if (!lastClicked?.imei || lastClicked.imei !== focusEntry?.imei) return;
+
+const overlayContent = document.getElementById("overlay-content");
+if (!overlayContent) return;
+
+const isStale = isEntryStale15Min(focusEntry);
+const speedValue = focusEntry.speed > 2 ? focusEntry.speed : 0;
+const deviceStatusLabel = resolveDeviceStatusLabel(focusEntry);
+const isOfflineResolved = deviceStatusLabel === "Offline";
+const packetTypeCode = (isStale || isOfflineResolved)
+? "Offline"
+: (resolveAlertCode(focusEntry) || "NR1");
+const alertLabel = (isStale || isOfflineResolved)
+? "Offline"
+: resolveAlertLabel(focusEntry);
+// Extract just the name part (without the code in parentheses if present)
+const pillText = (isStale || isOfflineResolved)
+? "Offline"
+: alertLabel.split(' (')[0];
+const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
+const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
+? "overlay-pill--offline"
+: (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
+? "overlay-pill--normal"
+: "overlay-pill--alert";
+
+const packetTypeLabel = (isStale || isOfflineResolved)
+? "Offline"
+: resolvePacketTypeLabel(focusEntry);
+const nearestPoiLabel = resolveNearestPoiLabel(focusEntry);
+const nearestPolice = resolveNearestPoliceDetails(focusEntry);
+
+const nearestPoliceStationValue =
+focusEntry?.markerCategory === "police"
+? (focusEntry.nearestPoliceStation || "uzanbazr policestation")
+: null;
+const policeContactValue =
+focusEntry?.markerCategory === "police"
+? (focusEntry.nearestPoliceContact || "987654123")
+: null;
+
+const wardValue =
+focusEntry?.ward_name ||
+focusEntry?.ward ||
+focusEntry?.wardName ||
+focusEntry?.device_tag_info?.ward?.name ||
+focusEntry?.device_tag_info?.ward_name ||
+"-";
+const districtValue =
+focusEntry?.district ||
+focusEntry?.district_name ||
+focusEntry?.districtName ||
+focusEntry?.device_tag_info?.device?.district ||
+focusEntry?.device_tag_info?.district?.name ||
+focusEntry?.device_tag_info?.district_name ||
+"-";
+const stateValue =
+focusEntry?.state ||
+focusEntry?.state_name ||
+focusEntry?.stateName ||
+focusEntry?.device_tag_info?.state_info?.state ||
+focusEntry?.device_tag_info?.state?.name ||
+focusEntry?.device_tag_info?.state_name ||
+"-";
+
+// Extract route information with fallbacks
+const routeId =
+focusEntry?.route_id ||
+focusEntry?.route_ref?.id ||
+focusEntry?.device_tag_info?.route?.id ||
+focusEntry?.nearby_routes_within_100m?.[0]?.data?.id ||
+"-";
+
+const routeData = focusEntry?.route_ref || focusEntry?.device_tag_info?.route || {};
+
+const routeName =
+focusEntry?.route_name ||
+focusEntry?.route ||
+focusEntry?.route_info ||
+focusEntry?.routeInformation ||
+routeData?.name ||
+(routeId && routeId !== "-" ? `Route ${routeId}` : "-");
+
+const routeCode = routeData?.code || focusEntry?.route_code || "-";
+const routeType = routeData?.type || focusEntry?.route_type || "-";
+const startPoint = routeData?.start_point || focusEntry?.start_point || "-";
+const endPoint = routeData?.end_point || focusEntry?.end_point || "-";
+const stops = routeData?.stops || focusEntry?.route_stops || [];
+const distance = routeData?.distance ? `${routeData.distance} km` : "-";
+const duration = routeData?.duration || focusEntry?.route_duration || "-";
+const schedule = routeData?.schedule || focusEntry?.route_schedule || "-";
+const operator = routeData?.operator || focusEntry?.route_operator || "-";
+
+const policeInfoRows = [
+nearestPoliceStationValue
+? `<div class="overlay-row"><span class="overlay-label">Nearest Police Station</span><span class="overlay-value">${nearestPoliceStationValue}</span></div>`
+: "",
+policeContactValue
+? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
+: "",
+].join("");
+
+const policeDetailsRows = [
+nearestPolice?.name && nearestPolice.name !== "-"
+? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
+: "",
+nearestPolice?.address && nearestPolice.address !== "-"
+? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
+: "",
+nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
+? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
+: "",
+].join("");
+
+overlayContent.innerHTML = `
+<div class="overlay-card">
+<div class="overlay-header">
+<div class="overlay-header-content">
+<div class="overlay-title">${focusEntry.vehicle_registration_number || "-"}</div>
+</div>
+<div class="overlay-pill ${pillClass}">${pillText}</div>
+</div>
+<div class="overlay-tabs" data-overlay-tabs>
+<div class="overlay-tab-list" role="tablist">
+<button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
+<button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
+<button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
+<button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
+</div>
+
+<div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-title">Vehicle Information</div>
+<div class="overlay-section-body">
+<div class="overlay-row">
+<span class="overlay-label">Packet Status</span>
+<span class="overlay-value">${packetTypeLabel}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Date</span>
+<span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Time</span>
+<span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Speed</span>
+<span class="overlay-value">${speedValue} km/h</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Battery</span>
+<span class="overlay-value">${focusEntry.internal_battery_voltage || "-"} - ${focusEntry.main_input_voltage || "-"}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Latitude</span>
+<span class="overlay-value">${focusEntry.latitude || "-"}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Longitude</span>
+<span class="overlay-value">${focusEntry.longitude || "-"}</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-body">
+<div class="overlay-row overlay-row--multiline">
+<span class="overlay-label">Address</span>
+<span class="overlay-value overlay-value--multiline">${focusEntry.address || '-'}</span>
+</div>
+<div class="overlay-row overlay-row--multiline">
+<span class="overlay-label">Nearest Poi</span>
+<span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-title">Route Information</div>
+<div class="overlay-section-body">
+<!-- Basic Route Info -->
+<div class="overlay-row">
+<span class="overlay-label">Route Name</span>
+<span class="overlay-value">${routeName}</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Route ID</span>
+<span class="overlay-value">${routeId}</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
+<div class="overlay-section">
+<div class="overlay-section-title">Police Support</div>
+<div class="overlay-section-body">
+${policeInfoRows || policeDetailsRows
+? `${policeInfoRows}${policeDetailsRows}`
+: `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
+}
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
+}, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
+
+useEffect(() => {
+const container = overlayElement.current;
+if (!container) return;
+
+const handleClick = (event) => {
+const tabButton = event.target?.closest?.("[data-overlay-tab]");
+if (!tabButton) return;
+
+const tabName = tabButton.getAttribute("data-overlay-tab");
+if (!tabName) return;
+
+const tabsRoot = tabButton.closest("[data-overlay-tabs]");
+if (!tabsRoot) return;
+
+const allTabs = tabsRoot.querySelectorAll("[data-overlay-tab]");
+allTabs.forEach((btn) => {
+btn.classList.toggle("overlay-tab--active", btn === tabButton);
+});
+
+const panels = tabsRoot.querySelectorAll("[data-overlay-panel]");
+panels.forEach((panel) => {
+panel.classList.toggle(
+"overlay-panel--active",
+panel.getAttribute("data-overlay-panel") === tabName
+);
+});
+};
+
+container.addEventListener("click", handleClick);
+return () => container.removeEventListener("click", handleClick);
+}, []);
+
+// Handle Incident Data for OpenLayers (Normal/Satellite)
+useEffect(() => {
+if (!map || !incidentVectorLayer) return;
+
+const source = incidentVectorLayer.getSource();
+source.clear();
+
+if (incidentData.length > 0) {
+const features = incidentData
+.map((incident) => {
+const longitude = Number(incident.longitude);
+const latitude = Number(incident.latitude);
+
+if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+
+const feature = new Feature({
+geometry: new Point([longitude, latitude]),
+data: incident,
+isIncident: true,
+});
+
+// Style for incident
+const svgIcon = `
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2L1 21H23L12 2Z" fill="#F44336" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M12 9V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+<path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>
+`;
+const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
+
+feature.setStyle(
+new Style({
+image: new Icon({
+anchor: [0.5, 1],
+src: iconUrl,
+scale: 1.0,
+}),
+})
+);
+return feature;
+})
+.filter(Boolean);
+
+source.addFeatures(features);
+}
+}, [incidentData, map, incidentVectorLayer]);
+
+// Handle NMR circular area (normal / satellite OpenLayers maps)
+useEffect(() => {
+if (!map || !nmrVectorLayer) return;
+
+const source = nmrVectorLayer.getSource();
+source.clear();
+
+if (!nmrArea) return;
+
+const lat = Number(nmrArea.latitude);
+const lon = Number(nmrArea.longitude);
+const radiusKm = Number(nmrArea.radiusKm) || 5;
+
+if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+// Approximate conversion: 1 degree of latitude ~ 111.32 km
+const radiusDeg = radiusKm / 111.32;
+
+const circleGeom = new Circle([lon, lat], radiusDeg);
+const feature = new Feature({ geometry: circleGeom });
+
+feature.setStyle(
+new Style({
+fill: new Fill({ color: 'rgba(33, 150, 243, 0.15)' }), // light blue fill
+stroke: new Stroke({ color: '#2196F3', width: 2 }), // blue border
+})
+);
+
+source.addFeature(feature);
+}, [map, nmrVectorLayer, nmrArea]);
+
+// Handle clustering distance based on zoom level to reveal tight clusters
+useEffect(() => {
+if (!map || !vectorLayer) return;
+
+const source = vectorLayer.getSource();
+// Ensure we are working with a Cluster source which supports setDistance
+if (!source || typeof source.setDistance !== 'function') return;
+
+const handleZoomChange = () => {
+const zoom = map.getView().getZoom();
+// Disable clustering at high zoom levels (e.g., >= 17) to reveal individual items
+// 40 is the default distance we set during initialization
+const targetDistance = zoom >= 14 ? 0 : 30;
+
+if (source.getDistance() !== targetDistance) {
+source.setDistance(targetDistance);
+}
+};
+
+const view = map.getView();
+// Initial check
+handleZoomChange();
+
+// Listen to changes
+view.on('change:resolution', handleZoomChange);
+
+return () => {
+view.un('change:resolution', handleZoomChange);
+};
+}, [map, vectorLayer]);
+
+useEffect(() => {
+if (!focusEntry) return;
+
+// Avoid re-centering on every focusEntry update (e.g., live polling updates for the same vehicle)
+// This prevents the map from snapping back to the vehicle after the user manually zooms/pans.
+if (lastCenteredFocusImeiRef.current === focusEntry.imei) return;
+lastCenteredFocusImeiRef.current = focusEntry.imei;
+
+const longitude = Number(focusEntry.longitude);
+const latitude = Number(focusEntry.latitude);
+
+if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
+
+// Handle OpenLayers maps (normal and satellite)
+if (map && mapType !== "hd") {
+map
+.getView()
+.animate({ center: [longitude, latitude], zoom: 16, duration: 500 });
+}
+
+// Handle HD Mappls map
+if (mapType === "hd" && mapplsMapRef.current) {
+const hdMap = mapplsMapRef.current;
+
+// Try to pan to the location
+// Note: Mappls expects object format {lat, lng}
+try {
+if (typeof hdMap.setCenter === "function") {
+hdMap.setCenter({ lat: latitude, lng: longitude });
+} else if (typeof hdMap.panTo === "function") {
+hdMap.panTo({ lat: latitude, lng: longitude });
+}
+
+// Set zoom level
+if (typeof hdMap.setZoom === "function") {
+hdMap.setZoom(16);
+}
+} catch (error) {
+console.warn("Could not focus on vehicle in HD map:", error);
+}
+}
+}, [focusEntry, map, mapType]);
+
+const startDrawing = () => {
+if (!map || !drawVectorLayer) return;
+
+// Clear previous drawings
+drawVectorLayer.getSource().clear();
+
+// Remove existing interaction if any
+if (drawInteraction) {
+map.removeInteraction(drawInteraction);
+}
+
+const draw = new Draw({
+source: drawVectorLayer.getSource(),
+type: "Polygon",
+});
+
+draw.on("drawend", (event) => {
+const feature = event.feature;
+const geometry = feature.getGeometry();
+const coordinates = geometry.getCoordinates()[0]; // Outer ring
+
+// Transform to [Lat, Lon]
+const transformedCoords = coordinates.map((coord) => {
+const [longitude, latitude] = coord;
+return [latitude, longitude];
+});
+
+if (onPolygonComplete) {
+onPolygonComplete(transformedCoords);
+}
+
+// Remove interaction after drawing
+map.removeInteraction(draw);
+setDrawInteraction(null);
+});
+
+map.addInteraction(draw);
+setDrawInteraction(draw);
+};
+
+const clearPolygon = () => {
+if (drawVectorLayer) {
+drawVectorLayer.getSource().clear();
+}
+if (drawInteraction) {
+map.removeInteraction(drawInteraction);
+setDrawInteraction(null);
+}
+if (onPolygonComplete) {
+onPolygonComplete([]);
+}
+};
+
+// Geocoding Handlers
+const showSnackbar = (message, severity = 'error') => {
+setSnackbar({ open: true, message, severity });
+};
+
+const handleCloseSnackbar = () => {
+setSnackbar((prev) => ({ ...prev, open: false }));
+};
+
+const handleGeoSearch = async () => {
+if (!geoSearchQuery.trim()) return;
+
+try {
+setGeoSearchLoading(true);
+// const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+const url = `https://api.gromed.in/api/geocode/?q=${encodeURIComponent(geoSearchQuery)}`;
+console.log('Fetching geocode via Axios (Proxy):', url);
+const response = await axios.get(url);
+
+if (response.status === 200) {
+const data = response.data;
+console.log('Geocoding response data:', data);
+
+let results = [];
+if (data.copResults) {
+if (Array.isArray(data.copResults)) {
+results = data.copResults;
+} else {
+results = [data.copResults];
+}
+} else if (Array.isArray(data)) {
+results = data;
+} else if (Array.isArray(data.results)) {
+// Support gromed.in geocode format: { results: [...] }
+results = data.results;
+}
+
+setGeoSearchResults(results);
+if (results.length === 0) {
+showSnackbar('No results found', 'info');
+} else {
+// Auto-focus map on the first geocode result
+try {
+handleGeoResultClick(results[0]);
+} catch (e) {
+console.error('Error focusing map on geocode result:', e);
+}
+}
+} else {
+console.warn('Geocoding status:', response.status);
+showSnackbar(`Error: ${response.statusText}`, 'error');
+}
+} catch (error) {
+console.error('Geocoding exception:', error);
+if (error.code === "ERR_NETWORK") {
+showSnackbar('Network Error (Likely CORS). Try using the SDK or a proxy.', 'error');
+} else {
+showSnackbar('Error searching address', 'error');
+}
+} finally {
+setGeoSearchLoading(false);
+}
+};
+
+const handleGeoResultClick = async (result) => {
+console.log('Selected geo result:', result);
+
+// Support multiple response formats:
+// - Mappls: { latitude, longitude }
+// - Generic: { lat, lng }
+// - Gromed geocode: { lat, lon, address }
+let lat = result.latitude || result.lat;
+let lng = result.longitude || result.lng || result.lon;
+
+// If lat/lng are missing, try to fetch them using eLoc
+if (!lat || !lng && result.eLoc) {
+try {
+const url = `https://place.mappls.com/O2O/entity/place-details/${result.eLoc}?access_token=${MAPPLS_GEOCODING_TOKEN}`;
+console.log('Fetching detailed place info for eLoc:', result.eLoc);
+const response = await axios.get(url);
+if (response.status === 200 && response.data) {
+lat = response.data.latitude;
+lng = response.data.longitude;
+console.log('Resolved eLoc to coordinates:', lat, lng);
+}
+} catch (err) {
+console.error('Error resolving eLoc details:', err);
+}
+}
+
+if (lat && lng) {
+const latNum = parseFloat(lat);
+const lngNum = parseFloat(lng);
+
+// Handle HD Map (Mappls)
+if (mapType === "hd" && mapplsMapRef.current) {
+const hdMap = mapplsMapRef.current;
+const pos = { lat: latNum, lng: lngNum };
+
+try {
+if (typeof hdMap.panTo === 'function') {
+hdMap.panTo({ lat: pos.lat, lng: pos.lng });
+}
+if (typeof hdMap.setCenter === 'function') {
+hdMap.setCenter({ lat: pos.lat, lng: pos.lng });
+}
+if (typeof hdMap.setZoom === 'function') {
+hdMap.setZoom(16);
+}
+
+// Clear previous search marker if exists
+if (window.searchMarker) {
+try { window.searchMarker.remove(); } catch (e) { }
+}
+
+// Add marker at the searched location
+if (window.mappls && window.mappls.Marker) {
+const iconUrl = getPoiMarkerIcon('#FF0000');
+const marker = new window.mappls.Marker({
+map: hdMap,
+position: pos,
+icon: iconUrl,
+width: 30,
+height: 40,
+popupHtml: `
+<div style="padding: 10px; width: 250px; font-family: 'Roboto', sans-serif;">
+<h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #333; line-height: 1.3; overflow-wrap: break-word;">
+${result.poi || result.placeName || result.locality || result.name || 'Location'}
+</h3>
+<p style="margin: 0 0 5px 0; font-size: 12px; color: #666; line-height: 1.4; overflow-wrap: break-word;">
+${result.formattedAddress || result.address || result.description || 'No address available'}
+</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
+${result.district ? `<span style="font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${result.district}</span>` : ''}
+${result.state ? `<span style="font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${result.state}</span>` : ''}
+</div>
+<p style="margin: 8px 0 0 0; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 6px;">
+${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
+</p>
+</div>
+`
+});
+window.searchMarker = marker;
+}
+} catch (error) {
+console.error('Error during pan on HD map:', error);
+showSnackbar('Error moving map to location', 'error');
+}
+}
+// Handle OpenLayers maps (Normal, Satellite, SOI)
+else if (map && ["normal", "satellite", "soi"].includes(mapType)) {
+try {
+// Pan to location
+map.getView().animate({
+center: [lngNum, latNum],
+zoom: 16,
+duration: 500
+});
+
+// Clear previous search marker if exists
+if (window.olSearchMarker) {
+try {
+vectorLayer.getSource().removeFeature(window.olSearchMarker);
+} catch (e) { }
+}
+
+// Add marker at the searched location
+const markerFeature = new Feature({
+geometry: new Point([lngNum, latNum]),
+});
+
+markerFeature.setStyle(new Style({
+image: new Icon({
+anchor: [0.5, 1],
+src: 'data:image/svg+xml;base64,' + window.btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 24 24">
+<path fill="#FF0000" d="M12 2c4.418 0 8 3.134 8 7 0 5.25-8 13-8 13S4 14.25 4 9c0-3.866 3.582-7 8-7Zm0 4a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 6Z"/>
+</svg>
+`),
+scale: 1.2,
+}),
+}));
+
+vectorLayer.getSource().addFeature(markerFeature);
+window.olSearchMarker = markerFeature;
+
+// Show popup with location info
+if (dynamicOverlay) {
+const overlayContent = document.getElementById('overlay-content');
+if (overlayContent) {
+overlayContent.innerHTML = `
+<div class="overlay-card" style="max-width: 250px; overflow: hidden;">
+<div class="overlay-header">
+<div class="overlay-title" style="word-wrap: break-word;">${result.poi || result.placeName || result.locality || 'Location'}</div>
+</div>
+<div class="overlay-body">
+<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;">
+<span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">Address</span>
+<span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.formattedAddress || result.address || 'N/A'}</span>
+</div>
+${result.district ? `<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;"><span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">District</span><span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.district}</span></div>` : ''}
+${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;"><span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">State</span><span class="overlay-value" style="flex: 1; word-break: break-word; overflow-wrap: break-word; color: #333;">${result.state}</span></div>` : ''}
+<div class="overlay-row" style="display: flex; gap: 8px; margin-bottom: 4px;">
+<span class="overlay-label" style="min-width: 70px; font-weight: 500; color: #666;">Coordinates</span>
+<span class="overlay-value" style="flex: 1; word-break: break-all; color: #333;">${latNum.toFixed(6)}, ${lngNum.toFixed(6)}</span>
+</div>
+</div>
+</div>
+`;
+dynamicOverlay.setPosition([lngNum, latNum]);
+overlayElement.current.style.display = 'block';
+}
+}
+} catch (error) {
+console.error('Error during pan on OpenLayers map:', error);
+showSnackbar('Error moving map to location', 'error');
+}
+}
+} else {
+showSnackbar('Could not determine location coordinates', 'error');
+}
+
+// Clear search results and query after selection
+setGeoSearchResults([]);
+setGeoSearchQuery('');
+};
+
+
+// Handle Layer Visibility Toggles (OpenLayers)
+useEffect(() => {
+if (vectorLayer) {
+vectorLayer.setVisible(showVehicles);
+}
+}, [showVehicles, vectorLayer]);
+
+useEffect(() => {
+if (poiVectorLayer) {
+poiVectorLayer.setVisible(showPois);
+}
+}, [showPois, poiVectorLayer]);
+
+useEffect(() => {
+if (incidentVectorLayer) {
+incidentVectorLayer.setVisible(showIncidents);
+}
+}, [showIncidents, incidentVectorLayer]);
+
+// Handle Layer Visibility Toggles (Mappls HD)
+useEffect(() => {
+// Toggle Vehicle Markers
+if (hdVehicleMarkersRef.current) {
+hdVehicleMarkersRef.current.forEach(marker => {
+try {
+if (showVehicles) {
+if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
+} else {
+marker.remove();
+}
+} catch (e) { console.warn("Error toggling HD vehicle marker", e); }
+});
+}
+
+// Toggle POI Markers
+if (hdPoiMarkersRef.current) {
+hdPoiMarkersRef.current.forEach(marker => {
+try {
+if (showPois) {
+if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
+} else {
+marker.remove();
+}
+} catch (e) { console.warn("Error toggling HD POI marker", e); }
+});
+}
+// Toggle Incident Markers
+if (hdIncidentMarkersRef.current) {
+hdIncidentMarkersRef.current.forEach(marker => {
+try {
+if (showIncidents) {
+if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
+} else {
+marker.remove();
+}
+} catch (e) { console.warn("Error toggling HD incident marker", e); }
+});
+}
+}, [showVehicles, showPois, showIncidents, mapType]);
+
+
+// Controls State
+const [showLayerMenu, setShowLayerMenu] = useState(false);
+
+return (
+<div style={{ width, height, position: "relative", overflow: "hidden", borderRadius: '12px' }}>
+
+{/* --- Top Left: Search Bar --- */}
+<Box
+sx={{
+position: "absolute",
+top: 6,
+left: 30,
+zIndex: 1100,
+width: '320px',
+maxWidth: 'calc(100% - 80px)', // Leave room for right controls
+}}
+>
+<Paper
+elevation={4}
+sx={{
+p: '2px 4px',
+display: 'flex',
+alignItems: 'center',
+width: '100%',
+borderRadius: '12px',
+backgroundColor: alpha(theme.palette.background.paper, 0.9),
+backdropFilter: 'blur(8px)',
+border: '1px solid',
+borderColor: alpha(theme.palette.divider, 0.1),
+transition: 'all 0.3s ease',
+'&:hover': {
+boxShadow: '0 8px 20px rgba(0,0,0,0.12)',
+backgroundColor: alpha(theme.palette.background.paper, 0.98),
+}
+}}
+>
+<IconButton sx={{ p: '8px' }} aria-label="search">
+<SearchIcon color="action" />
+</IconButton>
+<InputBase
+sx={{ ml: 1, flex: 1, fontSize: '0.95rem' }}
+placeholder="Search location..."
+value={geoSearchQuery}
+onChange={(e) => setGeoSearchQuery(e.target.value)}
+onKeyDown={(e) => {
+if (e.key === 'Enter') handleGeoSearch();
+if (e.key === 'Escape') {
+setGeoSearchQuery('');
+setGeoSearchResults([]);
+}
+}}
+/>
+{geoSearchQuery && (
+<IconButton
+size="small"
+onClick={() => {
+setGeoSearchQuery('');
+setGeoSearchResults([]);
+}}
+sx={{ p: '8px' }}
+>
+<CloseIcon fontSize="small" />
+</IconButton>
+)}
+<Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+<IconButton
+color="primary"
+sx={{ p: '8px' }}
+onClick={handleGeoSearch}
+disabled={geoSearchLoading}
+>
+{geoSearchLoading ? <CircularProgress size={20} /> : <SearchIcon />}
+</IconButton>
+</Paper>
+
+{/* Search Results Dropdown */}
+{geoSearchResults && geoSearchResults.length > 0 && (
+<Paper
+elevation={6}
+sx={{
+mt: 1,
+maxHeight: '300px',
+overflowY: 'auto',
+borderRadius: '12px',
+backgroundColor: alpha(theme.palette.background.paper, 0.95),
+backdropFilter: 'blur(12px)',
+}}
+>
+<List disablePadding>
+{geoSearchResults.map((result, index) => (
+<ListItemButton
+key={index}
+onClick={() => handleGeoResultClick(result)}
+divider={index !== geoSearchResults.length - 1}
+>
+<ListItemIcon sx={{ minWidth: 36 }}>
+<LocationOnIcon color="error" fontSize="small" />
+</ListItemIcon>
+<ListItemText
+primary={result.poi || result.formattedAddress || result.locality}
+secondary={[result.district, result.state].filter(Boolean).join(', ')}
+primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+secondaryTypographyProps={{ variant: 'caption' }}
+/>
+</ListItemButton>
+))}
+</List>
+</Paper>
+)}
+</Box>
+
+{/* --- Top Right: Map Controls (Layers & Tools) --- */}
+<Box
+sx={{
+position: "absolute",
+top: 16,
+right: 16,
+zIndex: 1100,
+display: 'flex',
+flexDirection: 'column',
+gap: 1.5,
+alignItems: 'end',
+}}
+>
+{/* Layer Toggle */}
+<Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', flexDirection: 'row-reverse' }}>
+<Tooltip title="Map Layers" placement="left">
+<Paper
+elevation={4}
+sx={{
+width: 44,
+height: 44,
+borderRadius: '12px',
+display: 'flex',
+alignItems: 'center',
+justifyContent: 'center',
+backgroundColor: alpha(theme.palette.background.paper, 0.9),
+backdropFilter: 'blur(8px)',
+cursor: 'pointer',
+transition: 'all 0.2s',
+'&:hover': { bgcolor: 'white', transform: 'scale(1.05)' }
+}}
+onClick={() => setShowLayerMenu(!showLayerMenu)}
+>
+<LayersIcon color="primary" />
+</Paper>
+</Tooltip>
+
+{/* Expanded Layer Menu */}
+{showLayerMenu && (
+<Paper
+elevation={6}
+sx={{
+mr: 1,
+p: 1.5,
+borderRadius: '12px',
+backgroundColor: alpha(theme.palette.background.paper, 0.95),
+backdropFilter: 'blur(10px)',
+display: 'flex',
+flexDirection: 'column',
+gap: 1,
+maxHeight: '70vh',
+overflowY: 'auto'
+}}
+>
+{/* Map Type Selection */}
+<Box sx={{ display: 'flex', gap: 0.5 }}>
+{[
+{ id: 'normal', label: 'Normal', icon: <MapIcon /> },
+{ id: 'satellite', label: 'Satellite', icon: <SatelliteIcon /> },
+// { id: 'hd', label: 'Mappls HD', icon: <HdIcon /> },
+{ id: 'soi', label: 'SOI', icon: <PublicIcon /> }
+].map((type) => (
+<Tooltip key={type.id} title={type.label} arrow>
+<IconButton
+size="small"
+onClick={() => setMapType(type.id)}
+sx={{
+color: mapType === type.id ? 'primary.main' : 'text.secondary',
+bgcolor: mapType === type.id ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+borderRadius: '8px',
+border: mapType === type.id ? `1px solid ${theme.palette.primary.main}` : '1px solid transparent'
+}}
+>
+{type.icon}
+</IconButton>
+</Tooltip>
+))}
+</Box>
+
+<Divider />
+
+{/* Layer Toggles */}
+<Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={showVehicles}
+onChange={(e) => setShowVehicles(e.target.checked)}
+/>
+}
+label={<Typography variant="caption" fontWeight={500}>Vehicles</Typography>}
+sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={showPois}
+onChange={(e) => setShowPois(e.target.checked)}
+/>
+}
+label={<Typography variant="caption" fontWeight={500}>POIs</Typography>}
+sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={showIncidents}
+onChange={(e) => setShowIncidents(e.target.checked)}
+/>
+}
+label={<Typography variant="caption" fontWeight={500}>Incidents</Typography>}
+sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+/>
+</Box>
+
+{mapType === 'soi' && (
+<>
+<Divider />
+<Typography variant="caption" fontWeight={700} sx={{ px: 0.5, color: 'text.secondary' }}>
+SOI Layers
+</Typography>
+<Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxHeight: 280, overflowY: 'auto', pr: 0.5 }}>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.assamStateBdy}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamStateBdy: e.target.checked }))}
+/>
+}
+label="ASSAM State BDY"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.states}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, states: e.target.checked }))}
+/>
+}
+label="States"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.assamDistrict}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrict: e.target.checked }))}
+/>
+}
+label="ASSAM District BDY"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.assamDistrictBdy2}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrictBdy2: e.target.checked }))}
+/>
+}
+label="ASSAM District BDY2"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.assamDistrictHq}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamDistrictHq: e.target.checked }))}
+/>
+}
+label="ASSAM District HQ"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.assamSubdistrictBdy}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamSubdistrictBdy: e.target.checked }))}
+/>
+}
+label="ASSAM Subdistrict BDY"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.kamrupRural}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, kamrupRural: e.target.checked }))}
+/>
+}
+label="Kamrup Rural"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.cartTrackHills}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, cartTrackHills: e.target.checked }))}
+/>
+}
+label="Cart Track Hills"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.contours}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, contours: e.target.checked }))}
+/>
+}
+label="Contours"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.majorTowns}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, majorTowns: e.target.checked }))}
+/>
+}
+label="Major Towns HQ"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.name}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, name: e.target.checked }))}
+/>
+}
+label="Name"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.railwayTracks}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, railwayTracks: e.target.checked }))}
+/>
+}
+label="Railway Tracks"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.roads}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roads: e.target.checked }))}
+/>
+}
+label="Roads"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.roadsAllWeatherMotorable}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsAllWeatherMotorable: e.target.checked }))}
+/>
+}
+label="Roads All Weather"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.roadsMotorableInFairWeather}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsMotorableInFairWeather: e.target.checked }))}
+/>
+}
+label="Roads Fair Weather"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.roadsNationalHighway}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadsNationalHighway: e.target.checked }))}
+/>
+}
+label="National Highway"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.stateHighway}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, stateHighway: e.target.checked }))}
+/>
+}
+label="State Highway"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.roadTunnel}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadTunnel: e.target.checked }))}
+/>
+}
+label="Road Tunnel"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.roadOthers}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadOthers: e.target.checked }))}
+/>
+}
+label="Road Others"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.buildingFootprint}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, buildingFootprint: e.target.checked }))}
+/>
+}
+label="Building Footprint"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.roadSurface}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, roadSurface: e.target.checked }))}
+/>
+}
+label="Road Surface"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.busStop}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, busStop: e.target.checked }))}
+/>
+}
+label="Bus Stop"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.block}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, block: e.target.checked }))}
+/>
+}
+label="Block"
+/>
+{/*
+*/}
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.skytronAssamCombined}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, skytronAssamCombined: e.target.checked }))}
+/>
+}
+label="Assam Combined (skytron)"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.assamTowns}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, assamTowns: e.target.checked }))}
+/>
+}
+label="Assam Towns (skytron)"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanAmrutNogaon}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanAmrutNogaon: e.target.checked }))}
+/>
+}
+label="Bhuvan AMRUT Nogaon"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanAmrutSilchar}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanAmrutSilchar: e.target.checked }))}
+/>
+}
+label="Bhuvan AMRUT Silchar"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanAmrutDibrugarh}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanAmrutDibrugarh: e.target.checked }))}
+/>
+}
+label="Bhuvan AMRUT Dibrugarh"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanAmrutGuwahati}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanAmrutGuwahati: e.target.checked }))}
+/>
+}
+label="Bhuvan AMRUT Guwahati"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanNuisSilchar}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanNuisSilchar: e.target.checked }))}
+/>
+}
+label="Bhuvan NUIS Silchar"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanSikkim}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanSikkim: e.target.checked }))}
+/>
+}
+label="Bhuvan Sikkim"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanAssam}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanAssam: e.target.checked }))}
+/>
+}
+label="Bhuvan Assam"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanKamrupMetro}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanKamrupMetro: e.target.checked }))}
+/>
+}
+label="Bhuvan Kamrup Metro"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanFloodAssam}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanFloodAssam: e.target.checked }))}
+/>
+}
+label="Bhuvan Flood Assam"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanManipur}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanManipur: e.target.checked }))}
+/>
+}
+label="Bhuvan Manipur"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanWestBengal}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanWestBengal: e.target.checked }))}
+/>
+}
+label="Bhuvan WestBengal"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanTripura}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanTripura: e.target.checked }))}
+/>
+}
+label="Bhuvan Tripura"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanNagaland}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanNagaland: e.target.checked }))}
+/>
+}
+label="Bhuvan Nagaland"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanMeghalaya}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanMeghalaya: e.target.checked }))}
+/>
+}
+label="Bhuvan Meghalaya"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanMizoram}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanMizoram: e.target.checked }))}
+/>
+}
+label="Bhuvan Mizoram"
+/>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={soiLayerVisibility.bhuvanArunachal}
+onChange={(e) => setSoiLayerVisibility((prev) => ({ ...prev, bhuvanArunachal: e.target.checked }))}
+/>
+}
+label="Bhuvan Arunachal"
+/>
+</Box>
+</>
+)}
+
+</Paper>
+)}
+</Box>
+
+{/* Drawing Tools */}
+{(mapType !== "soi") && ( // Only show drawing tools if supported (Normal, Sat, HD)
+<Paper
+elevation={4}
+sx={{
+p: 0.5,
+borderRadius: '12px',
+backgroundColor: alpha(theme.palette.background.paper, 0.9),
+backdropFilter: 'blur(8px)',
+display: 'flex',
+flexDirection: 'column',
+gap: 0.5
+}}
+>
+<Tooltip title={drawingMode === 'polygon' || drawInteraction ? "Drawing Active" : "Draw Polygon"} placement="left">
+<IconButton
+onClick={mapType === 'hd' ? startHdDrawing : startDrawing}
+color={(drawingMode === 'polygon' || drawInteraction) ? "secondary" : "default"}
+sx={{
+borderRadius: '8px',
+'&.Mui-active': { bgcolor: alpha(theme.palette.secondary.main, 0.1) }
+}}
+>
+<EditIcon />
+</IconButton>
+</Tooltip>
+
+{/* Clear Button - Show only if something is drawn or drawing */}
+<Tooltip title="Clear Map" placement="left">
+<IconButton
+onClick={mapType === 'hd' ? clearHdDrawing : clearPolygon}
+color="error"
+size="small"
+sx={{ borderRadius: '8px' }}
+>
+<DeleteIcon />
+</IconButton>
+</Tooltip>
+</Paper>
+)}
+</Box>
+
+{/* --- Finish Drawing Action (Floating Bottom Center) --- */}
+{((drawingMode === 'polygon' && drawingPoints.length > 2) || (drawInteraction)) && (
+<Box
+sx={{
+position: 'absolute',
+bottom: 30,
+left: '50%',
+transform: 'translateX(-50%)',
+zIndex: 1100,
+}}
+>
+<Button
+variant="contained"
+color="success"
+startIcon={<CheckIcon />}
+onClick={mapType === 'hd' ? finishHdDrawing : () => { /* OpenLayers handles finish automatically on double click usually, but we can add manual finish if customization allows */ }}
+sx={{
+borderRadius: '24px',
+px: 3,
+boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+textTransform: 'none',
+fontWeight: 600
+}}
+>
+Finish Drawing
+</Button>
+</Box>
+)}
+
+{/* --- Map Containers --- */}
+<div style={{ width: "100%", height: "100%", position: "relative" }}>
+{/* Normal Map */}
+<div
+ref={normalMapContainerRef}
+style={{
+width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
+visibility: mapType === "normal" ? "visible" : "hidden",
+zIndex: mapType === "normal" ? 1 : 0
+}}
+/>
+
+{/* Satellite Map */}
+<div
+ref={satelliteMapContainerRef}
+style={{
+width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
+visibility: mapType === "satellite" ? "visible" : "hidden",
+zIndex: mapType === "satellite" ? 1 : 0
+}}
+/>
+
+{/* HD Map */}
+<div
+ref={hdMapContainerRef}
+style={{
+width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
+visibility: mapType === "hd" ? "visible" : "hidden",
+zIndex: mapType === "hd" ? 1 : 0
+}}
+>
+<div ref={hdMapInnerRef} style={{ width: "100%", height: "100%", position: "absolute" }} />
+</div>
+
+{/* SOI Map */}
+<div
+ref={soiMapContainerRef}
+style={{
+width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
+visibility: mapType === "soi" ? "visible" : "hidden",
+zIndex: mapType === "soi" ? 1 : 0
+}}
+>
+{/* Map div injected by useEffect */}
+</div>
+</div>
+
+{/* --- Attribution Logos --- */}
+<Box sx={{ position: 'absolute', bottom: 4, right: 4, zIndex: 1000, pointerEvents: 'none' }}>
+<img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ height: '50px' }} alt="Skytron" />
+</Box>
+
+{/* Overlay for displaying marker details */}
+<div ref={overlayElement} className="dynamic-overlay">
+<div id="overlay-content"></div>
+</div>
+
+<style>{`
+.dynamic-overlay {
+position: absolute;
+display: none;
+transform: translate(-5%, 0%);
+z-index: 1200; /* above all else */
+}
+
+.overlay-card {
+background-color: #ffffff;
+border-radius: 10px;
+padding: 8px 10px;
+box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+border: 1px solid rgba(0, 0, 0, 0.08);
+min-width: 160px;
+max-width: 320px;
+font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: 11px;
+color: #1f2933;
+}
+
+.overlay-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+padding: 12px 16px;
+border-bottom: 1px solid #e5e7eb;
+gap: 8px;
+}
+
+.overlay-header-content {
+flex: 1;
+min-width: 0; /* Allows text truncation */
+}
+
+.overlay-title {
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+font-size: 16px;
+font-weight: 600;
+color: #111827;
+}
+
+.overlay-pill {
+padding: 2px 8px;
+border-radius: 999px;
+font-size: 10px;
+font-weight: 500;
+text-transform: uppercase;
+letter-spacing: 0.05em;
+border: 1px solid transparent;
+white-space: nowrap;
+flex-shrink: 0;
+margin-left: 8px;
+}
+
+.overlay-pill--normal {
+background-color: #ecfdf3;
+color: #15803d;
+border-color: #bbf7d0;
+}
+
+.overlay-pill--offline {
+background-color: #f3f4f6;
+color: #4b5563;
+border-color: #d1d5db;
+}
+
+.overlay-pill--alert {
+background-color: #fef2f2;
+color: #b91c1c;
+border-color: #fecaca;
+}
+
+.overlay-body {
+border-top: 1px solid #f1f5f9;
+padding-top: 6px;
+margin-top: 4px;
+display: grid;
+row-gap: 4px;
+}
+
+.overlay-sections {
+display: grid;
+row-gap: 8px;
+border-top: 1px solid #f1f5f9;
+padding-top: 8px;
+margin-top: 4px;
+}
+
+.overlay-tabs {
+border-top: 1px solid #f1f5f9;
+padding-top: 8px;
+margin-top: 4px;
+}
+
+.overlay-tab-list {
+display: flex;
+gap: 6px;
+margin-bottom: 8px;
+}
+
+.overlay-tab {
+appearance: none;
+border: 1px solid #e5e7eb;
+background: #f9fafb;
+color: #374151;
+font-size: 10px;
+font-weight: 600;
+padding: 4px 8px;
+border-radius: 999px;
+cursor: pointer;
+}
+
+.overlay-tab--active {
+background: #eef2ff;
+border-color: #c7d2fe;
+color: #1e3a8a;
+}
+
+.overlay-panel {
+display: none;
+max-height: 220px;
+overflow: auto;
+padding-right: 2px;
+}
+
+.overlay-panel {
+overflow-x: hidden;
+}
+
+.overlay-panel--active {
+display: block;
+}
+
+.overlay-section {
+border: 1px solid #eef2f7;
+border-radius: 8px;
+padding: 8px 10px;
+background: #ffffff;
+}
+
+.overlay-section-title {
+font-size: 12px;
+font-weight: 700;
+color: #111827;
+margin-bottom: 6px;
+}
+
+.overlay-section-body {
+display: grid;
+row-gap: 4px;
+}
+
+.overlay-row {
+display: grid;
+grid-template-columns: 84px 1fr;
+gap: 10px;
+align-items: baseline;
+}
+
+.overlay-row--multiline {
+align-items: start;
+}
+
+.overlay-label {
+font-size: 11px;
+color: #6b7280;
+white-space: nowrap;
+}
+
+.overlay-value {
+font-size: 11px;
+font-weight: 500;
+color: #111827;
+text-align: left;
+}
+
+.overlay-value--multiline {
+white-space: normal;
+overflow-wrap: anywhere;
+word-break: break-word;
+text-align: left;
+max-width: none;
+line-height: 1.2;
+overflow: visible;
+}
+`}</style>
+
+{/* Snackbar for notifications */}
+<Snackbar
+open={snackbar.open}
+autoHideDuration={6000}
+onClose={handleCloseSnackbar}
+anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+>
+<Alert
+onClose={handleCloseSnackbar}
+severity={snackbar.severity}
+variant="filled"
+sx={{ width: '100%' }}
+>
+{snackbar.message}
+</Alert>
+</Snackbar>
+
+</div>
+);
 };
 
 export default MapComponent;

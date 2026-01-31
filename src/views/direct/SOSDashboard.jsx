@@ -275,6 +275,11 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
 
   };
 
+  const handlePendingDialogClose = (event, reason) => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
+    setNewPendingCall(null);
+  };
+
   const handleShow = (callObj) => {
     setCall(callObj)
   };
@@ -413,10 +418,8 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
         call={call}
         showDetails={showDetails}
       />
-{status && (
-  <>
       {/* Popup Dialog for New Pending Call */}
-      <Dialog open={!!newPendingCall} onClose={() => setNewPendingCall(null)}>
+      <Dialog open={!!newPendingCall} onClose={handlePendingDialogClose}>
         <DialogTitle
           sx={{
             backgroundColor: "darkred",
@@ -447,8 +450,6 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
           </Button>
         </DialogActions>
       </Dialog>
-      </>
-      )}
     </Grid>
   );
 };
