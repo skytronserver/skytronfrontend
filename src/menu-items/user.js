@@ -486,6 +486,14 @@ const user = {
           roles: ["sosadmin"],
         },
         {
+          id: "sos-report",
+          title: "SOS Report",
+          type: "item",
+          url: "/sos-report",
+          breadcrumbs: false,
+          roles: ["superadmin", "sosadmin"],
+        },
+        {
           id: "sos-call-list",
           title: "SOS Call List",
           type: "item",

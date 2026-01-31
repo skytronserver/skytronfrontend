@@ -33,6 +33,7 @@ import ManufacturerList from "../views/reports/ManufacturerList";
 import VehicleOwnerList from "../views/reports/VehicleOwnerList";
 import SOSUserList from "../views/reports/SOSUserList";
 import SOSOtherList from "../views/reports/SOSOtherList";
+import SOSReport from "../views/reports/SOSReport";
 import StateAdminList from "../views/reports/StateAdminList";
 import DTOUserList from "../views/reports/DTOUserList";
 import EsimProviderList from "../views/reports/EsimProviderList";
@@ -212,6 +213,11 @@ const UserRoutes = {
       path: "/user/sos-other-list",
       element: <SOSOtherList />,
       roles: ["sosadmin"],
+    },
+    {
+      path: "/sos-report",
+      element: <SOSReport />,
+      roles: ["superadmin", "sosadmin"],
     },
     {
       path: "/notice/all-notice-list",
