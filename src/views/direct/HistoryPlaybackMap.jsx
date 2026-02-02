@@ -826,9 +826,13 @@ const GPSHistoryMap = ({
         const lat = parseFloat(entry.lat);
         const lon = parseFloat(entry.lon);
 
+        const dateTimeForPdf = formatDateTime(entry.et)
+          .replace(/\n/g, ' ')
+          .replace(/\s*IST\s*$/, '');
+
         const rowData = [
           String(index + 1),
-          formatDateTime(entry.et).replace(/\n/g, ' '),
+          dateTimeForPdf,
           !isNaN(lat) ? lat.toFixed(6) : 'N/A',
           !isNaN(lon) ? lon.toFixed(6) : 'N/A',
           String(entry.s || 0),
@@ -836,7 +840,8 @@ const GPSHistoryMap = ({
         ];
 
         rowData.forEach((data, idx) => {
-          const text = data.length > 20 ? data.substring(0, 17) + '...' : data;
+          const isDateTimeColumn = idx === 1;
+          const text = !isDateTimeColumn && data.length > 20 ? data.substring(0, 17) + '...' : data;
           pdf.text(text, xPosition, yPosition);
           xPosition += colWidths[idx];
         });
