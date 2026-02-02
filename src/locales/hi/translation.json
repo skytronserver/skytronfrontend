@@ -333,6 +333,26 @@
       "defaultStatus": "डिफ़ॉल्ट स्थिति"
     }
   },
+    "Super Admin Dashboard": {
+    "title": "सुपर प्रशासक डैशबोर्ड"
+  },
+
+"Transport Dashboard": {
+    "title": "परिवहन डैशबोर्ड"
+  },
+
+  "Public Safety Dashboard": {
+    "title": "सार्वजनिक सुरक्षा डैशबोर्ड"
+  },
+
+  "SOS Dashboard": {
+    "title": "आपातकालीन सहायता डैशबोर्ड"
+  },
+
+   "MoRTH Dashboard": {
+    "title": "सड़क परिवहन और राजमार्ग मंत्रालय डैशबोर्ड"
+  },
+  
   "routeFixing": {
     "title": "रूट फिक्सिंग",
     "selectVehicle": "वाहन पंजीकरण संख्या चुनें",
@@ -356,6 +376,11 @@
   "menu": {
     "createVehicleOwner": "वाहन मालिक बनाएं",
     "dashboard": "डैशबोर्ड",
+    "superAdminDashboard": "सुपर प्रशासक डैशबोर्ड",
+    "transportDashboard": "परिवहन डैशबोर्ड",
+    "publicSafetyDashboard": "सार्वजनिक सुरक्षा डैशबोर्ड",
+      "sosDashboard": "आपातकालीन सहायता डैशबोर्ड",
+      "morthDashboard": "सड़क परिवहन और राजमार्ग मंत्रालय डैशबोर्ड",
     "users": "उपयोगकर्ता",
     "reports": "रिपोर्ट",
     "settings": "सेटिंग्स",
@@ -384,6 +409,16 @@
     "routeEta": "मार्ग ईटीए कैलकुलेटर",
     "tripPlanning": "यात्रा योजना",
     "historyPlayback": "इतिहास प्लेबैक",
+    "schoolBus": "स्कूल बस",
+    "schoolBusSystem": "स्कूल बस सिस्टम",
+    "busTagging": "बस टैगिंग",
+    "routeManagement": "रूट प्रबंधन",
+    "busAssignment": "बस असाइनमेंट",
+    "profileManagement": "प्रोफ़ाइल प्रबंधन",
+    "parentTracking": "अभिभावक ट्रैकिंग",
+
+
+
     "activation": "सक्रियण",
     "rejected": "अस्वीकृत",
     "accepted": "स्वीकृत",

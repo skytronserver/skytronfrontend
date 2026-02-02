@@ -341,6 +341,29 @@
       "defaultStatus": "Default Status"
     }
   },
+
+  
+    "Super Admin Dashboard": {
+    "title": "Super Admin Dashboard"
+  },
+
+"Transport Dashboard": {
+    "title": "Transport Dashboard"
+  },
+
+"Public Safety Dashboard": {
+    "title": "Public Safety Dashboard"
+  },
+
+  "SOS Dashboard": {
+    "title": "SOS Dashboard"
+  },
+
+  
+    "MoRTH Dashboard": {
+    "title": "MoRTH Dashboard"
+  },
+
   "routeFixing": {
     "title": "Route Fixing",
     "selectVehicle": "Select Vehicle Registration No",
@@ -364,6 +387,11 @@
   "menu": {
     "createVehicleOwner": "Create Vehicle Owner",
     "dashboard": "Dashboard",
+    "superAdminDashboard": "Super Admin Dashboard",
+    "transportDashboard": "Transport Dashboard",
+    "publicSafetyDashboard": "Public Safety Dashboard",
+    "sos Dashboard": "SOS Dashboard",
+    "morthDashboard": "MoRTH Dashboard",
     "users": "Users",
     "reports": "Reports",
     "settings": "Settings",
@@ -392,6 +420,14 @@
     "routeEta": "Find my ETA",
     "tripPlanning": "Trip Planning",
     "historyPlayback": "History Playback",
+    "schoolBus": "School Bus",
+    "schoolBussystem": "School Bus System",
+    "busTagging": "Bus Tagging",
+    "routemanagement": "Route Management",
+    "busassignment": "Bus Assignment",
+    "Profilemanagement": "Profile Management",
+    "parenttracking": "Parent tracking",
+
     "activation": "Pending eSIM activation request ",
     "rejected": "Rejected requests",
     "accepted": "Accepted requests",

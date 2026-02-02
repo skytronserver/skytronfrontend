@@ -181,6 +181,12 @@
   "menu": {
     "createVehicleOwner": "যানবাহনৰ মালিক সৃষ্টি কৰক",
     "dashboard": "ডেশ্ববোৰ্ড",
+    "superAdminDashboard": "সুপাৰ প্ৰশাসক ডেশ্ববৰ্ড",
+    "transportDashboard": "পৰিবহন ডেশ্ববৰ্ড",
+    "publicSafetyDashboard": "সার্বজনিক সুৰক্ষা ডেশ্ববৰ্ড",
+    "sosDashboard": "এছঅ'এছ ডেশ্ববৰ্ড",
+    "morthDashboard": "মোৰথ ডেশ্ববৰ্ড",
+
     "users": "ব্যৱহাৰকাৰী",
     "reports": "ৰিপ'ৰ্ট",
     "settings": "ছেটিংছ",
@@ -212,6 +218,16 @@
     "routeEta": "ৰুট ইটিএ কেলকুলেটৰ",
     "tripPlanning": "ট্ৰিপ প্লেনিং",
     "historyPlayback": "ইতিহাস প্লেবেক",
+"schoolBus": "বিদ্যালয়ৰ বাস",
+    "schoolBusSystem": "বিদ্যালয়ৰ বাস ব্যৱস্থা",
+    "busTagging": "বাস টেগিং",
+    "routeManagement": "ৰুট পৰিচালনা",
+    "busAssignment": "বাস নিয়োগ",
+    "profileManagement": "প্ৰ'ফাইল পৰিচালনা",
+    "parentTracking": "অভিভাৱক ট্ৰেকিং",
+
+  
+
     "activation": "সক্ৰিয়কৰণ",
     "rejected": "প্ৰত্যাখ্যান কৰা",
     "accepted": "গ্ৰহণ কৰা",
