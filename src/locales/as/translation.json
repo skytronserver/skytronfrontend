@@ -179,7 +179,7 @@
     }
   },
   "menu": {
-    "createVehicleOwner": "যানবাহনৰ মালিক সৃষ্টি কৰক",
+    "createVehicleOwner": "যানবাহনৰ মালিক সৃষ্টি কৰক.",
     "dashboard": "ডেশ্ববোৰ্ড",
     "superAdminDashboard": "সুপাৰ প্ৰশাসক ডেশ্ববৰ্ড",
     "transportDashboard": "পৰিবহন ডেশ্ববৰ্ড",
