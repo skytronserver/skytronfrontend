@@ -216,7 +216,7 @@ const ProfileSection = () => {
                           <ListItemIcon>
                             <IconHelp stroke={1.5} size="1.3rem" />
                           </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Help</Typography>} />
+                          <ListItemText primary={<Typography variant="body2">{t('common.help')}</Typography>} />
                         </ListItemButton>
                         <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
@@ -229,7 +229,7 @@ const ProfileSection = () => {
                           <ListItemIcon>
                             <IconMap stroke={1.5} size="1.3rem" />
                           </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Map Policy</Typography>} />
+                          <ListItemText primary={<Typography variant="body2">{t('common.mapPolicy')}</Typography>} />
                         </ListItemButton>
                         <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
