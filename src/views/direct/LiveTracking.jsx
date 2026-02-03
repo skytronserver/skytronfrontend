@@ -135,8 +135,8 @@ const LiveTracking = () => {
     if (isStale) alartType = 'grey';
     else if (processedItem.packet_type === 'EA') alartType = 'red';
     else if (processedItem.packet_type !== 'NR') alartType = 'orange';
-    else if (ignitionOn && speedValue <= 1) alartType = 'blue';
-    else if (ignitionOn && speedValue > 1) alartType = 'green';
+    else if (speedValue > 0) alartType = 'green';
+    else if (ignitionOn && speedValue === 0) alartType = 'blue';
     else alartType = 'default';
 
     const vehicleType = processedItem?.device_tag_info?.category_info?.category;
@@ -813,10 +813,10 @@ const LiveTracking = () => {
       color = 'red'; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
-    } else if (ignitionOn && speedValue <= 1) {
+    } else if (speedValue > 0) {
+      color = 'green'; // Moving - Green Icon
+    } else if (ignitionOn && speedValue === 0) {
       color = 'blue'; // Ignition ON but stationary - Blue Icon
-    } else if (ignitionOn && speedValue > 1) {
-      color = 'green'; // Ignition ON and moving - Green Icon
     } else {
       color = 'default'; // Default icon for all other conditions
     }
@@ -841,10 +841,10 @@ const LiveTracking = () => {
       return "red"; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       return "orange"; // Any Alert Packet except EA - Orange Icon
-    } else if (ignitionOn && speedValue <= 1) {
+    } else if (speedValue > 0) {
+      return "green"; // Moving - Green Icon
+    } else if (ignitionOn && speedValue === 0) {
       return "blue"; // Ignition ON but stationary - Blue Icon
-    } else if (ignitionOn && speedValue > 1) {
-      return "green"; // Ignition ON and moving - Green Icon
     } else {
       return "default"; // Default icon for all other conditions
     }

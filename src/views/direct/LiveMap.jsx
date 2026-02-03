@@ -3109,9 +3109,9 @@ markerColor = "grey";
 markerColor = "red";
 } else if (entry.packet_type !== "NR") {
 markerColor = "orange";
-} else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) > 1) {
+} else if (resolveEntrySpeedValue(entry) > 0) {
 markerColor = "green";
-} else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) <= 1) {
+} else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) === 0) {
 markerColor = "blue";
 }
 }
@@ -3715,8 +3715,8 @@ const timeDifference = Number.isFinite(entryTimeMs)
 ? calculateTimeDifference(entryTimeMs, currentTimeMs)
 : Number.POSITIVE_INFINITY;
 const isStale = timeDifference > 15;
-
 const isPoliceMarker = data.markerCategory === "police";
+
 let color;
 
 if (forceDefault) {
@@ -3729,10 +3729,10 @@ color = "grey"; // Offline device (no packets from device for 15+ minutes) - Gre
 color = "red"; // EA Packet - Red Icon
 } else if (data.packet_type !== "NR") {
 color = "orange"; // Any Alert Packet except EA - Orange Icon
-} else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) <= 1) {
+} else if (resolveEntrySpeedValue(data) > 0) {
+color = "green"; // Moving - Green Icon
+} else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) === 0) {
 color = "blue"; // Ignition ON but stationary - Blue Icon
-} else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) > 1) {
-color = "green"; // Ignition ON and moving - Green Icon
 } else {
 color = "default"; // Default color
 }

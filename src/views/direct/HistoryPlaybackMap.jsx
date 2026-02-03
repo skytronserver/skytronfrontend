@@ -62,6 +62,45 @@ const GPSHistoryMap = ({
 
   const STREET_ZOOM_LEVEL = 18;
 
+  function getStatusInfo(data) {
+    if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
+
+    const isIgnitionOn = String(data.igs) === "1";
+    const speed = Number(data.s || 0);
+    const packetStatus = data.ps;
+
+    if (packetStatus === "EA") {
+      return { colorKey: 'red', colorHex: '#d32f2f', statusText: 'Emergency' };
+    } else if (packetStatus !== "NR" && packetStatus) {
+      return { colorKey: 'orange', colorHex: '#ed6c02', statusText: 'Alert' };
+    } else if (speed > 0) {
+      return { colorKey: 'green', colorHex: '#2e7d32', statusText: 'Moving' };
+    } else if (isIgnitionOn) {
+      return { colorKey: 'blue', colorHex: '#0288d1', statusText: 'Stopped' };
+    } else {
+      return { colorKey: 'grey', colorHex: '#757575', statusText: 'Offline/Ignition Off' };
+    }
+  }
+
+  function playAnimation() {
+    setIsPlaying(true);
+    overlayRef.current.style.display = "none";
+
+    animationIntervalId.current = setInterval(() => {
+      if (sliderValueRef.current < maxSliderValue) {
+        sliderValueRef.current += 1;
+        setSliderValue(sliderValueRef.current);
+        const entry = mapData[sliderValueRef.current];
+        if (entry) {
+          updateEmergencyPointer(entry);
+        }
+      } else {
+        clearInterval(animationIntervalId.current);
+        setIsPlaying(false);
+      }
+    }, (510 - animationSpeed));
+  }
+
   const redM = new Style({
     image: new Icon({
       anchor: [0.5, 1],
@@ -465,36 +504,6 @@ const GPSHistoryMap = ({
     setSliderValue(value);
     sliderValueRef.current = value;
     const entry = mapData[value];
-    if (entry) {
-      updateEmergencyPointer(entry);
-    }
-  };
-
-  const getStatusInfo = (data) => {
-    if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
-
-    const isIgnitionOn = String(data.igs) === "1";
-    const speed = Number(data.s || 0);
-    const packetStatus = data.ps;
-
-    // Logic based on LiveTracking.jsx
-    if (packetStatus === "EA") {
-      return { colorKey: 'red', colorHex: '#d32f2f', statusText: 'Emergency' };
-    } else if (packetStatus !== "NR" && packetStatus) {
-      return { colorKey: 'orange', colorHex: '#ed6c02', statusText: 'Alert' };
-    } else if (speed > 1) {
-      return { colorKey: 'green', colorHex: '#2e7d32', statusText: 'Moving' };
-    } else if (isIgnitionOn) {
-      return { colorKey: 'blue', colorHex: '#0288d1', statusText: 'Stopped' };
-    } else {
-      return { colorKey: 'grey', colorHex: '#757575', statusText: 'Offline/Ignition Off' };
-    }
-  };
-
-  const playAnimation = () => {
-    setIsPlaying(true);
-    // Don't use local variable, use ref
-    overlayRef.current.style.display = "none";
 
     animationIntervalId.current = setInterval(() => {
       if (sliderValueRef.current < maxSliderValue) {

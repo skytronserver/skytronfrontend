@@ -30,12 +30,162 @@ import "./emcall.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 import { fetchSecureIncidentMedia, createMediaUrl } from "../../utils/incidentImageLoader";
 
+const DriverCard = ({ driver }) => {
+  const theme = useTheme();
+  const [photoUrl, setPhotoUrl] = useState(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const photoUrlRef = useRef(null);
+
+  const photoPathRaw = driver?.photo || null;
+  const photoPath = (() => {
+    if (!photoPathRaw) return null;
+    const raw = String(photoPathRaw);
+    try {
+      if (raw.startsWith("http://") || raw.startsWith("https://")) {
+        const u = new URL(raw);
+        return u.pathname.replace(/^\/+/, "");
+      }
+    } catch (e) {
+      // ignore
+    }
+    return raw.replace(/^\/+/, "");
+  })();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (photoUrlRef.current) {
+      URL.revokeObjectURL(photoUrlRef.current);
+      photoUrlRef.current = null;
+    }
+    setPhotoUrl(null);
+
+    const token = sessionStorage.getItem('oAuthToken');
+    if (!photoPath || !token) {
+      setPhotoLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setPhotoLoading(true);
+    (async () => {
+      try {
+        const blob = await fetchSecureIncidentMedia(photoPath, token);
+        if (cancelled) return;
+        const url = createMediaUrl(blob);
+        photoUrlRef.current = url;
+        setPhotoUrl(url);
+      } catch (e) {
+        if (cancelled) return;
+        setPhotoUrl(null);
+      } finally {
+        if (!cancelled) setPhotoLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (photoUrlRef.current) {
+        URL.revokeObjectURL(photoUrlRef.current);
+        photoUrlRef.current = null;
+      }
+    };
+  }, [photoPath]);
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        {photoLoading ? (
+          <Box sx={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            bgcolor: 'grey.200',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '3px solid',
+            borderColor: 'grey.300'
+          }}>
+            <Typography variant="caption">Loading...</Typography>
+          </Box>
+        ) : photoUrl ? (
+          <Box
+            component="img"
+            src={photoUrl}
+            alt="Driver"
+            sx={{
+              width: 100,
+              height: 100,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: '3px solid',
+              borderColor: 'primary.light',
+              boxShadow: theme.shadows[3]
+            }}
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <Box sx={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            bgcolor: 'grey.200',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '3px solid',
+            borderColor: 'grey.300'
+          }}>
+            <Typography variant="caption">No Photo</Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Box>
+        <Typography variant="h6" fontWeight={700} gutterBottom>
+          {driver?.name || "N/A"}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 1 }}>
+          <PhoneInTalkIcon fontSize="small" />
+          <Typography variant="body2">
+            {driver?.phone_no || "N/A"}
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+        <Typography variant="caption" color="text.secondary" display="block" gutterBottom>License Number</Typography>
+        <Typography variant="body1" fontWeight={600} sx={{ letterSpacing: 1 }}>
+          {driver?.license_no || "N/A"}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
 const EMCall = () => {
   const theme = useTheme();
   const { state } = useLocation();
   const { call } = state || {};
   const userRole = call?.type || '';
   const navigate = useNavigate();
+
+  // Distance helper (Haversine formula)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
   // State
   const [assignments, setAssignments] = useState([]);
@@ -69,25 +219,6 @@ const EMCall = () => {
   // Tab State & Auto-play
   const [tabValue, setTabValue] = useState(0);
 
-  const [driverPhotoUrl, setDriverPhotoUrl] = useState(null);
-  const [driverPhotoLoading, setDriverPhotoLoading] = useState(false);
-  const driverPhotoUrlRef = useRef(null);
-
-  const driverPhotoPathRaw = call?.call?.device?.drivers?.[0]?.photo || null;
-  const driverPhotoPath = (() => {
-    if (!driverPhotoPathRaw) return null;
-    const raw = String(driverPhotoPathRaw);
-    try {
-      if (raw.startsWith("http://") || raw.startsWith("https://")) {
-        const u = new URL(raw);
-        return u.pathname.replace(/^\/+/, "");
-      }
-    } catch (e) {
-      // ignore
-    }
-    return raw.replace(/^\/+/, "");
-  })();
-
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
@@ -95,61 +226,57 @@ const EMCall = () => {
   useEffect(() => {
     let cancelled = false;
 
-    if (driverPhotoUrlRef.current) {
-      URL.revokeObjectURL(driverPhotoUrlRef.current);
-      driverPhotoUrlRef.current = null;
-    }
-    setDriverPhotoUrl(null);
-
     const token = sessionStorage.getItem('oAuthToken');
-    if (!driverPhotoPath || !token) {
-      setDriverPhotoLoading(false);
+    if (!token) {
       return () => {
         cancelled = true;
       };
     }
 
-    setDriverPhotoLoading(true);
-    (async () => {
+    const fetchPolicePois = async () => {
       try {
-        const blob = await fetchSecureIncidentMedia(driverPhotoPath, token);
-        if (cancelled) return;
-        const url = createMediaUrl(blob);
-        driverPhotoUrlRef.current = url;
-        setDriverPhotoUrl(url);
-      } catch (e) {
-        if (cancelled) return;
-        setDriverPhotoUrl(null);
-      } finally {
-        if (!cancelled) setDriverPhotoLoading(false);
+        const response = await POIService.getAllPOIs();
+        const data = response?.data || response || [];
+
+        const filtered = Array.isArray(data)
+          ? data.filter((poi) => {
+            const type = poi?.use_type || "";
+            const normalized = String(type).toLowerCase();
+            return (
+              normalized === "policestation" ||
+              normalized === "police_station" ||
+              normalized === "police"
+            );
+          })
+          : [];
+
+        const filteredHospitals = Array.isArray(data)
+          ? data.filter((poi) => {
+            const type = poi?.use_type || "";
+            const normalized = String(type).trim().toLowerCase();
+            return (
+              normalized === "hospital" ||
+              normalized === "hospitals" ||
+              normalized === "hospital_name"
+            );
+          })
+          : [];
+
+        setPolicePois(filtered);
+        setHospitalPois(filteredHospitals);
+      } catch (error) {
+        console.error("Error fetching police POIs for EmCall:", error);
+        setHospitalPois([]);
       }
-    })();
+    };
+
+    fetchPolicePois();
 
     return () => {
       cancelled = true;
-      if (driverPhotoUrlRef.current) {
-        URL.revokeObjectURL(driverPhotoUrlRef.current);
-        driverPhotoUrlRef.current = null;
-      }
     };
-  }, [driverPhotoPath]);
+  }, []);
 
-  // Distance helper (Haversine formula)
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  // Logic for nearest police station and reverse geocoding
   useEffect(() => {
     if (sosLocations.length > 0 && policePois.length > 0) {
       const callPoint = sosLocations[0];
@@ -226,49 +353,6 @@ const EMCall = () => {
     }
   }, [sosLocations, policePois]);
 
-  // Fetch Police Station POIs
-  useEffect(() => {
-    const fetchPolicePois = async () => {
-      try {
-        const response = await POIService.getAllPOIs();
-        const data = response?.data || response || [];
-
-        const filtered = Array.isArray(data)
-          ? data.filter((poi) => {
-            const type = poi?.use_type || "";
-            const normalized = String(type).toLowerCase();
-            return (
-              normalized === "policestation" ||
-              normalized === "police_station" ||
-              normalized === "police"
-            );
-          })
-          : [];
-
-        const filteredHospitals = Array.isArray(data)
-          ? data.filter((poi) => {
-            const type = poi?.use_type || "";
-            const normalized = String(type).trim().toLowerCase();
-            return (
-              normalized === "hospital" ||
-              normalized === "hospitals" ||
-              normalized === "hospital_name"
-            );
-          })
-          : [];
-
-        setPolicePois(filtered);
-        setHospitalPois(filteredHospitals);
-      } catch (error) {
-        console.error("Error fetching police POIs for EmCall:", error);
-        setHospitalPois([]);
-      }
-    };
-
-    fetchPolicePois();
-  }, []);
-
-  // Fetch Police Locations
   const fetchPoliceLocations = async (callLocs = []) => {
     try {
       const params = {
@@ -345,17 +429,6 @@ const EMCall = () => {
     }
   };
 
-  // Poll Police Locations based on SOS Location
-  /*
-  // Poll Police Locations based on SOS Location
-  useEffect(() => {
-    fetchPoliceLocations(sosLocations);
-    const interval = setInterval(() => fetchPoliceLocations(sosLocations), 10000);
-    return () => clearInterval(interval);
-  }, [sosLocations]);
-  */
-
-  // Fetch locations and assignments
   const fetchAndPlotLocations = async () => {
     if (!call?.id) return;
 
@@ -616,8 +689,6 @@ const EMCall = () => {
     }
   };
 
-
-
   const handleModalClose = () => setModalOpen(false);
   const handleRedirectToDashboard = () => navigate('/dashboard');
   const handleSnackbarClose = (e, reason) => {
@@ -842,73 +913,21 @@ const EMCall = () => {
                 )}
 
                 {tabValue === 1 && (
-                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                      {driverPhotoLoading ? (
-                        <Box sx={{
-                          width: 100,
-                          height: 100,
-                          borderRadius: '50%',
-                          bgcolor: 'grey.200',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: '3px solid',
-                          borderColor: 'grey.300'
-                        }}>
-                          <Typography variant="caption">Loading...</Typography>
+                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {(call?.call?.device?.drivers || []).length > 0 ? (
+                      (call?.call?.device?.drivers || []).map((driver, idx) => (
+                        <Box key={driver?.id || `${driver?.license_no || 'driver'}-${idx}`}>
+                          <DriverCard driver={driver} />
+                          {idx < (call?.call?.device?.drivers || []).length - 1 && (
+                            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }} />
+                          )}
                         </Box>
-                      ) : driverPhotoUrl ? (
-                        <Box
-                          component="img"
-                          src={driverPhotoUrl}
-                          alt="Driver"
-                          sx={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            border: '3px solid',
-                            borderColor: 'primary.light',
-                            boxShadow: theme.shadows[3]
-                          }}
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                      ) : (
-                        <Box sx={{
-                          width: 100,
-                          height: 100,
-                          borderRadius: '50%',
-                          bgcolor: 'grey.200',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: '3px solid',
-                          borderColor: 'grey.300'
-                        }}>
-                          <Typography variant="caption">No Photo</Typography>
-                        </Box>
-                      )}
-                    </Box>
-
-                    <Box>
-                      <Typography variant="h6" fontWeight={700} gutterBottom>
-                        {call?.call?.device?.drivers?.[0]?.name || "N/A"}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 1 }}>
-                        <PhoneInTalkIcon fontSize="small" />
-                        <Typography variant="body2">
-                          {call?.call?.device?.drivers?.[0]?.phone_no || "N/A"}
-                        </Typography>
+                      ))
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 6, opacity: 0.6 }}>
+                        <Typography variant="body2" color="text.secondary">No driver data.</Typography>
                       </Box>
-                    </Box>
-
-                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
-                      <Typography variant="caption" color="text.secondary" display="block" gutterBottom>License Number</Typography>
-                      <Typography variant="body1" fontWeight={600} sx={{ letterSpacing: 1 }}>
-                        {call?.call?.device?.drivers?.[0]?.license_no || "N/A"}
-                      </Typography>
-                    </Box>
+                    )}
                   </Box>
                 )}
 

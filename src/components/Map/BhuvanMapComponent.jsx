@@ -657,6 +657,17 @@ const BhuvanMapComponent = ({
             "-"
         );
 
+        const policeDescription = (
+            entryData?.nearest_police?.data?.description ||
+            entryData?.nearest_police?.description ||
+            entryData?.nearest_police_station?.data?.description ||
+            entryData?.nearest_police_station?.description ||
+            entryData?.nearestPolice?.description ||
+            poiFallback?.description ||
+            poiFallback?.address ||
+            "-"
+        );
+
         const policePhone = (
             entryData?.nearestPoliceContact ||
             entryData?.nearest_police?.data?.phone ||
@@ -797,6 +808,10 @@ const BhuvanMapComponent = ({
                   <span class="overlay-value">${safeValue(policeName)}</span>
                 </div>
                 <div class="overlay-row">
+                  <span class="overlay-label">Description</span>
+                  <span class="overlay-value">${safeValue(policeDescription)}</span>
+                </div>
+                <div class="overlay-row">
                   <span class="overlay-label">Phone</span>
                   <span class="overlay-value">${safeValue(policePhone)}</span>
                 </div>
@@ -828,10 +843,10 @@ const BhuvanMapComponent = ({
             color = "red"; // EA Packet - Red Icon
         } else if (data.packet_type !== "NR") {
             color = "orange"; // Any Alert Packet except EA - Orange Icon
-        } else if (String(data.ignition_status) === "1" && data.speed < 1) {
+        } else if (Number(data.speed) > 0) {
+            color = "green"; // Moving - Green Icon
+        } else if (String(data.ignition_status) === "1" && Number(data.speed) === 0) {
             color = "blue"; // Ignition ON but stationary - Blue Icon
-        } else if (String(data.ignition_status) === "1" && data.speed > 1) {
-            color = "green"; // Ignition ON and moving - Green Icon
         } else if (timeDifference > 5) {
             color = "grey"; // Offline device (no packets from device for 5+ minutes) - Grey Icon
         } else {
@@ -2527,8 +2542,13 @@ const BhuvanMapComponent = ({
           padding: 6px 8px;
           box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
           border: 1px solid rgba(0, 0, 0, 0.08);
-          min-width: 160px;
-          max-width: 180px;
+          width: 220px;
+          min-width: 220px;
+          max-width: 220px;
+          height: 220px;
+          max-height: 220px;
+          display: flex;
+          flex-direction: column;
           font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           font-size: 10px;
           color: #1f2933;
@@ -2579,6 +2599,9 @@ const BhuvanMapComponent = ({
           margin-top: 4px;
           display: grid;
           row-gap: 4px;
+          flex: 1 1 auto;
+          overflow-y: auto;
+          min-height: 0;
         }
 
         .overlay-row {

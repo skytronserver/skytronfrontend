@@ -84,10 +84,10 @@ const VehicleSelectionMap = ({
             return iconStyles.red;
         } else if (data.packet_type !== "NR") {
             return iconStyles.orange;
-        } else if (String(data.ignition_status) === "1" && data.speed <= 1) {
-            return iconStyles.blue;
-        } else if (String(data.ignition_status) === "1" && data.speed > 1) {
+        } else if (Number(data.speed) > 0) {
             return iconStyles.green;
+        } else if (String(data.ignition_status) === "1" && Number(data.speed) === 0) {
+            return iconStyles.blue;
         } else if (timeDifference > 5) {
             return iconStyles.grey;
         } else {
