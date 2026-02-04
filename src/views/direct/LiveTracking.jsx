@@ -30,6 +30,7 @@ import {
 
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
+import { getUseNewGeocodingApi, setUseNewGeocodingApi } from "../../services/HomePage";
 import MapComponent from "./LiveMap";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
@@ -68,6 +69,7 @@ const LiveTracking = () => {
   const [policeLocations, setPoliceLocations] = useState([]);
   const [incidentData, setIncidentData] = useState([]);
   const [useNmrLocation, setUseNmrLocation] = useState(false);
+  const [useNewGeocodingApi, setUseNewGeocodingApiState] = useState(getUseNewGeocodingApi());
   const [nmrArea, setNmrArea] = useState(null);
   const [reverseGeocodeCache, setReverseGeocodeCache] = useState({});
   const fullDataRef = useRef([]); // processed items we've appended so far
@@ -447,8 +449,7 @@ const LiveTracking = () => {
 
   const reverseGeocode = async (lat, lon) => {
     try {
-      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`;
-      const response = await axios.get(url);
+      const response = await HomePageService.getReverseGeocode(lat, lon);
       const payload = response?.data;
 
       let city = "";
@@ -1190,6 +1191,21 @@ const LiveTracking = () => {
                 <MenuItem value="route">Route Information</MenuItem>
               </Select>
             </FormControl>
+            <FormControlLabel
+              sx={{ ml: 2 }}
+              control={
+                <Switch
+                  color="primary"
+                  checked={useNewGeocodingApi}
+                  onChange={(event) => {
+                    const enabled = event.target.checked;
+                    setUseNewGeocodingApi(enabled);
+                    setUseNewGeocodingApiState(enabled);
+                  }}
+                />
+              }
+              label="New Geocoding API"
+            />
             <FormControlLabel
               sx={{ ml: 2 }}
               control={

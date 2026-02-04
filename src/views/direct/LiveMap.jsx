@@ -60,6 +60,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import POIService from "../../services/POIService";
 import HomePageService from "../../services/HomePage";
+import { getUseNewGeocodingApi, setUseNewGeocodingApi } from "../../services/HomePage";
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
@@ -1085,6 +1086,7 @@ const [showVehicles, setShowVehicles] = useState(true);
 const [showPois, setShowPois] = useState(false);
 const [showIncidents, setShowIncidents] = useState(false);
 const [geoSearchLoading, setGeoSearchLoading] = useState(false);
+const [useNewGeocodingApi, setUseNewGeocodingApiState] = useState(getUseNewGeocodingApi());
 const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
 const theme = useTheme();
@@ -4796,9 +4798,7 @@ if (!geoSearchQuery.trim()) return;
 try {
 setGeoSearchLoading(true);
 // const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
-const url = `https://api.gromed.in/api/geocode/?q=${encodeURIComponent(geoSearchQuery)}`;
-console.log('Fetching geocode via Axios (Proxy):', url);
-const response = await axios.get(url);
+const response = await HomePageService.getGeocode(geoSearchQuery, 5);
 
 if (response.status === 200) {
 const data = response.data;
@@ -5170,7 +5170,7 @@ divider={index !== geoSearchResults.length - 1}
 </ListItemIcon>
 <ListItemText
 primary={result.poi || result.formattedAddress || result.locality}
-secondary={[result.district, result.state].filter(Boolean).join(', ')}
+secondary={[result.district, result.state].filter(Boolean).join(', ') || result.display_name}
 primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
 secondaryTypographyProps={{ variant: 'caption' }}
 />
@@ -5264,6 +5264,21 @@ border: mapType === type.id ? `1px solid ${theme.palette.primary.main}` : '1px s
 
 {/* Layer Toggles */}
 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+<FormControlLabel
+control={
+<Switch
+size="small"
+checked={useNewGeocodingApi}
+onChange={(e) => {
+const next = e.target.checked;
+setUseNewGeocodingApi(next);
+setUseNewGeocodingApiState(next);
+}}
+/>
+}
+label={<Typography variant="caption" fontWeight={500}>New Geocoding API</Typography>}
+sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
+/>
 <FormControlLabel
 control={
 <Switch
