@@ -180,16 +180,25 @@ const RouteFixing = () => {
       const india3Layer = new TileLayer({
         source: createBhuvanSource("india3"),
         visible: true,
+        zIndex: 1,
       });
 
       const adminGroupLayer = new TileLayer({
         source: createBhuvanSource("basemap:admin_group"),
         visible: true,
+        zIndex: 4,
       });
 
-      const mmiLayer = new TileLayer({
-        source: createBhuvanSource("mmi:mmi_india"),
+      const roadsLayer = new TileLayer({
+        source: new XYZ({
+          url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+          attributions: '© OpenStreetMap contributors',
+          maxZoom: 20,
+          projection: "EPSG:3857"
+        }),
         visible: true,
+        zIndex: 3,
+        minZoom: 11,
       });
 
       // Create Satellite Layer
@@ -203,7 +212,7 @@ const RouteFixing = () => {
       });
 
       // Store refs
-      normalLayersRef.current = [india3Layer, adminGroupLayer, mmiLayer];
+      normalLayersRef.current = [india3Layer, adminGroupLayer, roadsLayer];
       satelliteLayerRef.current = satelliteLayer;
 
       const initialMap = new Map({
@@ -211,7 +220,7 @@ const RouteFixing = () => {
         layers: [
           india3Layer,
           adminGroupLayer,
-          mmiLayer,
+          roadsLayer,
           satelliteLayer
         ],
         view: new View({

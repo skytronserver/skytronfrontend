@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Map, View } from 'ol';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
-import { OSM, Vector as VectorSource, TileWMS } from 'ol/source';
+import { OSM, Vector as VectorSource, TileWMS, XYZ } from 'ol/source';
 import { fromLonLat } from 'ol/proj';
 import { Icon, Style } from 'ol/style';
 import Feature from 'ol/Feature';
@@ -60,25 +60,18 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
             serverType: 'geoserver',
             projection: 'EPSG:4326',
           }),
+          zIndex: 4,
         }),
-        // Roads layer (mmi_india)
+        // Roads layer
         new TileLayer({
-          source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-            params: {
-              'LAYERS': 'mmi:mmi_india',
-              'TILED': true,
-              'VERSION': '1.1.1',
-              'FORMAT': 'image/png',
-              'TRANSPARENT': 'true',
-              'SRS': 'EPSG:4326',
-              'WIDTH': 256,
-              'HEIGHT': 256,
-              'pixelRatio': 1,
-            },
-            serverType: 'geoserver',
-            projection: 'EPSG:4326',
+          source: new XYZ({
+            url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+            attributions: '© OpenStreetMap contributors',
+            maxZoom: 20,
+            projection: "EPSG:3857"
           }),
+          zIndex: 3,
+          minZoom: 11,
         }),
         vectorLayer,
       ],
@@ -132,9 +125,9 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
 
   return (
     <div ref={mapElement} style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <img 
-        src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} 
-        style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} 
+      <img
+        src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+        style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }}
       />
     </div>
   );

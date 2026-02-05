@@ -873,12 +873,18 @@ const BhuvanMapComponent = ({
 
         const adminGroupLayer = new TileLayer({
             source: createBhuvanSource("basemap%3Aadmin_group"),
-            zIndex: 2,
+            zIndex: 4,
         });
 
         const roadsLayer = new TileLayer({
-            source: createBhuvanSource("mmi:mmi_india"),
+            source: new XYZ({
+                url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                attributions: '&copy; OpenStreetMap contributors',
+                maxZoom: 20,
+                projection: "EPSG:3857"
+            }),
             zIndex: 3,
+            minZoom: 11,
         });
 
         const initialMap = new Map({
@@ -1016,16 +1022,18 @@ const BhuvanMapComponent = ({
                     attachTileSourceDebug(src, "bhuvan:admin_group");
                     return src;
                 })(),
-                zIndex: 1,
+                zIndex: 4,
             });
 
             const bhuvanRoadsLayer = new TileLayer({
-                source: (() => {
-                    const src = createBhuvanSource("mmi:mmi_india");
-                    attachTileSourceDebug(src, "bhuvan:mmi_india");
-                    return src;
-                })(),
+                source: new XYZ({
+                    url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                    attributions: '&copy; OpenStreetMap contributors',
+                    maxZoom: 20,
+                    projection: "EPSG:3857"
+                }),
                 zIndex: 2,
+                minZoom: 11,
             });
 
             const soiStatesLayer = new TileLayer({

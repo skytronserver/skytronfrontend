@@ -47,7 +47,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
-import { OSM, TileWMS } from "ol/source";
+import { OSM, TileWMS, XYZ } from "ol/source";
 import { fromLonLat, toLonLat } from "ol/proj";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -152,8 +152,8 @@ const isSameDay = (date1, date2) => {
   const d1 = new Date(date1);
   const d2 = new Date(date2);
   return d1.getFullYear() === d2.getFullYear() &&
-         d1.getMonth() === d2.getMonth() &&
-         d1.getDate() === d2.getDate();
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
 };
 
 const TripPlanning = () => {
@@ -257,26 +257,19 @@ const TripPlanning = () => {
               },
               serverType: 'geoserver',
               projection: 'EPSG:4326',
-            })
+            }),
+            zIndex: 4,
           }),
-          // Roads layer (mmi_india)
+          // Roads layer
           new TileLayer({
-            source: new TileWMS({
-              url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
-              params: {
-                'LAYERS': 'mmi:mmi_india',
-                'TILED': true,
-                'VERSION': '1.1.1',
-                'FORMAT': 'image/png',
-                'TRANSPARENT': 'true',
-                'SRS': 'EPSG:4326',
-                'WIDTH': 256,
-                'HEIGHT': 256,
-                'pixelRatio': 1,
-              },
-              serverType: 'geoserver',
-              projection: 'EPSG:4326',
-            })
+            source: new XYZ({
+              url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+              attributions: '© OpenStreetMap contributors',
+              maxZoom: 20,
+              projection: "EPSG:3857"
+            }),
+            zIndex: 3,
+            minZoom: 11,
           }),
         ],
         view: new View({
@@ -302,7 +295,7 @@ const TripPlanning = () => {
       });
       initialMap.addOverlay(overlay);
     }
-    
+
     // Add click event for adding new route points only if vehicle is selected
     if (deviceId !== "") {
       map.current.on("click", (e) => {
@@ -340,7 +333,7 @@ const TripPlanning = () => {
   const handleRouteSelect = (event) => {
     try {
       const [routeId, routeRout] = event.target.value.split("|");
-      
+
       const coordinates = routeRout
         .split("],")
         .map(coord => {
@@ -365,10 +358,10 @@ const TripPlanning = () => {
         throw new Error('Not enough valid coordinates to create a route');
       }
 
-      setSelectedRoute({ 
-        routeId, 
+      setSelectedRoute({
+        routeId,
         coordinates,
-        routeRout 
+        routeRout
       });
       loadRoute(coordinates, routeId);
     } catch (error) {
@@ -419,7 +412,7 @@ const TripPlanning = () => {
 
       // Create and add the route line
       const coordinates = route.map(coords => fromLonLat(coords));
-      
+
       if (coordinates.some(coord => !coord || coord.length < 2)) {
         throw new Error('Invalid coordinates in route');
       }
@@ -427,14 +420,14 @@ const TripPlanning = () => {
       const line = new Feature({
         geometry: new LineString(coordinates),
       });
-      
+
       line.setStyle(new Style({
         stroke: new Stroke({
           color: '#0066ff',
           width: 3
         })
       }));
-      
+
       vectorSourceRef.current.addFeature(line);
 
       // Get the extent and verify it's valid before fitting
@@ -633,13 +626,13 @@ const TripPlanning = () => {
     setTripForm(prev => {
       const daysOfWeek = [...prev.recurringPattern.daysOfWeek];
       const index = daysOfWeek.indexOf(dayValue);
-      
+
       if (index === -1) {
         daysOfWeek.push(dayValue);
       } else {
         daysOfWeek.splice(index, 1);
       }
-      
+
       return {
         ...prev,
         recurringPattern: {
@@ -662,7 +655,7 @@ const TripPlanning = () => {
         });
         return;
       }
-      
+
       if (!tripForm.routeId) {
         setAlert({
           open: true,
@@ -671,7 +664,7 @@ const TripPlanning = () => {
         });
         return;
       }
-      
+
       if (tripForm.isRecurring && tripForm.recurringPattern.daysOfWeek.length === 0) {
         setAlert({
           open: true,
@@ -680,11 +673,11 @@ const TripPlanning = () => {
         });
         return;
       }
-      
+
       // Combine date and time
       const startDateTime = combineDateAndTime(tripForm.startDate, tripForm.startTime);
       const endDateTime = combineDateAndTime(tripForm.startDate, tripForm.endTime);
-      
+
       if (!startDateTime || !endDateTime) {
         setAlert({
           open: true,
@@ -693,7 +686,7 @@ const TripPlanning = () => {
         });
         return;
       }
-      
+
       // Check if end time is after start time
       if (endDateTime <= startDateTime) {
         setAlert({
@@ -703,10 +696,10 @@ const TripPlanning = () => {
         });
         return;
       }
-      
+
       // Calculate duration in minutes
       const duration = Math.round((endDateTime - startDateTime) / (1000 * 60));
-      
+
       // Prepare trip data
       const tripData = {
         title: tripForm.title,
@@ -725,7 +718,7 @@ const TripPlanning = () => {
           customTimes: tripForm.recurringPattern.customTimes
         } : null
       };
-      
+
       // Save trip
       if (editingTrip) {
         await TripService.updateTrip(editingTrip.id, tripData);
@@ -742,7 +735,7 @@ const TripPlanning = () => {
           type: "success"
         });
       }
-      
+
       // Refresh trips
       fetchTrips();
       closeTripDialog();
@@ -781,24 +774,24 @@ const TripPlanning = () => {
     try {
       await TripService.updateTripStatus(trip.id, TRIP_STATUS.IN_PROGRESS);
       setActiveTrip(trip);
-      
+
       // Calculate ETA based on remaining time
       const now = new Date();
       const endTime = new Date(trip.endDate);
       const remainingTime = Math.max(0, endTime - now);
       const remainingMinutes = Math.round(remainingTime / (1000 * 60));
-      
+
       if (remainingMinutes > 0) {
         setEta(remainingMinutes);
-        
+
         // Start timer to update ETA
         if (timerIntervalRef.current) {
           clearInterval(timerIntervalRef.current);
         }
-        
+
         // Set up notification for when trip is complete
         const timeUntilEnd = endTime - now;
-        
+
         if (timeUntilEnd > 0) {
           setTimeout(() => {
             // Show notification when trip time is up
@@ -807,20 +800,20 @@ const TripPlanning = () => {
               message: `Trip "${trip.title}" time has elapsed.`,
               type: "warning"
             });
-            
+
             // Auto-complete the trip
             completeTrip(trip.id);
           }, timeUntilEnd);
         }
-        
+
         // Update ETA every minute
         timerIntervalRef.current = setInterval(() => {
           const currentTime = new Date();
           const newRemainingTime = Math.max(0, endTime - currentTime);
           const newRemainingMinutes = Math.round(newRemainingTime / (1000 * 60));
-          
+
           setEta(newRemainingMinutes);
-          
+
           // If time is up, clear the interval
           if (newRemainingTime <= 0) {
             clearInterval(timerIntervalRef.current);
@@ -830,13 +823,13 @@ const TripPlanning = () => {
         // If no time remaining, complete the trip immediately
         completeTrip(trip.id);
       }
-      
+
       setAlert({
         open: true,
         message: "Trip started",
         type: "success"
       });
-      
+
       fetchTrips();
     } catch (error) {
       console.error("Error starting trip:", error);
@@ -854,17 +847,17 @@ const TripPlanning = () => {
       await TripService.updateTripStatus(tripId, TRIP_STATUS.COMPLETED);
       setActiveTrip(null);
       setEta(null);
-      
+
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
-      
+
       setAlert({
         open: true,
         message: "Trip completed",
         type: "success"
       });
-      
+
       fetchTrips();
     } catch (error) {
       console.error("Error completing trip:", error);
@@ -882,17 +875,17 @@ const TripPlanning = () => {
       await TripService.updateTripStatus(tripId, TRIP_STATUS.CANCELLED);
       setActiveTrip(null);
       setEta(null);
-      
+
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
-      
+
       setAlert({
         open: true,
         message: "Trip cancelled",
         type: "success"
       });
-      
+
       fetchTrips();
     } catch (error) {
       console.error("Error cancelling trip:", error);
@@ -909,14 +902,14 @@ const TripPlanning = () => {
     if (minutes < 60) {
       return `${minutes} minutes`;
     }
-    
+
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    
+
     if (remainingMinutes === 0) {
       return `${hours} hour${hours > 1 ? 's' : ''}`;
     }
-    
+
     return `${hours} hour${hours > 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''}`;
   };
 
@@ -940,21 +933,21 @@ const TripPlanning = () => {
   const handleTripSelect = (trip) => {
     setSelectedTripForMap(trip);
     setShowMap(true);
-    
+
     // Zoom in on the route after a short delay to ensure the map is rendered
     setTimeout(() => {
       if (map.current && trip.routeCoordinates && trip.routeCoordinates.length > 0) {
         // Convert coordinates to the map projection
         const coordinates = trip.routeCoordinates.map(coord => fromLonLat(coord));
-        
+
         // Create a line feature to calculate the extent
         const line = new Feature({
           geometry: new LineString(coordinates)
         });
-        
+
         // Get the extent of the line
         const extent = line.getGeometry().getExtent();
-        
+
         // Fit the view to the extent with padding
         map.current.getView().fit(extent, {
           padding: [50, 50, 50, 50],
@@ -988,21 +981,21 @@ const TripPlanning = () => {
     if (trip) {
       setSelectedTripForMap(trip);
       setShowMap(true);
-      
+
       // Zoom in on the route after a short delay to ensure the map is rendered
       setTimeout(() => {
         if (map.current && trip.routeCoordinates && trip.routeCoordinates.length > 0) {
           // Convert coordinates to the map projection
           const coordinates = trip.routeCoordinates.map(coord => fromLonLat(coord));
-          
+
           // Create a line feature to calculate the extent
           const line = new Feature({
             geometry: new LineString(coordinates)
           });
-          
+
           // Get the extent of the line
           const extent = line.getGeometry().getExtent();
-          
+
           // Fit the view to the extent with padding
           map.current.getView().fit(extent, {
             padding: [50, 50, 50, 50],
@@ -1104,9 +1097,8 @@ const TripPlanning = () => {
               sx={{
                 p: 2,
                 mb: 2,
-                borderLeft: `4px solid ${
-                  trip.id === activeTrip?.id ? '#ff9800' : '#0066ff'
-                }`,
+                borderLeft: `4px solid ${trip.id === activeTrip?.id ? '#ff9800' : '#0066ff'
+                  }`,
               }}
             >
               <Grid container spacing={2}>
@@ -1115,7 +1107,7 @@ const TripPlanning = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                     <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
                     <Typography variant="body2">
-                      {formatDateForDisplay(trip.startDate)} {formatTimeForDisplay(trip.startDate)} - 
+                      {formatDateForDisplay(trip.startDate)} {formatTimeForDisplay(trip.startDate)} -
                       {formatTimeForDisplay(trip.endDate)}
                     </Typography>
                   </Box>
@@ -1129,7 +1121,7 @@ const TripPlanning = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                       <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
                       <Typography variant="body2">
-                        Recurring: {formatDateForDisplay(trip.recurringPattern.startDate)} - 
+                        Recurring: {formatDateForDisplay(trip.recurringPattern.startDate)} -
                         {formatDateForDisplay(trip.recurringPattern.endDate)}
                       </Typography>
                     </Box>
@@ -1220,17 +1212,17 @@ const TripPlanning = () => {
       date.setDate(date.getDate() + i);
       return date;
     });
-    
+
     return (
       <Box sx={{ mt: 2 }}>
         <Grid container spacing={2}>
           {next7Days.map((day) => {
             const dayTrips = trips.filter(trip => {
               const tripDate = new Date(trip.startDate);
-              return isSameDay(tripDate, day) && 
-                     (trip.status === TRIP_STATUS.SCHEDULED || trip.status === TRIP_STATUS.IN_PROGRESS);
+              return isSameDay(tripDate, day) &&
+                (trip.status === TRIP_STATUS.SCHEDULED || trip.status === TRIP_STATUS.IN_PROGRESS);
             });
-            
+
             return (
               <Grid item xs={12} sm={6} md={3} key={day.toISOString()}>
                 <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
@@ -1258,7 +1250,7 @@ const TripPlanning = () => {
                           {trip.title}
                         </Typography>
                         <Typography variant="caption" display="block">
-                          {formatTimeForDisplay(new Date(trip.startDate))} - 
+                          {formatTimeForDisplay(new Date(trip.startDate))} -
                           {formatTimeForDisplay(new Date(trip.endDate))}
                         </Typography>
                       </Box>
@@ -1419,13 +1411,13 @@ const TripPlanning = () => {
         </Typography>
       </Box>
 
-      <AutoHideAlert 
+      <AutoHideAlert
         open={alert.open}
-        onClose={() => setAlert({...alert, open: false})}
+        onClose={() => setAlert({ ...alert, open: false })}
         message={alert.message}
         type={alert.type}
       />
-      
+
       <Paper elevation={0} sx={{ p: 3, mb: 3, backgroundColor: 'background.default' }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3} alignItems="center">
@@ -1494,8 +1486,8 @@ const TripPlanning = () => {
                   Select a route
                 </MenuItem>
                 {routeData.map((route) => (
-                  <MenuItem 
-                    value={`${route.id}|${route.route}`} 
+                  <MenuItem
+                    value={`${route.id}|${route.route}`}
                     key={route.id}
                   >
                     Route #{route.id}
@@ -1505,9 +1497,9 @@ const TripPlanning = () => {
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box>
-                  <Button 
-                    onClick={addRoute} 
-                    variant="contained" 
+                  <Button
+                    onClick={addRoute}
+                    variant="contained"
                     color="primary"
                     startIcon={<AddIcon />}
                     sx={{ mr: 1 }}
@@ -1524,10 +1516,10 @@ const TripPlanning = () => {
                     Delete Route
                   </Button>
                 </Box>
-                
-                <Button 
-                  onClick={() => openTripForm()} 
-                  variant="contained" 
+
+                <Button
+                  onClick={() => openTripForm()}
+                  variant="contained"
                   color="primary"
                   disabled={!selectedRoute}
                   startIcon={<AddIcon />}
@@ -1535,9 +1527,9 @@ const TripPlanning = () => {
                   Create Trip
                 </Button>
               </Box>
-              
-              <Tabs 
-                value={activeTab} 
+
+              <Tabs
+                value={activeTab}
                 onChange={handleTabChange}
                 sx={{
                   '& .MuiTab-root': {
@@ -1547,14 +1539,14 @@ const TripPlanning = () => {
                   }
                 }}
               >
-                <Tab 
-                  icon={<ListAltIcon />} 
-                  label="List View" 
+                <Tab
+                  icon={<ListAltIcon />}
+                  label="List View"
                   iconPosition="start"
                 />
-                <Tab 
-                  icon={<CalendarMonthIcon />} 
-                  label="Calendar View" 
+                <Tab
+                  icon={<CalendarMonthIcon />}
+                  label="Calendar View"
                   iconPosition="start"
                 />
               </Tabs>
@@ -1574,8 +1566,8 @@ const TripPlanning = () => {
                 Route #{selectedTripForMap.routeId}
               </Typography>
             </Box>
-            <Button 
-              variant="outlined" 
+            <Button
+              variant="outlined"
               onClick={() => toggleMapView()}
               startIcon={<CloseIcon />}
             >
@@ -1594,25 +1586,25 @@ const TripPlanning = () => {
           />
         </Paper>
       ) : (
-        <Box ref={mapRef} id="map" sx={{ 
-          width: "100%", 
-          height: "500px", 
+        <Box ref={mapRef} id="map" sx={{
+          width: "100%",
+          height: "500px",
           mb: 3,
           position: 'relative',
           borderRadius: 1,
           overflow: 'hidden',
           boxShadow: 1
         }}>
-          <img 
-            src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} 
-            style={{ 
-              position: 'absolute', 
-              bottom: 16, 
-              right: 16, 
-              width: '200px', 
+          <img
+            src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+            style={{
+              position: 'absolute',
+              bottom: 16,
+              right: 16,
+              width: '200px',
               zIndex: 1000,
               filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
-            }} 
+            }}
           />
         </Box>
       )}

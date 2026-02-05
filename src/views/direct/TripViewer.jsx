@@ -157,16 +157,25 @@ const TripViewer = () => {
       const india3Layer = new TileLayer({
         source: createBhuvanSource("india3"),
         visible: true,
+        zIndex: 1,
       });
 
       const adminGroupLayer = new TileLayer({
         source: createBhuvanSource("basemap:admin_group"),
         visible: true,
+        zIndex: 4,
       });
 
-      const mmiLayer = new TileLayer({
-        source: createBhuvanSource("mmi:mmi_india"),
+      const roadsLayer = new TileLayer({
+        source: new XYZ({
+          url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+          attributions: '© OpenStreetMap contributors',
+          maxZoom: 20,
+          projection: "EPSG:3857"
+        }),
         visible: true,
+        zIndex: 3,
+        minZoom: 11,
       });
 
       // Create Satellite Layer
@@ -186,12 +195,12 @@ const TripViewer = () => {
       });
 
       // Store refs
-      normalLayersRef.current = [india3Layer, adminGroupLayer, mmiLayer];
+      normalLayersRef.current = [india3Layer, adminGroupLayer, roadsLayer];
       satelliteLayerRef.current = satelliteLayer;
 
       initialMap.addLayer(india3Layer);
       initialMap.addLayer(adminGroupLayer);
-      initialMap.addLayer(mmiLayer);
+      initialMap.addLayer(roadsLayer);
       initialMap.addLayer(satelliteLayer);
       initialMap.addLayer(vectorLayer);
 
@@ -238,6 +247,18 @@ const TripViewer = () => {
     } catch (error) {
       return value;
     }
+  };
+
+  const formatDuration = (minutes) => {
+    const mins = parseFloat(minutes);
+    if (isNaN(mins) || mins === null || mins === undefined) {
+      return '0 min';
+    }
+    if (mins < 60) {
+      return `${formatNumber(mins)} min`;
+    }
+    const hours = mins / 60;
+    return `${formatNumber(hours)} hr`;
   };
 
   const normalizePoint = (point = {}) => {
@@ -694,7 +715,7 @@ const TripViewer = () => {
                     {t('tripViewer.summary.totalDuration')}
                   </Typography>
                   <Typography variant="h4" color="primary">
-                    {tripSummary.totalDuration} min
+                    {formatDuration(tripSummary.totalDuration)}
                   </Typography>
                 </Box>
               </Grid>
@@ -768,7 +789,7 @@ const TripViewer = () => {
                           <TableCell>{trip.stats.startTime}</TableCell>
                           <TableCell>{trip.stats.endTime}</TableCell>
                           <TableCell>{trip.stats.distance} km</TableCell>
-                          <TableCell>{trip.stats.duration} min</TableCell>
+                          <TableCell>{formatDuration(trip.stats.duration)}</TableCell>
                           <TableCell>{trip.stats.averageSpeed} km/h</TableCell>
                           <TableCell>{trip.stats.points}</TableCell>
                         </TableRow>
@@ -807,7 +828,7 @@ const TripViewer = () => {
                         {t('tripViewer.stats.duration')}
                       </Typography>
                       <Typography variant="h4" color="primary">
-                        {selectedTrip.stats.duration} min
+                        {formatDuration(selectedTrip.stats.duration)}
                       </Typography>
                     </Box>
                   </Grid>

@@ -8,7 +8,7 @@ import html2canvas from 'html2canvas';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
-import { TileWMS } from "ol/source";
+import { TileWMS, XYZ } from "ol/source";
 import { fromLonLat } from "ol/proj";
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
@@ -274,12 +274,21 @@ const GPSHistoryMap = ({
         layers: [
           new TileLayer({
             source: createBhuvanSource("india3"),
+            zIndex: 1,
           }),
           new TileLayer({
             source: createBhuvanSource("basemap:admin_group"),
+            zIndex: 4,
           }),
           new TileLayer({
-            source: createBhuvanSource("mmi:mmi_india"),
+            source: new XYZ({
+              url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+              attributions: '© OpenStreetMap contributors',
+              maxZoom: 20,
+              projection: "EPSG:3857"
+            }),
+            zIndex: 3,
+            minZoom: 11,
           }),
         ],
         view: new View({
@@ -311,6 +320,7 @@ const GPSHistoryMap = ({
       const markerSource = new VectorSource();
       const markerLayer = new VectorLayer({
         source: markerSource,
+        zIndex: 100, // Ensure markers are above tile layers
       });
 
       initialMap.addLayer(markerLayer);
@@ -381,12 +391,6 @@ const GPSHistoryMap = ({
       allFeaturesRef.current.push(point); // Store for later
     });
 
-    // Adjust the map to fit all markers after adding them
-    map.getView().fit(markerRef.current.getExtent(), {
-      padding: [50, 50, 50, 50],
-      duration: 1000,
-    });
-
     attachClickToPoints();
     setIsPlaying(false);
     setDownloadStatus("Play");
@@ -398,6 +402,16 @@ const GPSHistoryMap = ({
       setCurrentData(data[0]);
       // Initialize the car marker at start position
       updateEmergencyPointer(data[0]);
+
+      // Adjust the map to zoom level 15 (like the image) centered on the first point
+      // Must be called AFTER updateEmergencyPointer because updateEmergencyPointer calls setCenter, which would cancel the animation
+      const firstStartPoint = data[0];
+      const centerStart = fromLonLat([parseFloat(firstStartPoint.lon), parseFloat(firstStartPoint.lat)]);
+      map.getView().animate({
+        center: centerStart,
+        zoom: 15,
+        duration: 1000,
+      });
     }
   };
 

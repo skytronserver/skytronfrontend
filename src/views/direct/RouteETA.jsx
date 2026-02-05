@@ -905,7 +905,8 @@ const RouteETA = () => {
           projection: 'EPSG:4326',
           crossOrigin: process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined,
         }),
-        visible: true
+        visible: true,
+        zIndex: 1,
       });
 
       const adminGroupLayer = new TileLayer({
@@ -925,27 +926,20 @@ const RouteETA = () => {
           projection: 'EPSG:4326',
           crossOrigin: process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined,
         }),
-        visible: true
+        visible: true,
+        zIndex: 4,
       });
 
       const roadsLayer = new TileLayer({
-        source: new TileWMS({
-          url: bhuvanUrl,
-          params: {
-            'LAYERS': 'mmi:mmi_india',
-            'TILED': true,
-            'VERSION': '1.1.1',
-            'FORMAT': 'image/png',
-            'TRANSPARENT': 'true',
-            'SRS': 'EPSG:4326',
-            'WIDTH': 256,
-            'HEIGHT': 256,
-          },
-          serverType: 'geoserver',
-          projection: 'EPSG:4326',
-          crossOrigin: process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined,
+        source: new XYZ({
+          url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+          attributions: '© OpenStreetMap contributors',
+          maxZoom: 20,
+          projection: "EPSG:3857"
         }),
-        visible: true
+        visible: true,
+        zIndex: 3,
+        minZoom: 11,
       });
 
       // --- Satellite Layer (ArcGIS) ---
