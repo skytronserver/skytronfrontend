@@ -1,5 +1,106 @@
 {
   "common": {
+    
+"mapPolicyHeading": "মেপ ডাটা আৰু আপডেট নীতি",
+
+"purpose": "উদ্দেশ্য",
+"purposeLine1": "এই মেপ ডাটা আৰু আপডেট নীতিয়ে SkyTron AIS-140 যানবাহন স্থান অনুসৰণ প্লেটফৰ্মত ব্যৱহৃত GIS ডাটাৰ শাসন, ব্যৱহাৰ আৰু আপডেট ব্যৱস্থা নিৰ্ধাৰণ কৰে।",
+"purposeLine2": "এই নীতিৰ উদ্দেশ্য হৈছে সকলো GIS ডাটা সঠিক, হালনাগাদ আৰু আইনগতভাৱে সঠিক ৰখা।",
+
+"mapUsage": "মেপ ব্যৱহাৰ",
+"mapUsageHeading": "SkyTron ত মেপ সেৱাসমূহ কেৱল তলত দিয়া কামসমূহৰ বাবে ব্যৱহাৰ কৰা হয়:",
+"mapUsageHeading2": "মেপ ডাটা কেৱল প্লেটফৰ্মৰ ভিতৰত ব্যৱহাৰ কৰা হয়।",
+
+"mapUsagePoint1": "ৰিয়েল-টাইম আৰু ঐতিহাসিক যানবাহন অনুসৰণ",
+"mapUsagePoint2": "ফ্লিট আৰু অপাৰেচন নিৰীক্ষণ",
+"mapUsagePoint3": "ঘটনা আৰু জৰুৰী সঁহাৰি",
+"mapUsagePoint4": "জিঅ'ফেন্সিং, সতৰ্কবাণী আৰু স্থানিক বিশ্লেষণ",
+"mapUsagePoint5": "AIS-140 অধীন নিয়ন্ত্ৰণমূলক ৰিপোৰ্টিং",
+
+"mapDataUpdates": "মেপ ডাটা আপডেট",
+"mapDataUpdatesHeading1": "SkyTron ত মেপ ডাটা আপডেট এই নীতি অনুসৰি কৰা হয়:",
+"mapDataUpdatesPoint1": "Survey of India ডাটাসেট নতুন সংস্কৰণ অনুসৰি আপডেট কৰা হয়",
+"mapDataUpdatesPoint2": "ৰাজ্যভিত্তিক GIS লেয়াৰ সময়ে সময়ে আপডেট কৰা হয়",
+"mapDataUpdatesPoint3": "Bhuvan বেছ মেপ আৰু চেটেলাইট ছবি NRSC দ্বাৰা ৰক্ষণাবেক্ষণ কৰা হয়",
+"mapDataUpdatesHeading2": "মেপ ডাটা কমেও প্ৰতি ছয় মাহত এবাৰ পৰ্যালোচনা কৰা হয়",
+"mapDataUpdatesHeading3": "সকলো আপডেট লগ আৰু সংস্কৰণ নিয়ন্ত্ৰিত হয়",
+
+"complianceGovernance": "অনুসৰণ আৰু শাসন",
+"complianceGovernanceHeading1": "তলৰ অনুসৰণ নীতিসমূহ প্ৰযোজ্য:",
+"complianceGovernancePoint1": "Survey of India নিয়ম অনুসৰণ কৰা হয়",
+"complianceGovernancePoint2": "কোনো বিদেশী বা অননুমোদিত সেৱা ব্যৱহাৰ কৰা নহয়",
+"complianceGovernancePoint3": "GIS ব্যৱস্থা এক্সেছ নিয়ন্ত্ৰণ আৰু অডিটৰ অধীন",
+
+"policyReview": "নীতি পৰ্যালোচনা",
+"policyReviewHeading": "এই নীতি সময়ে সময়ে পৰ্যালোচনা কৰা হয়:",
+"policyReviewPoint1": "AIS-140 পৰিবৰ্তন",
+"policyReviewPoint2": "চৰকাৰী GIS নীতি আপডেট",
+"policyReviewPoint3": "SkyTron উন্নতি",
+
+"helpHeading": "সহায় আৰু ডাটা অনুসন্ধান গাইড",
+"helpIntro": "এই এপ্লিকেচনটো বৃহৎ পৰিমাণৰ ডাটা অনুসন্ধান কৰিবলৈ সহায় কৰে।",
+
+"searchingByTimePeriods": "সময়সীমা অনুসৰি অনুসন্ধান",
+"searchingByTimePeriodsDescription": "অধিকাংশ পৃষ্ঠাই তাৰিখ আৰু সময় ফিল্টাৰ দিয়ে:",
+
+"searchingByTimePeriodsPoint1": "এটা তাৰিখ বাছনি কৰা (আজিৰ দিন, কালিৰ দিন)",
+"searchingByTimePeriodsPoint2": "তাৰিখৰ সীমা বাছনি কৰা",
+"searchingByTimePeriodsPoint3": "নিৰ্দিষ্ট সময় জানলা বাছনি কৰা",
+
+"searchingByTimePeriodsDescription2": "সময় অনুসৰি অনুসন্ধান কৰিবলৈ:",
+"searchingByTimePeriodsStep1": "প্ৰাসঙ্গিক পৃষ্ঠা খোলক",
+"searchingByTimePeriodsStep2": "তাৰিখ/সময় নিৰ্বাচন কৰক",
+"searchingByTimePeriodsStep3": "Search বা Apply ক্লিক কৰক",
+
+"filteringByOtherCriteria": "অন্যান্য মানদণ্ডেৰে ফিল্টাৰ কৰা",
+"filteringByOtherCriteriaDescription": "সময়ৰ উপৰিও অন্যান্য ক্ষেত্ৰ ব্যৱহাৰ কৰিব পাৰে:",
+
+"filteringByOtherCriteriaPoint1": "যানবাহন নম্বৰ বা IMEI",
+"filteringByOtherCriteriaPoint2": "মালিক বা শ্ৰেণী",
+"filteringByOtherCriteriaPoint3": "POI বা এলাকা নিৰ্বাচন",
+"filteringByOtherCriteriaPoint4": "সতৰ্কবাণী অৱস্থা",
+
+  "filteringByOtherCriteriaStepsHeading": "ফলাফলসমূহ অধিক সঠিক কৰিবলৈ:",
+
+"filteringByOtherCriteriaStep1": "ফিল্টাৰ মান প্ৰৱেশ কৰক",
+"filteringByOtherCriteriaStep2": "সময়ৰ সৈতে সংযুক্ত কৰক",
+"filteringByOtherCriteriaStep3": "টেবুল বা মেপ চাওক",
+"usingAdvancedFilters": "উন্নত ফিল্টাৰ ব্যৱহাৰ কৰা",
+  "advancedFiltersDescription": "কিছু পৃষ্ঠাই উন্নত ফিল্টাৰ বিকল্প দিয়ে, যি বিশেষ ক্ষেত্ৰসমূহৰ বাবে অনুসন্ধান সীমাবদ্ধ কৰে:",
+  "interpretingResultsDescription": "আপুনি অনুসন্ধান বা ফিল্টাৰ কৰাৰ পিছত, ফলাফলসমূহ সাধাৰণতে তলৰ এটা বা অধিক দৃশ্যত দেখুওৱা হয়:",
+
+
+
+"advancedFiltersPoint1": "নিৰ্দিষ্ট এলাকা অনুসন্ধান",
+"advancedFiltersPoint2": "নিৰ্দিষ্ট অৱস্থালৈ সীমাবদ্ধ কৰক",
+"advancedFiltersInstruction": "ফিল্টাৰ আইকন ক্লিক কৰি ক্ষেত্ৰসমূহ পূৰণ কৰক",
+
+"interpretingResults": "ফলাফল বুজা",
+"interpretingResultsTable": "টেবুল: প্ৰতি শাৰী এটা ৰেকৰ্ড",
+"interpretingResultsMap": "মেপ: মার্কাৰ আৰু আকাৰসমূহে তথ্য দেখুৱায়",
+
+"tipsForEffectiveSearching": "উপযোগী টিপছ",
+"searchTipsPoint1": "প্ৰথমে বিস্তৃত সময় লওক",
+"searchTipsPoint2": "একাধিক ক্ষেত্ৰ ব্যৱহাৰ কৰক",
+"searchTipsPoint3": "ফিল্টাৰ আঁতৰাই পুনৰ চেষ্টা কৰক",
+
+  "compliance$Governance": "অনুসৰণ আৰু শাসন",
+  "compliance$GovernanceHeading1": "তলত দিয়া অনুসৰণ আৰু শাসনৰ নীতিসমূহ প্ৰযোজ্য:",
+  "compliance$GovernancePoint1": "মেপ প্লেটফৰ্মে Survey of India-ৰ নিৰ্দেশনা আৰু প্ৰযোজ্য Ministry of Defence-ৰ জিঅ’স্পেশিয়েল নিয়মসমূহ মানি চলে।",
+  "compliance$GovernancePoint2": "কোনো বিদেশী বা অননুমোদিত মেপ সেৱা ব্যৱহাৰ কৰা নহয়।",
+  "compliance$GovernancePoint3": "মেপ সেৱাসমূহ বেকএণ্ড-নিয়ন্ত্ৰিত GIS স্থাপত্যৰ অংশ হিচাপে সংযুক্ত আৰু এক্সেছ নিয়ন্ত্ৰণ আৰু অডিটৰ অধীনত থাকে।",
+
+  "policyReveiw": "নীতি পৰ্যালোচনা",
+  "policyReveiwHeading": "এই নীতিখন নিয়মীয়াভাৱে পৰ্যালোচনা কৰা হয় আৰু তলত দিয়া বিষয়সমূহ প্ৰতিফলিত কৰিবলৈ আপডেট কৰা হ'ব পাৰে:",
+  "policyReveiwPoint1": "AIS-140 প্ৰয়োজনীয়তাৰ পৰিবর্তনসমূহ",
+  "policyReveiwPoint2": "চৰকাৰী GIS ডাটা নীতিৰ আপডেটসমূহ",
+  "policyReveiwPoint3": "SkyTron প্লেটফৰ্মৰ উন্নয়নসমূহ",
+
+"needMoreHelpHeading": "অধিক সহায় লাগে নেকি?",
+"needMoreHelpDescription": "অনুগ্ৰহ কৰি সহায়ক দলৰ সৈতে যোগাযোগ কৰক।",
+
+
+
     "welcome": "আপোনাক পুনৰ স্বাগতম",
     "help": "সহায়তা",
     "mapPolicy": "মেপ নীতি",
