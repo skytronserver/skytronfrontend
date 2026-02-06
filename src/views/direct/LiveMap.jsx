@@ -2891,6 +2891,10 @@ const MapComponent = ({
 #${containerId} .mappls-ctrl-rotate,
 #${containerId} .mappls-ctrl-scale,
 #${containerId} .mappls-ctrl-geolocate,
+#${containerId} .mappls-ctrl-attrib,
+#${containerId} .mappls-ctrl-logo,
+#${containerId} .mappls-attrib,
+#${containerId} .mappls-logo,
 #${containerId} .mapboxgl-ctrl-zoom-in,
 #${containerId} .mapboxgl-ctrl-zoom-out,
 #${containerId} .mapboxgl-ctrl-compass,
@@ -2898,7 +2902,9 @@ const MapComponent = ({
 #${containerId} .mapboxgl-ctrl-group,
 #${containerId} .mapboxgl-ctrl-top-right,
 #${containerId} .mapboxgl-ctrl-bottom-right,
-#${containerId} .mapboxgl-ctrl-bottom-left {
+#${containerId} .mapboxgl-ctrl-bottom-left,
+#${containerId} .mapboxgl-ctrl-attrib,
+#${containerId} .mapboxgl-ctrl-logo {
 display: none !important;
 }
 `;

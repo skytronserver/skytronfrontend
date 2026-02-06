@@ -21,6 +21,7 @@ import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import HomePageService from "../../services/HomePage";
@@ -209,6 +210,9 @@ const EMCall = () => {
   const [nearestPolice, setNearestPolice] = useState(null);
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const [nearestPoliceAddress, setNearestPoliceAddress] = useState("");
+  const [nearestHospital, setNearestHospital] = useState(null);
+  const [nearestHospitalDistance, setNearestHospitalDistance] = useState(null);
+  const [nearestHospitalAddress, setNearestHospitalAddress] = useState("");
 
   // Toggle states for map visibility
   const [showPoliceLayers, setShowPoliceLayers] = useState(false);
@@ -352,6 +356,74 @@ const EMCall = () => {
       }
     }
   }, [sosLocations, policePois]);
+
+  useEffect(() => {
+    if (sosLocations.length > 0 && hospitalPois.length > 0) {
+      const callPoint = sosLocations[0];
+      let minDistance = Infinity;
+      let nearestUnit = null;
+
+      hospitalPois.forEach((poi) => {
+        try {
+          const locData = JSON.parse(poi.location);
+          if (Array.isArray(locData) && locData.length > 0) {
+            const lat = Number(locData[0][0]);
+            const lon = Number(locData[0][1]);
+
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+              const dist = calculateDistance(
+                callPoint.latitude,
+                callPoint.longitude,
+                lat,
+                lon
+              );
+
+              if (dist < minDistance) {
+                minDistance = dist;
+                nearestUnit = {
+                  ...poi,
+                  latitude: lat,
+                  longitude: lon
+                };
+              }
+            }
+          }
+        } catch (e) {
+          // ignore invalid loc data
+        }
+      });
+
+      if (nearestUnit) {
+        setNearestHospital(nearestUnit);
+        setNearestHospitalDistance(minDistance);
+
+        const initialAddr = (nearestUnit.description?.length > (nearestUnit.address?.length || 0))
+          ? nearestUnit.description
+          : (nearestUnit.address || nearestUnit.description || "Fetching address...");
+        setNearestHospitalAddress(initialAddr);
+
+        const fetchAddress = async () => {
+          try {
+            const resp = await HomePageService.getReverseGeocode(nearestUnit.latitude, nearestUnit.longitude);
+            const data = resp?.data;
+            const result = data?.results?.[0];
+
+            const geoAddr = result?.formatted_address ||
+              data?.results?.[0]?.address ||
+              data?.address ||
+              data?.formatted_address;
+
+            if (geoAddr) {
+              setNearestHospitalAddress(geoAddr);
+            }
+          } catch (error) {
+            console.error("Geocoding failed (hospital):", error);
+          }
+        };
+        fetchAddress();
+      }
+    }
+  }, [sosLocations, hospitalPois]);
 
   const fetchPoliceLocations = async (callLocs = []) => {
     try {
@@ -847,74 +919,74 @@ const EMCall = () => {
                 </Box>
               </Box>
 
-              {/* Tabs Header */}
-              <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
-                <Tabs
-                  value={tabValue}
-                  onChange={handleTabChange}
-                  variant="fullWidth"
-                  indicatorColor="primary"
-                  textColor="primary"
-                  sx={{ minHeight: 48 }}
-                >
-                  <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                  <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                  <Tab label="Police" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                  <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                </Tabs>
-              </Box>
+            {/* Tabs Header */}
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                variant="fullWidth"
+                indicatorColor="primary"
+                textColor="primary"
+                sx={{ minHeight: 48 }}
+              >
+                <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                <Tab label="Police & Health" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+              </Tabs>
+            </Box>
 
-              {/* Scrollable Content Area */}
-              <CardContent sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
-                {tabValue === 0 && (
-                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
-                      <Typography variant="body1" fontWeight={500}>{call?.call?.id ?? call?.id}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
-                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
-                    </Box>
+            {/* Scrollable Content Area */}
+            <CardContent sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
+              {tabValue === 0 && (
+                <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.id ?? call?.id}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
+                  </Box>
 
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Owner Name</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
+                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                      {typeof call?.call?.device?.category === 'object'
+                        ? (call.call.device.category?.category || "N/A")
+                        : (call?.call?.device?.category || "N/A")}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Alert Type</Typography>
+                    <Typography variant="body1" fontWeight={500} color="error.main">
+                      {call?.call?.packet_type || "SOS"}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 2, mt: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Owner Name</Typography>
-                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
+                      <Typography variant="caption" color="text.secondary">Lat</Typography>
+                      <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.latitude?.toFixed(5) || "N/A"}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
-                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
-                      <Typography variant="body1" fontWeight={500}>
-                        {typeof call?.call?.device?.category === 'object'
-                          ? (call.call.device.category?.category || "N/A")
-                          : (call?.call?.device?.category || "N/A")}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Alert Type</Typography>
-                      <Typography variant="body1" fontWeight={500} color="error.main">
-                        {call?.call?.packet_type || "SOS"}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2, mt: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">Lat</Typography>
-                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.latitude?.toFixed(5) || "N/A"}</Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">Lon</Typography>
-                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.longitude?.toFixed(5) || "N/A"}</Typography>
-                      </Box>
+                      <Typography variant="caption" color="text.secondary">Lon</Typography>
+                      <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.longitude?.toFixed(5) || "N/A"}</Typography>
                     </Box>
                   </Box>
-                )}
+                </Box>
+              )}
 
-                {tabValue === 1 && (
-                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    {(call?.call?.device?.drivers || []).length > 0 ? (
+              {tabValue === 1 && (
+                <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {(call?.call?.device?.drivers || []).length > 0 ? (
                       (call?.call?.device?.drivers || []).map((driver, idx) => (
                         <Box key={driver?.id || `${driver?.license_no || 'driver'}-${idx}`}>
                           <DriverCard driver={driver} />
@@ -933,56 +1005,109 @@ const EMCall = () => {
 
                 {tabValue === 2 && (
                   <Box sx={{ animation: 'fadeIn 0.5s' }}>
-                    {nearestPolice ? (
-                      <Box sx={{
-                        p: 2,
-                        borderRadius: 2,
-                        bgcolor: alpha(theme.palette.info.main, 0.08),
-                        border: '1px solid',
-                        borderColor: 'info.light'
-                      }}>
-                        <Typography variant="subtitle2" sx={{ mb: 2, color: 'info.dark', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocalPoliceIcon fontSize="small" /> NEAREST STATION
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">Station Name</Typography>
-                            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
-                              {nearestPolice.name || nearestPolice.description || "Police Station"}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">Contact Info</Typography>
-                            <Typography variant="body1" fontWeight={600}>
-                              {nearestPolice.phone ||
-                                nearestPolice.mobile ||
-                                nearestPolice.phoneno ||
-                                nearestPolice.contact ||
-                                "N/A"}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">Distance</Typography>
-                            <Typography variant="h6" fontWeight={700} color="primary.main">
-                              {nearestPoliceDistance !== null ? `${nearestPoliceDistance.toFixed(2)} km` : "N/A"}
-                            </Typography>
-                          </Box>
-                          {nearestPolice.description && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {nearestPolice ? (
+                        <Box sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: alpha(theme.palette.info.main, 0.08),
+                          border: '1px solid',
+                          borderColor: 'info.light'
+                        }}>
+                          <Typography variant="subtitle2" sx={{ mb: 2, color: 'info.dark', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocalPoliceIcon fontSize="small" /> NEAREST STATION
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <Box>
-                              <Typography variant="caption" color="text.secondary">Description</Typography>
-                              <Typography variant="body2" sx={{ lineHeight: 1.5, color: 'text.secondary' }}>
-                                {nearestPolice.description}
+                              <Typography variant="caption" color="text.secondary">Station Name</Typography>
+                              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                                {nearestPolice.name || nearestPolice.description || "Police Station"}
                               </Typography>
                             </Box>
-                          )}
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Contact Info</Typography>
+                              <Typography variant="body1" fontWeight={600}>
+                                {nearestPolice.phone ||
+                                  nearestPolice.mobile ||
+                                  nearestPolice.phoneno ||
+                                  nearestPolice.contact ||
+                                  "N/A"}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Distance</Typography>
+                              <Typography variant="h6" fontWeight={700} color="primary.main">
+                                {nearestPoliceDistance !== null ? `${nearestPoliceDistance.toFixed(2)} km` : "N/A"}
+                              </Typography>
+                            </Box>
+                            {(nearestPoliceAddress || nearestPolice.description) && (
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">Address</Typography>
+                                <Typography variant="body2" sx={{ lineHeight: 1.5, color: 'text.secondary' }}>
+                                  {nearestPoliceAddress || nearestPolice.description}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
                         </Box>
-                      </Box>
-                    ) : (
-                      <Box sx={{ textAlign: 'center', py: 6, opacity: 0.6 }}>
-                        <LocalPoliceIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-                        <Typography variant="body2" color="text.secondary">Searching for nearest police station...</Typography>
-                      </Box>
-                    )}
+                      ) : (
+                        <Box sx={{ textAlign: 'center', py: 4, opacity: 0.6 }}>
+                          <LocalPoliceIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                          <Typography variant="body2" color="text.secondary">Searching for nearest police station...</Typography>
+                        </Box>
+                      )}
+
+                      {nearestHospital ? (
+                        <Box sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: alpha(theme.palette.success.main, 0.08),
+                          border: '1px solid',
+                          borderColor: 'success.light'
+                        }}>
+                          <Typography variant="subtitle2" sx={{ mb: 2, color: 'success.dark', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocalHospitalIcon fontSize="small" /> NEAREST HEALTH CENTER
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Center Name</Typography>
+                              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                                {nearestHospital.name || nearestHospital.description || "Health Center"}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Contact Info</Typography>
+                              <Typography variant="body1" fontWeight={600}>
+                                {nearestHospital.phone ||
+                                  nearestHospital.mobile ||
+                                  nearestHospital.phoneno ||
+                                  nearestHospital.contact ||
+                                  "N/A"}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Distance</Typography>
+                              <Typography variant="h6" fontWeight={700} color="primary.main">
+                                {nearestHospitalDistance !== null ? `${nearestHospitalDistance.toFixed(2)} km` : "N/A"}
+                              </Typography>
+                            </Box>
+                            {(nearestHospitalAddress || nearestHospital.description) && (
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">Address</Typography>
+                                <Typography variant="body2" sx={{ lineHeight: 1.5, color: 'text.secondary' }}>
+                                  {nearestHospitalAddress || nearestHospital.description}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </Box>
+                      ) : (
+                        <Box sx={{ textAlign: 'center', py: 4, opacity: 0.6 }}>
+                          <LocalHospitalIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                          <Typography variant="body2" color="text.secondary">Searching for nearest health center...</Typography>
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
                 )}
 

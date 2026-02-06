@@ -37,6 +37,7 @@ const IncidentReport = () => {
         registered_at_to: '',
         district: '',
         police_station: '',
+        nearest_police_station: '',
         latitude: '',
         longitude: '',
         radius_km: '',
@@ -103,6 +104,7 @@ const IncidentReport = () => {
             registered_at_to: '',
             district: '',
             police_station: '',
+            nearest_police_station: '',
             latitude: '',
             longitude: '',
             radius_km: '',
@@ -118,11 +120,33 @@ const IncidentReport = () => {
         { field: 'district', headerName: 'District', width: 120, flex: 0.8 },
         { field: 'police_station', headerName: 'Police Station', width: 130, flex: 1, valueGetter: (params) => params.row.police_station || 'N/A' },
         {
+            field: 'nearest_police_station',
+            headerName: 'Nearest Police Station',
+            width: 170,
+            flex: 1,
+            valueGetter: (params) =>
+                params.row.nearest_police_station ||
+                params.row.nearestPoliceStation ||
+                params.row.nearest_police_station_name ||
+                params.row.nearest_police_name ||
+                params.row.nearest_police_station?.data?.name ||
+                params.row.nearest_police?.data?.name ||
+                'N/A'
+        },
+        {
             field: 'registered_by_info',
             headerName: 'Registered By',
             width: 150,
             flex: 1,
-            valueGetter: (params) => params.row.registered_by_info?.name || params.row.registered_by || 'N/A'
+            valueGetter: (params) =>
+                params.row.registered_by_info?.phone_no ||
+                params.row.registered_by_info?.mobile_no ||
+                params.row.registered_by_info?.mobile ||
+                params.row.registered_by_mobile ||
+                params.row.registered_by_phone ||
+                params.row.registered_by_info?.name ||
+                params.row.registered_by ||
+                'N/A'
         },
         { field: 'details', headerName: 'Details', width: 150, flex: 1.2 },
         {
@@ -191,14 +215,15 @@ const IncidentReport = () => {
     const exportToCSV = () => {
         if (incidentData.length === 0) return;
 
-        const headers = ['ID', 'Vehicle Reg No', 'District', 'Police Station', 'Details', 'Registered By', 'Registered At', 'Latitude', 'Longitude', 'Image URL'];
+        const headers = ['ID', 'Vehicle Reg No', 'District', 'Police Station', 'Nearest Police Station', 'Details', 'Registered By (Mobile No)', 'Registered At', 'Latitude', 'Longitude', 'Image URL'];
         const csvRows = incidentData.map(row => [
             row.id,
             row.vehicle_reg_no,
             row.district || 'N/A',
             row.police_station || 'N/A',
+            row.nearest_police_station || row.nearestPoliceStation || row.nearest_police_station_name || row.nearest_police_name || row.nearest_police_station?.data?.name || row.nearest_police?.data?.name || 'N/A',
             `"${(row.details || '').replace(/"/g, '""')}"`,
-            row.registered_by_info?.name || row.registered_by || 'N/A',
+            row.registered_by_info?.phone_no || row.registered_by_info?.mobile_no || row.registered_by_info?.mobile || row.registered_by_mobile || row.registered_by_phone || row.registered_by_info?.name || row.registered_by || 'N/A',
             row.registered_at,
             row.latitude,
             row.longitude,
@@ -282,6 +307,15 @@ const IncidentReport = () => {
                                     <Grid item xs={12} md={3}>
                                         <TextField
                                             fullWidth
+                                            label="Nearest Police Station"
+                                            value={filters.nearest_police_station}
+                                            onChange={(e) => handleFilterChange('nearest_police_station', e.target.value)}
+                                            size="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={3}>
+                                        <TextField
+                                            fullWidth
                                             type="date"
                                             label="From Date"
                                             InputLabelProps={{ shrink: true }}
@@ -304,7 +338,7 @@ const IncidentReport = () => {
                                     <Grid item xs={12} md={3}>
                                         <TextField
                                             fullWidth
-                                            label="Registered By (ID)"
+                                            label="Registered By (Mobile No)"
                                             value={filters.registered_by}
                                             onChange={(e) => handleFilterChange('registered_by', e.target.value)}
                                             size="small"

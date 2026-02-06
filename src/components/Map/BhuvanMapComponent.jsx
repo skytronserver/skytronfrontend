@@ -77,6 +77,38 @@ const BhuvanMapComponent = ({
     const [drawInteraction, setDrawInteraction] = useState(null);
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
 
+    useEffect(() => {
+        const container = overlayElement.current;
+        if (!container) return;
+
+        const handleClick = (e) => {
+            const tabButton = e.target?.closest?.("[data-overlay-tab]");
+            if (!tabButton) return;
+
+            const tabName = tabButton.getAttribute("data-overlay-tab");
+            if (!tabName) return;
+
+            const tabsRoot = tabButton.closest("[data-overlay-tabs]");
+            if (!tabsRoot) return;
+
+            const allTabs = tabsRoot.querySelectorAll("[data-overlay-tab]");
+            allTabs.forEach((btn) => {
+                btn.classList.toggle("overlay-tab--active", btn === tabButton);
+            });
+
+            const panels = tabsRoot.querySelectorAll("[data-overlay-panel]");
+            panels.forEach((panel) => {
+                panel.classList.toggle(
+                    "overlay-panel--active",
+                    panel.getAttribute("data-overlay-panel") === tabName
+                );
+            });
+        };
+
+        container.addEventListener("click", handleClick);
+        return () => container.removeEventListener("click", handleClick);
+    }, []);
+
     // Map type state: 'normal' | 'satellite' | 'soi'
     const [mapType, setMapType] = useState(defaultMapType);
     const normalMapRef = useRef(null);
@@ -612,6 +644,47 @@ const BhuvanMapComponent = ({
         return { name, address: String(address), phone: String(phone), distanceKm: bestDist };
     };
 
+    const resolveNearestHospitalFromPois = (entry) => {
+        const lat = Number(entry?.latitude);
+        const lon = Number(entry?.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+        if (!Array.isArray(poisForLookup) || poisForLookup.length === 0) return null;
+
+        const hospitalPois = poisForLookup.filter((poi) => {
+            const useType = String(poi?.use_type || "").trim().toLowerCase();
+            return useType === "hospital" || useType === "hospitals" || useType === "hospital_name";
+        });
+        if (hospitalPois.length === 0) return null;
+
+        let best = null;
+        let bestDist = Infinity;
+        for (const poi of hospitalPois) {
+            const coords = getPoiLatLon(poi);
+            if (!coords) continue;
+            const dist = haversineKm(lat, lon, coords.lat, coords.lon);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = poi;
+            }
+        }
+
+        if (!best) return null;
+        const name = best?.name ? String(best.name) : "-";
+        const address = best?.address || best?.description || "-";
+        const phone = (
+            best?.phone ||
+            best?.phoneno ||
+            best?.mobile ||
+            best?.contact ||
+            best?.data?.phone ||
+            best?.data?.phoneno ||
+            best?.data?.mobile ||
+            best?.data?.contact ||
+            "-"
+        );
+        return { name, address: String(address), phone: String(phone), distanceKm: bestDist };
+    };
+
     const mergePoliceFields = (baseEntry, detailEntry) => {
         if (!baseEntry) return baseEntry;
         if (!detailEntry) return baseEntry;
@@ -645,6 +718,7 @@ const BhuvanMapComponent = ({
     const renderVehicleOverlay = (entryData, coordinates, alertType, alertClass, speedValue, selectButtonHtml) => {
         const policeAddressRaw = resolveNearestPoliceAddress(entryData);
         const poiFallback = policeAddressRaw === "-" ? resolveNearestPoliceFromPois(entryData) : null;
+        const policeDistanceFallback = resolveNearestPoliceFromPois(entryData);
         const policeName = (
             entryData?.nearestPoliceStation ||
             entryData?.nearest_police_station_name ||
@@ -685,6 +759,11 @@ const BhuvanMapComponent = ({
             poiFallback?.data?.contact ||
             "-"
         );
+
+        const hospitalFallback = resolveNearestHospitalFromPois(entryData);
+        const hospitalName = hospitalFallback?.name || "-";
+        const hospitalDescription = hospitalFallback?.address || "-";
+        const hospitalPhone = hospitalFallback?.phone || "-";
 
         const safeValue = (value) => {
             if (value === null || value === undefined) return "-";
@@ -773,6 +852,52 @@ const BhuvanMapComponent = ({
         const latText = Number.isFinite(lat) ? lat.toFixed(6) : "-";
         const lonText = Number.isFinite(lon) ? lon.toFixed(6) : "-";
 
+        const policePanelHtml = (safeValue(policeName) !== "-" || safeValue(policeDescription) !== "-" || safeValue(policePhone) !== "-")
+            ? `
+<div class="overlay-section">
+<div class="overlay-section-title">Police Support</div>
+<div class="overlay-section-body">
+<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Station</span><span class="overlay-value overlay-value--multiline">${safeValue(policeName)}</span></div>
+<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Address</span><span class="overlay-value overlay-value--multiline">${safeValue(policeDescription)}</span></div>
+<div class="overlay-row"><span class="overlay-label">Phone</span><span class="overlay-value">${safeValue(policePhone)}</span></div>
+${Number.isFinite(policeDistanceFallback?.distanceKm)
+                    ? `<div class="overlay-row"><span class="overlay-label">Distance</span><span class="overlay-value">${policeDistanceFallback.distanceKm.toFixed(2)} km</span></div>`
+                    : ""}
+</div>
+</div>
+`
+            : `
+<div class="overlay-section">
+<div class="overlay-section-title">Police Support</div>
+<div class="overlay-section-body">
+<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>
+</div>
+</div>
+`;
+
+        const hospitalPanelHtml = hospitalFallback
+            ? `
+<div class="overlay-section">
+<div class="overlay-section-title">Health Center</div>
+<div class="overlay-section-body">
+<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Name</span><span class="overlay-value overlay-value--multiline">${safeValue(hospitalName)}</span></div>
+<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Address</span><span class="overlay-value overlay-value--multiline">${safeValue(hospitalDescription)}</span></div>
+<div class="overlay-row"><span class="overlay-label">Phone</span><span class="overlay-value">${safeValue(hospitalPhone)}</span></div>
+${Number.isFinite(hospitalFallback?.distanceKm)
+                    ? `<div class="overlay-row"><span class="overlay-label">Distance</span><span class="overlay-value">${hospitalFallback.distanceKm.toFixed(2)} km</span></div>`
+                    : ""}
+</div>
+</div>
+`
+            : `
+<div class="overlay-section">
+<div class="overlay-section-title">Health Center</div>
+<div class="overlay-section-body">
+<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No health center details available</span></div>
+</div>
+</div>
+`;
+
         const el = document.getElementById("overlay-content");
         if (!el) return;
 
@@ -782,38 +907,33 @@ const BhuvanMapComponent = ({
                 <div class="overlay-title">${resolveVehicleNo(entryData)}</div>
                 <div class="overlay-pill ${alertClass}">${alertType}</div>
               </div>
-              <div class="overlay-body">
-                <div class="overlay-row">
-                  <span class="overlay-label">Date</span>
-                  <span class="overlay-value">${safeValue(date)}</span>
+              <div class="overlay-tabs" data-overlay-tabs>
+                <div class="overlay-tab-list" role="tablist">
+                  <button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
+                  <button class="overlay-tab" type="button" data-overlay-tab="police" role="tab">Police</button>
+                  <button class="overlay-tab" type="button" data-overlay-tab="health" role="tab">Health</button>
                 </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Time</span>
-                  <span class="overlay-value">${safeValue(time)}</span>
+
+                <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
+                  <div class="overlay-section">
+                    <div class="overlay-section-title">Vehicle Information</div>
+                    <div class="overlay-section-body">
+                      <div class="overlay-row"><span class="overlay-label">Date</span><span class="overlay-value">${safeValue(date)}</span></div>
+                      <div class="overlay-row"><span class="overlay-label">Time</span><span class="overlay-value">${safeValue(time)}</span></div>
+                      <div class="overlay-row"><span class="overlay-label">Speed</span><span class="overlay-value">${safeValue(speedValue)} km/h</span></div>
+                      <div class="overlay-row"><span class="overlay-label">Battery</span><span class="overlay-value">${battery}</span></div>
+                      <div class="overlay-row"><span class="overlay-label">Latitude</span><span class="overlay-value">${latText}</span></div>
+                      <div class="overlay-row"><span class="overlay-label">Longitude</span><span class="overlay-value">${lonText}</span></div>
+                    </div>
+                  </div>
                 </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Battery</span>
-                  <span class="overlay-value">${battery}</span>
+
+                <div class="overlay-panel" data-overlay-panel="police" role="tabpanel">
+                  ${policePanelHtml}
                 </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Latitude</span>
-                  <span class="overlay-value">${latText}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Longitude</span>
-                  <span class="overlay-value">${lonText}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Station</span>
-                  <span class="overlay-value">${safeValue(policeName)}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Description</span>
-                  <span class="overlay-value">${safeValue(policeDescription)}</span>
-                </div>
-                <div class="overlay-row">
-                  <span class="overlay-label">Phone</span>
-                  <span class="overlay-value">${safeValue(policePhone)}</span>
+
+                <div class="overlay-panel" data-overlay-panel="health" role="tabpanel">
+                  ${hospitalPanelHtml}
                 </div>
               </div>
               ${selectButtonHtml}
@@ -2550,11 +2670,11 @@ const BhuvanMapComponent = ({
           padding: 6px 8px;
           box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
           border: 1px solid rgba(0, 0, 0, 0.08);
-          width: 220px;
-          min-width: 220px;
-          max-width: 220px;
-          height: 220px;
-          max-height: 220px;
+          width: 240px;
+          min-width: 240px;
+          max-width: 240px;
+          height: 260px;
+          max-height: 260px;
           display: flex;
           flex-direction: column;
           font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -2566,7 +2686,7 @@ const BhuvanMapComponent = ({
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
           gap: 8px;
         }
 
@@ -2601,40 +2721,109 @@ const BhuvanMapComponent = ({
           border-color: #fecaca;
         }
 
-        .overlay-body {
+        .overlay-tabs {
           border-top: 1px solid #f1f5f9;
           padding-top: 6px;
-          margin-top: 4px;
-          display: grid;
-          row-gap: 4px;
+          margin-top: 3px;
           flex: 1 1 auto;
-          overflow-y: auto;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .overlay-tab-list {
+          display: flex;
+          gap: 4px;
+          margin-bottom: 6px;
+          flex: 0 0 auto;
+          overflow-x: auto;
+          padding-bottom: 2px;
+        }
+
+        .overlay-tab {
+          appearance: none;
+          border: 1px solid #e5e7eb;
+          background: #f9fafb;
+          color: #374151;
+          font-size: 10px;
+          font-weight: 600;
+          padding: 3px 7px;
+          border-radius: 999px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .overlay-tab--active {
+          background: #eef2ff;
+          border-color: #c7d2fe;
+          color: #1e3a8a;
+        }
+
+        .overlay-panel {
+          display: none;
+          max-height: 180px;
+          overflow: auto;
+          padding-right: 2px;
+          overflow-x: hidden;
+          flex: 1 1 auto;
           min-height: 0;
         }
 
+        .overlay-panel--active {
+          display: block;
+        }
+
+        .overlay-section {
+          border: 1px solid #eef2f7;
+          border-radius: 8px;
+          padding: 6px 8px;
+          background: #ffffff;
+        }
+
+        .overlay-section-title {
+          font-size: 12px;
+          font-weight: 700;
+          color: #111827;
+          margin-bottom: 4px;
+        }
+
+        .overlay-section-body {
+          display: grid;
+          row-gap: 4px;
+        }
+
         .overlay-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
+          display: grid;
+          grid-template-columns: 72px 1fr;
           gap: 8px;
-          min-width: 0;
+          align-items: baseline;
+        }
+
+        .overlay-row--multiline {
+          align-items: start;
         }
 
         .overlay-label {
           font-size: 11px;
           color: #6b7280;
-          flex: 0 0 52px;
+          white-space: nowrap;
         }
 
         .overlay-value {
           font-size: 11px;
           font-weight: 500;
           color: #111827;
-          flex: 1 1 auto;
-          min-width: 0;
+          text-align: left;
+        }
+
+        .overlay-value--multiline {
           white-space: normal;
           overflow-wrap: anywhere;
           word-break: break-word;
+          text-align: left;
+          max-width: none;
+          line-height: 1.2;
+          overflow: visible;
         }
       `}</style>
         </div>
