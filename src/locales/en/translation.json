@@ -4,7 +4,7 @@
      "mapPolicyHeading": "Map Data & Update Policy",
      "purpose": " Purpose",
       "purposeLine1": " This Map Data & Update Policy defines the governance, usage, and update mechanism for GIS map data used within the SkyTron AIS-140 Vehicle Location Tracking Platform, in compliance with applicable AIS-140 Functional Requirements and Survey of India guidelines",
-      "purposeLine2": " The purpose of this policy is to ensure that all GIS map data integrated into the SkyTron platform is accurate, up-to-date, and legally compliant, thereby enhancing the reliability and effectiveness of vehicle tracking services provided to users.",
+      "purposeLine2": " All map services and datasets are hosted and accessed within India on Government infrastructure and are available for audit by notified agencies.",
       "mapUsage": "Map Usage",
      
   "mapUsageHeading": "Map services within SkyTron are used exclusively for:",
@@ -794,49 +794,37 @@
       }
     }
   },
+  
   "systemAdmin": {
     "createTitle": "Create System Admin",
+
     "fields": {
       "name": "User Name",
       "email": "User Email",
       "mobile": "User Mobile Number",
-      "dob": "User Date of Birth",
-      "expirydate": "Expiry Date",
-      "state": "State Name",
-      "idProofno": "ID Proof Number",
-      "file_idProof": "Upload ID Proof",
-      "file_authorisation_letter": "Upload Authorization Letter",
+      "dob": "Date of Birth",
       "lat": "Latitude",
       "lon": "Longitude"
     },
-    "messages": {
-      "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
-      "file_authorisation_letter": "Only JPG, PDF, PNG files are allowed and must be below 512KB."
-    },
-    
+
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email address",
+      "mobileRequired": "Mobile number is required",
+      "mobileFormat": "Mobile number must be 10 digits",
+      "dobRequired": "Date of birth is required"
+    }
+  },
+
   "form": {
     "submit": "Submit",
     "success": "Saved successfully",
     "error": "Something went wrong"
   },
 
-    "validation": {
-      "nameRequired": "Name is required",
-      "emailRequired": "Email is required",
-      "invalidEmail": "Invalid email address",
-      "mobileRequired": "Mobile Number is required",
-      "mobileFormat": "Mobile Number must be a 10-digit number",
-      "dobRequired": "Date of Birth is required",
-      "expiryDateRequired": "Expiry Date is required",
-      "stateRequired": "System Name is required",
-      "idProofRequired": "ID Proof Number is required",
-      "idProofMinLength": "ID Proof Number must be at least 5 characters long",
-      "fileRequired": "File is required",
-      "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
-      "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
-    },
-    "listTitle": "System Admin"
-  },
+
+   
   
       
   "deviceForm": {
