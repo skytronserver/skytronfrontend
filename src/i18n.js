@@ -7,17 +7,10 @@ import hiTranslation from './locales/hi/translation.json';
 import asTranslation from './locales/as/translation.json';
 
 const resources = {
-  en: {
-    translation: enTranslation
-  },
-  hi: {
-    translation: hiTranslation
-  },
-  as: {
-    translation: asTranslation
-  }
+  en: { translation: enTranslation },
+  hi: { translation: hiTranslation },
+  as: { translation: asTranslation }
 };
-
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)

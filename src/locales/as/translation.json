@@ -312,6 +312,7 @@
     "dealerAccount": "ডিলাৰ একাউণ্ট",
     "vehicleOwner": "যানবাহনৰ মালিক সৃষ্টি কৰক",
     "sosAdmin": "এছঅ'এছ প্ৰশাসক",
+    "systemAdmin": "সিস্টেম প্ৰশাসক",
     "sosUser": "এছঅ'এছ ব্যৱহাৰকাৰী",
     "emTeam": "ইএম দল",
     "create": "সৃষ্টি কৰক",
@@ -594,6 +595,64 @@
       }
     }
   },
+  
+  
+  
+  
+  "form": {
+    "submit": "জমা কৰক",
+    "success": "সফলভাৱে সংৰক্ষণ কৰা হৈছে",
+    "error": "কিছু ভুল হৈছে"
+  },
+
+
+  "systemAdmin": {
+    "createTitle": "চিস্টেম এডমিন সৃষ্টি কৰক",
+
+    "fields": {
+      "name": "ব্যৱহাৰকাৰীৰ নাম",
+      "email": "ব্যৱহাৰকাৰীৰ ইমেইল",
+      "mobile": "ব্যৱহাৰকাৰীৰ মোবাইল নম্বৰ",
+      "dob": "জন্ম তাৰিখ",
+      "expirydate": "মেয়াদ শেষৰ তাৰিখ",
+      "state": "ৰাজ্যৰ নাম",
+      "idProofno": "পৰিচয় পত্ৰ নম্বৰ",
+      "file_idProof": "পৰিচয় পত্ৰ আপলোড কৰক",
+      "file_authorisation_letter": "অনুমতি পত্ৰ আপলোড কৰক",
+      "lat": "অক্ষাংশ",
+      "lon": "দ্ৰাঘিমাংশ"
+    },
+
+    "messages": {
+      "file_idProof": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু 512KB তকৈ কম হ'ব লাগিব।",
+      "file_authorisation_letter": "কেৱল JPG, PDF, PNG ফাইল অনুমোদিত আৰু 512KB তকৈ কম হ'ব লাগিব।"
+    },
+    "form": {
+    "submit": "জমা কৰক",
+    "success": "সফলভাৱে সংৰক্ষণ কৰা হৈছে",
+    "error": "কিছু ভুল হৈছে"
+  },
+
+    "validation": {
+      "nameRequired": "নাম প্ৰয়োজন",
+      "emailRequired": "ইমেইল প্ৰয়োজন",
+      "invalidEmail": "অবৈধ ইমেইল ঠিকনা",
+      "mobileRequired": "মোবাইল নম্বৰ প্ৰয়োজন",
+      "mobileFormat": "মোবাইল নম্বৰ ১০ অংকৰ হ'ব লাগিব",
+      "dobRequired": "জন্ম তাৰিখ প্ৰয়োজন",
+      "expiryDateRequired": "মেয়াদ শেষৰ তাৰিখ প্ৰয়োজন",
+      "stateRequired": "চিস্টেমৰ নাম প্ৰয়োজন",
+      "idProofRequired": "পৰিচয় পত্ৰ নম্বৰ প্ৰয়োজন",
+      "idProofMinLength": "পৰিচয় পত্ৰ নম্বৰ কমেও ৫ আখৰ হ'ব লাগিব",
+      "fileRequired": "ফাইল প্ৰয়োজন",
+      "fileSize": "সৰ্বাধিক আকাৰ 520KB আৰু সমৰ্থিত ফাইলসমূহ হৈছে pdf/png/jpg",
+      "fileFormat": "সৰ্বাধিক আকাৰ 520KB আৰু সমৰ্থিত ফাইলসমূহ হৈছে pdf/png/jpg"
+    },
+
+    "listTitle": "চিস্টেম এডমিন"
+  },
+
+
   "deviceForm": {
     "deviceDetails": "ডিভাইচৰ বিৱৰণ",
     "fields": {

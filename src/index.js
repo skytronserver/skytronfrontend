@@ -10,6 +10,7 @@ import * as serviceWorker from "./serviceWorker";
 import App from "./App";
 import { store } from "./store";
 
+
 // i18n initialization
 import i18n from "./i18n";
 

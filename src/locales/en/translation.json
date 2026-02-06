@@ -794,6 +794,51 @@
       }
     }
   },
+  "systemAdmin": {
+    "createTitle": "Create System Admin",
+    "fields": {
+      "name": "User Name",
+      "email": "User Email",
+      "mobile": "User Mobile Number",
+      "dob": "User Date of Birth",
+      "expirydate": "Expiry Date",
+      "state": "State Name",
+      "idProofno": "ID Proof Number",
+      "file_idProof": "Upload ID Proof",
+      "file_authorisation_letter": "Upload Authorization Letter",
+      "lat": "Latitude",
+      "lon": "Longitude"
+    },
+    "messages": {
+      "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
+      "file_authorisation_letter": "Only JPG, PDF, PNG files are allowed and must be below 512KB."
+    },
+    
+  "form": {
+    "submit": "Submit",
+    "success": "Saved successfully",
+    "error": "Something went wrong"
+  },
+
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email address",
+      "mobileRequired": "Mobile Number is required",
+      "mobileFormat": "Mobile Number must be a 10-digit number",
+      "dobRequired": "Date of Birth is required",
+      "expiryDateRequired": "Expiry Date is required",
+      "stateRequired": "System Name is required",
+      "idProofRequired": "ID Proof Number is required",
+      "idProofMinLength": "ID Proof Number must be at least 5 characters long",
+      "fileRequired": "File is required",
+      "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
+      "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
+    },
+    "listTitle": "System Admin"
+  },
+  
+      
   "deviceForm": {
     "deviceDetails": "Device Details",
     "fields": {

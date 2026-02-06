@@ -12,6 +12,7 @@ import SettingService from "../../services/SettingService";
 import DescriptionIcon from '@mui/icons-material/Description';
 import UserServices from "../../services/UserServices";
 import Button from '@mui/material/Button';
+import SystemAdmin from 'views/forms/SystemAdmin';
 
 const styles = {
   card: {
@@ -155,6 +156,7 @@ const Details = () => {
         dealer:'Dealer',
         stateadmin:'State Admin',
         sosadmin:'SOS Admin',
+        SystemAdmin:'System Admin',
         dtorto:'DTO User',
         esimprovider:'M2M Service Provider'
     }

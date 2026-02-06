@@ -796,6 +796,37 @@
       }
     }
   },
+ 
+  
+   
+  "systemAdmin": {
+    "createTitle": "চিষ্টেম এডমিন সৃষ্টি কৰক",
+
+    "fields": {
+      "name": "ব্যৱহাৰকাৰীৰ নাম",
+      "email": "ব্যৱহাৰকাৰীৰ ইমেইল",
+      "mobile": "ব্যৱহাৰকাৰীৰ মোবাইল নম্বৰ",
+      "dob": "জন্ম তাৰিখ",
+      "lat": "অক্ষাংশ",
+      "lon": "দ্ৰাঘিমাংশ"
+    },
+
+    "validation": {
+      "nameRequired": "নাম আৱশ্যক",
+      "emailRequired": "ইমেইল আৱশ্যক",
+      "invalidEmail": "অবৈধ ইমেইল ঠিকনা",
+      "mobileRequired": "মোবাইল নম্বৰ আৱশ্যক",
+      "mobileFormat": "মোবাইল নম্বৰ ১০ অংকৰ হ'ব লাগিব",
+      "dobRequired": "জন্ম তাৰিখ আৱশ্যক"
+    }
+  },
+
+  "form": {
+    "submit": "জমা কৰক",
+    "success": "সফলভাৱে সংৰক্ষণ কৰা হৈছে",
+    "error": "কিছু ভুল হৈছে"
+  },
+
   "deviceForm": {
     "deviceDetails": "डिवाइस विवरण",
     "fields": {
