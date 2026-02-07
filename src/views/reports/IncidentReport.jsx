@@ -45,6 +45,8 @@ const IncidentReport = () => {
         page_size: 10
     });
 
+    const [quickRange, setQuickRange] = useState('');
+
     // Component states
     const [incidentData, setIncidentData] = useState([]);
     const [totalRows, setTotalRows] = useState(0);
@@ -61,6 +63,52 @@ const IncidentReport = () => {
         setFilters(prev => ({
             ...prev,
             [field]: value
+        }));
+    };
+
+    const formatDateOnly = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const applyQuickRange = (rangeKey) => {
+        setQuickRange(rangeKey);
+
+        if (!rangeKey) {
+            setFilters(prev => ({
+                ...prev,
+                registered_at_from: '',
+                registered_at_to: '',
+                page: 1
+            }));
+            return;
+        }
+
+        const now = new Date();
+        const toDate = formatDateOnly(now);
+        let from = new Date(now);
+
+        if (rangeKey === 'past_hour') {
+            from = new Date(now.getTime() - 60 * 60 * 1000);
+        } else if (rangeKey === 'past_24h') {
+            from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        } else if (rangeKey === 'past_3d') {
+            from = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        } else if (rangeKey === 'past_7d') {
+            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (rangeKey === 'past_3m') {
+            from = new Date(now);
+            from.setMonth(from.getMonth() - 3);
+        }
+
+        const fromDate = formatDateOnly(from);
+        setFilters(prev => ({
+            ...prev,
+            registered_at_from: fromDate,
+            registered_at_to: toDate,
+            page: 1
         }));
     };
 
@@ -111,6 +159,7 @@ const IncidentReport = () => {
             page: 1,
             page_size: 10
         });
+        setQuickRange('');
     };
 
     // DataGrid columns
@@ -320,7 +369,11 @@ const IncidentReport = () => {
                                             label="From Date"
                                             InputLabelProps={{ shrink: true }}
                                             value={filters.registered_at_from}
-                                            onChange={(e) => handleFilterChange('registered_at_from', e.target.value)}
+                                            onChange={(e) => {
+                                                setQuickRange('');
+                                                handleFilterChange('registered_at_from', e.target.value);
+                                                handleFilterChange('page', 1);
+                                            }}
                                             size="small"
                                         />
                                     </Grid>
@@ -331,9 +384,31 @@ const IncidentReport = () => {
                                             label="To Date"
                                             InputLabelProps={{ shrink: true }}
                                             value={filters.registered_at_to}
-                                            onChange={(e) => handleFilterChange('registered_at_to', e.target.value)}
+                                            onChange={(e) => {
+                                                setQuickRange('');
+                                                handleFilterChange('registered_at_to', e.target.value);
+                                                handleFilterChange('page', 1);
+                                            }}
                                             size="small"
                                         />
+                                    </Grid>
+                                    <Grid item xs={12} md={3}>
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel id="incident-quick-range-label">Quick Range</InputLabel>
+                                            <Select
+                                                labelId="incident-quick-range-label"
+                                                label="Quick Range"
+                                                value={quickRange}
+                                                onChange={(e) => applyQuickRange(e.target.value)}
+                                            >
+                                                <MenuItem value=""><em>None</em></MenuItem>
+                                                <MenuItem value="past_hour">Past hour</MenuItem>
+                                                <MenuItem value="past_24h">Past 24 hours</MenuItem>
+                                                <MenuItem value="past_3d">Past 3 days</MenuItem>
+                                                <MenuItem value="past_7d">Past 7 days</MenuItem>
+                                                <MenuItem value="past_3m">Past 3 months</MenuItem>
+                                            </Select>
+                                        </FormControl>
                                     </Grid>
                                     <Grid item xs={12} md={3}>
                                         <TextField

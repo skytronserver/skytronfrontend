@@ -291,7 +291,10 @@ const AlertReport = () => {
     let start;
     const end = new Date();
 
-    if (value === '24h') {
+    if (value === '1h') {
+      // Past hour
+      start = new Date(end.getTime() - 60 * 60 * 1000);
+    } else if (value === '24h') {
       // Past 24 hours
       start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
     } else if (value === '3d') {
@@ -612,6 +615,7 @@ const AlertReport = () => {
                           onChange={(e) => handleQuickRangeChange(e.target.value)}
                         >
                           <MenuItem value="">All Time</MenuItem>
+                          <MenuItem value="1h">Past hour</MenuItem>
                           <MenuItem value="24h">Past 24 hours</MenuItem>
                           <MenuItem value="3d">Past 3 days</MenuItem>
                           <MenuItem value="7d">Past 7 days</MenuItem>

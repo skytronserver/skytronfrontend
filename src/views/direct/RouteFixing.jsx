@@ -27,6 +27,7 @@ import Style from "ol/style/Style";
 import Stroke from "ol/style/Stroke";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 import { useTranslation } from "react-i18next";
+import busMarkerIcon from "../../assets/images/grey/bus.png";
 
 const resolveBhuvanWmsUrl = () => {
   const envUrl = process.env.REACT_APP_BHUVAN_URL;
@@ -79,11 +80,13 @@ const RouteFixing = () => {
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [newPoints, setNewPoints] = useState([]); // Store coordinates of points
   const [routeStats, setRouteStats] = useState({ distance: 0, travelTime: 0 });
+  const [vehiclePosition, setVehiclePosition] = useState(null); // [lon, lat]
   const mapRef = useRef(null);
   const vectorSourceRef = useRef(new VectorSource());
   const map = useRef(null);
   const overlayRef = useRef(null);
   const selectedId = useRef("");
+  const vehicleMarkerRef = useRef(null);
 
   // Map Layers Refs
   const normalLayersRef = useRef([]);
@@ -131,6 +134,79 @@ const RouteFixing = () => {
   const handleDeviceChange = (e) => {
     setDeviceId(e.target.value);
     setSelectedRoute(null); // Clear selected route on device change
+    setVehiclePosition(null);
+    vehicleMarkerRef.current = null;
+  };
+
+  const renderVehicleMarker = (lonLat) => {
+    if (!lonLat || !Array.isArray(lonLat) || lonLat.length < 2) return;
+    if (!vectorSourceRef.current) return;
+
+    // Remove previous marker (if any)
+    if (vehicleMarkerRef.current) {
+      vectorSourceRef.current.removeFeature(vehicleMarkerRef.current);
+      vehicleMarkerRef.current = null;
+    }
+
+    const feature = new Feature({
+      geometry: new Point(fromLonLat(lonLat)),
+    });
+
+    feature.setStyle(
+      new Style({
+        image: new Icon({
+          src: busMarkerIcon,
+          scale: 0.06,
+          anchor: [0.5, 1],
+          anchorXUnits: "fraction",
+          anchorYUnits: "fraction",
+        }),
+      })
+    );
+
+    vectorSourceRef.current.addFeature(feature);
+    vehicleMarkerRef.current = feature;
+  };
+
+  const fetchAndRenderVehicleMarker = async (activeDeviceId) => {
+    try {
+      const selectedDevice = deviceList.find((item) => item?.device?.id === activeDeviceId);
+      const imei =
+        selectedDevice?.device?.imei ||
+        selectedDevice?.device?.imei_no ||
+        selectedDevice?.device?.imeiNo ||
+        "";
+      const regno = selectedDevice?.vehicle_reg_no || "";
+
+      if (!imei && !regno) return;
+
+      const resp = await HomePageService.getLiveTracking_data({
+        imei,
+        regno,
+        owner: "",
+        poi: "",
+        roads: "",
+        polygon: "",
+        category: "",
+        make: "",
+        dto_code: "",
+        poi_id: "",
+        in_range: false,
+        poi_as_polygon: false,
+      });
+
+      const entry = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
+      const lat = Number(entry?.latitude);
+      const lon = Number(entry?.longitude);
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+      const lonLat = [lon, lat];
+      setVehiclePosition(lonLat);
+      renderVehicleMarker(lonLat);
+    } catch (e) {
+      // ignore marker failures
+    }
   };
 
   const handleRouteSelect = (event) => {
@@ -192,7 +268,7 @@ const RouteFixing = () => {
       const roadsLayer = new TileLayer({
         source: new XYZ({
           url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
-          attributions: '© OpenStreetMap contributors',
+          attributions: ' OpenStreetMap contributors',
           maxZoom: 20,
           projection: "EPSG:3857"
         }),
@@ -205,7 +281,7 @@ const RouteFixing = () => {
       const satelliteLayer = new TileLayer({
         source: new XYZ({
           url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          attributions: "© Esri",
+          attributions: " Esri",
           maxZoom: 18,
         }),
         visible: false,
@@ -234,6 +310,7 @@ const RouteFixing = () => {
 
       const vectorLayer = new VectorLayer({
         source: vectorSourceRef.current,
+        zIndex: 10,
       });
 
       initialMap.addLayer(vectorLayer);
@@ -256,6 +333,12 @@ const RouteFixing = () => {
       });
     }
   }, [deviceId]);
+
+  useEffect(() => {
+    if (!deviceId) return;
+    if (!deviceList || deviceList.length === 0) return;
+    fetchAndRenderVehicleMarker(deviceId);
+  }, [deviceId, deviceList]);
 
   // Handle Map Type Toggle
   useEffect(() => {
@@ -295,7 +378,7 @@ const RouteFixing = () => {
         point.setStyle(
           new Style({
             image: new Icon({
-              src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+              src: busMarkerIcon,
               scale: 0.051,
               anchor: [0.5, 1],
               anchorXUnits: "fraction",
@@ -326,6 +409,10 @@ const RouteFixing = () => {
       }));
 
       vectorSourceRef.current.addFeature(line);
+
+      if (vehiclePosition) {
+        renderVehicleMarker(vehiclePosition);
+      }
 
       // Get the extent and verify it's valid before fitting
       const extent = line.getGeometry().getExtent();
@@ -380,6 +467,10 @@ const RouteFixing = () => {
 
     // Add the new point features to the map
     vectorSourceRef.current.addFeatures(pointFeatures);
+
+    if (vehiclePosition) {
+      renderVehicleMarker(vehiclePosition);
+    }
 
     // Create and add the route line if we have more than one point
     if (points.length > 1) {
