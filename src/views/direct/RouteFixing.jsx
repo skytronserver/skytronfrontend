@@ -134,8 +134,12 @@ const RouteFixing = () => {
   const handleDeviceChange = (e) => {
     setDeviceId(e.target.value);
     setSelectedRoute(null); // Clear selected route on device change
+    setNewPoints([]);
     setVehiclePosition(null);
     vehicleMarkerRef.current = null;
+    if (vectorSourceRef.current) {
+      vectorSourceRef.current.clear();
+    }
   };
 
   const renderVehicleMarker = (lonLat) => {
@@ -166,47 +170,6 @@ const RouteFixing = () => {
 
     vectorSourceRef.current.addFeature(feature);
     vehicleMarkerRef.current = feature;
-  };
-
-  const fetchAndRenderVehicleMarker = async (activeDeviceId) => {
-    try {
-      const selectedDevice = deviceList.find((item) => item?.device?.id === activeDeviceId);
-      const imei =
-        selectedDevice?.device?.imei ||
-        selectedDevice?.device?.imei_no ||
-        selectedDevice?.device?.imeiNo ||
-        "";
-      const regno = selectedDevice?.vehicle_reg_no || "";
-
-      if (!imei && !regno) return;
-
-      const resp = await HomePageService.getLiveTracking_data({
-        imei,
-        regno,
-        owner: "",
-        poi: "",
-        roads: "",
-        polygon: "",
-        category: "",
-        make: "",
-        dto_code: "",
-        poi_id: "",
-        in_range: false,
-        poi_as_polygon: false,
-      });
-
-      const entry = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
-      const lat = Number(entry?.latitude);
-      const lon = Number(entry?.longitude);
-
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
-
-      const lonLat = [lon, lat];
-      setVehiclePosition(lonLat);
-      renderVehicleMarker(lonLat);
-    } catch (e) {
-      // ignore marker failures
-    }
   };
 
   const handleRouteSelect = (event) => {
@@ -326,19 +289,21 @@ const RouteFixing = () => {
       initialMap.addOverlay(overlay);
     }
     // Add click event for adding new route points only if vehicle is selected else not allow to select point
-    if (deviceId != "") {
-      map.current.on("click", (e) => {
-        const coord = e.coordinate;
-        addPoint(coord);
-      });
-    }
-  }, [deviceId]);
+    const clickHandler = (e) => {
+      const coord = e.coordinate;
+      addPoint(coord);
+    };
 
-  useEffect(() => {
-    if (!deviceId) return;
-    if (!deviceList || deviceList.length === 0) return;
-    fetchAndRenderVehicleMarker(deviceId);
-  }, [deviceId, deviceList]);
+    if (deviceId != "") {
+      map.current.on("click", clickHandler);
+    }
+
+    return () => {
+      if (map.current) {
+        map.current.un("click", clickHandler);
+      }
+    };
+  }, [deviceId]);
 
   // Handle Map Type Toggle
   useEffect(() => {
@@ -410,10 +375,6 @@ const RouteFixing = () => {
 
       vectorSourceRef.current.addFeature(line);
 
-      if (vehiclePosition) {
-        renderVehicleMarker(vehiclePosition);
-      }
-
       // Get the extent and verify it's valid before fitting
       const extent = line.getGeometry().getExtent();
       if (extent && extent.every(coord => typeof coord === 'number' && !isNaN(coord))) {
@@ -436,7 +397,14 @@ const RouteFixing = () => {
     const pointCoordinates = toLonLat(coord); // Convert to lon/lat before storing
     setNewPoints((prevPoints) => {
       const updatedPoints = [...prevPoints, pointCoordinates];
+      if (prevPoints.length === 0) {
+        setVehiclePosition(pointCoordinates);
+      }
       updateRouteLine(updatedPoints); // Update the map with the new points
+
+      if (prevPoints.length === 0) {
+        renderVehicleMarker(pointCoordinates);
+      }
       return updatedPoints;
     });
   };
@@ -468,8 +436,8 @@ const RouteFixing = () => {
     // Add the new point features to the map
     vectorSourceRef.current.addFeatures(pointFeatures);
 
-    if (vehiclePosition) {
-      renderVehicleMarker(vehiclePosition);
+    if (points.length > 0) {
+      renderVehicleMarker(points[0]);
     }
 
     // Create and add the route line if we have more than one point
