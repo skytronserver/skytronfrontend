@@ -36,6 +36,30 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const { t } = useTranslation();
 
+  const [callMeta, setCallMeta] = useState({});
+
+  const handleSosTypeChange = (next) => {
+    if (!call?.id) return;
+    setCallMeta((prev) => ({
+      ...prev,
+      [call.id]: {
+        ...(prev[call.id] || {}),
+        sosType: next
+      }
+    }));
+  };
+
+  const handleCaseOutcomeChange = (next) => {
+    if (!call?.id) return;
+    setCallMeta((prev) => ({
+      ...prev,
+      [call.id]: {
+        ...(prev[call.id] || {}),
+        caseOutcome: next
+      }
+    }));
+  };
+
   //fetching live location
   useEffect(() => {
     fetchAndPlotLocations();
@@ -228,7 +252,13 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     try {
       await HomePageService.closeCase({ assignment_id: call.id });
       alert('Call closed successfully!');
-      setShowDetails(false)
+      setCall((prev) => ({
+        ...prev,
+        call: {
+          ...(prev?.call || {}),
+          status: 'closed'
+        }
+      }));
     } catch (error) {
       console.error('Close Call Error:', error);
     }
@@ -417,6 +447,10 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
         broadcastDisabled={broadcastDisabled}
         call={call}
         showDetails={showDetails}
+        sosType={callMeta?.[call?.id]?.sosType}
+        onSosTypeChange={handleSosTypeChange}
+        caseOutcome={callMeta?.[call?.id]?.caseOutcome}
+        onCaseOutcomeChange={handleCaseOutcomeChange}
       />
       {/* Popup Dialog for New Pending Call */}
       <Dialog open={!!newPendingCall} onClose={handlePendingDialogClose}>

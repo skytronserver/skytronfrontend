@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -6,7 +6,10 @@ import {
   Button,
   Box,
   Grid,
-  ButtonGroup
+  ButtonGroup,
+  FormControl,
+  Select,
+  MenuItem
 } from "@mui/material";
 
 function DetailCard({
@@ -14,8 +17,26 @@ function DetailCard({
   handleBroadcast,
   handleCloseCall,
   broadcastDisabled,
-  showDetails
+  showDetails,
+  sosType,
+  onSosTypeChange,
+  caseOutcome,
+  onCaseOutcomeChange
 }) {
+
+  const isClosed = String(call?.call?.status || '').toLowerCase() === 'closed';
+
+  const sosTypeOptions = [
+    { value: 'device', label: 'SOS from Device' },
+    { value: 'app_unreg', label: 'SOS from App (Unreg)' },
+    { value: 'app_reg', label: 'SOS from App (Reg)' },
+    { value: 'app_trip', label: 'SOS from App (Trip)' }
+  ];
+
+  const caseOutcomeOptions = [
+    { value: 'genuine', label: 'Genuine' },
+    { value: 'fake', label: 'Fake' }
+  ];
 
 
   return (
@@ -51,6 +72,38 @@ function DetailCard({
  
          <CardContent>
            <Box display="flex" flexDirection="column" gap={2}>
+             <FormControl size="small" fullWidth>
+               <Select
+                 value={sosType || ''}
+                 onChange={(e) => onSosTypeChange?.(e.target.value)}
+                 disabled={isClosed}
+                 displayEmpty
+               >
+                 <MenuItem value="">SOS Type</MenuItem>
+                 {sosTypeOptions.map((opt) => (
+                   <MenuItem key={opt.value} value={opt.value}>
+                     {opt.label}
+                   </MenuItem>
+                 ))}
+               </Select>
+             </FormControl>
+
+             <FormControl size="small" fullWidth>
+               <Select
+                 value={caseOutcome || ''}
+                 onChange={(e) => onCaseOutcomeChange?.(e.target.value)}
+                 disabled={!isClosed}
+                 displayEmpty
+               >
+                 <MenuItem value="">{isClosed ? 'Case Outcome' : 'Case Outcome (after close)'}</MenuItem>
+                 {caseOutcomeOptions.map((opt) => (
+                   <MenuItem key={opt.value} value={opt.value}>
+                     {opt.label}
+                   </MenuItem>
+                 ))}
+               </Select>
+             </FormControl>
+
              <ButtonGroup variant="contained" color="primary" fullWidth>
                <Button onClick={() => handleBroadcast("police_ex")} disabled={broadcastDisabled}>
                  Police

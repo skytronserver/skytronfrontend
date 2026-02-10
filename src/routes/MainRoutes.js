@@ -35,7 +35,8 @@ import IncidentReport from "../views/reports/IncidentReport";
 import SuperAdminDashboard from "../views/dashboard/super admin dashboard/SuperAdminDashboard";
 import PublicTransportDashboard from "../views/dashboard/super admin dashboard/PublicTransportDashboard";
 import PublicSafetyDashboard from "../views/dashboard/super admin dashboard/PublicSafetyDashboard";
-import SOSEmergencyDashboard from "../views/dashboard/super admin dashboard/SOSEmergencyDashboard";
+import SOSMonitoringDashboard from "../views/dashboard/super admin dashboard/SOSMonitoringDashboard";
+import SOSAnalyticsDashboard from "../views/dashboard/super admin dashboard/SOSAnalyticsDashboard";
 import NewMap from "../views/MapComponent/Index";
 import HealthPacketLog from "../views/reports/HealthPacketLog";
 import POIReport from "../views/reports/POIReport";
@@ -121,7 +122,12 @@ const MainRoutes = {
     },
     {
       path: "/superadmin-dashboard/sos",
-      element: <SOSEmergencyDashboard />,
+      element: <SOSMonitoringDashboard />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/sos-analytics",
+      element: <SOSAnalyticsDashboard />,
       roles: ["superadmin"],
     },
     {

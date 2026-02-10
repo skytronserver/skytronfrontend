@@ -190,6 +190,11 @@ const updateSOSCall = (data) => {
   return http.post("/api/submit_status/", data);
 }
 
+const updateSOSCaseMeta = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/DEx/updateCaseMeta/", data);
+}
+
 const addRoute = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/saveRoute/", data);
@@ -328,6 +333,7 @@ const HomePageService = {
   getCallDetails,
   broadCastHelp,
   updateSOSCall,
+  updateSOSCaseMeta,
   addRoute,
   getRoute,
   delRoute,

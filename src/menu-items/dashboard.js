@@ -74,6 +74,15 @@ const dashboard = {
       roles: ['superadmin']
     },
     {
+      id: 'superadmin-dashboard-sos-analytics',
+      title: 'SOS Analytics',
+      type: 'item',
+      url: '/superadmin-dashboard/sos-analytics',
+      icon: icons.IconChartBar,
+      breadcrumbs: false,
+      roles: ['superadmin']
+    },
+    {
       id: 'morth-dashboard',
       title: 'MoRTH Dashboard',
       type: 'item',
