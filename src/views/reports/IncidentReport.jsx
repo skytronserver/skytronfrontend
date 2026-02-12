@@ -37,12 +37,15 @@ const IncidentReport = () => {
         registered_at_to: '',
         district: '',
         police_station: '',
+        nearest_police_station: '',
         latitude: '',
         longitude: '',
         radius_km: '',
         page: 1,
         page_size: 10
     });
+
+    const [quickRange, setQuickRange] = useState('');
 
     // Component states
     const [incidentData, setIncidentData] = useState([]);
@@ -60,6 +63,52 @@ const IncidentReport = () => {
         setFilters(prev => ({
             ...prev,
             [field]: value
+        }));
+    };
+
+    const formatDateOnly = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const applyQuickRange = (rangeKey) => {
+        setQuickRange(rangeKey);
+
+        if (!rangeKey) {
+            setFilters(prev => ({
+                ...prev,
+                registered_at_from: '',
+                registered_at_to: '',
+                page: 1
+            }));
+            return;
+        }
+
+        const now = new Date();
+        const toDate = formatDateOnly(now);
+        let from = new Date(now);
+
+        if (rangeKey === 'past_hour') {
+            from = new Date(now.getTime() - 60 * 60 * 1000);
+        } else if (rangeKey === 'past_24h') {
+            from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        } else if (rangeKey === 'past_3d') {
+            from = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        } else if (rangeKey === 'past_7d') {
+            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (rangeKey === 'past_3m') {
+            from = new Date(now);
+            from.setMonth(from.getMonth() - 3);
+        }
+
+        const fromDate = formatDateOnly(from);
+        setFilters(prev => ({
+            ...prev,
+            registered_at_from: fromDate,
+            registered_at_to: toDate,
+            page: 1
         }));
     };
 
@@ -103,12 +152,14 @@ const IncidentReport = () => {
             registered_at_to: '',
             district: '',
             police_station: '',
+            nearest_police_station: '',
             latitude: '',
             longitude: '',
             radius_km: '',
             page: 1,
             page_size: 10
         });
+        setQuickRange('');
     };
 
     // DataGrid columns
@@ -118,11 +169,33 @@ const IncidentReport = () => {
         { field: 'district', headerName: 'District', width: 120, flex: 0.8 },
         { field: 'police_station', headerName: 'Police Station', width: 130, flex: 1, valueGetter: (params) => params.row.police_station || 'N/A' },
         {
+            field: 'nearest_police_station',
+            headerName: 'Nearest Police Station',
+            width: 170,
+            flex: 1,
+            valueGetter: (params) =>
+                params.row.nearest_police_station ||
+                params.row.nearestPoliceStation ||
+                params.row.nearest_police_station_name ||
+                params.row.nearest_police_name ||
+                params.row.nearest_police_station?.data?.name ||
+                params.row.nearest_police?.data?.name ||
+                'N/A'
+        },
+        {
             field: 'registered_by_info',
             headerName: 'Registered By',
             width: 150,
             flex: 1,
-            valueGetter: (params) => params.row.registered_by_info?.name || params.row.registered_by || 'N/A'
+            valueGetter: (params) =>
+                params.row.registered_by_info?.phone_no ||
+                params.row.registered_by_info?.mobile_no ||
+                params.row.registered_by_info?.mobile ||
+                params.row.registered_by_mobile ||
+                params.row.registered_by_phone ||
+                params.row.registered_by_info?.name ||
+                params.row.registered_by ||
+                'N/A'
         },
         { field: 'details', headerName: 'Details', width: 150, flex: 1.2 },
         {
@@ -191,14 +264,15 @@ const IncidentReport = () => {
     const exportToCSV = () => {
         if (incidentData.length === 0) return;
 
-        const headers = ['ID', 'Vehicle Reg No', 'District', 'Police Station', 'Details', 'Registered By', 'Registered At', 'Latitude', 'Longitude', 'Image URL'];
+        const headers = ['ID', 'Vehicle Reg No', 'District', 'Police Station', 'Nearest Police Station', 'Details', 'Registered By (Mobile No)', 'Registered At', 'Latitude', 'Longitude', 'Image URL'];
         const csvRows = incidentData.map(row => [
             row.id,
             row.vehicle_reg_no,
             row.district || 'N/A',
             row.police_station || 'N/A',
+            row.nearest_police_station || row.nearestPoliceStation || row.nearest_police_station_name || row.nearest_police_name || row.nearest_police_station?.data?.name || row.nearest_police?.data?.name || 'N/A',
             `"${(row.details || '').replace(/"/g, '""')}"`,
-            row.registered_by_info?.name || row.registered_by || 'N/A',
+            row.registered_by_info?.phone_no || row.registered_by_info?.mobile_no || row.registered_by_info?.mobile || row.registered_by_mobile || row.registered_by_phone || row.registered_by_info?.name || row.registered_by || 'N/A',
             row.registered_at,
             row.latitude,
             row.longitude,
@@ -282,11 +356,24 @@ const IncidentReport = () => {
                                     <Grid item xs={12} md={3}>
                                         <TextField
                                             fullWidth
+                                            label="Nearest Police Station"
+                                            value={filters.nearest_police_station}
+                                            onChange={(e) => handleFilterChange('nearest_police_station', e.target.value)}
+                                            size="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={3}>
+                                        <TextField
+                                            fullWidth
                                             type="date"
                                             label="From Date"
                                             InputLabelProps={{ shrink: true }}
                                             value={filters.registered_at_from}
-                                            onChange={(e) => handleFilterChange('registered_at_from', e.target.value)}
+                                            onChange={(e) => {
+                                                setQuickRange('');
+                                                handleFilterChange('registered_at_from', e.target.value);
+                                                handleFilterChange('page', 1);
+                                            }}
                                             size="small"
                                         />
                                     </Grid>
@@ -297,14 +384,36 @@ const IncidentReport = () => {
                                             label="To Date"
                                             InputLabelProps={{ shrink: true }}
                                             value={filters.registered_at_to}
-                                            onChange={(e) => handleFilterChange('registered_at_to', e.target.value)}
+                                            onChange={(e) => {
+                                                setQuickRange('');
+                                                handleFilterChange('registered_at_to', e.target.value);
+                                                handleFilterChange('page', 1);
+                                            }}
                                             size="small"
                                         />
                                     </Grid>
                                     <Grid item xs={12} md={3}>
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel id="incident-quick-range-label">Quick Range</InputLabel>
+                                            <Select
+                                                labelId="incident-quick-range-label"
+                                                label="Quick Range"
+                                                value={quickRange}
+                                                onChange={(e) => applyQuickRange(e.target.value)}
+                                            >
+                                                <MenuItem value=""><em>None</em></MenuItem>
+                                                <MenuItem value="past_hour">Past hour</MenuItem>
+                                                <MenuItem value="past_24h">Past 24 hours</MenuItem>
+                                                <MenuItem value="past_3d">Past 3 days</MenuItem>
+                                                <MenuItem value="past_7d">Past 7 days</MenuItem>
+                                                <MenuItem value="past_3m">Past 3 months</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} md={3}>
                                         <TextField
                                             fullWidth
-                                            label="Registered By (ID)"
+                                            label="Registered By (Mobile No)"
                                             value={filters.registered_by}
                                             onChange={(e) => handleFilterChange('registered_by', e.target.value)}
                                             size="small"

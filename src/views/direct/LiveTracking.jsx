@@ -30,6 +30,7 @@ import {
 
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
+import { getUseNewGeocodingApi, setUseNewGeocodingApi } from "../../services/HomePage";
 import MapComponent from "./LiveMap";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
@@ -68,6 +69,7 @@ const LiveTracking = () => {
   const [policeLocations, setPoliceLocations] = useState([]);
   const [incidentData, setIncidentData] = useState([]);
   const [useNmrLocation, setUseNmrLocation] = useState(false);
+  const [useNewGeocodingApi, setUseNewGeocodingApiState] = useState(getUseNewGeocodingApi());
   const [nmrArea, setNmrArea] = useState(null);
   const [reverseGeocodeCache, setReverseGeocodeCache] = useState({});
   const fullDataRef = useRef([]); // processed items we've appended so far
@@ -135,8 +137,8 @@ const LiveTracking = () => {
     if (isStale) alartType = 'grey';
     else if (processedItem.packet_type === 'EA') alartType = 'red';
     else if (processedItem.packet_type !== 'NR') alartType = 'orange';
-    else if (ignitionOn && speedValue <= 1) alartType = 'blue';
-    else if (ignitionOn && speedValue > 1) alartType = 'green';
+    else if (speedValue > 0) alartType = 'green';
+    else if (ignitionOn && speedValue === 0) alartType = 'blue';
     else alartType = 'default';
 
     const vehicleType = processedItem?.device_tag_info?.category_info?.category;
@@ -447,8 +449,7 @@ const LiveTracking = () => {
 
   const reverseGeocode = async (lat, lon) => {
     try {
-      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`;
-      const response = await axios.get(url);
+      const response = await HomePageService.getReverseGeocode(lat, lon);
       const payload = response?.data;
 
       let city = "";
@@ -813,10 +814,10 @@ const LiveTracking = () => {
       color = 'red'; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
-    } else if (ignitionOn && speedValue <= 1) {
+    } else if (speedValue > 0) {
+      color = 'green'; // Moving - Green Icon
+    } else if (ignitionOn && speedValue === 0) {
       color = 'blue'; // Ignition ON but stationary - Blue Icon
-    } else if (ignitionOn && speedValue > 1) {
-      color = 'green'; // Ignition ON and moving - Green Icon
     } else {
       color = 'default'; // Default icon for all other conditions
     }
@@ -841,10 +842,10 @@ const LiveTracking = () => {
       return "red"; // EA Packet - Red Icon
     } else if (data.packet_type !== "NR") {
       return "orange"; // Any Alert Packet except EA - Orange Icon
-    } else if (ignitionOn && speedValue <= 1) {
+    } else if (speedValue > 0) {
+      return "green"; // Moving - Green Icon
+    } else if (ignitionOn && speedValue === 0) {
       return "blue"; // Ignition ON but stationary - Blue Icon
-    } else if (ignitionOn && speedValue > 1) {
-      return "green"; // Ignition ON and moving - Green Icon
     } else {
       return "default"; // Default icon for all other conditions
     }
@@ -1190,6 +1191,21 @@ const LiveTracking = () => {
                 <MenuItem value="route">Route Information</MenuItem>
               </Select>
             </FormControl>
+            <FormControlLabel
+              sx={{ ml: 2 }}
+              control={
+                <Switch
+                  color="primary"
+                  checked={useNewGeocodingApi}
+                  onChange={(event) => {
+                    const enabled = event.target.checked;
+                    setUseNewGeocodingApi(enabled);
+                    setUseNewGeocodingApiState(enabled);
+                  }}
+                />
+              }
+              label="New Geocoding API"
+            />
             <FormControlLabel
               sx={{ ml: 2 }}
               control={

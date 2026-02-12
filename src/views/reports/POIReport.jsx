@@ -32,6 +32,8 @@ const POIReport = () => {
         use_type: '',
     });
 
+    const [quickRange, setQuickRange] = useState('');
+
     // Component states
     const [poiData, setPoiData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
@@ -91,9 +93,48 @@ const POIReport = () => {
         }));
     };
 
+    const resolveQuickRangeFromDate = (rangeKey) => {
+        const now = new Date();
+        if (!rangeKey) return null;
+
+        if (rangeKey === 'past_hour') {
+            return new Date(now.getTime() - 60 * 60 * 1000);
+        }
+        if (rangeKey === 'past_24h') {
+            return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        }
+        if (rangeKey === 'past_3d') {
+            return new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        }
+        if (rangeKey === 'past_7d') {
+            return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        }
+        if (rangeKey === 'past_3m') {
+            const from = new Date(now);
+            from.setMonth(from.getMonth() - 3);
+            return from;
+        }
+
+        return null;
+    };
+
     // Apply filters
     const applyFilters = () => {
         let result = [...poiData];
+
+        if (quickRange) {
+            const from = resolveQuickRangeFromDate(quickRange);
+            const now = new Date();
+            if (from) {
+                result = result.filter((poi) => {
+                    const createdRaw = poi?.created;
+                    if (!createdRaw) return false;
+                    const createdDate = new Date(createdRaw);
+                    if (!Number.isFinite(createdDate.getTime())) return false;
+                    return createdDate >= from && createdDate <= now;
+                });
+            }
+        }
 
         if (filters.name) {
             const searchLower = filters.name.toLowerCase();
@@ -127,6 +168,7 @@ const POIReport = () => {
             mark_type: '',
             use_type: '',
         });
+        setQuickRange('');
         setFilteredData(poiData);
     };
 
@@ -362,6 +404,26 @@ const POIReport = () => {
                                                     {useTypes.map(type => (
                                                         <MenuItem key={type} value={type}>{type}</MenuItem>
                                                     ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid>
+
+                                        {/* Quick Range */}
+                                        <Grid item xs={12} md={3}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="poi-quick-range-label">Quick Range</InputLabel>
+                                                <Select
+                                                    labelId="poi-quick-range-label"
+                                                    value={quickRange}
+                                                    label="Quick Range"
+                                                    onChange={(e) => setQuickRange(e.target.value)}
+                                                >
+                                                    <MenuItem value=""><em>None</em></MenuItem>
+                                                    <MenuItem value="past_hour">Past hour</MenuItem>
+                                                    <MenuItem value="past_24h">Past 24 hours</MenuItem>
+                                                    <MenuItem value="past_3d">Past 3 days</MenuItem>
+                                                    <MenuItem value="past_7d">Past 7 days</MenuItem>
+                                                    <MenuItem value="past_3m">Past 3 months</MenuItem>
                                                 </Select>
                                             </FormControl>
                                         </Grid>

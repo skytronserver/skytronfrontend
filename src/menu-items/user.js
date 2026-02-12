@@ -291,7 +291,7 @@ const user = {
       title: "Device Management",
       type: "collapse",
       icon: icons.IconDeviceSim,
-      roles: ["stateadmin"],
+      roles: ["superadmin", "stateadmin"],
       children: [
         {
           id: "view-device",
@@ -299,7 +299,7 @@ const user = {
           type: "item",
           url: "/device/list",
           breadcrumbs: false,
-          roles: ["stateadmin"],
+          roles: ["superadmin", "stateadmin"],
         },
         {
           id: "view-device-cop",
@@ -307,7 +307,7 @@ const user = {
           type: "item",
           url: "/deviceCOP/list",
           breadcrumbs: false,
-          roles: ["stateadmin"],
+          roles: ["superadmin", "stateadmin"],
         },
         {
           id: "approved-models",
@@ -315,7 +315,7 @@ const user = {
           type: "item",
           url: "/device/approved-models",
           breadcrumbs: false,
-          roles: ["stateadmin"],
+          roles: ["superadmin", "stateadmin"],
         },
         {
           id: "approved-cops",
@@ -323,7 +323,7 @@ const user = {
           type: "item",
           url: "/device/approved-cops",
           breadcrumbs: false,
-          roles: ["stateadmin"],
+          roles: ["superadmin", "stateadmin"],
         },
       ]
     },
@@ -777,7 +777,7 @@ const user = {
           type: 'item',
           url: '/reports/device-health-report',
           breadcrumbs: false,
-          roles: ['superadmin','stateadmin']
+          roles: ['superadmin', 'stateadmin']
         },
         {
           id: 'user-statistics-report',

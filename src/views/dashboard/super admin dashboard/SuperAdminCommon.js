@@ -32,6 +32,7 @@ import Point from 'ol/geom/Point';
 import Style from 'ol/style/Style';
 import Icon from 'ol/style/Icon';
 import { fromLonLat } from 'ol/proj';
+import { createEmpty, extend as extendExtent, isEmpty as isEmptyExtent } from 'ol/extent';
 
 // Services
 import HomePageService from 'services/HomePage';
@@ -83,7 +84,16 @@ const VEHICLE_FAKE_LOADING_DELAY = 650;
 const SOS_FAKE_LOADING_DELAY = 30000;
 const SOS_REFRESH_INTERVAL = 90000;
 
-const DashboardMap = ({ data, getStyle, center = [91.7362, 26.1445], zoom = 10 }) => {
+const DashboardMap = ({
+  data,
+  getStyle,
+  center = [91.7362, 26.1445],
+  zoom = 10,
+  autoFit = false,
+  autoFitFilter,
+  autoFitPadding = [60, 60, 60, 60],
+  autoFitMaxZoom = 15
+}) => {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [vectorLayer, setVectorLayer] = useState(null);
@@ -167,7 +177,30 @@ const DashboardMap = ({ data, getStyle, center = [91.7362, 26.1445], zoom = 10 }
       .filter(Boolean);
 
     source.addFeatures(features);
-  }, [map, vectorLayer, data, getStyle]);
+
+    if (!autoFit) return;
+
+    const extent = createEmpty();
+    let matched = 0;
+    for (const item of data) {
+      if (autoFitFilter && !autoFitFilter(item)) continue;
+
+      const lat = Number(item.latitude);
+      const lon = Number(item.longitude);
+      if (Number.isNaN(lat) || Number.isNaN(lon)) continue;
+
+      extendExtent(extent, new Point(fromLonLat([lon, lat])).getExtent());
+      matched += 1;
+    }
+
+    if (!matched || isEmptyExtent(extent)) return;
+
+    map.getView().fit(extent, {
+      padding: autoFitPadding,
+      maxZoom: autoFitMaxZoom,
+      duration: 450
+    });
+  }, [map, vectorLayer, data, getStyle, autoFit, autoFitFilter, autoFitPadding, autoFitMaxZoom]);
 
   return (
     <Box
@@ -883,64 +916,63 @@ const useSosDashboardData = () => {
 
 const PageWrapper = ({ title, description, children, sx = {} }) => (
   <MainCard
+    content={false}
     sx={{
       bgcolor: '#f8fafc',
       backgroundImage: `
         radial-gradient(circle at 0% 0%, ${alpha('#6366f1', 0.03)} 0%, transparent 50%),
         radial-gradient(circle at 100% 100%, ${alpha('#ec4899', 0.03)} 0%, transparent 50%)
       `,
-      minHeight: '100vh',
-      height: '100vh',
+      minHeight: 'calc(100vh - 88px)',
       border: 'none',
       position: 'relative',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
       ...sx
     }}
   >
-    <Box
-      sx={{
-        position: 'absolute',
-        inset: '-20% 40% auto 10%',
-        width: 280,
-        height: 280,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
-        filter: 'blur(12px)',
-        animation: `${gradientPulse} 11s ease-in-out infinite`,
-        pointerEvents: 'none'
-      }}
-    />
-    <Box
-      sx={{
-        position: 'absolute',
-        inset: '60% -15% -25% 55%',
-        background: 'linear-gradient(135deg, rgba(236,72,153,0.12), transparent)',
-        transform: 'rotate(-12deg)',
-        filter: 'blur(20px)',
-        animation: `${gradientPulse} 14s ease-in-out infinite`,
-        pointerEvents: 'none'
-      }}
-    />
-    <Box sx={{ mb: 4, flexShrink: 0 }}>
-      <Typography
-        variant="h2"
+    <Box sx={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <Box
         sx={{
-          fontWeight: 800,
-          fontSize: { xs: '1.75rem', md: '2.5rem' },
-          color: '#1e293b',
-          mb: 1,
-          letterSpacing: '-1px'
+          position: 'absolute',
+          inset: '-20% 40% auto 10%',
+          width: 280,
+          height: 280,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+          filter: 'blur(12px)',
+          animation: `${gradientPulse} 11s ease-in-out infinite`,
+          pointerEvents: 'none'
         }}
-      >
-        {title}
-      </Typography>
-      <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1rem', maxWidth: '600px' }}>
-        {description}
-      </Typography>
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: '60% -15% -25% 55%',
+          background: 'linear-gradient(135deg, rgba(236,72,153,0.12), transparent)',
+          transform: 'rotate(-12deg)',
+          filter: 'blur(20px)',
+          animation: `${gradientPulse} 14s ease-in-out infinite`,
+          pointerEvents: 'none'
+        }}
+      />
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: 800,
+            fontSize: { xs: '1.75rem', md: '2.5rem' },
+            color: '#1e293b',
+            mb: 1,
+            letterSpacing: '-1px'
+          }}
+        >
+          {title}
+        </Typography>
+        <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1rem', maxWidth: '600px' }}>
+          {description}
+        </Typography>
+      </Box>
+      <Box>{children}</Box>
     </Box>
-    <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>{children}</Box>
   </MainCard>
 );
 

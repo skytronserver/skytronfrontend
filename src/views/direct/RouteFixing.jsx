@@ -27,6 +27,7 @@ import Style from "ol/style/Style";
 import Stroke from "ol/style/Stroke";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 import { useTranslation } from "react-i18next";
+import busMarkerIcon from "../../assets/images/grey/bus.png";
 
 const resolveBhuvanWmsUrl = () => {
   const envUrl = process.env.REACT_APP_BHUVAN_URL;
@@ -79,11 +80,13 @@ const RouteFixing = () => {
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [newPoints, setNewPoints] = useState([]); // Store coordinates of points
   const [routeStats, setRouteStats] = useState({ distance: 0, travelTime: 0 });
+  const [vehiclePosition, setVehiclePosition] = useState(null); // [lon, lat]
   const mapRef = useRef(null);
   const vectorSourceRef = useRef(new VectorSource());
   const map = useRef(null);
   const overlayRef = useRef(null);
   const selectedId = useRef("");
+  const vehicleMarkerRef = useRef(null);
 
   // Map Layers Refs
   const normalLayersRef = useRef([]);
@@ -131,6 +134,42 @@ const RouteFixing = () => {
   const handleDeviceChange = (e) => {
     setDeviceId(e.target.value);
     setSelectedRoute(null); // Clear selected route on device change
+    setNewPoints([]);
+    setVehiclePosition(null);
+    vehicleMarkerRef.current = null;
+    if (vectorSourceRef.current) {
+      vectorSourceRef.current.clear();
+    }
+  };
+
+  const renderVehicleMarker = (lonLat) => {
+    if (!lonLat || !Array.isArray(lonLat) || lonLat.length < 2) return;
+    if (!vectorSourceRef.current) return;
+
+    // Remove previous marker (if any)
+    if (vehicleMarkerRef.current) {
+      vectorSourceRef.current.removeFeature(vehicleMarkerRef.current);
+      vehicleMarkerRef.current = null;
+    }
+
+    const feature = new Feature({
+      geometry: new Point(fromLonLat(lonLat)),
+    });
+
+    feature.setStyle(
+      new Style({
+        image: new Icon({
+          src: busMarkerIcon,
+          scale: 0.06,
+          anchor: [0.5, 1],
+          anchorXUnits: "fraction",
+          anchorYUnits: "fraction",
+        }),
+      })
+    );
+
+    vectorSourceRef.current.addFeature(feature);
+    vehicleMarkerRef.current = feature;
   };
 
   const handleRouteSelect = (event) => {
@@ -180,30 +219,39 @@ const RouteFixing = () => {
       const india3Layer = new TileLayer({
         source: createBhuvanSource("india3"),
         visible: true,
+        zIndex: 1,
       });
 
       const adminGroupLayer = new TileLayer({
         source: createBhuvanSource("basemap:admin_group"),
         visible: true,
+        zIndex: 4,
       });
 
-      const mmiLayer = new TileLayer({
-        source: createBhuvanSource("mmi:mmi_india"),
+      const roadsLayer = new TileLayer({
+        source: new XYZ({
+          url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+          attributions: ' OpenStreetMap contributors',
+          maxZoom: 20,
+          projection: "EPSG:3857"
+        }),
         visible: true,
+        zIndex: 3,
+        minZoom: 11,
       });
 
       // Create Satellite Layer
       const satelliteLayer = new TileLayer({
         source: new XYZ({
           url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          attributions: "© Esri",
+          attributions: " Esri",
           maxZoom: 18,
         }),
         visible: false,
       });
 
       // Store refs
-      normalLayersRef.current = [india3Layer, adminGroupLayer, mmiLayer];
+      normalLayersRef.current = [india3Layer, adminGroupLayer, roadsLayer];
       satelliteLayerRef.current = satelliteLayer;
 
       const initialMap = new Map({
@@ -211,7 +259,7 @@ const RouteFixing = () => {
         layers: [
           india3Layer,
           adminGroupLayer,
-          mmiLayer,
+          roadsLayer,
           satelliteLayer
         ],
         view: new View({
@@ -225,6 +273,7 @@ const RouteFixing = () => {
 
       const vectorLayer = new VectorLayer({
         source: vectorSourceRef.current,
+        zIndex: 10,
       });
 
       initialMap.addLayer(vectorLayer);
@@ -240,12 +289,20 @@ const RouteFixing = () => {
       initialMap.addOverlay(overlay);
     }
     // Add click event for adding new route points only if vehicle is selected else not allow to select point
+    const clickHandler = (e) => {
+      const coord = e.coordinate;
+      addPoint(coord);
+    };
+
     if (deviceId != "") {
-      map.current.on("click", (e) => {
-        const coord = e.coordinate;
-        addPoint(coord);
-      });
+      map.current.on("click", clickHandler);
     }
+
+    return () => {
+      if (map.current) {
+        map.current.un("click", clickHandler);
+      }
+    };
   }, [deviceId]);
 
   // Handle Map Type Toggle
@@ -286,7 +343,7 @@ const RouteFixing = () => {
         point.setStyle(
           new Style({
             image: new Icon({
-              src: `${process.env.REACT_APP_BASE_URL}static/track.png`,
+              src: busMarkerIcon,
               scale: 0.051,
               anchor: [0.5, 1],
               anchorXUnits: "fraction",
@@ -340,7 +397,14 @@ const RouteFixing = () => {
     const pointCoordinates = toLonLat(coord); // Convert to lon/lat before storing
     setNewPoints((prevPoints) => {
       const updatedPoints = [...prevPoints, pointCoordinates];
+      if (prevPoints.length === 0) {
+        setVehiclePosition(pointCoordinates);
+      }
       updateRouteLine(updatedPoints); // Update the map with the new points
+
+      if (prevPoints.length === 0) {
+        renderVehicleMarker(pointCoordinates);
+      }
       return updatedPoints;
     });
   };
@@ -371,6 +435,10 @@ const RouteFixing = () => {
 
     // Add the new point features to the map
     vectorSourceRef.current.addFeatures(pointFeatures);
+
+    if (points.length > 0) {
+      renderVehicleMarker(points[0]);
+    }
 
     // Create and add the route line if we have more than one point
     if (points.length > 1) {

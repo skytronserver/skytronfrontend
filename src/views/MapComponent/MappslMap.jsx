@@ -45,6 +45,25 @@ const MappslMap = () => {
         },
       });
 
+      try {
+        const existingStyle = document.getElementById('mappls-controls-hide-mapcomponent');
+        if (existingStyle) existingStyle.remove();
+        const style = document.createElement('style');
+        style.id = 'mappls-controls-hide-mapcomponent';
+        style.textContent = `
+#mappls-map .mappls-ctrl-attrib,
+#mappls-map .mappls-ctrl-logo,
+#mappls-map .mappls-attrib,
+#mappls-map .mappls-logo,
+#mappls-map .mapboxgl-ctrl-attrib,
+#mappls-map .mapboxgl-ctrl-logo {
+display: none !important;
+}
+`;
+        document.head.appendChild(style);
+      } catch (e) {
+      }
+
       mapplsMapRef.current.addListener("load", () => {
         console.log('✓ Mappls map loaded successfully');
         setIsMapLoaded(true);

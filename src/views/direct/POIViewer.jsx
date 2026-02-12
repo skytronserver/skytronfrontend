@@ -1247,13 +1247,11 @@ const POIViewer = () => {
     try {
       setGeoSearchLoading(true);
 
-      const url = `https://api.gromed.in/api/geocode/?q=${encodeURIComponent(geoSearchQuery)}`;
-
-      console.log('Fetching geocode via Axios (Proxy):', url);
-      const response = await axios.get(url);
+      const response = await HomePageService.getGeocode(geoSearchQuery, 5);
 
       if (response.status === 200) {
         const data = response.data;
+
         console.log('Geocoding response data:', data);
 
         let results = [];
@@ -1437,10 +1435,9 @@ const POIViewer = () => {
       }
 
       setReverseGeoState({ loading: true, error: null, data: null, key: cacheKey });
-      const url = `https://api.gromed.in/api/reverse_geocode/?lat=${safeLat}&lon=${safeLng}`;
-      console.log('[POI][reverseGeocode] request', { url, cacheKey });
+      console.log('[POI][reverseGeocode] request', { cacheKey });
 
-      const response = await axios.get(url);
+      const response = await HomePageService.getReverseGeocode(safeLat, safeLng);
       console.log('[POI][reverseGeocode] response.status', response?.status);
       console.log('[POI][reverseGeocode] response.data', response?.data);
 

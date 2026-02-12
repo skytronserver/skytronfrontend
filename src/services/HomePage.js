@@ -1,4 +1,59 @@
 import { getAxiosInstance } from './axiosInstance';
+
+const GEO_TOGGLE_STORAGE_KEY = 'use_new_geocoding_api';
+
+const resolveUseNewGeocoding = () => {
+  try {
+    if (typeof window !== 'undefined' && window?.localStorage) {
+      const stored = window.localStorage.getItem(GEO_TOGGLE_STORAGE_KEY);
+      if (stored === 'true') return true;
+      if (stored === 'false') return false;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  return String(process.env.REACT_APP_USE_NEW_GEOCODING_API || '').toLowerCase() === 'true';
+};
+
+export const setUseNewGeocodingApi = (enabled) => {
+  try {
+    if (typeof window !== 'undefined' && window?.localStorage) {
+      window.localStorage.setItem(GEO_TOGGLE_STORAGE_KEY, enabled ? 'true' : 'false');
+    }
+  } catch (e) {
+    // ignore
+  }
+};
+
+export const getUseNewGeocodingApi = () => resolveUseNewGeocoding();
+
+const getGeocode = (query, limit = 5) => {
+  const http = getAxiosInstance();
+  const q = String(query || '').trim();
+  if (!q) {
+    return Promise.resolve({ data: { results: [] } });
+  }
+
+  if (resolveUseNewGeocoding()) {
+    return http.get('https://map-geocoding.gromed.in/search', {
+      params: {
+        format: 'jsonv2',
+        q,
+        limit,
+        addressdetails: 1,
+        extratags: 1,
+        namedetails: 1,
+      },
+    });
+  }
+
+  return http.get('https://api.gromed.in/api/geocode/', {
+    params: {
+      q,
+    },
+  });
+};
 const getLiveTracking = (data) => {
   const http = getAxiosInstance();
   return http.get("/api/gps-data-map/", {
@@ -135,6 +190,11 @@ const updateSOSCall = (data) => {
   return http.post("/api/submit_status/", data);
 }
 
+const updateSOSCaseMeta = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/DEx/updateCaseMeta/", data);
+}
+
 const addRoute = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/saveRoute/", data);
@@ -199,8 +259,65 @@ const getCellLocation = (data) => {
 
 const getReverseGeocode = (lat, lon) => {
   const http = getAxiosInstance();
-  // Using direct URL as per existing patterns in LiveMap
-  return http.get(`https://api.gromed.in/api/reverse_geocode/?lat=${lat}&lon=${lon}`);
+  const safeLat = Number(lat);
+  const safeLon = Number(lon);
+
+  if (!Number.isFinite(safeLat) || !Number.isFinite(safeLon)) {
+    return Promise.resolve({ data: {} });
+  }
+
+  if (resolveUseNewGeocoding()) {
+    return http.get('https://map-geocoding.gromed.in/reverse', {
+      params: {
+        format: 'jsonv2',
+        lat: safeLat,
+        lon: safeLon,
+        zoom: 18,
+        addressdetails: 1,
+        extratags: 1,
+        namedetails: 1,
+      },
+    }).then((resp) => {
+      const payload = resp?.data;
+      const addressDetails = payload?.address && typeof payload.address === 'object' ? payload.address : {};
+
+      const city =
+        addressDetails.city ||
+        addressDetails.town ||
+        addressDetails.village ||
+        addressDetails.municipality ||
+        addressDetails.county ||
+        addressDetails.state_district ||
+        '';
+
+      const area =
+        addressDetails.suburb ||
+        addressDetails.neighbourhood ||
+        addressDetails.quarter ||
+        addressDetails.hamlet ||
+        '';
+
+      const normalized = {
+        address: payload?.display_name || '',
+        city,
+        area,
+        pincode: addressDetails.postcode || '',
+        state: addressDetails.state || '',
+        country: addressDetails.country || '',
+        lat: payload?.lat ?? safeLat,
+        lon: payload?.lon ?? safeLon,
+      };
+
+      return { ...resp, data: normalized };
+    });
+  }
+
+  return http.get('https://api.gromed.in/api/reverse_geocode/', {
+    params: {
+      lat: safeLat,
+      lon: safeLon,
+    },
+  });
 };
 
 const HomePageService = {
@@ -216,6 +333,7 @@ const HomePageService = {
   getCallDetails,
   broadCastHelp,
   updateSOSCall,
+  updateSOSCaseMeta,
   addRoute,
   getRoute,
   delRoute,
@@ -234,6 +352,7 @@ const HomePageService = {
   getEmergencyUserLocations,
   getIncidentData,
   getCellLocation,
+  getGeocode,
   getReverseGeocode,
 };
 

@@ -8,7 +8,7 @@ import html2canvas from 'html2canvas';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
-import { TileWMS } from "ol/source";
+import { TileWMS, XYZ } from "ol/source";
 import { fromLonLat } from "ol/proj";
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
@@ -61,6 +61,45 @@ const GPSHistoryMap = ({
   const sliderValueRef = useRef(0); // Ref to track slider value for animation loop
 
   const STREET_ZOOM_LEVEL = 18;
+
+  function getStatusInfo(data) {
+    if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
+
+    const isIgnitionOn = String(data.igs) === "1";
+    const speed = Number(data.s || 0);
+    const packetStatus = data.ps;
+
+    if (packetStatus === "EA") {
+      return { colorKey: 'red', colorHex: '#d32f2f', statusText: 'Emergency' };
+    } else if (packetStatus !== "NR" && packetStatus) {
+      return { colorKey: 'orange', colorHex: '#ed6c02', statusText: 'Alert' };
+    } else if (speed > 0) {
+      return { colorKey: 'green', colorHex: '#2e7d32', statusText: 'Moving' };
+    } else if (isIgnitionOn) {
+      return { colorKey: 'blue', colorHex: '#0288d1', statusText: 'Stopped' };
+    } else {
+      return { colorKey: 'grey', colorHex: '#757575', statusText: 'Offline/Ignition Off' };
+    }
+  }
+
+  function playAnimation() {
+    setIsPlaying(true);
+    overlayRef.current.style.display = "none";
+
+    animationIntervalId.current = setInterval(() => {
+      if (sliderValueRef.current < maxSliderValue) {
+        sliderValueRef.current += 1;
+        setSliderValue(sliderValueRef.current);
+        const entry = mapData[sliderValueRef.current];
+        if (entry) {
+          updateEmergencyPointer(entry);
+        }
+      } else {
+        clearInterval(animationIntervalId.current);
+        setIsPlaying(false);
+      }
+    }, (510 - animationSpeed));
+  }
 
   const redM = new Style({
     image: new Icon({
@@ -235,12 +274,21 @@ const GPSHistoryMap = ({
         layers: [
           new TileLayer({
             source: createBhuvanSource("india3"),
+            zIndex: 1,
           }),
           new TileLayer({
             source: createBhuvanSource("basemap:admin_group"),
+            zIndex: 4,
           }),
           new TileLayer({
-            source: createBhuvanSource("mmi:mmi_india"),
+            source: new XYZ({
+              url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+              attributions: '© OpenStreetMap contributors',
+              maxZoom: 20,
+              projection: "EPSG:3857"
+            }),
+            zIndex: 3,
+            minZoom: 11,
           }),
         ],
         view: new View({
@@ -272,6 +320,7 @@ const GPSHistoryMap = ({
       const markerSource = new VectorSource();
       const markerLayer = new VectorLayer({
         source: markerSource,
+        zIndex: 100, // Ensure markers are above tile layers
       });
 
       initialMap.addLayer(markerLayer);
@@ -342,12 +391,6 @@ const GPSHistoryMap = ({
       allFeaturesRef.current.push(point); // Store for later
     });
 
-    // Adjust the map to fit all markers after adding them
-    map.getView().fit(markerRef.current.getExtent(), {
-      padding: [50, 50, 50, 50],
-      duration: 1000,
-    });
-
     attachClickToPoints();
     setIsPlaying(false);
     setDownloadStatus("Play");
@@ -359,6 +402,16 @@ const GPSHistoryMap = ({
       setCurrentData(data[0]);
       // Initialize the car marker at start position
       updateEmergencyPointer(data[0]);
+
+      // Adjust the map to zoom level 15 (like the image) centered on the first point
+      // Must be called AFTER updateEmergencyPointer because updateEmergencyPointer calls setCenter, which would cancel the animation
+      const firstStartPoint = data[0];
+      const centerStart = fromLonLat([parseFloat(firstStartPoint.lon), parseFloat(firstStartPoint.lat)]);
+      map.getView().animate({
+        center: centerStart,
+        zoom: 15,
+        duration: 1000,
+      });
     }
   };
 
@@ -465,36 +518,6 @@ const GPSHistoryMap = ({
     setSliderValue(value);
     sliderValueRef.current = value;
     const entry = mapData[value];
-    if (entry) {
-      updateEmergencyPointer(entry);
-    }
-  };
-
-  const getStatusInfo = (data) => {
-    if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
-
-    const isIgnitionOn = String(data.igs) === "1";
-    const speed = Number(data.s || 0);
-    const packetStatus = data.ps;
-
-    // Logic based on LiveTracking.jsx
-    if (packetStatus === "EA") {
-      return { colorKey: 'red', colorHex: '#d32f2f', statusText: 'Emergency' };
-    } else if (packetStatus !== "NR" && packetStatus) {
-      return { colorKey: 'orange', colorHex: '#ed6c02', statusText: 'Alert' };
-    } else if (speed > 1) {
-      return { colorKey: 'green', colorHex: '#2e7d32', statusText: 'Moving' };
-    } else if (isIgnitionOn) {
-      return { colorKey: 'blue', colorHex: '#0288d1', statusText: 'Stopped' };
-    } else {
-      return { colorKey: 'grey', colorHex: '#757575', statusText: 'Offline/Ignition Off' };
-    }
-  };
-
-  const playAnimation = () => {
-    setIsPlaying(true);
-    // Don't use local variable, use ref
-    overlayRef.current.style.display = "none";
 
     animationIntervalId.current = setInterval(() => {
       if (sliderValueRef.current < maxSliderValue) {
@@ -826,9 +849,13 @@ const GPSHistoryMap = ({
         const lat = parseFloat(entry.lat);
         const lon = parseFloat(entry.lon);
 
+        const dateTimeForPdf = formatDateTime(entry.et)
+          .replace(/\n/g, ' ')
+          .replace(/\s*IST\s*$/, '');
+
         const rowData = [
           String(index + 1),
-          formatDateTime(entry.et).replace(/\n/g, ' '),
+          dateTimeForPdf,
           !isNaN(lat) ? lat.toFixed(6) : 'N/A',
           !isNaN(lon) ? lon.toFixed(6) : 'N/A',
           String(entry.s || 0),
@@ -836,7 +863,8 @@ const GPSHistoryMap = ({
         ];
 
         rowData.forEach((data, idx) => {
-          const text = data.length > 20 ? data.substring(0, 17) + '...' : data;
+          const isDateTimeColumn = idx === 1;
+          const text = !isDateTimeColumn && data.length > 20 ? data.substring(0, 17) + '...' : data;
           pdf.text(text, xPosition, yPosition);
           xPosition += colWidths[idx];
         });
