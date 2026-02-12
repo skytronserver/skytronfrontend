@@ -79,6 +79,12 @@ export const iconData = [
     key: "default",
   },
   {
+    iconUrl: null,
+    text: "Online",
+    color: "#2E7D32",
+    key: "online",
+  },
+  {
     iconUrl: require('../assets/images/red/bus.png'),
     text: "Em. Alert",
     color: "red",

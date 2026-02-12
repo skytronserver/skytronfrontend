@@ -639,13 +639,50 @@ const POIViewer = () => {
     const displayText =
       primaryLabel || secondaryLabel || fallbackLabel || `POI ${poi?.id ?? ''}`;
 
+    const formatPoiLabel = (text, { maxCharsPerLine = 14 } = {}) => {
+      const normalized = String(text ?? '').replace(/\s+/g, ' ').trim();
+      if (!normalized) return '';
+
+      const words = normalized.split(' ');
+      const lines = [];
+      let current = '';
+
+      const pushCurrent = () => {
+        if (current) lines.push(current);
+        current = '';
+      };
+
+      for (const word of words) {
+        if (!word) continue;
+
+        if (!current) {
+          current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine) : word;
+          continue;
+        }
+
+        if (`${current} ${word}`.length <= maxCharsPerLine) {
+          current = `${current} ${word}`;
+          continue;
+        }
+
+        pushCurrent();
+        current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine) : word;
+      }
+
+      pushCurrent();
+
+      return lines.join('\n');
+    };
+
+    const labelText = formatPoiLabel(displayText);
+
     const createText = (overrides = {}) =>
       new Text({
-        text: displayText,
+        text: labelText,
         font: 'bold 12px "Roboto", sans-serif',
         fill: new Fill({ color: baseColor }),
-        stroke: new Stroke({ color: '#ffffff', width: 3 }),
-        padding: [2, 4, 2, 4],
+        stroke: new Stroke({ color: '#ffffff', width: 2 }),
+        padding: [1, 3, 1, 3],
         ...overrides,
       });
 

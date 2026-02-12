@@ -858,6 +858,17 @@ const LiveTracking = () => {
     if (data === "default") {
       setFilteredData(tableDataTop);
       setFocusedEntry(null);
+    } else if (data === "online") {
+      const filteredRows = tableDataTop.filter(row => (row.__alartType ?? getAlartType(row)) !== "grey");
+      setFilteredData(filteredRows);
+
+      if (filteredRows.length === 1) {
+        setSelectedId(`vehicle-${filteredRows[0].imei}`);
+        setFocusedEntry(filteredRows[0]);
+      } else {
+        setSelectedId(null);
+        setFocusedEntry(null);
+      }
     } else {
       const filteredRows = tableDataTop.filter(row => (row.__alartType ?? getAlartType(row)) === data);
       setFilteredData(filteredRows);
@@ -875,7 +886,9 @@ const LiveTracking = () => {
 
   const checkType = (type, data) => {
     const alartType = data?.__alartType ?? getAlartType(data);
-    return type === "default" || alartType === type;
+    if (type === "default") return true;
+    if (type === "online") return alartType !== "grey";
+    return alartType === type;
   };
 
   const getDisplayCellValue = (row, key) => {
@@ -1098,14 +1111,16 @@ const LiveTracking = () => {
             <Table>
               {iconData && <TableHead>
                 <TableRow>
-                  {iconData.slice(0, 3).map((item, index) => (
+                  {iconData.slice(0, 4).map((item, index) => (
                     <TableCell
                       key={index}
                       onClick={() => filterByType(item.key)}
                       className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
-                      <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
+                      {item.iconUrl ? (
+                        <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
+                      ) : null}
 
                       <Typography variant="caption" className="icon-text">
                         {item.text}
@@ -1114,14 +1129,16 @@ const LiveTracking = () => {
                   ))}
                 </TableRow>
                 <TableRow>
-                  {iconData.slice(3, 6).map((item, index) => (
+                  {iconData.slice(4, 8).map((item, index) => (
                     <TableCell
                       key={index}
                       onClick={() => filterByType(item.key)}
                       className="tracking-icon"
                       sx={{ backgroundColor: '#f5f5f5' }}
                     >
-                      <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
+                      {item.iconUrl ? (
+                        <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
+                      ) : null}
 
                       <Typography variant="caption" className="icon-text">
                         {item.text}

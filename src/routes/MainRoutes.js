@@ -35,6 +35,8 @@ import IncidentReport from "../views/reports/IncidentReport";
 import SuperAdminDashboard from "../views/dashboard/super admin dashboard/SuperAdminDashboard";
 import PublicTransportDashboard from "../views/dashboard/super admin dashboard/PublicTransportDashboard";
 import PublicSafetyDashboard from "../views/dashboard/super admin dashboard/PublicSafetyDashboard";
+import PublicTransportVehicleMonitoringDashboard from "../views/dashboard/super admin dashboard/PublicTransportVehicleMonitoringDashboard";
+import ERSSVehiclesDashboard from "../views/dashboard/super admin dashboard/ERSSVehiclesDashboard";
 import SOSMonitoringDashboard from "../views/dashboard/super admin dashboard/SOSMonitoringDashboard";
 import SOSAnalyticsDashboard from "../views/dashboard/super admin dashboard/SOSAnalyticsDashboard";
 import NewMap from "../views/MapComponent/Index";
@@ -118,6 +120,16 @@ const MainRoutes = {
     {
       path: "/superadmin-dashboard/public-safety",
       element: <PublicSafetyDashboard />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/vehicle-monitoring",
+      element: <PublicTransportVehicleMonitoringDashboard />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/erss-vehicles",
+      element: <ERSSVehiclesDashboard />,
       roles: ["superadmin"],
     },
     {

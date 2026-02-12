@@ -38,29 +38,20 @@ const dashboard = {
       breadcrumbs: false
     },
     {
-      id: 'superadmin-dashboard',
-      title: 'Super Admin Dashboard',
+      id: 'superadmin-dashboard-vehicle-monitoring',
+      title: 'Vehicle Monitoring',
       type: 'item',
-      url: '/superadmin-dashboard',
-      icon: icons.IconChartBar,
-      breadcrumbs: false,
-      roles: ['superadmin']
-    },
-    {
-      id: 'superadmin-dashboard-transport',
-      title: 'Transport Dashboard',
-      type: 'item',
-      url: '/superadmin-dashboard/transport',
+      url: '/superadmin-dashboard/vehicle-monitoring',
       icon: icons.IconCar,
       breadcrumbs: false,
       roles: ['superadmin']
     },
     {
-      id: 'superadmin-dashboard-public-safety',
-      title: 'Public Safety Dashboard',
+      id: 'superadmin-dashboard-erss-vehicles',
+      title: 'ERSS Vehicles',
       type: 'item',
-      url: '/superadmin-dashboard/public-safety',
-      icon: icons.IconShield,
+      url: '/superadmin-dashboard/erss-vehicles',
+      icon: icons.IconAmbulance,
       breadcrumbs: false,
       roles: ['superadmin']
     },

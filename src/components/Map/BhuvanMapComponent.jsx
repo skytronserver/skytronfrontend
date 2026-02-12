@@ -302,14 +302,51 @@ const BhuvanMapComponent = ({
         const displayText =
             primaryLabel || secondaryLabel || fallbackLabel || `POI ${poi?.id ?? ""}`;
 
+        const formatPoiLabel = (text, { maxCharsPerLine = 14 } = {}) => {
+            const normalized = String(text ?? "").replace(/\s+/g, " ").trim();
+            if (!normalized) return "";
+
+            const words = normalized.split(" ");
+            const lines = [];
+            let current = "";
+
+            const pushCurrent = () => {
+                if (current) lines.push(current);
+                current = "";
+            };
+
+            for (const word of words) {
+                if (!word) continue;
+
+                if (!current) {
+                    current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine) : word;
+                    continue;
+                }
+
+                if (`${current} ${word}`.length <= maxCharsPerLine) {
+                    current = `${current} ${word}`;
+                    continue;
+                }
+
+                pushCurrent();
+                current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine) : word;
+            }
+
+            pushCurrent();
+
+            return lines.join("\n");
+        };
+
+        const labelText = formatPoiLabel(displayText);
+
         const createText = (overrides = {}) =>
             new Text({
-                text: displayText,
+                text: labelText,
                 font: '12px "Roboto", sans-serif',
                 fill: new Fill({ color: "#0D47A1" }),
-                stroke: new Stroke({ color: "#ffffff", width: 3 }),
-                backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
-                padding: [2, 4, 2, 4],
+                stroke: new Stroke({ color: "#ffffff", width: 2 }),
+                backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.72)" }),
+                padding: [1, 3, 1, 3],
                 ...overrides,
             });
 

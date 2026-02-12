@@ -914,7 +914,7 @@ const useSosDashboardData = () => {
   return { sosData, sosCalls, sosLoading };
 };
 
-const PageWrapper = ({ title, description, children, sx = {} }) => (
+const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, descriptionSx = {} }) => (
   <MainCard
     content={false}
     sx={{
@@ -929,7 +929,7 @@ const PageWrapper = ({ title, description, children, sx = {} }) => (
       ...sx
     }}
   >
-    <Box sx={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', position: 'relative', p: 3 }}>
       <Box
         sx={{
           position: 'absolute',
@@ -962,12 +962,21 @@ const PageWrapper = ({ title, description, children, sx = {} }) => (
             fontSize: { xs: '1.75rem', md: '2.5rem' },
             color: '#1e293b',
             mb: 1,
-            letterSpacing: '-1px'
+            letterSpacing: '-1px',
+            ...titleSx
           }}
         >
           {title}
         </Typography>
-        <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1rem', maxWidth: '600px' }}>
+        <Typography
+          variant="body1"
+          sx={{
+            color: '#64748b',
+            fontSize: '1rem',
+            maxWidth: '600px',
+            ...descriptionSx
+          }}
+        >
           {description}
         </Typography>
       </Box>

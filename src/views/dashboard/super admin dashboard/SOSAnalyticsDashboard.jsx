@@ -5,7 +5,11 @@ import Typography from '@mui/material/Typography';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
 import { alpha } from '@mui/material/styles';
+
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import {
   ResponsiveContainer,
   BarChart,
@@ -40,13 +44,13 @@ const COLORS = {
   cardBg: alpha('#ffffff', 0.92)
 };
 
-const ChartCard = ({ title, subtitle, children, color }) => (
+const ChartCard = ({ title, subtitle, children, color, tokens }) => (
   <Box
     sx={{
       height: '100%',
       borderRadius: 3,
       border: `1px solid ${alpha(color, 0.18)}`,
-      bgcolor: COLORS.cardBg,
+      bgcolor: tokens?.cardBg || COLORS.cardBg,
       boxShadow: `0 18px 40px -26px ${alpha(color, 0.55)}`,
       overflow: 'hidden',
       display: 'flex',
@@ -61,15 +65,18 @@ const ChartCard = ({ title, subtitle, children, color }) => (
         background: `linear-gradient(135deg, ${alpha(color, 0.14)} 0%, ${alpha(color, 0.03)} 100%)`
       }}
     >
-      <Typography sx={{ fontWeight: 800, color: COLORS.ink, fontSize: '1.05rem' }}>{title}</Typography>
-      <Typography sx={{ color: COLORS.muted, fontSize: '0.85rem', mt: 0.25 }}>{subtitle}</Typography>
+      <Typography sx={{ fontWeight: 800, color: tokens?.text || COLORS.ink, fontSize: '1.05rem' }}>{title}</Typography>
+      <Typography sx={{ color: tokens?.muted || COLORS.muted, fontSize: '0.85rem', mt: 0.25 }}>{subtitle}</Typography>
     </Box>
     <Box sx={{ flex: 1, minHeight: 0, p: 2.25 }}>{children}</Box>
   </Box>
 );
 
-const TooltipBox = ({ active, payload, label }) => {
+const TooltipBox = ({ active, payload, label, tokens }) => {
   if (!active || !payload?.length) return null;
+
+  const titleColor = tokens?.text || COLORS.ink;
+  const rowColor = tokens?.muted || COLORS.muted;
 
   return (
     <Box
@@ -77,14 +84,14 @@ const TooltipBox = ({ active, payload, label }) => {
         px: 2,
         py: 1.25,
         borderRadius: 2,
-        bgcolor: '#fff',
-        border: `1px solid ${alpha('#0f172a', 0.08)}`,
+        bgcolor: tokens?.cardBg || COLORS.cardBg,
+        border: `1px solid ${tokens?.border || COLORS.border}`,
         boxShadow: '0 20px 40px -22px rgba(15, 23, 42, 0.45)'
       }}
     >
-      <Typography sx={{ fontWeight: 800, color: COLORS.ink, fontSize: '0.85rem' }}>{label}</Typography>
+      <Typography sx={{ fontWeight: 800, color: titleColor, fontSize: '0.85rem' }}>{label}</Typography>
       {payload.map((entry) => (
-        <Typography key={entry.dataKey || entry.name} sx={{ color: COLORS.muted, fontSize: '0.8rem' }}>
+        <Typography key={entry.dataKey || entry.name} sx={{ color: rowColor, fontSize: '0.8rem' }}>
           {entry.name}: {entry.value}
         </Typography>
       ))}
@@ -99,7 +106,28 @@ const TabPanel = ({ children, value, index }) => (
 );
 
 const SOSAnalyticsDashboard = () => {
+  const [mode, setMode] = useState('light');
   const [tabValue, setTabValue] = useState(0);
+
+  const tokens = useMemo(() => {
+    if (mode === 'dark') {
+      return {
+        pageBg: '#1a1f2e',
+        cardBg: alpha('#0f1419', 0.92),
+        border: alpha('#475569', 0.3),
+        text: '#e5e7eb',
+        muted: alpha('#e5e7eb', 0.7)
+      };
+    }
+
+    return {
+      pageBg: '#f8fafc',
+      cardBg: alpha('#ffffff', 0.92),
+      border: alpha('#0f172a', 0.08),
+      text: '#0f172a',
+      muted: '#475569'
+    };
+  }, [mode]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -261,7 +289,7 @@ const SOSAnalyticsDashboard = () => {
   const ambulanceBreakdown = useMemo(
     () => [
       { name: 'Threat Perception', value: 32, color: COLORS.warning },
-      { name: 'Others', value: 68, color: alpha(COLORS.ink, 0.18) }
+      { name: 'Others', value: 68, color: COLORS.secondary }
     ],
     []
   );
@@ -315,27 +343,70 @@ const SOSAnalyticsDashboard = () => {
     <PageWrapper
       title="SOS Analytics"
       description="Trends & outcomes across months, time of day, SOS type, districts and stations."
+      sx={{
+        bgcolor: tokens.pageBg,
+        backgroundImage: 'none'
+      }}
+      titleSx={{ color: tokens.text }}
+      descriptionSx={{ color: tokens.muted }}
     >
-      <Paper sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <IconButton
+          size="small"
+          onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          sx={{
+            color: tokens.text,
+            bgcolor: alpha(tokens.text, mode === 'dark' ? 0.08 : 0.06),
+            border: `1px solid ${alpha(tokens.text, 0.12)}`,
+            borderRadius: 1.5,
+            '&:hover': { bgcolor: alpha(tokens.text, mode === 'dark' ? 0.12 : 0.08) }
+          }}
+        >
+          {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
+        </IconButton>
+      </Box>
+
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          bgcolor: tokens.cardBg,
+          border: `1px solid ${tokens.border}`,
+          overflow: 'hidden'
+        }}
+      >
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
           sx={{
-            borderBottom: 1,
-            borderColor: 'divider',
+            borderBottom: `1px solid ${tokens.border}`,
             px: 2,
             '& .MuiTabs-flexContainer': {
               gap: 1
+            },
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 800,
+              minHeight: 54,
+              color: tokens.muted
+            },
+            '& .MuiTab-root.Mui-selected': {
+              color: tokens.text
+            },
+            '& .MuiTabs-indicator': {
+              height: 3,
+              borderRadius: 2,
+              backgroundColor: COLORS.primary
             }
           }}
         >
-          <Tab label="Overview" sx={{ textTransform: 'none', fontWeight: 700 }} />
-          <Tab label="Monthwise" sx={{ textTransform: 'none', fontWeight: 700 }} />
-          <Tab label="Time-based (Hourly)" sx={{ textTransform: 'none', fontWeight: 700 }} />
-          <Tab label="District-wise" sx={{ textTransform: 'none', fontWeight: 700 }} />
-          <Tab label="Police Station-wise" sx={{ textTransform: 'none', fontWeight: 700 }} />
+          <Tab label="Overview" />
+          <Tab label="Monthwise" />
+          <Tab label="Time-based (Hourly)" />
+          <Tab label="District-wise" />
+          <Tab label="Police Station-wise" />
         </Tabs>
       </Paper>
 
@@ -346,14 +417,15 @@ const SOSAnalyticsDashboard = () => {
               title="SOS Calls Breakdown (Jan-Dec)"
               subtitle="Total SOS calls segmented by categories"
               color={COLORS.primary}
+              tokens={tokens}
             >
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={monthwiseData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                  <XAxis dataKey="month" tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: COLORS.muted }} />
+                  <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
                   <Bar dataKey="genuine" name="Genuine Calls" stackId="a" fill={COLORS.success} />
                   <Bar dataKey="panic" name="Panic Calls" stackId="a" fill={COLORS.primary} />
                   <Bar dataKey="policeAccepted" name="Police Accepted" stackId="a" fill={COLORS.secondary} />
@@ -370,18 +442,19 @@ const SOSAnalyticsDashboard = () => {
               title="SOS Calls by Time of Day"
               subtitle="Heatmap view (Day vs Hour)"
               color={COLORS.secondary}
+              tokens={tokens}
             >
               <Box sx={{ display: 'grid', gridTemplateColumns: '52px repeat(24, 1fr)', gap: 0.75 }}>
                 <Box />
                 {Array.from({ length: 24 }).map((_, i) => (
                   <Box key={i} sx={{ textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '0.65rem', color: COLORS.muted }}>{i}</Typography>
+                    <Typography sx={{ fontSize: '0.65rem', color: tokens.muted }}>{i}</Typography>
                   </Box>
                 ))}
                 {timeOfDayHeatmap.map((row) => (
                   <Box key={row.day} sx={{ display: 'contents' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: COLORS.ink }}>{row.day}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: tokens.text }}>{row.day}</Typography>
                     </Box>
                     {row.values.map((v, idx) => (
                       <Box
@@ -390,7 +463,7 @@ const SOSAnalyticsDashboard = () => {
                           height: 16,
                           borderRadius: 0.75,
                           bgcolor: heatColor(v),
-                          border: `1px solid ${alpha(COLORS.ink, 0.05)}`
+                          border: `1px solid ${alpha(tokens.text, 0.08)}`
                         }}
                       />
                     ))}
@@ -405,6 +478,7 @@ const SOSAnalyticsDashboard = () => {
               title="SOS Calls by Type"
               subtitle="Distribution by category"
               color={COLORS.accent}
+              tokens={tokens}
             >
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
@@ -423,15 +497,15 @@ const SOSAnalyticsDashboard = () => {
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
-                  <RechartsTooltip content={<TooltipBox />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: COLORS.muted }} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
                 </PieChart>
               </ResponsiveContainer>
             </ChartCard>
           </Grid>
 
           <Grid item xs={12} lg={3.5}>
-            <ChartCard title="Panic Alert" subtitle="Breakdown" color={COLORS.primary}>
+            <ChartCard title="Panic Alert" subtitle="Breakdown" color={COLORS.primary} tokens={tokens}>
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
@@ -449,15 +523,15 @@ const SOSAnalyticsDashboard = () => {
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
-                  <RechartsTooltip content={<TooltipBox />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: COLORS.muted }} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
                 </PieChart>
               </ResponsiveContainer>
             </ChartCard>
           </Grid>
 
           <Grid item xs={12} lg={3.5}>
-            <ChartCard title="Ambulance" subtitle="Breakdown" color={COLORS.warning}>
+            <ChartCard title="Ambulance" subtitle="Breakdown" color={COLORS.warning} tokens={tokens}>
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
@@ -475,15 +549,15 @@ const SOSAnalyticsDashboard = () => {
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
-                  <RechartsTooltip content={<TooltipBox />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: COLORS.muted }} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
                 </PieChart>
               </ResponsiveContainer>
             </ChartCard>
           </Grid>
 
           <Grid item xs={12} lg={4}>
-            <ChartCard title="Top SOS Districts" subtitle="Volume and SLA metrics" color={COLORS.success}>
+            <ChartCard title="Top SOS Districts" subtitle="Volume and SLA metrics" color={COLORS.success} tokens={tokens}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
                 <Box
                   sx={{
@@ -491,13 +565,13 @@ const SOSAnalyticsDashboard = () => {
                     gridTemplateColumns: '1.4fr 0.8fr 0.6fr 0.8fr',
                     gap: 1,
                     pb: 1,
-                    borderBottom: `1px solid ${alpha(COLORS.ink, 0.08)}`
+                    borderBottom: `1px solid ${alpha(tokens.text, 0.12)}`
                   }}
                 >
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: COLORS.muted }}>District</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: COLORS.muted, textAlign: 'right' }}>Total</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: COLORS.muted, textAlign: 'right' }}>SLA</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: COLORS.muted, textAlign: 'right' }}>Police</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted }}>District</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>Total</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>SLA</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>Police</Typography>
                 </Box>
                 {topDistricts.map((d) => (
                   <Box
@@ -509,30 +583,30 @@ const SOSAnalyticsDashboard = () => {
                       alignItems: 'center'
                     }}
                   >
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.ink }}>{d.name}</Typography>
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.ink, textAlign: 'right' }}>{d.total}</Typography>
+                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: tokens.text }}>{d.name}</Typography>
+                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: tokens.text, textAlign: 'right' }}>{d.total}</Typography>
                     <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.success, textAlign: 'right' }}>{d.sla}%</Typography>
                     <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.secondary, textAlign: 'right' }}>{d.policeAccepted}%</Typography>
                   </Box>
                 ))}
 
-                <Box sx={{ mt: 1, pt: 1.25, borderTop: `1px solid ${alpha(COLORS.ink, 0.08)}` }}>
-                  <Typography sx={{ fontSize: '0.8rem', color: COLORS.muted }}>Overall SLA Compliance</Typography>
-                  <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: COLORS.ink }}>92%</Typography>
+                <Box sx={{ mt: 1, pt: 1.25, borderTop: `1px solid ${alpha(tokens.text, 0.12)}` }}>
+                  <Typography sx={{ fontSize: '0.8rem', color: tokens.muted }}>Overall SLA Compliance</Typography>
+                  <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: tokens.text }}>92%</Typography>
                 </Box>
               </Box>
             </ChartCard>
           </Grid>
 
           <Grid item xs={12} lg={6}>
-            <ChartCard title="Top SOS Districts" subtitle="Trend over time" color={COLORS.secondary}>
+            <ChartCard title="Top SOS Districts" subtitle="Trend over time" color={COLORS.secondary} tokens={tokens}>
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={districtsTrend} margin={{ top: 10, right: 18, left: -8, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.secondary, 0.15)} />
-                  <XAxis dataKey="t" tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: COLORS.muted }} />
+                  <XAxis dataKey="t" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
                   <Line type="monotone" dataKey="Central" name="Central" stroke={COLORS.primary} strokeWidth={2.5} dot={false} />
                   <Line type="monotone" dataKey="West" name="West" stroke={COLORS.warning} strokeWidth={2.5} dot={false} />
                   <Line type="monotone" dataKey="South" name="South" stroke={COLORS.success} strokeWidth={2.5} dot={false} />
@@ -542,14 +616,14 @@ const SOSAnalyticsDashboard = () => {
           </Grid>
 
           <Grid item xs={12} lg={6}>
-            <ChartCard title="Top SOS Police Stations" subtitle="Monthly stacked volume" color={COLORS.primary}>
+            <ChartCard title="Top SOS Police Stations" subtitle="Monthly stacked volume" color={COLORS.primary} tokens={tokens}>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={topPoliceStations} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                  <XAxis dataKey="month" tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: COLORS.muted }} />
+                  <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
                   <Bar dataKey="Dispur" name="Dispur" stackId="a" fill={COLORS.primary} />
                   <Bar dataKey="Panbazar" name="Panbazar" stackId="a" fill={COLORS.secondary} />
                   <Bar dataKey="Latasil" name="Latasil" stackId="a" fill={COLORS.warning} />
@@ -563,13 +637,13 @@ const SOSAnalyticsDashboard = () => {
       <TabPanel value={tabValue} index={1}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Monthwise total SOS calls (Jan-Dec)" color={COLORS.primary}>
+            <ChartCard title="Total SOS Call" subtitle="Monthwise total SOS calls (Jan-Dec)" color={COLORS.primary} tokens={tokens}>
               <ResponsiveContainer width="100%" height={420}>
                 <BarChart data={monthwiseTotals} margin={{ top: 20, right: 20, left: -10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                  <XAxis dataKey="month" tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
+                  <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
                   <Bar dataKey="total" name="Total SOS call" radius={[8, 8, 0, 0]} fill={COLORS.primary} barSize={42} />
                 </BarChart>
               </ResponsiveContainer>
@@ -581,7 +655,7 @@ const SOSAnalyticsDashboard = () => {
       <TabPanel value={tabValue} index={2}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Area chart)" color={COLORS.secondary}>
+            <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Area chart)" color={COLORS.secondary} tokens={tokens}>
               <ResponsiveContainer width="100%" height={380}>
                 <AreaChart data={hourlyData} margin={{ top: 20, right: 20, left: -10, bottom: 70 }}>
                   <defs>
@@ -593,14 +667,14 @@ const SOSAnalyticsDashboard = () => {
                   <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.secondary, 0.12)} />
                   <XAxis
                     dataKey="time"
-                    tick={{ fill: COLORS.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
+                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
                     axisLine={false}
                     tickLine={false}
                     interval={0}
                     height={90}
                   />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
                   <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.secondary} strokeWidth={2} fill="url(#hourlyFill)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -608,20 +682,20 @@ const SOSAnalyticsDashboard = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Line chart)" color={COLORS.accent}>
+            <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Line chart)" color={COLORS.accent} tokens={tokens}>
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={hourlyData} margin={{ top: 20, right: 20, left: -10, bottom: 70 }}>
                   <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.accent, 0.12)} />
                   <XAxis
                     dataKey="time"
-                    tick={{ fill: COLORS.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
+                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
                     axisLine={false}
                     tickLine={false}
                     interval={0}
                     height={90}
                   />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
                   <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.accent} strokeWidth={2.5} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -633,7 +707,7 @@ const SOSAnalyticsDashboard = () => {
       <TabPanel value={tabValue} index={3}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="District-wise (Area chart)" color={COLORS.success}>
+            <ChartCard title="Total SOS Call" subtitle="District-wise (Area chart)" color={COLORS.success} tokens={tokens}>
               <ResponsiveContainer width="100%" height={380}>
                 <AreaChart data={districtSeries} margin={{ top: 20, right: 20, left: -10, bottom: 90 }}>
                   <defs>
@@ -645,14 +719,14 @@ const SOSAnalyticsDashboard = () => {
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.success, 0.15)} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fill: COLORS.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
+                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
                     axisLine={false}
                     tickLine={false}
                     interval={0}
                     height={110}
                   />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
                   <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.success} strokeWidth={2} fill="url(#districtFill)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -660,20 +734,20 @@ const SOSAnalyticsDashboard = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="District-wise (Line chart)" color={COLORS.warning}>
+            <ChartCard title="Total SOS Call" subtitle="District-wise (Line chart)" color={COLORS.warning} tokens={tokens}>
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={districtSeries} margin={{ top: 20, right: 20, left: -10, bottom: 90 }}>
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.warning, 0.15)} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fill: COLORS.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
+                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
                     axisLine={false}
                     tickLine={false}
                     interval={0}
                     height={110}
                   />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
                   <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.warning} strokeWidth={2.5} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -685,7 +759,7 @@ const SOSAnalyticsDashboard = () => {
       <TabPanel value={tabValue} index={4}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Area chart)" color={COLORS.danger}>
+            <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Area chart)" color={COLORS.danger} tokens={tokens}>
               <ResponsiveContainer width="100%" height={380}>
                 <AreaChart data={policeStationSeries} margin={{ top: 20, right: 20, left: -10, bottom: 120 }}>
                   <defs>
@@ -697,14 +771,14 @@ const SOSAnalyticsDashboard = () => {
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.danger, 0.15)} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fill: COLORS.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                    tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
                     axisLine={false}
                     tickLine={false}
                     interval={0}
                     height={140}
                   />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
                   <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.danger} strokeWidth={2} fill="url(#psFill)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -712,20 +786,20 @@ const SOSAnalyticsDashboard = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Line chart)" color={COLORS.primary}>
+            <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Line chart)" color={COLORS.primary} tokens={tokens}>
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={policeStationSeries} margin={{ top: 20, right: 20, left: -10, bottom: 120 }}>
                   <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.15)} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fill: COLORS.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                    tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
                     axisLine={false}
                     tickLine={false}
                     interval={0}
                     height={140}
                   />
-                  <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox />} />
+                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
                   <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.primary} strokeWidth={2.5} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -735,6 +809,7 @@ const SOSAnalyticsDashboard = () => {
       </TabPanel>
     </PageWrapper>
   );
+
 };
 
 export default SOSAnalyticsDashboard;
