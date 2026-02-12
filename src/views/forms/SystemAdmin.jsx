@@ -7,7 +7,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import FormField from "../../ui-component/CustomTextField";
 import { useTranslation } from "react-i18next";
@@ -16,49 +16,52 @@ const SystemAdmin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  /* ========================= Fields ========================= */
-  const systemAdminFormFields = {
+  /* ================= Fields (dynamic translation safe) ================= */
+
+  const systemAdminFormFields = useMemo(() => ({
     name: {
       name: "name",
       type: "text",
-      label: "systemAdmin.fields.name",
-      validation: Yup.string().required("systemAdmin.validation.nameRequired"),
+      label: t("systemAdmin.fields.name"),
+      validation: Yup.string().required(t("systemAdmin.validation.nameRequired"))
     },
     email: {
       name: "email",
       type: "text",
-      label: "systemAdmin.fields.email",
+      label: t("systemAdmin.fields.email"),
       validation: Yup.string()
-        .email("systemAdmin.validation.invalidEmail")
-        .required("systemAdmin.validation.emailRequired"),
+        .email(t("systemAdmin.validation.invalidEmail"))
+        .required(t("systemAdmin.validation.emailRequired"))
     },
     mobile: {
       name: "mobile",
       type: "tel",
-      label: "systemAdmin.fields.mobile",
+      label: t("systemAdmin.fields.mobile"),
       validation: Yup.string()
-        .matches(/^\d{10}$/, "systemAdmin.validation.mobileFormat")
-        .required("systemAdmin.validation.mobileRequired"),
+        .matches(/^\d{10}$/, t("systemAdmin.validation.mobileFormat"))
+        .required(t("systemAdmin.validation.mobileRequired"))
     },
     dob: {
       name: "dob",
       type: "date",
-      label: "systemAdmin.fields.dob",
-      validation: Yup.string().required("systemAdmin.validation.dobRequired"),
+      label: t("systemAdmin.fields.dob"),
+      validation: Yup.string().required(t("systemAdmin.validation.dobRequired"))
     },
     lat: {
       name: "lat",
       type: "number",
-      label: "systemAdmin.fields.lat",
-      validation: Yup.number().nullable(),
+      label: t("systemAdmin.fields.lat"),
+      validation: Yup.number().nullable()
     },
     lon: {
       name: "lon",
       type: "number",
-      label: "systemAdmin.fields.lon",
-      validation: Yup.number().nullable(),
-    },
-  };
+      label: t("systemAdmin.fields.lon"),
+      validation: Yup.number().nullable()
+    }
+  }), [t]); // ✅ re-translate when language changes
+
+  /* ================= Form Config ================= */
 
   const initialValues = {
     name: "",
@@ -66,14 +69,16 @@ const SystemAdmin = () => {
     mobile: "",
     dob: "",
     lat: "",
-    lon: "",
+    lon: ""
   };
 
   const validationSchema = Yup.object(
-    Object.keys(systemAdminFormFields).reduce((acc, key) => {
-      acc[key] = systemAdminFormFields[key].validation;
-      return acc;
-    }, {})
+    Object.fromEntries(
+      Object.keys(systemAdminFormFields).map((k) => [
+        k,
+        systemAdminFormFields[k].validation
+      ])
+    )
   );
 
   const [open, setOpen] = useState(false);
@@ -95,16 +100,16 @@ const SystemAdmin = () => {
       setAlert({
         error: false,
         message: t("form.success"),
-        errorList: [],
+        errorList: []
       });
 
-      setOpen(true);
       resetForm();
+      setOpen(true);
     } catch (error) {
       setAlert({
         error: true,
         message: t("form.error"),
-        errorList: error.response?.data || [],
+        errorList: error.response?.data || []
       });
 
       setOpen(true);
@@ -114,7 +119,8 @@ const SystemAdmin = () => {
     }
   };
 
-  /* ========================= UI ========================= */
+  /* ================= UI ================= */
+
   return (
     <>
       <DialogComponent
@@ -146,17 +152,12 @@ const SystemAdmin = () => {
                         <FormField
                           fieldConfig={systemAdminFormFields[key]}
                           formik={formik}
-                          t={t}
                         />
                       </Grid>
                     ))}
 
                     <Grid item xs={12}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        disabled={loading}
-                      >
+                      <Button type="submit" variant="contained" disabled={loading}>
                         {t("form.submit")}
                       </Button>
                     </Grid>
