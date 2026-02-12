@@ -75,10 +75,10 @@ const SystemAdmin = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
   const navigate = useNavigate();
 
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
     setOpen(false);
   };
 
@@ -107,6 +107,7 @@ const SystemAdmin = () => {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("System Admin created successfully");
       resetForm(initialValues);
+      setShowResend(true);
     } catch (error) {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -118,10 +119,16 @@ const SystemAdmin = () => {
         },
       }));
       handleAlert("Failed to create System Admin");
+      setShowResend(false);
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(initialValues);
   };
 
   return (
@@ -158,7 +165,7 @@ const SystemAdmin = () => {
                         />
                       </Grid>
                     ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
+                    <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
                       <Button
                         type="submit"
                         variant="contained"
@@ -167,6 +174,17 @@ const SystemAdmin = () => {
                       >
                         Submit
                       </Button>
+                      {showResend && (
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => handleResend(formik.resetForm)}
+                          disabled={loading}
+                        >
+                          Resend
+                        </Button>
+                      )}
                     </Grid>
                   </Grid>
                 </form>

@@ -28,6 +28,8 @@ const SOSAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(sosUserFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+
   useEffect(() => {
     (async () => {
       const stateList = await retriveStateList();
@@ -44,7 +46,6 @@ const SOSAdmin = () => {
   }, []);
   const navigate = useNavigate();
   const handleClose = () => {
-    !alert.error && navigate("/new/sos-admin");
     setOpen(false);
   };
 
@@ -95,6 +96,7 @@ const SOSAdmin = () => {
         }));
         handleAlert(t("sosAdmin.form.success"));
         resetForm(sosUserInitialValues);
+        setShowResend(true);
       }
     } catch (error) {
       let emailError = "",
@@ -118,10 +120,16 @@ const SOSAdmin = () => {
         },
       }));
       handleAlert(t("sosAdmin.form.error") + " " + emailError + " " + mobileError);
+      setShowResend(false);
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(sosUserInitialValues);
   };
 
   return (
@@ -160,7 +168,7 @@ const SOSAdmin = () => {
                           />
                         </Grid>
                       ))}
-                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                      <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
                         <Button
                           type="submit"
                           variant="contained"
@@ -169,6 +177,17 @@ const SOSAdmin = () => {
                         >
                           {t("sosAdmin.form.submit")}
                         </Button>
+                        {showResend && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            color="secondary"
+                            onClick={() => handleResend(formik.resetForm)}
+                            disabled={loading}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
                       </Grid>
                     </Grid>
                   </form>

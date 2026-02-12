@@ -9,9 +9,9 @@ import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray,retriveStateList } from "../../helper";
-import {stateAdminInitialValues,stateAdminField} from "../../formjson/stateAdmin"
-import { FILE_SIZE,SUPPORTED_FORMATS,gridSpacing } from "../../store/constant";
+import { convertErrorObjectToArray, retriveStateList } from "../../helper";
+import { stateAdminInitialValues, stateAdminField } from "../../formjson/stateAdmin"
+import { FILE_SIZE, SUPPORTED_FORMATS, gridSpacing } from "../../store/constant";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./form.css";
@@ -19,8 +19,8 @@ import "./form.css";
 const StateAdmin = () => {
   const { t } = useTranslation();
   const params = useParams();
-  const [updatedFormFields,setUpdatedFormField]=useState(stateAdminField);
-  const [isFormLoaded,setIsFormLoaded]=useState(false)
+  const [updatedFormFields, setUpdatedFormField] = useState(stateAdminField);
+  const [isFormLoaded, setIsFormLoaded] = useState(false)
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
@@ -28,26 +28,26 @@ const StateAdmin = () => {
     message: "",
     errorList: [],
   });
-  const userData=sessionStorage.getItem('cookiesData');
+  const [showResend, setShowResend] = useState(false);
+  const userData = sessionStorage.getItem('cookiesData');
   const navigate = useNavigate();
 
-  useEffect(()=>{
-    (async()=>{
-    const stateList=await retriveStateList();
-    setUpdatedFormField(prevConfig =>({
-      ...prevConfig,
-      state: {
-        ...prevConfig.state,
-        options: stateList,
-      },
-    }))
-    setIsFormLoaded(true)
+  useEffect(() => {
+    (async () => {
+      const stateList = await retriveStateList();
+      setUpdatedFormField(prevConfig => ({
+        ...prevConfig,
+        state: {
+          ...prevConfig.state,
+          options: stateList,
+        },
+      }))
+      setIsFormLoaded(true)
     }
-  )()
-  },[])
- 
+    )()
+  }, [])
+
   const handleClose = () => {
-    !alert.error && navigate("/user/registeredUser");
     setOpen(false);
   };
 
@@ -72,7 +72,7 @@ const StateAdmin = () => {
     }
     formik.setFieldError(fieldName, errors.file_idProof);
   };
-  
+
   const validationSchema = Yup.object(
     Object.keys(updatedFormFields).reduce((acc, field) => {
       acc[field] = updatedFormFields[field].validation;
@@ -83,22 +83,23 @@ const StateAdmin = () => {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
-    const data=userData && userData.split("-")
-    const userId=userData && data.length > 2 && data[3];
+    const data = userData && userData.split("-")
+    const userId = userData && data.length > 2 && data[3];
     let valuesWithRole = {};
     valuesWithRole = {
-        ...values,
-        role: "stateadmin",
-        createdby: userId,
-      };
+      ...values,
+      role: "stateadmin",
+      createdby: userId,
+    };
     try {
       await UserServices.createStateAdmin(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t("common.formSubmittedSuccessfully"));
       setSubmitting(false);
       resetForm(stateAdminInitialValues);
+      setShowResend(true);
     } catch (error) {
-      if(error.message==='Network Error'){
+      if (error.message === 'Network Error') {
         handleAlert(t("common.internalServerError"));
         return true
       }
@@ -108,9 +109,15 @@ const StateAdmin = () => {
         errorList: convertErrorObjectToArray(error.response.data,),
       }));
       handleAlert(t("common.formNotSubmitted"));
-    }finally{
+      setShowResend(false);
+    } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(stateAdminInitialValues);
   };
 
   return (
@@ -153,7 +160,7 @@ const StateAdmin = () => {
                         />
                       </Grid>
                     ))}
-                    <Grid item xs={12} className="grid-item-button-div">
+                    <Grid item xs={12} className="grid-item-button-div" style={{ display: "flex", gap: "10px" }}>
                       <Button
                         type="submit"
                         variant="contained"
@@ -162,6 +169,17 @@ const StateAdmin = () => {
                       >
                         {t("common.submit")}
                       </Button>
+                      {showResend && (
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => handleResend(formik.resetForm)}
+                          disabled={loading}
+                        >
+                          {t("auth.resend")}
+                        </Button>
+                      )}
                     </Grid>
                   </Grid>
                 </form>

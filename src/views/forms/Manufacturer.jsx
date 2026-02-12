@@ -26,6 +26,7 @@ const Manufacturer = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(manufacturerFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [showResend, setShowResend] = useState(false);
 
   // Debug translations
   useEffect(() => {
@@ -75,7 +76,6 @@ const Manufacturer = () => {
   const navigate = useNavigate();
 
   const handleClose = () => {
-    !alert.error && navigate("/user/newManufacturer");
     setOpen(false);
   };
 
@@ -142,6 +142,7 @@ const Manufacturer = () => {
       setSubmitting(false);
       setLoading(false);
       resetForm(manufacturerInitialValues);
+      setShowResend(true);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -150,7 +151,13 @@ const Manufacturer = () => {
       }));
       handleAlert("manufacturer.form.error");
       setLoading(false);
+      setShowResend(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(manufacturerInitialValues);
   };
 
   return (
@@ -217,7 +224,7 @@ const Manufacturer = () => {
                         />
                       </Grid>
                     ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
+                    <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
                       <Button
                         type="submit"
                         variant="contained"
@@ -226,6 +233,17 @@ const Manufacturer = () => {
                       >
                         {t('manufacturer.form.submit')}
                       </Button>
+                      {showResend && (
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => handleResend(formik.resetForm)}
+                          disabled={loading}
+                        >
+                          {t("auth.resend")}
+                        </Button>
+                      )}
                     </Grid>
                   </Grid>
                 </form>
