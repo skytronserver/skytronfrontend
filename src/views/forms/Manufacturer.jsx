@@ -141,7 +141,6 @@ const Manufacturer = () => {
       handleAlert("manufacturer.form.success");
       setSubmitting(false);
       setLoading(false);
-      resetForm(manufacturerInitialValues);
       setShowResend(true);
     } else {
       setAlert((prevAlert) => ({

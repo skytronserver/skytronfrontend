@@ -110,7 +110,6 @@ const EsimUser = () => {
       handleAlert("common.formSubmittedSuccessfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(eSIMInitialValues);
       setShowResend(true);
     } else {
       setAlert((prevAlert) => ({

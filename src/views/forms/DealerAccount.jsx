@@ -41,22 +41,23 @@ function DealerAccount() {
     dealerAccountFormField
   );
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [showResend, setShowResend] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const manufacturerList = await retriveManufacturerList();
         const stateList = await retriveStateList();
-        
+
         setUpdatedFormField((prevConfig) => ({
           ...prevConfig,
           manufacturer: {
             ...prevConfig.manufacturer,
-            options: manufacturerList || [], 
+            options: manufacturerList || [],
           },
           address_State: {
             ...prevConfig.address_State,
-            value: stateList?.[0]?.label || '', 
+            value: stateList?.[0]?.label || '',
             id: stateList?.[0]?.value || '',
           },
           districts: {
@@ -68,16 +69,16 @@ function DealerAccount() {
         if (stateList?.[0]?.value) {
           dealerAccountInitialValues.address_State = stateList[0].label;
           const districtList = await retriveDistrictList({ state: stateList[0].value });
-          console.log(districtList,'districtList')
+          console.log(districtList, 'districtList')
           setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
             districts: {
               ...prevConfig.districts,
-              options: districtList 
+              options: districtList
             },
           }));
         }
-        
+
       } catch (error) {
         console.error("Failed to retrieve state or district list:", error);
       } finally {
@@ -153,14 +154,14 @@ function DealerAccount() {
     const userData = sessionStorage.getItem("cookiesData");
     const data = userData && userData.split("-");
     const userId = userData && data.length > 2 && data[3];
-    
+
     setSubmitting(true);
     setLoading(true);
-    
+
     // Format districts as an array if it exists
-    const formattedDistricts = values.districts ? 
+    const formattedDistricts = values.districts ?
       (Array.isArray(values.districts) ? values.districts : [values.districts]) : [];
-    
+
     const valuesWithRole = {
       ...values,
       districts: formattedDistricts,
@@ -174,7 +175,7 @@ function DealerAccount() {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t("common.formSubmittedSuccessfully"));
       setSubmitting(false);
-      resetForm(dealerAccountInitialValues);
+      setShowResend(true);
     } catch (error) {
       if (error.message === "Network Error") {
         handleAlert(t("common.internalServerError"));
@@ -186,9 +187,15 @@ function DealerAccount() {
         errorList: convertErrorObjectToArray(error.response.data),
       }));
       handleAlert(t("common.formNotSubmitted"));
+      setShowResend(false);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(dealerAccountInitialValues);
   };
   return (
     <>
@@ -223,11 +230,11 @@ function DealerAccount() {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
-                            // handleOptionChange={handleStateChange}
+                          // handleOptionChange={handleStateChange}
                           />
                         </Grid>
                       ))}
-                      <Grid item xs={12} className="grid-item-button-div">
+                      <Grid item xs={12} className="grid-item-button-div" style={{ display: "flex", gap: "10px" }}>
                         <Button
                           type="submit"
                           variant="contained"
@@ -236,6 +243,17 @@ function DealerAccount() {
                         >
                           {t("common.submit")}
                         </Button>
+                        {showResend && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            color="secondary"
+                            onClick={() => handleResend(formik.resetForm)}
+                            disabled={loading}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
                       </Grid>
                     </Grid>
                   </form>

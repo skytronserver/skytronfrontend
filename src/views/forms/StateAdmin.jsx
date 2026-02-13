@@ -96,7 +96,6 @@ const StateAdmin = () => {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t("common.formSubmittedSuccessfully"));
       setSubmitting(false);
-      resetForm(stateAdminInitialValues);
       setShowResend(true);
     } catch (error) {
       if (error.message === 'Network Error') {
