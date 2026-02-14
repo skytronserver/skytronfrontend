@@ -58,7 +58,7 @@ const AlertReport = () => {
     { value: 'Idling', label: 'Idling' },
     { value: 'OfflineDevice', label: 'OfflineDevice' },
     { value: 'Overtime', label: 'Overtime' },
-    { value: 'UnauthorizedStop', label: 'Prohibited Area' },
+    { value: 'Prohibited Area', label: 'UnauthorizedStop' },
     { value: 'UnauthorizedSkip', label: 'UnauthorizedSkip' },
     { value: 'NetworkLoss', label: 'NetworkLoss' },
     { value: 'GPSLoss', label: 'GPSLoss' },
