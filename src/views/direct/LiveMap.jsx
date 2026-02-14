@@ -1100,6 +1100,7 @@ const MapComponent = ({
         dealer: "#8E24AA",
         personal: "#43A047",
         prohibited_area: "#D81B60",
+        unauthorised_stop: "#D81B60",
         permitroute: "#FB8C00",
         tollgate: "#6D4C41",
         parking: "#00897B",

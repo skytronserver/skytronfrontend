@@ -58,7 +58,7 @@ const AlertReport = () => {
     { value: 'Idling', label: 'Idling' },
     { value: 'OfflineDevice', label: 'OfflineDevice' },
     { value: 'Overtime', label: 'Overtime' },
-    { value: 'Prohibited Area', label: 'UnauthorizedStop' },
+    { value: 'UnauthorizedStop', label: 'Unauthorised Stop' },
     { value: 'UnauthorizedSkip', label: 'UnauthorizedSkip' },
     { value: 'NetworkLoss', label: 'NetworkLoss' },
     { value: 'GPSLoss', label: 'GPSLoss' },
@@ -158,13 +158,19 @@ const AlertReport = () => {
       headerName: 'Alert Type',
       width: 130,
       flex: 1,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          size="small"
-          color={params.value === 'OverSpeed' ? 'error' : 'default'}
-        />
-      )
+      renderCell: (params) => {
+        let displayValue = params.value;
+        if (displayValue === 'Prohibited Area' || displayValue === 'UnauthorizedStop') {
+          displayValue = 'Unauthorised Stop';
+        }
+        return (
+          <Chip
+            label={displayValue}
+            size="small"
+            color={params.value === 'OverSpeed' ? 'error' : 'default'}
+          />
+        );
+      }
     },
     {
       field: 'status',
@@ -363,6 +369,7 @@ const AlertReport = () => {
       filterData.page = page + 1;
       filterData.page_size = pageSize;
 
+      console.debug('Fetching alerts with params:', filterData);
       const response = await showDeviceApi.getAlertLogFilter(filterData);
 
       if (response.data && response.data.status === 'success') {

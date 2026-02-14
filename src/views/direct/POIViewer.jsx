@@ -236,6 +236,7 @@ const USE_TYPE_COLORS = {
   // Routes & Restrictions - Bright Red/Warning
   permitroute: "#FF9800",
   prohibited_area: "#F44336",
+  unauthorised_stop: "#F44336",
   no_parking: "#D50000",
 
   // Tourist Attractions - Violet/Lavender
@@ -2453,7 +2454,7 @@ const POIViewer = () => {
                 <MenuItem value="Other">Other</MenuItem>
                 <MenuItem value="Personal">Personal</MenuItem>
                 <MenuItem value="dealer">Dealer</MenuItem>
-                <MenuItem value="prohibited_area">Prohibited Area</MenuItem>
+                <MenuItem value="prohibited_area">Unauthorised Stop</MenuItem>
                 <MenuItem value="no_entry">No Entry</MenuItem>
                 <MenuItem value="parking">Parking</MenuItem>
                 <MenuItem value="no_parking">No Parking</MenuItem>

@@ -248,6 +248,7 @@ const BhuvanMapComponent = ({
         dealer: "#8E24AA",
         personal: "#43A047",
         prohibited_area: "#D81B60",
+        unauthorised_stop: "#D81B60",
         permitroute: "#FB8C00",
         tollgate: "#6D4C41",
         parking: "#00897B",
@@ -861,8 +862,8 @@ const BhuvanMapComponent = ({
 <div class="overlay-row overlay-row--multiline"><span class="overlay-label">Address</span><span class="overlay-value overlay-value--multiline">${safeValue(policeDescription)}</span></div>
 <div class="overlay-row"><span class="overlay-label">Phone</span><span class="overlay-value">${safeValue(policePhone)}</span></div>
 ${Number.isFinite(policeDistanceFallback?.distanceKm)
-                    ? `<div class="overlay-row"><span class="overlay-label">Distance</span><span class="overlay-value">${policeDistanceFallback.distanceKm.toFixed(2)} km</span></div>`
-                    : ""}
+                ? `<div class="overlay-row"><span class="overlay-label">Distance</span><span class="overlay-value">${policeDistanceFallback.distanceKm.toFixed(2)} km</span></div>`
+                : ""}
 </div>
 </div>
 `
@@ -884,8 +885,8 @@ ${Number.isFinite(policeDistanceFallback?.distanceKm)
 <div class="overlay-row overlay-row--multiline"><span class="overlay-label">Address</span><span class="overlay-value overlay-value--multiline">${safeValue(hospitalDescription)}</span></div>
 <div class="overlay-row"><span class="overlay-label">Phone</span><span class="overlay-value">${safeValue(hospitalPhone)}</span></div>
 ${Number.isFinite(hospitalFallback?.distanceKm)
-                    ? `<div class="overlay-row"><span class="overlay-label">Distance</span><span class="overlay-value">${hospitalFallback.distanceKm.toFixed(2)} km</span></div>`
-                    : ""}
+                ? `<div class="overlay-row"><span class="overlay-label">Distance</span><span class="overlay-value">${hospitalFallback.distanceKm.toFixed(2)} km</span></div>`
+                : ""}
 </div>
 </div>
 `
