@@ -32,7 +32,7 @@ import AlertReport from "../views/reports/AlertReport";
 import DeviceHealthReport from "../views/reports/DeviceHealthReport";
 import UserStatisticsReport from "../views/reports/UserStatisticsReport";
 import IncidentReport from "../views/reports/IncidentReport";
-import SuperAdminDashboard from "../views/dashboard/super admin dashboard/SuperAdminDashboard";
+
 import PublicTransportDashboard from "../views/dashboard/super admin dashboard/PublicTransportDashboard";
 import PublicSafetyDashboard from "../views/dashboard/super admin dashboard/PublicSafetyDashboard";
 import PublicTransportVehicleMonitoringDashboard from "../views/dashboard/super admin dashboard/PublicTransportVehicleMonitoringDashboard";
@@ -109,7 +109,7 @@ const MainRoutes = {
     },
     {
       path: "/superadmin-dashboard",
-      element: <SuperAdminDashboard />,
+      element: <Navigate to="/superadmin-dashboard/transport" replace />,
       roles: ["superadmin"],
     },
     {
@@ -120,26 +120,6 @@ const MainRoutes = {
     {
       path: "/superadmin-dashboard/public-safety",
       element: <PublicSafetyDashboard />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/superadmin-dashboard/vehicle-monitoring",
-      element: <PublicTransportVehicleMonitoringDashboard />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/superadmin-dashboard/erss-vehicles",
-      element: <ERSSVehiclesDashboard />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/superadmin-dashboard/sos",
-      element: <SOSMonitoringDashboard />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/superadmin-dashboard/sos-analytics",
-      element: <SOSAnalyticsDashboard />,
       roles: ["superadmin"],
     },
     {

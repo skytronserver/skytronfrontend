@@ -86,23 +86,23 @@ const MetricTile = ({ label, value, colorKey, helper }) => {
     <Box
       sx={{
         flex: 1,
-        minWidth: 160,
-        borderRadius: 2.5,
-        p: 2,
+        minWidth: { xs: 140, md: 130 },
+        borderRadius: 2,
+        p: { xs: 1.5, md: 1.25 },
         color: '#fff',
         background: `linear-gradient(135deg, ${colors.from} 0%, ${colors.to} 100%)`,
-        boxShadow: `0 12px 30px -18px ${alpha(colors.to, 0.85)}`,
+        boxShadow: `0 8px 20px -12px ${alpha(colors.to, 0.75)}`,
         border: `1px solid ${alpha('#ffffff', 0.18)}`,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: 0.75
+        gap: 0.5
       }}
     >
-      <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.02em' }}>{label}</Typography>
-      <Typography sx={{ fontWeight: 800, fontSize: '1.85rem', lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
+      <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', md: '0.7rem' }, letterSpacing: '0.02em' }}>{label}</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', md: '1.35rem' }, lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
       {helper ? (
-        <Typography sx={{ opacity: 0.9, fontSize: '0.75rem' }}>{helper}</Typography>
+        <Typography sx={{ opacity: 0.9, fontSize: { xs: '0.7rem', md: '0.65rem' } }}>{helper}</Typography>
       ) : null}
     </Box>
   );
@@ -386,19 +386,35 @@ const DistrictVehicleMap = ({ vehicles, selectedDistrict, onSelectDistrict, mode
   }, [districtSummary, selectedDistrict, vehicles, mode]);
 
   return (
-    <Box
-      ref={containerRef}
-      sx={{
-        width: '100%',
-        height: { xs: 520, md: 640 },
-        borderRadius: 3,
-        overflow: 'hidden',
-        border: `1px solid ${COLORS.border}`,
-        bgcolor: '#fff',
-        boxShadow: `0 18px 40px -26px ${alpha('#0ea5e9', 0.65)}`,
-        '& .ol-viewport': { borderRadius: 3 }
-      }}
-    />
+    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+      <Box
+        ref={containerRef}
+        sx={{
+          width: '100%',
+          height: '100%',
+          borderRadius: 2.5,
+          overflow: 'hidden',
+          border: `1px solid ${COLORS.border}`,
+          bgcolor: '#fff',
+          boxShadow: `0 12px 30px -20px ${alpha('#0ea5e9', 0.55)}`,
+          '& .ol-viewport': { borderRadius: 2.5 },
+          '& .ol-attribution': { display: 'none' }
+        }}
+      />
+      <img
+        src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+        style={{
+          position: 'absolute',
+          bottom: '70px',
+          right: '10px',
+          width: '180px',
+          zIndex: 1000,
+          pointerEvents: 'none',
+          opacity: 0.8
+        }}
+        alt="Skytron Logo"
+      />
+    </Box>
   );
 };
 
@@ -524,13 +540,18 @@ const PublicTransportVehicleMonitoringDashboard = () => {
       description="All vehicles/devices on board Skytron platform (dummy data)."
       sx={{
         bgcolor: tokens.pageBg,
-        backgroundImage: 'none'
+        backgroundImage: 'none',
+        minHeight: '100vh',
+        height: '100vh',
+        maxHeight: '100vh',
+        overflow: 'hidden'
       }}
-      titleSx={{ color: tokens.text }}
-      descriptionSx={{ color: tokens.muted }}
+      titleSx={{ color: tokens.text, fontSize: { xs: '1.5rem', md: '1.75rem' }, mb: 0.5 }}
+      descriptionSx={{ color: tokens.muted, fontSize: { xs: '0.85rem', md: '0.875rem' } }}
+      headerSx={{ mb: { xs: 2, md: 1.5 } }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 1 }, height: { xs: 'auto', md: '100%' } }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
           <IconButton
             size="small"
             onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
@@ -549,13 +570,14 @@ const PublicTransportVehicleMonitoringDashboard = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 2,
-            borderRadius: 3,
+            p: { xs: 2, md: 1.25 },
+            borderRadius: 2,
             border: `1px solid ${tokens.border}`,
-            bgcolor: tokens.cardBg
+            bgcolor: tokens.cardBg,
+            flexShrink: 0
           }}
         >
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={{ xs: 2, md: 1.5 }} alignItems="center">
             {Object.entries(FILTERS).map(([key, options]) => (
               <Grid key={key} item xs={12} sm={6} md={3} lg={2}>
                 <FormControl fullWidth size="small">
@@ -592,8 +614,9 @@ const PublicTransportVehicleMonitoringDashboard = () => {
         <Box
           sx={{
             display: 'flex',
-            gap: 1.5,
-            flexWrap: 'wrap'
+            gap: { xs: 1.5, md: 0.75 },
+            flexWrap: 'wrap',
+            flexShrink: 0
           }}
         >
           {kpis.map((tile) => (
@@ -604,15 +627,16 @@ const PublicTransportVehicleMonitoringDashboard = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 1.5,
-            borderRadius: 3,
+            p: { xs: 1.5, md: 0.875 },
+            borderRadius: 2,
             border: `1px solid ${tokens.border}`,
             bgcolor: tokens.cardBg,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 2,
-            flexWrap: 'wrap'
+            gap: { xs: 2, md: 1 },
+            flexWrap: 'wrap',
+            flexShrink: 0
           }}
         >
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -650,12 +674,14 @@ const PublicTransportVehicleMonitoringDashboard = () => {
           </Box>
         </Paper>
 
-        <DistrictVehicleMap
-          vehicles={filteredVehicles}
-          selectedDistrict={selectedDistrict}
-          onSelectDistrict={handleSelectDistrict}
-          mode={mode}
-        />
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <DistrictVehicleMap
+            vehicles={filteredVehicles}
+            selectedDistrict={selectedDistrict}
+            onSelectDistrict={handleSelectDistrict}
+            mode={mode}
+          />
+        </Box>
       </Box>
     </PageWrapper>
   );

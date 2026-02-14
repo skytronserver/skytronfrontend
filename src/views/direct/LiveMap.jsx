@@ -5890,6 +5890,10 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             </div>
 
             <style>{`
+.ol-attribution {
+display: none !important;
+}
+
 .dynamic-overlay {
 position: absolute;
 display: none;

@@ -48,10 +48,10 @@ const ChartCard = ({ title, subtitle, children, color, tokens }) => (
   <Box
     sx={{
       height: '100%',
-      borderRadius: 3,
+      borderRadius: 2,
       border: `1px solid ${alpha(color, 0.18)}`,
       bgcolor: tokens?.cardBg || COLORS.cardBg,
-      boxShadow: `0 18px 40px -26px ${alpha(color, 0.55)}`,
+      boxShadow: `0 12px 30px -20px ${alpha(color, 0.45)}`,
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column'
@@ -59,16 +59,16 @@ const ChartCard = ({ title, subtitle, children, color, tokens }) => (
   >
     <Box
       sx={{
-        px: 2.5,
-        py: 2,
+        px: 1.5,
+        py: 1.25,
         borderBottom: `1px solid ${alpha(color, 0.12)}`,
         background: `linear-gradient(135deg, ${alpha(color, 0.14)} 0%, ${alpha(color, 0.03)} 100%)`
       }}
     >
-      <Typography sx={{ fontWeight: 800, color: tokens?.text || COLORS.ink, fontSize: '1.05rem' }}>{title}</Typography>
-      <Typography sx={{ color: tokens?.muted || COLORS.muted, fontSize: '0.85rem', mt: 0.25 }}>{subtitle}</Typography>
+      <Typography sx={{ fontWeight: 700, color: tokens?.text || COLORS.ink, fontSize: '0.85rem' }}>{title}</Typography>
+      <Typography sx={{ color: tokens?.muted || COLORS.muted, fontSize: '0.7rem', mt: 0.15 }}>{subtitle}</Typography>
     </Box>
-    <Box sx={{ flex: 1, minHeight: 0, p: 2.25 }}>{children}</Box>
+    <Box sx={{ flex: 1, minHeight: 0, p: 1.5 }}>{children}</Box>
   </Box>
 );
 
@@ -81,17 +81,17 @@ const TooltipBox = ({ active, payload, label, tokens }) => {
   return (
     <Box
       sx={{
-        px: 2,
-        py: 1.25,
-        borderRadius: 2,
+        px: 1.5,
+        py: 1,
+        borderRadius: 1.5,
         bgcolor: tokens?.cardBg || COLORS.cardBg,
         border: `1px solid ${tokens?.border || COLORS.border}`,
-        boxShadow: '0 20px 40px -22px rgba(15, 23, 42, 0.45)'
+        boxShadow: '0 15px 30px -18px rgba(15, 23, 42, 0.4)'
       }}
     >
-      <Typography sx={{ fontWeight: 800, color: titleColor, fontSize: '0.85rem' }}>{label}</Typography>
+      <Typography sx={{ fontWeight: 700, color: titleColor, fontSize: '0.75rem' }}>{label}</Typography>
       {payload.map((entry) => (
-        <Typography key={entry.dataKey || entry.name} sx={{ color: rowColor, fontSize: '0.8rem' }}>
+        <Typography key={entry.dataKey || entry.name} sx={{ color: rowColor, fontSize: '0.7rem' }}>
           {entry.name}: {entry.value}
         </Typography>
       ))}
@@ -100,7 +100,7 @@ const TooltipBox = ({ active, payload, label, tokens }) => {
 };
 
 const TabPanel = ({ children, value, index }) => (
-  <Box role="tabpanel" hidden={value !== index} sx={{ pt: 3 }}>
+  <Box role="tabpanel" hidden={value !== index} sx={{ pt: 1.5 }}>
     {value === index ? children : null}
   </Box>
 );
@@ -108,6 +108,13 @@ const TabPanel = ({ children, value, index }) => (
 const SOSAnalyticsDashboard = () => {
   const [mode, setMode] = useState('light');
   const [tabValue, setTabValue] = useState(0);
+  const [overviewSubTab, setOverviewSubTab] = useState(0);
+  const [monthwiseSubTab, setMonthwiseSubTab] = useState(0);
+  const [timeBasedSubTab, setTimeBasedSubTab] = useState(0);
+  const [districtSubTab, setDistrictSubTab] = useState(0);
+  const [policeStationSubTab, setPoliceStationSubTab] = useState(0);
+  const [typeDistSubTab, setTypeDistSubTab] = useState(0);
+  const [topPerformersSubTab, setTopPerformersSubTab] = useState(0);
 
   const tokens = useMemo(() => {
     if (mode === 'dark') {
@@ -347,10 +354,10 @@ const SOSAnalyticsDashboard = () => {
         bgcolor: tokens.pageBg,
         backgroundImage: 'none'
       }}
-      titleSx={{ color: tokens.text }}
-      descriptionSx={{ color: tokens.muted }}
+      titleSx={{ color: tokens.text, fontSize: '1.5rem', mb: 0.5 }}
+      descriptionSx={{ color: tokens.muted, fontSize: '0.75rem' }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
         <IconButton
           size="small"
           onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
@@ -372,7 +379,7 @@ const SOSAnalyticsDashboard = () => {
           borderRadius: 3,
           bgcolor: tokens.cardBg,
           border: `1px solid ${tokens.border}`,
-          overflow: 'hidden'
+          overflow: 'visible'
         }}
       >
         <Tabs
@@ -380,24 +387,28 @@ const SOSAnalyticsDashboard = () => {
           onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             borderBottom: `1px solid ${tokens.border}`,
             px: 2,
+            minHeight: 48,
             '& .MuiTabs-flexContainer': {
-              gap: 1
+              gap: 2
             },
             '& .MuiTab-root': {
               textTransform: 'none',
-              fontWeight: 800,
-              minHeight: 54,
-              color: tokens.muted
-            },
-            '& .MuiTab-root.Mui-selected': {
-              color: tokens.text
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              minHeight: 48,
+              color: tokens.muted,
+              '&.Mui-selected': {
+                color: tokens.text,
+                fontWeight: 700
+              }
             },
             '& .MuiTabs-indicator': {
               height: 3,
-              borderRadius: 2,
+              borderRadius: '3px 3px 0 0',
               backgroundColor: COLORS.primary
             }
           }}
@@ -411,401 +422,789 @@ const SOSAnalyticsDashboard = () => {
       </Paper>
 
       <TabPanel value={tabValue} index={0}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} lg={7}>
-            <ChartCard
-              title="SOS Calls Breakdown (Jan-Dec)"
-              subtitle="Total SOS calls segmented by categories"
-              color={COLORS.primary}
-              tokens={tokens}
-            >
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={monthwiseData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                  <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
-                  <Bar dataKey="genuine" name="Genuine Calls" stackId="a" fill={COLORS.success} />
-                  <Bar dataKey="panic" name="Panic Calls" stackId="a" fill={COLORS.primary} />
-                  <Bar dataKey="policeAccepted" name="Police Accepted" stackId="a" fill={COLORS.secondary} />
-                  <Bar dataKey="ambAccepted" name="Amb Accepted" stackId="a" fill={COLORS.warning} />
-                  <Bar dataKey="other" name="Other" stackId="a" fill={alpha(COLORS.ink, 0.22)} />
-                  <Bar dataKey="fake" name="Fake Calls" stackId="a" fill={COLORS.danger} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
+        {/* Nested tabs for Overview */}
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            bgcolor: alpha(tokens.cardBg, 0.5),
+            border: `1px solid ${alpha(tokens.border, 0.5)}`,
+            mb: 1.5
+          }}
+        >
+          <Tabs
+            value={overviewSubTab}
+            onChange={(e, newVal) => setOverviewSubTab(newVal)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              minHeight: 42,
+              px: 1.5,
+              '& .MuiTabs-flexContainer': {
+                gap: 1
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                minHeight: 42,
+                color: tokens.muted,
+                '&.Mui-selected': {
+                  color: tokens.text,
+                  fontWeight: 700
+                }
+              },
+              '& .MuiTabs-indicator': {
+                height: 2.5,
+                borderRadius: '2.5px 2.5px 0 0',
+                backgroundColor: COLORS.secondary
+              }
+            }}
+          >
+            <Tab label="Breakdown" />
+            <Tab label="Time Heatmap" />
+            <Tab label="Type Distribution" />
+            <Tab label="Top Performers" />
+          </Tabs>
+        </Paper>
 
-          <Grid item xs={12} lg={5}>
-            <ChartCard
-              title="SOS Calls by Time of Day"
-              subtitle="Heatmap view (Day vs Hour)"
-              color={COLORS.secondary}
-              tokens={tokens}
-            >
-              <Box sx={{ display: 'grid', gridTemplateColumns: '52px repeat(24, 1fr)', gap: 0.75 }}>
-                <Box />
-                {Array.from({ length: 24 }).map((_, i) => (
-                  <Box key={i} sx={{ textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '0.65rem', color: tokens.muted }}>{i}</Typography>
-                  </Box>
-                ))}
-                {timeOfDayHeatmap.map((row) => (
-                  <Box key={row.day} sx={{ display: 'contents' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: tokens.text }}>{row.day}</Typography>
+        {/* Sub-tab 0: Breakdown */}
+        <TabPanel value={overviewSubTab} index={0}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard
+                title="SOS Calls Breakdown (Jan-Dec)"
+                subtitle="Total SOS calls segmented by categories"
+                color={COLORS.primary}
+                tokens={tokens}
+              >
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={monthwiseData} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
+                    <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
+                    <Bar dataKey="genuine" name="Genuine Calls" stackId="a" fill={COLORS.success} />
+                    <Bar dataKey="panic" name="Panic Calls" stackId="a" fill={COLORS.primary} />
+                    <Bar dataKey="policeAccepted" name="Police Accepted" stackId="a" fill={COLORS.secondary} />
+                    <Bar dataKey="ambAccepted" name="Amb Accepted" stackId="a" fill={COLORS.warning} />
+                    <Bar dataKey="other" name="Other" stackId="a" fill={alpha(COLORS.ink, 0.22)} />
+                    <Bar dataKey="fake" name="Fake Calls" stackId="a" fill={COLORS.danger} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
+          </Grid>
+        </TabPanel>
+
+        {/* Sub-tab 1: Time Heatmap */}
+        <TabPanel value={overviewSubTab} index={1}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard
+                title="SOS Calls by Time of Day"
+                subtitle="Heatmap view (Day vs Hour)"
+                color={COLORS.secondary}
+                tokens={tokens}
+              >
+                <Box sx={{ display: 'grid', gridTemplateColumns: '52px repeat(24, 1fr)', gap: 0.75 }}>
+                  <Box />
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <Box key={i} sx={{ textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '0.65rem', color: tokens.muted }}>{i}</Typography>
                     </Box>
-                    {row.values.map((v, idx) => (
-                      <Box
-                        key={`${row.day}-${idx}`}
-                        sx={{
-                          height: 16,
-                          borderRadius: 0.75,
-                          bgcolor: heatColor(v),
-                          border: `1px solid ${alpha(tokens.text, 0.08)}`
-                        }}
-                      />
-                    ))}
-                  </Box>
-                ))}
-              </Box>
-            </ChartCard>
+                  ))}
+                  {timeOfDayHeatmap.map((row) => (
+                    <Box key={row.day} sx={{ display: 'contents' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: tokens.text }}>{row.day}</Typography>
+                      </Box>
+                      {row.values.map((v, idx) => (
+                        <Box
+                          key={`${row.day}-${idx}`}
+                          sx={{
+                            height: 20,
+                            borderRadius: 0.75,
+                            bgcolor: heatColor(v),
+                            border: `1px solid ${alpha(tokens.text, 0.08)}`
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  ))}
+                </Box>
+              </ChartCard>
+            </Grid>
           </Grid>
+        </TabPanel>
 
-          <Grid item xs={12} lg={5}>
-            <ChartCard
-              title="SOS Calls by Type"
-              subtitle="Distribution by category"
-              color={COLORS.accent}
-              tokens={tokens}
+        {/* Sub-tab 2: Type Distribution */}
+        <TabPanel value={overviewSubTab} index={2}>
+          {/* Nested tabs for Type Distribution */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 2,
+              bgcolor: alpha(tokens.cardBg, 0.5),
+              border: `1px solid ${alpha(tokens.border, 0.5)}`,
+              mb: 1.5
+            }}
+          >
+            <Tabs
+              value={typeDistSubTab}
+              onChange={(e, newVal) => setTypeDistSubTab(newVal)}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+              sx={{
+                minHeight: 42,
+                px: 1.5,
+                '& .MuiTabs-flexContainer': {
+                  gap: 1
+                },
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  minHeight: 42,
+                  color: tokens.muted,
+                  '&.Mui-selected': {
+                    color: tokens.text,
+                    fontWeight: 700
+                  }
+                },
+                '& .MuiTabs-indicator': {
+                  height: 2.5,
+                  borderRadius: '2.5px 2.5px 0 0',
+                  backgroundColor: COLORS.accent
+                }
+              }}
             >
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={sosByType}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={75}
-                    outerRadius={110}
-                    paddingAngle={2}
-                    stroke="none"
-                  >
-                    {sosByType.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
+              <Tab label="Main Distribution" />
+              <Tab label="Panic Alert" />
+              <Tab label="Ambulance" />
+            </Tabs>
+          </Paper>
 
-          <Grid item xs={12} lg={3.5}>
-            <ChartCard title="Panic Alert" subtitle="Breakdown" color={COLORS.primary} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={panicBreakdown}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={72}
-                    outerRadius={110}
-                    paddingAngle={2}
-                    stroke="none"
-                  >
-                    {panicBreakdown.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
-
-          <Grid item xs={12} lg={3.5}>
-            <ChartCard title="Ambulance" subtitle="Breakdown" color={COLORS.warning} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={ambulanceBreakdown}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={72}
-                    outerRadius={110}
-                    paddingAngle={2}
-                    stroke="none"
-                  >
-                    {ambulanceBreakdown.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
-
-          <Grid item xs={12} lg={4}>
-            <ChartCard title="Top SOS Districts" subtitle="Volume and SLA metrics" color={COLORS.success} tokens={tokens}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: '1.4fr 0.8fr 0.6fr 0.8fr',
-                    gap: 1,
-                    pb: 1,
-                    borderBottom: `1px solid ${alpha(tokens.text, 0.12)}`
-                  }}
+          {/* Type Dist Sub-tab 0: Main Pie */}
+          <TabPanel value={typeDistSubTab} index={0}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ChartCard
+                  title="SOS Calls by Type"
+                  subtitle="Distribution by category"
+                  color={COLORS.accent}
+                  tokens={tokens}
                 >
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted }}>District</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>Total</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>SLA</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>Police</Typography>
-                </Box>
-                {topDistricts.map((d) => (
-                  <Box
-                    key={d.name}
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: '1.4fr 0.8fr 0.6fr 0.8fr',
-                      gap: 1,
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: tokens.text }}>{d.name}</Typography>
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: tokens.text, textAlign: 'right' }}>{d.total}</Typography>
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.success, textAlign: 'right' }}>{d.sla}%</Typography>
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.secondary, textAlign: 'right' }}>{d.policeAccepted}%</Typography>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie
+                        data={sosByType}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={95}
+                        paddingAngle={2}
+                        stroke="none"
+                      >
+                        {sosByType.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          {/* Type Dist Sub-tab 1: Panic Alert */}
+          <TabPanel value={typeDistSubTab} index={1}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ChartCard title="Panic Alert" subtitle="Breakdown" color={COLORS.primary} tokens={tokens}>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie
+                        data={panicBreakdown}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={95}
+                        paddingAngle={2}
+                        stroke="none"
+                      >
+                        {panicBreakdown.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          {/* Type Dist Sub-tab 2: Ambulance */}
+          <TabPanel value={typeDistSubTab} index={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ChartCard title="Ambulance" subtitle="Breakdown" color={COLORS.warning} tokens={tokens}>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie
+                        data={ambulanceBreakdown}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={95}
+                        paddingAngle={2}
+                        stroke="none"
+                      >
+                        {ambulanceBreakdown.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              </Grid>
+            </Grid>
+          </TabPanel>
+        </TabPanel>
+
+        {/* Sub-tab 3: Top Performers */}
+        <TabPanel value={overviewSubTab} index={3}>
+          {/* Nested tabs for Top Performers */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 2,
+              bgcolor: alpha(tokens.cardBg, 0.5),
+              border: `1px solid ${alpha(tokens.border, 0.5)}`,
+              mb: 1.5
+            }}
+          >
+            <Tabs
+              value={topPerformersSubTab}
+              onChange={(e, newVal) => setTopPerformersSubTab(newVal)}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+              sx={{
+                minHeight: 42,
+                px: 1.5,
+                '& .MuiTabs-flexContainer': {
+                  gap: 1
+                },
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  minHeight: 42,
+                  color: tokens.muted,
+                  '&.Mui-selected': {
+                    color: tokens.text,
+                    fontWeight: 700
+                  }
+                },
+                '& .MuiTabs-indicator': {
+                  height: 2.5,
+                  borderRadius: '2.5px 2.5px 0 0',
+                  backgroundColor: COLORS.success
+                }
+              }}
+            >
+              <Tab label="Districts Table" />
+              <Tab label="Districts Trend" />
+              <Tab label="Police Stations" />
+            </Tabs>
+          </Paper>
+
+          {/* Top Performers Sub-tab 0: Districts Table */}
+          <TabPanel value={topPerformersSubTab} index={0}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ChartCard title="Top SOS Districts" subtitle="Volume and SLA metrics" color={COLORS.success} tokens={tokens}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: '1.4fr 0.8fr 0.6fr 0.8fr',
+                        gap: 1,
+                        pb: 1,
+                        borderBottom: `1px solid ${alpha(tokens.text, 0.12)}`
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted }}>District</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>Total</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>SLA</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: tokens.muted, textAlign: 'right' }}>Police</Typography>
+                    </Box>
+                    {topDistricts.map((d) => (
+                      <Box
+                        key={d.name}
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: '1.4fr 0.8fr 0.6fr 0.8fr',
+                          gap: 1,
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: tokens.text }}>{d.name}</Typography>
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: tokens.text, textAlign: 'right' }}>{d.total}</Typography>
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.success, textAlign: 'right' }}>{d.sla}%</Typography>
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: COLORS.secondary, textAlign: 'right' }}>{d.policeAccepted}%</Typography>
+                      </Box>
+                    ))}
+
+                    <Box sx={{ mt: 1, pt: 1.25, borderTop: `1px solid ${alpha(tokens.text, 0.12)}` }}>
+                      <Typography sx={{ fontSize: '0.8rem', color: tokens.muted }}>Overall SLA Compliance</Typography>
+                      <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: tokens.text }}>92%</Typography>
+                    </Box>
                   </Box>
-                ))}
+                </ChartCard>
+              </Grid>
+            </Grid>
+          </TabPanel>
 
-                <Box sx={{ mt: 1, pt: 1.25, borderTop: `1px solid ${alpha(tokens.text, 0.12)}` }}>
-                  <Typography sx={{ fontSize: '0.8rem', color: tokens.muted }}>Overall SLA Compliance</Typography>
-                  <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: tokens.text }}>92%</Typography>
-                </Box>
-              </Box>
-            </ChartCard>
-          </Grid>
+          {/* Top Performers Sub-tab 1: Districts Trend */}
+          <TabPanel value={topPerformersSubTab} index={1}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ChartCard title="Top SOS Districts" subtitle="Trend over time" color={COLORS.secondary} tokens={tokens}>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <LineChart data={districtsTrend} margin={{ top: 10, right: 15, left: -12, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.secondary, 0.15)} />
+                      <XAxis dataKey="t" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
+                      <Line type="monotone" dataKey="Central" name="Central" stroke={COLORS.primary} strokeWidth={2.5} dot={false} />
+                      <Line type="monotone" dataKey="West" name="West" stroke={COLORS.warning} strokeWidth={2.5} dot={false} />
+                      <Line type="monotone" dataKey="South" name="South" stroke={COLORS.success} strokeWidth={2.5} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              </Grid>
+            </Grid>
+          </TabPanel>
 
-          <Grid item xs={12} lg={6}>
-            <ChartCard title="Top SOS Districts" subtitle="Trend over time" color={COLORS.secondary} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={districtsTrend} margin={{ top: 10, right: 18, left: -8, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.secondary, 0.15)} />
-                  <XAxis dataKey="t" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
-                  <Line type="monotone" dataKey="Central" name="Central" stroke={COLORS.primary} strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="West" name="West" stroke={COLORS.warning} strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="South" name="South" stroke={COLORS.success} strokeWidth={2.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
-
-          <Grid item xs={12} lg={6}>
-            <ChartCard title="Top SOS Police Stations" subtitle="Monthly stacked volume" color={COLORS.primary} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={topPoliceStations} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                  <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: tokens.muted }} />
-                  <Bar dataKey="Dispur" name="Dispur" stackId="a" fill={COLORS.primary} />
-                  <Bar dataKey="Panbazar" name="Panbazar" stackId="a" fill={COLORS.secondary} />
-                  <Bar dataKey="Latasil" name="Latasil" stackId="a" fill={COLORS.warning} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
-        </Grid>
+          {/* Top Performers Sub-tab 2: Police Stations */}
+          <TabPanel value={topPerformersSubTab} index={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ChartCard title="Top SOS Police Stations" subtitle="Monthly stacked volume" color={COLORS.primary} tokens={tokens}>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <BarChart data={topPoliceStations} margin={{ top: 10, right: 15, left: -15, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
+                      <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
+                      <Bar dataKey="Dispur" name="Dispur" stackId="a" fill={COLORS.primary} />
+                      <Bar dataKey="Panbazar" name="Panbazar" stackId="a" fill={COLORS.secondary} />
+                      <Bar dataKey="Latasil" name="Latasil" stackId="a" fill={COLORS.warning} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              </Grid>
+            </Grid>
+          </TabPanel>
+        </TabPanel>
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Monthwise total SOS calls (Jan-Dec)" color={COLORS.primary} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={420}>
-                <BarChart data={monthwiseTotals} margin={{ top: 20, right: 20, left: -10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                  <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Bar dataKey="total" name="Total SOS call" radius={[8, 8, 0, 0]} fill={COLORS.primary} barSize={42} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
+        {/* Nested tabs for Monthwise */}
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            bgcolor: alpha(tokens.cardBg, 0.5),
+            border: `1px solid ${alpha(tokens.border, 0.5)}`,
+            mb: 1.5
+          }}
+        >
+          <Tabs
+            value={monthwiseSubTab}
+            onChange={(e, newVal) => setMonthwiseSubTab(newVal)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              minHeight: 42,
+              px: 1.5,
+              '& .MuiTabs-flexContainer': {
+                gap: 1
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                minHeight: 42,
+                color: tokens.muted,
+                '&.Mui-selected': {
+                  color: tokens.text,
+                  fontWeight: 700
+                }
+              },
+              '& .MuiTabs-indicator': {
+                height: 2.5,
+                borderRadius: '2.5px 2.5px 0 0',
+                backgroundColor: COLORS.secondary
+              }
+            }}
+          >
+            <Tab label="Bar Chart" />
+          </Tabs>
+        </Paper>
+
+        <TabPanel value={monthwiseSubTab} index={0}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard title="Total SOS Call" subtitle="Monthwise total SOS calls (Jan-Dec)" color={COLORS.primary} tokens={tokens}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={monthwiseTotals} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
+                    <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Bar dataKey="total" name="Total SOS call" radius={[6, 6, 0, 0]} fill={COLORS.primary} barSize={36} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
           </Grid>
-        </Grid>
+        </TabPanel>
       </TabPanel>
 
       <TabPanel value={tabValue} index={2}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Area chart)" color={COLORS.secondary} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={380}>
-                <AreaChart data={hourlyData} margin={{ top: 20, right: 20, left: -10, bottom: 70 }}>
-                  <defs>
-                    <linearGradient id="hourlyFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={COLORS.secondary} stopOpacity={0.55} />
-                      <stop offset="100%" stopColor={COLORS.secondary} stopOpacity={0.06} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.secondary, 0.12)} />
-                  <XAxis
-                    dataKey="time"
-                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    height={90}
-                  />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.secondary} strokeWidth={2} fill="url(#hourlyFill)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
+        {/* Nested tabs for Time-based */}
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            bgcolor: alpha(tokens.cardBg, 0.5),
+            border: `1px solid ${alpha(tokens.border, 0.5)}`,
+            mb: 1.5
+          }}
+        >
+          <Tabs
+            value={timeBasedSubTab}
+            onChange={(e, newVal) => setTimeBasedSubTab(newVal)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              minHeight: 42,
+              px: 1.5,
+              '& .MuiTabs-flexContainer': {
+                gap: 1
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                minHeight: 42,
+                color: tokens.muted,
+                '&.Mui-selected': {
+                  color: tokens.text,
+                  fontWeight: 700
+                }
+              },
+              '& .MuiTabs-indicator': {
+                height: 2.5,
+                borderRadius: '2.5px 2.5px 0 0',
+                backgroundColor: COLORS.secondary
+              }
+            }}
+          >
+            <Tab label="Area Chart" />
+            <Tab label="Line Chart" />
+          </Tabs>
+        </Paper>
 
-          <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Line chart)" color={COLORS.accent} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={hourlyData} margin={{ top: 20, right: 20, left: -10, bottom: 70 }}>
-                  <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.accent, 0.12)} />
-                  <XAxis
-                    dataKey="time"
-                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    height={90}
-                  />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.accent} strokeWidth={2.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartCard>
+        {/* Sub-tab 0: Area Chart */}
+        <TabPanel value={timeBasedSubTab} index={0}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Area chart)" color={COLORS.secondary} tokens={tokens}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
+                    <defs>
+                      <linearGradient id="hourlyFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={COLORS.secondary} stopOpacity={0.55} />
+                        <stop offset="100%" stopColor={COLORS.secondary} stopOpacity={0.06} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.secondary, 0.12)} />
+                    <XAxis
+                      dataKey="time"
+                      tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      height={80}
+                    />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.secondary} strokeWidth={2} fill="url(#hourlyFill)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
           </Grid>
-        </Grid>
+        </TabPanel>
+
+        {/* Sub-tab 1: Line Chart */}
+        <TabPanel value={timeBasedSubTab} index={1}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Line chart)" color={COLORS.accent} tokens={tokens}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.accent, 0.12)} />
+                    <XAxis
+                      dataKey="time"
+                      tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      height={80}
+                    />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.accent} strokeWidth={2.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
+          </Grid>
+        </TabPanel>
       </TabPanel>
 
       <TabPanel value={tabValue} index={3}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="District-wise (Area chart)" color={COLORS.success} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={380}>
-                <AreaChart data={districtSeries} margin={{ top: 20, right: 20, left: -10, bottom: 90 }}>
-                  <defs>
-                    <linearGradient id="districtFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={COLORS.success} stopOpacity={0.55} />
-                      <stop offset="100%" stopColor={COLORS.success} stopOpacity={0.06} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.success, 0.15)} />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    height={110}
-                  />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.success} strokeWidth={2} fill="url(#districtFill)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
+        {/* Nested tabs for District-wise */}
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            bgcolor: alpha(tokens.cardBg, 0.5),
+            border: `1px solid ${alpha(tokens.border, 0.5)}`,
+            mb: 1.5
+          }}
+        >
+          <Tabs
+            value={districtSubTab}
+            onChange={(e, newVal) => setDistrictSubTab(newVal)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              minHeight: 42,
+              px: 1.5,
+              '& .MuiTabs-flexContainer': {
+                gap: 1
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                minHeight: 42,
+                color: tokens.muted,
+                '&.Mui-selected': {
+                  color: tokens.text,
+                  fontWeight: 700
+                }
+              },
+              '& .MuiTabs-indicator': {
+                height: 2.5,
+                borderRadius: '2.5px 2.5px 0 0',
+                backgroundColor: COLORS.secondary
+              }
+            }}
+          >
+            <Tab label="Area Chart" />
+            <Tab label="Line Chart" />
+          </Tabs>
+        </Paper>
 
-          <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="District-wise (Line chart)" color={COLORS.warning} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={districtSeries} margin={{ top: 20, right: 20, left: -10, bottom: 90 }}>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.warning, 0.15)} />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: tokens.muted, fontSize: 10, angle: -45, textAnchor: 'end' }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    height={110}
-                  />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.warning} strokeWidth={2.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartCard>
+        {/* Sub-tab 0: Area Chart */}
+        <TabPanel value={districtSubTab} index={0}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard title="Total SOS Call" subtitle="District-wise (Area chart)" color={COLORS.success} tokens={tokens}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={districtSeries} margin={{ top: 5, right: 15, left: -15, bottom: 80 }}>
+                    <defs>
+                      <linearGradient id="districtFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={COLORS.success} stopOpacity={0.55} />
+                        <stop offset="100%" stopColor={COLORS.success} stopOpacity={0.06} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.success, 0.15)} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      height={95}
+                    />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.success} strokeWidth={2} fill="url(#districtFill)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
           </Grid>
-        </Grid>
+        </TabPanel>
+
+        {/* Sub-tab 1: Line Chart */}
+        <TabPanel value={districtSubTab} index={1}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard title="Total SOS Call" subtitle="District-wise (Line chart)" color={COLORS.warning} tokens={tokens}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={districtSeries} margin={{ top: 5, right: 15, left: -15, bottom: 80 }}>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.warning, 0.15)} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      height={95}
+                    />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.warning} strokeWidth={2.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
+          </Grid>
+        </TabPanel>
       </TabPanel>
 
       <TabPanel value={tabValue} index={4}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Area chart)" color={COLORS.danger} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={380}>
-                <AreaChart data={policeStationSeries} margin={{ top: 20, right: 20, left: -10, bottom: 120 }}>
-                  <defs>
-                    <linearGradient id="psFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={COLORS.danger} stopOpacity={0.55} />
-                      <stop offset="100%" stopColor={COLORS.danger} stopOpacity={0.06} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.danger, 0.15)} />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    height={140}
-                  />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.danger} strokeWidth={2} fill="url(#psFill)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
+        {/* Nested tabs for Police Station-wise */}
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            bgcolor: alpha(tokens.cardBg, 0.5),
+            border: `1px solid ${alpha(tokens.border, 0.5)}`,
+            mb: 1.5
+          }}
+        >
+          <Tabs
+            value={policeStationSubTab}
+            onChange={(e, newVal) => setPoliceStationSubTab(newVal)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              minHeight: 42,
+              px: 1.5,
+              '& .MuiTabs-flexContainer': {
+                gap: 1
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                minHeight: 42,
+                color: tokens.muted,
+                '&.Mui-selected': {
+                  color: tokens.text,
+                  fontWeight: 700
+                }
+              },
+              '& .MuiTabs-indicator': {
+                height: 2.5,
+                borderRadius: '2.5px 2.5px 0 0',
+                backgroundColor: COLORS.secondary
+              }
+            }}
+          >
+            <Tab label="Area Chart" />
+            <Tab label="Line Chart" />
+          </Tabs>
+        </Paper>
 
-          <Grid item xs={12}>
-            <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Line chart)" color={COLORS.primary} tokens={tokens}>
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={policeStationSeries} margin={{ top: 20, right: 20, left: -10, bottom: 120 }}>
-                  <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.15)} />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    height={140}
-                  />
-                  <YAxis tick={{ fill: tokens.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                  <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.primary} strokeWidth={2.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartCard>
+        {/* Sub-tab 0: Area Chart */}
+        <TabPanel value={policeStationSubTab} index={0}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Area chart)" color={COLORS.danger} tokens={tokens}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={policeStationSeries} margin={{ top: 5, right: 15, left: -15, bottom: 100 }}>
+                    <defs>
+                      <linearGradient id="psFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={COLORS.danger} stopOpacity={0.55} />
+                        <stop offset="100%" stopColor={COLORS.danger} stopOpacity={0.06} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.danger, 0.15)} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: tokens.muted, fontSize: 8, angle: -45, textAnchor: 'end' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      height={115}
+                    />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.danger} strokeWidth={2} fill="url(#psFill)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
           </Grid>
-        </Grid>
+        </TabPanel>
+
+        {/* Sub-tab 1: Line Chart */}
+        <TabPanel value={policeStationSubTab} index={1}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Line chart)" color={COLORS.primary} tokens={tokens}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={policeStationSeries} margin={{ top: 5, right: 15, left: -15, bottom: 100 }}>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.15)} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: tokens.muted, fontSize: 8, angle: -45, textAnchor: 'end' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      height={115}
+                    />
+                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                    <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.primary} strokeWidth={2.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </Grid>
+          </Grid>
+        </TabPanel>
       </TabPanel>
     </PageWrapper>
   );

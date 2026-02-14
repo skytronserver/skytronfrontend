@@ -203,15 +203,30 @@ const DashboardMap = ({
   }, [map, vectorLayer, data, getStyle, autoFit, autoFitFilter, autoFitPadding, autoFitMaxZoom]);
 
   return (
-    <Box
-      ref={mapRef}
-      sx={{
-        width: '100%',
-        height: '100%',
-        minHeight: '400px',
-        '& .ol-viewport': { borderRadius: '0 0 12px 12px' }
-      }}
-    />
+    <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: '400px' }}>
+      <Box
+        ref={mapRef}
+        sx={{
+          width: '100%',
+          height: '100%',
+          '& .ol-viewport': { borderRadius: '0 0 12px 12px' },
+          '& .ol-attribution': { display: 'none' }
+        }}
+      />
+      <img
+        src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
+        style={{
+          position: 'absolute',
+          bottom: '20px',
+          right: '10px',
+          width: '180px',
+          zIndex: 1000,
+          pointerEvents: 'none',
+          opacity: 0.8
+        }}
+        alt="Skytron Logo"
+      />
+    </Box>
   );
 };
 
@@ -857,9 +872,9 @@ const useSosDashboardData = () => {
 
         const totalsSource =
           leadDashboard &&
-          (leadDashboard.Total_Active_Calls !== undefined ||
-            leadDashboard.Total_Pending_Calls !== undefined ||
-            leadDashboard.Total_Closed_Calls !== undefined)
+            (leadDashboard.Total_Active_Calls !== undefined ||
+              leadDashboard.Total_Pending_Calls !== undefined ||
+              leadDashboard.Total_Closed_Calls !== undefined)
             ? leadDashboard
             : dashboard;
 
@@ -871,27 +886,27 @@ const useSosDashboardData = () => {
 
         const normalizedCalls = Array.isArray(calls)
           ? calls.slice(0, 10).map((entry) => {
-              const status = (entry?.call?.status || entry?.status || 'pending').toLowerCase();
-              const vehicleRegNo = entry?.call?.device?.vehicle_reg_no;
-              const imei = entry?.call?.device?.device?.imei;
-              const ownerName = entry?.call?.device?.vehicle_owner?.users?.[0]?.name;
+            const status = (entry?.call?.status || entry?.status || 'pending').toLowerCase();
+            const vehicleRegNo = entry?.call?.device?.vehicle_reg_no;
+            const imei = entry?.call?.device?.device?.imei;
+            const ownerName = entry?.call?.device?.vehicle_owner?.users?.[0]?.name;
 
-              return {
-                id: entry?.id,
-                status,
-                location: vehicleRegNo || imei || 'Unknown',
-                created_at:
-                  entry?.created_at ||
-                  entry?.call?.created_at ||
-                  entry?.call?.createdAt ||
-                  entry?.call?.timestamp ||
-                  entry?.call?.time ||
-                  null,
-                reporter_name: ownerName || entry?.call?.caller_name || entry?.call?.caller || null,
-                notes: entry?.call?.message || entry?.call?.notes || null,
-                raw: entry
-              };
-            })
+            return {
+              id: entry?.id,
+              status,
+              location: vehicleRegNo || imei || 'Unknown',
+              created_at:
+                entry?.created_at ||
+                entry?.call?.created_at ||
+                entry?.call?.createdAt ||
+                entry?.call?.timestamp ||
+                entry?.call?.time ||
+                null,
+              reporter_name: ownerName || entry?.call?.caller_name || entry?.call?.caller || null,
+              notes: entry?.call?.message || entry?.call?.notes || null,
+              raw: entry
+            };
+          })
           : [];
 
         setSosCalls(normalizedCalls);
@@ -914,7 +929,7 @@ const useSosDashboardData = () => {
   return { sosData, sosCalls, sosLoading };
 };
 
-const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, descriptionSx = {} }) => (
+const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, descriptionSx = {}, headerSx = {} }) => (
   <MainCard
     content={false}
     sx={{
@@ -924,12 +939,19 @@ const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, desc
         radial-gradient(circle at 100% 100%, ${alpha('#ec4899', 0.03)} 0%, transparent 50%)
       `,
       minHeight: 'calc(100vh - 88px)',
+      height: 'calc(100vh - 88px)',
       border: 'none',
       position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: 0,
+      '& .MuiCardContent-root': {
+        padding: 0
+      },
       ...sx
     }}
   >
-    <Box sx={{ display: 'flex', flexDirection: 'column', position: 'relative', p: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', position: 'relative', pt: { xs: 3, md: 2.5 }, px: { xs: 3, md: 2.5 }, pb: 0, flex: 1, minHeight: 0 }}>
       <Box
         sx={{
           position: 'absolute',
@@ -954,7 +976,7 @@ const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, desc
           pointerEvents: 'none'
         }}
       />
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: { xs: 4, md: 2 }, flexShrink: 0, ...headerSx }}>
         <Typography
           variant="h2"
           sx={{
@@ -980,7 +1002,7 @@ const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, desc
           {description}
         </Typography>
       </Box>
-      <Box>{children}</Box>
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>{children}</Box>
     </Box>
   </MainCard>
 );

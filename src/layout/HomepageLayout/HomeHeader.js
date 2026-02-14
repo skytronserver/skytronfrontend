@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider, Grid, Button, Menu, MenuItem } from '@mui/material';
-import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon } from '@mui/icons-material';
+import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
@@ -15,6 +15,8 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState(null);
   const importantLinksOpen = Boolean(anchorEl);
+  const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
+  const dashboardOpen = Boolean(dashboardAnchorEl);
 
   const handleImportantLinksClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -23,30 +25,38 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const handleImportantLinksClose = () => {
     setAnchorEl(null);
   };
-  
+
+  const handleDashboardClick = (event) => {
+    setDashboardAnchorEl(event.currentTarget);
+  };
+
+  const handleDashboardClose = () => {
+    setDashboardAnchorEl(null);
+  };
+
   return (
     <div>
-      <AppBar position="static" sx={{ backgroundColor: 'purple',padding:'4px' }}>
+      <AppBar position="static" sx={{ backgroundColor: 'purple', padding: '4px' }}>
         <Toolbar>
           {/* Ashoka Stambh Icon - Moved to the start */}
-          <img 
-            src={ashokstambh} 
-            alt={t('common.ashokStambh')} 
-            style={{ 
-              width: '30px', 
+          <img
+            src={ashokstambh}
+            alt={t('common.ashokStambh')}
+            style={{
+              width: '30px',
               height: 'auto',
               marginRight: '12px'
-            }} 
+            }}
           />
 
           {/* Logo and Title Container */}
-          <Typography 
-            variant="h2" 
-            component="div" 
-            sx={{ 
-              flexGrow: 1, 
-              color: '#FFC94A', 
-              fontWeight: 'bold', 
+          <Typography
+            variant="h2"
+            component="div"
+            sx={{
+              flexGrow: 1,
+              color: '#FFC94A',
+              fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
               gap: '12px'
@@ -54,31 +64,33 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           >
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                <img 
-                  src={logo} 
-                  alt={t('common.skytronLogo')} 
-                  style={{  
+                <img
+                  src={logo}
+                  alt={t('common.skytronLogo')}
+                  style={{
                     width: '30px',
                     height: 'auto',
                     marginRight: '8px'
-                  }} 
+                  }}
                 />
                 <span style={{ fontFamily: "Bicubik", fontSize: '1.6rem' }}>
-                  SkyTron<sup style={{fontSize: '18px',
-                  marginLeft: '5px',
-                  position: 'relative',
-                  top: '-2px' }}>®</sup>
+                  SkyTron<sup style={{
+                    fontSize: '18px',
+                    marginLeft: '5px',
+                    position: 'relative',
+                    top: '-2px'
+                  }}>®</sup>
                 </span>
               </div>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: 'white', 
-                  fontFamily: "Caveat", 
-                  fontSize: '16px', 
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'white',
+                  fontFamily: "Caveat",
+                  fontSize: '16px',
                   fontWeight: 'bold',
                   lineHeight: 1,
-                  marginLeft:'10px'
+                  marginLeft: '10px'
                 }}
               >
                 {t('common.vltdBackend')}
@@ -111,6 +123,39 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               {t('common.home')}
             </Button>
 
+            {/* Dashboards Dropdown */}
+            <Button
+              color="inherit"
+              startIcon={<DashboardIcon />}
+              endIcon={<ArrowDownIcon />}
+              onClick={handleDashboardClick}
+              sx={{ mr: 2 }}
+            >
+              Dashboards
+            </Button>
+            <Menu
+              anchorEl={dashboardAnchorEl}
+              open={dashboardOpen}
+              onClose={handleDashboardClose}
+              MenuListProps={{
+                'aria-labelledby': 'dashboard-button',
+              }}
+            >
+              <MenuItem onClick={handleDashboardClose} component={Link} to="/superadmin-dashboard/vehicle-monitoring">
+                Vehicle Monitoring
+              </MenuItem>
+              <MenuItem onClick={handleDashboardClose} component={Link} to="/superadmin-dashboard/erss-vehicles">
+                ERSS Vehicles
+              </MenuItem>
+              <MenuItem onClick={handleDashboardClose} component={Link} to="/superadmin-dashboard/sos">
+                SOS Dashboard
+              </MenuItem>
+              <MenuItem onClick={handleDashboardClose} component={Link} to="/superadmin-dashboard/sos-analytics">
+                SOS Analytics
+              </MenuItem>
+
+            </Menu>
+
             {/* Important Links Dropdown */}
             <Button
               color="inherit"
@@ -139,7 +184,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               {t('common.privacyPolicy')}
             </Button>
           </Grid>
-          
+
         </Toolbar>
       </AppBar>
       {/* Drawer */}
@@ -171,6 +216,25 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             <ListItem button component={Link} to="/privacy-policy">
               <ListItemText primary={t('common.privacyPolicy')} />
             </ListItem>
+          </List>
+          <Divider />
+          <List>
+            <ListItem>
+              <ListItemText primary="Dashboards" sx={{ fontWeight: 'bold' }} />
+            </ListItem>
+            <ListItem button component={Link} to="/superadmin-dashboard/vehicle-monitoring">
+              <ListItemText primary="Vehicle Monitoring" />
+            </ListItem>
+            <ListItem button component={Link} to="/superadmin-dashboard/erss-vehicles">
+              <ListItemText primary="ERSS Vehicles" />
+            </ListItem>
+            <ListItem button component={Link} to="/superadmin-dashboard/sos">
+              <ListItemText primary="SOS Dashboard" />
+            </ListItem>
+            <ListItem button component={Link} to="/superadmin-dashboard/sos-analytics">
+              <ListItemText primary="SOS Analytics" />
+            </ListItem>
+
           </List>
           <Divider />
           <List>

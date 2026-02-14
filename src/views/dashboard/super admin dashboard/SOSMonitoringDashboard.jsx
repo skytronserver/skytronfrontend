@@ -17,6 +17,8 @@ import Avatar from '@mui/material/Avatar';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 import { alpha } from '@mui/material/styles';
 
 import MenuIcon from '@mui/icons-material/Menu';
@@ -44,7 +46,7 @@ const formatNumber = (value) => {
 
 const getStatusChipStyles = (mode, status) => {
   const s = String(status || '').toLowerCase();
-  
+
   if (s === 'on-scene' || s === 'on-route' || s === 'pending' || s === 'closed') {
     return {
       bgcolor: 'transparent',
@@ -72,6 +74,7 @@ const getStatusChipStyles = (mode, status) => {
 
 const SOSMonitoringDashboard = () => {
   const [mode, setMode] = useState('dark');
+  const [activeTab, setActiveTab] = useState(0);
 
   const initialCases = useMemo(
     () => [
@@ -394,20 +397,23 @@ const SOSMonitoringDashboard = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        height: '100%',
+        height: { xs: 'auto', md: '100%' },
         bgcolor: tokens.pageBg,
-        p: { xs: 2, md: 3 }
+        p: { xs: 2, md: 1.5 },
+        overflow: { xs: 'auto', md: 'hidden' },
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box'
       }}
     >
-      <Box sx={{ ...cardSx, mb: 2.5 }}>
+      <Box sx={{ ...cardSx, mb: 1.5, flexShrink: 0 }}>
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            px: { xs: 2, md: 3 },
-            py: 1.75,
+            px: { xs: 2, md: 2.5 },
+            py: 1.5,
             bgcolor: tokens.headerBg,
             color: '#fff'
           }}
@@ -443,7 +449,7 @@ const SOSMonitoringDashboard = () => {
           </Stack>
         </Box>
 
-        <Box sx={{ p: { xs: 2, md: 2.5 }, bgcolor: tokens.kpiStripBg }}>
+        <Box sx={{ p: { xs: 2, md: 1.5 }, bgcolor: tokens.kpiStripBg }}>
           <Grid container spacing={1.5}>
             {kpis.map((kpi) => (
               <Grid key={kpi.label} item xs={12} sm={6} md={12 / 7}>
@@ -451,9 +457,9 @@ const SOSMonitoringDashboard = () => {
                   sx={{
                     borderRadius: 1,
                     bgcolor: kpi.bg,
-                    px: 2,
-                    py: 1.5,
-                    minHeight: 80,
+                    px: 1.5,
+                    py: 1,
+                    minHeight: { xs: 80, md: 65 },
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -480,321 +486,360 @@ const SOSMonitoringDashboard = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} md={5}>
-          <Box sx={cardSx}>
-            <Box sx={{ px: 2.5, py: 1.75, borderBottom: `1px solid ${tokens.divider}`, bgcolor: tokens.panelHeaderBg }}>
-              <Typography sx={{ fontWeight: 700, color: tokens.text, fontSize: 14.5 }}>SOS Call Status</Typography>
-            </Box>
-            <Box sx={{ p: 2.5 }}>
-              <Stack spacing={1.25}>
-                {statusRows.map((row, idx) => {
-                  return (
-                    <Box key={row.label} sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                      <Box
-                        sx={{
-                          width: `${row.width}%`,
-                          height: 42,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          px: 2,
-                          color: '#fff',
-                          bgcolor: row.color,
-                          position: 'relative',
-                          clipPath:
-                            idx === 0
-                              ? 'polygon(0 0, 100% 0, 96% 100%, 0 100%)'
-                              : idx === statusRows.length - 1
-                                ? 'polygon(4% 0, 100% 0, 100% 100%, 0 100%)'
-                                : 'polygon(4% 0, 100% 0, 96% 100%, 0 100%)'
-                        }}
-                      >
-                        <Typography sx={{ fontWeight: 600, fontSize: 13 }}>{row.label}</Typography>
-                        <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{formatNumber(row.value)}</Typography>
-                      </Box>
-                    </Box>
-                  );
-                })}
-              </Stack>
-            </Box>
-          </Box>
-        </Grid>
+      {/* Tabs */}
+      <Box sx={{ ...cardSx, mb: 1.5, flexShrink: 0 }}>
+        <Tabs
+          value={activeTab}
+          onChange={(e, newValue) => setActiveTab(newValue)}
+          sx={{
+            bgcolor: tokens.cardBg,
+            borderBottom: `1px solid ${tokens.divider}`,
+            '& .MuiTab-root': {
+              color: mode === 'dark' ? alpha('#fff', 0.6) : tokens.muted,
+              fontWeight: 600,
+              fontSize: 14,
+              textTransform: 'none',
+              minHeight: 56,
+              '&.Mui-selected': {
+                color: mode === 'dark' ? '#60a5fa' : '#1e3a8a'
+              }
+            },
+            '& .MuiTabs-indicator': {
+              bgcolor: mode === 'dark' ? '#60a5fa' : '#1e3a8a',
+              height: 3
+            }
+          }}
+        >
+          <Tab label="Dashboard Overview" />
+          <Tab label="Active SOS Cases" />
+        </Tabs>
+      </Box>
 
-        <Grid item xs={12} md={7}>
-          <Box sx={cardSx}>
-            <Box
-              sx={{
-                px: 2.5,
-                py: 1.75,
-                borderBottom: `1px solid ${tokens.divider}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                bgcolor: tokens.panelHeaderBg
-              }}
-            >
-              <Typography sx={{ fontWeight: 700, color: tokens.text, fontSize: 14.5 }}>Live Incident Map</Typography>
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <CloudIcon sx={{ fontSize: 18, color: alpha('#fff', 0.6) }} />
-                <WbSunnyIcon sx={{ fontSize: 18, color: '#60a5fa' }} />
-                <WaterDropIcon sx={{ fontSize: 18, color: alpha('#fff', 0.9) }} />
-                <AcUnitIcon sx={{ fontSize: 18, color: alpha('#fff', 0.5) }} />
-              </Stack>
-            </Box>
-            <Box sx={{ height: { xs: 320, md: 420 } }}>
-              <DashboardMap
-                data={incidents}
-                center={[91.7362, 26.1445]}
-                zoom={12}
-                getStyle={mapStyle}
-                autoFit
-                autoFitFilter={(item) => item?.type === 'sos'}
-                autoFitMaxZoom={14}
-              />
-            </Box>
-          </Box>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Box sx={cardSx}>
-            <Box
-              sx={{
-                px: 2.5,
-                py: 1.75,
-                borderBottom: `1px solid ${tokens.divider}`,
-                bgcolor: tokens.panelHeaderBg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Typography sx={{ fontWeight: 700, color: tokens.text, fontSize: 14.5 }}>Active SOS Cases</Typography>
-              <Stack direction="row" spacing={1}>
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={handleSaveAll}
-                  disabled={!hasDirty || saving}
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    bgcolor: mode === 'dark' ? '#2563eb' : '#1e3a8a',
-                    '&:hover': { bgcolor: mode === 'dark' ? '#1d4ed8' : '#1e40af' },
-                    '&.Mui-disabled': {
-                      bgcolor: mode === 'dark' ? alpha('#2563eb', 0.25) : alpha('#1e3a8a', 0.18),
-                      color: mode === 'dark' ? alpha('#fff', 0.6) : alpha('#0f172a', 0.5)
-                    }
-                  }}
-                >
-                  {saving ? 'Saving…' : 'Save'}
-                </Button>
-                <IconButton size="small" sx={iconBtnSx}>
-                  <CloudIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" sx={iconBtnSx}>
-                  <WbSunnyIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" sx={iconBtnSx}>
-                  <MenuIcon fontSize="small" />
-                </IconButton>
-              </Stack>
-            </Box>
-
-            <TableContainer sx={{ maxHeight: 360 }}>
-              <Table stickyHeader size="small">
-                <TableHead>
-                  <TableRow>
-                    {[
-                      'Call ID',
-                      'Age',
-                      'District',
-                      'Case Type',
-                      'SOS Type',
-                      'Case Outcome',
-                      'Executive',
-                      'Police Status',
-                      'Ambulance Status',
-                      'SLA'
-                    ].map(
-                      (head) => (
-                        <TableCell
-                          key={head}
+      {/* Tab Panel 1: Dashboard Overview */}
+      {activeTab === 0 && (
+        <Grid container spacing={1.5} sx={{ flexGrow: 1, overflow: { xs: 'visible', md: 'hidden' }, maxHeight: { md: 'calc(100% - 10px)' } }}>
+          <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: '100%' } }}>
+            <Box sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <Box sx={{ px: 2.5, py: 1.5, borderBottom: `1px solid ${tokens.divider}`, bgcolor: tokens.panelHeaderBg, flexShrink: 0 }}>
+                <Typography sx={{ fontWeight: 700, color: tokens.text, fontSize: 14.5 }}>SOS Call Status</Typography>
+              </Box>
+              <Box sx={{ p: 2, flexGrow: 1, overflow: 'auto' }}>
+                <Stack spacing={1.25}>
+                  {statusRows.map((row, idx) => {
+                    return (
+                      <Box key={row.label} sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                        <Box
                           sx={{
-                            bgcolor: tableHeadBg,
-                            color: tableHeadColor,
-                            fontWeight: 700,
-                            fontSize: 12,
-                            borderBottom: `1px solid ${tokens.divider}`,
-                            py: 1.5
+                            width: `${row.width}%`,
+                            height: 42,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            px: 2,
+                            color: '#fff',
+                            bgcolor: row.color,
+                            position: 'relative',
+                            clipPath:
+                              idx === 0
+                                ? 'polygon(0 0, 100% 0, 96% 100%, 0 100%)'
+                                : idx === statusRows.length - 1
+                                  ? 'polygon(4% 0, 100% 0, 100% 100%, 0 100%)'
+                                  : 'polygon(4% 0, 100% 0, 96% 100%, 0 100%)'
                           }}
                         >
-                          {head}
-                        </TableCell>
-                      )
-                    )}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {cases.map((row) => {
-                    const slaPct = Math.round(Math.min(1, Math.max(0, row.sla)) * 100);
-                    const slaColors = [
-                      '#ef4444',
-                      '#fb923c',
-                      '#fbbf24',
-                      '#84cc16',
-                      '#22c55e',
-                      '#10b981'
-                    ];
-
-                    const isClosed =
-                      String(row.policeStatus || '').toLowerCase() === 'closed' &&
-                      String(row.ambulanceStatus || '').toLowerCase() === 'closed';
-
-                    const handleSosTypeChange = (event) => {
-                      const next = event.target.value;
-                      setCases((prev) => prev.map((c) => (c.callId === row.callId ? { ...c, sosType: next } : c)));
-                      setDirtyMap((prev) => ({ ...prev, [row.callId]: true }));
-                    };
-
-                    const handleCaseOutcomeChange = (event) => {
-                      const next = event.target.value;
-                      setCases((prev) => prev.map((c) => (c.callId === row.callId ? { ...c, caseOutcome: next } : c)));
-                      setDirtyMap((prev) => ({ ...prev, [row.callId]: true }));
-                    };
-
-                    return (
-                      <TableRow key={row.callId} hover sx={{ '&:hover': { bgcolor: tableRowHoverBg } }}>
-                        <TableCell sx={{ color: tableText, fontWeight: 700, borderBottom: `1px solid ${tokens.divider}`, py: 2 }}>
-                          {row.callId}
-                        </TableCell>
-                        <TableCell sx={{ color: tableMuted, borderBottom: `1px solid ${tokens.divider}` }}>
-                          {row.age}
-                        </TableCell>
-                        <TableCell sx={{ color: tableText, borderBottom: `1px solid ${tokens.divider}` }}>
-                          {row.district}
-                        </TableCell>
-                        <TableCell sx={{ color: tableText, borderBottom: `1px solid ${tokens.divider}` }}>
-                          {row.caseType}
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
-                          <FormControl size="small" fullWidth sx={selectControlSx}>
-                            <Select
-                              value={row.sosType || ''}
-                              onChange={handleSosTypeChange}
-                              disabled={isClosed}
-                              displayEmpty
-                              MenuProps={selectMenuProps}
-                            >
-                              <MenuItem value="">
-                                <Typography sx={{ color: mode === 'dark' ? '#475569' : tokens.muted, fontSize: 13 }}>
-                                  Select
-                                </Typography>
-                              </MenuItem>
-                              {sosTypeOptions.map((opt) => (
-                                <MenuItem
-                                  key={opt.value}
-                                  value={opt.value}
-                                  sx={{ color: mode === 'dark' ? '#0f172a' : tokens.text }}
-                                >
-                                  {opt.label}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
-                          <FormControl size="small" fullWidth sx={selectControlSx}>
-                            <Select
-                              value={row.caseOutcome || ''}
-                              onChange={handleCaseOutcomeChange}
-                              disabled={!isClosed}
-                              displayEmpty
-                              MenuProps={selectMenuProps}
-                            >
-                              <MenuItem value="">
-                                <Typography sx={{ color: mode === 'dark' ? '#475569' : tokens.muted, fontSize: 13 }}>
-                                  {isClosed ? 'Select' : 'After Close'}
-                                </Typography>
-                              </MenuItem>
-                              {caseOutcomeOptions.map((opt) => (
-                                <MenuItem
-                                  key={opt.value}
-                                  value={opt.value}
-                                  sx={{ color: mode === 'dark' ? '#0f172a' : tokens.text }}
-                                >
-                                  {opt.label}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Avatar
-                              sx={{
-                                width: 24,
-                                height: 24,
-                                bgcolor: mode === 'dark' ? '#475569' : '#1e3a8a',
-                                fontSize: 11,
-                                fontWeight: 700
-                              }}
-                            >
-                              {row.executive[0]}
-                            </Avatar>
-                            <Typography sx={{ color: tableText, fontSize: 13 }}>{row.executive}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <CheckCircleIcon sx={{ fontSize: 16, color: '#22c55e' }} />
-                            <Typography sx={{ color: tableText, fontSize: 13 }}>{row.policeStatus}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            {row.ambulanceIcon === 'check' ? (
-                              <CheckCircleIcon sx={{ fontSize: 16, color: '#22c55e' }} />
-                            ) : (
-                              <WarningIcon sx={{ fontSize: 16, color: '#fbbf24' }} />
-                            )}
-                            <Typography sx={{ color: tableText, fontSize: 13 }}>{row.ambulanceStatus}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Box
-                              sx={{
-                                height: 8,
-                                width: 100,
-                                bgcolor: slaTrackBg,
-                                borderRadius: 99,
-                                overflow: 'hidden',
-                                display: 'flex'
-                              }}
-                            >
-                              {slaColors.map((color, i) => (
-                                <Box
-                                  key={i}
-                                  sx={{
-                                    width: `${100 / slaColors.length}%`,
-                                    height: '100%',
-                                    bgcolor: i < (slaPct / 100) * slaColors.length ? color : 'transparent'
-                                  }}
-                                />
-                              ))}
-                            </Box>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
+                          <Typography sx={{ fontWeight: 600, fontSize: 13 }}>{row.label}</Typography>
+                          <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{formatNumber(row.value)}</Typography>
+                        </Box>
+                      </Box>
                     );
                   })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+                </Stack>
+              </Box>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: '100%' } }}>
+            <Box sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <Box
+                sx={{
+                  px: 2.5,
+                  py: 1.5,
+                  borderBottom: `1px solid ${tokens.divider}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  bgcolor: tokens.panelHeaderBg,
+                  flexShrink: 0
+                }}
+              >
+                <Typography sx={{ fontWeight: 700, color: tokens.text, fontSize: 14.5 }}>Live Incident Map</Typography>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <CloudIcon sx={{ fontSize: 18, color: alpha('#fff', 0.6) }} />
+                  <WbSunnyIcon sx={{ fontSize: 18, color: '#60a5fa' }} />
+                  <WaterDropIcon sx={{ fontSize: 18, color: alpha('#fff', 0.9) }} />
+                  <AcUnitIcon sx={{ fontSize: 18, color: alpha('#fff', 0.5) }} />
+                </Stack>
+              </Box>
+              <Box sx={{ height: { xs: 320, md: '100%' }, flexGrow: 1 }}>
+                <DashboardMap
+                  data={incidents}
+                  center={[91.7362, 26.1445]}
+                  zoom={12}
+                  getStyle={mapStyle}
+                  autoFit
+                  autoFitFilter={(item) => item?.type === 'sos'}
+                  autoFitMaxZoom={14}
+                />
+              </Box>
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
+
+      {/* Tab Panel 2: Active SOS Cases */}
+      {activeTab === 1 && (
+        <Grid container spacing={1.5} sx={{ flexGrow: 1, overflow: { xs: 'visible', md: 'hidden' }, maxHeight: { md: 'calc(100% - 10px)' } }}>
+          <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: '100%' } }}>
+            <Box sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <Box
+                sx={{
+                  px: 2.5,
+                  py: 1.5,
+                  borderBottom: `1px solid ${tokens.divider}`,
+                  bgcolor: tokens.panelHeaderBg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexShrink: 0
+                }}
+              >
+                <Typography sx={{ fontWeight: 700, color: tokens.text, fontSize: 14.5 }}>Active SOS Cases</Typography>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={handleSaveAll}
+                    disabled={!hasDirty || saving}
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      bgcolor: mode === 'dark' ? '#2563eb' : '#1e3a8a',
+                      '&:hover': { bgcolor: mode === 'dark' ? '#1d4ed8' : '#1e40af' },
+                      '&.Mui-disabled': {
+                        bgcolor: mode === 'dark' ? alpha('#2563eb', 0.25) : alpha('#1e3a8a', 0.18),
+                        color: mode === 'dark' ? alpha('#fff', 0.6) : alpha('#0f172a', 0.5)
+                      }
+                    }}
+                  >
+                    {saving ? 'Saving…' : 'Save'}
+                  </Button>
+                  <IconButton size="small" sx={iconBtnSx}>
+                    <CloudIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" sx={iconBtnSx}>
+                    <WbSunnyIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" sx={iconBtnSx}>
+                    <MenuIcon fontSize="small" />
+                  </IconButton>
+                </Stack>
+              </Box>
+
+              <TableContainer sx={{ maxHeight: { xs: 400, md: '100%' }, flexGrow: 1, overflow: 'auto' }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      {[
+                        'Call ID',
+                        'Age',
+                        'District',
+                        'Case Type',
+                        'SOS Type',
+                        'Case Outcome',
+                        'Executive',
+                        'Police Status',
+                        'Ambulance Status',
+                        'SLA'
+                      ].map(
+                        (head) => (
+                          <TableCell
+                            key={head}
+                            sx={{
+                              bgcolor: tableHeadBg,
+                              color: tableHeadColor,
+                              fontWeight: 700,
+                              fontSize: 12,
+                              borderBottom: `1px solid ${tokens.divider}`,
+                              py: 1.5
+                            }}
+                          >
+                            {head}
+                          </TableCell>
+                        )
+                      )}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {cases.map((row) => {
+                      const slaPct = Math.round(Math.min(1, Math.max(0, row.sla)) * 100);
+                      const slaColors = [
+                        '#ef4444',
+                        '#fb923c',
+                        '#fbbf24',
+                        '#84cc16',
+                        '#22c55e',
+                        '#10b981'
+                      ];
+
+                      const isClosed =
+                        String(row.policeStatus || '').toLowerCase() === 'closed' &&
+                        String(row.ambulanceStatus || '').toLowerCase() === 'closed';
+
+                      const handleSosTypeChange = (event) => {
+                        const next = event.target.value;
+                        setCases((prev) => prev.map((c) => (c.callId === row.callId ? { ...c, sosType: next } : c)));
+                        setDirtyMap((prev) => ({ ...prev, [row.callId]: true }));
+                      };
+
+                      const handleCaseOutcomeChange = (event) => {
+                        const next = event.target.value;
+                        setCases((prev) => prev.map((c) => (c.callId === row.callId ? { ...c, caseOutcome: next } : c)));
+                        setDirtyMap((prev) => ({ ...prev, [row.callId]: true }));
+                      };
+
+                      return (
+                        <TableRow key={row.callId} hover sx={{ '&:hover': { bgcolor: tableRowHoverBg } }}>
+                          <TableCell sx={{ color: tableText, fontWeight: 700, borderBottom: `1px solid ${tokens.divider}`, py: 2 }}>
+                            {row.callId}
+                          </TableCell>
+                          <TableCell sx={{ color: tableMuted, borderBottom: `1px solid ${tokens.divider}` }}>
+                            {row.age}
+                          </TableCell>
+                          <TableCell sx={{ color: tableText, borderBottom: `1px solid ${tokens.divider}` }}>
+                            {row.district}
+                          </TableCell>
+                          <TableCell sx={{ color: tableText, borderBottom: `1px solid ${tokens.divider}` }}>
+                            {row.caseType}
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
+                            <FormControl size="small" fullWidth sx={selectControlSx}>
+                              <Select
+                                value={row.sosType || ''}
+                                onChange={handleSosTypeChange}
+                                disabled={isClosed}
+                                displayEmpty
+                                MenuProps={selectMenuProps}
+                              >
+                                <MenuItem value="">
+                                  <Typography sx={{ color: mode === 'dark' ? '#475569' : tokens.muted, fontSize: 13 }}>
+                                    Select
+                                  </Typography>
+                                </MenuItem>
+                                {sosTypeOptions.map((opt) => (
+                                  <MenuItem
+                                    key={opt.value}
+                                    value={opt.value}
+                                    sx={{ color: mode === 'dark' ? '#0f172a' : tokens.text }}
+                                  >
+                                    {opt.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
+                            <FormControl size="small" fullWidth sx={selectControlSx}>
+                              <Select
+                                value={row.caseOutcome || ''}
+                                onChange={handleCaseOutcomeChange}
+                                disabled={!isClosed}
+                                displayEmpty
+                                MenuProps={selectMenuProps}
+                              >
+                                <MenuItem value="">
+                                  <Typography sx={{ color: mode === 'dark' ? '#475569' : tokens.muted, fontSize: 13 }}>
+                                    {isClosed ? 'Select' : 'After Close'}
+                                  </Typography>
+                                </MenuItem>
+                                {caseOutcomeOptions.map((opt) => (
+                                  <MenuItem
+                                    key={opt.value}
+                                    value={opt.value}
+                                    sx={{ color: mode === 'dark' ? '#0f172a' : tokens.text }}
+                                  >
+                                    {opt.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Avatar
+                                sx={{
+                                  width: 24,
+                                  height: 24,
+                                  bgcolor: mode === 'dark' ? '#475569' : '#1e3a8a',
+                                  fontSize: 11,
+                                  fontWeight: 700
+                                }}
+                              >
+                                {row.executive[0]}
+                              </Avatar>
+                              <Typography sx={{ color: tableText, fontSize: 13 }}>{row.executive}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                              <CheckCircleIcon sx={{ fontSize: 16, color: '#22c55e' }} />
+                              <Typography sx={{ color: tableText, fontSize: 13 }}>{row.policeStatus}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                              {row.ambulanceIcon === 'check' ? (
+                                <CheckCircleIcon sx={{ fontSize: 16, color: '#22c55e' }} />
+                              ) : (
+                                <WarningIcon sx={{ fontSize: 16, color: '#fbbf24' }} />
+                              )}
+                              <Typography sx={{ color: tableText, fontSize: 13 }}>{row.ambulanceStatus}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: `1px solid ${tokens.divider}` }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Box
+                                sx={{
+                                  height: 8,
+                                  width: 100,
+                                  bgcolor: slaTrackBg,
+                                  borderRadius: 99,
+                                  overflow: 'hidden',
+                                  display: 'flex'
+                                }}
+                              >
+                                {slaColors.map((color, i) => (
+                                  <Box
+                                    key={i}
+                                    sx={{
+                                      width: `${100 / slaColors.length}%`,
+                                      height: '100%',
+                                      bgcolor: i < (slaPct / 100) * slaColors.length ? color : 'transparent'
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          </Grid>
+        </Grid>
+      )}
     </Box>
   );
 };
