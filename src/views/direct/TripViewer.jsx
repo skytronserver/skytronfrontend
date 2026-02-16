@@ -8,6 +8,7 @@ import { Map, View } from 'ol';
 import { Tile as TileLayer } from 'ol/layer';
 import { TileWMS, XYZ } from 'ol/source';
 import { fromLonLat } from 'ol/proj';
+import { getCenter } from 'ol/extent';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import Point from 'ol/geom/Point';
@@ -169,7 +170,7 @@ const TripViewer = () => {
       const roadsLayer = new TileLayer({
         source: new XYZ({
           url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
-          attributions: '© OpenStreetMap contributors',
+          attributions: ' OpenStreetMap contributors',
           maxZoom: 20,
           projection: "EPSG:3857"
         }),
@@ -182,7 +183,7 @@ const TripViewer = () => {
       const satelliteLayer = new TileLayer({
         source: new XYZ({
           url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          attributions: "© Esri",
+          attributions: " Esri",
           maxZoom: 18,
         }),
         visible: false,
@@ -505,10 +506,10 @@ const TripViewer = () => {
 
     // Fit view to the trip extent
     const extent = lineFeature.getGeometry().getExtent();
-    map.current.getView().fit(extent, {
-      padding: [50, 50, 50, 50],
-      duration: 1000
-    });
+    const center = getCenter(extent);
+    const view = map.current.getView();
+    const targetZoom = 20;
+    view.animate({ center, zoom: targetZoom, duration: 700 });
   };
 
   const handleVehicleChange = (event, newValue) => {

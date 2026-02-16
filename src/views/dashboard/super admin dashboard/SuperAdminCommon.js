@@ -144,8 +144,20 @@ const DashboardMap = ({
     });
     resizeObserver.observe(mapRef.current);
 
+    const handleWindowResize = () => {
+      initialMap.updateSize();
+      setTimeout(() => {
+        initialMap.updateSize();
+      }, 0);
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('orientationchange', handleWindowResize);
+
     return () => {
       resizeObserver.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener('orientationchange', handleWindowResize);
       initialMap.setTarget(null);
     };
   }, [center, zoom]);
@@ -938,8 +950,8 @@ const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, desc
         radial-gradient(circle at 0% 0%, ${alpha('#6366f1', 0.03)} 0%, transparent 50%),
         radial-gradient(circle at 100% 100%, ${alpha('#ec4899', 0.03)} 0%, transparent 50%)
       `,
-      minHeight: 'calc(100vh - 88px)',
-      height: 'calc(100vh - 88px)',
+      minHeight: { xs: '100vh', md: 'calc(100vh - 88px)' },
+      height: { xs: 'auto', md: 'calc(100vh - 88px)' },
       border: 'none',
       position: 'relative',
       display: 'flex',

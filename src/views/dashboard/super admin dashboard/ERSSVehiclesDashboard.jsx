@@ -229,6 +229,17 @@ const ErssVehicleMap = ({ vehicles, selectedDistrict, selectedType, onSelectClus
     });
     resizeObserver.observe(containerRef.current);
 
+    const handleWindowResize = () => {
+      if (!mapRef.current) return;
+      mapRef.current.updateSize();
+      setTimeout(() => {
+        if (mapRef.current) mapRef.current.updateSize();
+      }, 0);
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('orientationchange', handleWindowResize);
+
     const handleClick = (evt) => {
       if (!mapRef.current) return;
       const clickedFeature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
@@ -248,6 +259,8 @@ const ErssVehicleMap = ({ vehicles, selectedDistrict, selectedType, onSelectClus
 
     return () => {
       resizeObserver.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener('orientationchange', handleWindowResize);
       if (clickHandlerRef.current) {
         map.un('singleclick', clickHandlerRef.current);
         clickHandlerRef.current = null;
@@ -554,15 +567,15 @@ const ERSSVehiclesDashboard = () => {
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
         minHeight: '100vh',
-        height: '100vh',
-        maxHeight: '100vh',
-        overflow: 'hidden'
+        height: { xs: 'auto', md: '100%' },
+        maxHeight: { xs: 'none', md: '100%' },
+        overflow: { xs: 'auto', md: 'hidden' }
       }}
       titleSx={{ color: tokens.text, fontSize: { xs: '1.5rem', md: '1.75rem' }, mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: { xs: '0.85rem', md: '0.875rem' } }}
       headerSx={{ mb: { xs: 2, md: 1.5 } }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 1 }, height: '100%' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 1 }, height: { xs: 'auto', md: '100%' } }}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
           <IconButton
             size="small"
@@ -680,7 +693,7 @@ const ERSSVehiclesDashboard = () => {
           </Box>
         </Paper>
 
-        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column' }}>
           <ErssVehicleMap
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}

@@ -21,19 +21,14 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { alpha } from '@mui/material/styles';
 
-import MenuIcon from '@mui/icons-material/Menu';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import FolderIcon from '@mui/icons-material/Folder';
-import DiamondIcon from '@mui/icons-material/Diamond';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import CloudIcon from '@mui/icons-material/Cloud';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
-import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
-import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
 import { DashboardMap } from './SuperAdminCommon';
 import HomePageService from 'services/HomePage';
@@ -274,11 +269,6 @@ const SOSMonitoringDashboard = () => {
   const kpiTextColor = mode === 'dark' ? '#fff' : tokens.text;
   const kpiLabelColor = mode === 'dark' ? alpha('#fff', 0.8) : tokens.muted;
 
-  const iconBtnSx = {
-    color: mode === 'dark' ? alpha('#fff', 0.6) : alpha(tokens.text, 0.7),
-    bgcolor: mode === 'dark' ? alpha('#fff', 0.05) : alpha(tokens.text, 0.06)
-  };
-
   const tableHeadBg = mode === 'dark' ? alpha('#000', 0.3) : '#e2e8f0';
   const tableHeadColor = mode === 'dark' ? alpha('#fff', 0.9) : tokens.text;
   const tableRowHoverBg = mode === 'dark' ? alpha('#ffffff', 0.02) : alpha('#0f172a', 0.04);
@@ -419,26 +409,11 @@ const SOSMonitoringDashboard = () => {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton size="small" sx={{ color: '#fff' }}>
-              <MenuIcon fontSize="small" />
-            </IconButton>
             <Typography sx={{ fontWeight: 700, letterSpacing: 0.5, fontSize: { xs: 15, md: 17 } }}>
               SOS Monitoring Dashboard
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
-            <IconButton size="small" sx={{ color: alpha('#fff', 0.8), bgcolor: alpha('#fff', 0.1), borderRadius: 1.5 }}>
-              <BarChartIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" sx={{ color: alpha('#fff', 0.8), bgcolor: alpha('#fff', 0.1), borderRadius: 1.5 }}>
-              <TableChartIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" sx={{ color: alpha('#fff', 0.8), bgcolor: alpha('#fff', 0.1), borderRadius: 1.5 }}>
-              <FolderIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" sx={{ color: alpha('#fff', 0.8), bgcolor: alpha('#fff', 0.1), borderRadius: 1.5 }}>
-              <DiamondIcon fontSize="small" />
-            </IconButton>
             <IconButton
               size="small"
               onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
@@ -491,6 +466,9 @@ const SOSMonitoringDashboard = () => {
         <Tabs
           value={activeTab}
           onChange={(e, newValue) => setActiveTab(newValue)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             bgcolor: tokens.cardBg,
             borderBottom: `1px solid ${tokens.divider}`,
@@ -633,15 +611,6 @@ const SOSMonitoringDashboard = () => {
                   >
                     {saving ? 'Saving…' : 'Save'}
                   </Button>
-                  <IconButton size="small" sx={iconBtnSx}>
-                    <CloudIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" sx={iconBtnSx}>
-                    <WbSunnyIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" sx={iconBtnSx}>
-                    <MenuIcon fontSize="small" />
-                  </IconButton>
                 </Stack>
               </Box>
 

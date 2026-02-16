@@ -249,6 +249,17 @@ const DistrictVehicleMap = ({ vehicles, selectedDistrict, onSelectDistrict, mode
     });
     resizeObserver.observe(containerRef.current);
 
+    const handleWindowResize = () => {
+      if (!mapRef.current) return;
+      mapRef.current.updateSize();
+      setTimeout(() => {
+        if (mapRef.current) mapRef.current.updateSize();
+      }, 0);
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('orientationchange', handleWindowResize);
+
     const handleClick = (evt) => {
       if (!mapRef.current) return;
 
@@ -268,6 +279,8 @@ const DistrictVehicleMap = ({ vehicles, selectedDistrict, onSelectDistrict, mode
 
     return () => {
       resizeObserver.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener('orientationchange', handleWindowResize);
       if (clickHandlerRef.current) {
         map.un('singleclick', clickHandlerRef.current);
         clickHandlerRef.current = null;
@@ -542,9 +555,9 @@ const PublicTransportVehicleMonitoringDashboard = () => {
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
         minHeight: '100vh',
-        height: '100vh',
-        maxHeight: '100vh',
-        overflow: 'hidden'
+        height: { xs: 'auto', md: '100%' },
+        maxHeight: { xs: 'none', md: '100%' },
+        overflow: { xs: 'auto', md: 'hidden' }
       }}
       titleSx={{ color: tokens.text, fontSize: { xs: '1.5rem', md: '1.75rem' }, mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: { xs: '0.85rem', md: '0.875rem' } }}
@@ -674,7 +687,7 @@ const PublicTransportVehicleMonitoringDashboard = () => {
           </Box>
         </Paper>
 
-        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column' }}>
           <DistrictVehicleMap
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}
