@@ -352,7 +352,11 @@ const SOSAnalyticsDashboard = () => {
       description="Trends & outcomes across months, time of day, SOS type, districts and stations."
       sx={{
         bgcolor: tokens.pageBg,
-        backgroundImage: 'none'
+        backgroundImage: 'none',
+        minHeight: '100vh',
+        height: { xs: 'auto', md: '100vh' },
+        maxHeight: { xs: 'none', md: '100vh' },
+        overflow: { xs: 'auto', md: 'hidden' }
       }}
       titleSx={{ color: tokens.text, fontSize: '1.5rem', mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: '0.75rem' }}

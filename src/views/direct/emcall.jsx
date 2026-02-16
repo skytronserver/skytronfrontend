@@ -14,6 +14,16 @@ import {
   Switch,
   Tabs,
   Tab,
+  TextField,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Fab,
 } from "@mui/material";
 import { alpha, useTheme } from '@mui/material/styles';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -24,6 +34,9 @@ import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
+import SendIcon from '@mui/icons-material/Send';
+import ChatIcon from '@mui/icons-material/Chat';
+
 import HomePageService from "../../services/HomePage";
 import POIService from "../../services/POIService";
 import CustomModal from "../../ui-component/CustomModal";
@@ -166,11 +179,279 @@ const DriverCard = ({ driver }) => {
   );
 };
 
+const ChatPanel = ({ assignmentId, open, currentUserName }) => {
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const formatTime = (dateString) => {
+    if (!dateString) {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = ((hours + 11) % 12) + 1;
+      return `${hour12}:${minutes} ${ampm}`;
+    }
+
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
+    const hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = ((hours + 11) % 12) + 1;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  const normalizeMessages = (raw) => {
+
+    let list = [];
+    if (Array.isArray(raw)) list = raw;
+    else if (raw?.results && Array.isArray(raw.results)) list = raw.results;
+    else if (raw?.data && Array.isArray(raw.data)) list = raw.data;
+    else if (raw?.messages && Array.isArray(raw.messages)) list = raw.messages;
+
+    return list.map((item, index) => {
+      const text = item.message || item.msg || item.text || '';
+
+      // Try to derive a human-friendly sender name from nested assignment/call data
+      const nestedSenderName =
+        // Police / responder executive
+        item.assignment?.ex?.users?.[0]?.name ||
+        // Team lead user
+        item.assignment?.call?.team?.teamlead?.users?.[0]?.name ||
+        // Fallbacks from other nested user arrays if present
+        item.assignment?.admin?.users?.[0]?.name ||
+        item.call?.team?.teamlead?.users?.[0]?.name;
+
+      // Prefer full sender name similar to mobile app display
+      const sender =
+        nestedSenderName ||
+        item.sender_name || // e.g. explicit sender name field
+        item.name ||
+        (typeof item.sender === 'object' ? (item.sender.name || item.sender.full_name || item.sender.username) : undefined) ||
+        item.sender ||
+        item.user_name ||
+        item.username ||
+        item.user ||
+        item.role ||
+        'Responder';
+
+      const time = item.time || item.created_at || item.timestamp || '';
+
+      return {
+        id: item.id || index,
+        sender,
+        role: item.role || '',
+        text,
+        time: formatTime(time),
+      };
+    }).filter(m => m.text);
+  };
+
+  const fetchMessages = async () => {
+    if (!assignmentId) return;
+    try {
+      setLoading(true);
+      const resp = await HomePageService.getEMmessage({ assignment_id: assignmentId });
+      const payload = resp?.data ?? [];
+      const normalized = normalizeMessages(payload);
+      setMessages(normalized);
+    } catch (e) {
+      console.error('Error fetching EM messages:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!open || !assignmentId) return;
+
+    let cancelled = false;
+    const load = async () => {
+      await fetchMessages();
+      if (cancelled) return;
+    };
+
+    load();
+
+    const interval = setInterval(() => {
+      if (!cancelled) fetchMessages();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [open, assignmentId]);
+
+  const handleSend = async () => {
+    const trimmed = inputValue.trim();
+    if (!trimmed || !assignmentId) return;
+
+    const optimistic = {
+      id: `local-${Date.now()}`,
+      sender: "You",
+      role: "teamlead",
+      text: trimmed,
+      time: formatTime(),
+    };
+
+    setMessages((prev) => [...prev, optimistic]);
+    setInputValue("");
+
+    try {
+      await HomePageService.sendEMmessage({
+        assignment_id: assignmentId,
+        message: trimmed,
+      });
+
+      await fetchMessages();
+    } catch (e) {
+      console.error('Error sending EM message:', e);
+    }
+  };
+
+  return (
+    <Card elevation={3} sx={{ height: '60vh', borderRadius: 2, display: 'flex', flexDirection: 'column', mt: 2 }}>
+      <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'primary.main' }}>
+        <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700 }}>
+          Assignment ID: {assignmentId ?? 'N/A'}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+          Police & Ambulance Messages
+        </Typography>
+      </Box>
+
+      <Box sx={{ flex: 1, overflowY: 'auto', px: 2, py: 1.5, bgcolor: '#fafafa' }}>
+        {loading && (
+          <Box sx={{ textAlign: 'center', py: 1 }}>
+            <Typography variant="caption" color="text.secondary">Loading messages...</Typography>
+          </Box>
+        )}
+        {messages.length === 0 && !loading ? (
+          <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              No messages yet
+            </Typography>
+          </Box>
+        ) : (
+          <List sx={{ py: 0 }}>
+            {messages.map((msg) => {
+              const senderName = msg.sender || '';
+              const loweredSender = senderName.toLowerCase();
+
+              const isSelf =
+                senderName === 'You' ||
+                (currentUserName && senderName && senderName.trim() === currentUserName.trim()) ||
+                // Treat explicit team lead messages as "self" so they appear on the right
+                (msg.role && String(msg.role).toLowerCase() === 'teamlead') ||
+                loweredSender.includes('team lead');
+
+              const bgColor = isSelf ? 'primary.main' : '#fff';
+              const textColor = isSelf ? '#fff' : 'text.primary';
+              const align = isSelf ? 'flex-end' : 'flex-start';
+              const initial = msg.sender?.[0]?.toUpperCase() || '?';
+
+              return (
+                <ListItem
+                  key={msg.id}
+                  disableGutters
+                  sx={{
+                    display: 'flex',
+                    justifyContent: align,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', maxWidth: '85%', alignItems: 'flex-start', gap: 1.5, flexDirection: isSelf ? 'row-reverse' : 'row' }}>
+                    <Avatar sx={{ width: 28, height: 28, bgcolor: isSelf ? 'primary.dark' : 'grey.400', fontSize: '0.8rem' }}>
+                      {initial}
+                    </Avatar>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: isSelf ? 'flex-end' : 'flex-start' }}>
+                      <Box
+                        sx={{
+                          px: 1.5,
+                          py: 1,
+                          borderRadius: 2,
+                          bgcolor: bgColor,
+                          boxShadow: 1,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: 'block',
+                            mb: 0.5,
+                            color: isSelf ? 'rgba(255,255,255,0.9)' : 'text.secondary',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {msg.sender}
+                        </Typography>
+                        <ListItemText
+                          primary={msg.text}
+                          primaryTypographyProps={{
+                            variant: 'body2',
+                            sx: { color: textColor },
+                          }}
+                        />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{ mt: 0.25, color: 'text.disabled' }}
+                      >
+                        {msg.time}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </ListItem>
+              );
+            })}
+          </List>
+        )}
+      </Box>
+
+      <Box
+        sx={{
+          px: 1.5,
+          py: 1,
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          bgcolor: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Type a message"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
+        <IconButton color="primary" onClick={handleSend}>
+          <SendIcon />
+        </IconButton>
+      </Box>
+    </Card>
+  );
+};
+
 const EMCall = () => {
   const theme = useTheme();
   const { state } = useLocation();
   const { call } = state || {};
   const userRole = call?.type || '';
+
+  // Name of the current web user (team lead) for chat alignment
+  const currentUserName = call?.team?.teamlead?.users?.[0]?.name || '';
+
   const navigate = useNavigate();
 
   // Distance helper (Haversine formula)
@@ -192,12 +473,13 @@ const EMCall = () => {
   const [assignments, setAssignments] = useState([]);
   const assignmentsRef = useRef([]); // To track previous assignments for notifications
   const [sosLocations, setSosLocations] = useState([]);
-  const [, setMessages] = useState([]);
+
   const [activeRoutes, setActiveRoutes] = useState([]); // Routes for assigned executives
   const latestLocationsRef = useRef({}); // Cache for last known locations
 
   const [broadcastDisabled, setBroadcastDisabled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -663,21 +945,8 @@ const EMCall = () => {
     }
   };
 
-  const fetchMessages = async () => {
-    if (!call?.id) return;
-    try {
-      const response = await HomePageService.getEMmessage({
-        assignment_id: call.id,
-      });
-      setMessages(response.data);
-    } catch (error) {
-      console.error("Fetch Messages Error:", error);
-    }
-  };
-
   // Initial Fetch and Polling for Call Data
   useEffect(() => {
-    fetchMessages();
     fetchAndPlotLocations();
 
     const interval = setInterval(fetchAndPlotLocations, 5000);
@@ -761,6 +1030,8 @@ const EMCall = () => {
     }
   };
 
+  const handleChatOpen = () => setChatOpen(true);
+  const handleChatClose = () => setChatOpen(false);
   const handleModalClose = () => setModalOpen(false);
   const handleRedirectToDashboard = () => navigate('/dashboard');
   const handleSnackbarClose = (e, reason) => {
@@ -1215,9 +1486,9 @@ const EMCall = () => {
             </Card>
           </Grid>
 
-          {/* Map Section */}
-          <Grid item xs={12} md={9} sx={{ height: '100%' }}>
-            <Card elevation={3} sx={{ height: '100%', minHeight: '400px', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {/* Map Section only; chat opens via floating action button */}
+          <Grid item xs={12} md={9} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card elevation={3} sx={{ flex: 1, minHeight: '300px', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <BhuvanMapComponent
                 gpsData={sosLocations}
                 policeData={(showPoliceLayers || showAmbulanceLayers) ? visibleResponderMarkers : []}
@@ -1240,7 +1511,46 @@ const EMCall = () => {
               />
             </Card>
           </Grid>
+
         </Grid>
+
+        {/* Floating Chat Icon */}
+        <Fab
+          color="primary"
+          aria-label="open chat"
+          onClick={handleChatOpen}
+          sx={{
+            position: 'fixed',
+            bottom: 80, // slightly above existing bottom-right icon
+            right: 24, // align horizontally with existing FAB
+            zIndex: 1300,
+            width: 48,
+            height: 48,
+            minHeight: 48,
+          }}
+        >
+          <ChatIcon sx={{ fontSize: 22 }} />
+        </Fab>
+
+        {/* Chat Dialog */}
+        <Dialog
+          open={chatOpen}
+          onClose={handleChatClose}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            Assignment Chat
+          </DialogTitle>
+          <DialogContent sx={{ p: 0 }}>
+            <ChatPanel
+              assignmentId={call?.id}
+              open={chatOpen}
+              currentUserName={currentUserName}
+            />
+          </DialogContent>
+        </Dialog>
+
       </Box>
     </>
   );
