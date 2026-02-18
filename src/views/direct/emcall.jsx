@@ -38,6 +38,7 @@ import SendIcon from '@mui/icons-material/Send';
 import ChatIcon from '@mui/icons-material/Chat';
 
 import HomePageService from "../../services/HomePage";
+import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
 import POIService from "../../services/POIService";
 import CustomModal from "../../ui-component/CustomModal";
 import "./emcall.css";
@@ -448,6 +449,8 @@ const EMCall = () => {
   const { state } = useLocation();
   const { call } = state || {};
   const userRole = call?.type || '';
+
+  const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
 
   // Name of the current web user (team lead) for chat alignment
   const currentUserName = call?.team?.teamlead?.users?.[0]?.name || '';
@@ -1167,6 +1170,21 @@ const EMCall = () => {
               }}>
                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'primary.main' }}>MAP LAYERS</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={useOldGeocodingApi}
+                        onChange={(e) => {
+                          const next = e.target.checked;
+                          setUseOldGeocodingApi(next);
+                          setUseOldGeocodingApiState(next);
+                        }}
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="body2">Old Geocoding API</Typography>}
+                    sx={{ ml: 0 }}
+                  />
                   <FormControlLabel
                     control={<Switch checked={showPoliceLayers} onChange={(e) => setShowPoliceLayers(e.target.checked)} size="small" />}
                     label={<Typography variant="body2">Show Police Vehicles</Typography>}

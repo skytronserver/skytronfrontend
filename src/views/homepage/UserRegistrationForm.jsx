@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   Alert,
@@ -17,6 +17,16 @@ import {
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
 import PublicRegistrationMockService from "../../services/PublicRegistrationMockService";
+import { Formik } from "formik";
+import FormField from "../../ui-component/CustomTextField";
+import * as Yup from "yup";
+import axios from "axios";
+import { retriveCreatedSimProvider, retriveStateList } from "../../helper";
+import { eSIMFormField, eSIMInitialValues } from "../../formjson/eSIMUser";
+import {
+  manufacturerFormField,
+  manufacturerInitialValues,
+} from "../../formjson/manufacturer";
 
 const ROLE_OPTIONS = [
   { slug: "m2m-service-provider", label: "M2M Service Provider" },
@@ -32,10 +42,55 @@ const ROLE_OPTIONS = [
 const getRoleLabel = (slug) =>
   ROLE_OPTIONS.find((x) => x.slug === slug)?.label || "";
 
+const DUMMY_STATE_OPTIONS = [
+  { value: "KA", label: "Karnataka" },
+  { value: "TN", label: "Tamil Nadu" },
+  { value: "MH", label: "Maharashtra" },
+  { value: "DL", label: "Delhi" },
+];
+
+const mergeStateOptions = (apiOptions) => {
+  const combined = [...DUMMY_STATE_OPTIONS, ...(apiOptions || [])];
+  const seen = new Set();
+  return combined.filter((opt) => {
+    const key = `${opt?.value ?? ""}|${opt?.label ?? ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const API_ENDPOINTS = {
+  m2m: "https://api.gromed.in/api/pub/eSimProvider/create_eSimProvider/",
+  manufacturer: "https://api.gromed.in/api/pub/manufacturer/create_manufacturer/",
+};
+
+const buildMultipartPayload = ({ payload, values, fileKeys }) => {
+  const fd = new FormData();
+  fd.append("payload", JSON.stringify(payload));
+  (fileKeys || []).forEach((k) => {
+    const f = values?.[k];
+    if (f) fd.append(k, f);
+  });
+  return fd;
+};
+
 const UserRegistrationForm = () => {
   const { role: roleSlug } = useParams();
   const selectedRole = getRoleLabel(roleSlug);
   const isSchoolAdmin = selectedRole === "School Administrator";
+  const isM2MServiceProvider = selectedRole === "M2M Service Provider";
+  const isManufacturerRole =
+    selectedRole === "Vehicle Manufacturer" ||
+    selectedRole === "AIS-140 Device Manufacturer";
+
+  const [m2mUpdatedFormFields, setM2MUpdatedFormField] = useState(eSIMFormField);
+  const [isM2MFormLoaded, setIsM2MFormLoaded] = useState(false);
+
+  const [manufacturerUpdatedFormFields, setManufacturerUpdatedFormField] =
+    useState(manufacturerFormField);
+  const [isManufacturerFormLoaded, setIsManufacturerFormLoaded] =
+    useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -72,6 +127,92 @@ const UserRegistrationForm = () => {
   });
   const [schoolDocError, setSchoolDocError] = useState("");
 
+  useEffect(() => {
+    let active = true;
+    if (!isM2MServiceProvider) {
+      setIsM2MFormLoaded(false);
+      setM2MUpdatedFormField(eSIMFormField);
+      return () => {
+        active = false;
+      };
+    }
+
+    (async () => {
+      try {
+        const stateList = await retriveStateList();
+        if (!active) return;
+        setM2MUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          stateId: {
+            ...prevConfig.stateId,
+            options: mergeStateOptions(stateList),
+          },
+        }));
+        setIsM2MFormLoaded(true);
+      } catch (e) {
+        if (!active) return;
+        setIsM2MFormLoaded(true);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [isM2MServiceProvider]);
+
+  useEffect(() => {
+    let active = true;
+    if (!isManufacturerRole) {
+      setIsManufacturerFormLoaded(false);
+      setManufacturerUpdatedFormField(manufacturerFormField);
+      return () => {
+        active = false;
+      };
+    }
+
+    (async () => {
+      try {
+        const stateList = await retriveStateList();
+        if (!active) return;
+
+        setManufacturerUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          state: {
+            ...prevConfig.state,
+            options: mergeStateOptions(stateList),
+          },
+        }));
+
+        setIsManufacturerFormLoaded(true);
+      } catch (e) {
+        if (!active) return;
+        setIsManufacturerFormLoaded(true);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [isManufacturerRole]);
+
+  const m2mValidationSchema = useMemo(() => {
+    if (!isM2MServiceProvider) return null;
+    const shape = Object.keys(m2mUpdatedFormFields).reduce((acc, field) => {
+      acc[field] = m2mUpdatedFormFields[field].validation;
+      return acc;
+    }, {});
+    return Yup.object(shape);
+  }, [isM2MServiceProvider, m2mUpdatedFormFields]);
+
+  const manufacturerValidationSchema = useMemo(() => {
+    if (!isManufacturerRole) return null;
+    const shape = Object.keys(manufacturerUpdatedFormFields).reduce((acc, field) => {
+      acc[field] = manufacturerUpdatedFormFields[field].validation;
+      return acc;
+    }, {});
+    return Yup.object(shape);
+  }, [isManufacturerRole, manufacturerUpdatedFormFields]);
+
   const paperStyle = useMemo(
     () => ({
       p: 3,
@@ -100,6 +241,170 @@ const UserRegistrationForm = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleM2MSubmit = async (
+    values,
+    { setSubmitting: setFormikSubmitting, resetForm }
+  ) => {
+    setFormikSubmitting(true);
+    setErrorMessage("");
+    setInfoMessage("");
+    setSubmitting(true);
+
+    try {
+      const fileKeys = [
+        "file_authLetter",
+        "file_GSTCertificate",
+        "file_idProof",
+        "file_companRegCertificate",
+      ];
+
+      const payload = {
+        role: selectedRole,
+        applicant: {
+          name: values?.name,
+          email: values?.email,
+          mobile: values?.mobile,
+          dob: values?.dob,
+        },
+        organization: {
+          name: values?.company_name,
+        },
+        roleDetails: {
+          gst_no: values?.gstnnumber,
+          id_proof_no: values?.idProofno,
+          state_id: values?.stateId,
+          telecom_providers: values?.telecomProviders,
+          expirydate: values?.expirydate,
+          latitude: values?.lat,
+          longitude: values?.lon,
+        },
+      };
+
+      const fd = buildMultipartPayload({ payload, values, fileKeys });
+      const res = await axios.post(API_ENDPOINTS.m2m, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const ref =
+        res?.data?.referenceNumber ||
+        res?.data?.reference ||
+        res?.data?.ref ||
+        res?.data?.id ||
+        `REF-${Date.now()}`;
+
+      setReferenceNumber(String(ref));
+      setShowSuccess(true);
+      resetForm({ values: eSIMInitialValues });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
+        err?.message ||
+        "Failed to submit registration request.";
+      setErrorMessage(msg);
+    } finally {
+      setFormikSubmitting(false);
+      setSubmitting(false);
+    }
+  };
+
+  const handleManufacturerStateChange = (event, formik) => {
+    const fieldName = event.target.name;
+    if (fieldName !== "state") return;
+
+    (async () => {
+      try {
+        const getDetailsOf = { state: event.target.value };
+        const eSimProvider = await retriveCreatedSimProvider(getDetailsOf);
+        setManufacturerUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          esimProvider: {
+            ...prevConfig.esimProvider,
+            options: eSimProvider || [],
+          },
+        }));
+      } catch (e) {
+        setManufacturerUpdatedFormField((prevConfig) => ({
+          ...prevConfig,
+          esimProvider: {
+            ...prevConfig.esimProvider,
+            options: [],
+          },
+        }));
+      }
+    })();
+  };
+
+  const handleManufacturerSubmit = async (
+    values,
+    { setSubmitting: setFormikSubmitting, resetForm }
+  ) => {
+    setFormikSubmitting(true);
+    setErrorMessage("");
+    setInfoMessage("");
+    setSubmitting(true);
+
+    try {
+      const fileKeys = [
+        "file_authLetter",
+        "file_GSTCertificate",
+        "file_idProof",
+        "file_companRegCertificate",
+        "file_affidavitNda",
+      ];
+
+      const payload = {
+        role: selectedRole,
+        applicant: {
+          name: values?.name,
+          email: values?.email,
+          mobile: values?.mobile,
+          dob: values?.dob,
+        },
+        organization: {
+          name: values?.company_name,
+        },
+        roleDetails: {
+          state: values?.state,
+          esim_providers: values?.esimProvider,
+          gst_no: values?.gstnnumber,
+          id_proof_no: values?.idProofno,
+          tac: values?.tac,
+          device_model_details: values?.device_model_details,
+          expirydate: values?.expirydate,
+          latitude: values?.lat,
+          longitude: values?.lon,
+        },
+      };
+
+      const fd = buildMultipartPayload({ payload, values, fileKeys });
+      const res = await axios.post(API_ENDPOINTS.manufacturer, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const ref =
+        res?.data?.referenceNumber ||
+        res?.data?.reference ||
+        res?.data?.ref ||
+        res?.data?.id ||
+        `REF-${Date.now()}`;
+
+      setReferenceNumber(String(ref));
+      setShowSuccess(true);
+      resetForm({ values: manufacturerInitialValues });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
+        err?.message ||
+        "Failed to submit registration request.";
+      setErrorMessage(msg);
+    } finally {
+      setFormikSubmitting(false);
+      setSubmitting(false);
+    }
   };
 
   const validatePdfFile = (file) => {
@@ -451,8 +756,134 @@ const UserRegistrationForm = () => {
             )}
 
             {!showSuccess && (
-              <Box component="form" onSubmit={handleSubmit}>
-                <Grid container spacing={2}>
+              isM2MServiceProvider ? (
+                <Box>
+                  {isM2MFormLoaded && m2mValidationSchema ? (
+                    <Formik
+                      initialValues={eSIMInitialValues}
+                      validationSchema={m2mValidationSchema}
+                      onSubmit={handleM2MSubmit}
+                      enableReinitialize
+                    >
+                      {(formik) => (
+                        <form onSubmit={formik.handleSubmit}>
+                          <Grid container spacing={2} className="form-controller">
+                            {Object.keys(m2mUpdatedFormFields).map((field) => (
+                              <Grid key={field} item md={6} sm={12} xs={12}>
+                                <FormField
+                                  fieldConfig={m2mUpdatedFormFields[field]}
+                                  formik={formik}
+                                />
+                              </Grid>
+                            ))}
+                            <Grid item xs={12} style={{ marginTop: "20px" }}>
+                              <Button
+                                type="submit"
+                                variant="contained"
+                                fullWidth
+                                sx={{
+                                  mt: 1,
+                                  mb: 2,
+                                  backgroundColor: "#800080",
+                                  "&:hover": {
+                                    backgroundColor: "#660066",
+                                  },
+                                  py: 1.5,
+                                }}
+                                startIcon={<PersonAddIcon />}
+                                disabled={submitting}
+                              >
+                                {submitting ? "Submitting..." : "Submit Registration Request"}
+                              </Button>
+                            </Grid>
+                          </Grid>
+                          <Box sx={{ textAlign: "center" }}>
+                            <Button
+                              variant="text"
+                              onClick={() => (window.location.href = "/user-registration-request")}
+                              sx={{
+                                color: "#800080",
+                                textTransform: "none",
+                                "&:hover": {
+                                  backgroundColor: "transparent",
+                                  textDecoration: "underline",
+                                },
+                              }}
+                            >
+                              Change Role
+                            </Button>
+                          </Box>
+                        </form>
+                      )}
+                    </Formik>
+                  ) : null}
+                </Box>
+              ) : isManufacturerRole ? (
+                <Box>
+                  {isManufacturerFormLoaded && manufacturerValidationSchema ? (
+                    <Formik
+                      initialValues={manufacturerInitialValues}
+                      validationSchema={manufacturerValidationSchema}
+                      onSubmit={handleManufacturerSubmit}
+                      enableReinitialize
+                    >
+                      {(formik) => (
+                        <form onSubmit={formik.handleSubmit}>
+                          <Grid container spacing={2} className="form-controller">
+                            {Object.keys(manufacturerUpdatedFormFields).map((field) => (
+                              <Grid key={field} item md={6} sm={12} xs={12}>
+                                <FormField
+                                  fieldConfig={manufacturerUpdatedFormFields[field]}
+                                  formik={formik}
+                                  handleOptionChange={handleManufacturerStateChange}
+                                />
+                              </Grid>
+                            ))}
+                            <Grid item xs={12} style={{ marginTop: "20px" }}>
+                              <Button
+                                type="submit"
+                                variant="contained"
+                                fullWidth
+                                sx={{
+                                  mt: 1,
+                                  mb: 2,
+                                  backgroundColor: "#800080",
+                                  "&:hover": {
+                                    backgroundColor: "#660066",
+                                  },
+                                  py: 1.5,
+                                }}
+                                startIcon={<PersonAddIcon />}
+                                disabled={submitting}
+                              >
+                                {submitting ? "Submitting..." : "Submit Registration Request"}
+                              </Button>
+                            </Grid>
+                          </Grid>
+                          <Box sx={{ textAlign: "center" }}>
+                            <Button
+                              variant="text"
+                              onClick={() => (window.location.href = "/user-registration-request")}
+                              sx={{
+                                color: "#800080",
+                                textTransform: "none",
+                                "&:hover": {
+                                  backgroundColor: "transparent",
+                                  textDecoration: "underline",
+                                },
+                              }}
+                            >
+                              Change Role
+                            </Button>
+                          </Box>
+                        </form>
+                      )}
+                    </Formik>
+                  ) : null}
+                </Box>
+              ) : (
+                <Box component="form" onSubmit={handleSubmit}>
+                  <Grid container spacing={2}>
                   {isSchoolAdmin ? (
                     <>
                       <Grid item xs={12}>
@@ -889,7 +1320,7 @@ const UserRegistrationForm = () => {
                       </Grid>
                     </>
                   )}
-                </Grid>
+                  </Grid>
 
                 <Button
                   type="submit"
@@ -926,7 +1357,8 @@ const UserRegistrationForm = () => {
                     Change Role
                   </Button>
                 </Box>
-              </Box>
+                </Box>
+              )
             )}
           </Paper>
         </Grid>

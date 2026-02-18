@@ -30,7 +30,7 @@ import {
 
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
-import { getUseNewGeocodingApi, setUseNewGeocodingApi } from "../../services/HomePage";
+import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
 import MapComponent from "./LiveMap";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
@@ -69,7 +69,7 @@ const LiveTracking = () => {
   const [policeLocations, setPoliceLocations] = useState([]);
   const [incidentData, setIncidentData] = useState([]);
   const [useNmrLocation, setUseNmrLocation] = useState(false);
-  const [useNewGeocodingApi, setUseNewGeocodingApiState] = useState(getUseNewGeocodingApi());
+  const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
   const [nmrArea, setNmrArea] = useState(null);
   const [reverseGeocodeCache, setReverseGeocodeCache] = useState({});
   const fullDataRef = useRef([]); // processed items we've appended so far
@@ -1213,15 +1213,15 @@ const LiveTracking = () => {
               control={
                 <Switch
                   color="primary"
-                  checked={useNewGeocodingApi}
+                  checked={useOldGeocodingApi}
                   onChange={(event) => {
                     const enabled = event.target.checked;
-                    setUseNewGeocodingApi(enabled);
-                    setUseNewGeocodingApiState(enabled);
+                    setUseOldGeocodingApi(enabled);
+                    setUseOldGeocodingApiState(enabled);
                   }}
                 />
               }
-              label="New Geocoding API"
+              label="Old Geocoding API"
             />
             <FormControlLabel
               sx={{ ml: 2 }}

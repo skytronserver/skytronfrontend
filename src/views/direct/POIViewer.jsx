@@ -31,6 +31,7 @@ import {
   ListItemText,
   ListItemIcon,
   Switch,
+  FormControlLabel,
   Drawer,
   ListItemButton,
 } from '@mui/material';
@@ -65,6 +66,7 @@ import { Fill, Stroke, Style, Circle as CircleStyle, Text } from "ol/style";
 import "ol/ol.css";
 import POIService from '../../services/POIService';
 import HomePageService from '../../services/HomePage';
+import { getUseOldGeocodingApi, setUseOldGeocodingApi } from '../../services/HomePage';
 import axios from 'axios';
 import BhuvanMapComponent from '../../components/Map/BhuvanMapComponent';
 
@@ -404,6 +406,8 @@ const POIViewer = () => {
     data: null,
     key: null,
   });
+
+  const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
 
   useEffect(() => {
     popoverOpenRef.current = popoverOpen;
@@ -1083,6 +1087,7 @@ const POIViewer = () => {
       setSelectedPoi(null);
       fetchPOIs();
     } catch (error) {
+      console.error('Error saving POI:', error);
       showSnackbar(error.response?.data?.message || 'Error saving POI. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -1103,6 +1108,7 @@ const POIViewer = () => {
       setPopoverOpen(false);
       fetchPOIs();
     } catch (error) {
+      console.error('Error deleting POI:', error);
       showSnackbar(error.response?.data?.message || 'Error deleting POI. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -1434,8 +1440,8 @@ const POIViewer = () => {
       const cacheKey = `${safeLat.toFixed(6)},${safeLng.toFixed(6)}`;
       console.log('[POI][reverseGeocode] start', {
         cacheKey,
-        lat: safeLat,
-        lng: safeLng,
+        lat: safeLat,  // Use click coordinates
+        lng: safeLng,  // Use click coordinates
         isEditMode,
         selectedPoiId: selectedPoi?.id ?? null,
       });
@@ -1873,6 +1879,21 @@ const POIViewer = () => {
             Layers
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ pl: 1, pb: 0.5 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={useOldGeocodingApi}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setUseOldGeocodingApi(next);
+                    setUseOldGeocodingApiState(next);
+                  }}
+                />
+              }
+              label={<Typography variant="caption" fontWeight={600}>Old Geocoding API</Typography>}
+              sx={{ ml: 0 }}
+            />
             <Switch
               size="small"
               checked={showAllPois}

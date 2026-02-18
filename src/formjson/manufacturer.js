@@ -21,6 +21,9 @@ export const manufacturerInitialValues = {
     file_companRegCertificate: null,
     file_GSTCertificate: null,
     file_idProof: null,
+    file_affidavitNda: null,
+    tac: "",
+    device_model_details: "",
     lat: "",
     lon: "",
 };
@@ -152,6 +155,32 @@ export const manufacturerFormField = {
       if (!value) return false;
       return SUPPORTED_FORMATS.includes(value.type);
     }),
+  },
+  file_affidavitNda:{
+    name:"file_affidavitNda",
+    type: "file",
+    label: "Affidavit/NDA",
+    message:'manufacturer.form.validation.file_restrictions',
+    validation: Yup.mixed().required("Affidavit / ADA is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+      if (!value) return false;
+      return SUPPORTED_FORMATS.includes(value.type);
+    }),
+  },
+  tac: {
+    name: "tac",
+    type: "text",
+    label: "TAC",
+    validation: Yup.string().required("TAC is required"),
+  },
+  device_model_details: {
+    name: "device_model_details",
+    type: "text",
+    label: "Device Model Details",
+    validation: Yup.string().required("Device Model Details is required"),
   },
   lat: {
     name: "lat",

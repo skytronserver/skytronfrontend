@@ -2,7 +2,7 @@ import { getAxiosInstance } from './axiosInstance';
 
 const GEO_TOGGLE_STORAGE_KEY = 'use_new_geocoding_api';
 
-const resolveUseNewGeocoding = () => {
+const resolveUseOldGeocoding = () => {
   try {
     if (typeof window !== 'undefined' && window?.localStorage) {
       const stored = window.localStorage.getItem(GEO_TOGGLE_STORAGE_KEY);
@@ -13,10 +13,10 @@ const resolveUseNewGeocoding = () => {
     // ignore
   }
 
-  return String(process.env.REACT_APP_USE_NEW_GEOCODING_API || '').toLowerCase() === 'true';
+  return String(process.env.REACT_APP_USE_OLD_GEOCODING_API || '').toLowerCase() === 'true';
 };
 
-export const setUseNewGeocodingApi = (enabled) => {
+export const setUseOldGeocodingApi = (enabled) => {
   try {
     if (typeof window !== 'undefined' && window?.localStorage) {
       window.localStorage.setItem(GEO_TOGGLE_STORAGE_KEY, enabled ? 'true' : 'false');
@@ -26,7 +26,7 @@ export const setUseNewGeocodingApi = (enabled) => {
   }
 };
 
-export const getUseNewGeocodingApi = () => resolveUseNewGeocoding();
+export const getUseOldGeocodingApi = () => resolveUseOldGeocoding();
 
 const getGeocode = (query, limit = 5) => {
   const http = getAxiosInstance();
@@ -35,23 +35,79 @@ const getGeocode = (query, limit = 5) => {
     return Promise.resolve({ data: { results: [] } });
   }
 
-  if (resolveUseNewGeocoding()) {
-    return http.get('https://map-geocoding.gromed.in/search', {
+  if (resolveUseOldGeocoding()) {
+    return http.get('https://api.gromed.in/api/geocode/', {
       params: {
-        format: 'jsonv2',
         q,
-        limit,
-        addressdetails: 1,
-        extratags: 1,
-        namedetails: 1,
       },
     });
   }
 
-  return http.get('https://api.gromed.in/api/geocode/', {
+  return http.get('https://map-geocoding.gromed.in/search', {
     params: {
+      format: 'jsonv2',
       q,
+      limit,
+      addressdetails: 1,
+      extratags: 1,
+      namedetails: 1,
     },
+  }).then((resp) => {
+    const payload = resp?.data;
+    const list = Array.isArray(payload) ? payload : (payload ? [payload] : []);
+
+    const results = list.map((item) => {
+      const addressObj = item?.address && typeof item.address === 'object' ? item.address : {};
+
+      const city =
+        addressObj.city ||
+        addressObj.town ||
+        addressObj.village ||
+        addressObj.municipality ||
+        addressObj.county ||
+        addressObj.state_district ||
+        '';
+
+      const locality =
+        addressObj.suburb ||
+        addressObj.neighbourhood ||
+        addressObj.quarter ||
+        addressObj.hamlet ||
+        '';
+
+      const district = addressObj.state_district || addressObj.county || '';
+      const state = addressObj.state || '';
+
+      const latNum = Number(item?.lat);
+      const lonNum = Number(item?.lon);
+
+      const addressText = item?.display_name || '';
+      const nameText =
+        item?.namedetails?.name ||
+        item?.name ||
+        item?.display_name ||
+        '';
+
+      return {
+        latitude: Number.isFinite(latNum) ? latNum : item?.lat,
+        longitude: Number.isFinite(lonNum) ? lonNum : item?.lon,
+        lat: item?.lat,
+        lon: item?.lon,
+        address: addressText,
+        formattedAddress: addressText,
+        display_name: addressText,
+        poi: nameText,
+        name: nameText,
+        city,
+        locality,
+        district,
+        state,
+        pincode: addressObj.postcode || '',
+        postcode: addressObj.postcode || '',
+      };
+    });
+
+    return { ...resp, data: { results } };
   });
 };
 const getLiveTracking = (data) => {
@@ -195,6 +251,14 @@ const updateSOSCaseMeta = (data) => {
   return http.post("/api/EM/DEx/updateCaseMeta/", data);
 }
 
+const getSOSReport = (params = {}, config = {}) => {
+  const http = getAxiosInstance();
+  return http.get('/api/SOS/report/', {
+    params,
+    ...config,
+  });
+};
+
 const addRoute = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/saveRoute/", data);
@@ -266,57 +330,57 @@ const getReverseGeocode = (lat, lon) => {
     return Promise.resolve({ data: {} });
   }
 
-  if (resolveUseNewGeocoding()) {
-    return http.get('https://map-geocoding.gromed.in/reverse', {
+  if (resolveUseOldGeocoding()) {
+    return http.get('https://api.gromed.in/api/reverse_geocode/', {
       params: {
-        format: 'jsonv2',
         lat: safeLat,
         lon: safeLon,
-        zoom: 18,
-        addressdetails: 1,
-        extratags: 1,
-        namedetails: 1,
       },
-    }).then((resp) => {
-      const payload = resp?.data;
-      const addressDetails = payload?.address && typeof payload.address === 'object' ? payload.address : {};
-
-      const city =
-        addressDetails.city ||
-        addressDetails.town ||
-        addressDetails.village ||
-        addressDetails.municipality ||
-        addressDetails.county ||
-        addressDetails.state_district ||
-        '';
-
-      const area =
-        addressDetails.suburb ||
-        addressDetails.neighbourhood ||
-        addressDetails.quarter ||
-        addressDetails.hamlet ||
-        '';
-
-      const normalized = {
-        address: payload?.display_name || '',
-        city,
-        area,
-        pincode: addressDetails.postcode || '',
-        state: addressDetails.state || '',
-        country: addressDetails.country || '',
-        lat: payload?.lat ?? safeLat,
-        lon: payload?.lon ?? safeLon,
-      };
-
-      return { ...resp, data: normalized };
     });
   }
 
-  return http.get('https://api.gromed.in/api/reverse_geocode/', {
+  return http.get('https://map-geocoding.gromed.in/reverse', {
     params: {
+      format: 'jsonv2',
       lat: safeLat,
       lon: safeLon,
+      zoom: 18,
+      addressdetails: 1,
+      extratags: 1,
+      namedetails: 1,
     },
+  }).then((resp) => {
+    const payload = resp?.data;
+    const addressDetails = payload?.address && typeof payload.address === 'object' ? payload.address : {};
+
+    const city =
+      addressDetails.city ||
+      addressDetails.town ||
+      addressDetails.village ||
+      addressDetails.municipality ||
+      addressDetails.county ||
+      addressDetails.state_district ||
+      '';
+
+    const area =
+      addressDetails.suburb ||
+      addressDetails.neighbourhood ||
+      addressDetails.quarter ||
+      addressDetails.hamlet ||
+      '';
+
+    const normalized = {
+      address: payload?.display_name || '',
+      city,
+      area,
+      pincode: addressDetails.postcode || '',
+      state: addressDetails.state || '',
+      country: addressDetails.country || '',
+      lat: payload?.lat ?? safeLat,
+      lon: payload?.lon ?? safeLon,
+    };
+
+    return { ...resp, data: normalized };
   });
 };
 
@@ -334,6 +398,7 @@ const HomePageService = {
   broadCastHelp,
   updateSOSCall,
   updateSOSCaseMeta,
+  getSOSReport,
   addRoute,
   getRoute,
   delRoute,

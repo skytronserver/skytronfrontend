@@ -60,7 +60,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import POIService from "../../services/POIService";
 import HomePageService from "../../services/HomePage";
-import { getUseNewGeocodingApi, setUseNewGeocodingApi } from "../../services/HomePage";
+import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
@@ -1088,7 +1088,7 @@ const MapComponent = ({
     const [showPois, setShowPois] = useState(false);
     const [showIncidents, setShowIncidents] = useState(false);
     const [geoSearchLoading, setGeoSearchLoading] = useState(false);
-    const [useNewGeocodingApi, setUseNewGeocodingApiState] = useState(getUseNewGeocodingApi());
+    const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
     const theme = useTheme();
@@ -5288,15 +5288,15 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                                     control={
                                         <Switch
                                             size="small"
-                                            checked={useNewGeocodingApi}
+                                            checked={useOldGeocodingApi}
                                             onChange={(e) => {
                                                 const next = e.target.checked;
-                                                setUseNewGeocodingApi(next);
-                                                setUseNewGeocodingApiState(next);
+                                                setUseOldGeocodingApi(next);
+                                                setUseOldGeocodingApiState(next);
                                             }}
                                         />
                                     }
-                                    label={<Typography variant="caption" fontWeight={500}>New Geocoding API</Typography>}
+                                    label={<Typography variant="caption" fontWeight={500}>Old Geocoding API</Typography>}
                                     sx={{ ml: 0, mr: 0, justifyContent: 'space-between', flexDirection: 'row-reverse', width: '100%' }}
                                 />
                                 <FormControlLabel

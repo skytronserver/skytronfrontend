@@ -26,6 +26,7 @@ import AllTaggedDevice from "../views/showDevice/AllTaggedDevice";
 import ApprovedModelsList from "../views/reports/ApprovedModelsList";
 import ApprovedCOPsList from "../views/reports/ApprovedCOPsList";
 import EsimStatusReport from "../views/reports/EsimStatusReport";
+import ManufacturerOnboarding from "../views/pages/ManufacturerOnboarding";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -58,6 +59,11 @@ const DeviceRoutes = {
   path: "/",
   element: <MainLayout />,
   children: [
+    {
+      path: "/manufacturer/onboarding",
+      element: <ManufacturerOnboarding />,
+      roles: ["devicemanufacture"],
+    },
     {
       path: "/device/bulk-assign",
       element: <BulkDeviceAssign />,

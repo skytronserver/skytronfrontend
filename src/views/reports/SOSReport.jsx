@@ -1,11 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Paper from '@mui/material/Paper';
 import PageHeader from '../../ui-component/cards/PageHeader';
 import { gridSpacing } from '../../store/constant';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import HomePageService from '../../services/HomePage';
+import { dateTimeUpdate } from '../../helper';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -34,12 +37,63 @@ const formatLatLon = (lat, lon) => {
 const SOSReport = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [count, setCount] = useState(0);
 
-  const fetchReport = async () => {
+  const { currentDateTime, initialFromDate } = useMemo(() => {
+    const now = new Date();
+    return {
+      currentDateTime: dateTimeUpdate(now),
+      initialFromDate: dateTimeUpdate(new Date(now.getTime() - 86400000))
+    };
+  }, []);
+
+  const [filters, setFilters] = useState({
+    start_datetime: initialFromDate,
+    end_datetime: currentDateTime,
+    district_id: '',
+    call_id: '',
+    vehicle_reg_no: '',
+    device_imei: ''
+  });
+
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
+
+  const fetchReport = async (override = {}) => {
     try {
       setLoading(true);
-      const response = await HomePageService.getAllSOSCall();
-      const calls = response?.data?.calls || [];
+      const effectivePage = override.page ?? page;
+      const effectivePageSize = override.pageSize ?? pageSize;
+
+      const istToUTCString = (dt) => {
+        const dateObj = new Date(dt);
+        if (Number.isNaN(dateObj.getTime())) return undefined;
+        const utc = dateObj.getTime() - (5.5 * 60 * 60000);
+        const utcDate = new Date(utc);
+        const y = utcDate.getFullYear();
+        const m = String(utcDate.getMonth() + 1).padStart(2, '0');
+        const d = String(utcDate.getDate()).padStart(2, '0');
+        const h = String(utcDate.getHours()).padStart(2, '0');
+        const min = String(utcDate.getMinutes()).padStart(2, '0');
+        const s = String(utcDate.getSeconds()).padStart(2, '0');
+        return `${y}-${m}-${d}T${h}:${min}:${s}Z`;
+      };
+
+      const params = {
+        start_datetime: filters.start_datetime ? istToUTCString(filters.start_datetime) : undefined,
+        end_datetime: filters.end_datetime ? istToUTCString(filters.end_datetime) : undefined,
+        district_id: filters.district_id || undefined,
+        call_id: filters.call_id || undefined,
+        vehicle_reg_no: filters.vehicle_reg_no || undefined,
+        device_imei: filters.device_imei || undefined,
+        page: effectivePage + 1,
+        page_size: effectivePageSize
+      };
+
+      const response = await HomePageService.getSOSReport(params);
+      const payload = response?.data;
+      const calls = payload?.results || payload?.calls || payload?.data || payload || [];
+      const nextCount = payload?.count ?? payload?.total ?? payload?.total_count ?? (Array.isArray(calls) ? calls.length : 0);
 
       const mapped = Array.isArray(calls)
         ? calls.map((entry) => {
@@ -106,9 +160,11 @@ const SOSReport = () => {
         : [];
 
       setRows(mapped);
+      setCount(Number.isFinite(Number(nextCount)) ? Number(nextCount) : 0);
     } catch (error) {
       console.error('Error fetching SOS report:', error);
       setRows([]);
+      setCount(0);
     } finally {
       setLoading(false);
     }
@@ -117,6 +173,48 @@ const SOSReport = () => {
   useEffect(() => {
     fetchReport();
   }, []);
+
+  const handleFilterChange = (key) => (event) => {
+    const value = event?.target?.value;
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleFromDateChange = useCallback(
+    (e) => {
+      const selected = new Date(e.target.value);
+      if (Number.isNaN(selected.getTime())) return;
+
+      const today = new Date();
+      if (selected > today) {
+        alert('From Date cannot be in the future');
+        return;
+      }
+
+      setFilters((prev) => ({ ...prev, start_datetime: dateTimeUpdate(selected) }));
+    },
+    []
+  );
+
+  const handleToDateChange = useCallback(
+    (e) => {
+      const selected = new Date(e.target.value);
+      if (Number.isNaN(selected.getTime())) return;
+
+      const today = new Date();
+      if (selected > today) {
+        alert('To Date cannot be in the future');
+        return;
+      }
+
+      setFilters((prev) => ({ ...prev, end_datetime: dateTimeUpdate(selected) }));
+    },
+    []
+  );
+
+  const handleSearch = () => {
+    setPage(0);
+    fetchReport({ page: 0 });
+  };
 
   const columns = useMemo(
     () => [
@@ -163,11 +261,94 @@ const SOSReport = () => {
         <PageHeader title="SOS Report" />
       </Grid>
       <Grid item xs={12}>
-        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-          <Button variant="contained" onClick={fetchReport} disabled={loading}>
-            Refresh
-          </Button>
-        </Stack>
+        <Paper elevation={0} sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: 'background.paper' }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                size="small"
+                required
+                label="From Date"
+                type="datetime-local"
+                value={filters.start_datetime}
+                onChange={handleFromDateChange}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ max: currentDateTime }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                size="small"
+                required
+                label="To Date"
+                type="datetime-local"
+                value={filters.end_datetime}
+                onChange={handleToDateChange}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ max: currentDateTime }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="District ID"
+                value={filters.district_id}
+                onChange={handleFilterChange('district_id')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Call ID"
+                value={filters.call_id}
+                onChange={handleFilterChange('call_id')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Vehicle Reg No"
+                value={filters.vehicle_reg_no}
+                onChange={handleFilterChange('vehicle_reg_no')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Device IMEI"
+                value={filters.device_imei}
+                onChange={handleFilterChange('device_imei')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'stretch', sm: 'flex-end' } }}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={handleSearch}
+                  disabled={loading}
+                  sx={{ minWidth: 120 }}
+                >
+                  Search
+                </Button>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => fetchReport()}
+                  disabled={loading}
+                  sx={{ minWidth: 120 }}
+                >
+                  Refresh
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Paper>
       </Grid>
       <Grid item xs={12}>
         {!loading && (
@@ -179,7 +360,24 @@ const SOSReport = () => {
               search: true,
               filter: true,
               selectableRows: 'none',
-              rowsPerPage: 25
+              serverSide: true,
+              count,
+              page,
+              rowsPerPage: pageSize,
+              rowsPerPageOptions: [25, 50, 100],
+              onTableChange: (action, tableState) => {
+                if (action === 'changePage') {
+                  const nextPage = tableState.page;
+                  setPage(nextPage);
+                  fetchReport({ page: nextPage });
+                }
+                if (action === 'changeRowsPerPage') {
+                  const nextPageSize = tableState.rowsPerPage;
+                  setPageSize(nextPageSize);
+                  setPage(0);
+                  fetchReport({ page: 0, pageSize: nextPageSize });
+                }
+              }
             }}
           />
         )}

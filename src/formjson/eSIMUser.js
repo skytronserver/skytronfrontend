@@ -3,6 +3,12 @@ const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
 const stateList=[{'value':'','label':''}];
+const telecomProviderOptions = [
+  { value: "airtel", label: "Airtel" },
+  { value: "bsnl", label: "BSNL" },
+  { value: "vodafone", label: "Vodafone" },
+  { value: "jio", label: "Jio" },
+];
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const today = new Date().toISOString().split('T')[0];
@@ -16,6 +22,7 @@ export const eSIMInitialValues = {
     gstnnumber: "",
     idProofno:"",
     stateId:'',
+    telecomProviders: [],
     file_authLetter: null,
     file_GSTCertificate: null,
     file_idProof:null,
@@ -86,6 +93,15 @@ export const eSIMFormField = {
     label: "esimUser.form.fields.state",
     validation: Yup.string().required("esimUser.form.validation.state_required"),
     options:stateList,
+  },
+  telecomProviders: {
+    name: "telecomProviders",
+    type: "multiselect",
+    label: "Linked Telecom Providers",
+    validation: Yup.array()
+      .min(1, "Please select at least one telecom provider")
+      .required("Please select at least one telecom provider"),
+    options: telecomProviderOptions,
   },
   file_authLetter:{
     name:"file_authLetter",

@@ -58,6 +58,10 @@ import SchoolReports from "../views/schoolbus/SchoolReports";
 import AlertsCenter from "../views/schoolbus/AlertsCenter";
 import SchoolOnboarding from "../views/schoolbus/SchoolOnboarding";
 
+import M2MRegistrationAdminReview from "../views/pages/M2MRegistrationAdminReview";
+import VehicleManufacturerRegistrationAdminReview from "../views/pages/VehicleManufacturerRegistrationAdminReview";
+import AIS140DeviceManufacturerRegistrationAdminReview from "../views/pages/AIS140DeviceManufacturerRegistrationAdminReview";
+
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData");
@@ -121,6 +125,26 @@ const MainRoutes = {
       path: "/superadmin-dashboard/public-safety",
       element: <PublicSafetyDashboard />,
       roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/m2m-registration-requests",
+      element: <M2MRegistrationAdminReview />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/manufacturer-registration-requests",
+      element: <Navigate to="/superadmin-dashboard/vehicle-manufacturer-registration-requests" replace />,
+      roles: ["superadmin", "stateadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/vehicle-manufacturer-registration-requests",
+      element: <VehicleManufacturerRegistrationAdminReview />,
+      roles: ["superadmin", "stateadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/ais-140-device-manufacturer-registration-requests",
+      element: <AIS140DeviceManufacturerRegistrationAdminReview />,
+      roles: ["superadmin", "stateadmin"],
     },
     {
       path: "/morth-dashboard",

@@ -135,6 +135,33 @@ const user = {
       ],
     },
     {
+      id: "m2m-registration-requests",
+      title: "M2M Registration Requests",
+      type: "item",
+      url: "/superadmin-dashboard/m2m-registration-requests",
+      icon: icons.IconCircleCheck,
+      breadcrumbs: false,
+      roles: ["superadmin"],
+    },
+    {
+      id: "manufacturer-registration-requests",
+      title: "Vehicle Manufacturer Requests",
+      type: "item",
+      url: "/superadmin-dashboard/vehicle-manufacturer-registration-requests",
+      icon: icons.IconCircleCheck,
+      breadcrumbs: false,
+      roles: ["superadmin", "stateadmin"],
+    },
+    {
+      id: "ais140-manufacturer-registration-requests",
+      title: "AIS-140 Manufacturer Requests",
+      type: "item",
+      url: "/superadmin-dashboard/ais-140-device-manufacturer-registration-requests",
+      icon: icons.IconCircleCheck,
+      breadcrumbs: false,
+      roles: ["superadmin", "stateadmin"],
+    },
+    {
       id: "new-icons-em-team",
       title: "EM Team",
       type: "collapse",
@@ -351,6 +378,15 @@ const user = {
           roles: ["devicemanufacture"],
         }
       ]
+    },
+    {
+      id: "manufacturer-onboarding",
+      title: "Manufacturer Onboarding",
+      type: "item",
+      url: "/manufacturer/onboarding",
+      icon: icons.IconChecks,
+      breadcrumbs: false,
+      roles: ["devicemanufacture"],
     },
     // {
     //   id: "accessory-management",
