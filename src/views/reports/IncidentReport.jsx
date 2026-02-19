@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Grid,
     Paper,
@@ -6,19 +6,13 @@ import {
     TextField,
     Button,
     Box,
-    IconButton,
     Tooltip,
     Card,
     CardContent,
-    Stack,
-    Dialog,
-    Slide,
-    AppBar,
-    Toolbar
+    Stack
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { Download, FilterList, Clear, Search } from '@mui/icons-material';
-import CloseIcon from '@mui/icons-material/Close';
 
 import MainCard from '../../ui-component/cards/MainCard';
 import CustomLoader from '../../ui-component/CustomLoader';
@@ -43,25 +37,21 @@ const IncidentReport = () => {
         longitude: '',
         radius_km: '',
         page: 1,
-        page_size: 10
+        page_size: 50
     });
 
     const [incidentData, setIncidentData] = useState([]);
     const [totalRows, setTotalRows] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [paginationModel, setPaginationModel] = useState({
+        pageSize: 50,
+        page: 0
+    });
 
     // Media viewer
     const [viewerOpen, setViewerOpen] = useState(false);
     const [viewerMedia, setViewerMedia] = useState(null);
     const [viewerType, setViewerType] = useState('image');
-
-    const Transition = React.forwardRef(function Transition(props, ref) {
-        return <Slide direction="left" ref={ref} {...props} />;
-    });
-
-    useEffect(() => {
-        handleSearch();
-    }, [filters.page, filters.page_size]);
 
     const handleFilterChange = (field, value) => {
         setFilters(prev => ({ ...prev, [field]: value }));
@@ -77,32 +67,48 @@ const IncidentReport = () => {
                 district: filters.district,
                 police_station: filters.police_station,
                 nearest_police_station: filters.nearest_police_station,
+                registered_at_from: filters.registered_at_from,
+                registered_at_to: filters.registered_at_to,
+                latitude: filters.latitude,
+                longitude: filters.longitude,
+                radius_km: filters.radius_km,
                 page: filters.page,
                 page_size: filters.page_size
             };
 
             const res = await IncidentService.filterIncidents(apiFilters);
 
-            if (res?.data?.data) {
-                setIncidentData(
-                    res.data.data.map((item, i) => ({
-                        ...item,
-                        id: item.id || i
-                    }))
-                );
-                setTotalRows(res.data.total_count || res.data.data.length);
-            } else if (Array.isArray(res.data)) {
-                setIncidentData(
-                    res.data.map((item, i) => ({
-                        ...item,
-                        id: item.id || i
-                    }))
-                );
-                setTotalRows(res.data.length);
-            } else {
-                setIncidentData([]);
-                setTotalRows(0);
-            }
+            const rawRows = Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data?.data?.data)
+                    ? res.data.data.data
+                    : Array.isArray(res?.data?.data?.results)
+                        ? res.data.data.results
+                        : Array.isArray(res?.data?.data?.items)
+                            ? res.data.data.items
+                            : Array.isArray(res?.data?.results)
+                                ? res.data.results
+                                : Array.isArray(res?.data?.rows)
+                                    ? res.data.rows
+                                    : Array.isArray(res?.data?.items)
+                                        ? res.data.items
+                                        : Array.isArray(res?.data)
+                                            ? res.data
+                                            : [];
+
+            const rowsWithIds = rawRows.map((item, i) => ({
+                ...item,
+                id: item.id ?? item.incident_id ?? i
+            }));
+
+            const totalCount =
+                res?.data?.total_count ??
+                res?.data?.data?.total_count ??
+                res?.data?.total ??
+                rowsWithIds.length;
+
+            setIncidentData(rowsWithIds);
+            setTotalRows(totalCount);
         } catch (e) {
             console.error(e);
             setIncidentData([]);
@@ -110,6 +116,29 @@ const IncidentReport = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        handleSearch();
+    }, [filters.page, filters.page_size]);
+
+    useEffect(() => {
+        if (viewerOpen) {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+        }
+    }, [viewerOpen]);
+
+    const handlePaginationChange = (newPaginationModel) => {
+        setPaginationModel(newPaginationModel);
+        setFilters(prev => ({
+            ...prev,
+            page: newPaginationModel.page + 1,
+            page_size: newPaginationModel.pageSize
+        }));
     };
 
     const clearFilters = () => {
@@ -145,26 +174,69 @@ const IncidentReport = () => {
         }
     };
 
+    const closeMediaViewer = () => {
+        setViewerOpen(false);
+        setViewerMedia(null);
+    };
+
+    const getRegisteredAt = (row) =>
+        row?.registered_at ??
+        row?.registeredAt ??
+        row?.created_at ??
+        row?.createdAt ??
+        row?.incident_time ??
+        row?.reported_at ??
+        row?.timestamp ??
+        null;
+
+    const getDistrict = (row) =>
+        row?.district ??
+        row?.district_name ??
+        row?.districtInfo?.district ??
+        row?.district_info?.district ??
+        row?.device_tag_info?.district_info?.district ??
+        row?.field_ex?.district_info?.district ??
+        row?.location?.district ??
+        null;
+
+    const getPoliceStation = (row) =>
+        row?.police_station ??
+        row?.policeStation ??
+        row?.nearest_ps ??
+        row?.nearest_police_station ??
+        row?.police_station_info?.name ??
+        row?.police_station_info?.police_station ??
+        row?.ps_name ??
+        row?.ps ??
+        null;
+
     // Table columns
     const columns = [
         { field: 'id', headerName: 'ID', width: 70 },
         { field: 'vehicle_reg_no', headerName: 'Vehicle Reg No', flex: 1 },
-        { field: 'district', headerName: 'District', flex: 0.8 },
+        {
+            field: 'district',
+            headerName: 'District',
+            flex: 0.8,
+            valueGetter: p => getDistrict(p.row) || 'N/A'
+        },
 
 
         {
             field: 'police_station',
             headerName: 'Police Station',
             flex: 1,
-            valueGetter: p => p.row.police_station || 'N/A'
+            valueGetter: p => getPoliceStation(p.row) || 'N/A'
         },
         {
             field: 'registered_by',
             headerName: 'Registered By',
             flex: 1,
             valueGetter: p =>
+                p.row.registered_by_info?.name ||
                 p.row.registered_by_info?.phone_no ||
                 p.row.registered_by_info?.mobile_no ||
+                p.row.registered_by_info?.mobile ||
                 p.row.registered_by ||
                 'N/A'
         },
@@ -180,8 +252,8 @@ const IncidentReport = () => {
             headerName: 'Registered At',
             flex: 1,
             valueGetter: p =>
-                p.row.registered_at
-                    ? new Date(p.row.registered_at).toLocaleString()
+                getRegisteredAt(p.row)
+                    ? new Date(getRegisteredAt(p.row)).toLocaleString()
                     : 'N/A'
         },
         {
@@ -235,7 +307,7 @@ const IncidentReport = () => {
             r.id,
             r.vehicle_reg_no,
             r.district,
-            r.registered_at,
+            getRegisteredAt(r),
             r.lat,
             r.long
         ]);
@@ -357,9 +429,9 @@ const IncidentReport = () => {
                                     <TextField
                                         fullWidth
                                         label="Lat"
-                                        value={filters.lat}
+                                        value={filters.latitude}
                                         onChange={e =>
-                                            handleFilterChange('lat', e.target.value)
+                                            handleFilterChange('latitude', e.target.value)
                                         }
                                         size="small"
                                     />
@@ -369,9 +441,9 @@ const IncidentReport = () => {
                                     <TextField
                                         fullWidth
                                         label="Long"
-                                        value={filters.long}
+                                        value={filters.longitude}
                                         onChange={e =>
-                                            handleFilterChange('long', e.target.value)
+                                            handleFilterChange('longitude', e.target.value)
                                         }
                                         size="small"
                                     />
@@ -416,91 +488,135 @@ const IncidentReport = () => {
 
                 {/* INCIDENT LIST */}
                 <Grid item xs={12}>
-                    <Paper>
-                        <Box p={2}>
+                    <Paper sx={{ height: 600, display: 'flex', flexDirection: 'column' }}>
+                        <Box p={2} sx={{ borderBottom: '1px solid #e0e0e0', flexShrink: 0 }}>
                             <Typography variant="h6">
                                 Incident List ({totalRows})
                             </Typography>
                         </Box>
 
-                        <Box height={500}>
-                            {loading ? (
+                        {loading ? (
+                            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <CustomLoader />
-                            ) : (
+                            </Box>
+                        ) : (
+                            <Box
+                                sx={{
+                                    flex: 1,
+                                    minHeight: 0,
+                                    width: '100%',
+                                    overflow: 'auto'
+                                }}
+                            >
                                 <DataGrid
                                     rows={incidentData}
                                     columns={columns}
-                                    pageSize={filters.page_size}
-                                    rowsPerPageOptions={[5, 10, 25]}
+                                    paginationModel={paginationModel}
+                                    onPaginationModelChange={handlePaginationChange}
+                                    pageSizeOptions={[10, 25, 50, 100]}
+                                    rowCount={totalRows}
+                                    disableRowSelectionOnClick
                                     sx={{
                                         border: 'none',
-
-                                        '& .MuiDataGrid-columnHeaders': {
-                                            backgroundColor: '#fff'   // keep white background
+                                        height: '100%',
+                                        width: '100%',
+                                        '& .MuiDataGrid-virtualScroller': {
+                                            overflowY: 'auto'
                                         },
-
+                                        '& .MuiDataGrid-columnHeaders': {
+                                            backgroundColor: '#fff'
+                                        },
                                         '& .MuiDataGrid-columnHeaderTitle': {
-                                            color: '#1976d2',         // BLUE TEXT
+                                            color: '#1976d2',
                                             fontWeight: 'bold'
                                         }
                                     }}
                                 />
-
-
-                            )}
-                        </Box>
+                            </Box>
+                        )}
                     </Paper>
                 </Grid>
             </Grid>
 
-            {/* MEDIA VIEWER */}
-            <Dialog
-                fullScreen
-                open={viewerOpen}
-                onClose={() => setViewerOpen(false)}
-                TransitionComponent={Transition}
-            >
-                <AppBar sx={{ position: 'relative' }}>
-                    <Toolbar>
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            onClick={() => setViewerOpen(false)}
-                        >
-                            <CloseIcon />
-                        </IconButton>
-
-                        <Typography sx={{ ml: 2, flex: 1 }} variant="h6">
-                            Incident Media
-                        </Typography>
-                    </Toolbar>
-                </AppBar>
-
+            {viewerOpen && viewerMedia && (
                 <Box
                     sx={{
-                        height: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bgcolor: 'black'
+                        position: 'fixed',
+                        inset: 0,
+                        zIndex: 1300,
+                        pointerEvents: 'none'
                     }}
                 >
-                    {viewerType === 'video' ? (
-                        <video
-                            src={viewerMedia}
-                            controls
-                            autoPlay
-                            style={{ maxWidth: '100%', maxHeight: '100%' }}
-                        />
-                    ) : (
-                        <img
-                            src={viewerMedia}
-                            alt="Incident"
-                            style={{ maxWidth: '100%', maxHeight: '100%' }}
-                        />
-                    )}
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            bgcolor: 'rgba(0, 0, 0, 0.45)',
+                            pointerEvents: 'none'
+                        }}
+                    />
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            pointerEvents: 'none'
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                bgcolor: 'black',
+                                position: 'relative',
+                                pointerEvents: 'auto'
+                            }}
+                        >
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={closeMediaViewer}
+                                sx={{
+                                    position: 'absolute',
+                                    top: 16,
+                                    right: 16,
+                                    zIndex: 1
+                                }}
+                            >
+                                Close
+                            </Button>
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    display: 'flex',
+                                    justifyContent: 'flex-start',
+                                    alignItems: 'flex-start',
+                                    overflow: 'auto'
+                                }}
+                            >
+                                {viewerType === 'video' ? (
+                                    <video
+                                        src={viewerMedia}
+                                        controls
+                                        autoPlay
+                                        style={{ width: 'auto', height: 'auto' }}
+                                    />
+                                ) : (
+                                    <img
+                                        src={viewerMedia}
+                                        alt="Incident"
+                                        style={{ width: 'auto', height: 'auto' }}
+                                    />
+                                )}
+                            </Box>
+                        </Box>
+                    </Box>
                 </Box>
-            </Dialog>
+            )}
+
         </MainCard>
     );
 };

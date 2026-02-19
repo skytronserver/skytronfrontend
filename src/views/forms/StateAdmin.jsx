@@ -114,6 +114,39 @@ const StateAdmin = () => {
     }
   };
 
+  const handleResendOtp = async (values) => {
+    setLoading(true);
+    try {
+      // Build payload for resend
+      const data = userData && userData.split("-");
+      const userId = userData && data.length > 2 && data[3];
+      let resendPayload = {
+        ...values,
+        role: "stateadmin",
+        createdby: userId,
+        user_id: userId,
+      };
+      // Remove file fields if present
+      Object.keys(resendPayload).forEach(key => {
+        if (resendPayload[key] instanceof File) {
+          delete resendPayload[key];
+        }
+      });
+      await UserServices.resendUserCreationOtp(resendPayload);
+      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+      handleAlert("OTP resent successfully");
+    } catch (error) {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: true,
+        errorList: error?.response?.data ? convertErrorObjectToArray(error.response.data) : [],
+      }));
+      handleAlert("Resend OTP Error: " + (error?.response?.data?.error || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResend = (resetForm) => {
     setShowResend(false);
     resetForm(stateAdminInitialValues);
@@ -173,7 +206,7 @@ const StateAdmin = () => {
                           type="button"
                           variant="outlined"
                           color="secondary"
-                          onClick={() => handleResend(formik.resetForm)}
+                          onClick={() => handleResendOtp(stateAdminInitialValues)}
                           disabled={loading}
                         >
                           {t("auth.resend")}

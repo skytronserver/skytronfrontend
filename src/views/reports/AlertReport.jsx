@@ -59,6 +59,8 @@ const AlertReport = () => {
     { value: 'OfflineDevice', label: 'OfflineDevice' },
     { value: 'Overtime', label: 'Overtime' },
     { value: 'UnauthorizedStop', label: 'Unauthorised Stop' },
+    { value: 'UnauthorizedParking', label: 'Unauthorized Parking' },
+    { value: 'Prohibited Area', label: 'Prohibited Area' },
     { value: 'UnauthorizedSkip', label: 'UnauthorizedSkip' },
     { value: 'NetworkLoss', label: 'NetworkLoss' },
     { value: 'GPSLoss', label: 'GPSLoss' },
@@ -160,7 +162,7 @@ const AlertReport = () => {
       flex: 1,
       renderCell: (params) => {
         let displayValue = params.value;
-        if (displayValue === 'Prohibited Area' || displayValue === 'UnauthorizedStop') {
+        if (displayValue === 'UnauthorizedStop') {
           displayValue = 'Unauthorised Stop';
         }
         return (
