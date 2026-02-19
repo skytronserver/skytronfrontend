@@ -26,6 +26,7 @@ const EsimUser = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(eSIMFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [showResend, setShowResend] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -44,7 +45,6 @@ const EsimUser = () => {
   const navigate = useNavigate();
 
   const handleClose = () => {
-    !alert.error && navigate("/user/newEsimUser");
     setOpen(false);
   };
 
@@ -110,7 +110,7 @@ const EsimUser = () => {
       handleAlert("common.formSubmittedSuccessfully");
       setSubmitting(false);
       setLoading(false);
-      resetForm(eSIMInitialValues);
+      setShowResend(true);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -119,7 +119,13 @@ const EsimUser = () => {
       }));
       handleAlert("common.formNotSubmitted");
       setLoading(false);
+      setShowResend(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(eSIMInitialValues);
   };
 
   return (
@@ -186,7 +192,7 @@ const EsimUser = () => {
                           />
                         </Grid>
                       ))}
-                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                      <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
                         <Button
                           type="submit"
                           variant="contained"
@@ -195,6 +201,17 @@ const EsimUser = () => {
                         >
                           {t("common.submit")}
                         </Button>
+                        {showResend && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            color="secondary"
+                            onClick={() => handleResend(formik.resetForm)}
+                            disabled={loading}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
                       </Grid>
                     </Grid>
                   </form>

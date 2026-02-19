@@ -26,13 +26,14 @@ const SOSUser = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(sosOtherUserFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [showResend, setShowResend] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const stateList = await retriveStateList();
         const districtList = await retriveDistrictList();
-        
+
         setUpdatedFormField((prevConfig) => ({
           ...prevConfig,
           state: {
@@ -55,7 +56,6 @@ const SOSUser = () => {
   const navigate = useNavigate();
 
   const handleClose = () => {
-    !alert.error && navigate("/new/sos-user");
     setOpen(false);
   };
 
@@ -105,10 +105,10 @@ const SOSUser = () => {
 
       const response = await UserServices.createSOSUser(valuesWithRole);
       console.log("User created successfully:");
-      
+
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t("common.formSubmittedSuccessfully"));
-      resetForm(sosOtherUserInitialValues);
+      setShowResend(true);
     } catch (error) {
       console.error("Error creating user:", error?.message);
       setAlert((prevAlert) => ({
@@ -121,10 +121,16 @@ const SOSUser = () => {
         },
       }));
       handleAlert(t("common.formNotSubmitted"));
+      setShowResend(false);
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(sosOtherUserInitialValues);
   };
 
   return (
@@ -190,7 +196,7 @@ const SOSUser = () => {
                           </Grid>
                         );
                       })}
-                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                      <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
                         <Button
                           type="submit"
                           variant="contained"
@@ -199,6 +205,17 @@ const SOSUser = () => {
                         >
                           {t("common.submit")}
                         </Button>
+                        {showResend && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            color="secondary"
+                            onClick={() => handleResend(formik.resetForm)}
+                            disabled={loading}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
                       </Grid>
                     </Grid>
                   </form>

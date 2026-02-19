@@ -10,32 +10,32 @@ const handleAxiosError = (error) => {
   }
   alert("A network error occurred. Please try again later.");
 }
-const http=axios.create({
-    baseURL: BASE_URL,
-    headers: {
-      "Content-type": "application/json",
-    },
-  });
+const http = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-type": "application/json",
+  },
+});
 const generateCaptcha = async () => {
-    try {
-      const response = await http.get("api/generate-captcha/");
-      return response.data;
-    } catch (error) {
-      handleAxiosError(error);
-      return {error:true}
-    }
+  try {
+    const response = await http.get("api/generate-captcha/");
+    return response.data;
+  } catch (error) {
+    handleAxiosError(error);
+    return { error: true }
   }
+}
 const verifyCaptcha = async (formData) => {
-    try {
-      const response = await http.post("/api/generate-captcha/", formData);
-      return response.data;
-    } catch (error) {
-      handleAxiosError(error);
-    }
+  try {
+    const response = await http.post("/api/generate-captcha/", formData);
+    return response.data;
+  } catch (error) {
+    handleAxiosError(error);
   }
+}
 
 const CaptchaServices = {
-    generateCaptcha,verifyCaptcha
+  generateCaptcha, verifyCaptcha
 };
 
 export default CaptchaServices;

@@ -96,6 +96,55 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle, userRole }) => {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (!lastSubmittedValues) return;
+    setResendLoading(true);
+    try {
+      const { payload, isFormData } = buildPayload(lastSubmittedValues);
+      // Add user_id to payload
+      if (!isFormData) {
+        payload.user_id = userId;
+      } else {
+        payload.append("user_id", userId);
+      }
+      console.log("Resend OTP Payload:", payload);
+      await UserServices.resendUserCreationOtp(payload, isFormData);
+      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+      handleAlert("OTP resent successfully");
+    } catch (error) {
+      setAlert((prevAlert) => ({
+        ...prevAlert,
+        error: true,
+        errorList: error?.response?.data ? convertErrorObjectToArray(error.response.data) : [],
+      }));
+      handleAlert("Resend OTP Error: " + (error?.response?.data?.error || error.message));
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  const [resendLoading, setResendLoading] = useState(false);
+  const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
+  const userData = sessionStorage.getItem('cookiesData');
+  const data = userData && userData.split("-");
+  const userId = userData && data.length > 2 && data[3];
+
+  const buildPayload = (values) => {
+    const hasFile = Object.values(values).some(
+      (value) => value instanceof File || value instanceof Blob
+    );
+    if (!hasFile) {
+      return { payload: values, isFormData: false };
+    }
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value);
+      }
+    });
+    return { payload: formData, isFormData: true };
+  };
+
   return (
     <>
       <DialogComponent
@@ -143,7 +192,10 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle, userRole }) => {
             <Formik
               initialValues={initialData}
               validationSchema={validationSchema}
-              onSubmit={handleSubmit}
+              onSubmit={async (values, { setSubmitting, resetForm }) => {
+                await handleSubmit(values, { setSubmitting, resetForm });
+                setLastSubmittedValues(values);
+              }}
               enableReinitialize
             >
               {(formik) => (
@@ -167,6 +219,17 @@ const DynamicForm = ({ fieldConfig, initialData, formTitle, userRole }) => {
                       >
                         Submit
                       </Button>
+                      {lastSubmittedValues && (
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={handleResendOtp}
+                          disabled={resendLoading}
+                          style={{ marginLeft: "12px" }}
+                        >
+                          {resendLoading ? "Resending OTP..." : "Resend OTP"}
+                        </Button>
+                      )}
                     </Grid>
                   </Grid>
                 </form>

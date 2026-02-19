@@ -201,6 +201,18 @@ const activateUser = (data) => {
     const http = getAxiosInstance();
     return http.post(`/api/activateUser/`, data);
 }
+const resendUserCreationOtp = (data, isFormData = false) => {
+    const http = getAxiosInstance();
+    return http.post(
+        "/api/resend_usercreation_otp/",
+        data,
+        {
+            headers: {
+                "Content-type": isFormData ? "multipart/form-data" : "application/json",
+            },
+        }
+    );
+}
 
 const getESIMProviderDashboard = () => {
     const http = getAxiosInstance();
@@ -280,6 +292,7 @@ const UserServices = {
     getSOSExeDashboard,
     deactivateUser,
     activateUser,
+    resendUserCreationOtp,
     getESIMProviderDashboard,
     getVehicleAlertStatistics,
     publicUserRegistration,

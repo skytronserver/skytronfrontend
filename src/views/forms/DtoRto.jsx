@@ -34,18 +34,19 @@ const DtoRto = () => {
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(dtoFormFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const [showResend, setShowResend] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
       try {
         const stateList = await retriveStateList();
-        
+
         setUpdatedFormField((prevConfig) => ({
           ...prevConfig,
           state: {
             ...prevConfig.state,
-            value: stateList?.[0]?.label || '', 
+            value: stateList?.[0]?.label || '',
             id: stateList?.[0]?.value || '',
           },
           district_code: {
@@ -57,16 +58,16 @@ const DtoRto = () => {
         if (stateList?.[0]?.value) {
           dtoInitialsValues.state = stateList[0].label;
           const districtList = await retriveDTOList({ state: stateList[0].value });
-          console.log(districtList,'districtList')
+          console.log(districtList, 'districtList')
           setUpdatedFormField((prevConfig) => ({
             ...prevConfig,
             district_code: {
               ...prevConfig.district_code,
-              options: districtList, 
+              options: districtList,
             },
           }));
         }
-        
+
       } catch (error) {
         console.error("Failed to retrieve state or district list:", error);
       } finally {
@@ -144,7 +145,7 @@ const DtoRto = () => {
       ...values,
       role: "dto",
       createdby: userId,
-      state:selectedState.id,
+      state: selectedState.id,
     };
 
     try {
@@ -152,7 +153,7 @@ const DtoRto = () => {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t("common.formSubmittedSuccessfully"));
       setSubmitting(false);
-      resetForm(dtoInitialsValues);
+      setShowResend(true);
     } catch (error) {
       if (error.message === "Network Error") {
         handleAlert(t("common.internalServerError"));
@@ -164,9 +165,15 @@ const DtoRto = () => {
         errorList: convertErrorObjectToArray(error.response.data),
       }));
       handleAlert(t("common.formNotSubmitted"));
+      setShowResend(false);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(dtoInitialsValues);
   };
 
   return (
@@ -202,11 +209,11 @@ const DtoRto = () => {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
-                            // handleOptionChange={handleStateChange}
+                          // handleOptionChange={handleStateChange}
                           />
                         </Grid>
                       ))}
-                      <Grid item xs={12} className="grid-item-button-div">
+                      <Grid item xs={12} className="grid-item-button-div" style={{ display: "flex", gap: "10px" }}>
                         <Button
                           type="submit"
                           variant="contained"
@@ -215,6 +222,17 @@ const DtoRto = () => {
                         >
                           {t("common.submit")}
                         </Button>
+                        {showResend && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            color="secondary"
+                            onClick={() => handleResend(formik.resetForm)}
+                            disabled={loading}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
                       </Grid>
                     </Grid>
                   </form>

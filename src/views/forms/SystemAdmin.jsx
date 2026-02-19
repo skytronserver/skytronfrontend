@@ -7,119 +7,128 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import UserServices from "../../services/UserServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FormField from "../../ui-component/CustomTextField";
-import { useTranslation } from "react-i18next";
+
+const systemAdminFormFields = {
+  name: {
+    name: "name",
+    type: "text",
+    label: "Name",
+    validation: Yup.string().required("Name is required"),
+  },
+  email: {
+    name: "email",
+    type: "text",
+    label: "Email",
+    validation: Yup.string()
+      .email("Invalid email address")
+      .required("Email is required"),
+  },
+  mobile: {
+    name: "mobile",
+    type: "tel",
+    label: "Mobile",
+    validation: Yup.string()
+      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
+      .required("Mobile Number is required"),
+  },
+  dob: {
+    name: "dob",
+    type: "date",
+    label: "Date of Birth",
+    validation: Yup.string().required("Date of Birth is required"),
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("Latitude must be a number")
+      .nullable(),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    validation: Yup.number()
+      .typeError("Longitude must be a number")
+      .nullable(),
+  },
+};
+
+const initialValues = {
+  name: "",
+  email: "",
+  mobile: "",
+  dob: "",
+  lat: "",
+  lon: "",
+};
 
 const SystemAdmin = () => {
-  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [alert, setAlert] = useState({
+    error: false,
+    message: "",
+    errorList: [],
+  });
+  const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
   const navigate = useNavigate();
 
-  /* ================= Fields (dynamic translation safe) ================= */
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-  const systemAdminFormFields = useMemo(() => ({
-    name: {
-      name: "name",
-      type: "text",
-      label: t("systemAdmin.fields.name"),
-      validation: Yup.string().required(t("systemAdmin.validation.nameRequired"))
-    },
-    email: {
-      name: "email",
-      type: "text",
-      label: t("systemAdmin.fields.email"),
-      validation: Yup.string()
-        .email(t("systemAdmin.validation.invalidEmail"))
-        .required(t("systemAdmin.validation.emailRequired"))
-    },
-    mobile: {
-      name: "mobile",
-      type: "tel",
-      label: t("systemAdmin.fields.mobile"),
-      validation: Yup.string()
-        .matches(/^\d{10}$/, t("systemAdmin.validation.mobileFormat"))
-        .required(t("systemAdmin.validation.mobileRequired"))
-    },
-    dob: {
-      name: "dob",
-      type: "date",
-      label: t("systemAdmin.fields.dob"),
-      validation: Yup.string().required(t("systemAdmin.validation.dobRequired"))
-    },
-    lat: {
-      name: "lat",
-      type: "number",
-      label: t("systemAdmin.fields.lat"),
-      validation: Yup.number().nullable()
-    },
-    lon: {
-      name: "lon",
-      type: "number",
-      label: t("systemAdmin.fields.lon"),
-      validation: Yup.number().nullable()
-    }
-  }), [t]); // ✅ re-translate when language changes
-
-  /* ================= Form Config ================= */
-
-  const initialValues = {
-    name: "",
-    email: "",
-    mobile: "",
-    dob: "",
-    lat: "",
-    lon: ""
+  const handleAlert = (message) => {
+    setAlert((prevAlert) => ({ ...prevAlert, message }));
+    setOpen(true);
   };
 
   const validationSchema = Yup.object(
-    Object.fromEntries(
-      Object.keys(systemAdminFormFields).map((k) => [
-        k,
-        systemAdminFormFields[k].validation
-      ])
-    )
+    Object.keys(systemAdminFormFields).reduce((acc, field) => {
+      acc[field] = systemAdminFormFields[field].validation;
+      return acc;
+    }, {})
   );
-
-  const [open, setOpen] = useState(false);
-  const [alert, setAlert] = useState({ error: false, message: "", errorList: [] });
-  const [loading, setLoading] = useState(false);
-
-  const handleClose = () => {
-    if (!alert.error) navigate("/user/registeredUser");
-    setOpen(false);
-  };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
-
     try {
-      await UserServices.createSystemAdmin(values);
+      const payload = {
+        ...values,
+        dob: values.dob ? values.dob.replace(/-/g, "/") : values.dob,
+      };
 
-      setAlert({
-        error: false,
-        message: t("form.success"),
-        errorList: []
-      });
-
-      resetForm();
-      setOpen(true);
+      await UserServices.createSystemAdmin(payload);
+      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+      handleAlert("System Admin created successfully");
+      setShowResend(true);
     } catch (error) {
-      setAlert({
+      setAlert((prevAlert) => ({
+        ...prevAlert,
         error: true,
-        message: t("form.error"),
-        errorList: error.response?.data || []
-      });
-
-      setOpen(true);
+        errorList: {
+          code: "400",
+          message: error.message,
+          errors: error.response?.data,
+        },
+      }));
+      handleAlert("Failed to create System Admin");
+      setShowResend(false);
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
   };
 
-  /* ================= UI ================= */
+  const handleResend = (resetForm) => {
+    setShowResend(false);
+    resetForm(initialValues);
+  };
 
   return (
     <>
@@ -133,33 +142,48 @@ const SystemAdmin = () => {
       <Grid container spacing={gridSpacing}>
         {loading && (
           <div className="spinner-div">
-            <CircularProgress size={50} />
+            <CircularProgress className="circular-progress" size={50} />
           </div>
         )}
-
-        <Grid item xs={12}>
-          <MainCard title={t("systemAdmin.createTitle")}>
+        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
+          <MainCard title="Create System Admin">
             <Formik
               initialValues={initialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
+              enableReinitialize
             >
               {(formik) => (
                 <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2}>
-                    {Object.keys(systemAdminFormFields).map((key) => (
-                      <Grid key={key} item md={6} xs={12}>
+                  <Grid container spacing={2} className="form-controller">
+                    {Object.keys(systemAdminFormFields).map((field) => (
+                      <Grid key={field} item md={6} sm={12} xs={12}>
                         <FormField
-                          fieldConfig={systemAdminFormFields[key]}
+                          fieldConfig={systemAdminFormFields[field]}
                           formik={formik}
                         />
                       </Grid>
                     ))}
-
-                    <Grid item xs={12}>
-                      <Button type="submit" variant="contained" disabled={loading}>
-                        {t("form.submit")}
+                    <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={loading}
+                      >
+                        Submit
                       </Button>
+                      {showResend && (
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => handleResend(formik.resetForm)}
+                          disabled={loading}
+                        >
+                          Resend
+                        </Button>
+                      )}
                     </Grid>
                   </Grid>
                 </form>

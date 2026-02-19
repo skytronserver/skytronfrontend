@@ -52,7 +52,7 @@ const POIReport = () => {
     const useTypes = [
         'School', 'Hospital', 'PoliceStation', 'BusStop', 'RailwayStation',
         'Airport', 'FuelStation', 'TollGate', 'Other', 'Personal',
-        'dealer', 'prohibited_area', 'no_entry', 'parking', 'no_parking',
+        'dealer', 'Unauthorised Stop', 'no_entry', 'parking', 'no_parking',
         'StateBoundary', 'DistrictBoundary', 'CityBoundary', 'VillageBoundary', 'PermitRoute'
     ];
 
@@ -154,7 +154,8 @@ const POIReport = () => {
         }
 
         if (filters.use_type) {
-            result = result.filter(poi => poi.use_type === filters.use_type);
+            const searchType = filters.use_type === 'Unauthorised Stop' ? 'prohibited_area' : filters.use_type;
+            result = result.filter(poi => poi.use_type === searchType || poi.use_type === filters.use_type);
         }
 
         setFilteredData(result);
@@ -209,14 +210,20 @@ const POIReport = () => {
             headerName: 'Type',
             width: 130,
             flex: 1,
-            renderCell: (params) => (
-                <Chip
-                    label={params.value}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                />
-            )
+            renderCell: (params) => {
+                let displayValue = params.value;
+                if (displayValue === 'prohibited_area') {
+                    displayValue = 'Unauthorised Stop';
+                }
+                return (
+                    <Chip
+                        label={displayValue}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                    />
+                );
+            }
         },
         {
             field: 'mark_type',
