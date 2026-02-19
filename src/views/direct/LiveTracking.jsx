@@ -47,6 +47,10 @@ const LiveTracking = () => {
   const [load, setLoad] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
 
+  const normalizeCategoryKey = useCallback((value) => {
+    return String(value || '').trim().toLowerCase();
+  }, []);
+
   const [vehicleNo, setVehicleNo] = useState("");
   const [imeiNo, setImeiNo] = useState("");
   const [owner, setOwner] = useState("");
@@ -54,8 +58,11 @@ const LiveTracking = () => {
   const [roads, setRoads] = useState("");
   const [polygon, setPolygon] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryMaxSpeed, setCategoryMaxSpeed] = useState("");
+  const [categorySpeedMap, setCategorySpeedMap] = useState({});
   const [make, setMake] = useState("");
-  const [dtoCode, setDtoCode] = useState("");
+  const [district, setDistrict] = useState("");
+  const [speedLimit, setSpeedLimit] = useState("");
   const [inRange, setInRange] = useState(false);
   const [poiAsPolygon, setPoiAsPolygon] = useState(false);
   const userRole = getRole();
@@ -97,8 +104,10 @@ const LiveTracking = () => {
       setCategory(value);
     } else if (name === "make") {
       setMake(value);
-    } else if (name === "dtoCode") {
-      setDtoCode(value);
+    } else if (name === "district") {
+      setDistrict(value);
+    } else if (name === "speedLimit") {
+      setSpeedLimit(value);
     }
   };
 
@@ -391,6 +400,32 @@ const LiveTracking = () => {
         const rawData = retriveData_table.data.data;
         fullRawRef.current = rawData;
 
+        const nextCategorySpeedMap = rawData.reduce((acc, item) => {
+          const catRaw =
+            item?.device_tag_info?.category_info?.category ??
+            item?.category_info?.category ??
+            item?.category;
+          const cat = normalizeCategoryKey(catRaw);
+          if (!cat) return acc;
+          const speedValue = item?.device_tag_info?.category_info?.maxSpeed ??
+            item?.device_tag_info?.category_info?.max_speed ??
+            item?.category_info?.maxSpeed ??
+            item?.category_info?.max_speed ??
+            '';
+          if (speedValue !== '' && speedValue !== null && speedValue !== undefined) {
+            acc[cat] = String(speedValue);
+          }
+          return acc;
+        }, {});
+        setCategorySpeedMap(nextCategorySpeedMap);
+
+        const maxSpeedValue = rawData?.[0]?.device_tag_info?.category_info?.maxSpeed ??
+          rawData?.[0]?.device_tag_info?.category_info?.max_speed ??
+          rawData?.[0]?.category_info?.maxSpeed ??
+          rawData?.[0]?.category_info?.max_speed ??
+          '';
+        setCategoryMaxSpeed(category && rawData.length > 0 ? String(maxSpeedValue || '') : '');
+
         // Lazy rendering: keep full list in ref and render initial chunk only
         const INITIAL_CHUNK = 50; // smaller initial paint for faster perceived load
         const CHUNK_SIZE = 200;
@@ -422,6 +457,8 @@ const LiveTracking = () => {
         setFilteredData([]);
         setSelectedId(null);
         setFocusedEntry(null);
+        setCategoryMaxSpeed('');
+        setCategorySpeedMap({});
         setUseNmrLocation(false);
         setNmrArea(null);
         fetchPoliceLocations();
@@ -433,6 +470,8 @@ const LiveTracking = () => {
       setFilteredData([]);
       setSelectedId(null);
       setFocusedEntry(null);
+      setCategoryMaxSpeed('');
+      setCategorySpeedMap({});
       setUseNmrLocation(false);
       setNmrArea(null);
       fetchPoliceLocations();
@@ -585,12 +624,16 @@ const LiveTracking = () => {
       regno: vehicleNo,
       owner: owner,
       poi: poi,
+      poi_id: poi,
       roads: roads,
+      route_id: '',
       polygon: polygon,
       category: category,
       make: make,
-      dto_code: dtoCode,
-      poi_id: poi,
+      district: district,
+      district_id: '',
+      manufacturer_id: '',
+      speed_limit: speedLimit,
       in_range: inRange,
       poi_as_polygon: poiAsPolygon,
     };
@@ -609,19 +652,23 @@ const LiveTracking = () => {
       regno: vehicleNo,
       owner: owner,
       poi: poi,
+      poi_id: poi,
       roads: roads,
+      route_id: '',
       polygon: polygon,
       category: category,
       make: make,
-      dto_code: dtoCode,
-      poi_id: poi,
+      district: district,
+      district_id: '',
+      manufacturer_id: '',
+      speed_limit: speedLimit,
       in_range: inRange,
       poi_as_polygon: poiAsPolygon,
     };
 
     // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, dtoCode, inRange, poiAsPolygon]);
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon]);
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -634,12 +681,16 @@ const LiveTracking = () => {
       regno: '',
       owner: '',
       poi: '',
+      poi_id: poi,
       roads: '',
+      route_id: '',
       polygon: '',
       category: '',
       make: '',
-      dto_code: '',
-      poi_id: poi,
+      district: '',
+      district_id: '',
+      manufacturer_id: '',
+      speed_limit: speedLimit,
       in_range: inRange,
       poi_as_polygon: poiAsPolygon,
     };
@@ -988,17 +1039,32 @@ const LiveTracking = () => {
                         />
                       </Grid>
                       <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Category"
-                          type="text"
-                          value={category}
-                          name="category"
-                          onChange={handleInput}
-                          variant="outlined"
-                          size="small"
-                          InputProps={{ sx: { bgcolor: 'white' } }}
-                        />
+                        <FormControl fullWidth size="small" sx={{ bgcolor: 'white' }}>
+                          <InputLabel id="live-tracking-category-label">Category/MaxSpeed</InputLabel>
+                          <Select
+                            labelId="live-tracking-category-label"
+                            label="Category/MaxSpeed"
+                            value={category}
+                            name="category"
+                            onChange={handleInput}
+                            renderValue={(selected) => {
+                              if (!selected) return 'All';
+                              const spd = categorySpeedMap?.[normalizeCategoryKey(selected)] || categoryMaxSpeed;
+                              if (spd) return `${selected} (${spd} km/h)`;
+                              return selected;
+                            }}
+                          >
+                            <MenuItem value="">All</MenuItem>
+                            <MenuItem value="Ambulance">{`Ambulance${categorySpeedMap?.[normalizeCategoryKey('Ambulance')] ? ` (${categorySpeedMap[normalizeCategoryKey('Ambulance')]} km/h)` : ''}`}</MenuItem>
+                            <MenuItem value="Bus">{`Bus${categorySpeedMap?.[normalizeCategoryKey('Bus')] ? ` (${categorySpeedMap[normalizeCategoryKey('Bus')]} km/h)` : ''}`}</MenuItem>
+                            <MenuItem value="Dumper">{`Dumper${categorySpeedMap?.[normalizeCategoryKey('Dumper')] ? ` (${categorySpeedMap[normalizeCategoryKey('Dumper')]} km/h)` : ''}`}</MenuItem>
+                            <MenuItem value="Police">{`Police${categorySpeedMap?.[normalizeCategoryKey('Police')] ? ` (${categorySpeedMap[normalizeCategoryKey('Police')]} km/h)` : ''}`}</MenuItem>
+                            <MenuItem value="School bus">{`School bus${categorySpeedMap?.[normalizeCategoryKey('School bus')] ? ` (${categorySpeedMap[normalizeCategoryKey('School bus')]} km/h)` : ''}`}</MenuItem>
+                            <MenuItem value="Tanker">{`Tanker${categorySpeedMap?.[normalizeCategoryKey('Tanker')] ? ` (${categorySpeedMap[normalizeCategoryKey('Tanker')]} km/h)` : ''}`}</MenuItem>
+                            <MenuItem value="Taxi">{`Taxi${categorySpeedMap?.[normalizeCategoryKey('Taxi')] ? ` (${categorySpeedMap[normalizeCategoryKey('Taxi')]} km/h)` : ''}`}</MenuItem>
+                            <MenuItem value="Truck">{`Truck${categorySpeedMap?.[normalizeCategoryKey('Truck')] ? ` (${categorySpeedMap[normalizeCategoryKey('Truck')]} km/h)` : ''}`}</MenuItem>
+                          </Select>
+                        </FormControl>
                       </Grid>
                       <Grid item xs={12}>
                         <Box display="flex" flexDirection="column" gap={0.5}>
@@ -1083,10 +1149,10 @@ const LiveTracking = () => {
                           <Grid item xs={6}>
                             <TextField
                               fullWidth
-                              label="DTO Code"
+                              label="District"
                               type="text"
-                              value={dtoCode}
-                              name="dtoCode"
+                              value={district}
+                              name="district"
                               onChange={handleInput}
                               variant="outlined"
                               size="small"

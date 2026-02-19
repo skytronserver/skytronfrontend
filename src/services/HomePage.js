@@ -127,15 +127,19 @@ const getLiveTracking_data = (data, config = {}) => {
       regno: data.regno,
       owner: data.owner,
       poi: data.poi,
+      poi_id: data.poi_id,
       roads: data.roads,
+      route_id: data.route_id,
       polygon: data.polygon,
       category: data.category,
       make: data.make,
-      dto_code: data.dto_code,
+      district: data.district,
+      district_id: data.district_id,
+      manufacturer_id: data.manufacturer_id,
+      speed_limit: data.speed_limit,
 
       // Optional POI-based filtering parameters to match
       // https://api.gromed.in/api/gps_track_data_api/?poi_id=1631&in_range=False&poi_as_polygon=True
-      poi_id: data.poi_id,
       in_range: data.in_range,
       poi_as_polygon: data.poi_as_polygon,
     },
