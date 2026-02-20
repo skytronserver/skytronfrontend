@@ -1,6 +1,6 @@
-import { Button, CircularProgress, Grid } from "@mui/material";
+import { Autocomplete, Button, CircularProgress, FormControl, Grid, TextField } from "@mui/material";
 import { Formik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { gridSpacing } from "../../store/constant";
 import SettingService from "../../services/SettingService";
 import HomePageService from "../../services/HomePage";
@@ -10,15 +10,74 @@ import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { convertErrorObjectToArray } from "../../helper";
 import { sendCommandFields, sendCommandInitials } from "../../formjson/sendCommand";
+import TaggingService from "../../services/TaggingService";
 
 function SendCommand() {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [loadVehicles, setLoadVehicles] = useState(true);
+    const [vehicleList, setVehicleList] = useState([]);
+    const [selectedVehicle, setSelectedVehicle] = useState(null);
+    const searchTimeoutRef = useRef(null);
     const [alert, setAlert] = useState({
         error: false,
         message: "",
         errorList: [],
     });
+
+    const fetchVehicleList = async (searchQuery = "") => {
+        try {
+            setLoadVehicles(false);
+            const response = await TaggingService.getOwnerList({ search: searchQuery });
+
+            const vehicles = Array.isArray(response) ? response : response?.data || [];
+
+            const transformedVehicles = vehicles.map((vehicle) => {
+                return {
+                    id: vehicle.id,
+                    device_id: vehicle.device?.id,
+                    device_tag_id: vehicle.id,
+                    vehicle_reg_no: vehicle.vehicle_reg_no,
+                    vehicle_owner: vehicle.vehicle_owner,
+                    device: vehicle.device,
+                    label: `${vehicle.vehicle_reg_no} (${vehicle.device?.device_esn || "N/A"})`,
+                };
+            });
+
+            const filteredVehicles = searchQuery
+                ? transformedVehicles.filter(
+                      (v) =>
+                          v.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (v.vehicle_reg_no &&
+                              v.vehicle_reg_no.toLowerCase().includes(searchQuery.toLowerCase()))
+                  )
+                : transformedVehicles;
+
+            setVehicleList(filteredVehicles);
+            setLoadVehicles(true);
+        } catch (error) {
+            console.error("Error fetching vehicle list:", error);
+            setLoadVehicles(true);
+        }
+    };
+
+    const handleVehicleInputChange = (event, newInputValue, reason) => {
+        if (reason === "input") {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+
+            if (newInputValue && newInputValue.length >= 2) {
+                setLoadVehicles(false);
+                searchTimeoutRef.current = setTimeout(() => {
+                    fetchVehicleList(newInputValue);
+                }, 500);
+            } else {
+                setVehicleList([]);
+                setLoadVehicles(true);
+            }
+        }
+    };
 
     const handleClose = () => {
         setOpen(false);
@@ -54,10 +113,12 @@ function SendCommand() {
         setSubmitting(true);
         setLoading(true);
 
+        const imeiToSend = selectedVehicle?.device?.device_esn;
+
         // Check if command starts with "GET" and use "0*" as value
         const isGetCommand = values.selected_command.toUpperCase().startsWith("GET");
         const payload = {
-            imei: values.imei,
+            imei: imeiToSend,
             command_base: `@${values.selected_command}`,
             value: isGetCommand ? "0*" : `${values.input_value}*`,
         };
@@ -66,42 +127,90 @@ function SendCommand() {
 
         const resp = await sendCommandService(payload);
         if (resp.code === "200") {
-            const imeiFromResponse = resp?.message?.imei ?? values.imei;
+            const imeiFromResponse = imeiToSend;
             const finalCommandFromResponse = resp?.message?.final_command ?? fallbackFinalCommand;
             const normalizedFinalCommand = String(finalCommandFromResponse)
                 .replace(/^@{3,}/, "@@")
                 .replace(/\*$/, "");
 
             let firmwareVersion = "N/A";
+            let imeiForPopup = "";
             try {
-                const gpsResp = await HomePageService.getGpsDataLog({ search: imeiFromResponse });
-                const dataString = gpsResp?.data?.data;
-                const parsed = dataString ? JSON.parse(dataString) : [];
-                const list = Array.isArray(parsed) ? parsed : [];
+                const extractFw = (gpsResp) => {
+                    const dataString = gpsResp?.data?.data;
+                    const parsed = dataString ? JSON.parse(dataString) : [];
+                    const list = Array.isArray(parsed) ? parsed : [];
 
-                for (const item of list) {
-                    const raw = item?.fields?.raw_data;
-                    if (!raw || typeof raw !== "string") continue;
+                    for (const item of list) {
+                        const raw = item?.fields?.raw_data;
+                        if (!raw || typeof raw !== "string") continue;
 
-                    // Expected format sample: ",PVT,SKIN,1.0.0,NR,01,..."
-                    // Firmware version is the token immediately after "SKIN".
-                    const parts = raw.split(",").map((p) => p.trim()).filter(Boolean);
-                    const skinIdx = parts.findIndex((p) => p.toUpperCase() === "SKIN");
-                    if (skinIdx >= 0 && parts[skinIdx + 1]) {
-                        firmwareVersion = parts[skinIdx + 1];
-                    }
+                        // Expected format sample: ",PVT,SKIN,1.0.0,NR,01,..."
+                        // Firmware version is the token immediately after "SKIN".
+                        const parts = raw.split(",").map((p) => p.trim()).filter(Boolean);
+                        const skinIdx = parts.findIndex((p) => p.toUpperCase() === "SKIN");
+                        if (skinIdx >= 0 && parts[skinIdx + 1]) {
+                            return parts[skinIdx + 1];
+                        }
 
-                    // Fallback: find a semver-like token anywhere in raw string.
-                    if (firmwareVersion === "N/A") {
+                        // Fallback: find a semver-like token anywhere in raw string.
                         const m = raw.match(/\b\d+\.\d+\.\d+\b/);
-                        if (m?.[0]) firmwareVersion = m[0];
+                        if (m?.[0]) return m[0];
                     }
 
-                    if (firmwareVersion !== "N/A") break;
+                    return "N/A";
+                };
+
+                const extractImei = (gpsResp) => {
+                    const dataString = gpsResp?.data?.data;
+                    const parsed = dataString ? JSON.parse(dataString) : [];
+                    const list = Array.isArray(parsed) ? parsed : [];
+
+                    for (const item of list) {
+                        const fields = item?.fields;
+                        const directImei =
+                            fields?.imei ||
+                            fields?.device_imei ||
+                            fields?.imei_no ||
+                            fields?.device_esn ||
+                            fields?.esn;
+
+                        if (directImei) return String(directImei);
+
+                        const raw = fields?.raw_data;
+                        if (!raw || typeof raw !== "string") continue;
+
+                        // Try to find a 15-digit IMEI in raw string.
+                        const m15 = raw.match(/\b\d{15}\b/);
+                        if (m15?.[0]) return m15[0];
+
+                        // Fallback: some devices send 14-17 digit identifiers.
+                        const m = raw.match(/\b\d{14,17}\b/);
+                        if (m?.[0]) return m[0];
+                    }
+
+                    return "";
+                };
+
+                // Prefer looking up by Vehicle Reg No, fallback to IMEI.
+                try {
+                    const gpsByReg = await HomePageService.getGpsDataLog({ regno: values.vehicle_reg_no });
+                    firmwareVersion = extractFw(gpsByReg);
+                    imeiForPopup = extractImei(gpsByReg);
+                } catch (e) {
+                    firmwareVersion = "N/A";
+                }
+
+                if (firmwareVersion === "N/A") {
+                    const gpsByImei = await HomePageService.getGpsDataLog({ search: imeiFromResponse });
+                    firmwareVersion = extractFw(gpsByImei);
+                    if (!imeiForPopup) imeiForPopup = extractImei(gpsByImei);
                 }
             } catch (e) {
                 firmwareVersion = "N/A";
             }
+
+            const imeiToShow = imeiForPopup || imeiToSend || "N/A";
 
             setAlert((prevAlert) => ({
                 ...prevAlert,
@@ -109,11 +218,13 @@ function SendCommand() {
                 errorList: [],
             }));
             handleAlert(
-                `${normalizedFinalCommand} send to device with ${imeiFromResponse}<br/>Firmware Version: ${firmwareVersion}`
+                `${normalizedFinalCommand} send to device with ${values.vehicle_reg_no} (${imeiToShow})<br/>Firmware Version: ${firmwareVersion}`
             );
             setSubmitting(false);
             setLoading(false);
             resetForm(sendCommandInitials);
+            setSelectedVehicle(null);
+            setVehicleList([]);
         } else {
             setAlert((prevAlert) => ({
                 ...prevAlert,
@@ -185,6 +296,55 @@ function SendCommand() {
                                                 if (field === "input_value" && isGetCommand) {
                                                     return null;
                                                 }
+
+                                                if (field === "vehicle_reg_no") {
+                                                    const showError = Boolean(
+                                                        formik.touched.vehicle_reg_no && formik.errors.vehicle_reg_no
+                                                    );
+
+                                                    return (
+                                                        <Grid key={field} item xs={12}>
+                                                            <FormControl fullWidth>
+                                                                <Autocomplete
+                                                                    value={selectedVehicle}
+                                                                    onChange={(event, newValue) => {
+                                                                        setSelectedVehicle(newValue);
+                                                                        const reg = newValue?.vehicle_reg_no || "";
+                                                                        formik.setFieldValue("vehicle_reg_no", reg);
+                                                                    }}
+                                                                    options={vehicleList}
+                                                                    getOptionLabel={(option) =>
+                                                                        option?.label || option?.vehicle_reg_no || ""
+                                                                    }
+                                                                    renderInput={(params) => (
+                                                                        <TextField
+                                                                            {...params}
+                                                                            label={sendCommandFields.vehicle_reg_no.label}
+                                                                            variant="outlined"
+                                                                            name="vehicle_reg_no"
+                                                                            onBlur={formik.handleBlur}
+                                                                            error={showError || !loadVehicles}
+                                                                            helperText={
+                                                                                showError
+                                                                                    ? formik.errors.vehicle_reg_no
+                                                                                    : !loadVehicles
+                                                                                      ? "Loading..."
+                                                                                      : ""
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                    onInputChange={handleVehicleInputChange}
+                                                                    loading={!loadVehicles}
+                                                                    loadingText="Loading..."
+                                                                    disableClearable
+                                                                    filterOptions={(x) => x}
+                                                                    noOptionsText="Type at least 2 characters to search"
+                                                                />
+                                                            </FormControl>
+                                                        </Grid>
+                                                    );
+                                                }
+
                                                 return (
                                                     <Grid key={field} item xs={12}>
                                                         <FormField
@@ -199,7 +359,7 @@ function SendCommand() {
                                                     type="submit"
                                                     variant="contained"
                                                     color="primary"
-                                                    disabled={loading}
+                                                    disabled={loading || !selectedVehicle?.device?.device_esn}
                                                 >
                                                     Submit
                                                 </Button>

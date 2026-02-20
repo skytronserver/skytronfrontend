@@ -1,17 +1,17 @@
 import * as Yup from "yup";
 
 export const sendCommandInitials = {
-    imei: "",
+    vehicle_reg_no: "",
     selected_command: "",
     input_value: "",
 };
 
 export const sendCommandFields = {
-    imei: {
-        name: "imei",
+    vehicle_reg_no: {
+        name: "vehicle_reg_no",
         type: "text",
-        label: "IMEI",
-        validation: Yup.string().required("IMEI is required"),
+        label: "Vehicle Reg No",
+        validation: Yup.string().required("Vehicle Reg No is required"),
     },
     selected_command: {
         name: "selected_command",

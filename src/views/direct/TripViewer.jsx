@@ -67,7 +67,7 @@ const createBhuvanSource = (layerName) => {
 
 const TripViewer = () => {
   const { t } = useTranslation();
-  const [load, setLoad] = useState(false);
+  const [load, setLoad] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [vehicleList, setVehicleList] = useState([]);
   const [tripSummary, setTripSummary] = useState(null);
@@ -89,47 +89,82 @@ const TripViewer = () => {
   const vectorSourceRef = useRef(new VectorSource());
   const overlayRef = useRef(null);
   const animationIntervalId = useRef(null);
+  const searchTimeoutRef = useRef(null);
   // Map Layers Refs
   const normalLayersRef = useRef([]);
   const satelliteLayerRef = useRef(null);
 
   // Fetch vehicle list on component mount
-  useEffect(() => {
-    const fetchVehicleList = async () => {
-      try {
-        console.log('Fetching vehicle list...');
-        const response = await TaggingService.getOwnerList({});
-        console.log('Vehicle list response:', response);
+  // Fetch vehicle list function
+  // Fetch vehicle list function with search support
+  const fetchVehicleList = async (searchQuery = '') => {
+    try {
+      setLoad(false);
+      console.log('Fetching vehicle list with query:', searchQuery);
 
-        if (response) {
-          // Handle both array and object responses
-          const vehicles = Array.isArray(response) ? response : response.data || [];
-          console.log('Processed vehicles:', vehicles);
+      // Pass search query to the API
+      // We send { search: searchQuery } hoping the backend supports it.
+      // If not, we get all results and filter client-side below.
+      const response = await TaggingService.getOwnerList({ search: searchQuery });
+      console.log('Vehicle list response:', response);
 
-          // Transform the vehicles from tag_ownerlist API format
-          const transformedVehicles = vehicles.map(vehicle => {
-            return {
-              id: vehicle.id, // This is the tag ID
-              device_id: vehicle.device?.id,
-              device_tag_id: vehicle.id, // Use tag ID as device_tag_id
-              vehicle_reg_no: vehicle.vehicle_reg_no,
-              vehicle_owner: vehicle.vehicle_owner,
-              device: vehicle.device,
-              label: `${vehicle.vehicle_reg_no} (${vehicle.device?.device_esn || 'N/A'})`
-            };
-          });
+      if (response) {
+        // Handle both array and object responses
+        const vehicles = Array.isArray(response) ? response : response.data || [];
+        console.log('Processed vehicles:', vehicles);
 
-          console.log('Transformed vehicles:', transformedVehicles);
-          setVehicleList(transformedVehicles);
-          setLoad(true);
-        }
-      } catch (error) {
-        console.error('Error fetching vehicle list:', error);
+        // Transform the vehicles from tag_ownerlist API format
+        const transformedVehicles = vehicles.map(vehicle => {
+          return {
+            id: vehicle.id,
+            device_id: vehicle.device?.id,
+            device_tag_id: vehicle.id,
+            vehicle_reg_no: vehicle.vehicle_reg_no,
+            vehicle_owner: vehicle.vehicle_owner,
+            device: vehicle.device,
+            label: `${vehicle.vehicle_reg_no} (${vehicle.device?.device_esn || 'N/A'})`
+          };
+        });
+
+        // Use the API results directly if they seem filtered, or filter client-side as fallback
+        // Since we don't know if the API supports filtering, we filter here to be safe
+        const filteredVehicles = searchQuery
+          ? transformedVehicles.filter(v =>
+            v.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (v.vehicle_reg_no && v.vehicle_reg_no.toLowerCase().includes(searchQuery.toLowerCase()))
+          )
+          : transformedVehicles;
+
+        console.log('Filtered vehicles:', filteredVehicles);
+        setVehicleList(filteredVehicles);
         setLoad(true);
       }
-    };
-    fetchVehicleList();
-  }, []);
+    } catch (error) {
+      console.error('Error fetching vehicle list:', error);
+      setLoad(true); // Stop loading indicator on error
+    }
+  };
+
+  const handleInputChange = (event, newInputValue, reason) => {
+    // Only fetch on user input, not on selection
+    if (reason === 'input') {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+
+      if (newInputValue && newInputValue.length >= 2) {
+        // Start waiting
+        setLoad(false);
+        searchTimeoutRef.current = setTimeout(() => {
+          fetchVehicleList(newInputValue);
+        }, 500);
+      } else {
+        // Clear list if input is too short
+        setVehicleList([]);
+        setLoad(true);
+      }
+    }
+  };
 
   // Initialize map
   useEffect(() => {
@@ -641,10 +676,12 @@ const TripViewer = () => {
                       helperText={!load ? t('tripViewer.loading') : ''}
                     />
                   )}
-                  noOptionsText={t('tripViewer.noVehicleOptions')}
+                  onInputChange={handleInputChange}
                   loading={!load}
                   loadingText={t('tripViewer.loading')}
                   disableClearable
+                  filterOptions={(x) => x} // Disable client-side filtering since we handle it
+                  noOptionsText="Type at least 2 characters to search"
                 />
               </FormControl>
             </Grid>
