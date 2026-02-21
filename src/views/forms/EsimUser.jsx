@@ -98,13 +98,34 @@ const EsimUser = () => {
     const userId = userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
-    let valuesWithRole = {};
-    valuesWithRole = {
-      ...values,
-      role: "esimprovider",
-      createdby: userId,
-    };
-    const response = await handleCreateUser(valuesWithRole);
+    const fd = new FormData();
+    fd.append("role", "esimprovider");
+    fd.append("createdby", userId || "");
+    fd.append("name", values?.name || "");
+    fd.append("mobile", values?.mobile || "");
+    fd.append("email", values?.email || "");
+    fd.append("dob", values?.dob || "");
+    fd.append("expirydate", values?.expirydate || "");
+    fd.append("company_name", values?.company_name || "");
+    fd.append("gstnnumber", values?.gstnnumber || "");
+    fd.append("idProofno", values?.idProofno || "");
+    fd.append("stateId", values?.stateId || "");
+    fd.append("lat", values?.lat || "");
+    fd.append("lon", values?.lon || "");
+
+    (values?.telecomProviders || []).forEach((p) => {
+      if (p !== undefined && p !== null && String(p).trim() !== "") {
+        fd.append("telecomProviders[]", p);
+      }
+    });
+
+    if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
+    if (values?.file_companRegCertificate)
+      fd.append("file_companRegCertificate", values.file_companRegCertificate);
+    if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
+    if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
+
+    const response = await handleCreateUser(fd);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("common.formSubmittedSuccessfully");

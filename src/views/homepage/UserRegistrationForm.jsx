@@ -21,7 +21,7 @@ import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import axios from "axios";
-import { retriveCreatedSimProvider, retriveStateList } from "../../helper";
+import { retriveCreatedSimProviderPub, retriveStateListPub } from "../../helper";
 import { eSIMFormField, eSIMInitialValues } from "../../formjson/eSIMUser";
 import {
   manufacturerFormField,
@@ -42,37 +42,9 @@ const ROLE_OPTIONS = [
 const getRoleLabel = (slug) =>
   ROLE_OPTIONS.find((x) => x.slug === slug)?.label || "";
 
-const DUMMY_STATE_OPTIONS = [
-  { value: "KA", label: "Karnataka" },
-  { value: "TN", label: "Tamil Nadu" },
-  { value: "MH", label: "Maharashtra" },
-  { value: "DL", label: "Delhi" },
-];
-
-const mergeStateOptions = (apiOptions) => {
-  const combined = [...DUMMY_STATE_OPTIONS, ...(apiOptions || [])];
-  const seen = new Set();
-  return combined.filter((opt) => {
-    const key = `${opt?.value ?? ""}|${opt?.label ?? ""}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
-
 const API_ENDPOINTS = {
   m2m: "https://api.gromed.in/api/pub/eSimProvider/create_eSimProvider/",
   manufacturer: "https://api.gromed.in/api/pub/manufacturer/create_manufacturer/",
-};
-
-const buildMultipartPayload = ({ payload, values, fileKeys }) => {
-  const fd = new FormData();
-  fd.append("payload", JSON.stringify(payload));
-  (fileKeys || []).forEach((k) => {
-    const f = values?.[k];
-    if (f) fd.append(k, f);
-  });
-  return fd;
 };
 
 const UserRegistrationForm = () => {
@@ -139,13 +111,22 @@ const UserRegistrationForm = () => {
 
     (async () => {
       try {
-        const stateList = await retriveStateList();
+        const stateList = await retriveStateListPub();
         if (!active) return;
         setM2MUpdatedFormField((prevConfig) => ({
           ...prevConfig,
           stateId: {
             ...prevConfig.stateId,
-            options: mergeStateOptions(stateList),
+            options: [
+              ...(prevConfig?.stateId?.options?.length ? [prevConfig.stateId.options[0]] : []),
+              ...(stateList || []),
+            ].filter(
+              (opt, idx, arr) =>
+                idx ===
+                arr.findIndex(
+                  (x) => String(x?.value ?? "") === String(opt?.value ?? "")
+                )
+            ),
           },
         }));
         setIsM2MFormLoaded(true);
@@ -172,14 +153,23 @@ const UserRegistrationForm = () => {
 
     (async () => {
       try {
-        const stateList = await retriveStateList();
+        const stateList = await retriveStateListPub();
         if (!active) return;
 
         setManufacturerUpdatedFormField((prevConfig) => ({
           ...prevConfig,
           state: {
             ...prevConfig.state,
-            options: mergeStateOptions(stateList),
+            options: [
+              ...(prevConfig?.state?.options?.length ? [prevConfig.state.options[0]] : []),
+              ...(stateList || []),
+            ].filter(
+              (opt, idx, arr) =>
+                idx ===
+                arr.findIndex(
+                  (x) => String(x?.value ?? "") === String(opt?.value ?? "")
+                )
+            ),
           },
         }));
 
@@ -253,36 +243,31 @@ const UserRegistrationForm = () => {
     setSubmitting(true);
 
     try {
-      const fileKeys = [
-        "file_authLetter",
-        "file_GSTCertificate",
-        "file_idProof",
-        "file_companRegCertificate",
-      ];
+      const fd = new FormData();
+      fd.append("name", values?.name || "");
+      fd.append("email", values?.email || "");
+      fd.append("mobile", values?.mobile || "");
+      fd.append("dob", values?.dob || "");
+      fd.append("expirydate", values?.expirydate || "");
+      fd.append("company_name", values?.company_name || "");
+      fd.append("gstnnumber", values?.gstnnumber || "");
+      fd.append("idProofno", values?.idProofno || "");
+      fd.append("stateId", values?.stateId || "");
+      fd.append("lat", values?.lat || "");
+      fd.append("lon", values?.lon || "");
 
-      const payload = {
-        role: selectedRole,
-        applicant: {
-          name: values?.name,
-          email: values?.email,
-          mobile: values?.mobile,
-          dob: values?.dob,
-        },
-        organization: {
-          name: values?.company_name,
-        },
-        roleDetails: {
-          gst_no: values?.gstnnumber,
-          id_proof_no: values?.idProofno,
-          state_id: values?.stateId,
-          telecom_providers: values?.telecomProviders,
-          expirydate: values?.expirydate,
-          latitude: values?.lat,
-          longitude: values?.lon,
-        },
-      };
+      (values?.telecomProviders || []).forEach((p) => {
+        if (p !== undefined && p !== null && String(p).trim() !== "") {
+          fd.append("telecomProviders[]", p);
+        }
+      });
 
-      const fd = buildMultipartPayload({ payload, values, fileKeys });
+      if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
+      if (values?.file_companRegCertificate)
+        fd.append("file_companRegCertificate", values.file_companRegCertificate);
+      if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
+      if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
+
       const res = await axios.post(API_ENDPOINTS.m2m, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -317,7 +302,7 @@ const UserRegistrationForm = () => {
     (async () => {
       try {
         const getDetailsOf = { state: event.target.value };
-        const eSimProvider = await retriveCreatedSimProvider(getDetailsOf);
+        const eSimProvider = await retriveCreatedSimProviderPub(getDetailsOf);
         setManufacturerUpdatedFormField((prevConfig) => ({
           ...prevConfig,
           esimProvider: {
@@ -347,39 +332,34 @@ const UserRegistrationForm = () => {
     setSubmitting(true);
 
     try {
-      const fileKeys = [
-        "file_authLetter",
-        "file_GSTCertificate",
-        "file_idProof",
-        "file_companRegCertificate",
-        "file_affidavitNda",
-      ];
+      const fd = new FormData();
+      fd.append("name", values?.name || "");
+      fd.append("email", values?.email || "");
+      fd.append("mobile", values?.mobile || "");
+      fd.append("dob", values?.dob || "");
+      fd.append("expirydate", values?.expirydate || "");
+      fd.append("company_name", values?.company_name || "");
+      fd.append("gstnnumber", values?.gstnnumber || "");
+      fd.append("idProofno", values?.idProofno || "");
+      fd.append("state", values?.state || "");
+      fd.append("tac", values?.tac || "");
+      fd.append("device_model_details", values?.device_model_details || "");
+      fd.append("lat", values?.lat || "");
+      fd.append("lon", values?.lon || "");
 
-      const payload = {
-        role: selectedRole,
-        applicant: {
-          name: values?.name,
-          email: values?.email,
-          mobile: values?.mobile,
-          dob: values?.dob,
-        },
-        organization: {
-          name: values?.company_name,
-        },
-        roleDetails: {
-          state: values?.state,
-          esim_providers: values?.esimProvider,
-          gst_no: values?.gstnnumber,
-          id_proof_no: values?.idProofno,
-          tac: values?.tac,
-          device_model_details: values?.device_model_details,
-          expirydate: values?.expirydate,
-          latitude: values?.lat,
-          longitude: values?.lon,
-        },
-      };
+      (values?.esimProvider || []).forEach((id) => {
+        if (id !== undefined && id !== null && String(id).trim() !== "") {
+          fd.append("esimProvider[]", id);
+        }
+      });
 
-      const fd = buildMultipartPayload({ payload, values, fileKeys });
+      if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
+      if (values?.file_companRegCertificate)
+        fd.append("file_companRegCertificate", values.file_companRegCertificate);
+      if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
+      if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
+      if (values?.file_affidavitNda) fd.append("file_affidavitNda", values.file_affidavitNda);
+
       const res = await axios.post(API_ENDPOINTS.manufacturer, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });

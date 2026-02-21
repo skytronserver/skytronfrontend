@@ -5,6 +5,8 @@ import UserServices from "../services/UserServices";
 import ManufacturerServices from "../services/ManufacturerServices";
 import DealerServices from "../services/DealerServices";
 import TaggingService from "../services/TaggingService";
+import axios from "axios";
+
 export const retriveAwaitingList = async () => {
   try {
     const response = await TaggingService.tagApprovedOwnerApproval();
@@ -99,6 +101,29 @@ export const retriveStateList = async () => {
     }
   }
 };
+
+ export const retriveStateListPub = async () => {
+   try {
+     const response = await axios.post(
+       "https://api.gromed.in/api/pub/Settings/filter_settings_State_pub/",
+       {}
+     );
+     if (response.data.length === 0) {
+       return [{ value: "", label: "No State Found" }];
+     }
+     const list = response.data.map((device) => ({
+       value: device.id,
+       label: device.state,
+     }));
+     return list;
+   } catch (error) {
+     if (error.response && error.response.status === 404) {
+       console.log("No Data Found");
+     } else {
+       console.log("No Data Found");
+     }
+   }
+ };
 export const retriveSOSLead = async () => {
   try {
     let filteredData = [];
@@ -310,6 +335,30 @@ export const retriveCreatedSimProvider = async (data) => {
       console.log("No Data Found");
     }
     return [{ value: '', label: 'No Data Found' }]
+  }
+};
+
+export const retriveCreatedSimProviderPub = async (data) => {
+  try {
+    const response = await axios.post(
+      "https://api.gromed.in/api/pub/eSimProvider/filter_eSimProvider/",
+      data || {}
+    );
+    const filtered = (response?.data || []).filter(
+      (simProvider) => simProvider?.users?.[0]?.status !== "pending"
+    );
+    const list = filtered.map((simProvider) => ({
+      value: simProvider.id,
+      label: simProvider?.users?.[0]?.name,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
+    }
+    return [{ value: "", label: "No Data Found" }];
   }
 };
 export const fetchVehicleCategory = async () => {

@@ -181,19 +181,6 @@ const UserRegistrationRequest = () => {
                   Track Existing Request
                 </Button>
               </Box>
-              <Box sx={{ mt: 1 }}>
-                <Button
-                  variant="text"
-                  onClick={() => (window.location.href = "/registration-admin-review")}
-                  sx={{
-                    color: "#800080",
-                    textTransform: "none",
-                    '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' },
-                  }}
-                >
-                  Demo Admin Review
-                </Button>
-              </Box>
             </Box>
           </Paper>
         </Grid>

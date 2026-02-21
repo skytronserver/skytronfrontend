@@ -9,8 +9,14 @@ const telecomProviderOptions = [
   { value: "vodafone", label: "Vodafone" },
   { value: "jio", label: "Jio" },
 ];
-const FILE_SIZE = 512 * 1024 ; // 512 KB
-const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+const FILE_SIZE = 1024 * 1024 ; // 1 MB
+const SUPPORTED_FORMATS = [
+  "image/png",
+  "image/jpeg",
+  "application/pdf",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+];
 const today = new Date().toISOString().split('T')[0];
 export const eSIMInitialValues = {
     name: "",

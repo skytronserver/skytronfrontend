@@ -247,13 +247,13 @@ const FormField = ({
 
               if (!file) return;
 
-              const maxSize = 512 * 1024; // 512 KB
+              const maxSize = 1024 * 1024; // 1 MB
 
               if (file.size > maxSize) {
                 formik.setFieldValue(fieldName, '');
                 formik.setFieldTouched(fieldName, true, false);
                 setTimeout(() => {
-                  formik.setFieldError(fieldName, 'File size should not exceed 512 KB');
+                  formik.setFieldError(fieldName, 'File size should not exceed 1 MB');
                 }, 0);
                 return;
               }

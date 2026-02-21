@@ -129,13 +129,37 @@ const Manufacturer = () => {
     const userId = userData && data.length > 2 && data[3];
     setSubmitting(true);
     setLoading(true);
-    let valuesWithRole = {};
-    valuesWithRole = {
-      ...values,
-      role: "devicemanufacture",
-      createdby: userId,
-    };
-    const response = await handleCreateUser(valuesWithRole);
+    const fd = new FormData();
+    fd.append("role", "devicemanufacture");
+    fd.append("createdby", userId || "");
+    fd.append("name", values?.name || "");
+    fd.append("mobile", values?.mobile || "");
+    fd.append("email", values?.email || "");
+    fd.append("dob", values?.dob || "");
+    fd.append("expirydate", values?.expirydate || "");
+    fd.append("company_name", values?.company_name || "");
+    fd.append("gstnnumber", values?.gstnnumber || "");
+    fd.append("idProofno", values?.idProofno || "");
+    fd.append("state", values?.state || "");
+    fd.append("tac", values?.tac || "");
+    fd.append("device_model_details", values?.device_model_details || "");
+    fd.append("lat", values?.lat || "");
+    fd.append("lon", values?.lon || "");
+
+    (values?.esimProvider || []).forEach((id) => {
+      if (id !== undefined && id !== null && String(id).trim() !== "") {
+        fd.append("esimProvider[]", id);
+      }
+    });
+
+    if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
+    if (values?.file_companRegCertificate)
+      fd.append("file_companRegCertificate", values.file_companRegCertificate);
+    if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
+    if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
+    if (values?.file_affidavitNda) fd.append("file_affidavitNda", values.file_affidavitNda);
+
+    const response = await handleCreateUser(fd);
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("manufacturer.form.success");
