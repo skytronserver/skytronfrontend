@@ -215,6 +215,8 @@ const UserRegistrationForm = () => {
           };
 
           if (selectedRole === "Vehicle Manufacturer") {
+            // keep factory fitment declaration for Vehicle Manufacturer
+          } else {
             delete nextConfig.file_factoryFitmentDeclaration;
           }
 
@@ -285,8 +287,6 @@ const UserRegistrationForm = () => {
 
     try {
       const fd = new FormData();
-      fd.append("role", selectedRole || "");
-      fd.append("status", values?.status || "Pending");
       fd.append("name", values?.name || "");
       fd.append("email", values?.email || "");
       fd.append("mobile", values?.mobile || "");
@@ -301,15 +301,27 @@ const UserRegistrationForm = () => {
       fd.append("panno", values?.panno || "");
       fd.append("company_registration_no", values?.company_registration_no || "");
       fd.append("idProofno", values?.idProofno || "");
-      fd.append("stateId", values?.state || "");
+      const stateRaw = values?.state;
+      let stateId = stateRaw;
+      if (typeof stateRaw === "string") {
+        const trimmed = stateRaw.trim();
+        const asNumber = trimmed !== "" ? Number(trimmed) : NaN;
+        if (!Number.isNaN(asNumber)) {
+          stateId = asNumber;
+        } else {
+          const opt = m2mUpdatedFormFields?.state?.options?.find(
+            (o) => String(o?.label || "").toLowerCase() === trimmed.toLowerCase()
+          );
+          if (opt?.value !== undefined && opt?.value !== null && String(opt.value) !== "") {
+            stateId = opt.value;
+          }
+        }
+      }
+      fd.append("stateId", stateId || "");
       fd.append("address", values?.address || "");
       fd.append("pin", values?.pin || "");
       fd.append("lat", values?.lat || "");
       fd.append("lon", values?.lon || "");
-      fd.append(
-        "notification_settings",
-        values?.notification_settings ? "true" : "false"
-      );
       fd.append("m2m_reg_certificate_no", values?.m2m_reg_certificate_no || "");
 
       (values?.telecomProviders || []).forEach((p) => {
@@ -318,6 +330,7 @@ const UserRegistrationForm = () => {
         }
       });
 
+      if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
       if (values?.file_officialTechnicalOnboardingRequestLetter)
         fd.append(
           "file_officialTechnicalOnboardingRequestLetter",
@@ -329,23 +342,14 @@ const UserRegistrationForm = () => {
           values.file_selfCertifiedDotM2mRegistrationCertificate
         );
       if (values?.file_affidavitCumUndertakingBackendAccess)
-        fd.append(
-          "file_affidavitCumUndertakingBackendAccess",
-          values.file_affidavitCumUndertakingBackendAccess
-        );
+        fd.append("file_affidavitNda", values.file_affidavitCumUndertakingBackendAccess);
       if (values?.file_selfCertifiedGstRegistrationCertificate)
-        fd.append(
-          "file_selfCertifiedGstRegistrationCertificate",
-          values.file_selfCertifiedGstRegistrationCertificate
-        );
+        fd.append("file_GSTCertificate", values.file_selfCertifiedGstRegistrationCertificate);
       if (values?.file_selfCertifiedIdProofAuthorisedSignatory)
-        fd.append(
-          "file_selfCertifiedIdProofAuthorisedSignatory",
-          values.file_selfCertifiedIdProofAuthorisedSignatory
-        );
+        fd.append("file_idProof", values.file_selfCertifiedIdProofAuthorisedSignatory);
       if (values?.file_selfCertifiedCompanyRegistrationCertificateOptional)
         fd.append(
-          "file_selfCertifiedCompanyRegistrationCertificateOptional",
+          "file_companRegCertificate",
           values.file_selfCertifiedCompanyRegistrationCertificateOptional
         );
 
@@ -440,8 +444,6 @@ const UserRegistrationForm = () => {
 
     try {
       const fd = new FormData();
-      fd.append("role", selectedRole || "");
-      fd.append("status", values?.status || "Pending");
       fd.append("name", values?.name || "");
       fd.append("email", values?.email || "");
       fd.append("mobile", values?.mobile || "");
@@ -478,15 +480,20 @@ const UserRegistrationForm = () => {
       fd.append("manufacturer_type", values?.manufacturer_type || "");
       fd.append("tac", values?.tac_no || values?.tac || "");
       fd.append("tac_validity", values?.tac_validity || "");
-      fd.append("cop_no", values?.cop_no || "");
-      fd.append("cop_validity", values?.cop_validity || "");
+      const tacValidityRaw = values?.tac_validity;
+      const tacDate = tacValidityRaw ? new Date(tacValidityRaw) : null;
+      const todayDate = new Date(new Date().toISOString().split("T")[0]);
+      const isTacExpired =
+        tacDate && !Number.isNaN(tacDate.getTime())
+          ? tacDate.getTime() < todayDate.getTime()
+          : false;
+      if (isTacExpired) {
+        fd.append("cop_no", values?.cop_no || "");
+        fd.append("cop_validity", values?.cop_validity || "");
+      }
       fd.append("device_model_details", values?.device_model_details || "");
       fd.append("lat", values?.lat || "");
       fd.append("lon", values?.lon || "");
-      fd.append(
-        "notification_settings",
-        values?.notification_settings ? "true" : "false"
-      );
 
       (values?.esimProvider || []).forEach((id) => {
         if (id !== undefined && id !== null && String(id).trim() !== "") {
@@ -494,6 +501,7 @@ const UserRegistrationForm = () => {
         }
       });
 
+      if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
       if (values?.file_officialTechnicalOnboardingRequestLetter)
         fd.append(
           "file_officialTechnicalOnboardingRequestLetter",
@@ -506,29 +514,21 @@ const UserRegistrationForm = () => {
         );
       if (values?.file_ais140DeviceTacCopy)
         fd.append("file_ais140DeviceTacCopy", values.file_ais140DeviceTacCopy);
+      if (isTacExpired && values?.cop_file) fd.append("cop_file", values.cop_file);
       if (
-        selectedRole !== "Vehicle Manufacturer" &&
+        selectedRole === "Vehicle Manufacturer" &&
         values?.file_factoryFitmentDeclaration
       )
         fd.append("file_factoryFitmentDeclaration", values.file_factoryFitmentDeclaration);
       if (values?.file_affidavitCumUndertakingBackendAccess)
-        fd.append(
-          "file_affidavitCumUndertakingBackendAccess",
-          values.file_affidavitCumUndertakingBackendAccess
-        );
+        fd.append("file_affidavitNda", values.file_affidavitCumUndertakingBackendAccess);
       if (values?.file_selfCertifiedGstRegistrationCertificate)
-        fd.append(
-          "file_selfCertifiedGstRegistrationCertificate",
-          values.file_selfCertifiedGstRegistrationCertificate
-        );
+        fd.append("file_GSTCertificate", values.file_selfCertifiedGstRegistrationCertificate);
       if (values?.file_selfCertifiedIdProofAuthorisedSignatory)
-        fd.append(
-          "file_selfCertifiedIdProofAuthorisedSignatory",
-          values.file_selfCertifiedIdProofAuthorisedSignatory
-        );
+        fd.append("file_idProof", values.file_selfCertifiedIdProofAuthorisedSignatory);
       if (values?.file_selfCertifiedCompanyRegistrationCertificateOptional)
         fd.append(
-          "file_selfCertifiedCompanyRegistrationCertificateOptional",
+          "file_companRegCertificate",
           values.file_selfCertifiedCompanyRegistrationCertificateOptional
         );
 
@@ -1034,7 +1034,7 @@ const UserRegistrationForm = () => {
                                 : false;
                             const shouldHideCop = !isTacExpired;
                             const hiddenKeys = shouldHideCop
-                              ? new Set(["cop_no", "cop_validity"])
+                              ? new Set(["cop_no", "cop_validity", "cop_file"])
                               : new Set();
 
                             const visibleNonFiles = nonFiles.filter((f) => !hiddenKeys.has(f));

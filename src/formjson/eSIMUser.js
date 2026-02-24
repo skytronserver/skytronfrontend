@@ -34,12 +34,12 @@ export const eSIMInitialValues = {
   address: "",
   pin: "",
   telecomProviders: [],
-  notification_settings: true,
   company_address: "",
   company_pin: "",
   company_email: "",
   company_phoneno: "",
   m2m_reg_certificate_no: "",
+  file_authLetter: null,
   file_officialTechnicalOnboardingRequestLetter: null,
   file_selfCertifiedDotM2mRegistrationCertificate: null,
   file_affidavitCumUndertakingBackendAccess: null,
@@ -180,6 +180,23 @@ export const eSIMFormField = {
     validation: Yup.string().required("M2M Registration Certificate No is required"),
   },
 
+  file_authLetter:{
+    name:"file_authLetter",
+    type: "file",
+    label: "Authorization Letter",
+    message: "esimUser.form.validation.file_restrictions",
+    downloadUrl: "/templates/authorization-letter-format.txt",
+    downloadLabel: "Format of authorisation letter",
+    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
+  },
+
   file_officialTechnicalOnboardingRequestLetter: {
     name: "file_officialTechnicalOnboardingRequestLetter",
     type: "file",
@@ -279,11 +296,5 @@ export const eSIMFormField = {
     validation: Yup.number()
       .typeError("Longitude must be a number")
       .nullable(),
-  },
-  notification_settings: {
-    name: "notification_settings",
-    type: "checkbox",
-    label: "Enable Notifications",
-    validation: Yup.boolean(),
   },
 };

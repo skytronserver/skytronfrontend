@@ -39,8 +39,8 @@ export const manufacturerInitialValues = {
   state: "",
   address: "",
   pin: "",
-  notification_settings: true,
   manufacturer_type: "",
+  file_authLetter: null,
   file_officialTechnicalOnboardingRequestLetter: null,
   file_vehicleTypeApprovalTacAnnexureCopy: null,
   file_ais140DeviceTacCopy: null,
@@ -53,6 +53,7 @@ export const manufacturerInitialValues = {
   tac_validity: "",
   cop_no: "",
   cop_validity: "",
+  cop_file: null,
   device_model_details: "",
   lat: "",
   lon: "",
@@ -203,7 +204,6 @@ export const manufacturerFormField = {
     type: "date",
     label: "TAC Validity",
     validation: Yup.date().required("TAC Validity is required"),
-    minDate: today,
   },
   cop_no: {
     name: "cop_no",
@@ -225,6 +225,45 @@ export const manufacturerFormField = {
       otherwise: (schema) => schema.notRequired(),
     }),
     minDate: today,
+  },
+
+  cop_file: {
+    name: "cop_file",
+    type: "file",
+    label: "COP File",
+    message: 'manufacturer.form.validation.file_restrictions',
+    validation: Yup.mixed().when("tac_validity", {
+      is: (v) => isTacExpired(v),
+      then: (schema) =>
+        schema
+          .required("COP File is required")
+          .test("fileSize", "manufacturer.form.validation.file_size", (value) => {
+            if (!value) return false;
+            return value.size <= FILE_SIZE;
+          })
+          .test("fileFormat", "manufacturer.form.validation.file_format", (value) => {
+            if (!value) return false;
+            return SUPPORTED_FORMATS.includes(value.type);
+          }),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  },
+
+  file_authLetter:{
+    name:"file_authLetter",
+    type: "file",
+    label: "Authorization Letter",
+    message: "manufacturer.form.validation.file_restrictions",
+    downloadUrl: "/templates/authorization-letter-format.txt",
+    downloadLabel: "Format of authorisation letter",
+    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
   file_officialTechnicalOnboardingRequestLetter: {
     name: "file_officialTechnicalOnboardingRequestLetter",
@@ -359,11 +398,5 @@ export const manufacturerFormField = {
     validation: Yup.number()
       .typeError("Longitude must be a number")
       .nullable(),
-  },
-  notification_settings: {
-    name: "notification_settings",
-    type: "checkbox",
-    label: "Enable Notifications",
-    validation: Yup.boolean(),
   },
 };
