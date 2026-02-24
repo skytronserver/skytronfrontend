@@ -301,7 +301,7 @@ const UserRegistrationForm = () => {
       fd.append("panno", values?.panno || "");
       fd.append("company_registration_no", values?.company_registration_no || "");
       fd.append("idProofno", values?.idProofno || "");
-      fd.append("state", values?.state || "");
+      fd.append("stateId", values?.state || "");
       fd.append("address", values?.address || "");
       fd.append("pin", values?.pin || "");
       fd.append("lat", values?.lat || "");
@@ -476,7 +476,7 @@ const UserRegistrationForm = () => {
       fd.append("address", values?.address || "");
       fd.append("pin", values?.pin || "");
       fd.append("manufacturer_type", values?.manufacturer_type || "");
-      fd.append("tac_no", values?.tac_no || values?.tac || "");
+      fd.append("tac", values?.tac_no || values?.tac || "");
       fd.append("tac_validity", values?.tac_validity || "");
       fd.append("cop_no", values?.cop_no || "");
       fd.append("cop_validity", values?.cop_validity || "");
