@@ -1,54 +1,45 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   Typography,
-  Container,
   Button,
   Box,
-  Paper,
-  Grid,
   Select,
   MenuItem,
   InputLabel,
   FormControl,
+  Paper,
 } from "@mui/material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import LoginIcon from "@mui/icons-material/Login";
+import BusinessIcon from "@mui/icons-material/Business";
+import RouterIcon from "@mui/icons-material/Router";
+import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
+import DevicesIcon from "@mui/icons-material/Devices";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
-import PublicRegistrationMockService from "../../services/PublicRegistrationMockService";
+import "./registrationForm.css";
+
+const ROLE_OPTIONS = [
+  { value: "M2M Service Provider", label: "M2M Service Provider", icon: <RouterIcon fontSize="small" /> },
+  { value: "Vehicle Manufacturer", label: "Vehicle Manufacturer", icon: <DirectionsBusIcon fontSize="small" /> },
+  { value: "AIS-140 Device Manufacturer", label: "AIS-140 Device Manufacturer", icon: <DevicesIcon fontSize="small" /> },
+  { value: "School Administrator", label: "School Administrator", icon: <BusinessIcon fontSize="small" /> },
+  { value: "Others", label: "Others", icon: <HelpOutlineIcon fontSize="small" /> },
+];
 
 const UserRegistrationRequest = () => {
   const [selectedRole, setSelectedRole] = useState("");
 
-  const paperStyle = useMemo(
-    () => ({
-      p: 3,
-      backdropFilter: "blur(5px)",
-      backgroundColor: "rgba(255, 255, 255, 0.3)",
-      borderRadius: "8px",
-      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-    }),
-    []
-  );
-
-  const logoStyle = useMemo(
-    () => ({
-      color: "#800080",
-      fontFamily: "Quantico",
-      fontWeight: "900",
-      fontSize: "15px",
-      textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
-    }),
-    []
-  );
-
   const navigateToRole = () => {
     if (!selectedRole) return;
-
     const roleSlugMap = {
       "M2M Service Provider": "m2m-service-provider",
       "Vehicle Manufacturer": "vehicle-manufacturer",
       "AIS-140 Device Manufacturer": "ais-140-device-manufacturer",
       "School Administrator": "school-administrator",
-      Others: "others",
+      "Others": "others",
     };
     const slug = roleSlugMap[selectedRole];
     if (!slug) return;
@@ -56,136 +47,159 @@ const UserRegistrationRequest = () => {
   };
 
   return (
-    <Container sx={{ mt: 4, mb: 4 }}>
-      <Grid
-        container
-        spacing={3}
-        justifyContent="center"
-        alignItems="flex-start"
+    /* Full-width centering wrapper — same pattern as UserRegistrationForm */
+    <Box
+      className="reg-form-wrapper"
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        px: { xs: 2, sm: 6, md: 16, lg: 28, xl: 36 },
+        py: { xs: 4, sm: 6 },
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <Paper
+        sx={{
+          width: "100%",
+          maxWidth: 520,
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.6)",
+          borderRadius: "20px",
+          boxShadow: "0 8px 40px rgba(128,0,128,0.13), 0 2px 8px rgba(0,0,0,0.08)",
+          p: 0,
+        }}
       >
-        <Grid item xs={12} md={8} lg={6}>
-          <Paper sx={paperStyle}>
-            <Typography variant="h6" gutterBottom align="center">
-              <img
-                src={skytronlogo}
-                alt="Logo"
-                style={{ height: "auto", width: "36px" }}
-              />
-              <br />
-              <span style={logoStyle}>SKYTRON</span>
-            </Typography>
+        {/* ── Header Banner ── */}
+        <Box className="reg-header-banner">
+          <img src={skytronlogo} alt="Skytron Logo" className="reg-logo-img" />
+          <span className="reg-brand-name">SKYTRON</span>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 1.5 }}>
+            <HowToRegIcon sx={{ fontSize: 40, color: "rgba(255,255,255,0.92)", mb: 0.5 }} />
+          </Box>
+          <Typography className="reg-form-title">Account Registration</Typography>
+          <Typography sx={{ color: "rgba(255,255,255,0.78)", fontSize: "13px", mt: 0.5 }}>
+            Select your user type to get started
+          </Typography>
+        </Box>
 
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <PersonAddIcon 
-                sx={{ 
-                  fontSize: 48, 
-                  color: '#800080', 
-                  mb: 2
-                }} 
-              />
-              
-              <Typography 
-                variant="h5" 
-                gutterBottom 
-                sx={{ 
-                  fontWeight: 'bold',
-                  color: '#800080',
-                  mb: 1
-                }}
-              >
-                Account Registration
-              </Typography>
-              
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: 'text.secondary',
-                  lineHeight: 1.5
-                }}
-              >
-                Fill out the form below to request a new account
-              </Typography>
-            </Box>
+        {/* ── Body ── */}
+        <Box sx={{ px: { xs: 3, sm: 4 }, pt: 3, pb: 3.5 }}>
 
-            <Box>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth variant="outlined" required>
-                    <InputLabel>User Type</InputLabel>
-                    <Select
-                      label="User Type"
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value)}
-                    >
-                      <MenuItem value="M2M Service Provider">M2M Service Provider</MenuItem>
-                      <MenuItem value="Vehicle Manufacturer">Vehicle Manufacturer</MenuItem>
-                      <MenuItem value="AIS-140 Device Manufacturer">AIS-140 Device Manufacturer</MenuItem>
-                      <MenuItem value="School Administrator">School Administrator</MenuItem>
-                      <MenuItem value="Others">Others</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
+          <Typography
+            sx={{
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              color: "#800080",
+              mb: 1.5,
+            }}
+          >
+            Select User Type
+          </Typography>
 
-              <Button
-                type="button"
-                variant="contained"
-                fullWidth
-                sx={{ 
-                  mt: 3,
-                  mb: 2,
-                  backgroundColor: '#800080',
-                  '&:hover': {
-                    backgroundColor: '#660066'
+          <FormControl
+            fullWidth
+            variant="outlined"
+            required
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.75)",
+                "&:hover fieldset": { borderColor: "#9c27b0" },
+                "&.Mui-focused fieldset": { borderColor: "#800080", borderWidth: "2px" },
+              },
+              "& label.Mui-focused": { color: "#800080" },
+            }}
+          >
+            <InputLabel>User Type *</InputLabel>
+            <Select
+              label="User Type *"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    borderRadius: "12px",
+                    boxShadow: "0 8px 32px rgba(128,0,128,0.15)",
+                    mt: 0.5,
                   },
-                  py: 1.5
-                }}
-                startIcon={<PersonAddIcon />}
-                disabled={!selectedRole}
-                onClick={navigateToRole}
-              >
-                Next
-              </Button>
-            </Box>
-            
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
-                <Button 
-                  variant="text" 
-                  onClick={() => window.location.href = '/'}
-                  sx={{ 
-                    color: '#800080',
-                    textTransform: 'none',
-                    p: 0,
-                    minWidth: 'auto',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                      textDecoration: 'underline'
-                    }
-                  }}
-                >
-                  Login Here
-                </Button>
-              </Typography>
-              <Box sx={{ mt: 1 }}>
-                <Button
-                  variant="text"
-                  onClick={() => (window.location.href = "/registration-status")}
+                },
+              }}
+            >
+              {ROLE_OPTIONS.map((r) => (
+                <MenuItem
+                  key={r.value}
+                  value={r.value}
                   sx={{
-                    color: "#800080",
-                    textTransform: "none",
-                    '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' },
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    py: 1.2,
+                    "&.Mui-selected": { bgcolor: "rgba(128,0,128,0.08)" },
+                    "&:hover": { bgcolor: "rgba(128,0,128,0.05)" },
                   }}
                 >
-                  Track Existing Request
-                </Button>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+                  <Box sx={{ color: "#800080", display: "flex" }}>{r.icon}</Box>
+                  {r.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            fullWidth
+            endIcon={<ArrowForwardIcon />}
+            className="reg-submit-btn"
+            disabled={!selectedRole}
+            onClick={navigateToRole}
+            sx={{ mt: 3, mb: 1 }}
+          >
+            Continue to Registration
+          </Button>
+
+          {/* ── Footer Links ── */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 0.5,
+              mt: 2,
+              pt: 2,
+              borderTop: "1px solid rgba(128,0,128,0.1)",
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "13px" }}>
+              Already have an account?
+            </Typography>
+            <Button
+              className="reg-text-link"
+              startIcon={<LoginIcon sx={{ fontSize: "14px !important" }} />}
+              onClick={() => (window.location.href = "/")}
+              sx={{ p: 0, minWidth: "auto", fontSize: "13px" }}
+            >
+              Login Here
+            </Button>
+            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "12px", mx: 0.5 }}>·</Typography>
+            <Button
+              className="reg-text-link"
+              startIcon={<TrackChangesIcon sx={{ fontSize: "14px !important" }} />}
+              onClick={() => (window.location.href = "/registration-status")}
+              sx={{ p: 0, minWidth: "auto", fontSize: "13px" }}
+            >
+              Track Request
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

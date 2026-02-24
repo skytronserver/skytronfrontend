@@ -19,6 +19,8 @@ import {
   Typography,
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
 import PublicRegistrationMockService from "../../services/PublicRegistrationMockService";
 import { Formik } from "formik";
@@ -31,6 +33,7 @@ import {
   manufacturerFormField,
   manufacturerInitialValues,
 } from "../../formjson/manufacturer";
+import "./registrationForm.css";
 
 const ROLE_OPTIONS = [
   { slug: "m2m-service-provider", label: "M2M Service Provider" },
@@ -221,7 +224,7 @@ const UserRegistrationForm = () => {
         setIsManufacturerFormLoaded(true);
       } catch (e) {
         if (!active) return;
-        setIsManufacturerFormLoaded(true);
+        setIsManufacturerFormLoaded(true); // always mark loaded even on error
       }
     })();
 
@@ -250,25 +253,18 @@ const UserRegistrationForm = () => {
 
   const paperStyle = useMemo(
     () => ({
-      p: 3,
-      backdropFilter: "blur(5px)",
-      backgroundColor: "rgba(255, 255, 255, 0.3)",
-      borderRadius: "8px",
-      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+      background: "rgba(255, 255, 255, 0.88)",
+      backdropFilter: "blur(20px)",
+      WebkitBackdropFilter: "blur(20px)",
+      border: "1px solid rgba(255,255,255,0.6)",
+      borderRadius: "20px",
+      boxShadow: "0 8px 40px rgba(128,0,128,0.13), 0 2px 8px rgba(0,0,0,0.08)",
+      p: 0,
     }),
     []
   );
 
-  const logoStyle = useMemo(
-    () => ({
-      color: "#800080",
-      fontFamily: "Quantico",
-      fontWeight: "900",
-      fontSize: "15px",
-      textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
-    }),
-    []
-  );
+  const logoStyle = useMemo(() => ({}), []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -837,199 +833,217 @@ const UserRegistrationForm = () => {
   };
 
   return (
-    <Container sx={{ mt: 4, mb: 4 }}>
-      <Grid container spacing={3} justifyContent="center" alignItems="flex-start">
-        <Grid item xs={12} md={8} lg={6}>
-          <Paper sx={paperStyle}>
-            <Typography variant="h6" gutterBottom align="center">
-              <img
-                src={skytronlogo}
-                alt="Logo"
-                style={{ height: "auto", width: "36px" }}
-              />
-              <br />
-              <span style={logoStyle}>SKYTRON</span>
-            </Typography>
+    <Box className="reg-form-wrapper" sx={{ px: { xs: 1, sm: 4, md: 8, lg: 14, xl: 18 }, py: { xs: 2, sm: 4 }, width: "100%" }}>
+      <Paper sx={paperStyle}>
 
-            <Box sx={{ textAlign: "center", mb: 3 }}>
-              <PersonAddIcon sx={{ fontSize: 48, color: "#800080", mb: 2 }} />
+        {/* ── Premium Header Banner ── */}
+        <Box className="reg-header-banner">
+          <img src={skytronlogo} alt="Skytron Logo" className="reg-logo-img" />
+          <span className="reg-brand-name">SKYTRON</span>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 1.5 }}>
+            <PersonAddIcon sx={{ fontSize: 42, color: "rgba(255,255,255,0.9)", mb: 0.5 }} />
+          </Box>
+          <Typography className="reg-form-title">New User Registration</Typography>
+          <span className="reg-role-badge">{selectedRole || "Account Request"}</span>
+        </Box>
 
-              <Typography
-                variant="h5"
-                gutterBottom
-                sx={{ fontWeight: "bold", color: "#800080", mb: 1 }}
-              >
-                New User Registration
+        {/* ── Form Body ── */}
+        <Box className="reg-form-body">
+
+          {showSuccess && (
+            <Box className="reg-success-box" sx={{ mb: 3 }}>
+              <CheckCircleOutlineIcon sx={{ fontSize: 52, color: "#2e7d32", mb: 1 }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, color: "#2e7d32" }}>
+                Registration Submitted!
               </Typography>
-
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                Role: <strong>{selectedRole || "-"}</strong>
+              <Typography variant="body2" sx={{ color: "#4caf50", mt: 0.5 }}>
+                Your request has been received and is under review.
               </Typography>
-            </Box>
-
-            {showSuccess && (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                Registration request submitted successfully.
-                {referenceNumber ? (
-                  <Box sx={{ mt: 1 }}>
-                    <Typography variant="body2">
-                      Reference Number: <strong>{referenceNumber}</strong>
-                    </Typography>
-                    <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          backgroundColor: "#800080",
-                          "&:hover": { backgroundColor: "#660066" },
-                        }}
-                        onClick={() =>
-                        (window.location.href =
-                          "/registration-status?ref=" +
-                          encodeURIComponent(referenceNumber))
-                        }
-                      >
-                        Track Status
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          borderColor: "#800080",
-                          color: "#800080",
-                          "&:hover": { borderColor: "#660066", color: "#660066" },
-                        }}
-                        onClick={() => (window.location.href = "/")}
-                      >
-                        Back to Login
-                      </Button>
-                    </Box>
-                  </Box>
-                ) : null}
-              </Alert>
-            )}
-
-            {errorMessage && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {errorMessage}
-              </Alert>
-            )}
-
-            {infoMessage && (
-              <Alert severity="info" sx={{ mb: 3 }}>
-                {infoMessage}
-              </Alert>
-            )}
-
-            {!showSuccess && (
-              isM2MServiceProvider ? (
-                <Box>
-                  {isM2MFormLoaded && m2mValidationSchema ? (
-                    <Formik
-                      initialValues={m2mInitialValuesState}
-                      validationSchema={m2mValidationSchema}
-                      onSubmit={handleM2MSubmitWithTerms}
-                      enableReinitialize
+              {referenceNumber && (
+                <>
+                  <Typography variant="caption" sx={{ color: "#555", display: "block", mt: 1.5 }}>
+                    Reference Number
+                  </Typography>
+                  <span className="reg-ref-number">{referenceNumber}</span>
+                  <Box sx={{ mt: 2, display: "flex", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      className="reg-submit-btn"
+                      sx={{ py: 1, px: 2.5 }}
+                      onClick={() => (window.location.href = "/registration-status?ref=" + encodeURIComponent(referenceNumber))}
                     >
-                      {(formik) => (
-                        <form onSubmit={formik.handleSubmit}>
-                          <Grid container spacing={2} className="form-controller">
-                            {(() => {
-                              const keys = Object.keys(m2mUpdatedFormFields);
-                              const nonFiles = keys.filter(
-                                (k) => m2mUpdatedFormFields?.[k]?.type !== "file"
-                              );
-                              const files = keys.filter(
-                                (k) => m2mUpdatedFormFields?.[k]?.type === "file"
-                              );
-                              return nonFiles
-                                .concat(files)
-                                .map((field) => (
+                      Track Status
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      className="reg-outline-btn"
+                      sx={{ py: 1, px: 2.5 }}
+                      onClick={() => (window.location.href = "/")}
+                    >
+                      Back to Login
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </Box>
+          )}
+
+          {errorMessage && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {errorMessage}
+            </Alert>
+          )}
+
+          {infoMessage && (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              {infoMessage}
+            </Alert>
+          )}
+
+          {!showSuccess && (
+            isM2MServiceProvider ? (
+              <Box>
+                {isM2MFormLoaded && m2mValidationSchema ? (
+                  <Formik
+                    initialValues={m2mInitialValuesState}
+                    validationSchema={m2mValidationSchema}
+                    onSubmit={handleM2MSubmitWithTerms}
+                    enableReinitialize
+                  >
+                    {(formik) => (
+                      <form onSubmit={formik.handleSubmit}>
+                        <Grid container spacing={2} className="form-controller">
+                          {(() => {
+                            const keys = Object.keys(m2mUpdatedFormFields);
+                            const nonFiles = keys.filter(
+                              (k) => m2mUpdatedFormFields?.[k]?.type !== "file"
+                            );
+                            const files = keys.filter(
+                              (k) => m2mUpdatedFormFields?.[k]?.type === "file"
+                            );
+                            return (
+                              <>
+                                {/* ── Text / select fields ── */}
+                                {nonFiles.map((field) => (
                                   <Grid key={field} item md={6} sm={12} xs={12}>
                                     <FormField
                                       fieldConfig={m2mUpdatedFormFields[field]}
                                       formik={formik}
                                     />
                                   </Grid>
-                                ));
-                            })()}
-                            <Grid item xs={12} style={{ marginTop: "20px" }}>
-                              <Button
-                                type="submit"
-                                variant="contained"
-                                fullWidth
-                                sx={{
-                                  mt: 1,
-                                  mb: 2,
-                                  backgroundColor: "#800080",
-                                  "&:hover": {
-                                    backgroundColor: "#660066",
-                                  },
-                                  py: 1.5,
-                                }}
-                                startIcon={<PersonAddIcon />}
-                                disabled={submitting}
-                              >
-                                {submitting ? "Submitting..." : "Submit Registration Request"}
-                              </Button>
-                            </Grid>
-                          </Grid>
-                          <Box sx={{ textAlign: "center" }}>
+                                ))}
+
+                                {/* ── Document uploads section ── */}
+                                {files.length > 0 && (
+                                  <Grid item xs={12} sx={{ mt: 1.5, mb: 0.5 }}>
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1.5,
+                                        pt: 1,
+                                        borderTop: "1.5px solid",
+                                        borderColor: "rgba(128,0,128,0.18)",
+                                      }}
+                                    >
+                                      <Typography
+                                        sx={{
+                                          fontSize: "11px",
+                                          fontWeight: 700,
+                                          letterSpacing: "1.5px",
+                                          textTransform: "uppercase",
+                                          color: "#800080",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        Document Uploads
+                                      </Typography>
+                                      <Box sx={{ flex: 1, height: "1px", background: "linear-gradient(90deg,rgba(128,0,128,0.22),transparent)" }} />
+                                    </Box>
+                                  </Grid>
+                                )}
+
+                                {files.map((field) => (
+                                  <Grid key={field} item md={6} sm={12} xs={12}>
+                                    <FormField
+                                      fieldConfig={m2mUpdatedFormFields[field]}
+                                      formik={formik}
+                                    />
+                                  </Grid>
+                                ))}
+                              </>
+                            );
+                          })()}
+                          <Grid item xs={12} style={{ marginTop: "20px" }}>
                             <Button
-                              variant="text"
-                              onClick={() => (window.location.href = "/user-registration-request")}
-                              sx={{
-                                color: "#800080",
-                                textTransform: "none",
-                                "&:hover": {
-                                  backgroundColor: "transparent",
-                                  textDecoration: "underline",
-                                },
-                              }}
+                              type="submit"
+                              variant="contained"
+                              fullWidth
+                              className="reg-submit-btn"
+                              startIcon={<PersonAddIcon />}
+                              disabled={submitting}
+                              sx={{ mt: 1, mb: 1 }}
                             >
-                              Change Role
+                              {submitting ? "Submitting..." : "Submit Registration Request"}
                             </Button>
-                          </Box>
-                        </form>
-                      )}
-                    </Formik>
-                  ) : null}
-                </Box>
-              ) : isManufacturerRole ? (
-                <Box>
-                  {isManufacturerFormLoaded && manufacturerValidationSchema ? (
-                    <Formik
-                      initialValues={manufacturerInitialValuesState}
-                      validationSchema={manufacturerValidationSchema}
-                      onSubmit={handleManufacturerSubmitWithTerms}
-                      enableReinitialize
-                    >
-                      {(formik) => (
-                        <form onSubmit={formik.handleSubmit}>
-                          <Grid container spacing={2} className="form-controller">
-                            {(() => {
-                              const keys = Object.keys(manufacturerUpdatedFormFields);
-                              const nonFiles = keys.filter(
-                                (k) => manufacturerUpdatedFormFields?.[k]?.type !== "file"
-                              );
-                              const files = keys.filter(
-                                (k) => manufacturerUpdatedFormFields?.[k]?.type === "file"
-                              );
-                              const tacValidityRaw = formik?.values?.tac_validity;
-                              const tacDate = tacValidityRaw ? new Date(tacValidityRaw) : null;
-                              const todayDate = new Date(new Date().toISOString().split("T")[0]);
-                              const isTacExpired =
-                                tacDate && !Number.isNaN(tacDate.getTime())
-                                  ? tacDate.getTime() < todayDate.getTime()
-                                  : false;
-                              const shouldHideCop = !isTacExpired;
-                              const hiddenKeys = shouldHideCop
-                                ? new Set(["cop_no", "cop_validity"])
-                                : new Set();
-                              return nonFiles
-                                .concat(files)
-                                .filter((field) => !hiddenKeys.has(field))
-                                .map((field) => (
+                          </Grid>
+                        </Grid>
+                        <Box sx={{ textAlign: "center", mt: 1 }}>
+                          <Button
+                            variant="text"
+                            className="reg-text-link"
+                            startIcon={<ArrowBackIcon sx={{ fontSize: "14px !important" }} />}
+                            onClick={() => (window.location.href = "/user-registration-request")}
+                          >
+                            Change Role
+                          </Button>
+                        </Box>
+                      </form>
+                    )}
+                  </Formik>
+                ) : null}
+              </Box>
+            ) : isManufacturerRole ? (
+              <Box>
+                {isManufacturerFormLoaded && manufacturerValidationSchema ? (
+                  <Formik
+                    initialValues={manufacturerInitialValuesState}
+                    validationSchema={manufacturerValidationSchema}
+                    onSubmit={handleManufacturerSubmitWithTerms}
+                    enableReinitialize
+                  >
+                    {(formik) => (
+                      <form onSubmit={formik.handleSubmit}>
+                        <Grid container spacing={2} className="form-controller">
+                          {(() => {
+                            const keys = Object.keys(manufacturerUpdatedFormFields);
+                            const nonFiles = keys.filter(
+                              (k) => manufacturerUpdatedFormFields?.[k]?.type !== "file"
+                            );
+                            const files = keys.filter(
+                              (k) => manufacturerUpdatedFormFields?.[k]?.type === "file"
+                            );
+                            const tacValidityRaw = formik?.values?.tac_validity;
+                            const tacDate = tacValidityRaw ? new Date(tacValidityRaw) : null;
+                            const todayDate = new Date(new Date().toISOString().split("T")[0]);
+                            const isTacExpired =
+                              tacDate && !Number.isNaN(tacDate.getTime())
+                                ? tacDate.getTime() < todayDate.getTime()
+                                : false;
+                            const shouldHideCop = !isTacExpired;
+                            const hiddenKeys = shouldHideCop
+                              ? new Set(["cop_no", "cop_validity"])
+                              : new Set();
+
+                            const visibleNonFiles = nonFiles.filter((f) => !hiddenKeys.has(f));
+                            const visibleFiles = files.filter((f) => !hiddenKeys.has(f));
+
+                            return (
+                              <>
+                                {/* ── Text / select fields ── */}
+                                {visibleNonFiles.map((field) => (
                                   <Grid key={field} item md={6} sm={12} xs={12}>
                                     <FormField
                                       fieldConfig={manufacturerUpdatedFormFields[field]}
@@ -1037,53 +1051,82 @@ const UserRegistrationForm = () => {
                                       handleOptionChange={handleManufacturerStateChange}
                                     />
                                   </Grid>
-                                ));
-                            })()}
-                            <Grid item xs={12} style={{ marginTop: "20px" }}>
-                              <Button
-                                type="submit"
-                                variant="contained"
-                                fullWidth
-                                sx={{
-                                  mt: 1,
-                                  mb: 2,
-                                  backgroundColor: "#800080",
-                                  "&:hover": {
-                                    backgroundColor: "#660066",
-                                  },
-                                  py: 1.5,
-                                }}
-                                startIcon={<PersonAddIcon />}
-                                disabled={submitting}
-                              >
-                                {submitting ? "Submitting..." : "Submit Registration Request"}
-                              </Button>
-                            </Grid>
-                          </Grid>
-                          <Box sx={{ textAlign: "center" }}>
+                                ))}
+
+                                {/* ── Document uploads section ── */}
+                                {visibleFiles.length > 0 && (
+                                  <Grid item xs={12} sx={{ mt: 1.5, mb: 0.5 }}>
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1.5,
+                                        pt: 1,
+                                        borderTop: "1.5px solid",
+                                        borderColor: "rgba(128,0,128,0.18)",
+                                      }}
+                                    >
+                                      <Typography
+                                        sx={{
+                                          fontSize: "11px",
+                                          fontWeight: 700,
+                                          letterSpacing: "1.5px",
+                                          textTransform: "uppercase",
+                                          color: "#800080",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        Document Uploads
+                                      </Typography>
+                                      <Box sx={{ flex: 1, height: "1px", background: "linear-gradient(90deg,rgba(128,0,128,0.22),transparent)" }} />
+                                    </Box>
+                                  </Grid>
+                                )}
+
+                                {visibleFiles.map((field) => (
+                                  <Grid key={field} item md={6} sm={12} xs={12}>
+                                    <FormField
+                                      fieldConfig={manufacturerUpdatedFormFields[field]}
+                                      formik={formik}
+                                      handleOptionChange={handleManufacturerStateChange}
+                                    />
+                                  </Grid>
+                                ))}
+                              </>
+                            );
+                          })()}
+                          <Grid item xs={12} style={{ marginTop: "20px" }}>
                             <Button
-                              variant="text"
-                              onClick={() => (window.location.href = "/user-registration-request")}
-                              sx={{
-                                color: "#800080",
-                                textTransform: "none",
-                                "&:hover": {
-                                  backgroundColor: "transparent",
-                                  textDecoration: "underline",
-                                },
-                              }}
+                              type="submit"
+                              variant="contained"
+                              fullWidth
+                              className="reg-submit-btn"
+                              startIcon={<PersonAddIcon />}
+                              disabled={submitting}
+                              sx={{ mt: 1, mb: 1 }}
                             >
-                              Change Role
+                              {submitting ? "Submitting..." : "Submit Registration Request"}
                             </Button>
-                          </Box>
-                        </form>
-                      )}
-                    </Formik>
-                  ) : null}
-                </Box>
-              ) : (
-                <Box component="form" onSubmit={handleSubmit}>
-                  <Grid container spacing={2}>
+                          </Grid>
+                        </Grid>
+                        <Box sx={{ textAlign: "center", mt: 1 }}>
+                          <Button
+                            variant="text"
+                            className="reg-text-link"
+                            startIcon={<ArrowBackIcon sx={{ fontSize: "14px !important" }} />}
+                            onClick={() => (window.location.href = "/user-registration-request")}
+                          >
+                            Change Role
+                          </Button>
+                        </Box>
+                      </form>
+                    )}
+                  </Formik>
+                ) : null}
+              </Box>
+            ) : (
+              <Box component="form" onSubmit={handleSubmit}>
+                <Grid container spacing={2}>
                   {isSchoolAdmin ? (
                     <>
                       <Grid item xs={12}>
@@ -1520,78 +1563,73 @@ const UserRegistrationForm = () => {
                       </Grid>
                     </>
                   )}
-                  </Grid>
+                </Grid>
 
                 <Button
                   type="submit"
                   variant="contained"
                   fullWidth
-                  sx={{
-                    mt: 3,
-                    mb: 2,
-                    backgroundColor: "#800080",
-                    "&:hover": {
-                      backgroundColor: "#660066",
-                    },
-                    py: 1.5,
-                  }}
+                  className="reg-submit-btn"
                   startIcon={<PersonAddIcon />}
                   disabled={submitting}
+                  sx={{ mt: 3, mb: 1 }}
                 >
                   {submitting ? "Submitting..." : "Submit Registration Request"}
                 </Button>
 
-                <Box sx={{ textAlign: "center" }}>
+                <Box sx={{ textAlign: "center", mt: 1 }}>
                   <Button
                     variant="text"
+                    className="reg-text-link"
+                    startIcon={<ArrowBackIcon sx={{ fontSize: "14px !important" }} />}
                     onClick={() => (window.location.href = "/user-registration-request")}
-                    sx={{
-                      color: "#800080",
-                      textTransform: "none",
-                      "&:hover": {
-                        backgroundColor: "transparent",
-                        textDecoration: "underline",
-                      },
-                    }}
                   >
                     Change Role
                   </Button>
                 </Box>
-                </Box>
-              )
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
+              </Box>
+            )
+          )}
+        </Box> {/* end reg-form-body */}
+      </Paper>
 
-      <Dialog open={termsOpen} onClose={handleTermsCancel} maxWidth="sm" fullWidth>
-        <DialogTitle>Terms and Conditions</DialogTitle>
-        <DialogContent dividers>
-          <Box component="ol" sx={{ pl: 2, mb: 0 }}>
-            <li>
-              Submission of documents does not automatically guarantee backend access.
-            </li>
-            <li>
-              Implementation Agency reserves the right to verify submitted documents with issuing authorities.
-            </li>
-            <li>
-              Implementation Agency may conduct technical compatibility evaluation prior to granting access.
-            </li>
-            <li>
-              Backend access, if granted, shall be role-based, limited, and revocable at sole discretion of the Implementation Agency.
-            </li>
+      <Dialog
+        open={termsOpen}
+        onClose={handleTermsCancel}
+        maxWidth="sm"
+        fullWidth
+        className="reg-terms-dialog"
+        PaperProps={{ sx: { borderRadius: "16px", overflow: "hidden" } }}
+      >
+        <DialogTitle
+          sx={{
+            background: "linear-gradient(135deg, #6a0080, #9c27b0)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1rem",
+            py: 2,
+          }}
+        >
+          Terms and Conditions
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 2.5 }}>
+          <Box component="ol" sx={{ pl: 2.5, mb: 0, "& li": { mb: 1.5, color: "#444", lineHeight: 1.6 } }}>
+            <li>Submission of documents does not automatically guarantee backend access.</li>
+            <li>Implementation Agency reserves the right to verify submitted documents with issuing authorities.</li>
+            <li>Implementation Agency may conduct technical compatibility evaluation prior to granting access.</li>
+            <li>Backend access, if granted, shall be role-based, limited, and revocable at sole discretion of the Implementation Agency.</li>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleTermsCancel} variant="outlined">
+        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+          <Button onClick={handleTermsCancel} variant="outlined" className="reg-outline-btn" sx={{ px: 3 }}>
             Cancel
           </Button>
-          <Button onClick={handleTermsConfirm} variant="contained">
-            I Agree
+          <Button onClick={handleTermsConfirm} variant="contained" className="reg-submit-btn" sx={{ px: 3, py: 1 }}>
+            I Agree &amp; Submit
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

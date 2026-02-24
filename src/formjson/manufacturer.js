@@ -1,9 +1,9 @@
-import * as Yup from "yup"; 
+import * as Yup from "yup";
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
-let providerList=[{value:'',label:'Select'}];
-const FILE_SIZE = 1024 * 1024 ; // 1 MB
+let providerList = [{ value: '', label: 'Select' }];
+const FILE_SIZE = 1024 * 1024; // 1 MB
 const SUPPORTED_FORMATS = [
   "image/png",
   "image/jpeg",
@@ -20,72 +20,72 @@ const isTacExpired = (tacValidity) => {
   return d.getTime() < t.getTime();
 };
 export const manufacturerInitialValues = {
-    esimProvider:[],
-    name: "",
-    mobile: "",
-    email: "",
-    dob:"",
-    status: "Pending",
-    expirydate:formattedDate,
-    company_name: "",
-    company_address: "",
-    company_pin: "",
-    company_email: "",
-    company_phoneno: "",
-    gstnnumber: "",
-    panno: "",
-    company_registration_no: "",
-    idProofno:"",
-    state:"",
-    address: "",
-    pin: "",
-    notification_settings: true,
-    manufacturer_type: "",
-    file_officialTechnicalOnboardingRequestLetter: null,
-    file_vehicleTypeApprovalTacAnnexureCopy: null,
-    file_ais140DeviceTacCopy: null,
-    file_factoryFitmentDeclaration: null,
-    file_affidavitCumUndertakingBackendAccess: null,
-    file_selfCertifiedGstRegistrationCertificate: null,
-    file_selfCertifiedIdProofAuthorisedSignatory: null,
-    file_selfCertifiedCompanyRegistrationCertificateOptional: null,
-    tac_no: "",
-    tac_validity: "",
-    cop_no: "",
-    cop_validity: "",
-    device_model_details: "",
-    lat: "",
-    lon: "",
+  esimProvider: [],
+  name: "",
+  mobile: "",
+  email: "",
+  dob: "",
+  status: "Pending",
+  expirydate: formattedDate,
+  company_name: "",
+  company_address: "",
+  company_pin: "",
+  company_email: "",
+  company_phoneno: "",
+  gstnnumber: "",
+  panno: "",
+  company_registration_no: "",
+  idProofno: "",
+  state: "",
+  address: "",
+  pin: "",
+  notification_settings: true,
+  manufacturer_type: "",
+  file_officialTechnicalOnboardingRequestLetter: null,
+  file_vehicleTypeApprovalTacAnnexureCopy: null,
+  file_ais140DeviceTacCopy: null,
+  file_factoryFitmentDeclaration: null,
+  file_affidavitCumUndertakingBackendAccess: null,
+  file_selfCertifiedGstRegistrationCertificate: null,
+  file_selfCertifiedIdProofAuthorisedSignatory: null,
+  file_selfCertifiedCompanyRegistrationCertificateOptional: null,
+  tac_no: "",
+  tac_validity: "",
+  cop_no: "",
+  cop_validity: "",
+  device_model_details: "",
+  lat: "",
+  lon: "",
 };
 
 export const manufacturerFormField = {
   name: {
-    name:"name",
+    name: "name",
     type: "text",
     label: "manufacturer.form.fields.name",
     validation: Yup.string().required("manufacturer.form.validation.name_required"),
   },
   email: {
-    name:"email",
+    name: "email",
     type: "text",
     label: "manufacturer.form.fields.email",
     validation: Yup.string().email("manufacturer.form.validation.invalid_email").required("manufacturer.form.validation.email_required"),
   },
   mobile: {
-    name:"mobile",
+    name: "mobile",
     type: "tel",
     label: "manufacturer.form.fields.mobile",
     validation: Yup.string().matches(/^\d{10}$/, 'manufacturer.form.validation.invalid_mobile').required('manufacturer.form.validation.mobile_required'),
   },
   company_name: {
-    name:"company_name",
+    name: "company_name",
     type: "text",
     label: "manufacturer.form.fields.company_name",
     validation: Yup.string().required("manufacturer.form.validation.company_name_required"),
   },
   dob: {
-    name:"dob",
-    type: "date", 
+    name: "dob",
+    type: "date",
     label: "manufacturer.form.fields.dob",
     validation: Yup.date()
       .required("manufacturer.form.validation.dob_required")
@@ -93,11 +93,11 @@ export const manufacturerFormField = {
       .max(today, "manufacturer.form.validation.future_date"),
   },
   expirydate: {
-    name:"expirydate",
+    name: "expirydate",
     type: "date",
     label: "manufacturer.form.fields.expiry_date",
     validation: Yup.date().required("manufacturer.form.validation.expiry_date_required"),
-    minDate:today,
+    minDate: today,
     disabled: true
   },
   address: {
@@ -115,13 +115,13 @@ export const manufacturerFormField = {
       .required("PIN Code is required"),
   },
   idProofno: {
-    name:"idProofno",
+    name: "idProofno",
     type: "text",
     label: "manufacturer.form.fields.id_proof_number",
     validation: Yup.string().min(5, "manufacturer.form.validation.id_proof_min_length").required("manufacturer.form.validation.id_proof_required"),
   },
   gstnnumber: {
-    name:"gstnnumber",
+    name: "gstnnumber",
     type: "text",
     label: "manufacturer.form.fields.gst_no",
     validation: Yup.string()
@@ -179,24 +179,18 @@ export const manufacturerFormField = {
     ],
   },
   state: {
-    name:"state",
+    name: "state",
     type: "select",
     label: "manufacturer.form.fields.state",
     validation: Yup.string().required("manufacturer.form.validation.state_required"),
-    options:[{'label':'manufacturer.form.select','value':''}]
+    options: [{ 'label': 'manufacturer.form.select', 'value': '' }]
   },
   esimProvider: {
-    name:"esimProvider",
+    name: "esimProvider",
     type: "multiselect",
     label: "manufacturer.form.fields.m2m_provider",
     validation: Yup.array().required("manufacturer.form.validation.esim_provider_required"),
     options: providerList
-  },
-  notification_settings: {
-    name: "notification_settings",
-    type: "checkbox",
-    label: "Enable Notifications",
-    validation: Yup.boolean(),
   },
   tac_no: {
     name: "tac_no",
@@ -232,117 +226,117 @@ export const manufacturerFormField = {
     }),
     minDate: today,
   },
-  file_officialTechnicalOnboardingRequestLetter:{
-    name:"file_officialTechnicalOnboardingRequestLetter",
+  file_officialTechnicalOnboardingRequestLetter: {
+    name: "file_officialTechnicalOnboardingRequestLetter",
     type: "file",
     label: "Official Technical Onboarding Request Letter",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  file_vehicleTypeApprovalTacAnnexureCopy:{
-    name:"file_vehicleTypeApprovalTacAnnexureCopy",
+  file_vehicleTypeApprovalTacAnnexureCopy: {
+    name: "file_vehicleTypeApprovalTacAnnexureCopy",
     type: "file",
     label: "Self-Certified Vehicle Type Approval (TAC) Annexure Copy",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Vehicle Type Approval (TAC) Annexure Copy is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  file_ais140DeviceTacCopy:{
-    name:"file_ais140DeviceTacCopy",
+  file_ais140DeviceTacCopy: {
+    name: "file_ais140DeviceTacCopy",
     type: "file",
     label: "Self-Certified AIS-140 Device TAC Copy",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("AIS-140 Device TAC Copy is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  file_factoryFitmentDeclaration:{
-    name:"file_factoryFitmentDeclaration",
+  file_factoryFitmentDeclaration: {
+    name: "file_factoryFitmentDeclaration",
     type: "file",
     label: "Factory Fitment Declaration",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Factory Fitment Declaration is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  file_affidavitCumUndertakingBackendAccess:{
-    name:"file_affidavitCumUndertakingBackendAccess",
+  file_affidavitCumUndertakingBackendAccess: {
+    name: "file_affidavitCumUndertakingBackendAccess",
     type: "file",
     label: "Affidavit-cum-Undertaking for Skytron Backend Access",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  file_selfCertifiedGstRegistrationCertificate:{
-    name:"file_selfCertifiedGstRegistrationCertificate",
+  file_selfCertifiedGstRegistrationCertificate: {
+    name: "file_selfCertifiedGstRegistrationCertificate",
     type: "file",
     label: "Self-Certified GST Registration Certificate",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Self-Certified GST Registration Certificate is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  file_selfCertifiedIdProofAuthorisedSignatory:{
-    name:"file_selfCertifiedIdProofAuthorisedSignatory",
+  file_selfCertifiedIdProofAuthorisedSignatory: {
+    name: "file_selfCertifiedIdProofAuthorisedSignatory",
     type: "file",
     label: "Self-Certified ID Proof of Authorised Signatory",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Self-Certified ID Proof of Authorised Signatory is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return false;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  file_selfCertifiedCompanyRegistrationCertificateOptional:{
-    name:"file_selfCertifiedCompanyRegistrationCertificateOptional",
+  file_selfCertifiedCompanyRegistrationCertificateOptional: {
+    name: "file_selfCertifiedCompanyRegistrationCertificateOptional",
     type: "file",
     label: "Self Certified Company registration certificate (Optional)",
-    message:'manufacturer.form.validation.file_restrictions',
+    message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().notRequired().test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return true;
       return value.size <= FILE_SIZE;
     })
-    .test("fileFormat", "manufacturer.form.validation.file_format", value => {
-      if (!value) return true;
-      return SUPPORTED_FORMATS.includes(value.type);
-    }),
+      .test("fileFormat", "manufacturer.form.validation.file_format", value => {
+        if (!value) return true;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
   device_model_details: {
     name: "device_model_details",
@@ -365,5 +359,11 @@ export const manufacturerFormField = {
     validation: Yup.number()
       .typeError("Longitude must be a number")
       .nullable(),
+  },
+  notification_settings: {
+    name: "notification_settings",
+    type: "checkbox",
+    label: "Enable Notifications",
+    validation: Yup.boolean(),
   },
 };
