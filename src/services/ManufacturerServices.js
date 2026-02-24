@@ -21,7 +21,12 @@ const deleteOne = (id) => {
 };
 const findManufacturer=(data)=>{
   const http=getAxiosInstance();
-  return http.post('/api/manufacturer/filter_manufacturers/',data);
+  return http.post('/api/manufacturer/filter_manufacturers/?all_user=true',data);
+}
+
+const updateManufacturer = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/manufacturer/update_manufacturer/', data);
 }
 const ManufacturerServices = {
   getAll,
@@ -30,6 +35,7 @@ const ManufacturerServices = {
   updateOne,
   deleteOne,
   findManufacturer,
+  updateManufacturer,
 };
 
 export default ManufacturerServices;

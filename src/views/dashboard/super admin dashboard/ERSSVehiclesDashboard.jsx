@@ -50,6 +50,7 @@ const FILTERS = {
   state: ['All', 'Assam'],
   district: ['All', 'Kamrup Metro', 'Kamrup Rural', 'Nagaon', 'Dibrugarh'],
   hospital: ['All', 'GMC', 'Apollo', 'Red Cross'],
+  vehicleType: ['All', 'Ambulance', 'Police'],
   ambulanceType: ['All', 'BLS', 'ALS'],
   status: ['All', 'Available', 'On Emergency', 'En-Route Hospital', 'Offline', 'Not Reporting']
 };
@@ -455,6 +456,7 @@ const ERSSVehiclesDashboard = () => {
     state: 'All',
     district: 'All',
     hospital: 'All',
+    vehicleType: 'All',
     ambulanceType: 'All',
     status: 'All'
   });
@@ -471,6 +473,11 @@ const ERSSVehiclesDashboard = () => {
       result = result.filter((v) => v.district === filters.district);
     }
 
+    if (filters.vehicleType && filters.vehicleType !== 'All') {
+      const desiredType = filters.vehicleType === 'Police' ? 'police' : 'ambulance';
+      result = result.filter((v) => v.type === desiredType);
+    }
+
     if (filters.status && filters.status !== 'All') {
       const mapStatus = {
         Available: 'available',
@@ -484,7 +491,7 @@ const ERSSVehiclesDashboard = () => {
     }
 
     return result;
-  }, [vehicles, filters.district, filters.status]);
+  }, [vehicles, filters.district, filters.vehicleType, filters.status]);
 
   useEffect(() => {
     if (filters.district && filters.district !== 'All') {
@@ -495,6 +502,12 @@ const ERSSVehiclesDashboard = () => {
     setSelectedType(null);
   }, [filters.district]);
 
+  useEffect(() => {
+    if (selectedType) {
+      setFilters((prev) => ({ ...prev, vehicleType: selectedType === 'police' ? 'Police' : 'Ambulance' }));
+    }
+  }, [selectedType]);
+
   const handleFilterChange = (key) => (event) => {
     setFilters((prev) => ({ ...prev, [key]: event.target.value }));
   };
@@ -504,6 +517,7 @@ const ERSSVehiclesDashboard = () => {
       state: 'All',
       district: 'All',
       hospital: 'All',
+      vehicleType: 'All',
       ambulanceType: 'All',
       status: 'All'
     });
@@ -522,11 +536,13 @@ const ERSSVehiclesDashboard = () => {
   }, []);
 
   const kpis = useMemo(() => {
-    const ambulances = filteredVehicles.filter((v) => v.type === 'ambulance');
+    const selectedLabel =
+      filters.vehicleType === 'Police' ? 'Police Vehicles' : filters.vehicleType === 'Ambulance' ? 'Ambulances' : 'Vehicles';
+    const selectedVehicles = filteredVehicles;
 
     const totals = {
-      total: ambulances.length,
-      loggedIn: ambulances.length,
+      total: selectedVehicles.length,
+      loggedIn: selectedVehicles.length,
       online: 0,
       available: 0,
       onEmergency: 0,
@@ -535,7 +551,7 @@ const ERSSVehiclesDashboard = () => {
       notReporting: 0
     };
 
-    ambulances.forEach((v) => {
+    selectedVehicles.forEach((v) => {
       if (v.status === 'online') totals.online += 1;
       if (v.status === 'available') totals.available += 1;
       if (v.status === 'on_emergency') totals.onEmergency += 1;
@@ -548,7 +564,7 @@ const ERSSVehiclesDashboard = () => {
     });
 
     return [
-      { key: 'total', label: 'Total Ambulances', value: totals.total, helper: null },
+      { key: 'total', label: `Total ${selectedLabel}`, value: totals.total, helper: null },
       { key: 'loggedIn', label: 'Logged In', value: totals.loggedIn, helper: null },
       { key: 'online', label: 'Online', value: totals.online, helper: null },
       { key: 'available', label: 'Available', value: totals.available, helper: null },
@@ -557,7 +573,7 @@ const ERSSVehiclesDashboard = () => {
       { key: 'offline', label: 'Offline', value: totals.offline, helper: null },
       { key: 'notReporting', label: 'Not Reporting', value: totals.notReporting, helper: ' (> 90 min)' }
     ];
-  }, [filteredVehicles]);
+  }, [filteredVehicles, filters.vehicleType]);
 
   return (
     <PageWrapper

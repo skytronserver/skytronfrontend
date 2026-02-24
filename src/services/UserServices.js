@@ -139,7 +139,11 @@ const fetchVehicleOwner = (formData) => {
 }
 const fetchSimProvider = (formData) => {
     const http = getAxiosInstance();
-    return http.post("/api/eSimProvider/filter_eSimProvider/", formData);
+    return http.post("/api/eSimProvider/filter_eSimProvider/?all_user=true", formData);
+}
+const updateSimProvider = (data) => {
+    const http = getAxiosInstance();
+    return http.post("/api/eSimProvider/update_eSimProvider/", data);
 }
 const fetchSOSAdmin = (formData) => {
     const http = getAxiosInstance();
@@ -255,6 +259,7 @@ const getSOSMonthlyMetrics = (year) => {
 
 
 const UserServices = {
+
     getStateStats,
     getAlertDetails,
     getDeviceStats,
@@ -276,9 +281,9 @@ const UserServices = {
     createSystemAdmin,
     fetchVehicleOwner,
     fetchSimProvider,
+    updateSimProvider,
     fetchSOSAdmin,
     fetchSOSUser,
-    fetchStateAdmin,
     fetchDTOList,
     getStateAdminDashboard,
     getDashboardUserData,

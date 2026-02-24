@@ -1,36 +1,29 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Alert,
   Box,
   Button,
-  Chip,
   Container,
-  Divider,
   Grid,
+  IconButton,
   Paper,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
-import PublicRegistrationMockService from "../../services/PublicRegistrationMockService";
-
-const isApproved = (req) =>
-  (req.currentStatus || "").toLowerCase().includes("user created");
-
-const isRejected = (req) =>
-  (req.currentStatus || "").toLowerCase().includes("rejected");
-
-const getStatusChip = (req) => {
-  if (isApproved(req)) return <Chip label="Approved" color="success" size="small" />;
-  if (isRejected(req)) return <Chip label="Rejected" color="error" size="small" />;
-  return <Chip label="Pending" color="warning" size="small" />;
-};
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DynamicDatatables from "../../datatables/DynamicDatatables";
+import { serviceProviderCol } from "../../datatables/rowsColumn";
+import UserServices from "../../services/UserServices";
 
 const M2MRegistrationAdminReview = () => {
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [remarksByRef, setRemarksByRef] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [acceptedId, setAcceptedId] = useState(null);
+  const [tableState, setTableState] = useState({ page: 0, rowsPerPage: 10 });
+  const statusOverrides = {};
 
   const paperStyle = useMemo(
     () => ({
@@ -41,49 +34,248 @@ const M2MRegistrationAdminReview = () => {
     []
   );
 
-  const requests = useMemo(() => {
-    void refreshKey;
-    return PublicRegistrationMockService.listRequests().filter(
-      (r) => (r.role || "") === "M2M Service Provider"
-    );
-  }, [refreshKey]);
-
-  const handleApprove = (referenceNumber) => {
+  const loadRows = useCallback(async () => {
     setErrorMessage("");
-    setInfoMessage("");
+    setLoading(true);
     try {
-      PublicRegistrationMockService.approveRequest(referenceNumber);
-      setInfoMessage("Request approved and credentials generated.");
-      setRefreshKey((k) => k + 1);
+      const response = await UserServices.fetchSimProvider({});
+      setRows(Array.isArray(response?.data) ? response.data : []);
     } catch (e) {
-      setErrorMessage(e?.message || "Failed to approve request.");
+      setErrorMessage(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load M2M registration requests."
+      );
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const handleReject = (referenceNumber) => {
+  useEffect(() => {
+    (async () => {
+      setInfoMessage("");
+      await loadRows();
+    })();
+    return () => {
+      // no-op
+    };
+  }, [loadRows]);
+
+  const tableOptions = useMemo(
+    () => ({
+      responsive: "standard",
+      selectableRows: "none",
+      download: true,
+      print: false,
+      viewColumns: true,
+      filter: true,
+      page: tableState.page,
+      rowsPerPage: tableState.rowsPerPage,
+      onChangePage: (page) =>
+        setTableState((prev) => ({ ...prev, page })),
+      onChangeRowsPerPage: (rowsPerPage) =>
+        setTableState((prev) => ({ ...prev, rowsPerPage, page: 0 })),
+    }),
+    [tableState.page, tableState.rowsPerPage]
+  );
+
+  const handleActionClick = useCallback((action, id) => {
     setErrorMessage("");
-    setInfoMessage("");
-    const remarks = (remarksByRef[referenceNumber] || "").trim();
-    if (!remarks) {
-      setErrorMessage("Please enter rejection remarks.");
-      return;
-    }
+    setInfoMessage(`${action} clicked for ID: ${id}`);
+  }, []);
 
-    try {
-      PublicRegistrationMockService.rejectRequest(referenceNumber, remarks);
-      setInfoMessage("Request rejected with remarks.");
-      setRefreshKey((k) => k + 1);
-    } catch (e) {
-      setErrorMessage(e?.message || "Failed to reject request.");
-    }
-  };
+  const handleAccept = useCallback(
+    async (id, row) => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoading(true);
+      try {
+        await UserServices.updateSimProvider({
+          esimprovider_id: id,
+          status: "Accept",
+        });
+
+        const userId = row?.users?.[0]?.id;
+        if (userId) {
+          await UserServices.resendUserCreationOtp({ user_id: userId });
+        }
+
+        setAcceptedId(id);
+        setRows((prevRows) =>
+          (Array.isArray(prevRows) ? prevRows : []).map((r) => {
+            if (r?.id !== id) return r;
+            return { ...r, status: "Accept" };
+          })
+        );
+        setInfoMessage(`Accepted ID: ${id}`);
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to accept request."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loadRows]
+  );
+
+  const handleResend = useCallback(
+    async (id, row) => {
+      if (!id) return;
+      const userId = row?.users?.[0]?.id;
+      if (!userId) {
+        setErrorMessage("User ID not found for this row.");
+        return;
+      }
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoading(true);
+      try {
+        await UserServices.resendUserCreationOtp({ user_id: userId });
+        setInfoMessage(`OTP resent successfully for ID: ${id}`);
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to resend OTP."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const handleReject = useCallback(
+    async (id) => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoading(true);
+      try {
+        await UserServices.updateSimProvider({
+          esimprovider_id: id,
+          status: "Reject",
+        });
+        setRows((prevRows) =>
+          (Array.isArray(prevRows) ? prevRows : []).map((r) => {
+            if (r?.id !== id) return r;
+            return { ...r, status: "Reject" };
+          })
+        );
+        setInfoMessage(`Rejected ID: ${id}`);
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to reject request."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loadRows]
+  );
+
+  const actionColumn = useMemo(
+    () => [
+      {
+        name: "Action",
+        label: "Action",
+        options: {
+          filter: false,
+          sort: false,
+          download: false,
+          customBodyRender: (value, tableMeta) => {
+            const id = tableMeta?.rowData?.[0];
+            const currentRow = rows?.[tableMeta?.rowIndex];
+
+            const requestStatusRaw =
+              statusOverrides?.[id] ?? currentRow?.status ?? "";
+            const requestStatus = String(requestStatusRaw).toLowerCase();
+            const isRequestPending =
+              requestStatus === "pending" || requestStatus === "created" || requestStatus === "";
+            return (
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{
+                  flexWrap: "nowrap",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <IconButton
+                  size="small"
+                  component={Link}
+                  to={`/user/detail/serviceProvider/${id}`}
+                  sx={{ color: "#800080" }}
+                >
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+                {acceptedId === id ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleResend(id, rows?.[tableMeta?.rowIndex])}
+                    sx={{
+                      borderColor: "#800080",
+                      color: "#800080",
+                      whiteSpace: "nowrap",
+                      "&:hover": {
+                        borderColor: "#660066",
+                        color: "#660066",
+                      },
+                    }}
+                  >
+                    Resend OTP
+                  </Button>
+                ) : isRequestPending ? (
+                  <>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleReject(id)}
+                      sx={{ whiteSpace: "nowrap" }}
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => handleAccept(id, rows?.[tableMeta?.rowIndex])}
+                      sx={{
+                        backgroundColor: "#800080",
+                        "&:hover": { backgroundColor: "#660066" },
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Accept
+                    </Button>
+                  </>
+                ) : null}
+              </Stack>
+            );
+          },
+        },
+      },
+    ],
+    [acceptedId, handleAccept, handleActionClick, handleReject, handleResend, rows]
+  );
 
   return (
-    <Container sx={{ mt: 4, mb: 4 }}>
-      <Grid container spacing={3} justifyContent="center">
-        <Grid item xs={12} md={10} lg={9}>
+    <Container maxWidth={false} disableGutters sx={{ mt: 4, mb: 4, px: 2 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
           <Paper sx={paperStyle}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              sx={{ mb: 2 }}
+            >
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" sx={{ fontWeight: "bold", color: "#800080" }}>
                   M2M Service Provider Registration Requests
@@ -99,108 +291,24 @@ const M2MRegistrationAdminReview = () => {
                 {errorMessage}
               </Alert>
             )}
+
             {infoMessage && (
               <Alert severity="success" sx={{ mb: 2 }}>
                 {infoMessage}
               </Alert>
             )}
 
-            {requests.length === 0 ? (
+            {loading && rows.length === 0 ? (
+              <Alert severity="info">Loading...</Alert>
+            ) : rows.length === 0 ? (
               <Alert severity="info">No M2M registration requests found.</Alert>
             ) : (
-              <Stack spacing={2}>
-                {requests.map((req) => (
-                  <Paper key={req.referenceNumber} variant="outlined" sx={{ p: 2 }}>
-                    <Stack
-                      direction={{ xs: "column", sm: "row" }}
-                      spacing={2}
-                      alignItems={{ sm: "center" }}
-                      justifyContent="space-between"
-                    >
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                          {req.referenceNumber} {getStatusChip(req)}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Applicant:</strong> {req.applicant?.name || "-"}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Email:</strong> {req.applicant?.email || "-"}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Mobile:</strong> {req.applicant?.mobile || "-"}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Organisation:</strong> {req.organization?.name || "-"}
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: 1 }}>
-                          <strong>Current Status:</strong> {req.currentStatus}
-                        </Typography>
-                        {req.remarks ? (
-                          <Alert severity="warning" sx={{ mt: 1 }}>
-                            {req.remarks}
-                          </Alert>
-                        ) : null}
-                        {req.credentials ? (
-                          <Alert severity="success" sx={{ mt: 1 }}>
-                            <Typography variant="body2">
-                              <strong>Username:</strong> {req.credentials.username}
-                            </Typography>
-                            <Typography variant="body2">
-                              <strong>Password:</strong> {req.credentials.password}
-                            </Typography>
-                          </Alert>
-                        ) : null}
-                      </Box>
-
-                      <Box sx={{ minWidth: { sm: 320 } }}>
-                        <Stack spacing={1}>
-                          <Button
-                            variant="contained"
-                            disabled={isApproved(req) || isRejected(req)}
-                            onClick={() => handleApprove(req.referenceNumber)}
-                            sx={{
-                              backgroundColor: "#800080",
-                              "&:hover": { backgroundColor: "#660066" },
-                            }}
-                          >
-                            Approve
-                          </Button>
-                          <Divider />
-                          <TextField
-                            label="Rejection Remarks"
-                            multiline
-                            minRows={2}
-                            value={remarksByRef[req.referenceNumber] || ""}
-                            onChange={(e) =>
-                              setRemarksByRef((prev) => ({
-                                ...prev,
-                                [req.referenceNumber]: e.target.value,
-                              }))
-                            }
-                            disabled={isApproved(req) || isRejected(req)}
-                          />
-                          <Button
-                            variant="outlined"
-                            disabled={isApproved(req) || isRejected(req)}
-                            onClick={() => handleReject(req.referenceNumber)}
-                            sx={{
-                              borderColor: "#800080",
-                              color: "#800080",
-                              "&:hover": {
-                                borderColor: "#660066",
-                                color: "#660066",
-                              },
-                            }}
-                          >
-                            Reject
-                          </Button>
-                        </Stack>
-                      </Box>
-                    </Stack>
-                  </Paper>
-                ))}
-              </Stack>
+              <DynamicDatatables
+                tableTitle="M2M Service Provider Registration Requests"
+                rows={rows}
+                columns={serviceProviderCol.concat(actionColumn)}
+                options={tableOptions}
+              />
             )}
           </Paper>
         </Grid>

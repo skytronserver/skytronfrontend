@@ -90,7 +90,8 @@ const Details = () => {
         file_authLetter	:"",
         file_companRegCertificate:"",
         file_GSTCertificate:"",
-        file_idProof:""
+        file_idProof:"",
+        file_affidavitNda:""
     });
 
     useEffect(()=>{
@@ -135,7 +136,8 @@ const Details = () => {
                 file_authLetter: userData?.file_authLetter || userData?.file_authorisation_letter||"",
                 file_companRegCertificate: userData?.file_companRegCertificate || userData?.file_companyRegCertificate||"",
                 file_GSTCertificate: userData?.file_GSTCertificate || userData?.file_gstCertificate||"",
-                file_idProof: userData?.file_idProof || userData?.file_idProof||""
+                file_idProof: userData?.file_idProof || userData?.file_idProof||"",
+                file_affidavitNda: userData?.file_affidavitNda || userData?.file_affidavit_nda || ""
             });
 
             setIsLoaded(true);
@@ -214,16 +216,10 @@ const Details = () => {
             )}
 
             {/* Additional Information */}
-            {(user.created_by_name || user.idProofno) && (
+            {user.idProofno && (
               <>
                 <Typography sx={{...styles.sectionTitle, mt: 4}}>Additional Information</Typography>
                 <Grid container spacing={3}>
-                  {user.created_by_name && (
-                    <Grid item xs={12} sm={6}>
-                      <Typography sx={styles.label}>Created By</Typography>
-                      <Typography sx={styles.value}>{user.created_by_name}</Typography>
-                    </Grid>
-                  )}
                   {user.idProofno && (
                     <Grid item xs={12} sm={6}>
                       <Typography sx={styles.label}>ID Proof Number</Typography>
@@ -235,7 +231,11 @@ const Details = () => {
             )}
 
             {/* Documents */}
-            {(user.file_idProof || user.file_authLetter) && (
+            {(user.file_idProof ||
+              user.file_authLetter ||
+              user.file_GSTCertificate ||
+              user.file_companRegCertificate ||
+              user.file_affidavitNda) && (
               <>
                 <Typography sx={{...styles.sectionTitle, mt: 4}}>Documents</Typography>
                 <Grid container spacing={2}>
@@ -258,6 +258,39 @@ const Details = () => {
                         onClick={(e)=>openFile(e,user.file_authLetter)}
                       >
                         View Authorization Letter
+                      </Button>
+                    </Grid>
+                  )}
+                  {user.file_GSTCertificate && (
+                    <Grid item>
+                      <Button
+                        startIcon={<DescriptionIcon />}
+                        sx={styles.documentButton}
+                        onClick={(e) => openFile(e, user.file_GSTCertificate)}
+                      >
+                        View GST Certificate
+                      </Button>
+                    </Grid>
+                  )}
+                  {user.file_companRegCertificate && (
+                    <Grid item>
+                      <Button
+                        startIcon={<DescriptionIcon />}
+                        sx={styles.documentButton}
+                        onClick={(e) => openFile(e, user.file_companRegCertificate)}
+                      >
+                        View Company Registration Certificate
+                      </Button>
+                    </Grid>
+                  )}
+                  {user.file_affidavitNda && (
+                    <Grid item>
+                      <Button
+                        startIcon={<DescriptionIcon />}
+                        sx={styles.documentButton}
+                        onClick={(e) => openFile(e, user.file_affidavitNda)}
+                      >
+                        View Affidavit/NDA
                       </Button>
                     </Grid>
                   )}

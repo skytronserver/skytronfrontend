@@ -164,52 +164,79 @@ export const registeredUserColumns = [
 
 export const manufacturerColumns = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
-  { name: "company_name", label: "Company Name", options: { filter: false, sort: false } },
-  { name: "users", label: "User Name", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+  { name: "users", label: "Applicant Name", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value[0].name}</p>
   ); }, csvExportKey: "name", columnKey:0 } },
-  { name: "users", label: "User Email Id", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+  { name: "users", label: "Applicant Email Id", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value[0].email}</p>
   ); }, csvExportKey: "email", columnKey:0 } },
-  { name: "users", label: "User Mobile", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+  { name: "users", label: "Applicant Mobile", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value[0].mobile}</p>
   ); }, csvExportKey: "mobile", columnKey:0 } },
-  { name: "esim_provider", label: "ESIM Provider", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
-    <p>{value[0]?.company_name}</p>
-  ); }, csvExportKey: "company_name" } },
   { name: "state", label: "State", options: { filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value?.state}</p>
   ); }, csvExportKey: "state" } },
-  {name:"idProofno",label:"ID Proof Number",options:{filter:true,sort:false}},
-  { name: "gstnnumber", label: "GSTN No.", options: { filter: true, sort: false } },
+  {name:"idProofno",label:"Applicant ID Proof Number",options:{filter:true,sort:false}},
   { name: "expirydate", label: "Expiry Date", options: { filter: true, sort: false } },
-  { name: "users", label: "Created By", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
-    <p>{value[0].created_by_name}</p>
-  ); }, csvExportKey: "created_by_name", columnKey:0 } },
+  { name: "users", label: "Applicant Status", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+    <p>{value?.[0]?.status}</p>
+  ); }, csvExportKey: "status", columnKey:0 } },
+
+  { name: "company_name", label: "Company Name", options: { filter: false, sort: false } },
+  { name: "company_address", label: "Company Address", options: { filter: false, sort: false } },
+  { name: "company_pin", label: "Company PIN", options: { filter: false, sort: false } },
+  { name: "gstnnumber", label: "GSTN No.", options: { filter: true, sort: false } },
+  { name: "panno", label: "PAN No.", options: { filter: false, sort: false } },
+  { name: "company_registration_no", label: "Company Registration No", options: { filter: false, sort: false } },
+
+  { name: "esim_provider", label: "ESIM Provider", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+    <p>{value[0]?.company_name}</p>
+  ); }, csvExportKey: "company_name" } },
+  { name: "manufacturer_type", label: "Manufacturer Type", options: { filter: false, sort: false } },
+  { name: "tac_no", label: "TAC No", options: { filter: false, sort: false } },
+  { name: "tac_validity", label: "TAC Validity", options: { filter: false, sort: false } },
+  { name: "cop_no", label: "COP No", options: { filter: false, sort: false } },
+  { name: "cop_validity", label: "COP Validity", options: { filter: false, sort: false } },
+  { name: "device_model_details", label: "Device Model Details", options: { filter: false, sort: false } },
+
+  { name: "status", label: "Request Status", options: { filter: false, sort: false } },
   { name: "created", label: "Created On", options: { filter: true, sort: false } },
 ];
 export const serviceProviderCol = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
-  { name: "company_name", label: "Company Name", options: { filter: false, sort: false } },
-  { name: "users", label: "User Name", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+  { name: "users", label: "Applicant Name", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value[0].name}</p>
   ); }, csvExportKey: "name", columnKey:0 } },
-  { name: "users", label: "User Email Id", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+  { name: "users", label: "Applicant Email Id", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value[0].email}</p>
   ); }, csvExportKey: "email", columnKey:0 } },
-  { name: "users", label: "User Mobile", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+  { name: "users", label: "Applicant Mobile", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value[0].mobile}</p>
   ); }, csvExportKey: "mobile", columnKey:0 } },
-  
-  { name: "state", label: "State", options: { filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => { console.log(value,"value"); return (
+  { name: "state", label: "State", options: { filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
     <p>{value?.state}</p>
   ); }, csvExportKey: "state" } },
-  {name:"idProofno",label:"ID Proof Number",options:{filter:true,sort:false}},
-  { name: "gstnnumber", label: "GSTN No.", options: { filter: true, sort: false } },
+  {name:"idProofno",label:"Applicant ID Proof Number",options:{filter:true,sort:false}},
   { name: "expirydate", label: "Expiry Date", options: { filter: true, sort: false } },
-  { name: "users", label: "Created By", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
-    <p>{value[0].created_by_name}</p>
-  ); }, csvExportKey: "created_by_name", columnKey:0 } },
+  { name: "users", label: "Status", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => { return (
+    <p>{value?.[0]?.status}</p>
+  ); }, csvExportKey: "status", columnKey:0 } },
+
+  { name: "company_name", label: "Company Name", options: { filter: false, sort: false } },
+  { name: "company_address", label: "Company Address", options: { filter: false, sort: false } },
+  { name: "company_pin", label: "Company PIN", options: { filter: false, sort: false } },
+  { name: "gstnnumber", label: "GSTN No.", options: { filter: true, sort: false } },
+  { name: "panno", label: "PAN No.", options: { filter: false, sort: false } },
+  { name: "company_registration_no", label: "Company Registration No", options: { filter: false, sort: false } },
+
+  { name: "telecomProviders", label: "Telecom Providers", options: { filter: false, sort: false, customBodyRender: (value) => {
+    if (!value) return <p />;
+    const arr = Array.isArray(value) ? value : [];
+    return <p>{arr.join(", ")}</p>;
+  } } },
+  { name: "m2m_reg_certificate_no", label: "M2M Reg Certificate No", options: { filter: false, sort: false } },
+
+  { name: "status", label: "Request Status", options: { filter: false, sort: false } },
   { name: "created", label: "Created On", options: { filter: true, sort: false } },
   
 ];

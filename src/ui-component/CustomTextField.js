@@ -11,7 +11,8 @@ import {
   Chip,
   Checkbox,
   ListItemText,
-  Autocomplete
+  Autocomplete,
+  Tooltip
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
@@ -31,6 +32,14 @@ const FormField = ({
   const { type, label, options, disabled } = fieldConfig;
   const restrictedFields = ['name', 'title', 'category', 'company_name', 'companyName'];
   switch (type) {
+    case "hidden":
+      return (
+        <input
+          type="hidden"
+          name={fieldConfig.name}
+          value={formik.values[fieldConfig.name] || ""}
+        />
+      );
     case "text":
       return (
         <TextField
@@ -229,6 +238,64 @@ const FormField = ({
       );
 
     case "file":
+      const isOfficialTechnicalOnboardingRequestLetter =
+        fieldConfig.name === "file_officialTechnicalOnboardingRequestLetter";
+
+      const isVehicleTypeApprovalTacAnnexureCopy =
+        fieldConfig.name === "file_vehicleTypeApprovalTacAnnexureCopy";
+
+      const isFactoryFitmentDeclaration =
+        fieldConfig.name === "file_factoryFitmentDeclaration";
+
+      const isAffidavitCumUndertakingBackendAccess =
+        fieldConfig.name === "file_affidavitCumUndertakingBackendAccess";
+
+      const isSelfCertifiedIdProofAuthorisedSignatory =
+        fieldConfig.name === "file_selfCertifiedIdProofAuthorisedSignatory";
+
+      const officialTechnicalOnboardingRequestLetterTooltipTitle = (
+        <div style={{ whiteSpace: "pre-line" }}>
+          {"On company letterhead, duly signed by Director / Company Secretary / Partner/ Proprietor/ Authorised Signatory with company seal, clearly mentioning:\n"}
+          {"• Purpose of onboarding\n"}
+          {"• Vehicle model(s) involved\n"}
+          {"• AIS-140 device make & model\n"}
+          {"• Confirmation of factory fitment\n"}
+          {"• Nodal officer details (Name, Designation, Email, Mobile)\n\n"}
+          {"If signed by an officer other than Director/Company Secretary, / Partner/ Proprietor, corporate authorisation proof (Board Resolution extract / authorisation letter) must be enclosed."}
+        </div>
+      );
+
+      const vehicleTypeApprovalTacAnnexureCopyTooltipTitle = (
+        <div style={{ whiteSpace: "pre-line" }}>
+          {"Relevant annexure page showing factory integration of AIS-140 device in approved vehicle configuration.\n"}
+          {"Must be stamped \"Certified True Copy\" and signed by authorised signatory."}
+        </div>
+      );
+
+      const factoryFitmentDeclarationTooltipTitle = (
+        <div style={{ whiteSpace: "pre-line" }}>
+          {"On company letterhead, signed and sealed, confirming:\n"}
+          {"• AIS-140 device model is factory fitted\n"}
+          {"• Installation complies with AIS-140 and CMVR requirements\n"}
+          {"• Proper integration of panic button, power backup and tamper detection\n"}
+          {"• Vehicle Manufacturer assumes responsibility for installation integrity"}
+        </div>
+      );
+
+      const affidavitCumUndertakingBackendAccessTooltipTitle = (
+        <div style={{ whiteSpace: "pre-line" }}>
+          {"To be executed on appropriate stamp paper and notarised as per prescribed format, covering:\n"}
+          {"• Non-blacklisting declaration\n"}
+          {"• Indemnity to Implementation Agency\n"}
+          {"• Confidentiality & Non-disclosure\n"}
+          {"• Data usage restrictions\n"}
+          {"• Cybersecurity compliance\n"}
+          {"• Limited and revocable access acknowledgement"}
+        </div>
+      );
+
+      const selfCertifiedIdProofAuthorisedSignatoryTooltipTitle = "(PAN or Aadhaar)";
+
       return (
         <div style={{ marginTop: "16px" }}>
           <input
@@ -376,23 +443,64 @@ const FormField = ({
             style={{ display: "none" }}
           />
           <label htmlFor={fieldConfig.name}>
-            <Button
-              variant="outlined"
-              component="span"
-              style={{
-                width: "100%",
-                height: "50px",
-                borderRadius: "10px",
-                justifyContent: "flex-start",
-              }}
+            <Tooltip
+              title={
+                isOfficialTechnicalOnboardingRequestLetter
+                  ? officialTechnicalOnboardingRequestLetterTooltipTitle
+                  : isVehicleTypeApprovalTacAnnexureCopy
+                    ? vehicleTypeApprovalTacAnnexureCopyTooltipTitle
+                    : isFactoryFitmentDeclaration
+                      ? factoryFitmentDeclarationTooltipTitle
+                      : isAffidavitCumUndertakingBackendAccess
+                        ? affidavitCumUndertakingBackendAccessTooltipTitle
+                        : isSelfCertifiedIdProofAuthorisedSignatory
+                          ? selfCertifiedIdProofAuthorisedSignatoryTooltipTitle
+                  : ""
+              }
+              arrow
+              placement="top"
+              disableHoverListener={!(
+                isOfficialTechnicalOnboardingRequestLetter ||
+                isVehicleTypeApprovalTacAnnexureCopy ||
+                isFactoryFitmentDeclaration ||
+                isAffidavitCumUndertakingBackendAccess ||
+                isSelfCertifiedIdProofAuthorisedSignatory
+              )}
             >
-              {t(label)}
-              {" : "}
-              <span style={{ color: "#2196f3", fontStyle: "italic" }}>
-                {formik.values[fieldConfig.name]?.name || ""}
-              </span>
-            </Button>
+              <Button
+                variant="outlined"
+                component="span"
+                style={{
+                  width: "100%",
+                  height: "50px",
+                  borderRadius: "10px",
+                  justifyContent: "flex-start",
+                }}
+              >
+                {t(label)}
+                {" : "}
+                <span style={{ color: "#2196f3", fontStyle: "italic" }}>
+                  {formik.values[fieldConfig.name]?.name || ""}
+                </span>
+              </Button>
+            </Tooltip>
           </label>
+          {fieldConfig?.downloadUrl ? (
+            <div style={{ marginTop: "6px" }}>
+              <Button
+                variant="text"
+                size="small"
+                component="a"
+                href={fieldConfig.downloadUrl}
+                download
+                target="_blank"
+                rel="noreferrer"
+                style={{ paddingLeft: 0, textTransform: "none" }}
+              >
+                {t(fieldConfig?.downloadLabel || "Download format")}
+              </Button>
+            </div>
+          ) : null}
           {fieldConfig?.message && <div style={{ fontSize: "12px", color: "gray", marginTop: "4px" }}>
             {t(fieldConfig?.message)}
           </div>}

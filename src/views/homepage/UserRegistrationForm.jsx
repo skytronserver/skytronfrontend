@@ -5,6 +5,10 @@ import {
   Box,
   Button,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   Grid,
   InputLabel,
@@ -56,6 +60,10 @@ const UserRegistrationForm = () => {
     selectedRole === "Vehicle Manufacturer" ||
     selectedRole === "AIS-140 Device Manufacturer";
 
+  const [m2mInitialValuesState, setM2MInitialValuesState] = useState(eSIMInitialValues);
+  const [manufacturerInitialValuesState, setManufacturerInitialValuesState] =
+    useState(manufacturerInitialValues);
+
   const [m2mUpdatedFormFields, setM2MUpdatedFormField] = useState(eSIMFormField);
   const [isM2MFormLoaded, setIsM2MFormLoaded] = useState(false);
 
@@ -99,6 +107,9 @@ const UserRegistrationForm = () => {
   });
   const [schoolDocError, setSchoolDocError] = useState("");
 
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(null);
+
   useEffect(() => {
     let active = true;
     if (!isM2MServiceProvider) {
@@ -113,20 +124,26 @@ const UserRegistrationForm = () => {
       try {
         const stateList = await retriveStateListPub();
         if (!active) return;
+
+        const assamState = Array.isArray(stateList)
+          ? stateList.find((s) => String(s?.label || "").toLowerCase() === "assam")
+          : null;
+
+        setM2MInitialValuesState((prev) => ({
+          ...prev,
+          state: assamState?.value ?? prev.state,
+        }));
+
         setM2MUpdatedFormField((prevConfig) => ({
           ...prevConfig,
-          stateId: {
-            ...prevConfig.stateId,
+          state: {
+            ...prevConfig.state,
             options: [
-              ...(prevConfig?.stateId?.options?.length ? [prevConfig.stateId.options[0]] : []),
-              ...(stateList || []),
-            ].filter(
-              (opt, idx, arr) =>
-                idx ===
-                arr.findIndex(
-                  (x) => String(x?.value ?? "") === String(opt?.value ?? "")
-                )
-            ),
+              ...(assamState?.value
+                ? [{ value: assamState.value, label: assamState.label }]
+                : []),
+              ...prevConfig.state.options,
+            ],
           },
         }));
         setIsM2MFormLoaded(true);
@@ -156,22 +173,50 @@ const UserRegistrationForm = () => {
         const stateList = await retriveStateListPub();
         if (!active) return;
 
-        setManufacturerUpdatedFormField((prevConfig) => ({
-          ...prevConfig,
-          state: {
-            ...prevConfig.state,
-            options: [
-              ...(prevConfig?.state?.options?.length ? [prevConfig.state.options[0]] : []),
-              ...(stateList || []),
-            ].filter(
-              (opt, idx, arr) =>
-                idx ===
-                arr.findIndex(
-                  (x) => String(x?.value ?? "") === String(opt?.value ?? "")
-                )
-            ),
-          },
+        const assamState = Array.isArray(stateList)
+          ? stateList.find((s) => String(s?.label || "").toLowerCase() === "assam")
+          : null;
+
+        let eSimProvider = [];
+        try {
+          eSimProvider = await retriveCreatedSimProviderPub({});
+          if (
+            Array.isArray(eSimProvider) &&
+            eSimProvider.length === 1 &&
+            String(eSimProvider?.[0]?.label || "").toLowerCase().includes("no data")
+          ) {
+            eSimProvider = await retriveCreatedSimProviderPub({ state: "Assam" });
+          }
+        } catch (e) {
+          eSimProvider = [];
+        }
+
+        setManufacturerInitialValuesState((prev) => ({
+          ...prev,
+          state: assamState?.value ?? prev.state,
         }));
+
+        setManufacturerUpdatedFormField((prevConfig) => {
+          const nextConfig = {
+            ...prevConfig,
+            state: {
+              ...prevConfig.state,
+              options: assamState?.value
+                ? [{ value: assamState.value, label: assamState.label }]
+                : prevConfig.state.options,
+            },
+            esimProvider: {
+              ...prevConfig.esimProvider,
+              options: eSimProvider || [],
+            },
+          };
+
+          if (selectedRole === "Vehicle Manufacturer") {
+            delete nextConfig.file_factoryFitmentDeclaration;
+          }
+
+          return nextConfig;
+        });
 
         setIsManufacturerFormLoaded(true);
       } catch (e) {
@@ -183,7 +228,7 @@ const UserRegistrationForm = () => {
     return () => {
       active = false;
     };
-  }, [isManufacturerRole]);
+  }, [isManufacturerRole, selectedRole]);
 
   const m2mValidationSchema = useMemo(() => {
     if (!isM2MServiceProvider) return null;
@@ -244,17 +289,32 @@ const UserRegistrationForm = () => {
 
     try {
       const fd = new FormData();
+      fd.append("role", selectedRole || "");
+      fd.append("status", values?.status || "Pending");
       fd.append("name", values?.name || "");
       fd.append("email", values?.email || "");
       fd.append("mobile", values?.mobile || "");
       fd.append("dob", values?.dob || "");
       fd.append("expirydate", values?.expirydate || "");
       fd.append("company_name", values?.company_name || "");
+      fd.append("company_address", values?.company_address || "");
+      fd.append("company_pin", values?.company_pin || "");
+      fd.append("company_email", values?.company_email || "");
+      fd.append("company_phoneno", values?.company_phoneno || "");
       fd.append("gstnnumber", values?.gstnnumber || "");
+      fd.append("panno", values?.panno || "");
+      fd.append("company_registration_no", values?.company_registration_no || "");
       fd.append("idProofno", values?.idProofno || "");
-      fd.append("stateId", values?.stateId || "");
+      fd.append("state", values?.state || "");
+      fd.append("address", values?.address || "");
+      fd.append("pin", values?.pin || "");
       fd.append("lat", values?.lat || "");
       fd.append("lon", values?.lon || "");
+      fd.append(
+        "notification_settings",
+        values?.notification_settings ? "true" : "false"
+      );
+      fd.append("m2m_reg_certificate_no", values?.m2m_reg_certificate_no || "");
 
       (values?.telecomProviders || []).forEach((p) => {
         if (p !== undefined && p !== null && String(p).trim() !== "") {
@@ -262,11 +322,36 @@ const UserRegistrationForm = () => {
         }
       });
 
-      if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
-      if (values?.file_companRegCertificate)
-        fd.append("file_companRegCertificate", values.file_companRegCertificate);
-      if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
-      if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
+      if (values?.file_officialTechnicalOnboardingRequestLetter)
+        fd.append(
+          "file_officialTechnicalOnboardingRequestLetter",
+          values.file_officialTechnicalOnboardingRequestLetter
+        );
+      if (values?.file_selfCertifiedDotM2mRegistrationCertificate)
+        fd.append(
+          "file_selfCertifiedDotM2mRegistrationCertificate",
+          values.file_selfCertifiedDotM2mRegistrationCertificate
+        );
+      if (values?.file_affidavitCumUndertakingBackendAccess)
+        fd.append(
+          "file_affidavitCumUndertakingBackendAccess",
+          values.file_affidavitCumUndertakingBackendAccess
+        );
+      if (values?.file_selfCertifiedGstRegistrationCertificate)
+        fd.append(
+          "file_selfCertifiedGstRegistrationCertificate",
+          values.file_selfCertifiedGstRegistrationCertificate
+        );
+      if (values?.file_selfCertifiedIdProofAuthorisedSignatory)
+        fd.append(
+          "file_selfCertifiedIdProofAuthorisedSignatory",
+          values.file_selfCertifiedIdProofAuthorisedSignatory
+        );
+      if (values?.file_selfCertifiedCompanyRegistrationCertificateOptional)
+        fd.append(
+          "file_selfCertifiedCompanyRegistrationCertificateOptional",
+          values.file_selfCertifiedCompanyRegistrationCertificateOptional
+        );
 
       const res = await axios.post(API_ENDPOINTS.m2m, fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -295,6 +380,25 @@ const UserRegistrationForm = () => {
     }
   };
 
+  const handleM2MSubmitWithTerms = (values, actions) => {
+    setPendingSubmit(() => () => handleM2MSubmit(values, actions));
+    setTermsOpen(true);
+  };
+
+  const handleTermsCancel = () => {
+    setTermsOpen(false);
+    setPendingSubmit(null);
+  };
+
+  const handleTermsConfirm = async () => {
+    const fn = pendingSubmit;
+    setTermsOpen(false);
+    setPendingSubmit(null);
+    if (typeof fn === "function") {
+      await fn();
+    }
+  };
+
   const handleManufacturerStateChange = (event, formik) => {
     const fieldName = event.target.name;
     if (fieldName !== "state") return;
@@ -302,7 +406,14 @@ const UserRegistrationForm = () => {
     (async () => {
       try {
         const getDetailsOf = { state: event.target.value };
-        const eSimProvider = await retriveCreatedSimProviderPub(getDetailsOf);
+        let eSimProvider = await retriveCreatedSimProviderPub({});
+        if (
+          Array.isArray(eSimProvider) &&
+          eSimProvider.length === 1 &&
+          String(eSimProvider?.[0]?.label || "").toLowerCase().includes("no data")
+        ) {
+          eSimProvider = await retriveCreatedSimProviderPub(getDetailsOf);
+        }
         setManufacturerUpdatedFormField((prevConfig) => ({
           ...prevConfig,
           esimProvider: {
@@ -333,19 +444,53 @@ const UserRegistrationForm = () => {
 
     try {
       const fd = new FormData();
+      fd.append("role", selectedRole || "");
+      fd.append("status", values?.status || "Pending");
       fd.append("name", values?.name || "");
       fd.append("email", values?.email || "");
       fd.append("mobile", values?.mobile || "");
       fd.append("dob", values?.dob || "");
       fd.append("expirydate", values?.expirydate || "");
       fd.append("company_name", values?.company_name || "");
+      fd.append("company_address", values?.company_address || "");
+      fd.append("company_pin", values?.company_pin || "");
+      fd.append("company_email", values?.company_email || "");
+      fd.append("company_phoneno", values?.company_phoneno || "");
       fd.append("gstnnumber", values?.gstnnumber || "");
+      fd.append("panno", values?.panno || "");
+      fd.append("company_registration_no", values?.company_registration_no || "");
       fd.append("idProofno", values?.idProofno || "");
-      fd.append("state", values?.state || "");
-      fd.append("tac", values?.tac || "");
+      const stateRaw = values?.state;
+      let stateId = stateRaw;
+      if (typeof stateRaw === "string") {
+        const trimmed = stateRaw.trim();
+        const asNumber = trimmed !== "" ? Number(trimmed) : NaN;
+        if (!Number.isNaN(asNumber)) {
+          stateId = asNumber;
+        } else {
+          const opt = manufacturerUpdatedFormFields?.state?.options?.find(
+            (o) => String(o?.label || "").toLowerCase() === trimmed.toLowerCase()
+          );
+          if (opt?.value !== undefined && opt?.value !== null && String(opt.value) !== "") {
+            stateId = opt.value;
+          }
+        }
+      }
+      fd.append("state", stateId || "");
+      fd.append("address", values?.address || "");
+      fd.append("pin", values?.pin || "");
+      fd.append("manufacturer_type", values?.manufacturer_type || "");
+      fd.append("tac_no", values?.tac_no || values?.tac || "");
+      fd.append("tac_validity", values?.tac_validity || "");
+      fd.append("cop_no", values?.cop_no || "");
+      fd.append("cop_validity", values?.cop_validity || "");
       fd.append("device_model_details", values?.device_model_details || "");
       fd.append("lat", values?.lat || "");
       fd.append("lon", values?.lon || "");
+      fd.append(
+        "notification_settings",
+        values?.notification_settings ? "true" : "false"
+      );
 
       (values?.esimProvider || []).forEach((id) => {
         if (id !== undefined && id !== null && String(id).trim() !== "") {
@@ -353,12 +498,43 @@ const UserRegistrationForm = () => {
         }
       });
 
-      if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
-      if (values?.file_companRegCertificate)
-        fd.append("file_companRegCertificate", values.file_companRegCertificate);
-      if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
-      if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
-      if (values?.file_affidavitNda) fd.append("file_affidavitNda", values.file_affidavitNda);
+      if (values?.file_officialTechnicalOnboardingRequestLetter)
+        fd.append(
+          "file_officialTechnicalOnboardingRequestLetter",
+          values.file_officialTechnicalOnboardingRequestLetter
+        );
+      if (values?.file_vehicleTypeApprovalTacAnnexureCopy)
+        fd.append(
+          "file_vehicleTypeApprovalTacAnnexureCopy",
+          values.file_vehicleTypeApprovalTacAnnexureCopy
+        );
+      if (values?.file_ais140DeviceTacCopy)
+        fd.append("file_ais140DeviceTacCopy", values.file_ais140DeviceTacCopy);
+      if (
+        selectedRole !== "Vehicle Manufacturer" &&
+        values?.file_factoryFitmentDeclaration
+      )
+        fd.append("file_factoryFitmentDeclaration", values.file_factoryFitmentDeclaration);
+      if (values?.file_affidavitCumUndertakingBackendAccess)
+        fd.append(
+          "file_affidavitCumUndertakingBackendAccess",
+          values.file_affidavitCumUndertakingBackendAccess
+        );
+      if (values?.file_selfCertifiedGstRegistrationCertificate)
+        fd.append(
+          "file_selfCertifiedGstRegistrationCertificate",
+          values.file_selfCertifiedGstRegistrationCertificate
+        );
+      if (values?.file_selfCertifiedIdProofAuthorisedSignatory)
+        fd.append(
+          "file_selfCertifiedIdProofAuthorisedSignatory",
+          values.file_selfCertifiedIdProofAuthorisedSignatory
+        );
+      if (values?.file_selfCertifiedCompanyRegistrationCertificateOptional)
+        fd.append(
+          "file_selfCertifiedCompanyRegistrationCertificateOptional",
+          values.file_selfCertifiedCompanyRegistrationCertificateOptional
+        );
 
       const res = await axios.post(API_ENDPOINTS.manufacturer, fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -385,6 +561,11 @@ const UserRegistrationForm = () => {
       setFormikSubmitting(false);
       setSubmitting(false);
     }
+  };
+
+  const handleManufacturerSubmitWithTerms = (values, actions) => {
+    setPendingSubmit(() => () => handleManufacturerSubmit(values, actions));
+    setTermsOpen(true);
   };
 
   const validatePdfFile = (file) => {
@@ -490,8 +671,7 @@ const UserRegistrationForm = () => {
     setDocumentError("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const doHandleSubmit = async () => {
     setSubmitting(true);
     setErrorMessage("");
     setInfoMessage("");
@@ -650,6 +830,12 @@ const UserRegistrationForm = () => {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setPendingSubmit(() => doHandleSubmit);
+    setTermsOpen(true);
+  };
+
   return (
     <Container sx={{ mt: 4, mb: 4 }}>
       <Grid container spacing={3} justifyContent="center" alignItems="flex-start">
@@ -740,22 +926,33 @@ const UserRegistrationForm = () => {
                 <Box>
                   {isM2MFormLoaded && m2mValidationSchema ? (
                     <Formik
-                      initialValues={eSIMInitialValues}
+                      initialValues={m2mInitialValuesState}
                       validationSchema={m2mValidationSchema}
-                      onSubmit={handleM2MSubmit}
+                      onSubmit={handleM2MSubmitWithTerms}
                       enableReinitialize
                     >
                       {(formik) => (
                         <form onSubmit={formik.handleSubmit}>
                           <Grid container spacing={2} className="form-controller">
-                            {Object.keys(m2mUpdatedFormFields).map((field) => (
-                              <Grid key={field} item md={6} sm={12} xs={12}>
-                                <FormField
-                                  fieldConfig={m2mUpdatedFormFields[field]}
-                                  formik={formik}
-                                />
-                              </Grid>
-                            ))}
+                            {(() => {
+                              const keys = Object.keys(m2mUpdatedFormFields);
+                              const nonFiles = keys.filter(
+                                (k) => m2mUpdatedFormFields?.[k]?.type !== "file"
+                              );
+                              const files = keys.filter(
+                                (k) => m2mUpdatedFormFields?.[k]?.type === "file"
+                              );
+                              return nonFiles
+                                .concat(files)
+                                .map((field) => (
+                                  <Grid key={field} item md={6} sm={12} xs={12}>
+                                    <FormField
+                                      fieldConfig={m2mUpdatedFormFields[field]}
+                                      formik={formik}
+                                    />
+                                  </Grid>
+                                ));
+                            })()}
                             <Grid item xs={12} style={{ marginTop: "20px" }}>
                               <Button
                                 type="submit"
@@ -802,23 +999,46 @@ const UserRegistrationForm = () => {
                 <Box>
                   {isManufacturerFormLoaded && manufacturerValidationSchema ? (
                     <Formik
-                      initialValues={manufacturerInitialValues}
+                      initialValues={manufacturerInitialValuesState}
                       validationSchema={manufacturerValidationSchema}
-                      onSubmit={handleManufacturerSubmit}
+                      onSubmit={handleManufacturerSubmitWithTerms}
                       enableReinitialize
                     >
                       {(formik) => (
                         <form onSubmit={formik.handleSubmit}>
                           <Grid container spacing={2} className="form-controller">
-                            {Object.keys(manufacturerUpdatedFormFields).map((field) => (
-                              <Grid key={field} item md={6} sm={12} xs={12}>
-                                <FormField
-                                  fieldConfig={manufacturerUpdatedFormFields[field]}
-                                  formik={formik}
-                                  handleOptionChange={handleManufacturerStateChange}
-                                />
-                              </Grid>
-                            ))}
+                            {(() => {
+                              const keys = Object.keys(manufacturerUpdatedFormFields);
+                              const nonFiles = keys.filter(
+                                (k) => manufacturerUpdatedFormFields?.[k]?.type !== "file"
+                              );
+                              const files = keys.filter(
+                                (k) => manufacturerUpdatedFormFields?.[k]?.type === "file"
+                              );
+                              const tacValidityRaw = formik?.values?.tac_validity;
+                              const tacDate = tacValidityRaw ? new Date(tacValidityRaw) : null;
+                              const todayDate = new Date(new Date().toISOString().split("T")[0]);
+                              const isTacExpired =
+                                tacDate && !Number.isNaN(tacDate.getTime())
+                                  ? tacDate.getTime() < todayDate.getTime()
+                                  : false;
+                              const shouldHideCop = !isTacExpired;
+                              const hiddenKeys = shouldHideCop
+                                ? new Set(["cop_no", "cop_validity"])
+                                : new Set();
+                              return nonFiles
+                                .concat(files)
+                                .filter((field) => !hiddenKeys.has(field))
+                                .map((field) => (
+                                  <Grid key={field} item md={6} sm={12} xs={12}>
+                                    <FormField
+                                      fieldConfig={manufacturerUpdatedFormFields[field]}
+                                      formik={formik}
+                                      handleOptionChange={handleManufacturerStateChange}
+                                    />
+                                  </Grid>
+                                ));
+                            })()}
                             <Grid item xs={12} style={{ marginTop: "20px" }}>
                               <Button
                                 type="submit"
@@ -1343,6 +1563,34 @@ const UserRegistrationForm = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      <Dialog open={termsOpen} onClose={handleTermsCancel} maxWidth="sm" fullWidth>
+        <DialogTitle>Terms and Conditions</DialogTitle>
+        <DialogContent dividers>
+          <Box component="ol" sx={{ pl: 2, mb: 0 }}>
+            <li>
+              Submission of documents does not automatically guarantee backend access.
+            </li>
+            <li>
+              Implementation Agency reserves the right to verify submitted documents with issuing authorities.
+            </li>
+            <li>
+              Implementation Agency may conduct technical compatibility evaluation prior to granting access.
+            </li>
+            <li>
+              Backend access, if granted, shall be role-based, limited, and revocable at sole discretion of the Implementation Agency.
+            </li>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleTermsCancel} variant="outlined">
+            Cancel
+          </Button>
+          <Button onClick={handleTermsConfirm} variant="contained">
+            I Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
