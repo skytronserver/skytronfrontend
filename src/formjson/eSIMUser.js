@@ -20,34 +20,40 @@ const SUPPORTED_FORMATS = [
 const today = new Date().toISOString().split('T')[0];
 export const eSIMInitialValues = {
   name: "",
-  mobile: "",
   email: "",
-  company_name: "",
+  mobile: "",
   dob: "",
-  status: "Pending",
-  expirydate: formattedDate,
+  idProofno: "",
+  address: "",
+  pin: "",
+  state: '',
+
+  company_name: "",
+  company_email: "",
+  company_phoneno: "",
+  company_address: "",
+  company_pin: "",
+  lat: "",
+  lon: "",
+
   gstnnumber: "",
   panno: "",
   company_registration_no: "",
-  idProofno: "",
-  state: '',
-  address: "",
-  pin: "",
+
   telecomProviders: [],
-  company_address: "",
-  company_pin: "",
-  company_email: "",
-  company_phoneno: "",
   m2m_reg_certificate_no: "",
-  file_authLetter: null,
-  file_officialTechnicalOnboardingRequestLetter: null,
-  file_selfCertifiedDotM2mRegistrationCertificate: null,
-  file_affidavitCumUndertakingBackendAccess: null,
-  file_selfCertifiedGstRegistrationCertificate: null,
+
   file_selfCertifiedIdProofAuthorisedSignatory: null,
+  file_authLetter: null,
+  file_selfCertifiedPanCard: null,
+  file_selfCertifiedGstRegistrationCertificate: null,
   file_selfCertifiedCompanyRegistrationCertificateOptional: null,
-  lat: "",
-  lon: "",
+  file_officialTechnicalOnboardingRequestLetter: null,
+  file_affidavitCumUndertakingBackendAccess: null,
+  file_selfCertifiedDotM2mRegistrationCertificate: null,
+
+  status: "Pending",
+  expirydate: formattedDate,
 };
 
 export const eSIMFormField = {
@@ -76,13 +82,11 @@ export const eSIMFormField = {
     validation: Yup.date().required("esimUser.form.validation.dob_required"),
     maxDate: today
   },
-  expirydate: {
-    name: "expirydate",
-    type: "date",
-    label: "esimUser.form.fields.expiry_date",
-    validation: Yup.date().required("esimUser.form.validation.expiry_date_required"),
-    minDate: today,
-    disabled: true
+  idProofno: {
+    name: "idProofno",
+    type: "text",
+    label: "esimUser.form.fields.id_proof_number",
+    validation: Yup.string().min(5, "esimUser.form.validation.id_proof_min_length").required("esimUser.form.validation.id_proof_required"),
   },
   address: {
     name: "address",
@@ -98,29 +102,19 @@ export const eSIMFormField = {
       .matches(/^\d{6}$/, "PIN Code must be 6 digits")
       .required("PIN Code is required"),
   },
-  idProofno: {
-    name: "idProofno",
-    type: "text",
-    label: "esimUser.form.fields.id_proof_number",
-    validation: Yup.string().min(5, "esimUser.form.validation.id_proof_min_length").required("esimUser.form.validation.id_proof_required"),
+  state: {
+    name: "state",
+    type: "select",
+    label: "esimUser.form.fields.state",
+    validation: Yup.string().required("esimUser.form.validation.state_required"),
+    options: stateList,
   },
+
   company_name: {
     name: "company_name",
     type: "text",
     label: "esimUser.form.fields.company_name",
     validation: Yup.string().required("esimUser.form.validation.company_name_required"),
-  },
-  company_address: {
-    name: "company_address",
-    type: "text",
-    label: "Company Address",
-    validation: Yup.string().required("Company Address is required"),
-  },
-  company_pin: {
-    name: "company_pin",
-    type: "text",
-    label: "Company PIN",
-    validation: Yup.string().matches(/^\d{6}$/, "Please enter a valid 6-digit PIN").required("Company PIN is required"),
   },
   company_email: {
     name: "company_email",
@@ -134,10 +128,40 @@ export const eSIMFormField = {
     label: "Company Phone No",
     validation: Yup.string().matches(/^\d{10}$/, "Please enter a valid 10-digit phone number").required("Company Phone No is required"),
   },
+  company_address: {
+    name: "company_address",
+    type: "text",
+    label: "Company Address",
+    validation: Yup.string().required("Company Address is required"),
+  },
+  company_pin: {
+    name: "company_pin",
+    type: "text",
+    label: "Company PIN",
+    validation: Yup.string().matches(/^\d{6}$/, "Please enter a valid 6-digit PIN").required("Company PIN is required"),
+  },
+  lat: {
+    name: "lat",
+    type: "number",
+    label: "Latitude",
+    validation: Yup.number()
+      .typeError("Latitude must be a number")
+      .nullable(),
+  },
+  lon: {
+    name: "lon",
+    type: "number",
+    label: "Longitude",
+    gridHidden: true,
+    validation: Yup.number()
+      .typeError("Longitude must be a number")
+      .nullable(),
+  },
+
   gstnnumber: {
     name: "gstnnumber",
     type: "text",
-    label: "esimUser.form.fields.gst_no",
+    label: "Company GST No",
     validation: Yup.string()
       .matches(
         /^([0][1-9]|[1-2][0-9]|[3][0-7])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$/,
@@ -155,15 +179,9 @@ export const eSIMFormField = {
     name: "company_registration_no",
     type: "text",
     label: "Company Registration No",
-    validation: Yup.string().required("Company Registration No is required"),
+    validation: Yup.string().notRequired(), // Made optional as requested
   },
-  state: {
-    name: "state",
-    type: "select",
-    label: "esimUser.form.fields.state",
-    validation: Yup.string().required("esimUser.form.validation.state_required"),
-    options: stateList,
-  },
+
   telecomProviders: {
     name: "telecomProviders",
     type: "multiselect",
@@ -180,8 +198,22 @@ export const eSIMFormField = {
     validation: Yup.string().required("M2M Registration Certificate No is required"),
   },
 
-  file_authLetter:{
-    name:"file_authLetter",
+  file_selfCertifiedIdProofAuthorisedSignatory: {
+    name: "file_selfCertifiedIdProofAuthorisedSignatory",
+    type: "file",
+    label: "Self-Certified ID Proof of Authorised Signatory",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Self-Certified ID Proof of Authorised Signatory is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
+  },
+  file_authLetter: {
+    name: "file_authLetter",
     type: "file",
     label: "Authorization Letter",
     message: "esimUser.form.validation.file_restrictions",
@@ -196,41 +228,12 @@ export const eSIMFormField = {
         return SUPPORTED_FORMATS.includes(value.type);
       }),
   },
-
-  file_officialTechnicalOnboardingRequestLetter: {
-    name: "file_officialTechnicalOnboardingRequestLetter",
+  file_selfCertifiedPanCard: {
+    name: "file_selfCertifiedPanCard",
     type: "file",
-    label: "Official Technical Onboarding Request Letter",
+    label: "Self-Certified PAN Card",
     message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
-        if (!value) return false;
-        return SUPPORTED_FORMATS.includes(value.type);
-      }),
-  },
-  file_selfCertifiedDotM2mRegistrationCertificate: {
-    name: "file_selfCertifiedDotM2mRegistrationCertificate",
-    type: "file",
-    label: "Self-Certified DoT M2M Registration Certificate",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified DoT M2M Registration Certificate is required").test("fileSize", "esimUser.form.validation.file_size", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
-        if (!value) return false;
-        return SUPPORTED_FORMATS.includes(value.type);
-      }),
-  },
-  file_affidavitCumUndertakingBackendAccess: {
-    name: "file_affidavitCumUndertakingBackendAccess",
-    type: "file",
-    label: "Affidavit-cum-Undertaking for Skytron Backend Access",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    validation: Yup.mixed().required("Self-Certified PAN Card is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
@@ -253,20 +256,6 @@ export const eSIMFormField = {
         return SUPPORTED_FORMATS.includes(value.type);
       }),
   },
-  file_selfCertifiedIdProofAuthorisedSignatory: {
-    name: "file_selfCertifiedIdProofAuthorisedSignatory",
-    type: "file",
-    label: "Self-Certified ID Proof of Authorised Signatory",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified ID Proof of Authorised Signatory is required").test("fileSize", "esimUser.form.validation.file_size", value => {
-      if (!value) return false;
-      return value.size <= FILE_SIZE;
-    })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
-        if (!value) return false;
-        return SUPPORTED_FORMATS.includes(value.type);
-      }),
-  },
   file_selfCertifiedCompanyRegistrationCertificateOptional: {
     name: "file_selfCertifiedCompanyRegistrationCertificateOptional",
     type: "file",
@@ -281,20 +270,46 @@ export const eSIMFormField = {
         return SUPPORTED_FORMATS.includes(value.type);
       }),
   },
-  lat: {
-    name: "lat",
-    type: "number",
-    label: "Latitude",
-    validation: Yup.number()
-      .typeError("Latitude must be a number")
-      .nullable(),
+  file_officialTechnicalOnboardingRequestLetter: {
+    name: "file_officialTechnicalOnboardingRequestLetter",
+    type: "file",
+    label: "Official Technical Onboarding Request Letter",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
-  lon: {
-    name: "lon",
-    type: "number",
-    label: "Longitude",
-    validation: Yup.number()
-      .typeError("Longitude must be a number")
-      .nullable(),
+  file_affidavitCumUndertakingBackendAccess: {
+    name: "file_affidavitCumUndertakingBackendAccess",
+    type: "file",
+    label: "Affidavit-cum-Undertaking for Skytron Backend Access",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
+  },
+  file_selfCertifiedDotM2mRegistrationCertificate: {
+    name: "file_selfCertifiedDotM2mRegistrationCertificate",
+    type: "file",
+    label: "Self-Certified DoT M2M Registration Certificate",
+    message: "esimUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Self-Certified DoT M2M Registration Certificate is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
 };

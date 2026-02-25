@@ -196,6 +196,11 @@ const UserRegistrationForm = () => {
         setManufacturerInitialValuesState((prev) => ({
           ...prev,
           state: assamState?.value ?? prev.state,
+          manufacturer_type: selectedRole === "Vehicle Manufacturer"
+            ? "Vehicle manufacturer"
+            : selectedRole === "AIS-140 Device Manufacturer"
+              ? "Device manufacturer"
+              : prev.manufacturer_type,
         }));
 
         setManufacturerUpdatedFormField((prevConfig) => {
@@ -211,6 +216,19 @@ const UserRegistrationForm = () => {
               ...prevConfig.esimProvider,
               options: eSimProvider || [],
             },
+            manufacturer_type: {
+              ...prevConfig.manufacturer_type,
+              disabled: selectedRole === "Vehicle Manufacturer" || selectedRole === "AIS-140 Device Manufacturer",
+              options: selectedRole === "Vehicle Manufacturer"
+                ? [
+                  { label: "Vehicle manufacturer", value: "Vehicle manufacturer" }
+                ]
+                : selectedRole === "AIS-140 Device Manufacturer"
+                  ? [
+                    { label: "Device manufacturer", value: "Device manufacturer" }
+                  ]
+                  : prevConfig.manufacturer_type?.options || []
+            }
           };
 
           if (selectedRole === "Vehicle Manufacturer") {
@@ -346,6 +364,8 @@ const UserRegistrationForm = () => {
         fd.append("file_GSTCertificate", values.file_selfCertifiedGstRegistrationCertificate);
       if (values?.file_selfCertifiedIdProofAuthorisedSignatory)
         fd.append("file_idProof", values.file_selfCertifiedIdProofAuthorisedSignatory);
+      if (values?.file_selfCertifiedPanCard)
+        fd.append("file_pan", values.file_selfCertifiedPanCard);
       if (values?.file_selfCertifiedCompanyRegistrationCertificateOptional)
         fd.append(
           "file_companRegCertificate",
@@ -889,14 +909,18 @@ const UserRegistrationForm = () => {
                             return (
                               <>
                                 {/* ── Text / select fields ── */}
-                                {nonFiles.map((field) => (
-                                  <Grid key={field} item md={6} sm={12} xs={12}>
-                                    <FormField
-                                      fieldConfig={m2mUpdatedFormFields[field]}
-                                      formik={formik}
-                                    />
-                                  </Grid>
-                                ))}
+                                {nonFiles.map((field) => {
+                                  const cfg = m2mUpdatedFormFields[field];
+                                  if (cfg?.gridHidden) return null;
+                                  return (
+                                    <Grid key={field} item xs={12} md={cfg?.gridFull ? 12 : 6} sm={12}>
+                                      <FormField
+                                        fieldConfig={cfg}
+                                        formik={formik}
+                                      />
+                                    </Grid>
+                                  );
+                                })}
 
                                 {/* ── Document uploads section ── */}
                                 {files.length > 0 && (
@@ -1006,15 +1030,19 @@ const UserRegistrationForm = () => {
                             return (
                               <>
                                 {/* ── Text / select fields ── */}
-                                {visibleNonFiles.map((field) => (
-                                  <Grid key={field} item md={6} sm={12} xs={12}>
-                                    <FormField
-                                      fieldConfig={manufacturerUpdatedFormFields[field]}
-                                      formik={formik}
-                                      handleOptionChange={handleManufacturerStateChange}
-                                    />
-                                  </Grid>
-                                ))}
+                                {visibleNonFiles.map((field) => {
+                                  const cfg = manufacturerUpdatedFormFields[field];
+                                  if (cfg?.gridHidden) return null;
+                                  return (
+                                    <Grid key={field} item xs={12} md={cfg?.gridFull ? 12 : 6} sm={12}>
+                                      <FormField
+                                        fieldConfig={cfg}
+                                        formik={formik}
+                                        handleOptionChange={handleManufacturerStateChange}
+                                      />
+                                    </Grid>
+                                  );
+                                })}
 
                                 {/* ── Document uploads section ── */}
                                 {visibleFiles.length > 0 && (

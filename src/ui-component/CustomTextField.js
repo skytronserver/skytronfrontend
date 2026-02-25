@@ -92,22 +92,24 @@ const FormField = ({
       );
     case "number": {
       const isLatField = fieldConfig.name === "lat";
+      const isLonField = fieldConfig.name === "lon";
+
+      // lon field is rendered inside the lat combined box — skip standalone render
+      if (isLonField) {
+        return null;
+      }
 
       const handleUseMyLocation = () => {
         if (!navigator.geolocation) {
-          // Geolocation not supported; do nothing for now
           return;
         }
-
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
             formik.setFieldValue("lat", latitude);
             formik.setFieldValue("lon", longitude);
           },
-          () => {
-            // Permission denied or error; silently ignore for now
-          }
+          () => { }
         );
       };
 
@@ -116,7 +118,6 @@ const FormField = ({
           label={t(label)}
           variant="outlined"
           fullWidth
-          margin="normal"
           type="number"
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
@@ -135,19 +136,82 @@ const FormField = ({
       );
 
       if (!isLatField) {
-        return numberField;
+        return (
+          <TextField
+            label={t(label)}
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="number"
+            disabled={disabled ? true : false}
+            {...formik.getFieldProps(fieldConfig.name)}
+            error={
+              formik.touched[fieldConfig.name] &&
+              Boolean(formik.errors[fieldConfig.name])
+            }
+            helperText={
+              formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
+            }
+            onChange={(e) => {
+              const value = e.target.value;
+              formik.setFieldValue(fieldConfig.name, value);
+            }}
+          />
+        );
       }
 
+      // Combined Lat + Lon + Button — inline, no extra wrapper box
       return (
-        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-          <div style={{ flex: 1 }}>{numberField}</div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "16px",
+          }}
+        >
+          {/* Latitude */}
+          <TextField
+            label={t("Latitude")}
+            variant="outlined"
+            size="small"
+            type="number"
+            disabled={disabled ? true : false}
+            {...formik.getFieldProps("lat")}
+            error={formik.touched["lat"] && Boolean(formik.errors["lat"])}
+            helperText={formik.touched["lat"] && t(formik.errors["lat"])}
+            onChange={(e) => formik.setFieldValue("lat", e.target.value)}
+            style={{ flex: 1 }}
+          />
+
+          {/* Longitude */}
+          <TextField
+            label={t("Longitude")}
+            variant="outlined"
+            size="small"
+            type="number"
+            disabled={disabled ? true : false}
+            {...formik.getFieldProps("lon")}
+            error={formik.touched["lon"] && Boolean(formik.errors["lon"])}
+            helperText={formik.touched["lon"] && t(formik.errors["lon"])}
+            onChange={(e) => formik.setFieldValue("lon", e.target.value)}
+            style={{ flex: 1 }}
+          />
+
+          {/* Use My Location button */}
           <Button
             variant="outlined"
             size="small"
             onClick={handleUseMyLocation}
-            style={{ marginTop: "24px", whiteSpace: "nowrap" }}
+            style={{
+              whiteSpace: "nowrap",
+              height: "40px",
+              borderColor: "#1976d2",
+              color: "#1976d2",
+              flexShrink: 0,
+            }}
           >
-            {t("Use my location")}
+            {t("Use My Location")}
           </Button>
         </div>
       );
@@ -455,7 +519,7 @@ const FormField = ({
                         ? affidavitCumUndertakingBackendAccessTooltipTitle
                         : isSelfCertifiedIdProofAuthorisedSignatory
                           ? selfCertifiedIdProofAuthorisedSignatoryTooltipTitle
-                  : ""
+                          : ""
               }
               arrow
               placement="top"

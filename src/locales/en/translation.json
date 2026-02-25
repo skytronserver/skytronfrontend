@@ -1,104 +1,73 @@
 {
   "common": {
-
-     "mapPolicyHeading": "Map Data & Update Policy",
-     "purpose": " Purpose",
-      "purposeLine1": " This Map Data & Update Policy defines the governance, usage, and update mechanism for GIS map data used within the SkyTron AIS-140 Vehicle Location Tracking Platform, in compliance with applicable AIS-140 Functional Requirements and Survey of India guidelines",
-      "purposeLine2": " All map services and datasets are hosted and accessed within India on Government infrastructure and are available for audit by notified agencies.",
-      "mapUsage": "Map Usage",
-     
-  "mapUsageHeading": "Map services within SkyTron are used exclusively for:",
-"mapUsageHeading2": "Map data is used strictly within the SkyTron platform and is not extracted, redistributed, or used for unauthorised purposes.",
-  "mapUsagePoint1": "Real-time and historical vehicle location tracking",
-  "mapUsagePoint2": "Fleet and operational monitoring",
-  "mapUsagePoint3": "Incident and emergency response",
-  "mapUsagePoint4": "Geofencing, alerts, and spatial analytics",
-  "mapUsagePoint5": "Regulatory reporting and monitoring under AIS-140",
-  "mapDataUpdates" : "Map Data Updates",
- 
-  "mapDataUpdatesHeading1": "Map data updates within SkyTron follow this policy:",
-
-  "mapDataUpdatesPoint1": "Survey of India vector datasets are updated as and when revised versions are released by Survey of India or authorised Government agencies.",
-  "mapDataUpdatesPoint2": "State-specific GIS layers received from the State Data Centre / line departments are updated periodically based on official notifications.",
-  "mapDataUpdatesPoint3": "Bhuvan base maps and satellite imagery are maintained and updated by NRSC as per Government of India policy.",
-   "mapDataUpdatesHeading2":"As a policy, map datasets are reviewed and refreshed at least once every six (6) months, or earlier if updated datasets are officially made available.",
-
-  "mapDataUpdatesHeading3":"All updates are version-controlled and logged within the SkyTron GIS platform.",
-"compliance$Governance": "Compliance & Governance",
-"compliance$GovernanceHeading1": "The following compliance and governance principles apply:",
-  "compliance$GovernancePoint1": "The map platform complies with Survey of India guidelines and applicable Ministry of Defence geospatial regulations",
-"compliance$GovernancePoint2":"No foreign or unauthorised map services are used.",
-"compliance$GovernancePoint3":"Map services are integrated as part of the backend-controlled GIS architecture and are subject to access control and audit",
-"policyReveiw": "Policy Review",
-"policyReveiwHeading": "This policy is reviewed periodically and may be updated to reflect:",
-"policyReveiwPoint1": "Changes in AIS-140 requirements",
-"policyReveiwPoint2": "Updates in Government GIS data policies",
-"policyReveiwPoint3": "Enhancements to the SkyTron platform",
-
-"helpHeading":"Help & Data Exploration Guide",
-"helpIntro":"This application is designed to help you quickly drill down and search through large amounts of tracking and reporting data. You can filter information by time periods and other criteria that you define, so you always see only the data that is relevant to you.",
-     
-  "searchingByTimePeriods": "searchingByTimePeriods",
-  "searchingByTimePeriodsDescription": "Most data pages let you narrow results using date and time filters. Typical options include:",
-
-  "searchingByTimePeriodsPoint1": "Selecting a single date (e.g., \"Today\", \"Yesterday\").",
-  "searchingByTimePeriodsPoint2": "Selecting a date range (e.g., \"From\" and \"To\" dates).",
-  "searchingByTimePeriodsPoint3": "In some cases, choosing a specific time window within a day.",
-
-  "searchingByTimePeriodsDescription2": "To drill down by time:",
-
-  "searchingByTimePeriodsStep1": "Open the relevant page (for example, Live Tracking or the desired report).",
-  "searchingByTimePeriodsStep2": "Use the date/time controls to choose the period you are interested in.",
-  "searchingByTimePeriodsStep3": "Click the search or apply button to refresh the data for that time range.",
- "filteringByOtherCriteria": "Filtering by Other Criteria",
- 
-
-  "filteringByOtherCriteriaDescription": "In addition to time, you can filter data using other fields depending on the page, such as:",
-
-  "filteringByOtherCriteriaPoint1": "Vehicle registration number or IMEI",
-  "filteringByOtherCriteriaPoint2": "Vehicle owner or category",
-  "filteringByOtherCriteriaPoint3": "POI (Point of Interest), roads, or polygon/area selections",
-  "filteringByOtherCriteriaPoint4": "Alert types or status (e.g., moving, idle, offline)",
-
-  "filteringByOtherCriteriaStepsHeading": "To refine results:",
-
-  "filteringByOtherCriteriaStep1": "Enter one or more filter values in the search fields (for example, vehicle number or owner name)",
-  "filteringByOtherCriteriaStep2": "Combine filters with the time period to focus on a very specific subset of data",
-  "filteringByOtherCriteriaStep3": "Apply the filters and review the updated table or map view",
-  "usingAdvancedFilters": "Using Advanced Filters",
-  
-
-  "advancedFiltersDescription": "Some pages provide additional \"Advanced\" filters that can be shown or hidden. Use these when you need to:",
-
-  "advancedFiltersPoint1": "Search within a particular POI, road, or custom polygon area",
-  "advancedFiltersPoint2": "Limit results to certain alert conditions or operational states",
-
-  "advancedFiltersInstruction": "If available, click the filter icon or toggle button to reveal more fields, then fill them as needed before running your search",
-"interpretingResults": "Interpreting Results",
-
-  
-
-  "interpretingResultsDescription": "After you search or filter, results are usually shown in one or more of the following views:",
-
-  "interpretingResultsTable": "Tables: Each row represents a record (for example, a vehicle, data packet, or alert). You can scroll vertically to review all results.",
-
-  "interpretingResultsMap": "Maps: Markers and shapes represent vehicles, POIs, or regions. Zoom and pan to explore specific areas, and click on markers for detailed information.",
-"tipsForEffectiveSearching": "Tips for Effective Searching",
- "searchTipsPoint1": "Start with a broader time range, then narrow it down if there are too many results.",
-
-  "searchTipsPoint2": "Use a combination of fields (e.g. date range + vehicle number) to focus on the data you need.",
-
-  "searchTipsPoint3": "If you see no results, clear some filters or extend the time period and try again.",
-
-  "needMoreHelpHeading": "Need More Help?",
-"needMoreHelpDescription": "If you still have any questions about searching, filtering, or understanding the data, please contact our system administrator or support team for further assistance.",
-
-
-  "welcome": "Welcome back",
+    "mapPolicyHeading": "Map Data & Update Policy",
+    "purpose": " Purpose",
+    "purposeLine1": " This Map Data & Update Policy defines the governance, usage, and update mechanism for GIS map data used within the SkyTron AIS-140 Vehicle Location Tracking Platform, in compliance with applicable AIS-140 Functional Requirements and Survey of India guidelines",
+    "purposeLine2": " All map services and datasets are hosted and accessed within India on Government infrastructure and are available for audit by notified agencies.",
+    "mapUsage": "Map Usage",
+    "mapUsageHeading": "Map services within SkyTron are used exclusively for:",
+    "mapUsageHeading2": "Map data is used strictly within the SkyTron platform and is not extracted, redistributed, or used for unauthorised purposes.",
+    "mapUsagePoint1": "Real-time and historical vehicle location tracking",
+    "mapUsagePoint2": "Fleet and operational monitoring",
+    "mapUsagePoint3": "Incident and emergency response",
+    "mapUsagePoint4": "Geofencing, alerts, and spatial analytics",
+    "mapUsagePoint5": "Regulatory reporting and monitoring under AIS-140",
+    "mapDataUpdates": "Map Data Updates",
+    "mapDataUpdatesHeading1": "Map data updates within SkyTron follow this policy:",
+    "mapDataUpdatesPoint1": "Survey of India vector datasets are updated as and when revised versions are released by Survey of India or authorised Government agencies.",
+    "mapDataUpdatesPoint2": "State-specific GIS layers received from the State Data Centre / line departments are updated periodically based on official notifications.",
+    "mapDataUpdatesPoint3": "Bhuvan base maps and satellite imagery are maintained and updated by NRSC as per Government of India policy.",
+    "mapDataUpdatesHeading2": "As a policy, map datasets are reviewed and refreshed at least once every six (6) months, or earlier if updated datasets are officially made available.",
+    "mapDataUpdatesHeading3": "All updates are version-controlled and logged within the SkyTron GIS platform.",
+    "compliance$Governance": "Compliance & Governance",
+    "compliance$GovernanceHeading1": "The following compliance and governance principles apply:",
+    "compliance$GovernancePoint1": "The map platform complies with Survey of India guidelines and applicable Ministry of Defence geospatial regulations",
+    "compliance$GovernancePoint2": "No foreign or unauthorised map services are used.",
+    "compliance$GovernancePoint3": "Map services are integrated as part of the backend-controlled GIS architecture and are subject to access control and audit",
+    "policyReveiw": "Policy Review",
+    "policyReveiwHeading": "This policy is reviewed periodically and may be updated to reflect:",
+    "policyReveiwPoint1": "Changes in AIS-140 requirements",
+    "policyReveiwPoint2": "Updates in Government GIS data policies",
+    "policyReveiwPoint3": "Enhancements to the SkyTron platform",
+    "helpHeading": "Help & Data Exploration Guide",
+    "helpIntro": "This application is designed to help you quickly drill down and search through large amounts of tracking and reporting data. You can filter information by time periods and other criteria that you define, so you always see only the data that is relevant to you.",
+    "searchingByTimePeriods": "searchingByTimePeriods",
+    "searchingByTimePeriodsDescription": "Most data pages let you narrow results using date and time filters. Typical options include:",
+    "searchingByTimePeriodsPoint1": "Selecting a single date (e.g., \"Today\", \"Yesterday\").",
+    "searchingByTimePeriodsPoint2": "Selecting a date range (e.g., \"From\" and \"To\" dates).",
+    "searchingByTimePeriodsPoint3": "In some cases, choosing a specific time window within a day.",
+    "searchingByTimePeriodsDescription2": "To drill down by time:",
+    "searchingByTimePeriodsStep1": "Open the relevant page (for example, Live Tracking or the desired report).",
+    "searchingByTimePeriodsStep2": "Use the date/time controls to choose the period you are interested in.",
+    "searchingByTimePeriodsStep3": "Click the search or apply button to refresh the data for that time range.",
+    "filteringByOtherCriteria": "Filtering by Other Criteria",
+    "filteringByOtherCriteriaDescription": "In addition to time, you can filter data using other fields depending on the page, such as:",
+    "filteringByOtherCriteriaPoint1": "Vehicle registration number or IMEI",
+    "filteringByOtherCriteriaPoint2": "Vehicle owner or category",
+    "filteringByOtherCriteriaPoint3": "POI (Point of Interest), roads, or polygon/area selections",
+    "filteringByOtherCriteriaPoint4": "Alert types or status (e.g., moving, idle, offline)",
+    "filteringByOtherCriteriaStepsHeading": "To refine results:",
+    "filteringByOtherCriteriaStep1": "Enter one or more filter values in the search fields (for example, vehicle number or owner name)",
+    "filteringByOtherCriteriaStep2": "Combine filters with the time period to focus on a very specific subset of data",
+    "filteringByOtherCriteriaStep3": "Apply the filters and review the updated table or map view",
+    "usingAdvancedFilters": "Using Advanced Filters",
+    "advancedFiltersDescription": "Some pages provide additional \"Advanced\" filters that can be shown or hidden. Use these when you need to:",
+    "advancedFiltersPoint1": "Search within a particular POI, road, or custom polygon area",
+    "advancedFiltersPoint2": "Limit results to certain alert conditions or operational states",
+    "advancedFiltersInstruction": "If available, click the filter icon or toggle button to reveal more fields, then fill them as needed before running your search",
+    "interpretingResults": "Interpreting Results",
+    "interpretingResultsDescription": "After you search or filter, results are usually shown in one or more of the following views:",
+    "interpretingResultsTable": "Tables: Each row represents a record (for example, a vehicle, data packet, or alert). You can scroll vertically to review all results.",
+    "interpretingResultsMap": "Maps: Markers and shapes represent vehicles, POIs, or regions. Zoom and pan to explore specific areas, and click on markers for detailed information.",
+    "tipsForEffectiveSearching": "Tips for Effective Searching",
+    "searchTipsPoint1": "Start with a broader time range, then narrow it down if there are too many results.",
+    "searchTipsPoint2": "Use a combination of fields (e.g. date range + vehicle number) to focus on the data you need.",
+    "searchTipsPoint3": "If you see no results, clear some filters or extend the time period and try again.",
+    "needMoreHelpHeading": "Need More Help?",
+    "needMoreHelpDescription": "If you still have any questions about searching, filtering, or understanding the data, please contact our system administrator or support team for further assistance.",
+    "welcome": "Welcome back",
     "help": "Help",
-   "mapPolicy": "Map Policy",
-   
-
+    "mapPolicy": "Map Policy",
     "logout": "Logout",
     "dashboard": "Dashboard",
     "users": "Users",
@@ -439,29 +408,21 @@
       "defaultStatus": "Default Status"
     }
   },
-
-  
-    "Super Admin Dashboard": {
+  "Super Admin Dashboard": {
     "title": "Super Admin Dashboard"
   },
-
-"Transport Dashboard": {
+  "Transport Dashboard": {
     "title": "Transport Dashboard"
   },
-
-"Public Safety Dashboard": {
+  "Public Safety Dashboard": {
     "title": "Public Safety Dashboard"
   },
-
   "SOS Dashboard": {
     "title": "SOS Dashboard"
   },
-
-  
-    "MoRTH Dashboard": {
+  "MoRTH Dashboard": {
     "title": "MoRTH Dashboard"
   },
-
   "routeFixing": {
     "title": "Route Fixing",
     "selectVehicle": "Select Vehicle Registration No",
@@ -525,7 +486,6 @@
     "busassignment": "Bus Assignment",
     "Profilemanagement": "Profile Management",
     "parenttracking": "Parent tracking",
-
     "activation": "Pending eSIM activation request ",
     "rejected": "Rejected requests",
     "accepted": "Accepted requests",
@@ -712,7 +672,7 @@
       "success": "Form Submitted Successfully",
       "error": "Form Not Submitted",
       "fields": {
-        "state": "Select State",
+        "state": "Applicant State",
         "name": "Applicant Name",
         "email": "Applicant Email",
         "mobile": "Applicant Mobile Number",
@@ -772,7 +732,6 @@
         "gst_certificate": "Upload GST Certificate",
         "id_proof": "Upload User ID Proof"
       },
-      
       "validation": {
         "state_required": "State is required",
         "name_required": "Name is required",
@@ -797,10 +756,8 @@
       }
     }
   },
-  
   "systemAdmin": {
     "createTitle": "Create System Admin",
-
     "fields": {
       "name": "User Name",
       "email": "User Email",
@@ -809,7 +766,6 @@
       "lat": "Latitude",
       "lon": "Longitude"
     },
-
     "validation": {
       "nameRequired": "Name is required",
       "emailRequired": "Email is required",
@@ -819,17 +775,11 @@
       "dobRequired": "Date of birth is required"
     }
   },
-
   "form": {
     "submit": "Submit",
     "success": "Saved successfully",
     "error": "Something went wrong"
   },
-
-
-   
-  
-      
   "deviceForm": {
     "deviceDetails": "Device Details",
     "fields": {

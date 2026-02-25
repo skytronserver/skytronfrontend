@@ -123,7 +123,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               {t('common.home')}
             </Button>
 
-            {/* Dashboards Dropdown */}
+            {/* Dashboards Dropdown
             <Button
               color="inherit"
               startIcon={<DashboardIcon />}
@@ -154,7 +154,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                 SOS Analytics
               </MenuItem>
 
-            </Menu>
+            </Menu> */}
 
             {/* Important Links Dropdown */}
             <Button
