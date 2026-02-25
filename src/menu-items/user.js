@@ -388,6 +388,15 @@ const user = {
       breadcrumbs: false,
       roles: ["devicemanufacture"],
     },
+    {
+      id: "manufacturer-technical-onboarding-create",
+      title: "Technical Onboarding",
+      type: "item",
+      url: "/manufacturer/technical-onboarding/create",
+      icon: icons.IconChecks,
+      breadcrumbs: false,
+      roles: ["devicemanufacture"],
+    },
     // {
     //   id: "accessory-management",
     //   title: "Accessory Management",

@@ -51,23 +51,35 @@ const stateadminApprovedModels=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/stateadmin/reports/approved-models/',data)
 }
+
 const stateadminApprovedCOPModels=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/stateadmin/reports/approved-cops/',data)
 }
+
+const createTechnicalOnboardingRequest = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/devicemodel/technical-onboarding/create/", data, {
+    headers: {
+      'Content-type': 'multipart/form-data',
+    },
+  });
+};
+
 const DeviceModelServices = {
-getAllModels,
-getAdminAwaitingModels,
-getAdminAwaitingCOPModels,
-getModel,
-createModel,
-updateModel,
-copUpload,
-deleteModel,
-getDeviceList,
-getFilterModels,
-stateadminApprovedModels,
-stateadminApprovedCOPModels
+  getAllModels,
+  getAdminAwaitingModels,
+  getAdminAwaitingCOPModels,
+  getModel,
+  createModel,
+  updateModel,
+  copUpload,
+  deleteModel,
+  getDeviceList,
+  getFilterModels,
+  stateadminApprovedModels,
+  stateadminApprovedCOPModels,
+  createTechnicalOnboardingRequest
 };
 
 export default DeviceModelServices;

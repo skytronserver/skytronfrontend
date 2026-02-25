@@ -131,8 +131,8 @@ const Details = () => {
             setRawRecord(userData);
 
             const statusRaw =
-              userData?.status ??
               userData?.users?.[0]?.status ??
+              userData?.status ??
               userData?.users?.[0]?.user_status ??
               "";
             setRequestStatus(statusRaw);

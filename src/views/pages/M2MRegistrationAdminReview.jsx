@@ -191,14 +191,17 @@ const M2MRegistrationAdminReview = () => {
             const id = tableMeta?.rowData?.[0];
             const currentRow = rows?.[tableMeta?.rowIndex];
 
-            const requestStatusRaw =
-              statusOverrides?.[id] ?? currentRow?.status ?? "";
+            const requestStatusRaw = statusOverrides?.[id] ?? currentRow?.status ?? "";
             const requestStatus = String(requestStatusRaw).trim().toLowerCase();
+
+            const applicantStatusRaw = currentRow?.users?.[0]?.status ?? "";
+            const applicantStatus = String(applicantStatusRaw).trim().toLowerCase();
+            const isApplicantActive = applicantStatus === "active";
+
             const isRequestPending =
               requestStatus === "pending" || requestStatus === "created" || requestStatus === "";
-            const isActive = requestStatus === "active";
             const canResendOtp =
-              acceptedId === id || isActive || requestStatus === "accept";
+              acceptedId === id || isApplicantActive || requestStatus === "accept";
             return (
               <Stack
                 direction="row"

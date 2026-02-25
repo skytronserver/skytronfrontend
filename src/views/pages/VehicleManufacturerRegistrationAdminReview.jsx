@@ -244,15 +244,18 @@ const VehicleManufacturerRegistrationAdminReview = () => {
           customBodyRender: (value, tableMeta) => {
             const id = tableMeta?.rowData?.[0];
             const currentRow = rows?.[tableMeta?.rowIndex];
-            const requestStatusRaw =
-              statusOverrides?.[id] ?? currentRow?.status ?? "";
+            const requestStatusRaw = statusOverrides?.[id] ?? currentRow?.status ?? "";
             const requestStatus = String(requestStatusRaw).trim().toLowerCase();
+
+            const applicantStatusRaw = currentRow?.users?.[0]?.status ?? "";
+            const applicantStatus = String(applicantStatusRaw).trim().toLowerCase();
+            const isApplicantActive = applicantStatus === "active";
+
             const isRequestPending =
               requestStatus === "pending" || requestStatus === "created" || requestStatus === "";
-            const isActive = requestStatus === "active";
             const canResendOtp =
               allowLoginId === id ||
-              isActive ||
+              isApplicantActive ||
               requestStatus === "allow to login" ||
               requestStatus === "allow to add dealer";
             return (
@@ -291,7 +294,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                     Resend OTP
                   </Button>
                 ) : null}
-                {allowLoginId === id || isActive ? (
+                {allowLoginId === id || isApplicantActive ? (
                   <Button
                     size="small"
                     variant="outlined"
