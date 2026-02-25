@@ -545,12 +545,12 @@ const PublicTransportVehicleMonitoringDashboard = () => {
 
   const handleFilterChange = (key) => (event) => {
     setFilters((prev) => ({ ...prev, [key]: event.target.value }));
-  };
+};
 
   return (
     <PageWrapper
-      title="Skytron – Public Transport Vehicle Monitoring"
-      description="All vehicles/devices on board Skytron platform (dummy data)."
+      title="Public Transport Vehicle Monitoring"
+      // description="All vehicles/devices on board Skytron platform (dummy data)."
       sx={{
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',

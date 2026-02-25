@@ -577,8 +577,8 @@ const ERSSVehiclesDashboard = () => {
 
   return (
     <PageWrapper
-      title="Skytron – ERSS Vehicles Monitoring"
-      description="Ambulance & Police live monitoring across districts (dummy data)."
+      title="ERSS Vehicles Monitoring"
+      // description="Ambulance & Police live monitoring across districts (dummy data)."
       sx={{
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
