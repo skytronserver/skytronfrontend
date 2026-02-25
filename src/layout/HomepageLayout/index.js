@@ -69,9 +69,9 @@ const HomepageLayout = () => {
           ))}
         </div>
       )}
-      <div className="header">
+      {/* <div className="header">
         <HomeHeader isDrawerOpen={isDrawerOpen} setDrawerOpen={setDrawerOpen} toggleDrawer={toggleDrawer} />
-      </div>
+      </div> */}
       <div className="content">
         <Outlet />
       </div>
