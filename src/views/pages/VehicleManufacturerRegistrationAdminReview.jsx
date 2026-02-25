@@ -246,9 +246,15 @@ const VehicleManufacturerRegistrationAdminReview = () => {
             const currentRow = rows?.[tableMeta?.rowIndex];
             const requestStatusRaw =
               statusOverrides?.[id] ?? currentRow?.status ?? "";
-            const requestStatus = String(requestStatusRaw).toLowerCase();
+            const requestStatus = String(requestStatusRaw).trim().toLowerCase();
             const isRequestPending =
               requestStatus === "pending" || requestStatus === "created" || requestStatus === "";
+            const isActive = requestStatus === "active";
+            const canResendOtp =
+              allowLoginId === id ||
+              isActive ||
+              requestStatus === "allow to login" ||
+              requestStatus === "allow to add dealer";
             return (
               <Stack
                 direction="row"
@@ -267,41 +273,41 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
-                {allowLoginId === id ? (
-                  <>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleResend(id, rows?.[tableMeta?.rowIndex])}
-                      sx={{
-                        borderColor: "#800080",
-                        color: "#800080",
-                        whiteSpace: "nowrap",
-                        "&:hover": {
-                          borderColor: "#660066",
-                          color: "#660066",
-                        },
-                      }}
-                    >
-                      Resend OTP
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleAllowAddDealer(id, rows?.[tableMeta?.rowIndex])}
-                      sx={{
-                        borderColor: "#800080",
-                        color: "#800080",
-                        "&:hover": {
-                          borderColor: "#660066",
-                          color: "#660066",
-                        },
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Allow to add dealer
-                    </Button>
-                  </>
+                {canResendOtp ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleResend(id, rows?.[tableMeta?.rowIndex])}
+                    sx={{
+                      borderColor: "#800080",
+                      color: "#800080",
+                      whiteSpace: "nowrap",
+                      "&:hover": {
+                        borderColor: "#660066",
+                        color: "#660066",
+                      },
+                    }}
+                  >
+                    Resend OTP
+                  </Button>
+                ) : null}
+                {allowLoginId === id || isActive ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleAllowAddDealer(id, rows?.[tableMeta?.rowIndex])}
+                    sx={{
+                      borderColor: "#800080",
+                      color: "#800080",
+                      "&:hover": {
+                        borderColor: "#660066",
+                        color: "#660066",
+                      },
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Allow to add dealer
+                  </Button>
                 ) : isRequestPending ? (
                   <>
                     <Button

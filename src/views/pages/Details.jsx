@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import { Grid, Box } from '@mui/material';
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Grid, Box, Alert, Stack, IconButton } from '@mui/material';
+import { useNavigate, useParams } from "react-router-dom";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import DealerServices from "../../services/DealerServices";
 import {formatDate,openFile} from "../../helper";
 import SettingService from "../../services/SettingService";
 import DescriptionIcon from '@mui/icons-material/Description';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import UserServices from "../../services/UserServices";
 import Button from '@mui/material/Button';
 import SystemAdmin from 'views/forms/SystemAdmin';
@@ -73,7 +73,15 @@ const styles = {
 
 const Details = () => {
     const { userId,userType } = useParams();
+    const navigate = useNavigate();
     const [isLoaded,setIsLoaded]=useState(false)
+    const [loadingAction, setLoadingAction] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [infoMessage, setInfoMessage] = useState("");
+    const [requestStatus, setRequestStatus] = useState("");
+    const [statusOverride, setStatusOverride] = useState("");
+    const [lastApprovedId, setLastApprovedId] = useState(null);
+    const [rawRecord, setRawRecord] = useState(null);
     const [user,setUser]=useState({
         role:"",
         name:"",
@@ -120,6 +128,17 @@ const Details = () => {
             }
 
             const userData = retrieveData.data[0];
+            setRawRecord(userData);
+
+            const statusRaw =
+              userData?.status ??
+              userData?.users?.[0]?.status ??
+              userData?.users?.[0]?.user_status ??
+              "";
+            setRequestStatus(statusRaw);
+            setStatusOverride("");
+            setLastApprovedId(null);
+
             setUser({
                 role: userData?.users[0]?.role || "",
                 name: userData?.users[0]?.name || "",
@@ -153,6 +172,200 @@ const Details = () => {
     retrieveUserDetails();
     },[])
 
+    const effectiveStatus = (statusOverride || requestStatus || "").toString();
+    const effectiveStatusLower = effectiveStatus.trim().toLowerCase();
+    const isApplicantActive = effectiveStatusLower === "active";
+    const isRequestPending =
+      effectiveStatusLower === "pending" ||
+      effectiveStatusLower === "created" ||
+      effectiveStatusLower === "";
+
+    const handleBack = () => {
+      try {
+        if (window?.history?.length > 1) {
+          navigate(-1);
+          return;
+        }
+      } catch (e) {
+        void e;
+      }
+
+      if (userType === 'serviceProvider') {
+        navigate('/superadmin-dashboard/m2m-registration-requests');
+        return;
+      }
+      if (userType === 'manufacturer') {
+        navigate('/superadmin-dashboard/manufacturer-registration-requests');
+        return;
+      }
+      navigate('/dashboard');
+    };
+
+    const handleResendOtp = async () => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoadingAction(true);
+      try {
+        const retrieveData =
+          userType === 'manufacturer'
+            ? await ManufacturerServices.findManufacturer({ manufacturer_id: userId })
+            : await UserServices.fetchSimProvider({ eSimProvider_id: userId });
+
+        const row = retrieveData?.data?.[0];
+        const userRowId = row?.users?.[0]?.id;
+        if (!userRowId) {
+          setErrorMessage("User ID not found for this record.");
+          return;
+        }
+        await UserServices.resendUserCreationOtp({ user_id: userRowId });
+        setInfoMessage("OTP resent successfully.");
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to resend OTP."
+        );
+      } finally {
+        setLoadingAction(false);
+      }
+    };
+
+    const handleServiceProviderAccept = async () => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoadingAction(true);
+      try {
+        await UserServices.updateSimProvider({
+          esimprovider_id: userId,
+          status: "Accept",
+        });
+
+        const retrieveData = await UserServices.fetchSimProvider({ eSimProvider_id: userId });
+        const row = retrieveData?.data?.[0];
+        const userRowId = row?.users?.[0]?.id;
+        if (userRowId) {
+          await UserServices.resendUserCreationOtp({ user_id: userRowId });
+        }
+
+        setStatusOverride("Accept");
+        setLastApprovedId(userId);
+        setInfoMessage("Request accepted.");
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to accept request."
+        );
+      } finally {
+        setLoadingAction(false);
+      }
+    };
+
+    const handleServiceProviderReject = async () => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoadingAction(true);
+      try {
+        await UserServices.updateSimProvider({
+          esimprovider_id: userId,
+          status: "Reject",
+        });
+        setStatusOverride("Reject");
+        setInfoMessage("Request rejected.");
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to reject request."
+        );
+      } finally {
+        setLoadingAction(false);
+      }
+    };
+
+    const handleManufacturerAllowLogin = async () => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoadingAction(true);
+      try {
+        await ManufacturerServices.updateManufacturer({
+          manufacturer_id: userId,
+          status: "Allow to login",
+        });
+
+        const retrieveData = await ManufacturerServices.findManufacturer({ manufacturer_id: userId });
+        const row = retrieveData?.data?.[0];
+        const userRowId = row?.users?.[0]?.id;
+        if (userRowId) {
+          await UserServices.resendUserCreationOtp({ user_id: userRowId });
+        }
+
+        setStatusOverride("Allow to login");
+        setLastApprovedId(userId);
+        setInfoMessage("Allow to login successful.");
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to allow login."
+        );
+      } finally {
+        setLoadingAction(false);
+      }
+    };
+
+    const handleManufacturerAllowAddDealer = async () => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoadingAction(true);
+      try {
+        await ManufacturerServices.updateManufacturer({
+          manufacturer_id: userId,
+          status: "Allow to add dealer",
+        });
+
+        const retrieveData = await ManufacturerServices.findManufacturer({ manufacturer_id: userId });
+        const row = retrieveData?.data?.[0];
+        const userRowId = row?.users?.[0]?.id;
+        if (userRowId) {
+          await UserServices.resendUserCreationOtp({ user_id: userRowId });
+        }
+
+        setStatusOverride("Allow to add dealer");
+        setInfoMessage("Allow to add dealer successful.");
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to allow add dealer."
+        );
+      } finally {
+        setLoadingAction(false);
+      }
+    };
+
+    const handleManufacturerReject = async () => {
+      setErrorMessage("");
+      setInfoMessage("");
+      setLoadingAction(true);
+      try {
+        await ManufacturerServices.updateManufacturer({
+          manufacturer_id: userId,
+          status: "Reject",
+        });
+        setStatusOverride("Reject");
+        setInfoMessage("Request rejected.");
+      } catch (e) {
+        setErrorMessage(
+          e?.response?.data?.message ||
+            e?.message ||
+            "Failed to reject request."
+        );
+      } finally {
+        setLoadingAction(false);
+      }
+    };
+
     const role={
         devicemanufacture:'Device Manufacturer',
         dealer:'Dealer',
@@ -163,17 +376,220 @@ const Details = () => {
         esimprovider:'M2M Service Provider'
     }
 
+    const documentsConfig = useMemo(() => {
+      if (userType === 'serviceProvider') {
+        return [
+          { key: 'file_authLetter', label: 'Authorization Letter', fallbackKeys: ['file_authorisation_letter'] },
+          { key: 'file_officialTechnicalOnboardingRequestLetter', label: 'Official Technical Onboarding Request Letter' },
+          { key: 'file_selfCertifiedDotM2mRegistrationCertificate', label: 'Self-Certified DoT M2M Registration Certificate' },
+          // Note: public form submits this as file_affidavitNda
+          { key: 'file_affidavitNda', label: 'Affidavit-cum-Undertaking for Skytron Backend Access', fallbackKeys: ['file_affidavit_nda'] },
+          // Note: public form submits this as file_GSTCertificate
+          { key: 'file_GSTCertificate', label: 'Self-Certified GST Registration Certificate', fallbackKeys: ['file_gstCertificate'] },
+          // Note: public form submits this as file_idProof
+          { key: 'file_idProof', label: 'Self-Certified ID Proof of Authorised Signatory' },
+          // Note: public form submits this as file_companRegCertificate
+          {
+            key: 'file_companRegCertificate',
+            label: 'Self Certified Company registration certificate (Optional)',
+            fallbackKeys: ['file_companyRegCertificate'],
+          },
+        ];
+      }
+      if (userType === 'manufacturer') {
+        return [
+          { key: 'file_authLetter', label: 'Authorization Letter', fallbackKeys: ['file_authorisation_letter'] },
+          { key: 'file_officialTechnicalOnboardingRequestLetter', label: 'Official Technical Onboarding Request Letter' },
+          { key: 'file_vehicleTypeApprovalTacAnnexureCopy', label: 'Self-Certified Vehicle Type Approval (TAC) Annexure Copy' },
+          { key: 'file_ais140DeviceTacCopy', label: 'Self-Certified AIS-140 Device TAC Copy' },
+          { key: 'file_factoryFitmentDeclaration', label: 'Factory Fitment Declaration' },
+          { key: 'cop_file', label: 'COP File' },
+          { key: 'file_affidavitNda', label: 'Affidavit-cum-Undertaking for Skytron Backend Access', fallbackKeys: ['file_affidavit_nda'] },
+          { key: 'file_GSTCertificate', label: 'Self-Certified GST Registration Certificate', fallbackKeys: ['file_gstCertificate'] },
+          { key: 'file_idProof', label: 'Self-Certified ID Proof of Authorised Signatory' },
+          {
+            key: 'file_companRegCertificate',
+            label: 'Self Certified Company registration certificate (Optional)',
+            fallbackKeys: ['file_companyRegCertificate'],
+          },
+        ];
+      }
+      return [];
+    }, [userType]);
+
+    const documentsToRender = useMemo(() => {
+      const rec = rawRecord || {};
+      const list = (Array.isArray(documentsConfig) ? documentsConfig : [])
+        .map((d) => {
+          const fallbackKeys = Array.isArray(d.fallbackKeys) ? d.fallbackKeys : [];
+          const allKeys = [d.key, ...fallbackKeys].filter(Boolean);
+          const fileUrl = allKeys.map((k) => rec?.[k]).find((v) => !!v);
+          if (!fileUrl) return null;
+          return {
+            key: d.key,
+            label: d.label,
+            fileUrl,
+          };
+        })
+        .filter(Boolean);
+
+      // If backend sends extra file_* fields not in config, append them to avoid missing docs.
+      const knownUrls = new Set(list.map((x) => x.fileUrl));
+      Object.keys(rec || {})
+        .filter((k) => k.startsWith('file_') && rec?.[k])
+        .forEach((k) => {
+          const v = rec[k];
+          if (knownUrls.has(v)) return;
+          list.push({ key: k, label: k, fileUrl: v });
+        });
+
+      return list;
+    }, [documentsConfig, rawRecord]);
+
   return (
     <Card sx={styles.card}>
       {isLoaded && (
         <>
           <Box sx={styles.header}>
-            <Typography sx={styles.headerTitle}>
-              {user.name && user.name.toUpperCase()}
-            </Typography>
-            <Typography sx={styles.headerSubtitle}>
-              {user.role && role[user.role]} {user.district && `- ${user.district}`}
-            </Typography>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              alignItems={{ xs: 'flex-start', sm: 'center' }}
+              justifyContent="space-between"
+            >
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                  <IconButton size="small" onClick={handleBack} aria-label="back">
+                    <ArrowBackIcon fontSize="small" />
+                  </IconButton>
+                  <Typography sx={{ ...styles.headerSubtitle, mb: 0 }}>Back</Typography>
+                </Stack>
+                <Typography sx={styles.headerTitle}>
+                  {user.name && user.name.toUpperCase()}
+                </Typography>
+                <Typography sx={styles.headerSubtitle}>
+                  {user.role && role[user.role]} {user.district && `- ${user.district}`}
+                </Typography>
+              </Box>
+
+              {(userType === 'serviceProvider' || userType === 'manufacturer') && (
+                <Box sx={{ ml: { sm: 'auto' }, width: { xs: '100%', sm: 'auto' } }}>
+                  {errorMessage && (
+                    <Alert severity="error" sx={{ mb: 1 }}>
+                      {errorMessage}
+                    </Alert>
+                  )}
+                  {infoMessage && (
+                    <Alert severity="success" sx={{ mb: 1 }}>
+                      {infoMessage}
+                    </Alert>
+                  )}
+
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
+                    sx={{ flexWrap: 'wrap' }}
+                  >
+                    {((userType === 'serviceProvider' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'accept')) ||
+                      (userType === 'manufacturer' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'allow to login' || effectiveStatusLower === 'allow to add dealer'))) && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        disabled={loadingAction}
+                        onClick={handleResendOtp}
+                        sx={{
+                          borderColor: "#800080",
+                          color: "#800080",
+                          whiteSpace: "nowrap",
+                          "&:hover": {
+                            borderColor: "#660066",
+                            color: "#660066",
+                          },
+                        }}
+                      >
+                        Resend OTP
+                      </Button>
+                    )}
+                    {userType === 'serviceProvider' ? (
+                      isRequestPending ? (
+                        <>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            disabled={loadingAction}
+                            onClick={handleServiceProviderReject}
+                            sx={{ whiteSpace: "nowrap" }}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            disabled={loadingAction}
+                            onClick={handleServiceProviderAccept}
+                            sx={{
+                              backgroundColor: "#800080",
+                              "&:hover": { backgroundColor: "#660066" },
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            Accept
+                          </Button>
+                        </>
+                      ) : null
+                    ) : userType === 'manufacturer' ? (
+                      lastApprovedId === userId || effectiveStatusLower === 'allow to login' || isApplicantActive ? (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          disabled={loadingAction}
+                          onClick={handleManufacturerAllowAddDealer}
+                          sx={{
+                            borderColor: "#800080",
+                            color: "#800080",
+                            whiteSpace: "nowrap",
+                            "&:hover": {
+                              borderColor: "#660066",
+                              color: "#660066",
+                            },
+                          }}
+                        >
+                          Allow to add dealer
+                        </Button>
+                      ) : isRequestPending ? (
+                        <>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            disabled={loadingAction}
+                            onClick={handleManufacturerReject}
+                            sx={{ whiteSpace: "nowrap" }}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            disabled={loadingAction}
+                            onClick={handleManufacturerAllowLogin}
+                            sx={{
+                              backgroundColor: "#800080",
+                              "&:hover": { backgroundColor: "#660066" },
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            Allow to login
+                          </Button>
+                        </>
+                      ) : null
+                    ) : null}
+                  </Stack>
+                </Box>
+              )}
+            </Stack>
           </Box>
 
           <CardContent sx={styles.content}>
@@ -231,69 +647,21 @@ const Details = () => {
             )}
 
             {/* Documents */}
-            {(user.file_idProof ||
-              user.file_authLetter ||
-              user.file_GSTCertificate ||
-              user.file_companRegCertificate ||
-              user.file_affidavitNda) && (
+            {documentsToRender.length > 0 && (
               <>
                 <Typography sx={{...styles.sectionTitle, mt: 4}}>Documents</Typography>
                 <Grid container spacing={2}>
-                  {user.file_idProof && (
-                    <Grid item>
+                  {documentsToRender.map((doc) => (
+                    <Grid item key={doc.key}>
                       <Button
                         startIcon={<DescriptionIcon />}
                         sx={styles.documentButton}
-                        onClick={(e)=>openFile(e,user.file_idProof)}
+                        onClick={(e) => openFile(e, doc.fileUrl)}
                       >
-                        View ID Proof
+                        {doc.label}
                       </Button>
                     </Grid>
-                  )}
-                  {user.file_authLetter && (
-                    <Grid item>
-                      <Button
-                        startIcon={<DescriptionIcon />}
-                        sx={styles.documentButton}
-                        onClick={(e)=>openFile(e,user.file_authLetter)}
-                      >
-                        View Authorization Letter
-                      </Button>
-                    </Grid>
-                  )}
-                  {user.file_GSTCertificate && (
-                    <Grid item>
-                      <Button
-                        startIcon={<DescriptionIcon />}
-                        sx={styles.documentButton}
-                        onClick={(e) => openFile(e, user.file_GSTCertificate)}
-                      >
-                        View GST Certificate
-                      </Button>
-                    </Grid>
-                  )}
-                  {user.file_companRegCertificate && (
-                    <Grid item>
-                      <Button
-                        startIcon={<DescriptionIcon />}
-                        sx={styles.documentButton}
-                        onClick={(e) => openFile(e, user.file_companRegCertificate)}
-                      >
-                        View Company Registration Certificate
-                      </Button>
-                    </Grid>
-                  )}
-                  {user.file_affidavitNda && (
-                    <Grid item>
-                      <Button
-                        startIcon={<DescriptionIcon />}
-                        sx={styles.documentButton}
-                        onClick={(e) => openFile(e, user.file_affidavitNda)}
-                      >
-                        View Affidavit/NDA
-                      </Button>
-                    </Grid>
-                  )}
+                  ))}
                 </Grid>
               </>
             )}

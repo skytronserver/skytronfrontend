@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
-import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import LoginIcon from "@mui/icons-material/Login";
 import BusinessIcon from "@mui/icons-material/Business";
 import RouterIcon from "@mui/icons-material/Router";
@@ -186,15 +185,6 @@ const UserRegistrationRequest = () => {
               sx={{ p: 0, minWidth: "auto", fontSize: "13px" }}
             >
               Login Here
-            </Button>
-            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "12px", mx: 0.5 }}>·</Typography>
-            <Button
-              className="reg-text-link"
-              startIcon={<TrackChangesIcon sx={{ fontSize: "14px !important" }} />}
-              onClick={() => (window.location.href = "/registration-status")}
-              sx={{ p: 0, minWidth: "auto", fontSize: "13px" }}
-            >
-              Track Request
             </Button>
           </Box>
         </Box>

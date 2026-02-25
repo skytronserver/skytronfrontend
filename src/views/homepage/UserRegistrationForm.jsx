@@ -96,7 +96,6 @@ const UserRegistrationForm = () => {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
-  const [referenceNumber, setReferenceNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
@@ -356,15 +355,6 @@ const UserRegistrationForm = () => {
       const res = await axios.post(API_ENDPOINTS.m2m, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      const ref =
-        res?.data?.referenceNumber ||
-        res?.data?.reference ||
-        res?.data?.ref ||
-        res?.data?.id ||
-        `REF-${Date.now()}`;
-
-      setReferenceNumber(String(ref));
       setShowSuccess(true);
       resetForm({ values: eSIMInitialValues });
     } catch (err) {
@@ -535,15 +525,6 @@ const UserRegistrationForm = () => {
       const res = await axios.post(API_ENDPOINTS.manufacturer, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      const ref =
-        res?.data?.referenceNumber ||
-        res?.data?.reference ||
-        res?.data?.ref ||
-        res?.data?.id ||
-        `REF-${Date.now()}`;
-
-      setReferenceNumber(String(ref));
       setShowSuccess(true);
       resetForm({ values: manufacturerInitialValues });
     } catch (err) {
@@ -792,7 +773,6 @@ const UserRegistrationForm = () => {
       };
 
       const res = PublicRegistrationMockService.createRequest(payload);
-      setReferenceNumber(res.referenceNumber);
       setShowSuccess(true);
       setFormData({
         firstName: "",
@@ -859,34 +839,17 @@ const UserRegistrationForm = () => {
               <Typography variant="body2" sx={{ color: "#4caf50", mt: 0.5 }}>
                 Your request has been received and is under review.
               </Typography>
-              {referenceNumber && (
-                <>
-                  <Typography variant="caption" sx={{ color: "#555", display: "block", mt: 1.5 }}>
-                    Reference Number
-                  </Typography>
-                  <span className="reg-ref-number">{referenceNumber}</span>
-                  <Box sx={{ mt: 2, display: "flex", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      className="reg-submit-btn"
-                      sx={{ py: 1, px: 2.5 }}
-                      onClick={() => (window.location.href = "/registration-status?ref=" + encodeURIComponent(referenceNumber))}
-                    >
-                      Track Status
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      className="reg-outline-btn"
-                      sx={{ py: 1, px: 2.5 }}
-                      onClick={() => (window.location.href = "/")}
-                    >
-                      Back to Login
-                    </Button>
-                  </Box>
-                </>
-              )}
+              <Box sx={{ mt: 2, display: "flex", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  className="reg-outline-btn"
+                  sx={{ py: 1, px: 2.5 }}
+                  onClick={() => (window.location.href = "/")}
+                >
+                  Back to Login
+                </Button>
+              </Box>
             </Box>
           )}
 

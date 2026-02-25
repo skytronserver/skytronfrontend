@@ -193,9 +193,12 @@ const M2MRegistrationAdminReview = () => {
 
             const requestStatusRaw =
               statusOverrides?.[id] ?? currentRow?.status ?? "";
-            const requestStatus = String(requestStatusRaw).toLowerCase();
+            const requestStatus = String(requestStatusRaw).trim().toLowerCase();
             const isRequestPending =
               requestStatus === "pending" || requestStatus === "created" || requestStatus === "";
+            const isActive = requestStatus === "active";
+            const canResendOtp =
+              acceptedId === id || isActive || requestStatus === "accept";
             return (
               <Stack
                 direction="row"
@@ -214,7 +217,7 @@ const M2MRegistrationAdminReview = () => {
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
-                {acceptedId === id ? (
+                {canResendOtp ? (
                   <Button
                     size="small"
                     variant="outlined"
@@ -231,7 +234,8 @@ const M2MRegistrationAdminReview = () => {
                   >
                     Resend OTP
                   </Button>
-                ) : isRequestPending ? (
+                ) : null}
+                {isRequestPending ? (
                   <>
                     <Button
                       size="small"
