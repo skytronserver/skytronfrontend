@@ -674,7 +674,7 @@ const ERSSVehiclesDashboard = () => {
             flexShrink: 0
           }}
         >
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'none', gap: 1, flexWrap: 'wrap' }}>
             <LegendChip label="Ambulance Cluster" color={COLORS.ambulance} tokens={tokens} />
             <LegendChip label="Police Cluster" color={COLORS.police} tokens={tokens} />
             <LegendChip label="Online" color={COLORS.available} tokens={tokens} />

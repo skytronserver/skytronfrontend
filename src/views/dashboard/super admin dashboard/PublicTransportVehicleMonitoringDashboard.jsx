@@ -652,7 +652,7 @@ const PublicTransportVehicleMonitoringDashboard = () => {
             flexShrink: 0
           }}
         >
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'none', gap: 1, flexWrap: 'wrap' }}>
             <LegendChip label="Local Alerts" color={COLORS.localAlerts} tokens={tokens} />
             <LegendChip label="Online" color={COLORS.online} tokens={tokens} />
             <LegendChip label="Offline" color={COLORS.offline} tokens={tokens} />
