@@ -140,6 +140,8 @@ const UserRegistrationForm = () => {
           ...prevConfig,
           state: {
             ...prevConfig.state,
+            gridHidden: true,
+            disabled: true,
             options: [
               ...(assamState?.value
                 ? [{ value: assamState.value, label: assamState.label }]
@@ -208,6 +210,8 @@ const UserRegistrationForm = () => {
             ...prevConfig,
             state: {
               ...prevConfig.state,
+              gridHidden: true,
+              disabled: true,
               options: assamState?.value
                 ? [{ value: assamState.value, label: assamState.label }]
                 : prevConfig.state.options,

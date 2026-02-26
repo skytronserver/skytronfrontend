@@ -194,7 +194,7 @@ export const eSIMFormField = {
   m2m_reg_certificate_no: {
     name: "m2m_reg_certificate_no",
     type: "text",
-    label: "M2M Registration Certificate No",
+    label: "DoT M2M Registration Certificate No",
     validation: Yup.string().required("M2M Registration Certificate No is required"),
   },
 
@@ -231,9 +231,9 @@ export const eSIMFormField = {
   file_selfCertifiedPanCard: {
     name: "file_selfCertifiedPanCard",
     type: "file",
-    label: "Self-Certified PAN Card",
+    label: "Self-Certified Company Pan Card",
     message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified PAN Card is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    validation: Yup.mixed().required("Self-Certified Company Pan Card is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
@@ -245,9 +245,9 @@ export const eSIMFormField = {
   file_selfCertifiedGstRegistrationCertificate: {
     name: "file_selfCertifiedGstRegistrationCertificate",
     type: "file",
-    label: "Self-Certified GST Registration Certificate",
+    label: "Self-Certified Company GST Registration Certificate",
     message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified GST Registration Certificate is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    validation: Yup.mixed().required("Self-Certified Company GST Registration Certificate is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
