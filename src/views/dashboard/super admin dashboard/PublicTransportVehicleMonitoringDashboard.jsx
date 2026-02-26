@@ -14,20 +14,7 @@ import { alpha } from '@mui/material/styles';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
-import OLMap from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import OSM from 'ol/source/OSM';
-import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import Point from 'ol/geom/Point';
-import { fromLonLat } from 'ol/proj';
-import Style from 'ol/style/Style';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import CircleStyle from 'ol/style/Circle';
-import Text from 'ol/style/Text';
+import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
 
 import {
   PageWrapper,
@@ -86,9 +73,9 @@ const MetricTile = ({ label, value, colorKey, helper }) => {
     <Box
       sx={{
         flex: 1,
-        minWidth: { xs: 140, md: 130 },
+        minWidth: { xs: 180, md: 180 },
         borderRadius: 2,
-        p: { xs: 1.5, md: 1.25 },
+        p: { xs: 2.5, md: 2.25 },
         color: '#fff',
         background: `linear-gradient(135deg, ${colors.from} 0%, ${colors.to} 100%)`,
         boxShadow: `0 8px 20px -12px ${alpha(colors.to, 0.75)}`,
@@ -96,13 +83,13 @@ const MetricTile = ({ label, value, colorKey, helper }) => {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: 0.5
+        gap: 1
       }}
     >
-      <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', md: '0.7rem' }, letterSpacing: '0.02em' }}>{label}</Typography>
-      <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', md: '1.35rem' }, lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
+      <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', md: '0.875rem' }, letterSpacing: '0.02em' }}>{label}</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: { xs: '2rem', md: '1.85rem' }, lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
       {helper ? (
-        <Typography sx={{ opacity: 0.9, fontSize: { xs: '0.7rem', md: '0.65rem' } }}>{helper}</Typography>
+        <Typography sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', md: '0.75rem' } }}>{helper}</Typography>
       ) : null}
     </Box>
   );
@@ -137,7 +124,7 @@ const DISTRICTS = [
 
 const buildDummyVehicles = (seed = []) => {
   const vehicles = [];
-  const total = 320;
+  const total = 8;
 
   const pickDistrict = (idx) => DISTRICTS[idx % DISTRICTS.length];
   const pickStatus = (idx) => {
@@ -187,247 +174,42 @@ const buildDummyVehicles = (seed = []) => {
   return vehicles;
 };
 
-const DistrictVehicleMap = ({ vehicles, selectedDistrict, onSelectDistrict, mode }) => {
-  const containerRef = useRef(null);
-  const mapRef = useRef(null);
-  const districtLayerRef = useRef(null);
-  const vehicleLayerRef = useRef(null);
-  const clickHandlerRef = useRef(null);
+const DistrictVehicleMap = ({ vehicles }) => {
+  const gpsData = useMemo(() => {
+    const nowIso = new Date().toISOString();
+    return (Array.isArray(vehicles) ? vehicles : []).map((v) => {
+      const packetType =
+        v.status === 'ea_alert'
+          ? 'EA'
+          : v.status === 'normal_alert'
+            ? 'OT'
+            : 'NR';
 
-  const districtStylesRef = useRef({});
-  const vehicleStylesRef = useRef({});
+      const isOnline = v.status === 'online';
 
-  const districtSummary = useMemo(() => {
-    const summary = new Map();
-    DISTRICTS.forEach((d) => {
-      summary.set(d.name, {
-        name: d.name,
-        center: d.center,
-        color: d.color,
-        count: 0
-      });
+      return {
+        latitude: v.latitude,
+        longitude: v.longitude,
+        packet_type: 'NR',
+        ignition_status: '1',
+        speed: 0,
+        entry_time: nowIso
+      };
     });
-
-    (Array.isArray(vehicles) ? vehicles : []).forEach((v) => {
-      const entry = summary.get(v.district);
-      if (entry) entry.count += 1;
-    });
-
-    return Array.from(summary.values()).filter((entry) => entry.count > 0);
   }, [vehicles]);
 
-  useEffect(() => {
-    if (!containerRef.current) return undefined;
-
-    const baseLayer = new TileLayer({ source: new OSM() });
-
-    const districtLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 40
-    });
-
-    const vehicleLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 60
-    });
-
-    const map = new OLMap({
-      target: containerRef.current,
-      layers: [baseLayer, districtLayer, vehicleLayer],
-      view: new View({
-        center: fromLonLat([91.7362, 26.1445]),
-        zoom: 11
-      })
-    });
-
-    mapRef.current = map;
-    districtLayerRef.current = districtLayer;
-    vehicleLayerRef.current = vehicleLayer;
-
-    const resizeObserver = new ResizeObserver(() => {
-      map.updateSize();
-    });
-    resizeObserver.observe(containerRef.current);
-
-    const handleWindowResize = () => {
-      if (!mapRef.current) return;
-      mapRef.current.updateSize();
-      setTimeout(() => {
-        if (mapRef.current) mapRef.current.updateSize();
-      }, 0);
-    };
-
-    window.addEventListener('resize', handleWindowResize);
-    window.addEventListener('orientationchange', handleWindowResize);
-
-    const handleClick = (evt) => {
-      if (!mapRef.current) return;
-
-      const clickedFeature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
-      if (!clickedFeature) return;
-
-      const districtName = clickedFeature.get('districtName');
-      if (!districtName) return;
-
-      if (!selectedDistrict) {
-        onSelectDistrict(districtName);
-      }
-    };
-
-    clickHandlerRef.current = handleClick;
-    map.on('singleclick', handleClick);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', handleWindowResize);
-      window.removeEventListener('orientationchange', handleWindowResize);
-      if (clickHandlerRef.current) {
-        map.un('singleclick', clickHandlerRef.current);
-        clickHandlerRef.current = null;
-      }
-      map.setTarget(null);
-      mapRef.current = null;
-      districtLayerRef.current = null;
-      vehicleLayerRef.current = null;
-    };
-  }, [onSelectDistrict, selectedDistrict]);
-
-  useEffect(() => {
-    const districtLayer = districtLayerRef.current;
-    const vehicleLayer = vehicleLayerRef.current;
-    const map = mapRef.current;
-    if (!districtLayer || !vehicleLayer || !map) return;
-
-    const districtSource = districtLayer.getSource();
-    const vehicleSource = vehicleLayer.getSource();
-    districtSource.clear();
-    vehicleSource.clear();
-
-    const makeDistrictStyle = (color, count) => {
-      const key = `${color}-${count}`;
-      if (!districtStylesRef.current[key]) {
-        districtStylesRef.current[key] = new Style({
-          image: new CircleStyle({
-            radius: 18,
-            fill: new Fill({ color }),
-            stroke: new Stroke({ color: '#ffffff', width: 3 })
-          }),
-          text: new Text({
-            text: String(count),
-            fill: new Fill({ color: '#ffffff' }),
-            stroke: new Stroke({ color: alpha('#0f172a', 0.4), width: 4 }),
-            font: '800 13px Inter, sans-serif'
-          })
-        });
-      }
-      return districtStylesRef.current[key];
-    };
-
-    const makeVehicleStyle = (label, statusColor) => {
-      const key = `veh-${label}-${statusColor}`;
-      if (!vehicleStylesRef.current[key]) {
-        vehicleStylesRef.current[key] = new Style({
-          image: new CircleStyle({
-            radius: 8,
-            fill: new Fill({ color: statusColor }),
-            stroke: new Stroke({ color: '#ffffff', width: 2 })
-          }),
-          text: new Text({
-            text: label,
-            offsetY: -18,
-            fill: new Fill({ color: mode === 'dark' ? '#e5e7eb' : '#0f172a' }),
-            stroke: new Stroke({ color: mode === 'dark' ? alpha('#000000', 0.75) : alpha('#ffffff', 0.95), width: 5 }),
-            font: '700 11px Inter, sans-serif'
-          })
-        });
-      }
-      return vehicleStylesRef.current[key];
-    };
-
-    if (!selectedDistrict) {
-      districtSummary.forEach((d) => {
-        const feature = new Feature({
-          geometry: new Point(fromLonLat(d.center)),
-          districtName: d.name
-        });
-        feature.setStyle(makeDistrictStyle(d.color, d.count));
-        districtSource.addFeature(feature);
-      });
-
-      districtLayer.setVisible(true);
-      vehicleLayer.setVisible(false);
-      map.getView().animate({ center: fromLonLat([91.7362, 26.1445]), zoom: 7, duration: 450 });
-      return;
-    }
-
-    const district = DISTRICTS.find((d) => d.name === selectedDistrict);
-    if (district) {
-      map.getView().animate({ center: fromLonLat(district.center), zoom: 10, duration: 450 });
-    }
-
-    const districtVehicles = (Array.isArray(vehicles) ? vehicles : []).filter((v) => v.district === selectedDistrict);
-    districtVehicles.forEach((v) => {
-      const lat = Number(v.latitude);
-      const lon = Number(v.longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lon)) return;
-
-      const statusColor =
-        v.status === 'offline' || v.status === 'not_reporting'
-          ? alpha(COLORS.offline, 0.92)
-          : v.status === 'battery_low'
-            ? alpha(COLORS.battery, 0.92)
-            : v.status === 'gps_issue'
-              ? alpha(COLORS.gpsIssue, 0.92)
-              : v.status === 'ea_alert'
-                ? alpha(COLORS.alerts, 0.92)
-                : v.status === 'normal_alert'
-                  ? alpha(COLORS.localAlerts, 0.92)
-                  : v.status === 'power_cut'
-                    ? alpha('#14b8a6', 0.92)
-                    : alpha(COLORS.online, 0.92);
-
-      const feature = new Feature({
-        geometry: new Point(fromLonLat([lon, lat])),
-        districtName: selectedDistrict
-      });
-      feature.setStyle(makeVehicleStyle(v.regNo, statusColor));
-      vehicleSource.addFeature(feature);
-    });
-
-    districtLayer.setVisible(false);
-    vehicleLayer.setVisible(true);
-  }, [districtSummary, selectedDistrict, vehicles, mode]);
-
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Box
-        ref={containerRef}
-        sx={{
-          width: '100%',
-          height: '100%',
-          borderRadius: 2.5,
-          overflow: 'hidden',
-          border: `1px solid ${COLORS.border}`,
-          bgcolor: '#fff',
-          boxShadow: `0 12px 30px -20px ${alpha('#0ea5e9', 0.55)}`,
-          '& .ol-viewport': { borderRadius: 2.5 },
-          '& .ol-attribution': { display: 'none' }
-        }}
-      />
-      <img
-        src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
-        style={{
-          position: 'absolute',
-          bottom: '70px',
-          right: '10px',
-          width: '180px',
-          zIndex: 1000,
-          pointerEvents: 'none',
-          opacity: 0.8
-        }}
-        alt="Skytron Logo"
-      />
-    </Box>
+    <BhuvanMapComponent
+      gpsData={gpsData}
+      width="100%"
+      height="100%"
+      autoFit
+      markerLabelMode="none"
+      showMapTypeToggle
+      showDrawControls={false}
+      showSoiLayerPanel={false}
+      showLogos
+    />
   );
 };
 
@@ -536,16 +318,13 @@ const PublicTransportVehicleMonitoringDashboard = () => {
       { key: 'offline', label: 'Offline', value: totals.offline, helper: null },
       { key: 'online', label: 'Online', value: totals.online, helper: null },
       { key: 'alerts', label: 'EA Alerts', value: totals.eaAlerts, helper: null },
-      { key: 'alertsActive', label: 'Normal Alerts', value: totals.normalAlerts, helper: null },
-      { key: 'gps', label: 'GPS Issue', value: totals.gpsIssue, helper: null },
-      { key: 'powerCut', label: 'Power Cut Detected', value: totals.powerCut, helper: null },
-      { key: 'notReporting', label: 'Not Reporting', value: totals.notReporting, helper: '(> 90 min)' }
+      { key: 'alertsActive', label: 'Normal Alerts', value: totals.normalAlerts, helper: null }
     ];
   }, [filteredVehicles]);
 
   const handleFilterChange = (key) => (event) => {
     setFilters((prev) => ({ ...prev, [key]: event.target.value }));
-};
+  };
 
   return (
     <PageWrapper
@@ -580,49 +359,7 @@ const PublicTransportVehicleMonitoringDashboard = () => {
           </IconButton>
         </Box>
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 2, md: 1.25 },
-            borderRadius: 2,
-            border: `1px solid ${tokens.border}`,
-            bgcolor: tokens.cardBg,
-            flexShrink: 0
-          }}
-        >
-          <Grid container spacing={{ xs: 2, md: 1.5 }} alignItems="center">
-            {Object.entries(FILTERS).map(([key, options]) => (
-              <Grid key={key} item xs={12} sm={6} md={3} lg={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>{key.replace(/([A-Z])/g, ' $1')}</InputLabel>
-                  <Select value={filters[key]} label={key.replace(/([A-Z])/g, ' $1')} onChange={handleFilterChange(key)}>
-                    {options.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            ))}
-            <Grid item xs={12} sm={6} md={3} lg={2}>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{
-                  height: 40,
-                  borderRadius: 2,
-                  fontWeight: 800,
-                  textTransform: 'none',
-                  bgcolor: '#0ea5e9',
-                  '&:hover': { bgcolor: '#0284c7' }
-                }}
-              >
-                Reset
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+
 
         <Box
           sx={{
@@ -637,57 +374,9 @@ const PublicTransportVehicleMonitoringDashboard = () => {
           ))}
         </Box>
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 1.5, md: 0.875 },
-            borderRadius: 2,
-            border: `1px solid ${tokens.border}`,
-            bgcolor: tokens.cardBg,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: { xs: 2, md: 1 },
-            flexWrap: 'wrap',
-            flexShrink: 0
-          }}
-        >
-          <Box sx={{ display: 'none', gap: 1, flexWrap: 'wrap' }}>
-            <LegendChip label="Local Alerts" color={COLORS.localAlerts} tokens={tokens} />
-            <LegendChip label="Online" color={COLORS.online} tokens={tokens} />
-            <LegendChip label="Offline" color={COLORS.offline} tokens={tokens} />
-            <LegendChip label="Normal Alert" color={COLORS.normalAlert} tokens={tokens} />
-            <LegendChip label="EA Alert" color={COLORS.eaAlert} tokens={tokens} />
-            <LegendChip label="Not Reporting" color={COLORS.notReporting} tokens={tokens} />
-            <LegendChip label="GPS Issue" color={COLORS.gpsIssue} tokens={tokens} />
-            <LegendChip label="Battery Low" color={COLORS.batteryLow} tokens={tokens} />
-            <LegendChip label="Power Cut" color={COLORS.powerCut} tokens={tokens} />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-            {selectedDistrict ? (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleBackToDistricts}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  borderColor: alpha('#0ea5e9', 0.35),
-                  color: '#0284c7',
-                  '&:hover': { borderColor: '#0ea5e9', bgcolor: alpha('#0ea5e9', 0.06) }
-                }}
-              >
-                Back to Districts
-              </Button>
-            ) : null}
-            <Typography sx={{ fontWeight: 800, color: tokens.muted, fontSize: '0.9rem' }}>
-              {selectedDistrict ? selectedDistrict : 'District Clusters'}
-            </Typography>
-          </Box>
-        </Paper>
 
-        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column' }}>
+
+        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
           <DistrictVehicleMap
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}

@@ -2565,7 +2565,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
-                                        bottom: "20px",
+                                        bottom: "5px",
                                         right: 0,
                                         height: "60px",
                                         width: "auto",
@@ -2620,7 +2620,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
-                                        bottom: "20px",
+                                        bottom: "5px",
                                         right: 0,
                                         height: "60px",
                                         width: "auto",
@@ -2675,7 +2675,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
-                                        bottom: "20px",
+                                        bottom: "5px",
                                         right: 0,
                                         height: "60px",
                                         width: "auto",

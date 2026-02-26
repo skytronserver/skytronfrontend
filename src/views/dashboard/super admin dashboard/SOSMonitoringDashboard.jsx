@@ -30,7 +30,7 @@ import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 
-import { DashboardMap } from './SuperAdminCommon';
+import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
 import HomePageService from 'services/HomePage';
 
 const formatNumber = (value) => {
@@ -259,6 +259,35 @@ const SOSMonitoringDashboard = () => {
     []
   );
 
+  const gpsData = useMemo(() => {
+    const nowIso = new Date().toISOString();
+    return (Array.isArray(incidents) ? incidents : []).map((item, idx) => {
+      const base = {
+        latitude: item.latitude,
+        longitude: item.longitude,
+        vehicle_reg_no: item.label || `SOS-${idx + 1}`,
+        entry_time: nowIso,
+        packet_type: 'NR',
+        ignition_status: '0',
+        speed: 0
+      };
+
+      if (item.type === 'sos') {
+        return { ...base, packet_type: 'EA', ignition_status: '1', speed: 0 };
+      }
+
+      if (item.type === 'green') {
+        return { ...base, packet_type: 'NR', ignition_status: '1', speed: 10 };
+      }
+
+      if (item.type === 'blue') {
+        return { ...base, packet_type: 'NR', ignition_status: '1', speed: 0 };
+      }
+
+      return base;
+    });
+  }, [incidents]);
+
   const cardSx = {
     bgcolor: tokens.cardBg,
     border: `1px solid ${tokens.border}`,
@@ -314,75 +343,6 @@ const SOSMonitoringDashboard = () => {
       }
     }
   };
-
-  const mapStyle = useMemo(() => {
-    // Lazy-load OpenLayers styling classes only when used in browser
-    // to avoid issues in non-DOM environments.
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Style } = require('ol/style/Style');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: CircleStyle } = require('ol/style/Circle');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Fill } = require('ol/style/Fill');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Stroke } = require('ol/style/Stroke');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Text } = require('ol/style/Text');
-
-    const makeCircle = (radius, fillColor, strokeColor, strokeWidth = 2) =>
-      new CircleStyle({
-        radius,
-        fill: new Fill({ color: fillColor }),
-        stroke: new Stroke({ color: strokeColor, width: strokeWidth })
-      });
-
-    const sosCore = new Style({
-      image: makeCircle(24, '#ef4444', '#fee2e2', 3),
-      text: new Text({
-        text: 'SOS',
-        font: 'bold 15px system-ui, sans-serif',
-        fill: new Fill({ color: '#ffffff' })
-      })
-    });
-
-    const sosRingInner = new Style({
-      image: makeCircle(42, 'rgba(248, 113, 113, 0.12)', 'rgba(248, 113, 113, 0.6)', 2)
-    });
-
-    const sosRingOuter = new Style({
-      image: makeCircle(60, 'rgba(248, 113, 113, 0.06)', 'rgba(248, 113, 113, 0.25)', 1)
-    });
-
-    const greenMarker = new Style({
-      image: makeCircle(14, '#22c55e', '#bbf7d0', 2)
-    });
-
-    const blueMarker = new Style({
-      image: makeCircle(14, '#1d4ed8', '#bfdbfe', 2),
-      text: new Text({
-        text: 'DS',
-        font: 'bold 14px system-ui, sans-serif',
-        fill: new Fill({ color: '#ffffff' })
-      })
-    });
-
-    const getStyle = (item) => {
-      if (!item || !item.type) return greenMarker;
-      if (item.type === 'sos') {
-        // Return array of styles to draw concentric rings + core
-        return [sosRingOuter, sosRingInner, sosCore];
-      }
-      if (item.type === 'green') {
-        return greenMarker;
-      }
-      if (item.type === 'blue') {
-        return blueMarker;
-      }
-      return greenMarker;
-    };
-
-    return getStyle;
-  }, []);
 
   return (
     <Box
@@ -559,14 +519,15 @@ const SOSMonitoringDashboard = () => {
                 </Stack>
               </Box>
               <Box sx={{ height: { xs: 320, md: '100%' }, flexGrow: 1 }}>
-                <DashboardMap
-                  data={incidents}
-                  center={[91.7362, 26.1445]}
-                  zoom={12}
-                  getStyle={mapStyle}
+                <BhuvanMapComponent
+                  gpsData={gpsData}
+                  width="100%"
+                  height="100%"
                   autoFit
-                  autoFitFilter={(item) => item?.type === 'sos'}
-                  autoFitMaxZoom={14}
+                  markerLabelMode="vehicle"
+                  showMapTypeToggle
+                  showDrawControls={false}
+                  showSoiLayerPanel={false}
                 />
               </Box>
             </Box>
