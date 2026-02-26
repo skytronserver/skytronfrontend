@@ -1,69 +1,68 @@
 import { getAxiosInstance } from './axiosInstance';
 const getAllModels = () => {
-  const http = getAxiosInstance(); 
+  const http = getAxiosInstance();
   return http.get("/api/devicemodel/devicemodelList/");
 };
-const getFilterModels=(data)=>{
-  const http=getAxiosInstance();
-  return http.post('/api/devicemodel/devicemodelFilter/',data)
+const getFilterModels = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/devicemodel/devicemodelFilter/', data)
 }
 const getAdminAwaitingModels = () => {
-  const http = getAxiosInstance(); 
+  const http = getAxiosInstance();
   return http.get("/api/devicemodel/devicemodelAwaitingStateApproval/");
 };
 const getAdminAwaitingCOPModels = () => {
-  const http = getAxiosInstance(); 
+  const http = getAxiosInstance();
   return http.get("/api/devicemodel/COPAwaitingStateApproval/");
 };
 const getModel = (id) => {
-  const http = getAxiosInstance(); 
-  return http.post(`api/devicemodel/devicemodelDetails/`,id);
+  const http = getAxiosInstance();
+  return http.post(`api/devicemodel/devicemodelDetails/`, id);
 };
 const createModel = (data) => {
-  const http = getAxiosInstance(); 
-  return http.post("/api/devicemodel/devicemodelCreate/", data,{
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/devicemodelCreate/", data, {
     headers: {
       'Content-type': 'multipart/form-data',
     }
   });
 };
-const copUpload=(data)=>{
-  const http = getAxiosInstance(); 
-  return http.post("/api/devicemodel/COPUpload/",data,{
+const copUpload = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/COPUpload/", data, {
     headers: {
       'Content-type': 'multipart/form-data',
     }
   })
 }
 const updateModel = (id, updatedData) => {
-  const http = getAxiosInstance(); 
+  const http = getAxiosInstance();
   return http.put(`/api/update_device_model/${id}`, updatedData);
 };
 const deleteModel = (id) => {
-  const http = getAxiosInstance(); 
+  const http = getAxiosInstance();
   return http.delete(`/api/delete_device_model/${id}`);
 };
-const getDeviceList=(data)=>{  
+const getDeviceList = (data) => {
   const http = getAxiosInstance();         // show device
-  return http.post("/api/devicestock/deviceStockFilter/",data)            
+  return http.post("/api/devicestock/deviceStockFilter/", data)
 }
-const stateadminApprovedModels=(data)=>{
-  const http=getAxiosInstance();
-  return http.post('/api/stateadmin/reports/approved-models/',data)
-}
-
-const stateadminApprovedCOPModels=(data)=>{
-  const http=getAxiosInstance();
-  return http.post('/api/stateadmin/reports/approved-cops/',data)
-}
-
-const createTechnicalOnboardingRequest = (data) => {
+const stateadminApprovedModels = (data) => {
   const http = getAxiosInstance();
-  return http.post("/devicemodel/technical-onboarding/create/", data, {
-    headers: {
-      'Content-type': 'multipart/form-data',
-    },
-  });
+  return http.post('/api/stateadmin/reports/approved-models/', data)
+}
+
+const stateadminApprovedCOPModels = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/stateadmin/reports/approved-cops/', data)
+}
+
+const createTechnicalOnboardingRequest = (formData) => {
+  // formData must be a pre-built FormData instance.
+  // We intentionally do NOT set Content-Type so the browser can set
+  // the correct multipart boundary automatically.
+  const http = getAxiosInstance();
+  return http.post("/devicemodel/technical-onboarding/create/", formData);
 };
 
 const DeviceModelServices = {
