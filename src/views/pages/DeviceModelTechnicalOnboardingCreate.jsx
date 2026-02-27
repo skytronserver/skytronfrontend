@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -10,6 +11,9 @@ import {
   InputAdornment,
   Paper,
   Stack,
+  Step,
+  StepLabel,
+  Stepper,
   TextField,
   Tooltip,
   Typography,
@@ -24,10 +28,20 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DevicesIcon from "@mui/icons-material/Devices";
 import DescriptionIcon from "@mui/icons-material/Description";
 import SimCardIcon from "@mui/icons-material/SimCard";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import DeviceModelServices from "../../services/DeviceModelServices";
 
-/* ─────────────────────────────────────── helpers ─── */
-const emptyDemoDevice = () => ({
+/* ─────────────────────────────────────── constants ─── */
+
+const STEPS = [
+  { label: "Select Model" },
+  { label: "Manufacturer Onboarding" },
+  { label: "Required Documents" },
+  { label: "VLTD Devices" },
+];
+
+const emptyTestDevice = () => ({
   device_serial_no: "",
   imei: "",
   ccid1: "",
@@ -36,7 +50,7 @@ const emptyDemoDevice = () => ({
   msisdn2: "",
 });
 
-const DEMO_DEVICE_FIELDS = [
+const TEST_DEVICE_FIELDS = [
   { key: "device_serial_no", label: "Device Serial No", placeholder: "e.g. SN-1001" },
   { key: "imei", label: "IMEI", placeholder: "15-digit IMEI number" },
   { key: "ccid1", label: "CCID 1", placeholder: "19-digit CCID" },
@@ -103,10 +117,13 @@ const PdfUploadCard = ({ label, icon: Icon, file, onChange, error }) => (
 /* ═══════════════════════════════════════════════════ */
 
 const DeviceModelTechnicalOnboardingCreate = () => {
+  const [activeStep, setActiveStep] = useState(0);
+
+  /* ── form state ── */
   const [deviceModelId, setDeviceModelId] = useState("");
   const [userManualPdf, setUserManualPdf] = useState(null);
   const [otCommandListPdf, setOtCommandListPdf] = useState(null);
-  const [demoDevices, setDemoDevices] = useState([emptyDemoDevice()]);
+  const [testDevices, setTestDevices] = useState([emptyTestDevice()]);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -120,16 +137,15 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     setOpenAlert(true);
   };
 
-  const canRemoveDemoDevice = useMemo(() => demoDevices.length > 1, [demoDevices.length]);
+  const canRemoveTestDevice = useMemo(() => testDevices.length > 1, [testDevices.length]);
 
   /* ── demo device CRUD ── */
-  const handleDemoDeviceChange = (index, key, value) => {
-    setDemoDevices((prev) => {
+  const handleTestDeviceChange = (index, key, value) => {
+    setTestDevices((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [key]: value };
       return next;
     });
-    // clear field-level error on change
     setFieldErrors((prev) => {
       const copy = { ...prev };
       delete copy[`device_${index}_${key}`];
@@ -137,36 +153,51 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     });
   };
 
-  const handleAddDemoDevice = () =>
-    setDemoDevices((prev) => [...prev, emptyDemoDevice()]);
+  const handleAddTestDevice = () =>
+    setTestDevices((prev) => [...prev, emptyTestDevice()]);
 
-  const handleRemoveDemoDevice = (index) =>
-    setDemoDevices((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveTestDevice = (index) =>
+    setTestDevices((prev) => prev.filter((_, i) => i !== index));
 
-  /* ── validation ── */
-  const validate = () => {
+  /* ── per-step validation ── */
+  const validateStep = (step) => {
     const errors = {};
 
-    if (!deviceModelId || String(deviceModelId).trim() === "") {
-      errors.deviceModelId = "Device Model ID is required.";
+    if (step === 0) {
+      if (!deviceModelId || String(deviceModelId).trim() === "") {
+        errors.deviceModelId = "Device Model ID is required.";
+      }
     }
-    if (!userManualPdf) {
-      errors.userManualPdf = "Required";
+    if (step === 2) {
+      if (!userManualPdf) errors.userManualPdf = "Required";
+      if (!otCommandListPdf) errors.otCommandListPdf = "Required";
     }
-    if (!otCommandListPdf) {
-      errors.otCommandListPdf = "Required";
-    }
-
-    demoDevices.forEach((d, i) => {
-      DEMO_DEVICE_FIELDS.forEach(({ key }) => {
-        if (!d[key] || String(d[key]).trim() === "") {
-          errors[`device_${i}_${key}`] = "Required";
-        }
+    if (step === 3) {
+      testDevices.forEach((d, i) => {
+        TEST_DEVICE_FIELDS.forEach(({ key }) => {
+          if (!d[key] || String(d[key]).trim() === "") {
+            errors[`device_${i}_${key}`] = "Required";
+          }
+        });
       });
-    });
+    }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  /* ── navigation ── */
+  const handleNext = () => {
+    if (!validateStep(activeStep)) {
+      showAlert("error", "Please fix all errors before continuing.");
+      return;
+    }
+    setActiveStep((s) => s + 1);
+  };
+
+  const handleBack = () => {
+    setFieldErrors({});
+    setActiveStep((s) => s - 1);
   };
 
   /* ── reset ── */
@@ -174,23 +205,23 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     setDeviceModelId("");
     setUserManualPdf(null);
     setOtCommandListPdf(null);
-    setDemoDevices([emptyDemoDevice()]);
+    setTestDevices([emptyTestDevice()]);
     setFieldErrors({});
+    setActiveStep(0);
   };
 
   /* ── submit ── */
   const handleSubmit = async () => {
-    if (!validate()) {
+    if (!validateStep(3)) {
       showAlert("error", "Please fix all errors before submitting.");
       return;
     }
 
-    // Build FormData — files are appended directly so they remain File objects.
     const formData = new FormData();
     formData.append("device_model_id", deviceModelId);
     formData.append("user_manual_pdf", userManualPdf);
     formData.append("ot_command_list_pdf", otCommandListPdf);
-    formData.append("demo_devices", JSON.stringify(demoDevices));
+    formData.append("demo_devices", JSON.stringify(testDevices));
 
     setSubmitting(true);
     try {
@@ -210,33 +241,12 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     }
   };
 
-  /* ── render ── */
-  return (
-    <Grid container spacing={gridSpacing}>
-      <AutoHideAlert
-        open={openAlert}
-        onClose={() => setOpenAlert(false)}
-        message={message}
-        type={alertType}
-      />
-
-      <Grid item xs={12}>
-        <MainCard
-          title={
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <DevicesIcon color="primary" />
-              <Typography variant="h4" fontWeight={700}>
-                Technical Onboarding Request
-              </Typography>
-            </Stack>
-          }
-        >
-          <Typography variant="body2" color="text.secondary" mb={3}>
-            Submit a technical onboarding request for your device model. Provide the
-            required documents and at least one demo device.
-          </Typography>
-
-          {/* ── Section 1: Device Model ID ── */}
+  /* ── step content ── */
+  const renderStepContent = () => {
+    switch (activeStep) {
+      /* ── Step 0: Select Model ── */
+      case 0:
+        return (
           <SectionBlock
             label="Device Model"
             description="Enter the ID of the device model to onboard."
@@ -251,7 +261,11 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   value={deviceModelId}
                   onChange={(e) => {
                     setDeviceModelId(e.target.value);
-                    setFieldErrors((p) => { const c = { ...p }; delete c.deviceModelId; return c; });
+                    setFieldErrors((p) => {
+                      const c = { ...p };
+                      delete c.deviceModelId;
+                      return c;
+                    });
                   }}
                   error={!!fieldErrors.deviceModelId}
                   helperText={fieldErrors.deviceModelId}
@@ -266,10 +280,75 @@ const DeviceModelTechnicalOnboardingCreate = () => {
               </Grid>
             </Grid>
           </SectionBlock>
+        );
 
-          <Divider sx={{ my: 3 }} />
+      /* ── Step 1: Manufacturer Onboarding ── */
+      case 1:
+        return (
+          <SectionBlock
+            label="Manufacturer Onboarding"
+            description="Review the integration details before uploading documents."
+          >
+            <Stack spacing={3}>
+              {/* A) Technical Document */}
+              <Box>
+                <Typography variant="h6" fontWeight={700} mb={1}>
+                  A) Technical Document (Confidential)
+                </Typography>
+                <Alert severity="info" sx={{ mb: 1.5 }}>
+                  This section contains the confidential API integration document.
+                  Review it carefully before proceeding.
+                </Alert>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => window.open("/", "_blank")}
+                >
+                  Open Technical Document
+                </Button>
+              </Box>
 
-          {/* ── Section 2: Documents ── */}
+              <Divider />
+
+              {/* B) Test Server Details */}
+              <Box>
+                <Typography variant="h6" fontWeight={700} mb={1}>
+                  B) Test Server Details
+                </Typography>
+                <Alert severity="warning">
+                  <Typography variant="body2">
+                    <strong>Base URL:</strong> http://UAT-IP-ADDRESS
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Port:</strong> 0000
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Note:</strong> Share your public IP for allowlisting (if required).
+                  </Typography>
+                </Alert>
+              </Box>
+
+              <Divider />
+
+              {/* C) Integration Checklist */}
+              <Box>
+                <Typography variant="h6" fontWeight={700} mb={1}>
+                  C) Test Device &amp; Integration Checklist
+                </Typography>
+                <Alert severity="success">
+                  <Typography variant="body2">1) Login credentials received</Typography>
+                  <Typography variant="body2">2) API integration completed on UAT</Typography>
+                  <Typography variant="body2">3) Test device shared / arranged</Typography>
+                  <Typography variant="body2">4) Functionality &amp; integration verified on platform</Typography>
+                </Alert>
+              </Box>
+            </Stack>
+          </SectionBlock>
+        );
+
+      /* ── Step 2: Required Documents ── */
+      case 2:
+        return (
           <SectionBlock
             label="Required Documents"
             description="Upload both PDFs. Max file size: 10 MB each."
@@ -283,7 +362,11 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   error={fieldErrors.userManualPdf}
                   onChange={(e) => {
                     setUserManualPdf(e.target.files?.[0] || null);
-                    setFieldErrors((p) => { const c = { ...p }; delete c.userManualPdf; return c; });
+                    setFieldErrors((p) => {
+                      const c = { ...p };
+                      delete c.userManualPdf;
+                      return c;
+                    });
                   }}
                 />
               </Grid>
@@ -295,23 +378,28 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   error={fieldErrors.otCommandListPdf}
                   onChange={(e) => {
                     setOtCommandListPdf(e.target.files?.[0] || null);
-                    setFieldErrors((p) => { const c = { ...p }; delete c.otCommandListPdf; return c; });
+                    setFieldErrors((p) => {
+                      const c = { ...p };
+                      delete c.otCommandListPdf;
+                      return c;
+                    });
                   }}
                 />
               </Grid>
             </Grid>
           </SectionBlock>
+        );
 
-          <Divider sx={{ my: 3 }} />
-
-          {/* ── Section 3: Demo Devices ── */}
+      /* ── Step 3: Demo Devices ── */
+      case 3:
+        return (
           <SectionBlock
-            label="Demo Devices"
-            description="Minimum 1 demo device is required. All fields are mandatory."
+            label="VLTD Devices"
+            description="Minimum 1 VLTD device is required. All fields are mandatory."
             action={
               <Button
                 startIcon={<AddIcon />}
-                onClick={handleAddDemoDevice}
+                onClick={handleAddTestDevice}
                 variant="contained"
                 size="small"
               >
@@ -320,7 +408,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
             }
           >
             <Stack spacing={2}>
-              {demoDevices.map((d, index) => (
+              {testDevices.map((d, index) => (
                 <Paper
                   key={index}
                   variant="outlined"
@@ -344,9 +432,9 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                     <Stack direction="row" alignItems="center" spacing={1}>
                       <SimCardIcon sx={{ color: "white", fontSize: 20 }} />
                       <Typography variant="subtitle1" fontWeight={700} color="white">
-                        Demo Device {index + 1}
+                        VLTD Device {index + 1}
                       </Typography>
-                      {demoDevices.length > 1 && (
+                      {testDevices.length > 1 && (
                         <Chip
                           label={`#${index + 1}`}
                           size="small"
@@ -358,13 +446,22 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                         />
                       )}
                     </Stack>
-                    <Tooltip title={canRemoveDemoDevice ? "Remove device" : "At least 1 device required"}>
+                    <Tooltip
+                      title={
+                        canRemoveTestDevice
+                          ? "Remove device"
+                          : "At least 1 device required"
+                      }
+                    >
                       <span>
                         <IconButton
-                          onClick={() => handleRemoveDemoDevice(index)}
-                          disabled={!canRemoveDemoDevice}
+                          onClick={() => handleRemoveTestDevice(index)}
+                          disabled={!canRemoveTestDevice}
                           size="small"
-                          sx={{ color: "white", "&.Mui-disabled": { color: "rgba(255,255,255,0.4)" } }}
+                          sx={{
+                            color: "white",
+                            "&.Mui-disabled": { color: "rgba(255,255,255,0.4)" },
+                          }}
                         >
                           <CloseIcon fontSize="small" />
                         </IconButton>
@@ -375,7 +472,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   {/* card body */}
                   <Box sx={{ p: 2 }}>
                     <Grid container spacing={2}>
-                      {DEMO_DEVICE_FIELDS.map(({ key, label, placeholder }) => (
+                      {TEST_DEVICE_FIELDS.map(({ key, label, placeholder }) => (
                         <Grid item xs={12} md={6} key={key}>
                           <TextField
                             fullWidth
@@ -384,7 +481,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                             placeholder={placeholder}
                             value={d[key]}
                             onChange={(e) =>
-                              handleDemoDeviceChange(index, key, e.target.value)
+                              handleTestDeviceChange(index, key, e.target.value)
                             }
                             error={!!fieldErrors[`device_${index}_${key}`]}
                             helperText={fieldErrors[`device_${index}_${key}`]}
@@ -398,36 +495,115 @@ const DeviceModelTechnicalOnboardingCreate = () => {
               ))}
             </Stack>
           </SectionBlock>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const isLastStep = activeStep === STEPS.length - 1;
+
+  /* ── render ── */
+  return (
+    <Grid container spacing={gridSpacing}>
+      <AutoHideAlert
+        open={openAlert}
+        onClose={() => setOpenAlert(false)}
+        message={message}
+        type={alertType}
+      />
+
+      <Grid item xs={12}>
+        <MainCard
+          title={
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <DevicesIcon color="primary" />
+              <Typography variant="h4" fontWeight={700}>
+                Technical Onboarding Request
+              </Typography>
+            </Stack>
+          }
+        >
+          <Typography variant="body2" color="text.secondary" mb={4}>
+            Submit a technical onboarding request for your device model. Provide the
+            required documents and at least one VLTD device.
+          </Typography>
+
+          {/* ── Stepper ── */}
+          <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+            {STEPS.map((step, index) => (
+              <Step key={step.label} completed={index < activeStep}>
+                <StepLabel>{step.label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {/* ── Step Content ── */}
+          {renderStepContent()}
 
           <Divider sx={{ my: 3 }} />
 
-          {/* ── Action Buttons ── */}
+          {/* ── Navigation Buttons ── */}
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={2}
-            justifyContent="flex-end"
+            justifyContent="space-between"
+            alignItems="center"
           >
-            <Button
-              variant="outlined"
-              onClick={resetForm}
-              disabled={submitting}
-              sx={{ minWidth: 120 }}
-            >
-              Reset
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={submitting}
-              sx={{ minWidth: 160 }}
-              startIcon={
-                submitting ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : null
-              }
-            >
-              {submitting ? "Submitting…" : "Submit Request"}
-            </Button>
+            {/* Left side */}
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="outlined"
+                onClick={resetForm}
+                disabled={submitting}
+                sx={{ minWidth: 100 }}
+              >
+                Reset
+              </Button>
+            </Stack>
+
+            {/* Right side */}
+            <Stack direction="row" spacing={2}>
+              {activeStep > 0 && (
+                <Button
+                  variant="outlined"
+                  startIcon={<ArrowBackIcon />}
+                  onClick={handleBack}
+                  disabled={submitting}
+                  sx={{ minWidth: 110 }}
+                >
+                  Back
+                </Button>
+              )}
+
+              {!isLastStep ? (
+                <Button
+                  variant="contained"
+                  endIcon={<ArrowForwardIcon />}
+                  onClick={handleNext}
+                  sx={{ minWidth: 110 }}
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  sx={{ minWidth: 160 }}
+                  startIcon={
+                    submitting ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : null
+                  }
+                >
+                  {submitting ? "Submitting…" : "Submit Request"}
+                </Button>
+              )}
+            </Stack>
           </Stack>
         </MainCard>
       </Grid>

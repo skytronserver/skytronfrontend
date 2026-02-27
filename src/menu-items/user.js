@@ -380,15 +380,6 @@ const user = {
       ]
     },
     {
-      id: "manufacturer-onboarding",
-      title: "Manufacturer Onboarding",
-      type: "item",
-      url: "/manufacturer/onboarding",
-      icon: icons.IconChecks,
-      breadcrumbs: false,
-      roles: ["devicemanufacture"],
-    },
-    {
       id: "manufacturer-technical-onboarding-create",
       title: "Technical Onboarding",
       type: "item",

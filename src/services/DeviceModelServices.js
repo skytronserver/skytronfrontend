@@ -58,11 +58,12 @@ const stateadminApprovedCOPModels = (data) => {
 }
 
 const createTechnicalOnboardingRequest = (formData) => {
-  // formData must be a pre-built FormData instance.
-  // We intentionally do NOT set Content-Type so the browser can set
-  // the correct multipart boundary automatically.
   const http = getAxiosInstance();
-  return http.post("/devicemodel/technical-onboarding/create/", formData);
+  return http.post("/api/devicemodel/technical-onboarding/create/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
 const DeviceModelServices = {
