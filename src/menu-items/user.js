@@ -162,6 +162,15 @@ const user = {
       roles: ["superadmin", "stateadmin"],
     },
     {
+      id: "technical-onboarding-requests",
+      title: "Technical Onboarding Requests",
+      type: "item",
+      url: "/superadmin-dashboard/technical-onboarding-requests",
+      icon: icons.IconChecks,
+      breadcrumbs: false,
+      roles: ["superadmin"],
+    },
+    {
       id: "new-icons-em-team",
       title: "EM Team",
       type: "collapse",
@@ -380,13 +389,29 @@ const user = {
       ]
     },
     {
-      id: "manufacturer-technical-onboarding-create",
+      id: "manufacturer-technical-onboarding",
       title: "Technical Onboarding",
-      type: "item",
-      url: "/manufacturer/technical-onboarding/create",
+      type: "collapse",
       icon: icons.IconChecks,
-      breadcrumbs: false,
       roles: ["devicemanufacture"],
+      children: [
+        {
+          id: "manufacturer-technical-onboarding-create",
+          title: "New Request",
+          type: "item",
+          url: "/manufacturer/technical-onboarding/create",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
+        {
+          id: "manufacturer-technical-onboarding-list",
+          title: "My Requests",
+          type: "item",
+          url: "/manufacturer/technical-onboarding/list",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
+      ],
     },
     // {
     //   id: "accessory-management",

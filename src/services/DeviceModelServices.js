@@ -66,6 +66,28 @@ const createTechnicalOnboardingRequest = (formData) => {
   });
 };
 
+const listManufacturerTechnicalOnboardingRequests = (data = {}) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/manufacturer/list/", data);
+};
+
+const listSuperadminTechnicalOnboardingRequests = (data = {}) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/list/", data);
+};
+
+const markTechnicalOnboardingOngoing = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/mark-ongoing/", data);
+};
+
+const finalizeTechnicalOnboardingRequest = (formData) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/finalize/", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
 const DeviceModelServices = {
   getAllModels,
   getAdminAwaitingModels,
@@ -79,7 +101,11 @@ const DeviceModelServices = {
   getFilterModels,
   stateadminApprovedModels,
   stateadminApprovedCOPModels,
-  createTechnicalOnboardingRequest
+  createTechnicalOnboardingRequest,
+  listManufacturerTechnicalOnboardingRequests,
+  listSuperadminTechnicalOnboardingRequests,
+  markTechnicalOnboardingOngoing,
+  finalizeTechnicalOnboardingRequest,
 };
 
 export default DeviceModelServices;

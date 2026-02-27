@@ -28,6 +28,7 @@ import ApprovedCOPsList from "../views/reports/ApprovedCOPsList";
 import EsimStatusReport from "../views/reports/EsimStatusReport";
 import ManufacturerOnboarding from "../views/pages/ManufacturerOnboarding";
 import DeviceModelTechnicalOnboardingCreate from "../views/pages/DeviceModelTechnicalOnboardingCreate";
+import DeviceModelTechnicalOnboardingList from "../views/pages/DeviceModelTechnicalOnboardingList";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -68,6 +69,11 @@ const DeviceRoutes = {
     {
       path: "/manufacturer/technical-onboarding/create",
       element: <DeviceModelTechnicalOnboardingCreate />,
+      roles: ["devicemanufacture"],
+    },
+    {
+      path: "/manufacturer/technical-onboarding/list",
+      element: <DeviceModelTechnicalOnboardingList />,
       roles: ["devicemanufacture"],
     },
     {
@@ -123,7 +129,7 @@ const DeviceRoutes = {
     {
       path: "/device/show-device",
       element: <ShowDevice />,
-      roles: ["superadmin", "devicemanufacture", "dealer", "stateadmin","dtorto"],
+      roles: ["superadmin", "devicemanufacture", "dealer", "stateadmin", "dtorto"],
     },
     {
       path: "/device/assign-device",
@@ -138,7 +144,7 @@ const DeviceRoutes = {
     {
       path: "/device/show-available-device",
       element: <AvailableForSale />,
-      roles: ["superadmin", "devicemanufacture", "dealer","dtorto"],
+      roles: ["superadmin", "devicemanufacture", "dealer", "dtorto"],
     },
     {
       path: "/device/show-tagged-device",
@@ -148,7 +154,7 @@ const DeviceRoutes = {
     {
       path: "/device/combined-stock-report",
       element: <CombinedStockReport />,
-      roles: ["superadmin", "devicemanufacture","dealer","dtorto"],
+      roles: ["superadmin", "devicemanufacture", "dealer", "dtorto"],
     },
     {
       path: "/device/fit-device",
@@ -158,7 +164,7 @@ const DeviceRoutes = {
     {
       path: '/device/all-tagged-devices',
       element: <AllTaggedDevice />,
-      roles:['superadmin', 'devicemanufacture', 'stateadmin'],
+      roles: ['superadmin', 'devicemanufacture', 'stateadmin'],
     },
     {
       path: "/device/approved-models",

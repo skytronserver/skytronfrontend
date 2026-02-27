@@ -61,6 +61,7 @@ import SchoolOnboarding from "../views/schoolbus/SchoolOnboarding";
 import M2MRegistrationAdminReview from "../views/pages/M2MRegistrationAdminReview";
 import VehicleManufacturerRegistrationAdminReview from "../views/pages/VehicleManufacturerRegistrationAdminReview";
 import AIS140DeviceManufacturerRegistrationAdminReview from "../views/pages/AIS140DeviceManufacturerRegistrationAdminReview";
+import DeviceModelTechnicalOnboardingAdminList from "../views/pages/DeviceModelTechnicalOnboardingAdminList";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -145,6 +146,11 @@ const MainRoutes = {
       path: "/superadmin-dashboard/ais-140-device-manufacturer-registration-requests",
       element: <AIS140DeviceManufacturerRegistrationAdminReview />,
       roles: ["superadmin", "stateadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/technical-onboarding-requests",
+      element: <DeviceModelTechnicalOnboardingAdminList />,
+      roles: ["superadmin"],
     },
     {
       path: "/morth-dashboard",
