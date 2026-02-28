@@ -392,7 +392,10 @@
     "smsSos": {
       "label": "SMS SOS",
       "required": "SMS SOS is required"
-    }
+    },
+    "submit": "Submit",
+    "success": "Saved successfully",
+    "error": "Something went wrong"
   },
   "liveTracking": {
     "title": "Live Tracking",
@@ -774,11 +777,6 @@
       "mobileFormat": "Mobile number must be 10 digits",
       "dobRequired": "Date of birth is required"
     }
-  },
-  "form": {
-    "submit": "Submit",
-    "success": "Saved successfully",
-    "error": "Something went wrong"
   },
   "deviceForm": {
     "deviceDetails": "Device Details",
