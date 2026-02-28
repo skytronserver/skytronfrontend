@@ -27,9 +27,11 @@ import DevicesIcon from "@mui/icons-material/Devices";
 import SimCardIcon from "@mui/icons-material/SimCard";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CommentIcon from "@mui/icons-material/Comment";
+import EventIcon from "@mui/icons-material/Event";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
+import { openFile } from "../../helper";
 
 /* ─── helpers ─── */
 const formatDateTime = (value) => {
@@ -45,6 +47,28 @@ const formatDateTime = (value) => {
     } catch {
         return value;
     }
+};
+
+const DocumentButton = ({ label, path }) => {
+    if (!path) return null;
+
+    return (
+        <Stack direction="row" alignItems="center" spacing={1} justifyContent="space-between" sx={{ width: "100%" }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+                <DescriptionIcon fontSize="small" color="action" />
+                <Typography variant="caption">{label}</Typography>
+            </Stack>
+            <Chip
+                label="View / Download"
+                size="small"
+                color="primary"
+                variant="outlined"
+                clickable
+                onClick={(e) => openFile(e, path)}
+                sx={{ height: 20, fontSize: "0.65rem" }}
+            />
+        </Stack>
+    );
 };
 
 const STATUS_CONFIG = {
@@ -78,7 +102,7 @@ const RequestRow = ({ row, index }) => {
         try { return JSON.parse(row.demo_devices); } catch { return []; }
     }, [row.demo_devices]);
 
-    const hasReport = row.report || row.comment || row.remarks;
+    const hasReport = row.final_comment || row.compatibility_report_pdf || row.report || row.comment || row.remarks;
 
     return (
         <>
@@ -101,7 +125,7 @@ const RequestRow = ({ row, index }) => {
                 {/* request date-time */}
                 <TableCell sx={{ py: 1 }}>
                     <Typography variant="body2" fontWeight={500}>
-                        {formatDateTime(row.created_at || row.created)}
+                        {formatDateTime(row.request_datetime || row.created_at || row.created)}
                     </Typography>
                 </TableCell>
 
@@ -129,13 +153,21 @@ const RequestRow = ({ row, index }) => {
 
                 {/* report/comment indicator */}
                 <TableCell sx={{ py: 1 }}>
-                    {hasReport ? (
-                        <Tooltip title="Has report/comment">
-                            <CommentIcon fontSize="small" color="primary" />
-                        </Tooltip>
-                    ) : (
-                        <Typography variant="caption" color="text.disabled">—</Typography>
-                    )}
+                    <Stack direction="row" justifyContent="center">
+                        {row.compatibility_report_pdf ? (
+                            <Tooltip title="Compatibility Report Available">
+                                <DescriptionIcon fontSize="small" color="primary" />
+                            </Tooltip>
+                        ) : row.user_manual_pdf ? (
+                            <Tooltip title="User Manual Available">
+                                <DescriptionIcon fontSize="small" color="info" />
+                            </Tooltip>
+                        ) : hasReport ? (
+                            <Tooltip title="Evaluation Comment Available">
+                                <CommentIcon fontSize="small" color="primary" />
+                            </Tooltip>
+                        ) : null}
+                    </Stack>
                 </TableCell>
             </TableRow>
 
@@ -145,6 +177,37 @@ const RequestRow = ({ row, index }) => {
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ py: 2, px: 2 }}>
                             <Grid container spacing={2}>
+
+                                {/* Request Info */}
+                                <Grid item xs={12} md={6}>
+                                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                        <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
+                                            <EventIcon color="primary" fontSize="small" />
+                                            <Typography variant="subtitle2" fontWeight={700}>
+                                                Request Info
+                                            </Typography>
+                                        </Stack>
+                                        <Divider sx={{ mb: 1.5 }} />
+                                        <Grid container rowSpacing={0.5} columnSpacing={2}>
+                                            {[
+                                                ["Submitted", formatDateTime(row.request_datetime || row.created_at || row.created)],
+                                                ["Request ID", row.id],
+                                                ["Finalized", row.decision_datetime ? formatDateTime(row.decision_datetime) : null],
+                                            ].map(([lbl, val]) =>
+                                                val ? (
+                                                    <React.Fragment key={lbl}>
+                                                        <Grid item xs={5}>
+                                                            <Typography variant="caption" color="text.secondary">{lbl}</Typography>
+                                                        </Grid>
+                                                        <Grid item xs={7}>
+                                                            <Typography variant="caption" fontWeight={600}>{val}</Typography>
+                                                        </Grid>
+                                                    </React.Fragment>
+                                                ) : null
+                                            )}
+                                        </Grid>
+                                    </Paper>
+                                </Grid>
 
                                 {/* Device Model Details */}
                                 {row.device_model && (
@@ -227,7 +290,7 @@ const RequestRow = ({ row, index }) => {
                                 )}
 
                                 {/* Uploaded Documents */}
-                                {(row.user_manual_pdf || row.ot_command_list_pdf) && (
+                                {(row.user_manual_pdf || row.ot_command_list_pdf || row.compatibility_report_pdf) && (
                                     <Grid item xs={12} md={6}>
                                         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                                             <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
@@ -237,45 +300,10 @@ const RequestRow = ({ row, index }) => {
                                                 </Typography>
                                             </Stack>
                                             <Divider sx={{ mb: 1.5 }} />
-                                            <Stack spacing={1}>
-                                                {row.user_manual_pdf && (
-                                                    <Stack direction="row" alignItems="center" spacing={1}>
-                                                        <DescriptionIcon fontSize="small" color="action" />
-                                                        <Typography variant="caption">User Manual PDF</Typography>
-                                                        {typeof row.user_manual_pdf === "string" && row.user_manual_pdf.startsWith("http") && (
-                                                            <Chip
-                                                                label="View"
-                                                                size="small"
-                                                                color="primary"
-                                                                variant="outlined"
-                                                                clickable
-                                                                component="a"
-                                                                href={row.user_manual_pdf}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                            />
-                                                        )}
-                                                    </Stack>
-                                                )}
-                                                {row.ot_command_list_pdf && (
-                                                    <Stack direction="row" alignItems="center" spacing={1}>
-                                                        <DescriptionIcon fontSize="small" color="action" />
-                                                        <Typography variant="caption">OT Command List PDF</Typography>
-                                                        {typeof row.ot_command_list_pdf === "string" && row.ot_command_list_pdf.startsWith("http") && (
-                                                            <Chip
-                                                                label="View"
-                                                                size="small"
-                                                                color="primary"
-                                                                variant="outlined"
-                                                                clickable
-                                                                component="a"
-                                                                href={row.ot_command_list_pdf}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                            />
-                                                        )}
-                                                    </Stack>
-                                                )}
+                                            <Stack spacing={1.5}>
+                                                <DocumentButton label="User Manual PDF" path={row.user_manual_pdf} />
+                                                <DocumentButton label="OT Command List PDF" path={row.ot_command_list_pdf} />
+                                                <DocumentButton label="Compatibility Report" path={row.compatibility_report_pdf} />
                                             </Stack>
                                         </Paper>
                                     </Grid>
@@ -301,7 +329,7 @@ const RequestRow = ({ row, index }) => {
                                             </Stack>
                                             <Divider sx={{ mb: 1.5 }} />
                                             <Typography variant="body2" color="text.primary" sx={{ whiteSpace: "pre-wrap" }}>
-                                                {row.report || row.comment || row.remarks}
+                                                {row.final_comment || row.report || row.comment || row.remarks}
                                             </Typography>
                                         </Paper>
                                     </Grid>

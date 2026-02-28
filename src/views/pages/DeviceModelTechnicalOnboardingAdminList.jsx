@@ -51,6 +51,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
+import { openFile } from "../../helper";
 
 /* ─── helpers ─── */
 const formatDateTime = (value) => {
@@ -484,7 +485,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
     }, [row.demo_devices]);
 
     const manufacturerName = useMemo(() => resolveManufacturer(row), [row]);
-    const hasReport = row.report || row.comment || row.remarks;
+    const hasReport = row.final_comment || row.compatibility_report_pdf || row.report || row.comment || row.remarks;
 
     const mfrObj = row.manufacturer || row.manufacturer_info || row.created_by_info || {};
     const mfrEmail = mfrObj.email || row.created_by_email || null;
@@ -511,7 +512,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                 {/* date */}
                 <TableCell sx={{ py: 1 }}>
                     <Typography variant="body2" fontWeight={500}>
-                        {formatDateTime(row.created_at || row.created)}
+                        {formatDateTime(row.request_datetime || row.created_at || row.created)}
                     </Typography>
                 </TableCell>
 
@@ -571,14 +572,24 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                 </Button>
                             </Tooltip>
                         )}
-                        {hasReport && (
-                            <Tooltip title="Has report / comment">
+                        {row.compatibility_report_pdf ? (
+                            <Tooltip title="View Compatibility Report">
+                                <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openFile(e, row.compatibility_report_pdf);
+                                    }}
+                                >
+                                    <DescriptionIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        ) : hasReport ? (
+                            <Tooltip title="Has evaluation comment">
                                 <CommentIcon fontSize="small" color="primary" />
                             </Tooltip>
-                        )}
-                        {!isSubmitted && !isOngoingEval && !hasReport && (
-                            <Typography variant="caption" color="text.disabled">—</Typography>
-                        )}
+                        ) : null}
                     </Stack>
                 </TableCell>
             </TableRow>
@@ -603,7 +614,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                                 ["Company", manufacturerName],
                                                 ["Email", mfrEmail],
                                                 ["Mobile", mfrMobile],
-                                                ["Submitted", formatDateTime(row.created_at || row.created)],
+                                                ["Submitted", formatDateTime(row.request_datetime || row.created_at || row.created)],
                                                 ["Request ID", row.id],
                                             ].map(([lbl, val]) => val ? (
                                                 <React.Fragment key={lbl}>
@@ -682,7 +693,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                 )}
 
                                 {/* Documents */}
-                                {(row.user_manual_pdf || row.ot_command_list_pdf) && (
+                                {(row.user_manual_pdf || row.ot_command_list_pdf || row.compatibility_report_pdf) && (
                                     <Grid item xs={12} md={6}>
                                         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                                             <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
@@ -694,14 +705,22 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                                 {[
                                                     ["User Manual PDF", row.user_manual_pdf],
                                                     ["OT Command List PDF", row.ot_command_list_pdf],
+                                                    ["Compatibility Report PDF", row.compatibility_report_pdf],
                                                 ].map(([lbl, url]) => url ? (
-                                                    <Stack key={lbl} direction="row" alignItems="center" spacing={1}>
-                                                        <DescriptionIcon fontSize="small" color="action" />
-                                                        <Typography variant="caption">{lbl}</Typography>
-                                                        {typeof url === "string" && url.startsWith("http") && (
-                                                            <Chip label="View" size="small" color="primary" variant="outlined"
-                                                                clickable component="a" href={url} target="_blank" rel="noopener noreferrer" />
-                                                        )}
+                                                    <Stack key={lbl} direction="row" alignItems="center" spacing={1} justifyContent="space-between" sx={{ width: "100%" }}>
+                                                        <Stack direction="row" alignItems="center" spacing={1}>
+                                                            <DescriptionIcon fontSize="small" color="action" />
+                                                            <Typography variant="caption">{lbl}</Typography>
+                                                        </Stack>
+                                                        <Chip
+                                                            label="View / Download"
+                                                            size="small"
+                                                            color="primary"
+                                                            variant="outlined"
+                                                            clickable
+                                                            onClick={(e) => openFile(e, url)}
+                                                            sx={{ height: 20, fontSize: "0.65rem" }}
+                                                        />
                                                     </Stack>
                                                 ) : null)}
                                             </Stack>
@@ -719,7 +738,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                             </Stack>
                                             <Divider sx={{ mb: 1.5 }} />
                                             <Typography variant="body2" color="text.primary" sx={{ whiteSpace: "pre-wrap" }}>
-                                                {row.report || row.comment || row.remarks}
+                                                {row.final_comment || row.report || row.comment || row.remarks}
                                             </Typography>
                                         </Paper>
                                     </Grid>
