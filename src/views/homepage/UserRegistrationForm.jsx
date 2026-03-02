@@ -225,11 +225,11 @@ const UserRegistrationForm = () => {
               disabled: selectedRole === "Vehicle Manufacturer" || selectedRole === "AIS-140 Device Manufacturer",
               options: selectedRole === "Vehicle Manufacturer"
                 ? [
-                  { label: "Vehicle manufacturer", value: "Vehicle manufacturer" }
+                  { label: "Vehicle manufacturer (Factory Fitted AIS-140 Device)", value: "Vehicle manufacturer" }
                 ]
                 : selectedRole === "AIS-140 Device Manufacturer"
                   ? [
-                    { label: "Device manufacturer", value: "Device manufacturer" }
+                    { label: "Device manufacturer (Retrofitted AIS-140 Device)", value: "Device manufacturer" }
                   ]
                   : prevConfig.manufacturer_type?.options || []
             }
@@ -239,6 +239,10 @@ const UserRegistrationForm = () => {
             // keep factory fitment declaration for Vehicle Manufacturer
           } else {
             delete nextConfig.file_factoryFitmentDeclaration;
+          }
+
+          if (selectedRole === "AIS-140 Device Manufacturer") {
+            delete nextConfig.device_model_details;
           }
 
           return nextConfig;

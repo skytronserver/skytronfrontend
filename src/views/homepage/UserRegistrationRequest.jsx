@@ -22,8 +22,8 @@ import "./registrationForm.css";
 
 const ROLE_OPTIONS = [
   { value: "M2M Service Provider", label: "M2M Service Provider", icon: <RouterIcon fontSize="small" /> },
-  { value: "Vehicle Manufacturer", label: "Vehicle Manufacturer", icon: <DirectionsBusIcon fontSize="small" /> },
-  { value: "AIS-140 Device Manufacturer", label: "AIS-140 Device Manufacturer", icon: <DevicesIcon fontSize="small" /> },
+  { value: "Vehicle Manufacturer (Factory Fitted AIS-140 Device)", label: "Vehicle Manufacturer (Factory Fitted AIS-140 Device)", icon: <DirectionsBusIcon fontSize="small" /> },
+  { value: "AIS-140 Device Manufacturer (Retrofitted AIS-140 Device)", label: "AIS-140 Device Manufacturer (Retrofitted AIS-140 Device)", icon: <DevicesIcon fontSize="small" /> },
   { value: "School Administrator", label: "School Administrator", icon: <BusinessIcon fontSize="small" /> },
   { value: "Others", label: "Others", icon: <HelpOutlineIcon fontSize="small" /> },
 ];
@@ -35,8 +35,8 @@ const UserRegistrationRequest = () => {
     if (!selectedRole) return;
     const roleSlugMap = {
       "M2M Service Provider": "m2m-service-provider",
-      "Vehicle Manufacturer": "vehicle-manufacturer",
-      "AIS-140 Device Manufacturer": "ais-140-device-manufacturer",
+      "Vehicle Manufacturer (Factory Fitted AIS-140 Device)": "vehicle-manufacturer",
+      "AIS-140 Device Manufacturer (Retrofitted AIS-140 Device)": "ais-140-device-manufacturer",
       "School Administrator": "school-administrator",
       "Others": "others",
     };

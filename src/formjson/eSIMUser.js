@@ -178,7 +178,7 @@ export const eSIMFormField = {
   company_registration_no: {
     name: "company_registration_no",
     type: "text",
-    label: "Company Registration No",
+    label: "Company Registration No (Optional)",
     validation: Yup.string().notRequired(), // Made optional as requested
   },
 
@@ -275,6 +275,8 @@ export const eSIMFormField = {
     type: "file",
     label: "Official Technical Onboarding Request Letter",
     message: "esimUser.form.validation.file_restrictions",
+    downloadUrl: "/templates/technical-onboarding-request-letter-format.pdf",
+    downloadLabel: "Format of request letter",
     validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
@@ -289,6 +291,8 @@ export const eSIMFormField = {
     type: "file",
     label: "Affidavit-cum-Undertaking for Skytron Backend Access",
     message: "esimUser.form.validation.file_restrictions",
+    downloadUrl: "/templates/affidavit-cum-undertaking-format.pdf",
+    downloadLabel: "Format of Affidavit-Cum-Undertaking",
     validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;

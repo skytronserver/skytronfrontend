@@ -72,8 +72,8 @@ export const manufacturerFormField = {
     validation: Yup.string().required("Manufacturer Type is required"),
     options: [
       { label: "Select", value: "" },
-      { label: "Vehicle manufacturer", value: "Vehicle manufacturer" },
-      { label: "Device manufacturer", value: "Device manufacturer" },
+      { label: "Vehicle manufacturer (Factory Fitted AIS-140 Device)", value: "Vehicle manufacturer" },
+      { label: "Device manufacturer (Retrofitted AIS-140 Device)", value: "Device manufacturer" },
     ],
   },
   name: {
@@ -106,7 +106,7 @@ export const manufacturerFormField = {
   idProofno: {
     name: "idProofno",
     type: "text",
-    label: "Applicant ID Proof No",
+    label: "Applicant ID Proof No (PAN CARD, ADHAR, VOTER ID, DRIVING LICENSE, PASSPORT)",
     validation: Yup.string().min(5, "manufacturer.form.validation.id_proof_min_length").required("manufacturer.form.validation.id_proof_required"),
   },
   address: {
@@ -204,8 +204,8 @@ export const manufacturerFormField = {
   device_model_details: {
     name: "device_model_details",
     type: "text",
-    label: "Device Model Details",
-    validation: Yup.string().required("Device Model Details is required"),
+    label: "AIS-140 VLTD Device Make",
+    validation: Yup.string().required("AIS-140 Device Make is required"),
   },
   esimProvider: {
     name: "esimProvider",
@@ -217,8 +217,8 @@ export const manufacturerFormField = {
   tac_no: {
     name: "tac_no",
     type: "text",
-    label: "TAC No",
-    validation: Yup.string().required("TAC No is required"),
+    label: "AIS-140 Device TAC No",
+    validation: Yup.string().required("AIS-140 Device TAC No is required"),
   },
   tac_validity: {
     name: "tac_validity",
@@ -251,7 +251,7 @@ export const manufacturerFormField = {
   file_selfCertifiedIdProofAuthorisedSignatory: {
     name: "file_selfCertifiedIdProofAuthorisedSignatory",
     type: "file",
-    label: "Applicant ID Proof (PDF)",
+    label: "Self Certified Applicant ID Proof (PDF)",
     message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Self-Certified ID Proof of Authorised Signatory is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -281,7 +281,7 @@ export const manufacturerFormField = {
   file_pan: {
     name: "file_pan",
     type: "file",
-    label: "PAN (PDF)",
+    label: "Self Certified Company PAN Card",
     message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("PAN document is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -295,7 +295,7 @@ export const manufacturerFormField = {
   file_selfCertifiedGstRegistrationCertificate: {
     name: "file_selfCertifiedGstRegistrationCertificate",
     type: "file",
-    label: "GST Certificate (PDF)",
+    label: "Self Certified Company GST Certificate",
     message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Self-Certified GST Registration Certificate is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -325,6 +325,8 @@ export const manufacturerFormField = {
     type: "file",
     label: "Official Technical Onboarding Request Letter",
     message: 'manufacturer.form.validation.file_restrictions',
+    downloadUrl: "/templates/technical-onboarding-request-letter-format.pdf",
+    downloadLabel: "Format of request letter",
     validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
@@ -339,6 +341,8 @@ export const manufacturerFormField = {
     type: "file",
     label: "Affidavit-cum-Undertaking for Skytron Backend Access",
     message: 'manufacturer.form.validation.file_restrictions',
+    downloadUrl: "/templates/affidavit-cum-undertaking-format.pdf",
+    downloadLabel: "Format of Affidavit-Cum-Undertaking",
     validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
@@ -402,6 +406,8 @@ export const manufacturerFormField = {
     type: "file",
     label: "Factory Fitment Declaration",
     message: 'manufacturer.form.validation.file_restrictions',
+    downloadUrl: "/templates/factory-fitment-declaration-format.pdf",
+    downloadLabel: "Format of Factory Fitment Declaration",
     validation: Yup.mixed().required("Factory Fitment Declaration is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
