@@ -3,7 +3,7 @@
  * Uses authentication token and POST request for security
  */
 
-const API_URL = "https://api.gromed.in/api/download/";
+const API_URL = `${process.env.REACT_APP_BASE_URL}api/download/`;
 
 /**
  * Fetches an incident image securely using the authenticated API

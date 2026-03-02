@@ -26,7 +26,7 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
         // India3 layer
         new TileLayer({
           source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+            url: `${process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in'}/bhuvan/gwc/service/wms`,
             params: {
               'LAYERS': 'india3',
               'TILED': true,
@@ -45,7 +45,7 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
         // Admin group layer (basemap)
         new TileLayer({
           source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+            url: `${process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in'}/bhuvan/gwc/service/wms`,
             params: {
               'LAYERS': 'basemap%3Aadmin_group',
               'TILED': true,

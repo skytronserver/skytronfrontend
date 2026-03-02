@@ -105,8 +105,7 @@ const DashboardMap = ({
       new TileLayer({
         source: new TileWMS({
           url:
-            process.env.REACT_APP_BHUVAN_URL ||
-            'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+            `${process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in'}/bhuvan/gwc/service/wms`,
           params: {
             LAYERS: 'basemap%3Aadmin_group',
             TILED: true,

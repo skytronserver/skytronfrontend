@@ -114,7 +114,7 @@ const fetchNotificationPreferences = () => {
 // Send Command
 const send_command = (data) => {
   const http = getAxiosInstance();
-  return http.post("https://api.gromed.in/api/mqtt/send_command/", data);
+  return http.post(`${process.env.REACT_APP_BASE_URL}api/mqtt/send_command/`, data);
 };
 
 const SettingService = {

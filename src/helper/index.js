@@ -102,28 +102,28 @@ export const retriveStateList = async () => {
   }
 };
 
- export const retriveStateListPub = async () => {
-   try {
-     const response = await axios.post(
-       "https://api.gromed.in/api/pub/Settings/filter_settings_State_pub/",
-       {}
-     );
-     if (response.data.length === 0) {
-       return [{ value: "", label: "No State Found" }];
-     }
-     const list = response.data.map((device) => ({
-       value: device.id,
-       label: device.state,
-     }));
-     return list;
-   } catch (error) {
-     if (error.response && error.response.status === 404) {
-       console.log("No Data Found");
-     } else {
-       console.log("No Data Found");
-     }
-   }
- };
+export const retriveStateListPub = async () => {
+  try {
+    const response = await axios.post(
+      `${process.env.REACT_APP_BASE_URL}api/pub/Settings/filter_settings_State_pub/`,
+      {}
+    );
+    if (response.data.length === 0) {
+      return [{ value: "", label: "No State Found" }];
+    }
+    const list = response.data.map((device) => ({
+      value: device.id,
+      label: device.state,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
+    }
+  }
+};
 export const retriveSOSLead = async () => {
   try {
     let filteredData = [];
@@ -341,7 +341,7 @@ export const retriveCreatedSimProvider = async (data) => {
 export const retriveCreatedSimProviderPub = async (data) => {
   try {
     const response = await axios.post(
-      "https://api.gromed.in/api/pub/eSimProvider/filter_eSimProvider/",
+      `${process.env.REACT_APP_BASE_URL}api/pub/eSimProvider/filter_eSimProvider/`,
       data || {}
     );
     const filtered = (response?.data || []).filter(

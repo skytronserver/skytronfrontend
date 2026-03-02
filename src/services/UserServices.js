@@ -254,7 +254,7 @@ const getVehicleStatusMetrics = () => {
 
 const getSOSMonthlyMetrics = (year) => {
     const http = getAxiosInstance();
-    return http.get(`https://api.gromed.in/api/SOS/monthly_metrics/?year=${year}`);
+    return http.get(`${process.env.REACT_APP_BASE_URL}api/SOS/monthly_metrics/?year=${year}`);
 };
 
 

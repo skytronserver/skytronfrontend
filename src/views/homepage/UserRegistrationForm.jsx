@@ -50,8 +50,8 @@ const getRoleLabel = (slug) =>
   ROLE_OPTIONS.find((x) => x.slug === slug)?.label || "";
 
 const API_ENDPOINTS = {
-  m2m: "https://api.gromed.in/api/pub/eSimProvider/create_eSimProvider/",
-  manufacturer: "https://api.gromed.in/api/pub/manufacturer/create_manufacturer/",
+  m2m: `${process.env.REACT_APP_BASE_URL}api/pub/eSimProvider/create_eSimProvider/`,
+  manufacturer: `${process.env.REACT_APP_BASE_URL}api/pub/manufacturer/create_manufacturer/`,
 };
 
 const UserRegistrationForm = () => {

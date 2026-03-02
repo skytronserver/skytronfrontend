@@ -62,7 +62,7 @@ const ManufacturerOnboarding = () => {
             </Typography>
             <Alert severity="warning">
               <Typography variant="body2">
-                <strong>Base URL:</strong> http://UAT-IP-ADDRESS
+                <strong>Base URL:</strong> {process.env.REACT_APP_BASE_URL || "http://UAT-IP-ADDRESS"}
               </Typography>
               <Typography variant="body2">
                 <strong>Port:</strong> 0000

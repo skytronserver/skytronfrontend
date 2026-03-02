@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const GROMED_BASE_URL = 'https://api.gromed.in/api/central_api/';
+const GROMED_BASE_URL = `${process.env.REACT_APP_BASE_URL}api/central_api/`;
 const GROMED_TOKEN = process.env.REACT_APP_GROMED_TOKEN;
 
 export const fetchMorthDashboardData = async () => {

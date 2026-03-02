@@ -16,8 +16,7 @@ import StickyLanguageSwitcher from "./ui-component/StickyLanguageSwitcher";
 // ==============================|| APP ||============================== //
 
 const App = () => {
-  // const apicall = async () => {
-  //   const response = await fetch("https://api.gromed.in/api/EM/DEx/get-media/",{
+  //   const response = await fetch(`${process.env.REACT_APP_BASE_URL}api/EM/DEx/get-media/`,{
   //     headers: {
   //       'Authorization': `Token c43e5631503ac48ab980b549ec1c74993e8ffe88`
   //     },
@@ -38,8 +37,8 @@ const App = () => {
               <CircularProgress />
             </div>
           }> */}
-            <Routes />
-            <StickyLanguageSwitcher />
+          <Routes />
+          <StickyLanguageSwitcher />
           {/* </Suspense> */}
         </NavigationScroll>
       </ThemeProvider>

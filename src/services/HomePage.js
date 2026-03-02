@@ -36,7 +36,7 @@ const getGeocode = (query, limit = 5) => {
   }
 
   if (resolveUseOldGeocoding()) {
-    return http.get('https://api.gromed.in/api/geocode/', {
+    return http.get(`${process.env.REACT_APP_BASE_URL}api/geocode/`, {
       params: {
         q,
       },
@@ -317,12 +317,12 @@ const getIncidentData = (data) => {
   // Using absolute URL as it's an external system, but assuming the token from axiosInstance is valid or headers are handled.
   // If the base URL is different and requires a different token/auth, this might need adjustment.
   // For now, using the provided URL in the user request.
-  return http.post("https://api.gromed.in/api/incident/filter/", data);
+  return http.post(`${process.env.REACT_APP_BASE_URL}api/incident/filter/`, data);
 };
 
 const getCellLocation = (data) => {
   const http = getAxiosInstance();
-  return http.post("https://api.gromed.in/api/cell_location/", data);
+  return http.post(`${process.env.REACT_APP_BASE_URL}api/cell_location/`, data);
 };
 
 const getReverseGeocode = (lat, lon) => {
@@ -335,7 +335,7 @@ const getReverseGeocode = (lat, lon) => {
   }
 
   if (resolveUseOldGeocoding()) {
-    return http.get('https://api.gromed.in/api/reverse_geocode/', {
+    return http.get(`${process.env.REACT_APP_BASE_URL}api/reverse_geocode/`, {
       params: {
         lat: safeLat,
         lon: safeLon,
