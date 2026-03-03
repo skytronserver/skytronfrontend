@@ -1030,9 +1030,7 @@
       "gstCertificateRequired": "जीएसटी प्रमाणपत्र आवश्यक है",
       "userIdProofRequired": "यूजर आईडी प्रूफ आवश्यक है",
       "fileSize": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
-      "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं"
-    },
-    "messages": {
+      "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
       "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए।"
     }
   },
@@ -1045,6 +1043,7 @@
       "ownerVerification": "वाहन मालिक सत्यापन",
       "readyForActivation": "सक्रियण के लिए तैयार",
       "sosButtonPress": "एसओएस बटन दबाएं",
+      "activateSosInApp": "ऐप में एसओएस सक्रिय करें",
       "getLocation": "स्थान प्राप्त करें",
       "confirmLocation": "स्थान की पुष्टि करें",
       "ownerOtpConfirmation": "मालिक ओटीपी पुष्टिकरण"
@@ -1087,6 +1086,7 @@
       "getVahanDetails": "वाहन से विवरण प्राप्त करने के लिए नीचे क्लिक करें",
       "getLocation": "वाहन का स्थान प्राप्त करने के लिए नीचे क्लिक करें",
       "sosButtonInstruction": "कृपया अपने डिवाइस पर एसओएस बटन दबाएं",
+      "sosActivateInstruction": "कृपया Skytron ऐप में SOS सक्रिय करें",
       "sosButtonPressed": "एसओएस बटन सफलतापूर्वक दबाया गया",
       "sosButtonProceed": "एसओएस बटन दबाया गया! अगले चरण पर जा रहे हैं...",
       "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 512KB से कम होनी चाहिए।"

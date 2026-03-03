@@ -20,9 +20,15 @@ const UnapproveCopList = () => {
 
   useEffect(() => {
     const retriveDeviceModel = async () => {
-      const retriveData = await DeviceModelServices.getAdminAwaitingCOPModels();
-      dispatch(fetchCOPDeviceModels(retriveData.data));
-      setLoad(true);
+      try {
+        const retriveData = await DeviceModelServices.getAdminAwaitingCOPModels();
+        dispatch(fetchCOPDeviceModels(retriveData.data));
+      } catch (error) {
+        console.error('getAdminAwaitingCOPModels failed:', error?.response?.data || error?.message || error);
+        dispatch(fetchCOPDeviceModels([]));
+      } finally {
+        setLoad(true);
+      }
     };
     retriveDeviceModel();
   }, [dispatch]);

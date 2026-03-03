@@ -19,9 +19,15 @@ const DeviceModelList = () => {
   
   useEffect(()=>{
     const retriveDeviceModel = async () => {
-      const retriveData=await DeviceModelServices.getAdminAwaitingModels();
-      dispatch(fetchDeviceModels(retriveData.data)) ;
-      setLoad(true)
+      try {
+        const retriveData=await DeviceModelServices.getAdminAwaitingModels();
+        dispatch(fetchDeviceModels(retriveData.data)) ;
+      } catch (error) {
+        console.error('getAdminAwaitingModels failed:', error?.response?.data || error?.message || error);
+        dispatch(fetchDeviceModels([]));
+      } finally {
+        setLoad(true)
+      }
     };
     retriveDeviceModel();
   },[dispatch])

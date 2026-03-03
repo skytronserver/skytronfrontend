@@ -104,12 +104,12 @@ const DeviceRoutes = {
     {
       path: "/device/list",
       element: <DeviceModelList />,
-      roles: ["stateadmin",],
+      roles: ["superadmin", "stateadmin"],
     },
     {
       path: "/deviceCOP/list",
       element: <UnapproveCopList />,
-      roles: ["stateadmin"],
+      roles: ["superadmin", "stateadmin"],
     },
     {
       path: "/deviceModel/view/:deviceId",
@@ -169,12 +169,12 @@ const DeviceRoutes = {
     {
       path: "/device/approved-models",
       element: <ApprovedModelsList />,
-      roles: ["stateadmin"],
+      roles: ["superadmin", "stateadmin"],
     },
     {
       path: "/device/approved-cops",
       element: <ApprovedCOPsList />,
-      roles: ["stateadmin"],
+      roles: ["superadmin", "stateadmin"],
     },
     {
       path: "/device/esim-status",

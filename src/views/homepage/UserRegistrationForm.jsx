@@ -96,6 +96,7 @@ const UserRegistrationForm = () => {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [referenceNo, setReferenceNo] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
@@ -308,6 +309,7 @@ const UserRegistrationForm = () => {
     setFormikSubmitting(true);
     setErrorMessage("");
     setInfoMessage("");
+    setReferenceNo(null);
     setSubmitting(true);
 
     try {
@@ -383,6 +385,7 @@ const UserRegistrationForm = () => {
       const res = await axios.post(API_ENDPOINTS.m2m, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      setReferenceNo(res?.data?.users?.[0]?.id ?? null);
       setShowSuccess(true);
       resetForm({ values: eSIMInitialValues });
     } catch (err) {
@@ -458,6 +461,7 @@ const UserRegistrationForm = () => {
     setFormikSubmitting(true);
     setErrorMessage("");
     setInfoMessage("");
+    setReferenceNo(null);
     setSubmitting(true);
 
     try {
@@ -553,6 +557,7 @@ const UserRegistrationForm = () => {
       const res = await axios.post(API_ENDPOINTS.manufacturer, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      setReferenceNo(res?.data?.users?.[0]?.id ?? null);
       setShowSuccess(true);
       resetForm({ values: manufacturerInitialValues });
     } catch (err) {
@@ -867,6 +872,11 @@ const UserRegistrationForm = () => {
               <Typography variant="body2" sx={{ color: "#4caf50", mt: 0.5 }}>
                 Your request has been received and is under review.
               </Typography>
+              {referenceNo ? (
+                <Typography variant="body2" sx={{ color: "#1b5e20", mt: 1, fontWeight: 700 }}>
+                  Reference No: {referenceNo}
+                </Typography>
+              ) : null}
               <Box sx={{ mt: 2, display: "flex", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
                 <Button
                   variant="outlined"

@@ -38,7 +38,8 @@ const steps = [
   { label: "tagDeviceForm.steps.otCommandConfiguration", name: "Step 7" },
   { label: "tagDeviceForm.steps.confirmLocation", name: "Step 8" },
   { label: "tagDeviceForm.steps.sosButtonPress", name: "Step 9" },
-  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 10" },
+  { label: "tagDeviceForm.steps.activateSosInApp", name: "Step 10" },
+  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 11" },
 ];
 
 const rawOtCommands = [
@@ -813,6 +814,37 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
             {activeStep === 9 && (
+              <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
+                <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
+                  <Typography variant="body1" align="center" color="textSecondary">
+                    {t("tagDeviceForm.messages.sosActivateInstruction")}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: '50%',
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      color: 'white',
+                      backgroundColor: '#f44336',
+                      boxShadow: '0 8px 16px rgba(244,67,54,0.3)',
+                      '&:hover': {
+                        backgroundColor: '#d32f2f',
+                        boxShadow: '0 10px 20px rgba(244,67,54,0.4)',
+                      }
+                    }}
+                    onClick={() => setActiveStep((prev) => prev + 1)}
+                  >
+                    SOS
+                  </Button>
+                </Grid>
+              </Grid>
+            )}
+            {activeStep === 10 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>

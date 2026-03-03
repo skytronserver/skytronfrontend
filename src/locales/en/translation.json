@@ -1004,6 +1004,7 @@
       "ownerVerification": "Vehicle Owner Verification",
       "readyForActivation": "Ready for Activation",
       "sosButtonPress": "SOS Button Press",
+      "activateSosInApp": "Activate SOS in App",
       "getLocation": "Get Location",
       "confirmLocation": "Confirm Location",
       "ownerOtpConfirmation": "Owner OTP Confirmation"
@@ -1046,6 +1047,7 @@
       "getVahanDetails": "Click below to get details from Vahan",
       "getLocation": "Click below to get location of Vehicle",
       "sosButtonInstruction": "Please press the SOS button on your device",
+      "sosActivateInstruction": "Please Activate SOS in Skytron App",
       "sosButtonPressed": "SOS button pressed successfully",
       "sosButtonProceed": "SOS button pressed! Proceeding to next step...",
       "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 512KB."
