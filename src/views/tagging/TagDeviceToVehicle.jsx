@@ -250,11 +250,16 @@ function TagDeviceToVehicle() {
     if (alreadyReceived) return;
     if (!enteredAt) return;
 
+    const baseUrl = (process.env.REACT_APP_BASE_URL || "").replace(/\/+$/, "");
+    const emergencyLogUrl = baseUrl
+      ? `${baseUrl}/api/gps-em-data-log-table/`
+      : "/api/gps-em-data-log-table/";
+
     const poll = async () => {
       try {
         const searchValue = ownerDetails?.IMEI || getMap?.imei || "";
         const res = await axios.get(
-          "https://api.gromed.in/api/gps-em-data-log-table/",
+          emergencyLogUrl,
           {
             params: { search: searchValue },
           }
