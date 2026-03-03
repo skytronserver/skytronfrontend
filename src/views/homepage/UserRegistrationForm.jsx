@@ -54,6 +54,19 @@ const API_ENDPOINTS = {
   manufacturer: `${process.env.REACT_APP_BASE_URL}api/pub/manufacturer/create_manufacturer/`,
 };
 
+const buildReferenceNo = (prefix, data) => {
+  const raw = data?.id ?? data?.users?.[0]?.id;
+  if (raw === undefined || raw === null || String(raw).trim() === "") return null;
+  return `${prefix}/${raw}`;
+};
+
+const getReferencePrefixByRole = (roleLabel) => {
+  if (roleLabel === "M2M Service Provider") return "M2M";
+  if (roleLabel === "Vehicle Manufacturer") return "VEHICLE-MANUFACTURER";
+  if (roleLabel === "AIS-140 Device Manufacturer") return "AIS-140-DEVICE-MANUFACTURER";
+  return "REFERENCE";
+};
+
 const UserRegistrationForm = () => {
   const { role: roleSlug } = useParams();
   const selectedRole = getRoleLabel(roleSlug);
@@ -385,7 +398,7 @@ const UserRegistrationForm = () => {
       const res = await axios.post(API_ENDPOINTS.m2m, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setReferenceNo(res?.data?.users?.[0]?.id ?? null);
+      setReferenceNo(buildReferenceNo(getReferencePrefixByRole(selectedRole), res?.data));
       setShowSuccess(true);
       resetForm({ values: eSIMInitialValues });
     } catch (err) {
@@ -557,7 +570,7 @@ const UserRegistrationForm = () => {
       const res = await axios.post(API_ENDPOINTS.manufacturer, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setReferenceNo(res?.data?.users?.[0]?.id ?? null);
+      setReferenceNo(buildReferenceNo(getReferencePrefixByRole(selectedRole), res?.data));
       setShowSuccess(true);
       resetForm({ values: manufacturerInitialValues });
     } catch (err) {

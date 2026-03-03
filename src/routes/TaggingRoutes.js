@@ -35,28 +35,28 @@ const TaggingRoutes = {
   element: <MainLayout />,
   children: [
     {
-      path: "/tag/device-vehicle",
+      path: "tag/device-vehicle",
       element: (
         <TagDeviceToVehicle/>
       ),
       roles:['dealer','superadmin']
     },
     {
-      path: "/tag/unapproved-vehicle",
+      path: "tag/unapproved-vehicle",
       element: (
         <UnApprovedTag/>
       ),
       roles:['dealer','superadmin']
     },
     {
-      path: "/tag/download-receipt",
+      path: "tag/download-receipt",
       element: (
         <UploadReceipt/>
       ),
       roles:['dealer','superadmin']
     },
     {
-      path: "/tag/vahan-verification",
+      path: "tag/vahan-verification",
       element: (
         <VahanVerification/>
       ),

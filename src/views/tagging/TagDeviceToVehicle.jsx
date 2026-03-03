@@ -3,12 +3,13 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import { Formik } from "formik";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { gridSpacing } from "../../store/constant";
 import TaggingService from "../../services/TaggingService";
 import HomePageService from "../../services/HomePage";
 import * as Yup from "yup";
+import axios from "axios";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "../../ui-component/cards/MainCard";
 import Alert from "@mui/material/Alert";
@@ -27,6 +28,7 @@ import CustomStepper from "../../ui-component/CustomStepper";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 import DisplayTable from "../../ui-component/DisplayTable";
 import MapComponent from "views/direct/LiveMap";
+import { useLocation } from "react-router-dom";
 
 const steps = [
   { label: "tagDeviceForm.steps.tagDevice", name: "Step 1" },
@@ -57,13 +59,18 @@ const formattedOtCommands = rawOtCommands.map((command) =>
 
 function TagDeviceToVehicle() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
   const [deviceId, setDeviceId] = useState("");
   const [activeStep, setActiveStep] = useState(0);
+  const [deviceSosAlertReceived, setDeviceSosAlertReceived] = useState(false);
+  const [appSosAlertReceived, setAppSosAlertReceived] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
   const [mapLoaded, setMapLoaded] = useState(false);
   const [reload, setReload] = useState(false);
   const [getMap, setGetMap] = useState({ imei: "", regno: "" });
+  const deviceSosEnteredAtRef = useRef(null);
+  const appSosEnteredAtRef = useRef(null);
   const [loading, setLoading] = useState({
     loader: false,
     form: false,
@@ -73,6 +80,18 @@ function TagDeviceToVehicle() {
     api: false,
   });
   const [dealerDistricts, setDealerDistricts] = useState([]);
+
+  const getStepFromQuery = () => {
+    try {
+      const stepParam = new URLSearchParams(location.search).get("step");
+      const stepNumber = stepParam === null ? null : Number(stepParam);
+      if (!Number.isInteger(stepNumber)) return null;
+      if (stepNumber < 0 || stepNumber > steps.length - 1) return null;
+      return stepNumber;
+    } catch (e) {
+      return null;
+    }
+  };
 
   useEffect(() => {
     const dealerDistricts = localStorage.getItem('dealerDistricts');
@@ -205,8 +224,69 @@ function TagDeviceToVehicle() {
         }));
       }
     })();
-    setActiveStep(0);
+    const stepFromQuery = getStepFromQuery();
+    setActiveStep(stepFromQuery ?? 0);
   }, [reload]);
+
+  useEffect(() => {
+    const stepFromQuery = getStepFromQuery();
+    if (stepFromQuery === null) return;
+    setActiveStep(stepFromQuery);
+  }, [location.search]);
+
+  useEffect(() => {
+    if (activeStep === 8) {
+      if (!deviceSosEnteredAtRef.current) deviceSosEnteredAtRef.current = new Date();
+    } else if (activeStep === 9) {
+      if (!appSosEnteredAtRef.current) appSosEnteredAtRef.current = new Date();
+    }
+  }, [activeStep]);
+
+  useEffect(() => {
+    if (activeStep !== 8 && activeStep !== 9) return;
+
+    const enteredAt = activeStep === 8 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current;
+    const alreadyReceived = activeStep === 8 ? deviceSosAlertReceived : appSosAlertReceived;
+    if (alreadyReceived) return;
+    if (!enteredAt) return;
+
+    const poll = async () => {
+      try {
+        const searchValue = ownerDetails?.IMEI || getMap?.imei || "";
+        const res = await axios.get(
+          "https://api.gromed.in/api/gps-em-data-log-table/",
+          {
+            params: { search: searchValue },
+          }
+        );
+        const dataString = res?.data?.data;
+        if (!dataString) return;
+        const parsed = JSON.parse(dataString);
+        const hasNew = Array.isArray(parsed)
+          ? parsed.some((item) => {
+              const ts = item?.fields?.timestamp;
+              if (!ts) return false;
+              const tms = new Date(ts).getTime();
+              return Number.isFinite(tms) && tms > enteredAt.getTime();
+            })
+          : false;
+
+        if (!hasNew) return;
+
+        if (activeStep === 8) {
+          setDeviceSosAlertReceived(true);
+        } else if (activeStep === 9) {
+          setAppSosAlertReceived(true);
+        }
+      } catch (e) {
+        // ignore polling errors
+      }
+    };
+
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => clearInterval(id);
+  }, [activeStep, deviceSosAlertReceived, appSosAlertReceived, ownerDetails?.IMEI, getMap?.imei]);
 
   const handleDealerOtp = (otp) => {
     setOtp((prev) => ({ ...prev, dealer: otp }));
@@ -786,7 +866,9 @@ function TagDeviceToVehicle() {
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
-                    {t("tagDeviceForm.messages.sosButtonInstruction")}
+                    {deviceSosAlertReceived
+                      ? t("tagDeviceForm.messages.sosAlertReceived")
+                      : t("tagDeviceForm.messages.sosButtonInstruction")}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -799,11 +881,15 @@ function TagDeviceToVehicle() {
                       fontSize: '1.2rem',
                       fontWeight: 'bold',
                       color: 'white',
-                      backgroundColor: '#f44336',
-                      boxShadow: '0 8px 16px rgba(244,67,54,0.3)',
+                      backgroundColor: deviceSosAlertReceived ? '#4caf50' : '#f44336',
+                      boxShadow: deviceSosAlertReceived
+                        ? '0 8px 16px rgba(76,175,80,0.3)'
+                        : '0 8px 16px rgba(244,67,54,0.3)',
                       '&:hover': {
-                        backgroundColor: '#d32f2f',
-                        boxShadow: '0 10px 20px rgba(244,67,54,0.4)',
+                        backgroundColor: deviceSosAlertReceived ? '#388e3c' : '#d32f2f',
+                        boxShadow: deviceSosAlertReceived
+                          ? '0 10px 20px rgba(76,175,80,0.4)'
+                          : '0 10px 20px rgba(244,67,54,0.4)',
                       }
                     }}
                     onClick={() => setActiveStep((prev) => prev + 1)}
@@ -811,13 +897,27 @@ function TagDeviceToVehicle() {
                     SOS
                   </Button>
                 </Grid>
+                {deviceSosAlertReceived && (
+                  <Grid item xs={12} sx={{ mt: 3 }} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Button
+                      color="primary"
+                      type="button"
+                      variant="contained"
+                      onClick={() => setActiveStep((prev) => prev + 1)}
+                    >
+                      {t("common.next", "Next")}
+                    </Button>
+                  </Grid>
+                )}
               </Grid>
             )}
             {activeStep === 9 && (
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
-                    {t("tagDeviceForm.messages.sosActivateInstruction")}
+                    {appSosAlertReceived
+                      ? t("tagDeviceForm.messages.sosAlertReceived")
+                      : t("tagDeviceForm.messages.sosActivateInstruction")}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -830,11 +930,15 @@ function TagDeviceToVehicle() {
                       fontSize: '1.2rem',
                       fontWeight: 'bold',
                       color: 'white',
-                      backgroundColor: '#f44336',
-                      boxShadow: '0 8px 16px rgba(244,67,54,0.3)',
+                      backgroundColor: appSosAlertReceived ? '#4caf50' : '#f44336',
+                      boxShadow: appSosAlertReceived
+                        ? '0 8px 16px rgba(76,175,80,0.3)'
+                        : '0 8px 16px rgba(244,67,54,0.3)',
                       '&:hover': {
-                        backgroundColor: '#d32f2f',
-                        boxShadow: '0 10px 20px rgba(244,67,54,0.4)',
+                        backgroundColor: appSosAlertReceived ? '#388e3c' : '#d32f2f',
+                        boxShadow: appSosAlertReceived
+                          ? '0 10px 20px rgba(76,175,80,0.4)'
+                          : '0 10px 20px rgba(244,67,54,0.4)',
                       }
                     }}
                     onClick={() => setActiveStep((prev) => prev + 1)}
@@ -842,6 +946,18 @@ function TagDeviceToVehicle() {
                     SOS
                   </Button>
                 </Grid>
+                {appSosAlertReceived && (
+                  <Grid item xs={12} sx={{ mt: 3 }} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Button
+                      color="primary"
+                      type="button"
+                      variant="contained"
+                      onClick={() => setActiveStep((prev) => prev + 1)}
+                    >
+                      {t("common.next", "Next")}
+                    </Button>
+                  </Grid>
+                )}
               </Grid>
             )}
             {activeStep === 10 && (

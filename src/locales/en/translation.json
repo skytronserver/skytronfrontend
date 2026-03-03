@@ -1046,8 +1046,9 @@
       "ownerOtpSent": "An OTP has been sent to vehicle owner mobile number. Please enter the OTP below to continue.",
       "getVahanDetails": "Click below to get details from Vahan",
       "getLocation": "Click below to get location of Vehicle",
-      "sosButtonInstruction": "Please press the SOS button on your device",
-      "sosActivateInstruction": "Please Activate SOS in Skytron App",
+      "sosButtonInstruction": "Instruction: Please trigger the SOS by pressing the panic button connected to your device.",
+      "sosActivateInstruction": "Instruction: Please trigger the SOS using Skytron app.",
+      "sosAlertReceived": "SOS alert received",
       "sosButtonPressed": "SOS button pressed successfully",
       "sosButtonProceed": "SOS button pressed! Proceeding to next step...",
       "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 512KB."
