@@ -5,6 +5,8 @@ let categoryList = [];
 export const taggingInitials = {
   device: "",
   vehicle_owner: "",
+  vehicle_type: "old",
+  temp_reg: false,
   state_code: "",
   district_code: "",
   district: "",
@@ -32,6 +34,16 @@ export const taggingFields = {
     validation: Yup.string()
       .matches(/^\d{10}$/, 'tagDeviceForm.validation.mobileFormat')
       .required('tagDeviceForm.validation.mobileRequired'),
+  },
+  vehicle_type: {
+    name: "vehicle_type",
+    type: "select",
+    label: "Vehicle Type",
+    validation: Yup.string().required("Vehicle Type is required"),
+    options: [
+      { label: "Old Vehicle", value: "old" },
+      { label: "New Vehicle", value: "new" },
+    ],
   },
   state_code: {
     name: "state_code",
@@ -100,4 +112,3 @@ export const taggingFields = {
     validation: Yup.mixed().required("tagDeviceForm.validation.registrationCertificateRequired"),
   },
 };
- 

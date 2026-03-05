@@ -30,6 +30,30 @@ import DisplayTable from "../../ui-component/DisplayTable";
 import MapComponent from "views/direct/LiveMap";
 import { useLocation } from "react-router-dom";
 
+const formatOwnerId = (date) => {
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const mm = pad2(date.getMonth() + 1);
+  const dd = pad2(date.getDate());
+  const hh = pad2(date.getHours());
+  const min = pad2(date.getMinutes());
+  return `${mm}${dd}${hh}${min}`;
+};
+
+const VehicleTypeAutoFill = ({ formik }) => {
+  useEffect(() => {
+    const isNew = formik?.values?.vehicle_type === "new";
+    if (formik?.values?.temp_reg !== isNew) {
+      formik.setFieldValue("temp_reg", isNew);
+    }
+    if (!isNew) return;
+    const next = formatOwnerId(new Date());
+    if (formik.values.vehicle_number === next) return;
+    formik.setFieldValue("vehicle_number", next);
+  }, [formik?.values?.vehicle_type]);
+
+  return null;
+};
+
 const steps = [
   { label: "tagDeviceForm.steps.tagDevice", name: "Step 1" },
   { label: "tagDeviceForm.steps.dealerVerification", name: "Step 2" },
@@ -583,12 +607,19 @@ function TagDeviceToVehicle() {
               >
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
+                    <VehicleTypeAutoFill formik={formik} />
                     <Grid container spacing={2} className="form-controller">
                       {Object.keys(updatedFormFields).map((field, idx, arr) => {
                         if (field === "vehicle_reg_no") return null; // skip old field
                         if (field === "state_code") return null; // rendered inside vehicle_reg_group
                         // Custom rendering for state_code + district_code + vehicle_number as one row
                         if (field === "district_code") {
+                          const isNewVehicle = formik.values.vehicle_type === "new";
+                          const vehicleNumberConfig = {
+                            ...updatedFormFields["vehicle_number"],
+                            label: isNewVehicle ? "OWNER ID" : updatedFormFields["vehicle_number"].label,
+                            disabled: isNewVehicle ? true : updatedFormFields["vehicle_number"].disabled,
+                          };
                           return (
                             <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
                               <Grid container spacing={1} alignItems="flex-end">
@@ -607,7 +638,7 @@ function TagDeviceToVehicle() {
                                 </Grid>
                                 <Grid item xs={5}>
                                   <FormField
-                                    fieldConfig={updatedFormFields["vehicle_number"]}
+                                    fieldConfig={vehicleNumberConfig}
                                     formik={formik}
                                     onChange={(e) => {
                                       let value = e.target.value.toUpperCase();
