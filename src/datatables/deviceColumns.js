@@ -236,317 +236,243 @@ const formatDate = (dateString) => {
       options: { filter: false, sort: false, display: false },
     },
   ];
-  export const requestList = [
-    {
-      name: "id",
-      label: "ID",
-      options: {
-        filter: true,
-        sort: false,
-        display: false,
-      },
-    },
-      {
-        name: "device",
-        label: "Device IMEI No.",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value.imei}</p>
-            );
-          },
-          csvExportKey: "imei",
-      
-        },
-      },
-      {
-        name: "device",
-        label: "Device ESN",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value.device_esn}</p>
-            );
-          },
-          csvExportKey: "device_esn",
-        },
-      },
-      {
-        name: "device",
-        label: "Device ICCID",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value.iccid}</p>
-            );
-          },
-          csvExportKey: "iccid",
-      
-        },
-      },
-      {
-        name: "device",
-        label: "Device Primary MSISDN",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value.msisdn1	}</p>
-            );
-          },
-          csvExportKey: "msisdn1",
-      
-        },
-      },
-      {
-        name: "device",
-        label: "Device Fallback MSISDN",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value.msisdn2}</p>
-            );
-          },
-          csvExportKey: "msisdn2",
-      
-        },
-      },
-      {
-        name: "device",
-        label: "Validity",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{formatDate(value.esim_validity)}</p>
-            );
-          },
-          csvExportKey: "esim_validity",
-      
-        },
-      },
-      {
-        name: "device",
-        label: "Telecom Provider",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value.telecom_provider1}</p>
-            );
-          },
-          csvExportKey: "telecom_provider1",
-      
-        },
-      },
-      {
-        name: "whitelisted_phone_numbers.scn2",
-        label: "Whitelisted Number 1",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value) => <p>{value || "-"}</p>,
-          csvExportKey: "scn2",
-        },
-      },
-      {
-        name: "whitelisted_phone_numbers.escn",
-        label: "Whitelisted Number 2",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value) => <p>{value || "-"}</p>,
-          csvExportKey: "escn",
-        },
-      },
-      {
-        name: "whitelisted_ips.eip",
-        label: "Whitelisted IP 1",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value) => <p>{value || "-"}</p>,
-          csvExportKey: "eip",
-        },
-      },
-      {
-        name: "whitelisted_ips.pip",
-        label: "Whitelisted IP 2",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value) => <p>{value || "-"}</p>,
-          csvExportKey: "pip",
-        },
-      },
-      {
-        name: "ceated_by",
-        label: "Requested By",
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value, tableMeta, updateValue) => {
-            return (
-              <p>{value.company_name}</p>
-            );
-          },
-          csvExportKey: "company_name",
-        
-        },
-      },
-        {
-          name: "created_at",
-          label: "Requested On",
-          options: {
-            filter: true,
-            sort: false,
-            customBodyRender: (value, tableMeta, updateValue) => {
-              return (
-                <p>{formatDate(value)}</p>
-              );
-            }
-          },
-        },
-  ];
-  // export const availableForSalesColumn = [
-  //   {
-  //     name: "device",
-  //     label: "ID",
-  //     options: {
-  //       filter: true,
-  //       sort: false,
-  //       display: false,
-  //       customBodyRender: (value, tableMeta, updateValue) => {
-  //           return (
-  //             <p>{value.id}</p>
-  //           );
-  //         }
-  //     },
-  //   },
-  //   {
-  //     name: "device",
-  //     label: "Device",
-  //     options: {
-  //       filter: true,
-  //       sort: false,
-  //       customBodyRender: (value, tableMeta, updateValue) => {
-  //           return (
-  //             <p>{value.device_esn}</p>
-  //           );
-  //         }
-  //     },
-  //   },
-  //   {
-  //       name: "dealer",
-  //       label: "Dealer",
-  //       options: {
-  //         filter: true,
-  //         sort: false,
-  //         customBodyRender: (value, tableMeta, updateValue) => {
-  //           return (
-  //             <p>{value.company_name}</p>
-  //           );
-  //         }
-  //       },
-  //     },
-  //     {
-  //       name: "assigned",
-  //       label: "Assigned Date",
-  //       options: {
-  //         filter: true,
-  //         sort: false,
-  //         customBodyRender: (value, tableMeta, updateValue) => {
-  //           return (
-  //             <p>{formatDate(value)}</p>
-  //           );
-  //         }
-  //       },
-  //     },
-  //     {
-  //       name: "shipping_remark",
-  //       label: "Remarks",
-  //       options: {
-  //         filter: true,
-  //         sort: false,
-  //       },
-  //     },
-  //     {
-  //       name: "stock_status",
-  //       label: "Status",
-  //       options: {
-  //         filter: true,
-  //         sort: false,
-  //       },
-  //     }
-  // ];
 
+export const taggedColumn = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "device_tag_info.vehicle_reg_no",
+    label: "Vehicle Reg No",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "device_esn",
+    label: "ESN",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "imei",
+    label: "IMEI",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "esim_provider",
+    label: "ESIM Provider",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value) => {
+        return <p>{Array.isArray(value) && value[0] ? value[0].company_name : ""}</p>;
+      },
+      csvExportKey: "company_name",
+      columnKey: 0,
+    },
+  },
+  {
+    name: "esim_validity",
+    label: "ESIM Validity",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value) => {
+        return <p>{formatDate(value)}</p>;
+      },
+    },
+  },
+];
 
-  export const taggedColumn = [
-    {
-      name: "id",
-      label: "ID",
-      options: {
-        filter: false,
-        sort: false,
-        display: false,
+export const requestList = [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: true,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "device",
+    label: "Device IMEI No.",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.imei}</p>
+        );
+      },
+      csvExportKey: "imei",
+    },
+  },
+  {
+    name: "device",
+    label: "Device ESN",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.device_esn}</p>
+        );
+      },
+      csvExportKey: "device_esn",
+    },
+  },
+  {
+    name: "device",
+    label: "Device ICCID",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.iccid}</p>
+        );
+      },
+      csvExportKey: "iccid",
+    },
+  },
+  {
+    name: "device",
+    label: "Device Primary MSISDN",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.msisdn1}</p>
+        );
+      },
+      csvExportKey: "msisdn1",
+    },
+  },
+  {
+    name: "device",
+    label: "Device Fallback MSISDN",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.msisdn2}</p>
+        );
+      },
+      csvExportKey: "msisdn2",
+    },
+  },
+  {
+    name: "device",
+    label: "Validity",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{formatDate(value.esim_validity)}</p>
+        );
+      },
+      csvExportKey: "esim_validity",
+    },
+  },
+  {
+    name: "device",
+    label: "Telecom Provider",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.telecom_provider1}</p>
+        );
+      },
+      csvExportKey: "telecom_provider1",
+    },
+  },
+  {
+    name: "whitelisted_phone_numbers.scn2",
+    label: "Whitelisted Number 1",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => <p>{value || "-"}</p>,
+      csvExportKey: "scn2",
+    },
+  },
+  {
+    name: "whitelisted_phone_numbers.escn",
+    label: "Whitelisted Number 2",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => <p>{value || "-"}</p>,
+      csvExportKey: "escn",
+    },
+  },
+  {
+    name: "whitelisted_ips.eip",
+    label: "Whitelisted IP 1",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => <p>{value || "-"}</p>,
+      csvExportKey: "eip",
+    },
+  },
+  {
+    name: "whitelisted_ips.pip",
+    label: "Whitelisted IP 2",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => <p>{value || "-"}</p>,
+      csvExportKey: "pip",
+    },
+  },
+  {
+    name: "created_by",
+    label: "Requested By",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value.company_name}</p>
+        );
+      },
+      csvExportKey: "company_name",
+    },
+  },
+  {
+    name: "created_at",
+    label: "Requested On",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{formatDate(value)}</p>
+        );
       },
     },
-    {
-      name: "device_esn",
-      label: "ESN",
-      options: {
-        filter: true,
-        sort: false,
-      },
-    },
-    {
-      name: "imei",
-      label: "IMEI",
-      options: {
-        filter: false,
-        sort: false,
-      },
-    },
-    {
-      name: "esim_provider",
-      label: "ESIM Provider",
-      options: {
-        filter: false,
-        sort: false,
-        customBodyRender: (value, tableMeta, updateValue) => {
-          return (
-            <p>{Array.isArray(value) && value[0] ? value[0].company_name : ''}</p>
-          );
-        },
-        csvExportKey: "company_name",
-        columnKey:0,
-      },
-    },
-    {
-      name: "esim_validity",
-      label: "ESIM Validity",
-      options: {
-        filter: false,
-        sort: false,
-        customBodyRender: (value, tableMeta, updateValue) => {
-          return (
-            <p>{formatDate(value)}</p>
-          );
-        }
-      },
-    },
-  ];
+  },
+];
 
 export const esimStatusColumns = [
   {
@@ -555,7 +481,7 @@ export const esimStatusColumns = [
     options: {
       filter: true,
       sort: true,
-    }
+    },
   },
   {
     name: "imei",
@@ -563,7 +489,7 @@ export const esimStatusColumns = [
     options: {
       filter: true,
       sort: true,
-    }
+    },
   },
   {
     name: "device_model",
@@ -571,8 +497,8 @@ export const esimStatusColumns = [
     options: {
       filter: true,
       sort: true,
-      customBodyRender: (value) => value?.model_name || 'N/A'
-    }
+      customBodyRender: (value) => value?.model_name || "N/A",
+    },
   },
   {
     name: "esim_status",
@@ -583,30 +509,32 @@ export const esimStatusColumns = [
       customBodyRender: (value) => {
         const getStatusColor = (status) => {
           switch (status) {
-            case 'ESIM_Active_Confirmed':
-              return '#4caf50';
-            case 'expired':
-              return '#f44336';
-            case 'expiring_soon':
-              return '#ff9800';
+            case "ESIM_Active_Confirmed":
+              return "#4caf50";
+            case "expired":
+              return "#f44336";
+            case "expiring_soon":
+              return "#ff9800";
             default:
-              return '#757575';
+              return "#757575";
           }
         };
 
         return (
-          <div style={{
-            backgroundColor: getStatusColor(value),
-            padding: '6px 12px',
-            borderRadius: '16px',
-            color: 'white',
-            fontSize: '0.75rem'
-          }}>
+          <div
+            style={{
+              backgroundColor: getStatusColor(value),
+              padding: "6px 12px",
+              borderRadius: "16px",
+              color: "white",
+              fontSize: "0.75rem",
+            }}
+          >
             {value}
           </div>
         );
-      }
-    }
+      },
+    },
   },
   {
     name: "esim_validity",
@@ -617,8 +545,8 @@ export const esimStatusColumns = [
       customBodyRender: (value) => {
         const date = new Date(value);
         return date.toLocaleDateString();
-      }
-    }
+      },
+    },
   },
   {
     name: "days_until_expiry",
@@ -626,7 +554,7 @@ export const esimStatusColumns = [
     options: {
       filter: true,
       sort: true,
-    }
+    },
   },
   {
     name: "telecom_provider1",
@@ -634,7 +562,7 @@ export const esimStatusColumns = [
     options: {
       filter: true,
       sort: true,
-    }
+    },
   },
   {
     name: "telecom_provider2",
@@ -642,8 +570,6 @@ export const esimStatusColumns = [
     options: {
       filter: true,
       sort: true,
-    }
-  }
+    },
+  },
 ];
-    
-    

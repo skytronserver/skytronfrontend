@@ -78,6 +78,14 @@ const retagDevice=(tagId)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/retag/',tagId);
 }
+const updateTempRegistration = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/tag/update-temp-registration/', data, {
+    headers: {
+      'Content-type': 'multipart/form-data',
+    },
+  });
+}
 const cancelTagDevice=(deviceId)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/cancelTagDevice2Vehicle/',deviceId)
@@ -106,6 +114,7 @@ const TaggingService = {
     getOwnerList,
     untagDevice,
     retagDevice,
+    updateTempRegistration,
     cancelTagDevice,
     gettaggedDeviceList
 

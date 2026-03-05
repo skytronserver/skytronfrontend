@@ -22,6 +22,7 @@ const FormField = ({
   formik,
   handleFileChange,
   handleOptionChange,
+  onChange,
 }) => {
   const { t } = useTranslation();
   const inputProps = {
@@ -87,6 +88,8 @@ const FormField = ({
             } else {
               formik.setFieldValue(fieldConfig.name, value);
             }
+
+            onChange && onChange(e);
           }}
         />
       );
@@ -131,6 +134,7 @@ const FormField = ({
           onChange={(e) => {
             const value = e.target.value;
             formik.setFieldValue(fieldConfig.name, value);
+            onChange && onChange(e);
           }}
         />
       );
@@ -155,6 +159,7 @@ const FormField = ({
             onChange={(e) => {
               const value = e.target.value;
               formik.setFieldValue(fieldConfig.name, value);
+              onChange && onChange(e);
             }}
           />
         );
@@ -669,6 +674,7 @@ const FormField = ({
               }
             }
             formik.setFieldValue(fieldConfig.name, e.target.value);
+            onChange && onChange(e);
           }}
         />
       );
@@ -696,6 +702,7 @@ const FormField = ({
           onChange={(e) => {
             const value = e.target.value.replace(/[^0-9]/g, '');
             formik.setFieldValue(fieldConfig.name, value);
+            onChange && onChange(e);
           }}
         />
       );
@@ -721,6 +728,7 @@ const FormField = ({
           }
           onChange={(e) => {
             formik.setFieldValue(fieldConfig.name, e.target.value);
+            onChange && onChange(e);
           }}
         />
       );
