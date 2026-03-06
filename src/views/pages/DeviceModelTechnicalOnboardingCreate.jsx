@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Chip,
@@ -121,6 +122,8 @@ const DeviceModelTechnicalOnboardingCreate = () => {
 
   /* ── form state ── */
   const [deviceModelId, setDeviceModelId] = useState("");
+  const [deviceModels, setDeviceModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
   const [userManualPdf, setUserManualPdf] = useState(null);
   const [otCommandListPdf, setOtCommandListPdf] = useState(null);
   const [testDevices, setTestDevices] = useState([emptyTestDevice()]);
@@ -136,6 +139,38 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     setMessage(msg);
     setOpenAlert(true);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadModels = async () => {
+      setModelsLoading(true);
+      try {
+        const [stateApprovedResp, superApprovedResp] = await Promise.all([
+          DeviceModelServices.getFilterModels({ status: "StateAdminApproved" }),
+          DeviceModelServices.getFilterModels({ status: "SuperAdminApproved" }).catch(() => null),
+        ]);
+
+        const stateList = Array.isArray(stateApprovedResp?.data) ? stateApprovedResp.data : [];
+        const superList = Array.isArray(superApprovedResp?.data) ? superApprovedResp.data : [];
+        const merged = [...stateList, ...superList];
+        const unique = [...new Map(merged.map((m) => [String(m?.id), m])).values()].filter(
+          (m) => m?.id !== undefined && m?.id !== null
+        );
+
+        if (isMounted) setDeviceModels(unique);
+      } catch (err) {
+        if (isMounted) setDeviceModels([]);
+      } finally {
+        if (isMounted) setModelsLoading(false);
+      }
+    };
+
+    loadModels();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const canRemoveTestDevice = useMemo(() => testDevices.length > 1, [testDevices.length]);
 
@@ -249,33 +284,62 @@ const DeviceModelTechnicalOnboardingCreate = () => {
         return (
           <SectionBlock
             label="Device Model"
-            description="Enter the ID of the device model to onboard."
+            description="Select the device model to onboard."
           >
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  id="device_model_id"
-                  label="Device Model ID"
-                  placeholder="e.g. 12"
-                  value={deviceModelId}
-                  onChange={(e) => {
-                    setDeviceModelId(e.target.value);
+                <Autocomplete
+                  options={deviceModels}
+                  loading={modelsLoading}
+                  noOptionsText={modelsLoading ? "Loading models..." : "No approved models"}
+                  value={
+                    deviceModels.find((m) => String(m?.id) === String(deviceModelId)) || null
+                  }
+                  onChange={(_, newValue) => {
+                    setDeviceModelId(newValue?.id ? String(newValue.id) : "");
                     setFieldErrors((p) => {
                       const c = { ...p };
                       delete c.deviceModelId;
                       return c;
                     });
                   }}
-                  error={!!fieldErrors.deviceModelId}
-                  helperText={fieldErrors.deviceModelId}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <DevicesIcon fontSize="small" color="action" />
-                      </InputAdornment>
-                    ),
+                  getOptionLabel={(option) => {
+                    const name = option?.model_name;
+                    if (name && String(name).trim() !== "") return String(name);
+                    const id = option?.id;
+                    if (id === undefined || id === null) return "";
+                    return String(id);
                   }}
+                  isOptionEqualToValue={(option, value) =>
+                    String(option?.id) === String(value?.id)
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      id="device_model_id"
+                      label="Device Model"
+                      placeholder={modelsLoading ? "Loading models..." : "Select model"}
+                      error={!!fieldErrors.deviceModelId}
+                      helperText={fieldErrors.deviceModelId}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <DevicesIcon fontSize="small" color="action" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <>
+                            {modelsLoading ? (
+                              <CircularProgress color="inherit" size={18} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
                 />
               </Grid>
             </Grid>
