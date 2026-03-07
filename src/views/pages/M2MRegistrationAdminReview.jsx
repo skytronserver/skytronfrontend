@@ -39,12 +39,14 @@ const M2MRegistrationAdminReview = () => {
     setLoading(true);
     try {
       const response = await UserServices.fetchSimProvider({});
-      setRows(Array.isArray(response?.data) ? response.data : []);
+      let data = Array.isArray(response?.data) ? response.data : [];
+      data.sort((a, b) => new Date(b.created) - new Date(a.created));
+      setRows(data);
     } catch (e) {
       setErrorMessage(
         e?.response?.data?.message ||
-          e?.message ||
-          "Failed to load M2M registration requests."
+        e?.message ||
+        "Failed to load M2M registration requests."
       );
     } finally {
       setLoading(false);
@@ -111,8 +113,8 @@ const M2MRegistrationAdminReview = () => {
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
-            e?.message ||
-            "Failed to accept request."
+          e?.message ||
+          "Failed to accept request."
         );
       } finally {
         setLoading(false);
@@ -138,8 +140,8 @@ const M2MRegistrationAdminReview = () => {
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
-            e?.message ||
-            "Failed to resend OTP."
+          e?.message ||
+          "Failed to resend OTP."
         );
       } finally {
         setLoading(false);
@@ -168,8 +170,8 @@ const M2MRegistrationAdminReview = () => {
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
-            e?.message ||
-            "Failed to reject request."
+          e?.message ||
+          "Failed to reject request."
         );
       } finally {
         setLoading(false);

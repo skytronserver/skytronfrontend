@@ -25,14 +25,14 @@ import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import { openFile } from "../../helper";
-const docViewStyle={
-  padding:"0px"
+const docViewStyle = {
+  padding: "0px"
 }
 const StateAdminDeviceModelView = () => {
   const { t } = useTranslation();
   /* packages helper functionality */
   const [openAlert, setOpenAlert] = useState(false);
-  const [alertType,setAlertType]=useState("success");
+  const [alertType, setAlertType] = useState("success");
   const [message, setMessage] = useState('');
   const { deviceId } = useParams();
   const navigate = useNavigate();
@@ -67,10 +67,12 @@ const StateAdminDeviceModelView = () => {
     try {
       await OtpServices.AdminDeviceVerifyOtp(OTPData);
       setShowOTP(false);
-      navigate("/device/list");
       setOpenAlert(true);
       setAlertType("success")
       setMessage(t('deviceModelView.messages.verificationSuccess'));
+      setTimeout(() => {
+        navigate("/device/list");
+      }, 2000);
     } catch (error) {
       setOpenAlert(true);
       setAlertType("error")
@@ -133,10 +135,10 @@ const StateAdminDeviceModelView = () => {
   }, [dispatch, deviceId]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
-  
+
   return (
     <>
-    <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType}/>
+      <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType} />
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           {error && (
@@ -155,145 +157,145 @@ const StateAdminDeviceModelView = () => {
           )}
           {loading && deviceDetails && !error && (
             <MainCard title={`${t('deviceModelView.modelName')}: ${deviceDetails.model_name || ''}`}>
-              {!showOTP && ( <>
-              <Grid container>
-              
-                <Grid item xs={12} md={6} lg={6}>
-                  <TableContainer component={Paper}>
-                    <Table>
-                      <TableBody>
-                      <TableRow>
-                          <TableCell style={{ width: "50%" }}>
-                            <strong>{t('deviceModelView.m2mProvider')}:</strong>
-                          </TableCell>
-                          <TableCell style={{ width: "50%" }}>
-                          {deviceDetails.eSimProviders && deviceDetails.eSimProviders.length > 0 && deviceDetails.eSimProviders.map(item=><span key={item.id}>{item.company_name}</span>)}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={{ width: "50%" }}>
-                            <strong>{t('deviceModelView.modelName')}:</strong>
-                          </TableCell>
-                          <TableCell style={{ width: "50%" }}>
-                            {deviceDetails.model_name}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.testAgency')}:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.test_agency}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.vendorId')}:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.vendor_id}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.tacNo')}:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.tac_no}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.tacValidity')}:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.tac_validity}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+              {!showOTP && (<>
+                <Grid container>
+
+                  <Grid item xs={12} md={6} lg={6}>
+                    <TableContainer component={Paper}>
+                      <Table>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell style={{ width: "50%" }}>
+                              <strong>{t('deviceModelView.m2mProvider')}:</strong>
+                            </TableCell>
+                            <TableCell style={{ width: "50%" }}>
+                              {deviceDetails.eSimProviders && deviceDetails.eSimProviders.length > 0 && deviceDetails.eSimProviders.map(item => <span key={item.id}>{item.company_name}</span>)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell style={{ width: "50%" }}>
+                              <strong>{t('deviceModelView.modelName')}:</strong>
+                            </TableCell>
+                            <TableCell style={{ width: "50%" }}>
+                              {deviceDetails.model_name}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.testAgency')}:</strong>
+                            </TableCell>
+                            <TableCell>{deviceDetails.test_agency}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.vendorId')}:</strong>
+                            </TableCell>
+                            <TableCell>{deviceDetails.vendor_id}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.tacNo')}:</strong>
+                            </TableCell>
+                            <TableCell>{deviceDetails.tac_no}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.tacValidity')}:</strong>
+                            </TableCell>
+                            <TableCell>{deviceDetails.tac_validity}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Grid>
+                  <Grid item xs={12} md={6} lg={6}>
+                    <TableContainer component={Paper}>
+                      <Table>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell style={{ width: "50%" }}>
+                              <strong>{t('deviceModelView.modelDetails.hardwareVersion')}:</strong>
+                            </TableCell>
+                            <TableCell style={{ width: "50%" }}>
+                              {deviceDetails.hardware_version}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.manufacturerName')}:</strong>
+                            </TableCell>
+                            <TableCell>{deviceDetails.created_by?.name || 'N/A'}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.created')}:</strong>
+                            </TableCell>
+                            <TableCell>{deviceDetails.created}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.status')}:</strong>
+                            </TableCell>
+                            <TableCell>{deviceDetails.status ? deviceDetails.status.replace(/_/g, ' ') : 'N/A'}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              <strong>{t('deviceModelView.modelDetails.tacFile')}:</strong>
+                            </TableCell>
+                            <TableCell>
+                              {deviceDetails.tac_doc_path ? (
+                                <Button color="primary" style={docViewStyle} onClick={(e) => openFile(e, deviceDetails.tac_doc_path)} >
+                                  <span>{t('deviceModelView.modelDetails.viewTac')}</span>
+                                </Button>
+                              ) : (
+                                <span>No file available</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6} lg={6}>
-                  <TableContainer component={Paper}>
-                    <Table>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell style={{ width: "50%" }}>
-                            <strong>{t('deviceModelView.modelDetails.hardwareVersion')}:</strong>
-                          </TableCell>
-                          <TableCell style={{ width: "50%" }}>
-                            {deviceDetails.hardware_version}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.manufacturerName')}:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.created_by?.name || 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.created')}:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.created}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.status')}:</strong>
-                          </TableCell>
-                          <TableCell>{deviceDetails.status ? deviceDetails.status.replace(/_/g, ' ') : 'N/A'}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <strong>{t('deviceModelView.modelDetails.tacFile')}:</strong>
-                          </TableCell>
-                          <TableCell>
-                            {deviceDetails.tac_doc_path ? (
-                              <Button color="primary" style={docViewStyle} onClick={(e)=>openFile(e,deviceDetails.tac_doc_path)} >
-                                <span>{t('deviceModelView.modelDetails.viewTac')}</span>
-                              </Button>
-                            ) : (
-                              <span>No file available</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Grid>
-              </Grid>
-              <br />
-              <Typography align="center">
-                <Button
-                  color="primary"
-                  size="large"
-                  type="submit"
-                  variant="contained"
-                  onClick={handleSendOTP}
-                >
-                  {t('deviceModelView.actions.verifyAndSendOtp')}
-                </Button>
-              </Typography>
+                <br />
+                <Typography align="center">
+                  <Button
+                    color="primary"
+                    size="large"
+                    type="submit"
+                    variant="contained"
+                    onClick={handleSendOTP}
+                  >
+                    {t('deviceModelView.actions.verifyAndSendOtp')}
+                  </Button>
+                </Typography>
               </>)}
               {showOTP && (
-              <Grid
-                container
-                spacing={2}
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Grid item xs={12}>
-                  <p>{t('deviceModelView.messages.enterOtp')}</p>
+                <Grid
+                  container
+                  spacing={2}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Grid item xs={12}>
+                    <p>{t('deviceModelView.messages.enterOtp')}</p>
+                  </Grid>
+                  <Grid item xs={12} md="5">
+                    <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                    <br />
+                    <Typography align="center">
+                      <Button
+                        color="primary"
+                        size="large"
+                        type="submit"
+                        variant="contained"
+                        onClick={handleOTPSubmit}
+                      >
+                        {t('deviceModelView.actions.verifyOtp')}
+                      </Button>
+                    </Typography>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md="5">
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                  <br />
-                  <Typography align="center">
-                    <Button
-                      color="primary"
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      onClick={handleOTPSubmit}
-                    >
-                      {t('deviceModelView.actions.verifyOtp')}
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
               )}
             </MainCard>
           )}

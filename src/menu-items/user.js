@@ -378,14 +378,14 @@ const user = {
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
-        {
-          id: "device-model-extension",
-          title: "TAC Extension",
-          type: "item",
-          url: "/deviceModel/extension",
-          breadcrumbs: false,
-          roles: ["devicemanufacture"],
-        }
+        // {
+        //   id: "device-model-extension",
+        //   title: "TAC Extension",
+        //   type: "item",
+        //   url: "/deviceModel/extension",
+        //   breadcrumbs: false,
+        //   roles: ["devicemanufacture"],
+        // }
       ]
     },
     {

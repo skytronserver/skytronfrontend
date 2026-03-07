@@ -134,6 +134,13 @@ const RequestRow = ({ row, index }) => {
                     <StatusChip status={row.status} />
                 </TableCell>
 
+                {/* evaluation datetime */}
+                <TableCell sx={{ py: 1 }}>
+                    <Typography variant="body2" fontWeight={500}>
+                        {formatDateTime(row.evaluation_datetime)}
+                    </Typography>
+                </TableCell>
+
                 {/* device model */}
                 <TableCell sx={{ py: 1 }}>
                     <Stack direction="row" alignItems="center" spacing={1}>
@@ -154,26 +161,26 @@ const RequestRow = ({ row, index }) => {
                 {/* report/comment indicator */}
                 <TableCell sx={{ py: 1 }}>
                     <Stack direction="row" justifyContent="center">
-                        {row.compatibility_report_pdf ? (
+                        {/* row.compatibility_report_pdf ? (
                             <Tooltip title="Compatibility Report Available">
                                 <DescriptionIcon fontSize="small" color="primary" />
                             </Tooltip>
-                        ) : row.user_manual_pdf ? (
-                            <Tooltip title="User Manual Available">
-                                <DescriptionIcon fontSize="small" color="info" />
-                            </Tooltip>
-                        ) : hasReport ? (
-                            <Tooltip title="Evaluation Comment Available">
-                                <CommentIcon fontSize="small" color="primary" />
-                            </Tooltip>
-                        ) : null}
+                        ) : */ row.user_manual_pdf ? (
+                                <Tooltip title="User Manual Available">
+                                    <DescriptionIcon fontSize="small" color="info" />
+                                </Tooltip>
+                            ) : hasReport ? (
+                                <Tooltip title="Evaluation Comment Available">
+                                    <CommentIcon fontSize="small" color="primary" />
+                                </Tooltip>
+                            ) : null}
                     </Stack>
                 </TableCell>
             </TableRow>
 
             {/* ── expanded detail row ── */}
             <TableRow>
-                <TableCell colSpan={5} sx={{ py: 0, bgcolor: "primary.50" }}>
+                <TableCell colSpan={6} sx={{ py: 0, bgcolor: "primary.50" }}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ py: 2, px: 2 }}>
                             <Grid container spacing={2}>
@@ -192,6 +199,7 @@ const RequestRow = ({ row, index }) => {
                                             {[
                                                 ["Submitted", formatDateTime(row.request_datetime || row.created_at || row.created)],
                                                 ["Request ID", row.id],
+                                                ["Evaluation Date", row.evaluation_datetime ? formatDateTime(row.evaluation_datetime) : null],
                                                 ["Finalized", row.decision_datetime ? formatDateTime(row.decision_datetime) : null],
                                             ].map(([lbl, val]) =>
                                                 val ? (
@@ -290,7 +298,7 @@ const RequestRow = ({ row, index }) => {
                                 )}
 
                                 {/* Uploaded Documents */}
-                                {(row.user_manual_pdf || row.ot_command_list_pdf || row.compatibility_report_pdf) && (
+                                {(row.user_manual_pdf || row.ot_command_list_pdf /* || row.compatibility_report_pdf */) && (
                                     <Grid item xs={12} md={6}>
                                         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                                             <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
@@ -303,7 +311,7 @@ const RequestRow = ({ row, index }) => {
                                             <Stack spacing={1.5}>
                                                 <DocumentButton label="User Manual PDF" path={row.user_manual_pdf} />
                                                 <DocumentButton label="OT Command List PDF" path={row.ot_command_list_pdf} />
-                                                <DocumentButton label="Compatibility Report" path={row.compatibility_report_pdf} />
+                                                {/* <DocumentButton label="Compatibility Report" path={row.compatibility_report_pdf} /> */}
                                             </Stack>
                                         </Paper>
                                     </Grid>
@@ -445,6 +453,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                                             <TableCell sx={{ width: 40 }} />
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>
+                                            <TableCell sx={{ color: "white", fontWeight: 700 }}>Evaluation</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Report</TableCell>
                                         </TableRow>

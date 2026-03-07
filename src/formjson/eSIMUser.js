@@ -187,8 +187,8 @@ export const eSIMFormField = {
     type: "multiselect",
     label: "Linked Telecom Providers",
     validation: Yup.array()
-      .min(1, "Please select at least one telecom provider")
-      .required("Please select at least one telecom provider"),
+      .min(2, "At least two telecom providers are required")
+      .required("Linked Telecom Providers are required"),
     options: telecomProviderOptions,
   },
   m2m_reg_certificate_no: {

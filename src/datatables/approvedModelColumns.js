@@ -11,15 +11,17 @@ export const approvedModelColumns = [
   { name: "status", label: "Status", options: { filter: true, sort: false } },
   { name: "manufacturer_name", label: "Manufacturer", options: { filter: true, sort: false } },
   { name: "manufacturer_state", label: "State", options: { filter: true, sort: false } },
-  { name: "esim_providers", label: "ESIM Providers", options: { 
-    filter: true, 
-    sort: false,
-    customBodyRender: (value) => {
-      if (!Array.isArray(value) || value.length === 0) return "No Provider";
-      return value.map(provider => provider.company_name).join(", ");
+  {
+    name: "esim_providers", label: "ESIM Providers", options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => {
+        if (!Array.isArray(value) || value.length === 0) return "No Provider";
+        return value.map(provider => provider.company_name).join(", ");
+      }
     }
-  }},
+  },
   { name: "created_by_name", label: "Created By", options: { filter: false, sort: false } },
   { name: "created_date", label: "Created On", options: { filter: false, sort: false, customBodyRender: (value) => formatDate(value) } },
-  // { name: "approved_date", label: "Approved On", options: { filter: false, sort: false, customBodyRender: (value) => formatDate(value) } },
+  { name: "approved_date", label: "Approved On", options: { filter: false, sort: false, customBodyRender: (value) => formatDate(value) } },
 ]; 

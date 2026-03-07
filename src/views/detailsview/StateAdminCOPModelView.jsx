@@ -2,7 +2,8 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Grid, Button, Typography, Table,
+import {
+  Grid, Button, Typography, Table,
   TableContainer,
   TableBody,
   TableRow,
@@ -42,12 +43,12 @@ const styles = {
 
 const StateAdminCOPModelView = () => {
   const { t } = useTranslation();
-  
+
   /* packages helper functionality */
   const { deviceId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   /* define state sections */
   const [showOTP, setShowOTP] = useState(false);
   const [otp, setOtp] = useState("");
@@ -74,10 +75,12 @@ const StateAdminCOPModelView = () => {
     const response = await handleOTPValidation(OTPData);
     if (response.code === "200") {
       setShowOTP(false);
-      navigate("/deviceCOP/list");
       setOpenAlert(true);
       setAlertType("success");
       setMessage(t('copModelView.messages.verificationSuccess'));
+      setTimeout(() => {
+        navigate("/deviceCOP/list");
+      }, 2000);
     } else {
       setOpenAlert(true);
       setAlertType("error");
@@ -177,64 +180,64 @@ const StateAdminCOPModelView = () => {
           <MainCard title={`${t('copModelView.title')}: ${deviceDetails.device_model || ''}`}>
             <Grid container>
               {!showOTP && (
-              <Grid item xs={12} md={6} lg={6}>
-                <TableContainer component={Paper}>
-                  <Table>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell style={{ width: "50%" }}>
-                          <strong>{t('copModelView.modelDetails.modelName')}:</strong>
-                        </TableCell>
-                        <TableCell style={{ width: "50%" }}>
-                          {deviceDetails.cop_no}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <strong>{t('copModelView.modelDetails.validity')}:</strong>
-                        </TableCell>
-                        <TableCell>{deviceDetails.cop_validity}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <strong>{t('copModelView.modelDetails.copFile')}:</strong>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            startIcon={<DescriptionIcon />}
-                            sx={styles.documentButton}
-                            onClick={(e) => openFile(e, deviceDetails.cop_file)}
-                          >
-                            View COP
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <strong>{t('copModelView.modelDetails.createdBy')}:</strong>
-                        </TableCell>
-                        <TableCell>{deviceDetails.created_by}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                <Grid item xs={12} md={6} lg={6}>
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell style={{ width: "50%" }}>
+                            <strong>{t('copModelView.modelDetails.modelName')}:</strong>
+                          </TableCell>
+                          <TableCell style={{ width: "50%" }}>
+                            {deviceDetails.cop_no}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <strong>{t('copModelView.modelDetails.validity')}:</strong>
+                          </TableCell>
+                          <TableCell>{deviceDetails.cop_validity}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <strong>{t('copModelView.modelDetails.copFile')}:</strong>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              startIcon={<DescriptionIcon />}
+                              sx={styles.documentButton}
+                              onClick={(e) => openFile(e, deviceDetails.cop_file)}
+                            >
+                              View COP
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <strong>{t('copModelView.modelDetails.createdBy')}:</strong>
+                          </TableCell>
+                          <TableCell>{deviceDetails.created_by}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
 
-                <br/>
-                <Typography align="center">
-                  <Button
-                    color="primary"
-                    size="large"
-                    type="submit"
-                    variant="contained"
-                    onClick={handleSendOTP}
-                  >
-                    {t('copModelView.actions.verifyAndSendOtp')}
-                  </Button>
-                </Typography>
-              </Grid>
+                  <br />
+                  <Typography align="center">
+                    <Button
+                      color="primary"
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      onClick={handleSendOTP}
+                    >
+                      {t('copModelView.actions.verifyAndSendOtp')}
+                    </Button>
+                  </Typography>
+                </Grid>
               )}
             </Grid>
-            
+
             <Grid
               container
               spacing={2}
@@ -242,21 +245,21 @@ const StateAdminCOPModelView = () => {
               alignItems="center"
             >
               {showOTP && (
-              <Grid item xs={12} md={5}>
-                <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                <br />
-                <Typography align="center">
-                  <Button
-                    color="primary"
-                    size="large"
-                    type="submit"
-                    variant="contained"
-                    onClick={handleOTPSubmit}
-                  >
-                    {t('copModelView.actions.verifyOtp')}
-                  </Button>
-                </Typography>
-              </Grid>
+                <Grid item xs={12} md={5}>
+                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                  <br />
+                  <Typography align="center">
+                    <Button
+                      color="primary"
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      onClick={handleOTPSubmit}
+                    >
+                      {t('copModelView.actions.verifyOtp')}
+                    </Button>
+                  </Typography>
+                </Grid>
               )}
             </Grid>
           </MainCard>

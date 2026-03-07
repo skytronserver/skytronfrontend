@@ -7,11 +7,11 @@ import * as Yup from "yup";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { convertErrorObjectToArray,retriveCreatedSimProvider } from "../../helper";
+import { convertErrorObjectToArray, retriveCreatedSimProvider } from "../../helper";
 import { MuiOtpInput } from "mui-one-time-password-input";
-import {deviceModelInitials,deviceModelFormField} from "../../formjson/deviceModel";
+import { deviceModelInitials, deviceModelFormField } from "../../formjson/deviceModel";
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import AutoHideAlert from "../../ui-component/AutoHideAlert"
@@ -20,47 +20,57 @@ import { useTranslation } from 'react-i18next';
 const DeviceModelForm = () => {
   const { t } = useTranslation();
   const [openAlert, setOpenAlert] = useState(false);
-  const [alertType,setAlertType]=useState("success");
+  const [alertType, setAlertType] = useState("success");
   const [message, setMessage] = useState('');
   const [open, setOpen] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
-  const [deviceId, setDeviceId] = useState("");
+  const [otpStep, setOtpStep] = useState(0); // 0=form, 1=model OTP, 2=cop OTP
+  const [modelId, setModelId] = useState("");
+  const [copId, setCopId] = useState("");
+  const [deviceId, setDeviceId] = useState(""); // kept for non-cop flow
   const [alert, setAlert] = useState({
     error: false,
     message: "",
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-  const [updatedFormFields,setUpdatedFormField]=useState(deviceModelFormField);
-  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  const [updatedFormFields, setUpdatedFormField] = useState(deviceModelFormField);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
-  const [error,setError]=useState(false);
-  const [apiError,setApiError]=useState(false);
+  const [error, setError] = useState(false);
+  const [apiError, setApiError] = useState(false);
+  const [isCopFlow, setIsCopFlow] = useState(false);
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
- 
+
   const handleClose = () => {
     setOpen(false);
-    !error && setShowOTP(true);
+    if (!error) {
+      if (isCopFlow) {
+        setOtpStep(1); // Show model OTP first
+      } else {
+        setShowOTP(true);
+      }
+    }
   };
 
-  useEffect(()=>{
-    (async()=>{
-    const providerList=await retriveCreatedSimProvider();
-    console.log(providerList,'providerList')
-    setUpdatedFormField(prevConfig =>({
-      ...prevConfig,
-      eSimProviders: {
-        ...prevConfig.eSimProviders,
-        options: providerList,
-      }
-    }))
-    setIsFormLoaded(true)
+  useEffect(() => {
+    (async () => {
+      const providerList = await retriveCreatedSimProvider();
+      console.log(providerList, 'providerList')
+      setUpdatedFormField(prevConfig => ({
+        ...prevConfig,
+        eSimProviders: {
+          ...prevConfig.eSimProviders,
+          options: providerList,
+        }
+      }))
+      setIsFormLoaded(true)
     }
-  )()
-  },[]);
+    )()
+  }, []);
 
   const handleAlert = (message) => {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
@@ -84,20 +94,32 @@ const DeviceModelForm = () => {
     setOpenAlert(false);
   };
   const handleOTPSubmit = async () => {
-    const OTPData = {
-      otp: otp,
-      device_model_id: deviceId,
-    };
     try {
-      await OtpServices.deviceAddOtp(OTPData);
-      setShowOTP(false);
-      setOpenAlert(true);
-      setAlertType("success")
-      setMessage(t('deviceModelForm.modelSentForApproval'));
+      if (isCopFlow && otpStep === 1) {
+        // Step 1: Verify model OTP
+        await OtpServices.deviceAddOtp({ otp, device_model_id: modelId });
+        setOtp("");
+        setOtpStep(2); // Move to COP OTP step
+      } else if (isCopFlow && otpStep === 2) {
+        // Step 2: Verify COP OTP
+        await OtpServices.sendCopOTP({ otp, device_model_id: copId });
+        setOtpStep(0);
+        setShowOTP(false);
+        setOpenAlert(true);
+        setAlertType("success");
+        setMessage(t('deviceModelForm.modelSentForApproval'));
+      } else {
+        // Normal (non-COP) flow
+        await OtpServices.deviceAddOtp({ otp, device_model_id: deviceId });
+        setShowOTP(false);
+        setOpenAlert(true);
+        setAlertType("success");
+        setMessage(t('deviceModelForm.modelSentForApproval'));
+      }
     } catch (error) {
-      console.error("Error while submitting data", error.message);
+      console.error("Error while submitting OTP", error.message);
       setOpenAlert(true);
-      setAlertType("error")
+      setAlertType("error");
       setMessage(t('deviceModelForm.internalServerError'));
     }
   };
@@ -105,28 +127,58 @@ const DeviceModelForm = () => {
     try {
       const userData = sessionStorage.getItem('cookiesData');
       const userId = userData?.split("-")[3];
-  
+
       setSubmitting(true);
       setLoading(true);
-  
-      const updatedValues = {
-        ...values,
-        approval: "0",
-        approved_by: "",
-        created_by: userId,
-      };
-  
-      const response = await DeviceModelServices.createModel(updatedValues);
-  
-      if (response?.data) {
+
+      const isExpired = values.tac_validity && values.tac_validity < new Date().toISOString().split('T')[0];
+      setIsCopFlow(isExpired);
+
+      // Always send device model fields only to createModel
+      const modelPayload = new FormData();
+      modelPayload.append("eSimProviders", values.eSimProviders);
+      modelPayload.append("model_name", values.model_name);
+      modelPayload.append("test_agency", values.test_agency);
+      modelPayload.append("tac_no", values.tac_no);
+      modelPayload.append("tac_validity", values.tac_validity);
+      modelPayload.append("vendor_id", values.vendor_id);
+      modelPayload.append("hardware_version", values.hardware_version);
+      modelPayload.append("tac_doc_path", values.tac_doc_path);
+      modelPayload.append("approval", "0");
+      modelPayload.append("approved_by", "");
+      modelPayload.append("created_by", userId || "");
+
+      // Step 1: Always create the device model first
+      const modelResponse = await DeviceModelServices.createModel(modelPayload);
+
+      if (modelResponse?.data) {
+        const newModelId = modelResponse.data.id;
+
+        if (isExpired) {
+          // Step 2: Upload COP using the new model ID
+          const copPayload = new FormData();
+          copPayload.append("device_model", newModelId);
+          copPayload.append("cop_no", values.cop_no);
+          copPayload.append("cop_validity", values.cop_validity);
+          copPayload.append("cop_file", values.cop_file);
+          copPayload.append("approval", "0");
+          copPayload.append("approved_by", "");
+          copPayload.append("created_by", userId || "");
+
+          const copResponse = await DeviceModelServices.copUpload(copPayload);
+          setModelId(newModelId);
+          setCopId(copResponse?.data?.id || "");
+        } else {
+          setDeviceId(newModelId);
+        }
+
         setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
         handleAlert("An OTP has been sent to your registered mobile number. Please click below to continue to enter the OTP");
         resetForm(deviceModelInitials);
-        setDeviceId(response.data.id);
       }
     } catch (error) {
       console.error("Error while submitting data", error.message);
-  
+
       if (!error.response) {
         setApiError(true);
       } else {
@@ -136,7 +188,7 @@ const DeviceModelForm = () => {
           errorList: convertErrorObjectToArray(error.response.data),
         }));
       }
-      
+
       handleAlert("Form Not Submitted");
       setError(true);
     } finally {
@@ -144,11 +196,11 @@ const DeviceModelForm = () => {
       setLoading(false);
     }
   };
-  
+
 
   return (
     <>
-      <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType}/>
+      <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType} />
       <DialogComponent
         open={open}
         handleClose={handleClose}
@@ -156,13 +208,13 @@ const DeviceModelForm = () => {
         errorList={alert.errorList}
       />
       {apiError && (
-          <Alert severity="error">
-            <AlertTitle>{t('deviceModelForm.internalServerError')}</AlertTitle>
-            {t('deviceModelForm.unableToFetchData')}
-          </Alert>
-        )}
+        <Alert severity="error">
+          <AlertTitle>{t('deviceModelForm.internalServerError')}</AlertTitle>
+          {t('deviceModelForm.unableToFetchData')}
+        </Alert>
+      )}
       <Grid container spacing={gridSpacing}>
-      
+
         {loading && (
           <div
             style={{
@@ -194,7 +246,7 @@ const DeviceModelForm = () => {
           }}
         >
           <MainCard title={t('deviceModelForm.title')}>
-            {!showOTP ? (
+            {!showOTP && otpStep === 0 ? (
               isFormLoaded && (<Formik
                 initialValues={deviceModelInitials}
                 validationSchema={validationSchema}
@@ -204,15 +256,22 @@ const DeviceModelForm = () => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field) => (
-                        <Grid key={field} item md={6} sm={12} xs={12}>
-                          <FormField
-                            fieldConfig={updatedFormFields[field]}
-                            formik={formik}
-                            handleFileChange={handleFileChange}
-                          />
-                        </Grid>
-                      ))}
+                      {Object.keys(updatedFormFields).map((field) => {
+                        const tacVal = formik.values.tac_validity;
+                        const isExpired = tacVal && tacVal < new Date().toISOString().split('T')[0];
+                        if (['cop_no', 'cop_validity', 'cop_file'].includes(field) && !isExpired) {
+                          return null;
+                        }
+                        return (
+                          <Grid key={field} item md={6} sm={12} xs={12}>
+                            <FormField
+                              fieldConfig={updatedFormFields[field]}
+                              formik={formik}
+                              handleFileChange={handleFileChange}
+                            />
+                          </Grid>
+                        )
+                      })}
                       <Grid item xs={12} style={{ marginTop: "20px" }}>
                         <Button
                           type="submit"
@@ -227,13 +286,47 @@ const DeviceModelForm = () => {
                   </form>
                 )}
               </Formik>)
+            ) : otpStep === 1 ? (
+              /* OTP Page 1: Verify Device Model */
+              <Grid container spacing={2} justifyContent="center" alignItems="center">
+                <Grid item xs={12}>
+                  <p><strong>Step 1 of 2:</strong> Enter OTP to verify the <strong>Device Model</strong></p>
+                  <p>{t('deviceModelForm.otpValidation')}</p>
+                </Grid>
+                <Grid item xs={12} md="5">
+                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                  <br />
+                  <Typography align="center">
+                    <Button color="primary" size="large" variant="contained" onClick={handleOTPSubmit}>
+                      Verify &amp; Continue
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            ) : otpStep === 2 ? (
+              /* OTP Page 2: Verify COP */
+              <Grid container spacing={2} justifyContent="center" alignItems="center">
+                <Grid item xs={12}>
+                  <p><strong>Step 2 of 2:</strong> Enter OTP to verify the <strong>COP (TAC Extension)</strong></p>
+                  <p>{t('deviceModelForm.otpValidation')}</p>
+                </Grid>
+                <Grid item xs={12} md="5">
+                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
+                  <br />
+                  <Typography align="center">
+                    <Button color="primary" size="large" variant="contained" onClick={handleOTPSubmit}>
+                      {t('deviceModelForm.verifyOTP')}
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
             ) : (
               <Grid
                 container
                 spacing={2}
                 justifyContent="center"
                 alignItems="center"
-              > 
+              >
                 <Grid item xs={12}>
                   <p>{t('deviceModelForm.otpValidation')}</p>
                 </Grid>

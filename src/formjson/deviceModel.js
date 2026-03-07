@@ -1,16 +1,19 @@
 import * as Yup from "yup";
-const providerList=[]
+const providerList = []
 const today = new Date().toISOString().split('T')[0];
 export const deviceModelInitials = {
-    eSimProviders: [],
-    model_name:"",
-    test_agency:"",
-    tac_no:"",
-    tac_validity:"",
-    vendor_id:"",
-    hardware_version:"",
-    tac_doc_path:null,
-    
+  eSimProviders: [],
+  model_name: "",
+  test_agency: "",
+  tac_no: "",
+  tac_validity: "",
+  vendor_id: "",
+  hardware_version: "",
+  tac_doc_path: null,
+  cop_no: "",
+  cop_validity: "",
+  cop_file: null,
+
 };
 export const deviceModelFormField = {
   eSimProviders: {
@@ -18,7 +21,7 @@ export const deviceModelFormField = {
     type: "multiselect",
     label: "deviceModelForm.fields.m2mServiceProvider",
     validation: Yup.array().min(1, "deviceModelForm.validation.m2mServiceProviderRequired"),
-    options: [{'label':'deviceModelForm.fields.select','value':''}]
+    options: [{ 'label': 'deviceModelForm.fields.select', 'value': '' }]
   },
   model_name: {
     name: "model_name",
@@ -39,11 +42,10 @@ export const deviceModelFormField = {
     validation: Yup.string().required("deviceModelForm.validation.testAgencyRequired"),
   },
   tac_validity: {
-    name:"tac_validity",
+    name: "tac_validity",
     type: "date",
     label: "deviceModelForm.fields.tacValidity",
     validation: Yup.date().required("deviceModelForm.validation.tacValidityRequired"),
-    minDate:today
   },
   vendor_id: {
     name: "vendor_id",
@@ -58,9 +60,51 @@ export const deviceModelFormField = {
     validation: Yup.string().required("deviceModelForm.validation.hardwareVersionRequired"),
   },
   tac_doc_path: {
-    name:"tac_doc_path",
+    name: "tac_doc_path",
     type: "file",
     label: "deviceModelForm.fields.uploadTac",
     validation: Yup.mixed().required("deviceModelForm.validation.tacRequired"),
+  },
+  cop_no: {
+    name: "cop_no",
+    type: "text",
+    label: "modelExtensionForm.fields.copNo",
+    validation: Yup.string().when('tac_validity', {
+      is: (val) => {
+        if (!val) return false;
+        const todayStr = new Date().toISOString().split('T')[0];
+        return val < todayStr;
+      },
+      then: Yup.string().required("modelExtensionForm.validation.copNoRequired"),
+      otherwise: Yup.string().nullable()
+    }),
+  },
+  cop_validity: {
+    name: "cop_validity",
+    type: "date",
+    label: "modelExtensionForm.fields.copValidity",
+    validation: Yup.date().when('tac_validity', {
+      is: (val) => {
+        if (!val) return false;
+        const todayStr = new Date().toISOString().split('T')[0];
+        return val < todayStr;
+      },
+      then: Yup.date().required("modelExtensionForm.validation.copValidityRequired"),
+      otherwise: Yup.date().nullable()
+    }),
+  },
+  cop_file: {
+    name: "cop_file",
+    type: "file",
+    label: "modelExtensionForm.fields.uploadCop",
+    validation: Yup.mixed().when('tac_validity', {
+      is: (val) => {
+        if (!val) return false;
+        const todayStr = new Date().toISOString().split('T')[0];
+        return val < todayStr;
+      },
+      then: Yup.mixed().required("modelExtensionForm.validation.copRequired"),
+      otherwise: Yup.mixed().nullable()
+    }),
   },
 };

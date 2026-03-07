@@ -54,8 +54,8 @@ const emptyTestDevice = () => ({
 const TEST_DEVICE_FIELDS = [
   { key: "device_serial_no", label: "Device Serial No", placeholder: "e.g. SN-1001" },
   { key: "imei", label: "IMEI", placeholder: "15-digit IMEI number" },
-  { key: "ccid1", label: "CCID 1", placeholder: "19-digit CCID" },
-  { key: "ccid2", label: "CCID 2", placeholder: "19-digit CCID" },
+  { key: "ccid1", label: "ICCID 1", placeholder: "19-digit ICCID" },
+  { key: "ccid2", label: "ICCID 2", placeholder: "19-digit ICCID" },
   { key: "msisdn1", label: "MSISDN 1", placeholder: "e.g. 919876543210" },
   { key: "msisdn2", label: "MSISDN 2", placeholder: "e.g. 919876543211" },
 ];
@@ -126,7 +126,9 @@ const DeviceModelTechnicalOnboardingCreate = () => {
   const [modelsLoading, setModelsLoading] = useState(false);
   const [userManualPdf, setUserManualPdf] = useState(null);
   const [otCommandListPdf, setOtCommandListPdf] = useState(null);
-  const [testDevices, setTestDevices] = useState([emptyTestDevice()]);
+  const [testDevices, setTestDevices] = useState(
+    Array.from({ length: 5 }, emptyTestDevice)
+  );
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -172,7 +174,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     };
   }, []);
 
-  const canRemoveTestDevice = useMemo(() => testDevices.length > 1, [testDevices.length]);
+  const canRemoveTestDevice = useMemo(() => testDevices.length > 5, [testDevices.length]);
 
   /* ── demo device CRUD ── */
   const handleTestDeviceChange = (index, key, value) => {
@@ -208,6 +210,9 @@ const DeviceModelTechnicalOnboardingCreate = () => {
       if (!otCommandListPdf) errors.otCommandListPdf = "Required";
     }
     if (step === 3) {
+      if (testDevices.length < 5) {
+        errors.testDevices = "Minimum 5 devices are required.";
+      }
       testDevices.forEach((d, i) => {
         TEST_DEVICE_FIELDS.forEach(({ key }) => {
           if (!d[key] || String(d[key]).trim() === "") {
@@ -240,7 +245,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     setDeviceModelId("");
     setUserManualPdf(null);
     setOtCommandListPdf(null);
-    setTestDevices([emptyTestDevice()]);
+    setTestDevices(Array.from({ length: 5 }, emptyTestDevice));
     setFieldErrors({});
     setActiveStep(0);
   };
@@ -459,7 +464,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
         return (
           <SectionBlock
             label="VLTD Devices"
-            description="Minimum 1 VLTD device is required. All fields are mandatory."
+            description="5 VLTD device is required. All fields are mandatory."
             action={
               <Button
                 startIcon={<AddIcon />}
@@ -498,7 +503,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                       <Typography variant="subtitle1" fontWeight={700} color="white">
                         VLTD Device {index + 1}
                       </Typography>
-                      {testDevices.length > 1 && (
+                      {testDevices.length > 5 && (
                         <Chip
                           label={`#${index + 1}`}
                           size="small"
@@ -514,7 +519,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                       title={
                         canRemoveTestDevice
                           ? "Remove device"
-                          : "At least 1 device required"
+                          : "At least 5 devices required"
                       }
                     >
                       <span>

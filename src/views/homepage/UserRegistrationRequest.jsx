@@ -24,8 +24,8 @@ const ROLE_OPTIONS = [
   { value: "M2M Service Provider", label: "M2M Service Provider", icon: <RouterIcon fontSize="small" /> },
   { value: "Vehicle Manufacturer (Factory Fitted AIS-140 Device)", label: "Vehicle Manufacturer (Factory Fitted AIS-140 Device)", icon: <DirectionsBusIcon fontSize="small" /> },
   { value: "AIS-140 Device Manufacturer (Retrofitted AIS-140 Device)", label: "AIS-140 Device Manufacturer (Retrofitted AIS-140 Device)", icon: <DevicesIcon fontSize="small" /> },
-  { value: "School Administrator", label: "School Administrator", icon: <BusinessIcon fontSize="small" /> },
-  { value: "Others", label: "Others", icon: <HelpOutlineIcon fontSize="small" /> },
+  // { value: "School Administrator", label: "School Administrator", icon: <BusinessIcon fontSize="small" /> },
+  // { value: "Others", label: "Others", icon: <HelpOutlineIcon fontSize="small" /> },
 ];
 
 const UserRegistrationRequest = () => {

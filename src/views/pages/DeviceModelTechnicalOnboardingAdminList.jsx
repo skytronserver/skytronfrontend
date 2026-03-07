@@ -159,7 +159,7 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
             <DialogTitle>
                 <Stack direction="row" alignItems="center" spacing={1}>
                     <PlayCircleOutlineIcon color="info" />
-                    <Typography variant="h5" fontWeight={700}>Mark as Ongoing Evaluation</Typography>
+                    <Typography variant="h5" fontWeight={700}>Confirm Testing</Typography>
                 </Stack>
             </DialogTitle>
             <DialogContent dividers>
@@ -206,7 +206,7 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
                     onClick={handleConfirm} disabled={submitting} variant="contained" color="info"
                     startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <PlayCircleOutlineIcon />}
                 >
-                    {submitting ? "Marking…" : "Confirm — Mark Ongoing"}
+                    {submitting ? "Confirming…" : "Confirm Testing"}
                 </Button>
             </DialogActions>
         </Dialog>
@@ -549,14 +549,14 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                 <TableCell sx={{ py: 1 }} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
                         {isSubmitted && (
-                            <Tooltip title="Mark as Ongoing Evaluation">
+                            <Tooltip title="Confirm Testing">
                                 <Button
                                     size="small" variant="contained" color="info"
                                     startIcon={<PlayCircleOutlineIcon fontSize="small" />}
                                     onClick={() => onMarkOngoing(row)}
                                     sx={{ whiteSpace: "nowrap", fontSize: "0.72rem" }}
                                 >
-                                    Mark Ongoing
+                                    Confirm Testing
                                 </Button>
                             </Tooltip>
                         )}
@@ -804,18 +804,18 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
 
     const handleMarkOngoingSuccess = useCallback((id) => {
         setOngoingDialog({ open: false, row: null });
-        patchRow(id, { status: "ongoing_evaluation" });
+        loadData();
         setActionMsg({ type: "success", text: `Request #${id} marked as Ongoing Evaluation.` });
-    }, [patchRow]);
+    }, [loadData]);
 
     const handleFinalizeSuccess = useCallback((id, decision) => {
         setFinalizeDialog({ open: false, row: null });
-        patchRow(id, { status: decision });
+        loadData();
         setActionMsg({
             type: decision === "accepted" ? "success" : "warning",
             text: `Request #${id} has been ${decision === "accepted" ? "accepted ✓" : "rejected"}.`,
         });
-    }, [patchRow]);
+    }, [loadData]);
 
     /* ── search ── */
     const filteredRows = useMemo(() => {

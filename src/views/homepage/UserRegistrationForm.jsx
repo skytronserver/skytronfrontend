@@ -257,6 +257,7 @@ const UserRegistrationForm = () => {
 
           if (selectedRole === "AIS-140 Device Manufacturer") {
             delete nextConfig.device_model_details;
+            delete nextConfig.file_vehicleTypeApprovalTacAnnexureCopy;
           }
 
           return nextConfig;

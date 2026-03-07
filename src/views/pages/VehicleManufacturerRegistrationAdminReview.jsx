@@ -40,7 +40,8 @@ const VehicleManufacturerRegistrationAdminReview = () => {
     setLoading(true);
     try {
       const response = await ManufacturerServices.findManufacturer({});
-      const data = Array.isArray(response?.data) ? response.data : [];
+      let data = Array.isArray(response?.data) ? response.data : [];
+      data.sort((a, b) => new Date(b.created) - new Date(a.created));
       const merged = data.map((row) => {
         const overrides = overridesArg ?? statusOverrides;
         const overrideStatus = overrides?.[row?.id];
@@ -57,8 +58,8 @@ const VehicleManufacturerRegistrationAdminReview = () => {
     } catch (e) {
       setErrorMessage(
         e?.response?.data?.message ||
-          e?.message ||
-          "Failed to load vehicle manufacturer registration requests."
+        e?.message ||
+        "Failed to load vehicle manufacturer registration requests."
       );
     } finally {
       setLoading(false);
@@ -123,8 +124,8 @@ const VehicleManufacturerRegistrationAdminReview = () => {
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
-            e?.message ||
-            "Failed to allow login."
+          e?.message ||
+          "Failed to allow login."
         );
       } finally {
         setLoading(false);
@@ -150,8 +151,8 @@ const VehicleManufacturerRegistrationAdminReview = () => {
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
-            e?.message ||
-            "Failed to resend OTP."
+          e?.message ||
+          "Failed to resend OTP."
         );
       } finally {
         setLoading(false);
@@ -188,8 +189,8 @@ const VehicleManufacturerRegistrationAdminReview = () => {
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
-            e?.message ||
-            "Failed to allow add dealer."
+          e?.message ||
+          "Failed to allow add dealer."
         );
       } finally {
         setLoading(false);
@@ -222,8 +223,8 @@ const VehicleManufacturerRegistrationAdminReview = () => {
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
-            e?.message ||
-            "Failed to reject request."
+          e?.message ||
+          "Failed to reject request."
         );
       } finally {
         setLoading(false);

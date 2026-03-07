@@ -355,7 +355,7 @@ export const manufacturerFormField = {
   file_vehicleTypeApprovalTacAnnexureCopy: {
     name: "file_vehicleTypeApprovalTacAnnexureCopy",
     type: "file",
-    label: "Self-Certified Vehicle Type Approval (TAC) Annexure Copy",
+    label: "Self-Certified Vehicle Type Approval (TAC) Annexure Copy VLTD details",
     message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Vehicle Type Approval (TAC) Annexure Copy is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -369,9 +369,9 @@ export const manufacturerFormField = {
   file_ais140DeviceTacCopy: {
     name: "file_ais140DeviceTacCopy",
     type: "file",
-    label: "TAC (PDF)",
+    label: "Device TAC (PDF)",
     message: 'manufacturer.form.validation.file_restrictions',
-    validation: Yup.mixed().required("TAC Copy is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
+    validation: Yup.mixed().required("Device TAC is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
@@ -383,13 +383,13 @@ export const manufacturerFormField = {
   cop_file: {
     name: "cop_file",
     type: "file",
-    label: "COP (PDF)",
+    label: "Device COP (PDF)",
     message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().when("tac_validity", {
       is: (v) => isTacExpired(v),
       then: (schema) =>
         schema
-          .required("COP File is required")
+          .required("Device COP is required")
           .test("fileSize", "manufacturer.form.validation.file_size", (value) => {
             if (!value) return false;
             return value.size <= FILE_SIZE;
