@@ -23,6 +23,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
   Fab,
 } from "@mui/material";
 import { alpha, useTheme } from '@mui/material/styles';
@@ -44,6 +45,9 @@ import CustomModal from "../../ui-component/CustomModal";
 import "./emcall.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 import { fetchSecureIncidentMedia, createMediaUrl } from "../../utils/incidentImageLoader";
+import { getRole } from "../../helper";
+
+const emCallAudio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
 const DriverCard = ({ driver }) => {
   const theme = useTheme();
@@ -75,7 +79,9 @@ const DriverCard = ({ driver }) => {
     }
     setPhotoUrl(null);
 
-    const token = sessionStorage.getItem('oAuthToken');
+    const token =
+      sessionStorage.getItem('oAuthToken') ||
+      localStorage.getItem('oAuthToken');
     if (!photoPath || !token) {
       setPhotoLoading(false);
       return () => {
@@ -447,8 +453,27 @@ const ChatPanel = ({ assignmentId, open, currentUserName }) => {
 const EMCall = () => {
   const theme = useTheme();
   const { state } = useLocation();
-  const { call } = state || {};
+
+  // When opened in a new window (via window.open), router state is absent.
+  // resolveCall is run ONCE via useState initializer to avoid re-running on every render
+  // (which would remove the localStorage key on first render and return undefined on subsequent renders).
+  const [call] = useState(() => {
+    if (state?.call) return state.call;
+    // Check window.__emNewCall injected by a wrapper if used
+    if (window.__emNewCall) return window.__emNewCall;
+    // Fallback: read from localStorage (written by parent emcall tab before window.open)
+    try {
+      const raw = localStorage.getItem('emcall_new_window_data');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        localStorage.removeItem('emcall_new_window_data');
+        return parsed;
+      }
+    } catch (e) { /* ignore */ }
+    return undefined;
+  });
   const userRole = call?.type || '';
+  const loggedInRole = getRole();
 
   const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
 
@@ -488,6 +513,16 @@ const EMCall = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
 
+  // New pending call detection (after broadcast)
+  const [newIncomingCall, setNewIncomingCall] = useState(null);
+  const emCallNewIncomingCallRef = useRef(null);
+  useEffect(() => {
+    emCallNewIncomingCallRef.current = newIncomingCall;
+  }, [newIncomingCall]);
+
+  const emCallPreviousCallsRef = useRef([]);
+  let emBuzzerTimeout = useRef(null);
+
   // Police Data State
   const [policeLocations, setPoliceLocations] = useState([]);
   const [policePois, setPolicePois] = useState([]);
@@ -515,7 +550,9 @@ const EMCall = () => {
   useEffect(() => {
     let cancelled = false;
 
-    const token = sessionStorage.getItem('oAuthToken');
+    const token =
+      sessionStorage.getItem('oAuthToken') ||
+      localStorage.getItem('oAuthToken');
     if (!token) {
       return () => {
         cancelled = true;
@@ -956,6 +993,124 @@ const EMCall = () => {
     return () => clearInterval(interval);
   }, [call?.id]);
 
+  // Poll for new pending calls ONLY after broadcast has been done
+  useEffect(() => {
+    if (!broadcastDisabled) return; // Only start polling after broadcast
+
+    const checkNewPendingCall = async () => {
+      try {
+        const response = await HomePageService.getPendingSOSCall();
+        const apiCalls = response?.data?.calls || [];
+        const now = Date.now();
+
+        let persistentSeenTable = {};
+        try {
+          persistentSeenTable = JSON.parse(sessionStorage.getItem('emcall_seen_calls') || '{}');
+        } catch (e) { }
+
+        apiCalls.forEach((c) => {
+          if (!persistentSeenTable[c.id]) {
+            persistentSeenTable[c.id] = 1; // 1st poll
+          } else {
+            persistentSeenTable[c.id] += 1; // increment poll count
+          }
+
+          if (loggedInRole === 'desk_ex' && persistentSeenTable[c.id] === 4) {
+            HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
+          }
+        });
+
+        sessionStorage.setItem('emcall_seen_calls', JSON.stringify(persistentSeenTable));
+
+        // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
+        let processableCalls = apiCalls;
+        if (loggedInRole === 'teamlead') {
+          processableCalls = apiCalls.filter(
+            (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
+          );
+        } else if (loggedInRole === 'desk_ex') {
+          processableCalls = apiCalls.filter(
+            (c) => persistentSeenTable[c.id] <= 3
+          );
+        }
+
+        if (emCallNewIncomingCallRef.current && !processableCalls.some(c => c.id === emCallNewIncomingCallRef.current.id)) {
+          setNewIncomingCall(null);
+          emCallAudio.pause();
+          emCallAudio.currentTime = 0;
+          clearTimeout(emBuzzerTimeout.current);
+        }
+
+        const found = processableCalls.find(
+          (c) =>
+            c.call?.status === 'pending' &&
+            c?.status === 'pending' &&
+            c.id !== call?.id && // exclude the current active call
+            !emCallPreviousCallsRef.current.some((prev) => prev.id === c.id)
+        );
+        if (found) {
+          setNewIncomingCall(found);
+          // Play buzzer
+          try {
+            emCallAudio.currentTime = 0;
+            const playPromise = emCallAudio.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(error => console.warn("Browser blocked audio autoplay:", error));
+            }
+          } catch (e) { }
+          clearTimeout(emBuzzerTimeout.current);
+          emBuzzerTimeout.current = setTimeout(() => {
+            emCallAudio.pause();
+            emCallAudio.currentTime = 0;
+          }, 10000);
+        }
+        emCallPreviousCallsRef.current = processableCalls;
+      } catch (error) {
+        console.error('Error polling pending calls from emcall:', error);
+      }
+    };
+
+    checkNewPendingCall();
+    const interval = setInterval(checkNewPendingCall, 10000);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(emBuzzerTimeout.current);
+      emCallAudio.pause();
+      emCallAudio.currentTime = 0;
+    };
+  }, [broadcastDisabled]);
+
+  const handleAcceptNewCall = async () => {
+    if (!newIncomingCall) return;
+
+    // Open a blank window synchronously to bypass browser popup blockers
+    const newWindow = window.open('about:blank', '_blank', 'noopener,noreferrer');
+
+    try {
+      const response = await HomePageService.acceptEMCall({ assignment_id: newIncomingCall.id, accept: true });
+      const acceptedCall = response.data;
+      setNewIncomingCall(null);
+      emCallAudio.pause();
+      emCallAudio.currentTime = 0;
+      clearTimeout(emBuzzerTimeout.current);
+
+      localStorage.setItem('emcall_new_window_data', JSON.stringify(acceptedCall));
+
+      // Now redirect the opened window to the final URL
+      if (newWindow) {
+        newWindow.location.href = '/emcall';
+      }
+    } catch (error) {
+      console.error('Error accepting new incoming call:', error);
+      if (newWindow) newWindow.close();
+    }
+  };
+
+  const handleDismissNewCall = (event, reason) => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
+    setNewIncomingCall(null);
+  };
+
   const handleBroadcast = async (type) => {
     try {
       let broadcastType = type;
@@ -1134,6 +1289,33 @@ const EMCall = () => {
 
   return (
     <>
+      {/* New Incoming Pending Call Dialog (shown after broadcast) */}
+      <Dialog open={!!newIncomingCall} onClose={handleDismissNewCall}>
+        <DialogTitle
+          sx={{
+            backgroundColor: 'darkred',
+            color: 'white',
+            textAlign: 'center',
+            fontSize: '16px',
+          }}
+        >
+          New Pending Assignment
+        </DialogTitle>
+        <DialogContent sx={{ padding: '16px !important' }}>
+          <Typography>
+            A new assignment with ID {newIncomingCall?.id} is pending. Do you want to accept it?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center' }}>
+          <Button
+            onClick={handleAcceptNewCall}
+            color="secondary"
+            variant="contained"
+          >
+            Accept
+          </Button>
+        </DialogActions>
+      </Dialog>
       <CustomModal
         open={modalOpen}
         onClose={handleModalClose}
@@ -1208,74 +1390,74 @@ const EMCall = () => {
                 </Box>
               </Box>
 
-            {/* Tabs Header */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
-              <Tabs
-                value={tabValue}
-                onChange={handleTabChange}
-                variant="fullWidth"
-                indicatorColor="primary"
-                textColor="primary"
-                sx={{ minHeight: 48 }}
-              >
-                <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                <Tab label="Police & Health" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-              </Tabs>
-            </Box>
+              {/* Tabs Header */}
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  variant="fullWidth"
+                  indicatorColor="primary"
+                  textColor="primary"
+                  sx={{ minHeight: 48 }}
+                >
+                  <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                  <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                  <Tab label="Police & Health" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                  <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                </Tabs>
+              </Box>
 
-            {/* Scrollable Content Area */}
-            <CardContent sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
-              {tabValue === 0 && (
-                <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.id ?? call?.id}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Owner Name</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
-                    <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
-                    <Typography variant="body1" fontWeight={500}>
-                      {typeof call?.call?.device?.category === 'object'
-                        ? (call.call.device.category?.category || "N/A")
-                        : (call?.call?.device?.category || "N/A")}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Alert Type</Typography>
-                    <Typography variant="body1" fontWeight={500} color="error.main">
-                      {call?.call?.packet_type || "SOS"}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 2, mt: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+              {/* Scrollable Content Area */}
+              <CardContent sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
+                {tabValue === 0 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Lat</Typography>
-                      <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.latitude?.toFixed(5) || "N/A"}</Typography>
+                      <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.id ?? call?.id}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Lon</Typography>
-                      <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.longitude?.toFixed(5) || "N/A"}</Typography>
+                      <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Owner Name</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
+                      <Typography variant="body1" fontWeight={500}>
+                        {typeof call?.call?.device?.category === 'object'
+                          ? (call.call.device.category?.category || "N/A")
+                          : (call?.call?.device?.category || "N/A")}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Alert Type</Typography>
+                      <Typography variant="body1" fontWeight={500} color="error.main">
+                        {call?.call?.packet_type || "SOS"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Lat</Typography>
+                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.latitude?.toFixed(5) || "N/A"}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Lon</Typography>
+                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.longitude?.toFixed(5) || "N/A"}</Typography>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              )}
+                )}
 
-              {tabValue === 1 && (
-                <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {(call?.call?.device?.drivers || []).length > 0 ? (
+                {tabValue === 1 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {(call?.call?.device?.drivers || []).length > 0 ? (
                       (call?.call?.device?.drivers || []).map((driver, idx) => (
                         <Box key={driver?.id || `${driver?.license_no || 'driver'}-${idx}`}>
                           <DriverCard driver={driver} />
@@ -1567,6 +1749,35 @@ const EMCall = () => {
               currentUserName={currentUserName}
             />
           </DialogContent>
+        </Dialog>
+
+        {/* Popup Dialog for New Pending Call */}
+        <Dialog open={!!newIncomingCall} onClose={handleDismissNewCall}>
+          <DialogTitle
+            sx={{
+              backgroundColor: "darkred",
+              color: "white",
+              textAlign: "center",
+              fontSize: "16px",
+            }}
+          >
+            New Pending Assignment
+          </DialogTitle>
+          <DialogContent sx={{ padding: "16px !important", minWidth: 300 }}>
+            <Typography>
+              A new assignment with ID {newIncomingCall?.id} is pending. Do you
+              want to accept it?
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+            <Button
+              onClick={handleAcceptNewCall}
+              color="secondary"
+              variant="contained"
+            >
+              Accept
+            </Button>
+          </DialogActions>
         </Dialog>
 
       </Box>

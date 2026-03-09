@@ -43,7 +43,9 @@ const ProfileSection = () => {
   const navigate = useNavigate();
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
-  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated');
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated)
+    || sessionStorage.getItem('isAuthenticated')
+    || localStorage.getItem('isAuthenticated');
   const [log, setLogout] = useState(0);
   const myDecipher = decipherEncryption('skytrack')
   const userData = localStorage.getItem('skytrackCookiesData');
@@ -84,7 +86,7 @@ const ProfileSection = () => {
     if (!isAuthenticated) {
       window.location.href = '/';
     }
-  })
+  }, [isAuthenticated]);
 
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {

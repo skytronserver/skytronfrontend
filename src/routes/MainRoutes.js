@@ -65,11 +65,15 @@ import DeviceModelTechnicalOnboardingAdminList from "../views/pages/DeviceModelT
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData");
+  // Fall back to localStorage so new windows (opened via window.open) are also authenticated
+  const userData =
+    sessionStorage.getItem("cookiesData") ||
+    localStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated");
+    sessionStorage.getItem("isAuthenticated") ||
+    localStorage.getItem("isAuthenticated");
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;

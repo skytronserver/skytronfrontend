@@ -99,7 +99,21 @@ const MainLayout = () => {
   };
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated");
+    sessionStorage.getItem("isAuthenticated") ||
+    localStorage.getItem("isAuthenticated");
+
+  // Sync auth data from sessionStorage → localStorage once on mount.
+  // This ensures new browser windows (window.open) can read auth without re-login,
+  // even for sessions that were established before localStorage saving was added.
+  useEffect(() => {
+    const authKeys = ['isAuthenticated', 'oAuthToken', 'sessionID', 'cookiesData'];
+    authKeys.forEach((key) => {
+      const val = sessionStorage.getItem(key);
+      if (val) {
+        localStorage.setItem(key, val);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (location.pathname === '/live-tracking') {
@@ -113,10 +127,14 @@ const MainLayout = () => {
     }
   }, [location, matchDownMd, dispatch]);
 
-  sessionStorage.getItem("oAuthToken") &&
-    createAxiosInstance(sessionStorage.getItem("oAuthToken"));
+  const oAuthToken =
+    sessionStorage.getItem("oAuthToken") ||
+    localStorage.getItem("oAuthToken");
+  oAuthToken && createAxiosInstance(oAuthToken);
   const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData");
+  const userData =
+    sessionStorage.getItem("cookiesData") ||
+    localStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = (userData && data.length > 2 && data[1]) || "desk_ex";
 

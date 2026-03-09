@@ -446,7 +446,7 @@ export const decipherEncryption = (salt) => {
 
 export const getRole = () => {
   const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData");
+  const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = userData && data.length > 2 && data[1];
   return userRoles

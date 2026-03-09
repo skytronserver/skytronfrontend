@@ -1,16 +1,23 @@
 import axios from "axios";
 import { BASE_URL } from "../store/constant";
-const token="Token "+sessionStorage.getItem('oAuthToken'); 
+
 const instance = axios.create({
   baseURL: BASE_URL,
   headers: {
     "Content-type": "application/json",
-    "Authorization": token,
   },
 });
 
-// Add an interceptor to handle FormData for file uploads
+// Read token dynamically on every request so new browser windows
+// (which have empty sessionStorage) can fall back to localStorage.
 instance.interceptors.request.use((config) => {
+  const token =
+    sessionStorage.getItem('oAuthToken') ||
+    localStorage.getItem('oAuthToken');
+  if (token) {
+    config.headers['Authorization'] = 'Token ' + token;
+  }
+
   if (config.headers['Content-type'] === 'multipart/form-data') {
     // Create a new FormData object
     const formData = new FormData();
@@ -39,7 +46,7 @@ instance.interceptors.response.use(
       // Handle 404 error here
       console.error("404 Error: Page not found");
     }
-    if(error.response && error.response.status === 500){
+    if (error.response && error.response.status === 500) {
       console.error("500 Error");
     }
     return Promise.reject(error);

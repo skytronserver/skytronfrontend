@@ -32,11 +32,12 @@ import DeviceModelTechnicalOnboardingList from "../views/pages/DeviceModelTechni
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData");
+  const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated");
+    sessionStorage.getItem("isAuthenticated") ||
+    localStorage.getItem("isAuthenticated");
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;

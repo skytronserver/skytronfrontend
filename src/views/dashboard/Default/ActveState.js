@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import React from "react";
-import { Grid,Card, CardContent,Typography, Box, Fab, Tabs, Tab, Button, Paper, Divider, TextField, MenuItem, IconButton, Tooltip as MuiTooltip, Chip } from "@mui/material";
+import { Grid, Card, CardContent, Typography, Box, Fab, Tabs, Tab, Button, Paper, Divider, TextField, MenuItem, IconButton, Tooltip as MuiTooltip, Chip } from "@mui/material";
 import { Add as AddIcon, BarChart as ChartIcon, DeleteOutline as DeleteIcon, Visibility, VisibilityOff, ContentCopy, KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
 import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
@@ -34,7 +34,7 @@ import { decipherEncryption } from "../../../helper";
 import { dashboardInitialState } from "./dashboardInitialState";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useTranslation } from "react-i18next";
-const SOSDashboard=lazy(()=>import("../../direct/SOSDashboard"))
+const SOSDashboard = lazy(() => import("../../direct/SOSDashboard"))
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -62,54 +62,54 @@ const getNestedValue = (path, source) =>
     .reduce((accumulator, segment) => (accumulator && accumulator[segment] !== undefined ? accumulator[segment] : undefined), source);
 const ActiveState = () => {
   const { t } = useTranslation();
-  const [userInfo,setUserInfo]=useState(dashboardInitialState.userInfo);
-  const [fitmentInfo,setFitmentInfo]=useState(dashboardInitialState.fitmentInfo);
-  const [dealerFitmentInfo,setDealerFitmentInfo]=useState(dashboardInitialState.dealerFitmentInfo);
-  const [dealerDeviceInfo,setDealerDeviceInfo]=useState(dashboardInitialState.dealerDeviceInfo);
-  const [eSIMInfo,setESIMInfo]=useState(dashboardInitialState.eSIMInfo);
-  const [eSIMActivationInfo,setESIMActivationInfo]=useState(dashboardInitialState.eSIMActivationInfo);
-  const [deviceStatusInfo,setDeviceStatusInfo]=useState(dashboardInitialState.deviceStatusInfo);
-  const [deviceHealthInfo,setDeviceHealthInfo]=useState(dashboardInitialState.deviceHealthInfo);
-  const [overSpeedInfo,setOverSpeedInfo]=useState(dashboardInitialState.alertInfo);
-  const [emergencyInfo,setEmergencyInfo]=useState(dashboardInitialState.alertInfo);
-  const [harshBreakInfo,setHarshBreakInfo]=useState(dashboardInitialState.alertInfo);
-  const [suddenBreakInfo,setSuddenBreakInfo]=useState(dashboardInitialState.alertInfo);
-  const [miscInfo,setMiscInfo]=useState(dashboardInitialState.miscInfo);
-  const [modelInfo,setModelInfo]=useState(dashboardInitialState.modelInfo);
-  const [ownerDashboardInfo,setOwnerDashboardInfo]=useState(dashboardInitialState.userDashboardInfo);
-  const [fitmentInfoForAdmin,setFitmentInfoForAdmin]=useState(dashboardInitialState.adminFitmentInfo)
-  const [userInfoForAdmin,setUserInfoForAdmin]=useState(dashboardInitialState.userInfoForAdmin)
-  const [stateInfo,setStateInfo]=useState(dashboardInitialState.stateInfo);
-  const [dtoDashboardInfo,setDtoDashboardInfo]=useState(dashboardInitialState.dtoDashboardInfo)
-  const [team,setTeam]=useState(dashboardInitialState.team)
-  const [teamForLead,setTeamForLead]=useState(dashboardInitialState.teamForLead)
-  const [incomingCall,setIncomingCall]=useState(dashboardInitialState.incomingCall)
-  const [fakeCall,setFakeCall]=useState(dashboardInitialState.fakeCall)
-  const [callRejection,setCallRejection]=useState(dashboardInitialState.callRejection)
-  const [calls,setCalls]=useState(dashboardInitialState.calls)
-  const [assignment,setAssignment]=useState(dashboardInitialState.assignment);
-  const [closedAssignment,setClosedAssignment]=useState(dashboardInitialState.closedAssignment);
-  const [falseAssignment,setFalseAssignment]=useState(dashboardInitialState.falseAssignment);
-  const [rejectedAssignment,setRejectedAssignment]=useState(dashboardInitialState.rejectedAssignment);
-  const [avgAcceptance,setAvgAcceptance]=useState("");
-  const [vehicleAlertStats,setVehicleAlertStats]=useState(dashboardInitialState.vehicleAlertStatistics);
+  const [userInfo, setUserInfo] = useState(dashboardInitialState.userInfo);
+  const [fitmentInfo, setFitmentInfo] = useState(dashboardInitialState.fitmentInfo);
+  const [dealerFitmentInfo, setDealerFitmentInfo] = useState(dashboardInitialState.dealerFitmentInfo);
+  const [dealerDeviceInfo, setDealerDeviceInfo] = useState(dashboardInitialState.dealerDeviceInfo);
+  const [eSIMInfo, setESIMInfo] = useState(dashboardInitialState.eSIMInfo);
+  const [eSIMActivationInfo, setESIMActivationInfo] = useState(dashboardInitialState.eSIMActivationInfo);
+  const [deviceStatusInfo, setDeviceStatusInfo] = useState(dashboardInitialState.deviceStatusInfo);
+  const [deviceHealthInfo, setDeviceHealthInfo] = useState(dashboardInitialState.deviceHealthInfo);
+  const [overSpeedInfo, setOverSpeedInfo] = useState(dashboardInitialState.alertInfo);
+  const [emergencyInfo, setEmergencyInfo] = useState(dashboardInitialState.alertInfo);
+  const [harshBreakInfo, setHarshBreakInfo] = useState(dashboardInitialState.alertInfo);
+  const [suddenBreakInfo, setSuddenBreakInfo] = useState(dashboardInitialState.alertInfo);
+  const [miscInfo, setMiscInfo] = useState(dashboardInitialState.miscInfo);
+  const [modelInfo, setModelInfo] = useState(dashboardInitialState.modelInfo);
+  const [ownerDashboardInfo, setOwnerDashboardInfo] = useState(dashboardInitialState.userDashboardInfo);
+  const [fitmentInfoForAdmin, setFitmentInfoForAdmin] = useState(dashboardInitialState.adminFitmentInfo)
+  const [userInfoForAdmin, setUserInfoForAdmin] = useState(dashboardInitialState.userInfoForAdmin)
+  const [stateInfo, setStateInfo] = useState(dashboardInitialState.stateInfo);
+  const [dtoDashboardInfo, setDtoDashboardInfo] = useState(dashboardInitialState.dtoDashboardInfo)
+  const [team, setTeam] = useState(dashboardInitialState.team)
+  const [teamForLead, setTeamForLead] = useState(dashboardInitialState.teamForLead)
+  const [incomingCall, setIncomingCall] = useState(dashboardInitialState.incomingCall)
+  const [fakeCall, setFakeCall] = useState(dashboardInitialState.fakeCall)
+  const [callRejection, setCallRejection] = useState(dashboardInitialState.callRejection)
+  const [calls, setCalls] = useState(dashboardInitialState.calls)
+  const [assignment, setAssignment] = useState(dashboardInitialState.assignment);
+  const [closedAssignment, setClosedAssignment] = useState(dashboardInitialState.closedAssignment);
+  const [falseAssignment, setFalseAssignment] = useState(dashboardInitialState.falseAssignment);
+  const [rejectedAssignment, setRejectedAssignment] = useState(dashboardInitialState.rejectedAssignment);
+  const [avgAcceptance, setAvgAcceptance] = useState("");
+  const [vehicleAlertStats, setVehicleAlertStats] = useState(dashboardInitialState.vehicleAlertStatistics);
   const [reportBuilderState, setReportBuilderState] = useState(dashboardInitialState.reportBuilder);
   const [fieldSearchTerm, setFieldSearchTerm] = useState("");
 
   // Chart-related state
   const [activeTab, setActiveTab] = useState(0);
-  
+
   const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData");
+  const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   const isSuperAdmin = userRoles === 'superadmin';
   useEffect(() => {
     //for owner
-    if(userRoles=='dtorto'){
-      (async()=>{
-        const response=await UserServices.getDTODashboardData();
-        const data=await response.data;
+    if (userRoles == 'dtorto') {
+      (async () => {
+        const response = await UserServices.getDTODashboardData();
+        const data = await response.data;
         setDtoDashboardInfo((prev) => ({
           ...prev,
           activated: data.Total_Device_Activated,
@@ -130,10 +130,10 @@ const ActiveState = () => {
         }));
       })();
     }
-    if(userRoles=='owner'){
-      (async()=>{
-        const response=await UserServices.getOwnerDashboard();
-        const data=await response.data;
+    if (userRoles == 'owner') {
+      (async () => {
+        const response = await UserServices.getOwnerDashboard();
+        const data = await response.data;
         setOwnerDashboardInfo((prev) => ({
           ...prev,
           deviceActivated: data.Total_Device_Activated,
@@ -156,11 +156,11 @@ const ActiveState = () => {
     }
 
     ////////////////////////////////////////////
-    if(userRoles=='esimprovider') {
-      (async()=>{
+    if (userRoles == 'esimprovider') {
+      (async () => {
         const response = await UserServices.getESIMProviderDashboard();
         const data = await response.data.data;
-        setESIMInfo(prev=>({
+        setESIMInfo(prev => ({
           ...prev,
           totalDevicesWithESim: data.Total_Devices_With_ESim || 0,
           validated: data.ESim_Validated || 0,
@@ -169,7 +169,7 @@ const ActiveState = () => {
           pending: data.ESim_Pending || 0,
           invalid: data.ESim_Invalid || 0
         }));
-        setESIMActivationInfo(prev=>({
+        setESIMActivationInfo(prev => ({
           ...prev,
           activationRequestSent: data.ESim_Activation_Req_Sent || 0,
           activationConfirmed: data.ESim_Activation_Confirmed || 0,
@@ -182,158 +182,158 @@ const ActiveState = () => {
       })();
     }
     //for manufacturer
-    if(userRoles=='devicemanufacture'){
-      (async()=>{
-        const response=await UserServices.getManufacturerDashboard();
-        const data=await response.data;
-        setESIMInfo(prev=>({
+    if (userRoles == 'devicemanufacture') {
+      (async () => {
+        const response = await UserServices.getManufacturerDashboard();
+        const data = await response.data;
+        setESIMInfo(prev => ({
           ...prev,
-          totalActivation:data.Total_esim_activation_request,
-          oneYearRenewal:data.Total_1year_renewal_request,
-          twoYearRenewal:data.Total_2year_renewal_request
+          totalActivation: data.Total_esim_activation_request,
+          oneYearRenewal: data.Total_1year_renewal_request,
+          twoYearRenewal: data.Total_2year_renewal_request
         }));
-        setDeviceStatusInfo(prev=>({
+        setDeviceStatusInfo(prev => ({
           ...prev,
-          online:data.Total_Online_Device,
-          todayOffline:data.Total_Offline_Device_today,
-          sevenDaysOffline:data.Total_Offline_Device_7day,
-          thirtyDaysOffline:data.Total_Offline_Device_30day,
+          online: data.Total_Online_Device,
+          todayOffline: data.Total_Offline_Device_today,
+          sevenDaysOffline: data.Total_Offline_Device_7day,
+          thirtyDaysOffline: data.Total_Offline_Device_30day,
         }));
-        setMiscInfo(prev=>({
+        setMiscInfo(prev => ({
           ...prev,
-          dealer:data.Total_Dealer,
-          allocated:data.Total_Stock_Allocated,
-          activation:data.Total_Activation,
-          expired:data.Total_expired_device,
+          dealer: data.Total_Dealer,
+          allocated: data.Total_Stock_Allocated,
+          activation: data.Total_Activation,
+          expired: data.Total_expired_device,
         }));
-        setModelInfo(prev=>({
+        setModelInfo(prev => ({
           ...prev,
-          model:data.Total_Model,
-          m2mLinked:data.Total_M2M_linked
+          model: data.Total_Model,
+          m2mLinked: data.Total_M2M_linked
         }))
       })();
     }
     //for Dealer
-    if(userRoles=='dealer'){
-      (async()=>{
-        const response=await UserServices.getDealerDashboard();
-        const data=await response.data;
-        setDealerFitmentInfo(prev=>({
+    if (userRoles == 'dealer') {
+      (async () => {
+        const response = await UserServices.getDealerDashboard();
+        const data = await response.data;
+        setDealerFitmentInfo(prev => ({
           ...prev,
-          total:data.Total_Fitment_done,
-          monthly:data.Fitment_month,
-          daily:data.Fitment_today,
+          total: data.Total_Fitment_done,
+          monthly: data.Fitment_month,
+          daily: data.Fitment_today,
         }));
-        setDealerDeviceInfo(prev=>({
+        setDealerDeviceInfo(prev => ({
           ...prev,
-          assigned:data.Total_Device_Assigned,
-          returned:data.Total_Device_Returned,
-          stocked:data.Current_Device_stock,
-          faulty:data.Current_Device_faulty
+          assigned: data.Total_Device_Assigned,
+          returned: data.Total_Device_Returned,
+          stocked: data.Current_Device_stock,
+          faulty: data.Current_Device_faulty
         }));
-        setESIMInfo(prev=>({
+        setESIMInfo(prev => ({
           ...prev,
-          totalActivation:data.Total_esim_activation_request,
-          oneYearRenewal:data.Total_1_year_renewal_request,
-          twoYearRenewal:data.Total_2_year_renewal_request
+          totalActivation: data.Total_esim_activation_request,
+          oneYearRenewal: data.Total_1_year_renewal_request,
+          twoYearRenewal: data.Total_2_year_renewal_request
         }));
-        setDeviceStatusInfo(prev=>({
+        setDeviceStatusInfo(prev => ({
           ...prev,
-          online:data.Total_Online_now,
-          todayOffline:data.Total_Online_today,
-          sevenDaysOffline:data.Total_Offline_7_days,
-          thirtyDaysOffline:data.Total_Offline_30_days,
+          online: data.Total_Online_now,
+          todayOffline: data.Total_Online_today,
+          sevenDaysOffline: data.Total_Offline_7_days,
+          thirtyDaysOffline: data.Total_Offline_30_days,
         }))
       })();
     }
     //only for superAdmin
-    if(userRoles=='superadmin'){
-      (async()=>{
-        const response=await UserServices.getDashboardUserData();
-        const res=await UserServices.getDashboardData();
-        const dashboardData=await res.data;
-        const data=await response.data;
-        setUserInfoForAdmin(prev=>({
+    if (userRoles == 'superadmin') {
+      (async () => {
+        const response = await UserServices.getDashboardUserData();
+        const res = await UserServices.getDashboardData();
+        const dashboardData = await res.data;
+        const data = await response.data;
+        setUserInfoForAdmin(prev => ({
           ...prev,
-          stateUser:data.state_admin,
-          eSimUser:data.eSimProvider,
-          manufacturer:data.manufacturer_admin,
-          sosAdmin:data.SOS_admin
+          stateUser: data.state_admin,
+          eSimUser: data.eSimProvider,
+          manufacturer: data.manufacturer_admin,
+          sosAdmin: data.SOS_admin
         }))
-        setFitmentInfoForAdmin((prev=>({
+        setFitmentInfoForAdmin((prev => ({
           ...prev,
-          fitted:dashboardData.TotalDevice,
-          toggedDevice:dashboardData.TotalTaggedDevice,
-          onlineDevice:dashboardData.TotalOnlineDevice,
-          offlineDevice:dashboardData.TotalOfflineDevice,
+          fitted: dashboardData.TotalDevice,
+          toggedDevice: dashboardData.TotalTaggedDevice,
+          onlineDevice: dashboardData.TotalOnlineDevice,
+          offlineDevice: dashboardData.TotalOfflineDevice,
         })))
-        setEmergencyInfo(prev=>({
+        setEmergencyInfo(prev => ({
           ...prev,
-          totalAlert:dashboardData.TotalAlerts,
-          thisMonthAlert:dashboardData.TotalAlerts_month,
-          todayAlert:dashboardData.TotalAlerts_today
-        })) 
-        setOverSpeedInfo(prev=>({
-          ...prev,
-          totalAlert:dashboardData.SpeedAlerts,
-          thisMonthAlert:dashboardData.SpeedAlerts_month,
-          todayAlert:dashboardData.SpeedAlerts_today
+          totalAlert: dashboardData.TotalAlerts,
+          thisMonthAlert: dashboardData.TotalAlerts_month,
+          todayAlert: dashboardData.TotalAlerts_today
         }))
-        setStateInfo(prev=>({
+        setOverSpeedInfo(prev => ({
           ...prev,
-          total:dashboardData.Total_States,
-          active:dashboardData.Active_States,
-          inactive:dashboardData.Inactive_States
+          totalAlert: dashboardData.SpeedAlerts,
+          thisMonthAlert: dashboardData.SpeedAlerts_month,
+          todayAlert: dashboardData.SpeedAlerts_today
         }))
-      
+        setStateInfo(prev => ({
+          ...prev,
+          total: dashboardData.Total_States,
+          active: dashboardData.Active_States,
+          inactive: dashboardData.Inactive_States
+        }))
+
       })();
     }
     // for stateAdmin
-    if(userRoles=='stateadmin'){
-      (async()=>{
-        const response=await UserServices.getStateAdminDashboard();
-        const data=await response.data;
-        setUserInfo(prev=>({
+    if (userRoles == 'stateadmin') {
+      (async () => {
+        const response = await UserServices.getStateAdminDashboard();
+        const data = await response.data;
+        setUserInfo(prev => ({
           ...prev,
-          dealer:data.Total_Dealer_available,
-          manufacturer:data.Total_Manufacture_available,
-          dto:data.Total_DTO_available,
-          owner:data.Total_Vehicle_Owner_available
+          dealer: data.Total_Dealer_available,
+          manufacturer: data.Total_Manufacture_available,
+          dto: data.Total_DTO_available,
+          owner: data.Total_Vehicle_Owner_available
         }));
-        setFitmentInfo((prev=>({
+        setFitmentInfo((prev => ({
           ...prev,
-          fitted:data.Total_Fit_Device,
-          onlineDevice:data.Online_Devices,
-          offlineDevice:data.Offline_Devices
+          fitted: data.Total_Fit_Device,
+          onlineDevice: data.Online_Devices,
+          offlineDevice: data.Offline_Devices
         })))
-        setDeviceHealthInfo((prev=>({
+        setDeviceHealthInfo((prev => ({
           ...prev,
-          totalActivatedDevice:data.Total_Device_Activated,
-          todayActive:data.Active_Device_Today,
-          inActiveFor30Days:data.Inactive_Device_30days,
-          inActiveFor7Days:data.Inactive_Device_7days
+          totalActivatedDevice: data.Total_Device_Activated,
+          todayActive: data.Active_Device_Today,
+          inActiveFor30Days: data.Inactive_Device_30days,
+          inActiveFor7Days: data.Inactive_Device_7days
         })))
-        setOverSpeedInfo(prev=>({
+        setOverSpeedInfo(prev => ({
           ...prev,
-          totalAlert:data.Total_overspeeding_Alert,
-          thisMonthAlert:data.Monthly_overspeeding_Alert,
-          todayAlert:data.Today_overspeeding_Alert
+          totalAlert: data.Total_overspeeding_Alert,
+          thisMonthAlert: data.Monthly_overspeeding_Alert,
+          todayAlert: data.Today_overspeeding_Alert
         }))
-        setEmergencyInfo(prev=>({
+        setEmergencyInfo(prev => ({
           ...prev,
-          totalAlert:data.Total_emergency_Alert,
-          thisMonthAlert:data.This_month_emergency_Alert,
-          todayAlert:data.Today_emergency_Alert
+          totalAlert: data.Total_emergency_Alert,
+          thisMonthAlert: data.This_month_emergency_Alert,
+          todayAlert: data.Today_emergency_Alert
         }))
-        setHarshBreakInfo(prev=>({
+        setHarshBreakInfo(prev => ({
           ...prev,
-          totalAlert:data.Total_harsh_brake_Alert,
-          thisMonthAlert:data.This_month_harsh_brake_Alert,
-          todayAlert:data.Today_harsh_brake_Alert
+          totalAlert: data.Total_harsh_brake_Alert,
+          thisMonthAlert: data.This_month_harsh_brake_Alert,
+          todayAlert: data.Today_harsh_brake_Alert
         }))
       })();
     }
-    if(userRoles==='sosadmin'){
+    if (userRoles === 'sosadmin') {
       (async () => {
         const response = await UserServices.getSOSAdminDashboard();
         const data = await response.data;
@@ -346,10 +346,10 @@ const ActiveState = () => {
         }));
         setIncomingCall((prev) => ({
           ...prev,
-          Total_Incoming_Calls:data.Total_Incoming_Calls,
-          Total_Incoming_Calls_thismonth:data.Total_Incoming_Calls_thismonth,
-          Total_Incoming_Calls_thisweek:data.Total_Incoming_Calls_thisweek,
-          Total_Incoming_Calls_today:data.Total_Incoming_Calls_today,
+          Total_Incoming_Calls: data.Total_Incoming_Calls,
+          Total_Incoming_Calls_thismonth: data.Total_Incoming_Calls_thismonth,
+          Total_Incoming_Calls_thisweek: data.Total_Incoming_Calls_thisweek,
+          Total_Incoming_Calls_today: data.Total_Incoming_Calls_today,
         }));
         setCalls((prev) => ({
           ...prev,
@@ -367,10 +367,10 @@ const ActiveState = () => {
         }));
         setCallRejection((prev) => ({
           ...prev,
-          Total_Rejected_Assignemnt:data.Total_Rejected_Assignemnt,
-          Total_Rejected_Assignemnt_thismonth:data.Total_Rejected_Assignemnt_thismonth,
-          Total_Rejected_Assignemnt_thisweek:data.Total_Rejected_Assignemnt_thisweek,
-          Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
+          Total_Rejected_Assignemnt: data.Total_Rejected_Assignemnt,
+          Total_Rejected_Assignemnt_thismonth: data.Total_Rejected_Assignemnt_thismonth,
+          Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
         }));
 
         // Fetch vehicle alert statistics
@@ -384,9 +384,9 @@ const ActiveState = () => {
 
       })();
     }
-    if(userRoles==='teamlead'){
+    if (userRoles === 'teamlead') {
       (async () => {
-        const response=await UserServices.getSOSLeadDashboard();
+        const response = await UserServices.getSOSLeadDashboard();
         const data = await response.data;
         setTeamForLead((prev) => ({
           ...prev,
@@ -395,10 +395,10 @@ const ActiveState = () => {
         }));
         setIncomingCall((prev) => ({
           ...prev,
-          Total_Incoming_Calls:data.Total_Incoming_Calls,
-          Total_Incoming_Calls_thismonth:data.Total_Incoming_Calls_thismonth,
-          Total_Incoming_Calls_thisweek:data.Total_Incoming_Calls_thisweek,
-          Total_Incoming_Calls_today:data.Total_Incoming_Calls_today,
+          Total_Incoming_Calls: data.Total_Incoming_Calls,
+          Total_Incoming_Calls_thismonth: data.Total_Incoming_Calls_thismonth,
+          Total_Incoming_Calls_thisweek: data.Total_Incoming_Calls_thisweek,
+          Total_Incoming_Calls_today: data.Total_Incoming_Calls_today,
         }));
         setCalls((prev) => ({
           ...prev,
@@ -416,17 +416,17 @@ const ActiveState = () => {
         }));
         setCallRejection((prev) => ({
           ...prev,
-          Total_Rejected_Assignemnt:data.Total_Rejected_Assignemnt,
-          Total_Rejected_Assignemnt_thismonth:data.Total_Rejected_Assignemnt_thismonth,
-          Total_Rejected_Assignemnt_thisweek:data.Total_Rejected_Assignemnt_thisweek,
-          Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
+          Total_Rejected_Assignemnt: data.Total_Rejected_Assignemnt,
+          Total_Rejected_Assignemnt_thismonth: data.Total_Rejected_Assignemnt_thismonth,
+          Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
         }));
-        
+
       })()
     }
-    if(userRoles==='desk_ex'){
+    if (userRoles === 'desk_ex') {
       (async () => {
-        const response=await UserServices.getSOSExeDashboard();
+        const response = await UserServices.getSOSExeDashboard();
         const data = await response.data;
         setAssignment((prev) => ({
           ...prev,
@@ -454,10 +454,10 @@ const ActiveState = () => {
         }));
         setRejectedAssignment((prev) => ({
           ...prev,
-          Total_Rejected_Assignemnt_thistmonth:data.Total_Rejected_Assignemnt_thistmonth,
-          Total_Rejected_Assignemnt_thisweek:data.Total_Rejected_Assignemnt_thisweek,
-          Total_Rejected_Assignemnt_today:data.Total_Rejected_Assignemnt_today,
-          Total_Rejected_Assignemnt:data.Total_Rejected_Assignemnt,
+          Total_Rejected_Assignemnt_thistmonth: data.Total_Rejected_Assignemnt_thistmonth,
+          Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
+          Total_Rejected_Assignemnt: data.Total_Rejected_Assignemnt,
         }));
         setAvgAcceptance(data.Average_time_to_Accept);
       })()
@@ -539,9 +539,9 @@ const ActiveState = () => {
         typeof updater === "function"
           ? updater(prev)
           : {
-              ...prev,
-              ...updater
-            };
+            ...prev,
+            ...updater
+          };
 
       return {
         ...nextState,
@@ -778,9 +778,9 @@ const ActiveState = () => {
         canvasItems: prev.canvasItems.map((item) =>
           item.id === itemId
             ? {
-                ...item,
-                ...changes
-              }
+              ...item,
+              ...changes
+            }
             : item
         )
       }));
@@ -1043,7 +1043,7 @@ const ActiveState = () => {
 
   const renderDashboardCharts = (role) => {
     const charts = [];
-    
+
     if (role === 'superadmin') {
       // User Statistics Pie Chart
       const userStatsData = [
@@ -1052,7 +1052,7 @@ const ActiveState = () => {
         { name: 'Manufacturer', value: userInfoForAdmin.manufacturer || 0 },
         { name: 'SOS Admin', value: userInfoForAdmin.sosAdmin || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="user-stats">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1084,7 +1084,7 @@ const ActiveState = () => {
         { name: 'Offline', count: fitmentInfoForAdmin.offlineDevice || 0 },
         { name: 'Tagged', count: fitmentInfoForAdmin.toggedDevice || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="device-status">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1109,7 +1109,7 @@ const ActiveState = () => {
         { name: 'Emergency', total: emergencyInfo.totalAlert || 0, monthly: emergencyInfo.thisMonthAlert || 0, today: emergencyInfo.todayAlert || 0 },
         { name: 'Harsh Brake', total: harshBreakInfo.totalAlert || 0, monthly: harshBreakInfo.thisMonthAlert || 0, today: harshBreakInfo.todayAlert || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="alert-overview">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1136,7 +1136,7 @@ const ActiveState = () => {
         { name: 'Active States', value: stateInfo.active || 0 },
         { name: 'Inactive States', value: stateInfo.inactive || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="state-info">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1162,7 +1162,7 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'stateadmin') {
       // User Distribution Pie Chart
       const userDistData = [
@@ -1171,7 +1171,7 @@ const ActiveState = () => {
         { name: 'DTOs', value: userInfo.dto || 0 },
         { name: 'Vehicle Owners', value: userInfo.owner || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="user-distribution">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1203,7 +1203,7 @@ const ActiveState = () => {
         { name: 'This Month', overspeeding: overSpeedInfo.thisMonthAlert || 0, emergency: emergencyInfo.thisMonthAlert || 0, harsh_brake: harshBreakInfo.thisMonthAlert || 0 },
         { name: 'Today', overspeeding: overSpeedInfo.todayAlert || 0, emergency: emergencyInfo.todayAlert || 0, harsh_brake: harshBreakInfo.todayAlert || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="alert-comparison">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1231,7 +1231,7 @@ const ActiveState = () => {
         { name: 'Inactive 7 Days', value: deviceHealthInfo.inActiveFor7Days || 0 },
         { name: 'Inactive 30 Days', value: deviceHealthInfo.inActiveFor30Days || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="state-device-health">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1263,7 +1263,7 @@ const ActiveState = () => {
         { name: 'Online Devices', value: fitmentInfo.onlineDevice || 0 },
         { name: 'Offline Devices', value: fitmentInfo.offlineDevice || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="state-fitment">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1282,7 +1282,7 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'owner') {
       // Vehicle Overview Pie Chart
       const vehicleData = [
@@ -1290,7 +1290,7 @@ const ActiveState = () => {
         { name: 'Active Devices', value: ownerDashboardInfo.deviceActivated || 0 },
         { name: 'Offline Devices', value: ownerDashboardInfo.offlineDevice || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="vehicle-overview">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1322,7 +1322,7 @@ const ActiveState = () => {
         { name: 'Sudden Turn', incidents: ownerDashboardInfo.suddenTurn || 0 },
         { name: 'Over Speeding', incidents: ownerDashboardInfo.overSpeeding || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="driver-behavior">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1347,7 +1347,7 @@ const ActiveState = () => {
         { name: 'Monthly Alerts', count: ownerDashboardInfo.monthlyAlert || 0 },
         { name: 'Daily Alerts', count: ownerDashboardInfo.dailyAlert || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="owner-alert-trends">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1372,7 +1372,7 @@ const ActiveState = () => {
         { period: '7 Days Offline', count: ownerDashboardInfo.sevenDaysOffline || 0 },
         { period: '30 Days Offline', count: ownerDashboardInfo.thirtyDaysOffline || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="owner-device-timeline">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1397,7 +1397,7 @@ const ActiveState = () => {
         { name: 'Genuine Calls', value: ownerDashboardInfo.genuineCalls || 0 },
         { name: 'Fake Calls', value: ownerDashboardInfo.fakeCalls || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="owner-call-stats">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1423,7 +1423,7 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'esimprovider') {
       // eSIM Status Distribution Pie Chart
       const esimStatusData = [
@@ -1433,7 +1433,7 @@ const ActiveState = () => {
         { name: 'Pending', value: eSIMInfo.pending || 0 },
         { name: 'Invalid', value: eSIMInfo.invalid || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="esim-status">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1466,7 +1466,7 @@ const ActiveState = () => {
         { name: 'Rejected', count: eSIMActivationInfo.activationRejected || 0 },
         { name: 'Expiring Soon (30 Days)', count: eSIMActivationInfo.expiringSoon || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="activation-trends">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1491,7 +1491,7 @@ const ActiveState = () => {
         { period: 'This Week', requests: eSIMActivationInfo.weeklyRequests || 0 },
         { period: 'This Month', requests: eSIMActivationInfo.monthlyRequests || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="request-timeline">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1515,7 +1515,7 @@ const ActiveState = () => {
         { name: 'Total Devices', value: eSIMInfo.totalDevicesWithESim || 0 },
         { name: 'With eSIM Status', value: (eSIMInfo.validated || 0) + (eSIMInfo.active || 0) + (eSIMInfo.expired || 0) + (eSIMInfo.pending || 0) + (eSIMInfo.invalid || 0) }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="device-overview">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1583,7 +1583,7 @@ const ActiveState = () => {
         { name: 'Pending', value: eSIMInfo.pending || 0, color: '#FFBB28' },
         { name: 'Invalid', value: eSIMInfo.invalid || 0, color: '#8884d8' }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="complete-status">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1602,7 +1602,7 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'dealer') {
       // Stock Statistics Pie Chart
       const stockData = [
@@ -1611,7 +1611,7 @@ const ActiveState = () => {
         { name: 'Stocked', value: dealerDeviceInfo.stocked || 0 },
         { name: 'Faulty', value: dealerDeviceInfo.faulty || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="stock-stats">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1643,7 +1643,7 @@ const ActiveState = () => {
         { name: 'Monthly', count: dealerFitmentInfo.monthly || 0 },
         { name: 'Daily', count: dealerFitmentInfo.daily || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="fitment-trends">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1668,7 +1668,7 @@ const ActiveState = () => {
         { name: 'Offline Devices', value: fitmentInfo.offlineDevice || 0 },
         { name: 'Fitted Devices', value: fitmentInfo.fitted || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="device-statistics">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1703,7 +1703,7 @@ const ActiveState = () => {
         { name: 'Pending', count: eSIMInfo.pending || 0 },
         { name: 'Invalid', count: eSIMInfo.invalid || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="esim-statistics">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1729,7 +1729,7 @@ const ActiveState = () => {
         { name: 'Inactive 7 Days', value: deviceHealthInfo.inActiveFor7Days || 0 },
         { name: 'Inactive 30 Days', value: deviceHealthInfo.inActiveFor30Days || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="device-health">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1762,7 +1762,7 @@ const ActiveState = () => {
         { name: '7 Days Offline', count: deviceStatusInfo.sevenDaysOffline || 0 },
         { name: '30 Days Offline', count: deviceStatusInfo.thirtyDaysOffline || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="device-status-timeline">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1781,7 +1781,7 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'dtorto') {
       // DTO Dashboard Overview Pie Chart
       const dtoOverviewData = [
@@ -1790,7 +1790,7 @@ const ActiveState = () => {
         { name: 'Online Devices', value: dtoDashboardInfo.onlineDevice || 0 },
         { name: 'Offline Devices', value: dtoDashboardInfo.offlineDevice || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="dto-overview">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1825,7 +1825,7 @@ const ActiveState = () => {
         { name: 'Monthly Activations', count: dtoDashboardInfo.monthlyActivations || 0 },
         { name: 'Daily Activations', count: dtoDashboardInfo.dailyActivations || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="dto-activity">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1850,7 +1850,7 @@ const ActiveState = () => {
         { name: 'Genuine Calls', value: dtoDashboardInfo.genuineCalls || 0 },
         { name: 'Fake Calls', value: dtoDashboardInfo.fakeCalls || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="dto-calls">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1881,7 +1881,7 @@ const ActiveState = () => {
         { period: '7 Days Offline', count: dtoDashboardInfo.sevenDaysOffline || 0 },
         { period: '30 Days Offline', count: dtoDashboardInfo.thirtyDaysOffline || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="device-timeline">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1900,14 +1900,14 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'devicemanufacture') {
       // Model Information Pie Chart
       const modelData = [
         { name: 'Total Models', value: modelInfo.model || 0 },
         { name: 'M2M Linked', value: modelInfo.m2mLinked || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="model-info">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1940,7 +1940,7 @@ const ActiveState = () => {
         { name: 'Activations', count: miscInfo.activation || 0 },
         { name: 'Expired', count: miscInfo.expired || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="misc-info">
           <Card sx={{ p: 2, height: 400 }}>
@@ -1959,7 +1959,7 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'desk_ex') {
       // Assignment Overview Pie Chart
       const assignmentOverviewData = [
@@ -1968,7 +1968,7 @@ const ActiveState = () => {
         { name: 'False Assignments', value: falseAssignment.Total_False_Assignemnt || 0 },
         { name: 'Rejected Assignments', value: rejectedAssignment.Total_Rejected_Assignemnt || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="assignment-overview">
           <Card sx={{ p: 2, height: 400 }}>
@@ -2000,7 +2000,7 @@ const ActiveState = () => {
         { period: 'This Week', assignments: assignment.Total_Assignemnt_thisweek || 0, closed: closedAssignment.Total_Closed_Assignemnt_thisweek || 0, false: falseAssignment.Total_False_Assignemnt_thisweek || 0, rejected: rejectedAssignment.Total_Rejected_Assignemnt_thisweek || 0 },
         { period: 'This Month', assignments: assignment.Total_Assignemnt_thistmonth || 0, closed: closedAssignment.Total_Closed_Assignemnt_thistmonth || 0, false: falseAssignment.Total_False_Assignemnt_thistmonth || 0, rejected: rejectedAssignment.Total_Rejected_Assignemnt_thistmonth || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="assignment-trends">
           <Card sx={{ p: 2, height: 400 }}>
@@ -2022,7 +2022,7 @@ const ActiveState = () => {
         </Grid>
       );
     }
-    
+
     if (role === 'sosadmin' || role === 'teamlead') {
       // Call Statistics Pie Chart
       const callStatsData = [
@@ -2030,7 +2030,7 @@ const ActiveState = () => {
         { name: 'Closed Calls', value: calls.Total_Closed_Calls || 0 },
         { name: 'Pending Calls', value: calls.Total_Pending_Calls || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="call-statistics">
           <Card sx={{ p: 2, height: 400 }}>
@@ -2063,7 +2063,7 @@ const ActiveState = () => {
         { name: 'This Week', incoming: incomingCall.Total_Incoming_Calls_thisweek || 0, fake: fakeCall.Total_Fake_Calls_thisweek || 0, rejected: callRejection.Total_Rejected_Assignemnt_thisweek || 0 },
         { name: 'Today', incoming: incomingCall.Total_Incoming_Calls_today || 0, fake: fakeCall.Total_Fake_Calls_today || 0, rejected: callRejection.Total_Rejected_Assignemnt_today || 0 }
       ];
-      
+
       charts.push(
         <Grid item xs={12} md={6} key="call-trends">
           <Card sx={{ p: 2, height: 400 }}>
@@ -2092,7 +2092,7 @@ const ActiveState = () => {
           { name: 'Online', value: vehicleAlertStats.vehicles.online_vehicles || 0 },
           { name: 'Offline', value: vehicleAlertStats.vehicles.offline_vehicles || 0 }
         ];
-        
+
         charts.push(
           <Grid item xs={12} md={6} key="vehicle-status">
             <Card sx={{ p: 2, height: 400 }}>
@@ -2125,7 +2125,7 @@ const ActiveState = () => {
           { period: 'Monthly', calls: vehicleAlertStats.sos_calls.monthly || 0 },
           { period: 'Yearly', calls: vehicleAlertStats.sos_calls.yearly || 0 }
         ];
-        
+
         charts.push(
           <Grid item xs={12} md={6} key="sos-calls-timeline">
             <Card sx={{ p: 2, height: 400 }}>
@@ -2149,7 +2149,7 @@ const ActiveState = () => {
           { name: 'Closed', value: vehicleAlertStats.sos_calls.by_status.closed || 0 },
           { name: 'Pending', value: vehicleAlertStats.sos_calls.by_status.pending || 0 }
         ];
-        
+
         charts.push(
           <Grid item xs={12} md={6} key="sos-call-status">
             <Card sx={{ p: 2, height: 400 }}>
@@ -2180,7 +2180,7 @@ const ActiveState = () => {
           type,
           count: count || 0
         }));
-        
+
         charts.push(
           <Grid item xs={12} md={6} key="alert-types">
             <Card sx={{ p: 2, height: 400 }}>
@@ -2205,7 +2205,7 @@ const ActiveState = () => {
           { name: 'Closed', count: vehicleAlertStats.broadcasts.total_closed || 0 },
           { name: 'Pending', count: vehicleAlertStats.broadcasts.pending || 0 }
         ];
-        
+
         charts.push(
           <Grid item xs={12} md={6} key="broadcast-stats">
             <Card sx={{ p: 2, height: 400 }}>
@@ -2231,7 +2231,7 @@ const ActiveState = () => {
           { period: 'Monthly', alerts: vehicleAlertStats.alerts.monthly || 0 },
           { period: 'Yearly', alerts: vehicleAlertStats.alerts.yearly || 0 }
         ];
-        
+
         charts.push(
           <Grid item xs={12} md={6} key="alert-timeline">
             <Card sx={{ p: 2, height: 400 }}>
@@ -2251,7 +2251,7 @@ const ActiveState = () => {
         );
       }
     }
-    
+
     return charts;
   };
 
@@ -2280,7 +2280,7 @@ const ActiveState = () => {
     const webRestrictedRoles = ["police_ex", "ambulance_ex"];
     if (webRestrictedRoles.includes(role)) {
       return (
-        <Card 
+        <Card
           sx={{
             maxWidth: 600,
             margin: '40px auto',
@@ -2292,8 +2292,8 @@ const ActiveState = () => {
           }}
         >
           <CardContent>
-            <Typography 
-              variant="h4" 
+            <Typography
+              variant="h4"
               sx={{
                 color: '#e74c3c',
                 fontWeight: 600,
@@ -2302,8 +2302,8 @@ const ActiveState = () => {
             >
               {t('dashboard.accessRestricted')}
             </Typography>
-            
-            <Typography 
+
+            <Typography
               variant="body1"
               sx={{
                 color: '#666',
@@ -2346,7 +2346,7 @@ const ActiveState = () => {
           {/* Dashboard Charts Grid */}
           <Grid container spacing={3}>
             {renderDashboardCharts(role)}
-            
+
             {renderDashboardCharts(role).length === 0 && (
               <Grid item xs={12}>
                 <Card sx={{ p: 4, textAlign: 'center' }}>
@@ -2364,451 +2364,451 @@ const ActiveState = () => {
         </TabPanel>
 
         {isSuperAdmin && (
-        <TabPanel value={activeTab} index={2}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Card sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'center' } }}>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Custom Report Builder
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Drag items from the palette to craft bespoke dashboards with metrics, charts, and formulas.
-                    </Typography>
+          <TabPanel value={activeTab} index={2}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Card sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'center' } }}>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="h5" gutterBottom>
+                        Custom Report Builder
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Drag items from the palette to craft bespoke dashboards with metrics, charts, and formulas.
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <TextField
+                        label="Report Title"
+                        value={reportBuilderState.reportTitle}
+                        onChange={handleReportTitleChange}
+                        size="small"
+                      />
+                      <Button variant="outlined" onClick={handleTogglePreview} startIcon={reportBuilderState.previewMode ? <VisibilityOff /> : <Visibility />}>
+                        {reportBuilderState.previewMode ? 'Exit Preview' : 'Preview'}
+                      </Button>
+                      <Button variant="outlined" onClick={handleExportJson} startIcon={<ContentCopy />}>
+                        Export JSON
+                      </Button>
+                      <Button variant="outlined" color="error" onClick={handleClearCanvas} startIcon={<DeleteIcon />}>
+                        Clear Canvas
+                      </Button>
+                    </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    <TextField
-                      label="Report Title"
-                      value={reportBuilderState.reportTitle}
-                      onChange={handleReportTitleChange}
-                      size="small"
-                    />
-                    <Button variant="outlined" onClick={handleTogglePreview} startIcon={reportBuilderState.previewMode ? <VisibilityOff /> : <Visibility />}>
-                      {reportBuilderState.previewMode ? 'Exit Preview' : 'Preview'}
-                    </Button>
-                    <Button variant="outlined" onClick={handleExportJson} startIcon={<ContentCopy />}>
-                      Export JSON
-                    </Button>
-                    <Button variant="outlined" color="error" onClick={handleClearCanvas} startIcon={<DeleteIcon />}>
-                      Clear Canvas
-                    </Button>
-                  </Box>
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={3}>
-                    <Card variant="outlined" sx={{ height: '100%' }}>
-                      <CardContent>
-                        <Typography variant="subtitle1" gutterBottom>
-                          Palette
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                          Drag into the canvas or click to add ready-made widgets.
-                        </Typography>
-                        <Divider sx={{ mb: 2 }} />
-                        <Grid container spacing={2}>
-                          {paletteItems.map((item) => (
-                            <Grid item xs={12} key={item.type}>
-                              <Paper
-                                elevation={reportBuilderState.previewMode ? 0 : 1}
-                                sx={{
-                                  p: 2,
-                                  borderRadius: 2,
-                                  border: '1px dashed',
-                                  borderColor: 'grey.300',
-                                  backgroundColor: reportBuilderState.previewMode ? 'grey.100' : 'background.paper',
-                                  opacity: reportBuilderState.previewMode ? 0.6 : 1,
-                                  cursor: reportBuilderState.previewMode ? 'not-allowed' : 'grab'
-                                }}
-                                draggable={!reportBuilderState.previewMode}
-                                onDragStart={(event) => !reportBuilderState.previewMode && handlePaletteDragStart(event, item.type)}
-                                onClick={() => !reportBuilderState.previewMode && handleAddItem(item.type)}
-                              >
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                  {item.title}
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                  {item.description}
-                                </Typography>
-                              </Paper>
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </CardContent>
-                    </Card>
-                    <Card variant="outlined" sx={{ mt: 3 }}>
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                          <Typography variant="subtitle1">Available Fields</Typography>
-                          <MuiTooltip title="Click a field to copy its token">
-                            <IconButton size="small">
-                              <ContentCopy fontSize="small" />
-                            </IconButton>
-                          </MuiTooltip>
-                        </Box>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Search"
-                          value={fieldSearchTerm}
-                          onChange={handleFieldSearchChange}
-                          sx={{ mb: 2 }}
-                        />
-                        <Box sx={{ maxHeight: 320, overflowY: 'auto', pr: 1 }}>
-                          {filteredFieldEntries.length === 0 ? (
-                            <Typography variant="body2" color="textSecondary">
-                              No matching fields.
-                            </Typography>
-                          ) : (
-                            filteredFieldEntries.map(([path, value]) => (
-                              <Paper
-                                key={path}
-                                variant="outlined"
-                                sx={{
-                                  p: 1.5,
-                                  mb: 1,
-                                  cursor: 'pointer',
-                                  '&:hover': {
-                                    backgroundColor: 'grey.100'
-                                  }
-                                }}
-                                onClick={() => handleCopyFieldToken(path)}
-                              >
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                  {path}
-                                </Typography>
-                                <Typography variant="caption" color="textSecondary">
-                                  {formatNumber(value)}
-                                </Typography>
-                              </Paper>
-                            ))
-                          )}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-
-                  <Grid item xs={12} md={canvasGridColumns}>
-                    <Box
-                      onDragOver={handleCanvasDragOver}
-                      onDrop={handleCanvasDrop}
-                      sx={{
-                        minHeight: 400,
-                        p: 2,
-                        border: '2px dashed',
-                        borderColor: reportBuilderState.canvasItems.length ? 'primary.light' : 'grey.400',
-                        borderRadius: 2,
-                        backgroundColor: 'grey.50',
-                        position: 'relative'
-                      }}
-                    >
-                      {reportBuilderState.canvasItems.length === 0 ? (
-                        <Box sx={{ textAlign: 'center', py: 8 }}>
-                          <Typography variant="h6" color="textSecondary">
-                            {reportBuilderState.previewMode ? 'Preview mode active.' : 'Drag items here to start building your report.'}
+                  <Divider sx={{ my: 2 }} />
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={3}>
+                      <Card variant="outlined" sx={{ height: '100%' }}>
+                        <CardContent>
+                          <Typography variant="subtitle1" gutterBottom>
+                            Palette
                           </Typography>
-                        </Box>
-                      ) : (
-                        <Grid container spacing={2}>
-                          {reportBuilderState.canvasItems.map((item) => {
-                            const isSelected = reportBuilderState.selectedItemId === item.id;
-                            return (
-                              <Grid item xs={12} key={item.id}>
+                          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                            Drag into the canvas or click to add ready-made widgets.
+                          </Typography>
+                          <Divider sx={{ mb: 2 }} />
+                          <Grid container spacing={2}>
+                            {paletteItems.map((item) => (
+                              <Grid item xs={12} key={item.type}>
                                 <Paper
-                                  elevation={isSelected ? 4 : 1}
+                                  elevation={reportBuilderState.previewMode ? 0 : 1}
                                   sx={{
                                     p: 2,
                                     borderRadius: 2,
-                                    position: 'relative',
-                                    border: isSelected ? '2px solid' : '1px solid',
-                                    borderColor: isSelected ? 'primary.main' : 'grey.200',
-                                    cursor: reportBuilderState.previewMode ? 'default' : 'pointer'
+                                    border: '1px dashed',
+                                    borderColor: 'grey.300',
+                                    backgroundColor: reportBuilderState.previewMode ? 'grey.100' : 'background.paper',
+                                    opacity: reportBuilderState.previewMode ? 0.6 : 1,
+                                    cursor: reportBuilderState.previewMode ? 'not-allowed' : 'grab'
                                   }}
-                                  onClick={() => !reportBuilderState.previewMode && handleSelectCanvasItem(item.id)}
+                                  draggable={!reportBuilderState.previewMode}
+                                  onDragStart={(event) => !reportBuilderState.previewMode && handlePaletteDragStart(event, item.type)}
+                                  onClick={() => !reportBuilderState.previewMode && handleAddItem(item.type)}
                                 >
-                                  {!reportBuilderState.previewMode && (
-                                    <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
-                                      <MuiTooltip title="Move Up">
-                                        <span>
-                                          <IconButton
-                                            size="small"
-                                            disabled={reportBuilderState.previewMode}
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleMoveItem(item.id, -1);
-                                            }}
-                                          >
-                                            <KeyboardArrowUp fontSize="small" />
-                                          </IconButton>
-                                        </span>
-                                      </MuiTooltip>
-                                      <MuiTooltip title="Move Down">
-                                        <span>
-                                          <IconButton
-                                            size="small"
-                                            disabled={reportBuilderState.previewMode}
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleMoveItem(item.id, 1);
-                                            }}
-                                          >
-                                            <KeyboardArrowDown fontSize="small" />
-                                          </IconButton>
-                                        </span>
-                                      </MuiTooltip>
-                                      <MuiTooltip title="Duplicate">
-                                        <span>
-                                          <IconButton
-                                            size="small"
-                                            disabled={reportBuilderState.previewMode}
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleDuplicateItem(item.id);
-                                            }}
-                                          >
-                                            <ContentCopy fontSize="small" />
-                                          </IconButton>
-                                        </span>
-                                      </MuiTooltip>
-                                      <MuiTooltip title="Delete">
-                                        <span>
-                                          <IconButton
-                                            size="small"
-                                            color="error"
-                                            disabled={reportBuilderState.previewMode}
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleRemoveItem(item.id);
-                                            }}
-                                          >
-                                            <DeleteIcon fontSize="small" />
-                                          </IconButton>
-                                        </span>
-                                      </MuiTooltip>
-                                    </Box>
-                                  )}
-                                  <Typography variant="overline" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
-                                    {itemLabels[item.type] || 'Unknown'}
+                                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                    {item.title}
                                   </Typography>
-                                  {renderCanvasItemContent(item)}
+                                  <Typography variant="body2" color="textSecondary">
+                                    {item.description}
+                                  </Typography>
                                 </Paper>
                               </Grid>
-                            );
-                          })}
-                        </Grid>
-                      )}
-                    </Box>
-                  </Grid>
-
-                  {showConfigurationPanel && (
-                    <Grid item xs={12} md={3}>
-                      <Card variant="outlined">
+                            ))}
+                          </Grid>
+                        </CardContent>
+                      </Card>
+                      <Card variant="outlined" sx={{ mt: 3 }}>
                         <CardContent>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Configuration
-                          </Typography>
-                          {selectedReportItem ? (
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                              {selectedReportItem.type === 'text' && (
-                                <>
-                                  <TextField
-                                    fullWidth
-                                    label="Text"
-                                    multiline
-                                    minRows={3}
-                                    maxRows={6}
-                                    value={selectedReportItem.text || ''}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { text: event.target.value })}
-                                    placeholder="Enter your text here"
-                                  />
-                                  <TextField
-                                    fullWidth
-                                    label="Variant"
-                                    select
-                                    value={selectedReportItem.variant || 'h5'}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { variant: event.target.value })}
-                                  >
-                                    {['h3', 'h4', 'h5', 'h6', 'subtitle1', 'subtitle2', 'body1', 'body2'].map((variant) => (
-                                      <MenuItem key={variant} value={variant}>
-                                        {variant}
-                                      </MenuItem>
-                                    ))}
-                                  </TextField>
-                                  <TextField
-                                    fullWidth
-                                    label="Align"
-                                    select
-                                    value={selectedReportItem.align || 'left'}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { align: event.target.value })}
-                                  >
-                                    {['left', 'center', 'right', 'justify'].map((align) => (
-                                      <MenuItem key={align} value={align}>
-                                        {align}
-                                      </MenuItem>
-                                    ))}
-                                  </TextField>
-                                </>
-                              )}
-
-                              {selectedReportItem.type === 'metric' && (
-                                <>
-                                  <TextField
-                                    fullWidth
-                                    label="Label"
-                                    value={selectedReportItem.label || ''}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { label: event.target.value })}
-                                    placeholder="e.g., Total Vehicles"
-                                  />
-                                  <TextField
-                                    fullWidth
-                                    label="Data Field"
-                                    select
-                                    value={selectedReportItem.dataField || ''}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { dataField: event.target.value })}
-                                  >
-                                    <MenuItem value="">
-                                      <em>Select field</em>
-                                    </MenuItem>
-                                    {Object.keys(numericFields).map((path) => (
-                                      <MenuItem key={path} value={path}>
-                                        {path}
-                                      </MenuItem>
-                                    ))}
-                                  </TextField>
-                                  <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <TextField
-                                      fullWidth
-                                      label="Prefix"
-                                      value={selectedReportItem.prefix || ''}
-                                      onChange={(event) => handleItemChange(selectedReportItem.id, { prefix: event.target.value })}
-                                      placeholder="e.g., $"
-                                    />
-                                    <TextField
-                                      fullWidth
-                                      label="Suffix"
-                                      value={selectedReportItem.suffix || ''}
-                                      onChange={(event) => handleItemChange(selectedReportItem.id, { suffix: event.target.value })}
-                                      placeholder="e.g., %"
-                                    />
-                                  </Box>
-                                  <TextField
-                                    fullWidth
-                                    label="Precision (Decimal Places)"
-                                    type="number"
-                                    inputProps={{ min: 0, max: 10 }}
-                                    value={selectedReportItem.precision ?? 0}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
-                                  />
-                                  <TextField
-                                    fullWidth
-                                    label="Color"
-                                    select
-                                    value={selectedReportItem.color || 'primary'}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { color: event.target.value })}
-                                  >
-                                    <MenuItem value="primary">Primary (Blue)</MenuItem>
-                                    <MenuItem value="secondary">Secondary (Purple)</MenuItem>
-                                    <MenuItem value="success">Success (Green)</MenuItem>
-                                    <MenuItem value="error">Error (Red)</MenuItem>
-                                    <MenuItem value="warning">Warning (Orange)</MenuItem>
-                                    <MenuItem value="info">Info (Cyan)</MenuItem>
-                                  </TextField>
-                                </>
-                              )}
-
-                              {selectedReportItem.type === 'chart' && (
-                                <>
-                                  <TextField
-                                    fullWidth
-                                    label="Title"
-                                    value={selectedReportItem.title || ''}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
-                                    placeholder="e.g., Sales Performance"
-                                  />
-                                  <TextField
-                                    fullWidth
-                                    label="Chart Type"
-                                    select
-                                    value={selectedReportItem.chartType || 'bar'}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { chartType: event.target.value })}
-                                  >
-                                    <MenuItem value="bar">Bar Chart</MenuItem>
-                                    <MenuItem value="line">Line Chart</MenuItem>
-                                    <MenuItem value="pie">Pie Chart</MenuItem>
-                                  </TextField>
-                                  <TextField
-                                    fullWidth
-                                    label="Data Fields (Select multiple)"
-                                    select
-                                    SelectProps={{ multiple: true }}
-                                    value={selectedReportItem.dataFields || []}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { dataFields: event.target.value })}
-                                  >
-                                    {Object.keys(numericFields).map((path) => (
-                                      <MenuItem key={path} value={path}>
-                                        {path}
-                                      </MenuItem>
-                                    ))}
-                                  </TextField>
-                                  <TextField
-                                    fullWidth
-                                    label="Show Legend"
-                                    select
-                                    value={selectedReportItem.showLegend ? 'true' : 'false'}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { showLegend: event.target.value === 'true' })}
-                                  >
-                                    <MenuItem value="true">Yes</MenuItem>
-                                    <MenuItem value="false">No</MenuItem>
-                                  </TextField>
-                                </>
-                              )}
-
-                              {selectedReportItem.type === 'formula' && (
-                                <>
-                                  <TextField
-                                    fullWidth
-                                    label="Title"
-                                    value={selectedReportItem.title || ''}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
-                                    placeholder="e.g., Growth Rate"
-                                  />
-                                  <TextField
-                                    fullWidth
-                                    label="Expression"
-                                    multiline
-                                    minRows={3}
-                                    maxRows={6}
-                                    value={selectedReportItem.expression || ''}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { expression: event.target.value })}
-                                    helperText="Use {{metric.path}} placeholders and math operations. Example: {{vehicles.total}} / {{devices.online}} * 100"
-                                    placeholder="e.g., {{metric1}} + {{metric2}} * 2"
-                                  />
-                                  <TextField
-                                    fullWidth
-                                    label="Precision (Decimal Places)"
-                                    type="number"
-                                    inputProps={{ min: 0, max: 10 }}
-                                    value={selectedReportItem.precision ?? 2}
-                                    onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
-                                  />
-                                </>
-                              )}
-                            </Box>
-                          ) : (
-                            <Typography variant="body2" color="textSecondary">
-                              Select an element to configure its appearance and data bindings.
-                            </Typography>
-                          )}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle1">Available Fields</Typography>
+                            <MuiTooltip title="Click a field to copy its token">
+                              <IconButton size="small">
+                                <ContentCopy fontSize="small" />
+                              </IconButton>
+                            </MuiTooltip>
+                          </Box>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Search"
+                            value={fieldSearchTerm}
+                            onChange={handleFieldSearchChange}
+                            sx={{ mb: 2 }}
+                          />
+                          <Box sx={{ maxHeight: 320, overflowY: 'auto', pr: 1 }}>
+                            {filteredFieldEntries.length === 0 ? (
+                              <Typography variant="body2" color="textSecondary">
+                                No matching fields.
+                              </Typography>
+                            ) : (
+                              filteredFieldEntries.map(([path, value]) => (
+                                <Paper
+                                  key={path}
+                                  variant="outlined"
+                                  sx={{
+                                    p: 1.5,
+                                    mb: 1,
+                                    cursor: 'pointer',
+                                    '&:hover': {
+                                      backgroundColor: 'grey.100'
+                                    }
+                                  }}
+                                  onClick={() => handleCopyFieldToken(path)}
+                                >
+                                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    {path}
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary">
+                                    {formatNumber(value)}
+                                  </Typography>
+                                </Paper>
+                              ))
+                            )}
+                          </Box>
                         </CardContent>
                       </Card>
                     </Grid>
-                  )}
-                </Grid>
-              </Card>
+
+                    <Grid item xs={12} md={canvasGridColumns}>
+                      <Box
+                        onDragOver={handleCanvasDragOver}
+                        onDrop={handleCanvasDrop}
+                        sx={{
+                          minHeight: 400,
+                          p: 2,
+                          border: '2px dashed',
+                          borderColor: reportBuilderState.canvasItems.length ? 'primary.light' : 'grey.400',
+                          borderRadius: 2,
+                          backgroundColor: 'grey.50',
+                          position: 'relative'
+                        }}
+                      >
+                        {reportBuilderState.canvasItems.length === 0 ? (
+                          <Box sx={{ textAlign: 'center', py: 8 }}>
+                            <Typography variant="h6" color="textSecondary">
+                              {reportBuilderState.previewMode ? 'Preview mode active.' : 'Drag items here to start building your report.'}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Grid container spacing={2}>
+                            {reportBuilderState.canvasItems.map((item) => {
+                              const isSelected = reportBuilderState.selectedItemId === item.id;
+                              return (
+                                <Grid item xs={12} key={item.id}>
+                                  <Paper
+                                    elevation={isSelected ? 4 : 1}
+                                    sx={{
+                                      p: 2,
+                                      borderRadius: 2,
+                                      position: 'relative',
+                                      border: isSelected ? '2px solid' : '1px solid',
+                                      borderColor: isSelected ? 'primary.main' : 'grey.200',
+                                      cursor: reportBuilderState.previewMode ? 'default' : 'pointer'
+                                    }}
+                                    onClick={() => !reportBuilderState.previewMode && handleSelectCanvasItem(item.id)}
+                                  >
+                                    {!reportBuilderState.previewMode && (
+                                      <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
+                                        <MuiTooltip title="Move Up">
+                                          <span>
+                                            <IconButton
+                                              size="small"
+                                              disabled={reportBuilderState.previewMode}
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleMoveItem(item.id, -1);
+                                              }}
+                                            >
+                                              <KeyboardArrowUp fontSize="small" />
+                                            </IconButton>
+                                          </span>
+                                        </MuiTooltip>
+                                        <MuiTooltip title="Move Down">
+                                          <span>
+                                            <IconButton
+                                              size="small"
+                                              disabled={reportBuilderState.previewMode}
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleMoveItem(item.id, 1);
+                                              }}
+                                            >
+                                              <KeyboardArrowDown fontSize="small" />
+                                            </IconButton>
+                                          </span>
+                                        </MuiTooltip>
+                                        <MuiTooltip title="Duplicate">
+                                          <span>
+                                            <IconButton
+                                              size="small"
+                                              disabled={reportBuilderState.previewMode}
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleDuplicateItem(item.id);
+                                              }}
+                                            >
+                                              <ContentCopy fontSize="small" />
+                                            </IconButton>
+                                          </span>
+                                        </MuiTooltip>
+                                        <MuiTooltip title="Delete">
+                                          <span>
+                                            <IconButton
+                                              size="small"
+                                              color="error"
+                                              disabled={reportBuilderState.previewMode}
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleRemoveItem(item.id);
+                                              }}
+                                            >
+                                              <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                          </span>
+                                        </MuiTooltip>
+                                      </Box>
+                                    )}
+                                    <Typography variant="overline" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
+                                      {itemLabels[item.type] || 'Unknown'}
+                                    </Typography>
+                                    {renderCanvasItemContent(item)}
+                                  </Paper>
+                                </Grid>
+                              );
+                            })}
+                          </Grid>
+                        )}
+                      </Box>
+                    </Grid>
+
+                    {showConfigurationPanel && (
+                      <Grid item xs={12} md={3}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="subtitle1" gutterBottom>
+                              Configuration
+                            </Typography>
+                            {selectedReportItem ? (
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                {selectedReportItem.type === 'text' && (
+                                  <>
+                                    <TextField
+                                      fullWidth
+                                      label="Text"
+                                      multiline
+                                      minRows={3}
+                                      maxRows={6}
+                                      value={selectedReportItem.text || ''}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { text: event.target.value })}
+                                      placeholder="Enter your text here"
+                                    />
+                                    <TextField
+                                      fullWidth
+                                      label="Variant"
+                                      select
+                                      value={selectedReportItem.variant || 'h5'}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { variant: event.target.value })}
+                                    >
+                                      {['h3', 'h4', 'h5', 'h6', 'subtitle1', 'subtitle2', 'body1', 'body2'].map((variant) => (
+                                        <MenuItem key={variant} value={variant}>
+                                          {variant}
+                                        </MenuItem>
+                                      ))}
+                                    </TextField>
+                                    <TextField
+                                      fullWidth
+                                      label="Align"
+                                      select
+                                      value={selectedReportItem.align || 'left'}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { align: event.target.value })}
+                                    >
+                                      {['left', 'center', 'right', 'justify'].map((align) => (
+                                        <MenuItem key={align} value={align}>
+                                          {align}
+                                        </MenuItem>
+                                      ))}
+                                    </TextField>
+                                  </>
+                                )}
+
+                                {selectedReportItem.type === 'metric' && (
+                                  <>
+                                    <TextField
+                                      fullWidth
+                                      label="Label"
+                                      value={selectedReportItem.label || ''}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { label: event.target.value })}
+                                      placeholder="e.g., Total Vehicles"
+                                    />
+                                    <TextField
+                                      fullWidth
+                                      label="Data Field"
+                                      select
+                                      value={selectedReportItem.dataField || ''}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { dataField: event.target.value })}
+                                    >
+                                      <MenuItem value="">
+                                        <em>Select field</em>
+                                      </MenuItem>
+                                      {Object.keys(numericFields).map((path) => (
+                                        <MenuItem key={path} value={path}>
+                                          {path}
+                                        </MenuItem>
+                                      ))}
+                                    </TextField>
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                      <TextField
+                                        fullWidth
+                                        label="Prefix"
+                                        value={selectedReportItem.prefix || ''}
+                                        onChange={(event) => handleItemChange(selectedReportItem.id, { prefix: event.target.value })}
+                                        placeholder="e.g., $"
+                                      />
+                                      <TextField
+                                        fullWidth
+                                        label="Suffix"
+                                        value={selectedReportItem.suffix || ''}
+                                        onChange={(event) => handleItemChange(selectedReportItem.id, { suffix: event.target.value })}
+                                        placeholder="e.g., %"
+                                      />
+                                    </Box>
+                                    <TextField
+                                      fullWidth
+                                      label="Precision (Decimal Places)"
+                                      type="number"
+                                      inputProps={{ min: 0, max: 10 }}
+                                      value={selectedReportItem.precision ?? 0}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
+                                    />
+                                    <TextField
+                                      fullWidth
+                                      label="Color"
+                                      select
+                                      value={selectedReportItem.color || 'primary'}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { color: event.target.value })}
+                                    >
+                                      <MenuItem value="primary">Primary (Blue)</MenuItem>
+                                      <MenuItem value="secondary">Secondary (Purple)</MenuItem>
+                                      <MenuItem value="success">Success (Green)</MenuItem>
+                                      <MenuItem value="error">Error (Red)</MenuItem>
+                                      <MenuItem value="warning">Warning (Orange)</MenuItem>
+                                      <MenuItem value="info">Info (Cyan)</MenuItem>
+                                    </TextField>
+                                  </>
+                                )}
+
+                                {selectedReportItem.type === 'chart' && (
+                                  <>
+                                    <TextField
+                                      fullWidth
+                                      label="Title"
+                                      value={selectedReportItem.title || ''}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
+                                      placeholder="e.g., Sales Performance"
+                                    />
+                                    <TextField
+                                      fullWidth
+                                      label="Chart Type"
+                                      select
+                                      value={selectedReportItem.chartType || 'bar'}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { chartType: event.target.value })}
+                                    >
+                                      <MenuItem value="bar">Bar Chart</MenuItem>
+                                      <MenuItem value="line">Line Chart</MenuItem>
+                                      <MenuItem value="pie">Pie Chart</MenuItem>
+                                    </TextField>
+                                    <TextField
+                                      fullWidth
+                                      label="Data Fields (Select multiple)"
+                                      select
+                                      SelectProps={{ multiple: true }}
+                                      value={selectedReportItem.dataFields || []}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { dataFields: event.target.value })}
+                                    >
+                                      {Object.keys(numericFields).map((path) => (
+                                        <MenuItem key={path} value={path}>
+                                          {path}
+                                        </MenuItem>
+                                      ))}
+                                    </TextField>
+                                    <TextField
+                                      fullWidth
+                                      label="Show Legend"
+                                      select
+                                      value={selectedReportItem.showLegend ? 'true' : 'false'}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { showLegend: event.target.value === 'true' })}
+                                    >
+                                      <MenuItem value="true">Yes</MenuItem>
+                                      <MenuItem value="false">No</MenuItem>
+                                    </TextField>
+                                  </>
+                                )}
+
+                                {selectedReportItem.type === 'formula' && (
+                                  <>
+                                    <TextField
+                                      fullWidth
+                                      label="Title"
+                                      value={selectedReportItem.title || ''}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { title: event.target.value })}
+                                      placeholder="e.g., Growth Rate"
+                                    />
+                                    <TextField
+                                      fullWidth
+                                      label="Expression"
+                                      multiline
+                                      minRows={3}
+                                      maxRows={6}
+                                      value={selectedReportItem.expression || ''}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { expression: event.target.value })}
+                                      helperText="Use {{metric.path}} placeholders and math operations. Example: {{vehicles.total}} / {{devices.online}} * 100"
+                                      placeholder="e.g., {{metric1}} + {{metric2}} * 2"
+                                    />
+                                    <TextField
+                                      fullWidth
+                                      label="Precision (Decimal Places)"
+                                      type="number"
+                                      inputProps={{ min: 0, max: 10 }}
+                                      value={selectedReportItem.precision ?? 2}
+                                      onChange={(event) => handleItemChange(selectedReportItem.id, { precision: Number(event.target.value) })}
+                                    />
+                                  </>
+                                )}
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" color="textSecondary">
+                                Select an element to configure its appearance and data bindings.
+                              </Typography>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Card>
+              </Grid>
             </Grid>
-          </Grid>
-        </TabPanel>
+          </TabPanel>
         )}
       </Box>
     );
@@ -2940,7 +2940,7 @@ const ActiveState = () => {
               />
             </Grid>
           </Grid>
-        );      
+        );
       case "dealer":
         return (
           <Grid container spacing={2} marginBottom={mar}>
@@ -3096,7 +3096,7 @@ const ActiveState = () => {
                   activated: dtoDashboardInfo.activated,
                   dailyActivations: dtoDashboardInfo.dailyActivations,
                   sevenDaysOffline: dtoDashboardInfo.sevenDaysOffline,
-                  thirtyDaysOffline:dtoDashboardInfo.thirtyDaysOffline
+                  thirtyDaysOffline: dtoDashboardInfo.thirtyDaysOffline
                 }}
                 iconImage={Car}
                 heading={t('dashboard.headings.healthStatistics')}
@@ -3242,7 +3242,7 @@ const ActiveState = () => {
                 label="Company,State,Status"
                 cardValue={{
                   company: "Gobind PVT LTD",
-                  state: "Assam", 
+                  state: "Assam",
                   status: "Created"
                 }}
                 iconImage={User}
@@ -3268,136 +3268,136 @@ const ActiveState = () => {
       case "teamlead":
         return (
           <Grid container spacing={2} marginBottom={mar}>
-          <Grid item xs={12} sm={12} md={6} lg={4}>
-          {role === "sosadmin" ? (
-            <Widget
-              cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-              label={t('dashboard.labels.usersTeams')}
-              cardValue={team}
-              iconImage={UserImage}
-              heading={t('dashboard.headings.usersTeams')}
-            />
-          ):(
-            <Widget
-              cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-              label={t('dashboard.labels.users')}
-              cardValue={teamForLead}
-              iconImage={UserImage}
-              heading={t('dashboard.headings.users')}
-            />
-          )}
-          </Grid>
-          <Grid item xs={12} sm={12} md={6} lg={4}>
-            <Widget
-              cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-              label={t('dashboard.labels.calls')}
-              cardValue={calls}
-              iconImage={OnCall}
-              heading={t('dashboard.headings.calls')}
-            />
-          </Grid>
-          <Grid item xs={12} sm={12} md={6} lg={4}>
-            <Widget
-             cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-              label={t('dashboard.labels.fakeCalls')}
-              cardValue={fakeCall}
-              iconImage={FakeCall}
-              heading={t('dashboard.headings.fakeCalls')}
-            />
-          </Grid>
-          <Grid item xs={12} sm={12} md={6} lg={4}>
-            <Widget
-              cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-              label={t('dashboard.labels.incomingCalls')}
-              cardValue={incomingCall}
-              iconImage={IncomingC}
-              heading={t('dashboard.headings.incomingCalls')}
-            />
-          </Grid>
-          <Grid item xs={12} sm={12} md={6} lg={4}>
-            <Widget
-              cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-              label={t('dashboard.labels.rejectedCalls')}
-              cardValue={callRejection}
-              iconImage={Rejection}
-              heading={t('dashboard.headings.rejectedCalls')}
-            />
-          </Grid>
-          {role === "sosadmin" && (
-            <>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              {role === "sosadmin" ? (
                 <Widget
-                  cardColor="linear-gradient(to right, #00C49F 0%, #82ca9d 100%)"
-                  label="Total Tagged,Online,Offline"
-                  cardValue={{
-                    total: vehicleAlertStats.vehicles.total_tagged_vehicles,
-                    online: vehicleAlertStats.vehicles.online_vehicles,
-                    offline: vehicleAlertStats.vehicles.offline_vehicles
-                  }}
-                  iconImage={Vehicle}
-                  heading="Vehicle Statistics"
+                  cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  label={t('dashboard.labels.usersTeams')}
+                  cardValue={team}
+                  iconImage={UserImage}
+                  heading={t('dashboard.headings.usersTeams')}
                 />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
+              ) : (
                 <Widget
-                  cardColor="linear-gradient(to right, #FF8042 0%, #ffcc66 100%)"
-                  label="Total,Daily,Weekly,Monthly"
-                  cardValue={{
-                    total: vehicleAlertStats.sos_calls.total,
-                    daily: vehicleAlertStats.sos_calls.daily,
-                    weekly: vehicleAlertStats.sos_calls.weekly,
-                    monthly: vehicleAlertStats.sos_calls.monthly
-                  }}
-                  iconImage={Bell}
-                  heading="SOS Calls Statistics"
+                  cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  label={t('dashboard.labels.users')}
+                  cardValue={teamForLead}
+                  iconImage={UserImage}
+                  heading={t('dashboard.headings.users')}
                 />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
-                  label="Closed,Pending"
-                  cardValue={{
-                    closed: vehicleAlertStats.sos_calls.by_status.closed,
-                    pending: vehicleAlertStats.sos_calls.by_status.pending
-                  }}
-                  iconImage={OnCall}
-                  heading="SOS Call Status"
-                />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  cardColor="linear-gradient(to right, #FFBB28 0%, #ffc658 100%)"
-                  label="Total,Closed,Pending"
-                  cardValue={{
-                    total: vehicleAlertStats.broadcasts.total,
-                    closed: vehicleAlertStats.broadcasts.total_closed,
-                    pending: vehicleAlertStats.broadcasts.pending
-                  }}
-                  iconImage={Alert}
-                  heading="Broadcast Statistics"
-                />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  cardColor="linear-gradient(to right, #ff7300 0%, #ffcc66 100%)"
-                  label="Total,Daily,Weekly,Monthly"
-                  cardValue={{
-                    total: vehicleAlertStats.alerts.total,
-                    daily: vehicleAlertStats.alerts.daily,
-                    weekly: vehicleAlertStats.alerts.weekly,
-                    monthly: vehicleAlertStats.alerts.monthly
-                  }}
-                  iconImage={Overspeed}
-                  heading="Alert Statistics"
-                />
-              </Grid>
-            </>
-          )}
+              )}
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                label={t('dashboard.labels.calls')}
+                cardValue={calls}
+                iconImage={OnCall}
+                heading={t('dashboard.headings.calls')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                label={t('dashboard.labels.fakeCalls')}
+                cardValue={fakeCall}
+                iconImage={FakeCall}
+                heading={t('dashboard.headings.fakeCalls')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                label={t('dashboard.labels.incomingCalls')}
+                cardValue={incomingCall}
+                iconImage={IncomingC}
+                heading={t('dashboard.headings.incomingCalls')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label={t('dashboard.labels.rejectedCalls')}
+                cardValue={callRejection}
+                iconImage={Rejection}
+                heading={t('dashboard.headings.rejectedCalls')}
+              />
+            </Grid>
+            {role === "sosadmin" && (
+              <>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Widget
+                    cardColor="linear-gradient(to right, #00C49F 0%, #82ca9d 100%)"
+                    label="Total Tagged,Online,Offline"
+                    cardValue={{
+                      total: vehicleAlertStats.vehicles.total_tagged_vehicles,
+                      online: vehicleAlertStats.vehicles.online_vehicles,
+                      offline: vehicleAlertStats.vehicles.offline_vehicles
+                    }}
+                    iconImage={Vehicle}
+                    heading="Vehicle Statistics"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Widget
+                    cardColor="linear-gradient(to right, #FF8042 0%, #ffcc66 100%)"
+                    label="Total,Daily,Weekly,Monthly"
+                    cardValue={{
+                      total: vehicleAlertStats.sos_calls.total,
+                      daily: vehicleAlertStats.sos_calls.daily,
+                      weekly: vehicleAlertStats.sos_calls.weekly,
+                      monthly: vehicleAlertStats.sos_calls.monthly
+                    }}
+                    iconImage={Bell}
+                    heading="SOS Calls Statistics"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Widget
+                    cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
+                    label="Closed,Pending"
+                    cardValue={{
+                      closed: vehicleAlertStats.sos_calls.by_status.closed,
+                      pending: vehicleAlertStats.sos_calls.by_status.pending
+                    }}
+                    iconImage={OnCall}
+                    heading="SOS Call Status"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Widget
+                    cardColor="linear-gradient(to right, #FFBB28 0%, #ffc658 100%)"
+                    label="Total,Closed,Pending"
+                    cardValue={{
+                      total: vehicleAlertStats.broadcasts.total,
+                      closed: vehicleAlertStats.broadcasts.total_closed,
+                      pending: vehicleAlertStats.broadcasts.pending
+                    }}
+                    iconImage={Alert}
+                    heading="Broadcast Statistics"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
+                  <Widget
+                    cardColor="linear-gradient(to right, #ff7300 0%, #ffcc66 100%)"
+                    label="Total,Daily,Weekly,Monthly"
+                    cardValue={{
+                      total: vehicleAlertStats.alerts.total,
+                      daily: vehicleAlertStats.alerts.daily,
+                      weekly: vehicleAlertStats.alerts.weekly,
+                      monthly: vehicleAlertStats.alerts.monthly
+                    }}
+                    iconImage={Overspeed}
+                    heading="Alert Statistics"
+                  />
+                </Grid>
+              </>
+            )}
           </Grid>
         );
-        case "desk_ex":
-          return (
-            <Grid container spacing={2} marginBottom={mar}>
+      case "desk_ex":
+        return (
+          <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={3}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
@@ -3418,7 +3418,7 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={3}>
               <Widget
-               cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
                 label={t('dashboard.labels.closedAssignment')}
                 cardValue={closedAssignment}
                 iconImage={DoneAssignment}
@@ -3434,8 +3434,8 @@ const ActiveState = () => {
                 heading={t('dashboard.headings.rejected')}
               />
             </Grid>
-            </Grid>
-          );
+          </Grid>
+        );
       default:
         return (
           <Box
@@ -3470,18 +3470,18 @@ const ActiveState = () => {
 
   return (
     <>
-    {userRoles==='teamlead' || userRoles==='desk_ex' ? (
+      {userRoles === 'teamlead' || userRoles === 'desk_ex' ? (
         <SOSDashboard role={userRoles} calls={calls} deskCalls={{
-          Total_Assignemnt_today:assignment.Total_Assignemnt_today,
-Total_Assignemnt:assignment.Total_Assignemnt,
-averageTime:avgAcceptance,
-Total_Assignemnt_thisweek:assignment.Total_Assignemnt_thisweek
-        }}/>
-    ):(
-    <DashboardView role={userRoles} />
-  )}
+          Total_Assignemnt_today: assignment.Total_Assignemnt_today,
+          Total_Assignemnt: assignment.Total_Assignemnt,
+          averageTime: avgAcceptance,
+          Total_Assignemnt_thisweek: assignment.Total_Assignemnt_thisweek
+        }} />
+      ) : (
+        <DashboardView role={userRoles} />
+      )}
     </>
-    
+
   );
 };
 

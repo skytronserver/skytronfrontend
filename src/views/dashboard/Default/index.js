@@ -8,13 +8,15 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated");
+    sessionStorage.getItem("isAuthenticated") ||
+    localStorage.getItem("isAuthenticated");
   const userRole = getRole();
 
   if (isAuthenticated) {
-    createAxiosInstance(sessionStorage.getItem("oAuthToken"));
+    const token = sessionStorage.getItem("oAuthToken") || localStorage.getItem("oAuthToken");
+    createAxiosInstance(token);
   }
-  
+
   return (
     <>
       <ActiveState />

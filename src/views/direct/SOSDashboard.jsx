@@ -26,6 +26,10 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const previousCallsRef = useRef([]);
   const [load, setLoad] = useState(false);
   const [newPendingCall, setNewPendingCall] = useState(null);
+  const newPendingCallRef = useRef(null);
+  useEffect(() => {
+    newPendingCallRef.current = newPendingCall;
+  }, [newPendingCall]);
   const [showDetails, setShowDetails] = useState(false)
   const [sosLocations, setSosLocations] = useState([]);
   const [policePois, setPolicePois] = useState([]);
@@ -73,9 +77,37 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     const fetchCallList = async () => {
       try {
         const response = await HomePageService.getPendingSOSCall();
-        const calls = response?.data?.calls || [];
-        dispatch(getAllSOSCall(calls));
-        checkForNewPendingCall(calls); // Check for new "pending" assignments
+        const apiCalls = response?.data?.calls || [];
+        let persistentSeenTable = JSON.parse(sessionStorage.getItem('dashboard_seen_calls') || '{}');
+
+        apiCalls.forEach((c) => {
+          if (!persistentSeenTable[c.id]) {
+            persistentSeenTable[c.id] = 1; // 1st poll
+          } else {
+            persistentSeenTable[c.id] += 1; // increment poll count
+          }
+
+          if (role === 'desk_ex' && persistentSeenTable[c.id] === 4) {
+            HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
+          }
+        });
+
+        sessionStorage.setItem('dashboard_seen_calls', JSON.stringify(persistentSeenTable));
+
+        // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
+        let processableCalls = apiCalls;
+        if (role === 'teamlead') {
+          processableCalls = apiCalls.filter(
+            (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
+          );
+        } else if (role === 'desk_ex') {
+          processableCalls = apiCalls.filter(
+            (c) => persistentSeenTable[c.id] <= 3
+          );
+        }
+
+        dispatch(getAllSOSCall(processableCalls));
+        checkForNewPendingCall(processableCalls); // Check for new "pending" assignments
       } catch (error) {
         console.error('Error fetching call list:', error);
         dispatch(getAllSOSCall([]));
@@ -98,28 +130,28 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
 
         const filteredPolice = Array.isArray(data)
           ? data.filter((poi) => {
-              const type = poi?.use_type || "";
-              const normalized = String(type).toLowerCase();
-              return (
-                normalized === "policestation" ||
-                normalized === "police_station" ||
-                normalized === "police" ||
-                normalized === "police station"
-              );
-            })
+            const type = poi?.use_type || "";
+            const normalized = String(type).toLowerCase();
+            return (
+              normalized === "policestation" ||
+              normalized === "police_station" ||
+              normalized === "police" ||
+              normalized === "police station"
+            );
+          })
           : [];
 
         const filteredHospitals = Array.isArray(data)
           ? data.filter((poi) => {
-              const type = poi?.use_type || "";
-              const normalized = String(type).trim().toLowerCase();
-              return (
-                normalized === "hospital" ||
-                normalized === "hospitals" ||
-                normalized === "hospital" ||
-                normalized === "hospital_name"
-              );
-            })
+            const type = poi?.use_type || "";
+            const normalized = String(type).trim().toLowerCase();
+            return (
+              normalized === "hospital" ||
+              normalized === "hospitals" ||
+              normalized === "hospital" ||
+              normalized === "hospital_name"
+            );
+          })
           : [];
 
         setPolicePois(filteredPolice);
@@ -265,14 +297,21 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   };
 
   const checkForNewPendingCall = (calls) => {
-    const newPendingCall = calls.find(
+    if (newPendingCallRef.current && !calls.some(c => c.id === newPendingCallRef.current.id)) {
+      setNewPendingCall(null);
+      audio.pause();
+      audio.currentTime = 0;
+      clearTimeout(buzzerTimeout);
+    }
+
+    const newCall = calls.find(
       (call) =>
         call.call?.status === 'pending' &&
         call?.status === 'pending' &&
         !previousCallsRef.current.some((prevCall) => prevCall.id === call.id)
     );
-    if (newPendingCall) {
-      setNewPendingCall(newPendingCall);
+    if (newCall) {
+      setNewPendingCall(newCall);
       playBuzzer(); // Play the buzzer sound
     }
     previousCallsRef.current = calls;
@@ -280,14 +319,26 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
 
   let buzzerTimeout;
   const playBuzzer = () => {
-    audio.currentTime = 0;
-    audio.play();
-    clearTimeout(buzzerTimeout);
-    buzzerTimeout = setTimeout(() => {
-      audio.pause();
+    try {
       audio.currentTime = 0;
-    }, 10000); // 10 seconds
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Browser blocked audio autoplay:", error);
+          // Browsers require the user to interact with the tab (click) before playing audio.
+        });
+      }
+      clearTimeout(buzzerTimeout);
+      buzzerTimeout = setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+      }, 10000); // 10 seconds
+    } catch (e) {
+      console.error(e);
+    }
   };
+
+  // Removed old timeout loop
 
   const handleAccept = async (id, show) => {
     const response = await HomePageService.acceptEMCall({ assignment_id: id, accept: true });
