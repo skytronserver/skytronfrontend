@@ -896,6 +896,9 @@ const MapComponent = ({
     const trackingDetailCacheRef = useRef({});
     const trackingDetailInFlightRef = useRef({});
     const trackingDetailLastFetchAtRef = useRef({});
+        // NEW: Ref to store position history for moving average
+    const positionHistoryRef = useRef({}); // Format: { [imei]: [{lat, lng}, ...] }
+
     const [map, setMap] = useState(null);
     const [vectorLayer, setVectorLayer] = useState(null);
     const [dynamicOverlay, setDynamicOverlay] = useState(null);
@@ -905,6 +908,7 @@ const MapComponent = ({
     const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
     const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
     const [pois, setPois] = useState([]);
+    
 
     const [soiLayerVisibility, setSoiLayerVisibility] = useState({
         states: false,
@@ -1019,6 +1023,49 @@ const MapComponent = ({
     const [drawingPoints, setDrawingPoints] = useState([]);
     const tempPolyRef = useRef(null);
     const tempMarkersRef = useRef([]);
+
+     /**
+     * Logic to calculate averaged location
+     */
+    const getAveragedLocation = (entry) => {
+        const imei = entry.imei || entry.imei_no || "unknown";
+        const rawLat = Number(entry.latitude);
+        const rawLng = Number(entry.longitude);
+
+        if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
+            return { lat: rawLat, lng: rawLng };
+        }
+
+        if (!positionHistoryRef.current[imei]) {
+            positionHistoryRef.current[imei] = [];
+        }
+
+        const history = positionHistoryRef.current[imei];
+        history.push({ lat: rawLat, lng: rawLng });
+
+        if (history.length > 5) {
+            history.shift();
+        }
+
+        const sum = history.reduce((acc, curr) => ({
+            lat: acc.lat + curr.lat,
+            lng: acc.lng + curr.lng
+        }), { lat: 0, lng: 0 });
+
+        const avgLat = sum.lat / history.length;
+        const avgLng = sum.lng / history.length;
+
+        console.log(`[Verify Average] Vehicle: ${entry.vehicle_registration_number || imei}`);
+        console.table({
+            Raw: { lat: rawLat, lng: rawLng },
+            Averaged: { lat: avgLat, lng: avgLng },
+            PointsUsed: history.length
+        });
+
+        return { lat: avgLat, lng: avgLng };
+    };
+
+
 
     const fetchVehicleTrackingDetail = async (entry) => {
         const imei =
@@ -3109,8 +3156,9 @@ display: none !important;
             allMarkers = [...gpsData, ...policeData];
             if (allMarkers.length > 0) {
                 allMarkers.forEach((entry) => {
-                    const longitude = Number(entry.longitude);
-                    const latitude = Number(entry.latitude);
+                    const averagedPos = getAveragedLocation(entry);
+                    const longitude = Number(averagedPos.lng);
+                    const latitude = Number(averagedPos.lat);
 
                     if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
                         return;
@@ -3781,8 +3829,9 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
             const features = allMarkers
                 .map((entry) => {
-                    const longitude = Number(entry.longitude);
-                    const latitude = Number(entry.latitude);
+                    const averagedPos = getAveragedLocation(entry);
+                    const longitude = averagedPos.lng;
+                    const latitude = averagedPos.lat;
 
                     if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
                         return null;
