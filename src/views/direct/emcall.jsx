@@ -1084,7 +1084,7 @@ const EMCall = () => {
     if (!newIncomingCall) return;
 
     // Open a blank window synchronously to bypass browser popup blockers
-    const newWindow = window.open('about:blank', '_blank', 'noopener,noreferrer');
+    const newWindow = window.open('about:blank', '_blank');
 
     try {
       const response = await HomePageService.acceptEMCall({ assignment_id: newIncomingCall.id, accept: true });
@@ -1098,7 +1098,7 @@ const EMCall = () => {
 
       // Now redirect the opened window to the final URL
       if (newWindow) {
-        newWindow.location.href = '/emcall';
+        newWindow.location.href = window.location.origin + '/emcall';
       }
     } catch (error) {
       console.error('Error accepting new incoming call:', error);
