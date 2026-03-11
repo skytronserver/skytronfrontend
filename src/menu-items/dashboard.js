@@ -59,15 +59,7 @@ const dashboard = {
     //   breadcrumbs: false,
     //   roles: ['owner']
     // },
-    {
-      id: 'desk-executive-dashboard',
-      title: 'Desk Executive Dashboard',
-      type: 'item',
-      url: '/dashboard/desk-executive',
-      icon: icons.IconPhone,
-      breadcrumbs: false,
-      roles: ['desk_ex']
-    },
+    // },
     // {
     //   id: 'team-lead-dashboard',
     //   title: 'Team Lead Dashboard',

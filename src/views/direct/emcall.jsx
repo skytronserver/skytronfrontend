@@ -544,6 +544,10 @@ const EMCall = () => {
   const [tabValue, setTabValue] = useState(0);
 
   const handleTabChange = (event, newValue) => {
+    if (newValue === 4) {
+      setChatOpen(true);
+      return;
+    }
     setTabValue(newValue);
   };
 
@@ -1395,15 +1399,18 @@ const EMCall = () => {
                 <Tabs
                   value={tabValue}
                   onChange={handleTabChange}
-                  variant="fullWidth"
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  allowScrollButtonsMobile
                   indicatorColor="primary"
                   textColor="primary"
                   sx={{ minHeight: 48 }}
                 >
-                  <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                  <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                  <Tab label="Police & Health" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
-                  <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1 }} />
+                  <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Police & Health" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Chat" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
                 </Tabs>
               </Box>
 
@@ -1714,23 +1721,7 @@ const EMCall = () => {
 
         </Grid>
 
-        {/* Floating Chat Icon */}
-        <Fab
-          color="primary"
-          aria-label="open chat"
-          onClick={handleChatOpen}
-          sx={{
-            position: 'fixed',
-            bottom: 80, // slightly above existing bottom-right icon
-            right: 24, // align horizontally with existing FAB
-            zIndex: 1300,
-            width: 48,
-            height: 48,
-            minHeight: 48,
-          }}
-        >
-          <ChatIcon sx={{ fontSize: 22 }} />
-        </Fab>
+
 
         {/* Chat Dialog */}
         <Dialog
@@ -1738,6 +1729,7 @@ const EMCall = () => {
           onClose={handleChatClose}
           maxWidth="md"
           fullWidth
+          sx={{ zIndex: 99999 }}
         >
           <DialogTitle>
             Assignment Chat
