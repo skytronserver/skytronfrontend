@@ -57,9 +57,14 @@ export const dashboardInitialState = {
   },
   miscInfo: {
     dealer: 0,
-    allocated: 0,
     activation: 0,
     expired: 0,
+  },
+  manufacturerStockInfo: {
+    stockCreated: 0,
+    stockAllocated: 0,
+    returned: 0,
+    faulty: 0,
   },
   modelInfo: {
     model: 0,

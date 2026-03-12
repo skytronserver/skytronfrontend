@@ -77,6 +77,24 @@ const ActiveState = () => {
   const [miscInfo, setMiscInfo] = useState(dashboardInitialState.miscInfo);
   const [modelInfo, setModelInfo] = useState(dashboardInitialState.modelInfo);
   const [ownerDashboardInfo, setOwnerDashboardInfo] = useState(dashboardInitialState.userDashboardInfo);
+  const [manufacturerDashboardInfo, setManufacturerDashboardInfo] = useState({
+    Total_Model: 0,
+    Total_esim_linked: 0,
+    Total_Dealer: 0,
+    Total_Stock_Created: 0,
+    Total_Stock_Allocated: 0,
+    Total_Activation: 0,
+    Total_Return: 0,
+    Total_Faulty: 0,
+    Total_esim_activation_request: 0,
+    Total_1year_renewal_request: 0,
+    Total_2year_renewal_request: 0,
+    Total_Online_Device: 0,
+    Total_Offline_Device_today: 0,
+    Total_Offline_Device_7day: 0,
+    Total_Offline_Device_30day: 0,
+    Total_expired_device: 0
+  });
   const [fitmentInfoForAdmin, setFitmentInfoForAdmin] = useState(dashboardInitialState.adminFitmentInfo)
   const [userInfoForAdmin, setUserInfoForAdmin] = useState(dashboardInitialState.userInfoForAdmin)
   const [stateInfo, setStateInfo] = useState(dashboardInitialState.stateInfo);
@@ -95,6 +113,7 @@ const ActiveState = () => {
   const [vehicleAlertStats, setVehicleAlertStats] = useState(dashboardInitialState.vehicleAlertStatistics);
   const [reportBuilderState, setReportBuilderState] = useState(dashboardInitialState.reportBuilder);
   const [fieldSearchTerm, setFieldSearchTerm] = useState("");
+  const [providerInfo, setProviderInfo] = useState({ company: '', state: '', status: '', createdDate: '', expiryDate: '' });
 
   // Chart-related state
   const [activeTab, setActiveTab] = useState(0);
@@ -179,6 +198,13 @@ const ActiveState = () => {
           weeklyRequests: data.This_Week_Activation_Requests || 0,
           monthlyRequests: data.This_Month_Activation_Requests || 0,
         }));
+        setProviderInfo({
+          company: data.Provider_Company_Name || '',
+          state: data.Provider_State || '',
+          status: data.Provider_Status || '',
+          createdDate: data.Provider_Created_Date || '',
+          expiryDate: data.Provider_Expiry_Date || '',
+        });
       })();
     }
     //for manufacturer
@@ -186,6 +212,26 @@ const ActiveState = () => {
       (async () => {
         const response = await UserServices.getManufacturerDashboard();
         const data = await response.data;
+        setManufacturerDashboardInfo({
+          Total_Model: data.Total_Model || 0,
+          Total_esim_linked: data.Total_esim_linked || 0,
+          Total_Dealer: data.Total_Dealer || 0,
+          Total_Stock_Created: data.Total_Stock_Created || 0,
+          Total_Stock_Allocated: data.Total_Stock_Allocated || 0,
+          Total_Activation: data.Total_Activation || 0,
+          Total_Return: data.Total_Return || 0,
+          Total_Faulty: data.Total_Faulty || 0,
+          Total_esim_activation_request: data.Total_esim_activation_request || 0,
+          Total_1year_renewal_request: data.Total_1year_renewal_request || 0,
+          Total_2year_renewal_request: data.Total_2year_renewal_request || 0,
+          Total_Online_Device: data.Total_Online_Device || 0,
+          Total_Offline_Device_today: data.Total_Offline_Device_today || 0,
+          Total_Offline_Device_7day: data.Total_Offline_Device_7day || 0,
+          Total_Offline_Device_30day: data.Total_Offline_Device_30day || 0,
+          Total_expired_device: data.Total_expired_device || 0
+        });
+        
+        // Also update standard state objects in case they are referenced by generic charts
         setESIMInfo(prev => ({
           ...prev,
           totalActivation: data.Total_esim_activation_request,
@@ -202,15 +248,32 @@ const ActiveState = () => {
         setMiscInfo(prev => ({
           ...prev,
           dealer: data.Total_Dealer,
-          allocated: data.Total_Stock_Allocated,
           activation: data.Total_Activation,
           expired: data.Total_expired_device,
         }));
+        setManufacturerDashboardInfo({
+          Total_Model: data.Total_Model || 0,
+          Total_esim_linked: data.Total_esim_linked || 0,
+          Total_Dealer: data.Total_Dealer || 0,
+          Total_Stock_Created: data.Total_Stock_Created || 0,
+          Total_Stock_Allocated: data.Total_Stock_Allocated || 0,
+          Total_Activation: data.Total_Activation || 0,
+          Total_Return: data.Total_Return || 0,
+          Total_Faulty: data.Total_Faulty || 0,
+          Total_esim_activation_request: data.Total_esim_activation_request || 0,
+          Total_1year_renewal_request: data.Total_1year_renewal_request || 0,
+          Total_2year_renewal_request: data.Total_2year_renewal_request || 0,
+          Total_Online_Device: data.Total_Online_Device || 0,
+          Total_Offline_Device_today: data.Total_Offline_Device_today || 0,
+          Total_Offline_Device_7day: data.Total_Offline_Device_7day || 0,
+          Total_Offline_Device_30day: data.Total_Offline_Device_30day || 0,
+          Total_expired_device: data.Total_expired_device || 0
+        });
         setModelInfo(prev => ({
           ...prev,
           model: data.Total_Model,
-          m2mLinked: data.Total_M2M_linked
-        }))
+          m2mLinked: data.Total_esim_linked
+        }));
       })();
     }
     //for Dealer
@@ -1548,19 +1611,19 @@ const ActiveState = () => {
             <Typography variant="h6" gutterBottom>Provider Information</Typography>
             <Box sx={{ mt: 3 }}>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Company:</strong> Gobind PVT LTD
+                <strong>Company:</strong> {providerInfo.company || '-'}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>State:</strong> Assam
+                <strong>State:</strong> {providerInfo.state || '-'}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Status:</strong> Created
+                <strong>Status:</strong> {providerInfo.status || '-'}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Created Date:</strong> 2025-07-12
+                <strong>Created Date:</strong> {providerInfo.createdDate || '-'}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Expiry Date:</strong> 2025-07-12
+                <strong>Expiry Date:</strong> {providerInfo.expiryDate || '-'}
               </Typography>
               <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                 <Typography variant="h6" color="primary">
@@ -3138,8 +3201,13 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label={t('dashboard.labels.stockStatistics')}
-                cardValue={miscInfo}
+                label={t('dashboard.labels.manufacturerStockStatistics')}
+                cardValue={{
+                  created: manufacturerDashboardInfo.Total_Stock_Created,
+                  allocated: manufacturerDashboardInfo.Total_Stock_Allocated,
+                  returned: manufacturerDashboardInfo.Total_Return,
+                  faulty: manufacturerDashboardInfo.Total_Faulty
+                }}
                 iconImage={Stock}
                 heading={t('dashboard.headings.stockStatistics')}
               />
@@ -3148,8 +3216,11 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label={t('dashboard.labels.modelStatistics')}
-                cardValue={modelInfo}
+                label={t('dashboard.labels.manufacturerModelStatistics')}
+                cardValue={{
+                  model: manufacturerDashboardInfo.Total_Model,
+                  esimLinked: manufacturerDashboardInfo.Total_esim_linked
+                }}
                 iconImage={Model}
                 heading={t('dashboard.headings.modelStatistics')}
               />
@@ -3157,10 +3228,15 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label={t('dashboard.labels.healthStatistics')}
-                cardValue={deviceStatusInfo}
+                label={t('dashboard.labels.deviceStatistics')}
+                cardValue={{
+                  online: manufacturerDashboardInfo.Total_Online_Device,
+                  todayOffline: manufacturerDashboardInfo.Total_Offline_Device_today,
+                  sevenDaysOffline: manufacturerDashboardInfo.Total_Offline_Device_7day,
+                  thirtyDaysOffline: manufacturerDashboardInfo.Total_Offline_Device_30day
+                }}
                 iconImage={Car}
-                heading={t('dashboard.headings.healthStatistics')}
+                heading={t('dashboard.headings.deviceStatistics')}
               />
             </Grid>
 
@@ -3168,9 +3244,27 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label={t('dashboard.labels.eSIMStatistics')}
-                cardValue={eSIMInfo}
+                cardValue={{
+                  totalActivation: manufacturerDashboardInfo.Total_esim_activation_request,
+                  oneYearRenewal: manufacturerDashboardInfo.Total_1year_renewal_request,
+                  twoYearRenewal: manufacturerDashboardInfo.Total_2year_renewal_request
+                }}
                 iconImage={Sim}
                 heading={t('dashboard.headings.eSIMStatistics')}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
+                label={t('dashboard.labels.manufacturerMiscStatistics')}
+                cardValue={{
+                  dealer: manufacturerDashboardInfo.Total_Dealer,
+                  activation: manufacturerDashboardInfo.Total_Activation,
+                  expired: manufacturerDashboardInfo.Total_expired_device
+                }}
+                iconImage={User}
+                heading={t('dashboard.headings.userInfo')}
               />
             </Grid>
           </Grid>
@@ -3241,9 +3335,9 @@ const ActiveState = () => {
                 cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
                 label="Company,State,Status"
                 cardValue={{
-                  company: "Gobind PVT LTD",
-                  state: "Assam",
-                  status: "Created"
+                  company: providerInfo.company || '-',
+                  state: providerInfo.state || '-',
+                  status: providerInfo.status || '-'
                 }}
                 iconImage={User}
                 heading="Provider Information"
@@ -3255,8 +3349,8 @@ const ActiveState = () => {
                 cardColor="linear-gradient(to left, #ff7300 0%, #ffcc66 100%)"
                 label="Created Date,Expiry Date"
                 cardValue={{
-                  created: "2025-07-12",
-                  expiry: "2025-07-12"
+                  created: providerInfo.createdDate || '-',
+                  expiry: providerInfo.expiryDate || '-'
                 }}
                 iconImage={Alert}
                 heading="Provider Dates"
