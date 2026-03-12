@@ -15,12 +15,15 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
 import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
+import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
+
 
 import {
   PageWrapper,
   useVehicleData
 } from './SuperAdminCommon';
 
+  
 const COLORS = {
   surface: '#f8fafc',
   border: alpha('#0f172a', 0.08),
@@ -173,7 +176,6 @@ const buildDummyVehicles = (seed = []) => {
 
   return vehicles;
 };
-
 const DistrictVehicleMap = ({ vehicles }) => {
   const gpsData = useMemo(() => {
     const nowIso = new Date().toISOString();
@@ -197,8 +199,19 @@ const DistrictVehicleMap = ({ vehicles }) => {
       };
     });
   }, [vehicles]);
+const [zoom, setZoom] = useState(10);
 
-  return (
+  return (<>
+      <div style={{ display: zoom >= 11 ? "block" : "none" }}>
+  <RoadsMapComponent onZoomChange={setZoom} />
+</div>
+
+<div style={{ display: zoom < 11 ? "block" : "none" }}>
+  <BhuvanMapComponent onZoomChange={setZoom} />
+</div>
+
+
+    {/* <RoadsMapComponent/>
     <BhuvanMapComponent
       gpsData={gpsData}
       width="100%"
@@ -209,7 +222,8 @@ const DistrictVehicleMap = ({ vehicles }) => {
       showDrawControls={false}
       showSoiLayerPanel={false}
       showLogos
-    />
+    /> */}
+    </>
   );
 };
 

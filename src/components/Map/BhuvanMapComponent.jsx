@@ -45,6 +45,7 @@ import HomePageService from "../../services/HomePage";
  */
 const BhuvanMapComponent = ({
     gpsData = [],
+    onZoomChange ,
     policeData = [],
     pois = [],
     lookupPois,
@@ -76,6 +77,7 @@ const BhuvanMapComponent = ({
     const [drawVectorLayer, setDrawVectorLayer] = useState(null);
     const [drawInteraction, setDrawInteraction] = useState(null);
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
+   
 
     useEffect(() => {
         const container = overlayElement.current;
@@ -107,6 +109,9 @@ const BhuvanMapComponent = ({
 
         container.addEventListener("click", handleClick);
         return () => container.removeEventListener("click", handleClick);
+
+
+        
     }, []);
 
     // Map type state: 'normal' | 'satellite' | 'soi'
@@ -1022,6 +1027,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
     // Initialize Normal Map (Bhuvan Layers)
     useEffect(() => {
+       
         if (mapType !== "normal" || !normalMapContainerRef.current) return;
 
         // Create the three WMS layers
@@ -1061,6 +1067,26 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             pixelRatio: 1,
         });
 
+
+        /* ⭐ ADD THIS BLOCK HERE */
+const view = initialMap.getView();
+
+let lastZoom = Math.round(view.getZoom());
+
+view.on("change:resolution", () => {
+
+    const currentZoom = view.getZoom();
+
+    if (currentZoom !== lastZoom) {
+        lastZoom = currentZoom;
+
+        if (onZoomChange) {
+            onZoomChange(currentZoom);
+        }
+    }
+
+});
+        
         // Initialize vector layer for markers
         const initialVectorLayer = new VectorLayer({
             source: new VectorSource(),
@@ -1158,6 +1184,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             }
         };
     }, [mapType]);
+   
 
     // Initialize SOI Map (Bhuvan base + skytron overlays)
     useEffect(() => {
@@ -2235,6 +2262,8 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                             }, 0);
                         }
                     })();
+ 
+
 
                     // Zoom to street level when clicked (zoom level 18)
                     map.getView().animate({
@@ -2242,6 +2271,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                         zoom: 18,
                         duration: 500, // Animate the zoom for 500ms
                     });
+                   
                 });
             };
 
@@ -2261,7 +2291,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         dynamicOverlay,
         markerLabelMode,
         autoFit,
-        onMarkerClick,
+        onMarkerClick
     ]);
 
     // Render POIs
