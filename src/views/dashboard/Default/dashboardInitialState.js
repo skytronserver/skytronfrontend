@@ -20,6 +20,12 @@ export const dashboardInitialState = {
     returned: 0,
     stocked: 0,
     faulty: 0,
+    freeDevice: 0,
+  },
+  dealerESIMInfo: {
+    totalActivation: 0,
+    oneYearRenewal: 0,
+    twoYearRenewal: 0,
   },
   eSIMInfo: {
     totalDevicesWithESim: 0,
@@ -75,6 +81,10 @@ export const dashboardInitialState = {
     vehicles: 0,
     onlineDevice: 0,
     offlineDevice: 0,
+    movingVehicles: 0,
+    stoppedVehicles: 0,
+    idleVehicles: 0,
+    travelDistanceKm: 0,
     sevenDaysOffline: 0,
     thirtyDaysOffline: 0,
     alert: 0,
@@ -114,6 +124,16 @@ export const dashboardInitialState = {
     total: 0,
     active: 0,
     inactive: 0,
+  },
+  districtInfo: {
+    total: 0,
+    active: 0,
+    inactive: 0,
+  },
+  stockInfo: {
+    total: 0,
+    unassigned: 0,
+    waiting: 0,
   },
   adminFitmentInfo: {
     fitted: 0,

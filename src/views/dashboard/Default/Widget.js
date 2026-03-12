@@ -12,7 +12,7 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   position: "relative",
   borderRadius: "8px",
   width: "100%",
-  height: "150px",
+  minHeight: "150px",
 
   "& > div": {
     position: "relative",

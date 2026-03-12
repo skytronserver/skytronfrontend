@@ -66,6 +66,7 @@ const ActiveState = () => {
   const [fitmentInfo, setFitmentInfo] = useState(dashboardInitialState.fitmentInfo);
   const [dealerFitmentInfo, setDealerFitmentInfo] = useState(dashboardInitialState.dealerFitmentInfo);
   const [dealerDeviceInfo, setDealerDeviceInfo] = useState(dashboardInitialState.dealerDeviceInfo);
+  const [dealerESIMInfo, setDealerESIMInfo] = useState(dashboardInitialState.dealerESIMInfo);
   const [eSIMInfo, setESIMInfo] = useState(dashboardInitialState.eSIMInfo);
   const [eSIMActivationInfo, setESIMActivationInfo] = useState(dashboardInitialState.eSIMActivationInfo);
   const [deviceStatusInfo, setDeviceStatusInfo] = useState(dashboardInitialState.deviceStatusInfo);
@@ -98,6 +99,8 @@ const ActiveState = () => {
   const [fitmentInfoForAdmin, setFitmentInfoForAdmin] = useState(dashboardInitialState.adminFitmentInfo)
   const [userInfoForAdmin, setUserInfoForAdmin] = useState(dashboardInitialState.userInfoForAdmin)
   const [stateInfo, setStateInfo] = useState(dashboardInitialState.stateInfo);
+  const [districtInfo, setDistrictInfo] = useState(dashboardInitialState.districtInfo);
+  const [stockInfo, setStockInfo] = useState(dashboardInitialState.stockInfo);
   const [dtoDashboardInfo, setDtoDashboardInfo] = useState(dashboardInitialState.dtoDashboardInfo)
   const [team, setTeam] = useState(dashboardInitialState.team)
   const [teamForLead, setTeamForLead] = useState(dashboardInitialState.teamForLead)
@@ -157,10 +160,14 @@ const ActiveState = () => {
           ...prev,
           deviceActivated: data.Total_Device_Activated,
           vehicles: data.Total_Vehicles,
+          movingVehicles: data.Total_Moving_Vehicles,
+          stoppedVehicles: data.Total_Stopped_Vehicles,
+          idleVehicles: data.Total_Idle_Vehicles,
           onlineDevice: data.Total_Online_Device,
           offlineDevice: data.Total_Offline_Device_today,
           sevenDaysOffline: data.Total_Offline_Device_7day,
           thirtyDaysOffline: data.Total_Offline_Device_30day,
+          travelDistanceKm: data.Total_Travel_Distance_km,
           alert: data.Total_Alert,
           monthlyAlert: data.Alert_month,
           dailyAlert: data.Alert_today,
@@ -292,9 +299,10 @@ const ActiveState = () => {
           assigned: data.Total_Device_Assigned,
           returned: data.Total_Device_Returned,
           stocked: data.Current_Device_stock,
-          faulty: data.Current_Device_faulty
+          faulty: data.Current_Device_faulty,
+          freeDevice: data.Available_Free_Device
         }));
-        setESIMInfo(prev => ({
+        setDealerESIMInfo(prev => ({
           ...prev,
           totalActivation: data.Total_esim_activation_request,
           oneYearRenewal: data.Total_1_year_renewal_request,
@@ -303,7 +311,7 @@ const ActiveState = () => {
         setDeviceStatusInfo(prev => ({
           ...prev,
           online: data.Total_Online_now,
-          todayOffline: data.Total_Online_today,
+          todayOffline: data.Total_Online_today ?? data.Total_Offline_today,
           sevenDaysOffline: data.Total_Offline_7_days,
           thirtyDaysOffline: data.Total_Offline_30_days,
         }))
@@ -393,6 +401,24 @@ const ActiveState = () => {
           totalAlert: data.Total_harsh_brake_Alert,
           thisMonthAlert: data.This_month_harsh_brake_Alert,
           todayAlert: data.Today_harsh_brake_Alert
+        }))
+        setStockInfo(prev => ({
+          ...prev,
+          total: data.Total_device_stock,
+          unassigned: data.unassigned_device_stock,
+          waiting: data.waiting_device_stock
+        }))
+        setStateInfo(prev => ({
+          ...prev,
+          total: data.Total_state,
+          active: data.Active_state,
+          inactive: data.Discontinued_state
+        }))
+        setDistrictInfo(prev => ({
+          ...prev,
+          total: data.Total_district,
+          active: data.Active_district,
+          inactive: data.Discontinued_district
         }))
       })();
     }
@@ -3002,6 +3028,33 @@ const ActiveState = () => {
                 heading={t('dashboard.headings.suddenTurnAlert')}
               />
             </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label="Total Stock,Unassigned,Waiting"
+                cardValue={stockInfo}
+                iconImage={Stock}
+                heading="Device Stock Information"
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label="Total State,Active,Discontinued"
+                cardValue={stateInfo}
+                iconImage={state}
+                heading="State Information"
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                label="Total District,Active,Discontinued"
+                cardValue={districtInfo}
+                iconImage={state}
+                heading="District Information"
+              />
+            </Grid>
           </Grid>
         );
       case "dealer":
@@ -3040,7 +3093,7 @@ const ActiveState = () => {
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label={t('dashboard.labels.eSIMStatistics')}
-                cardValue={eSIMInfo}
+                cardValue={dealerESIMInfo}
                 iconImage={Sim}
                 heading={t('dashboard.headings.eSIMStatistics')}
               />
@@ -3067,56 +3120,70 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label={t('dashboard.labels.vehicleStatistics')}
+                label={t('dashboard.labels.ownerVehicleStatistics')}
                 cardValue={{
                   vehicles: ownerDashboardInfo.vehicles,
                   deviceActivated: ownerDashboardInfo.deviceActivated,
-                  offlineDevice: ownerDashboardInfo.offlineDevice
+                  travelDistanceKm: ownerDashboardInfo.travelDistanceKm
                 }}
                 iconImage={Vehicle}
-                heading={t('dashboard.headings.vehicleStatistics')}
+                heading={t('dashboard.headings.ownerVehicleStatistics')}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                label={t('dashboard.labels.vehicleMovementStatistics')}
+                cardValue={{
+                  movingVehicles: ownerDashboardInfo.movingVehicles,
+                  stoppedVehicles: ownerDashboardInfo.stoppedVehicles,
+                  idleVehicles: ownerDashboardInfo.idleVehicles
+                }}
+                iconImage={Vehicle}
+                heading={t('dashboard.headings.vehicleMovementStatistics')}
               />
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label={t('dashboard.labels.healthStatistics')}
+                label={t('dashboard.labels.ownerHealthStatistics')}
                 cardValue={{
-                  deviceActivated: ownerDashboardInfo.deviceActivated,
+                  onlineDevice: ownerDashboardInfo.onlineDevice,
                   offlineDevice: ownerDashboardInfo.offlineDevice,
                   sevenDaysOffline: ownerDashboardInfo.sevenDaysOffline,
                   thirtyDaysOffline: ownerDashboardInfo.thirtyDaysOffline,
                 }}
                 iconImage={Car}
-                heading={t('dashboard.headings.healthStatistics')}
+                heading={t('dashboard.headings.ownerHealthStatistics')}
               />
             </Grid>
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                label={t('dashboard.labels.emergencyAlert')}
+                label={t('dashboard.labels.ownerSOSStatistics')}
                 cardValue={{
                   sosCalls: ownerDashboardInfo.sosCalls,
                   genuineCalls: ownerDashboardInfo.genuineCalls,
                   fakeCalls: ownerDashboardInfo.fakeCalls
                 }}
                 iconImage={Bell}
-                heading={t('dashboard.headings.emergencyAlert')}
+                heading={t('dashboard.headings.ownerSOSStatistics')}
               />
             </Grid>
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label={t('dashboard.labels.driverBehaviour')}
+                label={t('dashboard.labels.ownerDriverBehaviour')}
                 cardValue={{
                   harshBreaking: ownerDashboardInfo.harshBreaking,
                   suddenTurn: ownerDashboardInfo.suddenTurn,
                   overSpeeding: ownerDashboardInfo.overSpeeding
                 }}
                 iconImage={Driver}
-                heading={t('dashboard.headings.driverBehaviour')}
+                heading={t('dashboard.headings.ownerDriverBehaviour')}
               />
             </Grid>
           </Grid>
@@ -3141,56 +3208,57 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label={t('dashboard.labels.vehicleStatistics')}
+                label={t('dashboard.labels.dtoVehicleStatistics')}
                 cardValue={{
                   vehicles: dtoDashboardInfo.vehicles,
-                  device: dtoDashboardInfo.activated,
-                  inactive: dtoDashboardInfo.offlineDevice
+                  deviceActivated: dtoDashboardInfo.activated,
+                  onlineDevice: dtoDashboardInfo.onlineDevice,
+                  offlineDevice: dtoDashboardInfo.offlineDevice
                 }}
                 iconImage={Fitment}
-                heading={t('dashboard.headings.vehicleStatistics')}
+                heading={t('dashboard.headings.dtoVehicleStatistics')}
               />
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label={t('dashboard.labels.healthStatistics')}
+                label={t('dashboard.labels.dtoHealthStatistics')}
                 cardValue={{
-                  activated: dtoDashboardInfo.activated,
-                  dailyActivations: dtoDashboardInfo.dailyActivations,
+                  onlineDevice: dtoDashboardInfo.onlineDevice,
+                  offlineDevice: dtoDashboardInfo.offlineDevice,
                   sevenDaysOffline: dtoDashboardInfo.sevenDaysOffline,
                   thirtyDaysOffline: dtoDashboardInfo.thirtyDaysOffline
                 }}
                 iconImage={Car}
-                heading={t('dashboard.headings.healthStatistics')}
+                heading={t('dashboard.headings.dtoHealthStatistics')}
               />
             </Grid>
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                label={t('dashboard.labels.emergencyAlert')}
+                label={t('dashboard.labels.dtoSOSStatistics')}
                 cardValue={{
-                  sos: dtoDashboardInfo.sosCalls,
+                  sosCalls: dtoDashboardInfo.sosCalls,
                   genuineCalls: dtoDashboardInfo.genuineCalls,
                   fakeCalls: dtoDashboardInfo.fakeCalls
                 }}
                 iconImage={Bell}
-                heading={t('dashboard.headings.emergencyAlert')}
+                heading={t('dashboard.headings.dtoSOSStatistics')}
               />
             </Grid>
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label={t('dashboard.labels.activationStatistics')}
+                label={t('dashboard.labels.dtoActivationStatistics')}
                 cardValue={{
-                  activated: dtoDashboardInfo.activated,
-                  monthly: dtoDashboardInfo.monthlyActivations,
+                  totalActivations: dtoDashboardInfo.activations,
+                  monthlyActivations: dtoDashboardInfo.monthlyActivations,
                   dailyActivations: dtoDashboardInfo.dailyActivations
                 }}
                 iconImage={Activation}
-                heading={t('dashboard.headings.activationStatistics')}
+                heading={t('dashboard.headings.dtoActivationStatistics')}
               />
             </Grid>
           </Grid>
