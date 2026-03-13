@@ -63,7 +63,7 @@ const BhuvanMapComponent = ({
     showSoiLayerPanel = true,
     defaultMapType = "normal",
     center = [91.7362, 26.1445], // Guwahati, Assam
-    zoom = 10,
+    zoom = 8,
     routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
 }) => {
     const poisForLookup = Array.isArray(lookupPois) ? lookupPois : pois;
@@ -1084,6 +1084,7 @@ view.on("change:resolution", () => {
             onZoomChange(currentZoom);
         }
     }
+    
 
 });
         
