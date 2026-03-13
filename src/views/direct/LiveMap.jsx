@@ -896,6 +896,11 @@ const MapComponent = ({
     const trackingDetailCacheRef = useRef({});
     const trackingDetailInFlightRef = useRef({});
     const trackingDetailLastFetchAtRef = useRef({});
+    // NEW: Ref to store position history for moving average
+    const positionHistoryRef = useRef({}); // Format: { [imei]: [{lat, lng}, ...] }
+    // Inside MapComponent, add this ref
+    const activeFeaturesRef = useRef({}); // Format: { [imei]: FeatureObject }
+
     const [map, setMap] = useState(null);
     const [vectorLayer, setVectorLayer] = useState(null);
     const [dynamicOverlay, setDynamicOverlay] = useState(null);
@@ -905,6 +910,7 @@ const MapComponent = ({
     const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
     const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
     const [pois, setPois] = useState([]);
+
 
     const [soiLayerVisibility, setSoiLayerVisibility] = useState({
         states: false,
@@ -1019,6 +1025,49 @@ const MapComponent = ({
     const [drawingPoints, setDrawingPoints] = useState([]);
     const tempPolyRef = useRef(null);
     const tempMarkersRef = useRef([]);
+
+    /**
+    * Logic to calculate averaged location
+    */
+    const getAveragedLocation = (entry) => {
+        const imei = entry.imei || entry.imei_no || "unknown";
+        const rawLat = Number(entry.latitude);
+        const rawLng = Number(entry.longitude);
+
+        if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
+            return { lat: rawLat, lng: rawLng };
+        }
+
+        if (!positionHistoryRef.current[imei]) {
+            positionHistoryRef.current[imei] = [];
+        }
+
+        const history = positionHistoryRef.current[imei];
+        history.push({ lat: rawLat, lng: rawLng });
+
+        if (history.length > 5) {
+            history.shift();
+        }
+
+        const sum = history.reduce((acc, curr) => ({
+            lat: acc.lat + curr.lat,
+            lng: acc.lng + curr.lng
+        }), { lat: 0, lng: 0 });
+
+        const avgLat = sum.lat / history.length;
+        const avgLng = sum.lng / history.length;
+
+        console.log(`[Verify Average] Vehicle: ${entry.vehicle_registration_number || imei}`);
+        console.table({
+            Raw: { lat: rawLat, lng: rawLng },
+            Averaged: { lat: avgLat, lng: avgLng },
+            PointsUsed: history.length
+        });
+
+        return { lat: avgLat, lng: avgLng };
+    };
+
+
 
     const fetchVehicleTrackingDetail = async (entry) => {
         const imei =
@@ -1143,7 +1192,7 @@ const MapComponent = ({
         return USE_TYPE_COLORS[key] || "#1E88E5";
     };
 
-    const createIconStyle = (color, vehicleType, labelText, forceLightBlue = false) => {
+    const createIconStyle = (color, vehicleType, labelText, forceLightBlue = false, rotation = 0) => {
         const normalizedVehicleType = vehicleType
             ? vehicleType.toLowerCase().replace(/\s+/g, "_")
             : "bus";
@@ -1221,14 +1270,26 @@ const MapComponent = ({
             ];
         }
 
-        return new Style({
-            image: new Icon({
-                anchor: [0.5, 1],
-                src: iconPath,
-                scale: iconScale,
-            }),
-            text: textStyle,
-        });
+        // return new Style({
+        //     image: new Icon({
+        //         anchor: [0.5, 1],
+        //         src: iconPath,
+        //         scale: iconScale,
+        //     }),
+        //     text: textStyle,
+        // });
+        const rotationInRadians = (rotation * Math.PI) / 180;
+
+    return new Style({
+        image: new Icon({
+            anchor: [0.5, 0.5], // Centered anchor for clean rotation
+            src: iconPath,
+            scale: iconScale,
+            rotation: rotationInRadians,
+            rotateWithView: true,
+        }),
+        text: textStyle,
+    });
     };
 
     const getMarkerLabel = (entry, mode) => {
@@ -3109,8 +3170,9 @@ display: none !important;
             allMarkers = [...gpsData, ...policeData];
             if (allMarkers.length > 0) {
                 allMarkers.forEach((entry) => {
-                    const longitude = Number(entry.longitude);
-                    const latitude = Number(entry.latitude);
+                    const averagedPos = getAveragedLocation(entry);
+                    const longitude = Number(averagedPos.lng);
+                    const latitude = Number(averagedPos.lat);
 
                     if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
                         return;
@@ -3732,40 +3794,65 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
     };
 
     // Set the correct icon style based on data conditions and vehicle type
-    const getIconStyle = (data, vehicleType, labelMode, forceDefault = false) => {
-        const entryTimeMs = resolveEntryTimestampMs(data);
-        const currentTimeMs = new Date().getTime();
-        const timeDifference = Number.isFinite(entryTimeMs)
-            ? calculateTimeDifference(entryTimeMs, currentTimeMs)
-            : Number.POSITIVE_INFINITY;
-        const isStale = timeDifference > 15;
-        const isPoliceMarker = data.markerCategory === "police";
+    // const getIconStyle = (data, vehicleType, labelMode, forceDefault = false, rotation = 0) => {
+    //     const entryTimeMs = resolveEntryTimestampMs(data);
+    //     const currentTimeMs = new Date().getTime();
+    //     const timeDifference = Number.isFinite(entryTimeMs)
+    //         ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+    //         : Number.POSITIVE_INFINITY;
+    //     const isStale = timeDifference > 15;
+    //     const isPoliceMarker = data.markerCategory === "police";
 
-        let color;
+    //     let color;
 
-        if (forceDefault) {
-            color = "default";
-        } else if (isPoliceMarker) {
-            color = "blue";
-        } else if (isStale) {
-            color = "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
-        } else if (data.packet_type === "EA") {
-            color = "red"; // EA Packet - Red Icon
-        } else if (data.packet_type !== "NR") {
-            color = "orange"; // Any Alert Packet except EA - Orange Icon
-        } else if (resolveEntrySpeedValue(data) > 0) {
-            color = "green"; // Moving - Green Icon
-        } else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) === 0) {
-            color = "blue"; // Ignition ON but stationary - Blue Icon
-        } else {
-            color = "default"; // Default color
-        }
+    //     if (forceDefault) {
+    //         color = "default";
+    //     } else if (isPoliceMarker) {
+    //         color = "blue";
+    //     } else if (isStale) {
+    //         color = "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
+    //     } else if (data.packet_type === "EA") {
+    //         color = "red"; // EA Packet - Red Icon
+    //     } else if (data.packet_type !== "NR") {
+    //         color = "orange"; // Any Alert Packet except EA - Orange Icon
+    //     } else if (resolveEntrySpeedValue(data) > 0) {
+    //         color = "green"; // Moving - Green Icon
+    //     } else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) === 0) {
+    //         color = "blue"; // Ignition ON but stationary - Blue Icon
+    //     } else {
+    //         color = "default"; // Default color
+    //     }
 
-        const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
-        const labelText = getMarkerLabel(data, labelMode);
-        console.debug(`[LiveMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
-        return createIconStyle(color, iconVehicleType, labelText, false);
-    };
+    //     const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
+    //     const labelText = getMarkerLabel(data, labelMode);
+    //     console.debug(`[LiveMap] getIconStyle: color=${color}, type=${iconVehicleType}, mode=${labelMode}, label="${labelText}"`);
+    //     return createIconStyle(color, iconVehicleType, labelText, false, rotation);
+    // };
+
+    const getIconStyle = (data, vehicleType, labelMode, forceDefault = false, rotation = 0) => {
+    const entryTimeMs = resolveEntryTimestampMs(data);
+    const currentTimeMs = new Date().getTime();
+    const timeDifference = Number.isFinite(entryTimeMs)
+        ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+        : Number.POSITIVE_INFINITY;
+    const isStale = timeDifference > 15;
+    const isPoliceMarker = data.markerCategory === "police";
+
+    let color = "default";
+    if (forceDefault) { color = "default"; }
+    else if (isPoliceMarker) { color = "blue"; }
+    else if (isStale) { color = "grey"; }
+    else if (data.packet_type === "EA") { color = "red"; }
+    else if (data.packet_type !== "NR") { color = "orange"; }
+    else if (resolveEntrySpeedValue(data) > 0) { color = "green"; }
+    else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) === 0) { color = "blue"; }
+
+    const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
+    const labelText = getMarkerLabel(data, labelMode);
+    
+    // Pass rotation here
+    return createIconStyle(color, iconVehicleType, labelText, false, rotation);
+};
 
     useEffect(() => {
         if (!map || !vectorLayer) {
@@ -3781,8 +3868,9 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
             const features = allMarkers
                 .map((entry) => {
-                    const longitude = Number(entry.longitude);
-                    const latitude = Number(entry.latitude);
+                    const averagedPos = getAveragedLocation(entry);
+                    const longitude = averagedPos.lng;
+                    const latitude = averagedPos.lat;
 
                     if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
                         return null;
@@ -4679,35 +4767,210 @@ ${policeInfoRows || policeDetailsRows
     }, [map, nmrVectorLayer, nmrArea]);
 
     // Handle clustering distance based on zoom level to reveal tight clusters
-    useEffect(() => {
-        if (!map || !vectorLayer) return;
+    // useEffect(() => {
+    //     if (!map || !vectorLayer) return;
 
-        const source = vectorLayer.getSource();
-        // Ensure we are working with a Cluster source which supports setDistance
-        if (!source || typeof source.setDistance !== 'function') return;
+    //     const source = vectorLayer.getSource();
+    //     // Ensure we are working with a Cluster source which supports setDistance
+    //     if (!source || typeof source.setDistance !== 'function') return;
 
-        const handleZoomChange = () => {
-            const zoom = map.getView().getZoom();
-            // Disable clustering at high zoom levels (e.g., >= 17) to reveal individual items
-            // 40 is the default distance we set during initialization
-            const targetDistance = zoom >= 14 ? 0 : 30;
+    //     const handleZoomChange = () => {
+    //         const zoom = map.getView().getZoom();
+    //         // Disable clustering at high zoom levels (e.g., >= 17) to reveal individual items
+    //         // 40 is the default distance we set during initialization
+    //         const targetDistance = zoom >= 14 ? 0 : 30;
 
-            if (source.getDistance() !== targetDistance) {
-                source.setDistance(targetDistance);
+    //         if (source.getDistance() !== targetDistance) {
+    //             source.setDistance(targetDistance);
+    //         }
+    //     };
+
+    //     const view = map.getView();
+    //     // Initial check
+    //     handleZoomChange();
+
+    //     // Listen to changes
+    //     view.on('change:resolution', handleZoomChange);
+
+    //     return () => {
+    //         view.un('change:resolution', handleZoomChange);
+    //     };
+    // }, [map, vectorLayer]);
+
+
+    // useEffect(() => {
+    //     if (!map || !vectorLayer || mapType === 'hd') return;
+
+    //     const vectorSource = vectorLayer.getSource().getSource();
+    //     const allMarkers = [...gpsData, ...policeData];
+    //     const currentImeis = new Set();
+
+    //     allMarkers.forEach((entry) => {
+    //         const imei = entry.imei || entry.vehicle_registration_number;
+    //         if (!imei) return;
+    //         currentImeis.add(imei);
+
+    //         const newPos = getAveragedLocation(entry);
+    //         const newCoords = [newPos.lng, newPos.lat];
+    //         const vehicleType = entry?.device_tag_info?.category_info?.category || "unknown";
+    //         const rotation = entry.course || entry.heading || 0;
+
+
+    //         let feature = activeFeaturesRef.current[imei];
+
+    //         if (!feature) {
+    //             // 1. CREATE NEW FEATURE if it doesn't exist
+    //             feature = new Feature({
+    //                 geometry: new Point(newCoords),
+    //                 entryData: entry,
+    //             });
+    //             feature.setStyle(getIconStyle(entry, entry?.device_tag_info?.category_info?.category, markerLabelMode, allMode, rotation, vehicleType));
+    //             activeFeaturesRef.current[imei] = feature;
+    //             vectorSource.addFeature(feature);
+    //         } else {
+    //             // 2. ANIMATE EXISTING FEATURE
+    //             const startCoords = feature.getGeometry().getCoordinates();
+    //             const duration = 2000; // Match this to your GPS polling interval (e.g., 2-5 seconds)
+    //             const start = Date.now();
+    //             const startRotation = feature.get("currentRotation") || 0; // Store last rotation on feature
+    //             const endRotation = entry.course ?? entry.heading ?? 0;
+
+
+    //             const animate = () => {
+    //                 const elapsed = Date.now() - start;
+    //                 const fraction = Math.min(elapsed / duration, 1);
+
+    //                 // Linear interpolation formula: start + (end - start) * fraction
+    //                 const currentLng = startCoords[0] + (newCoords[0] - startCoords[0]) * fraction;
+    //                 const currentLat = startCoords[1] + (newCoords[1] - startCoords[1]) * fraction;
+
+    //                 feature.getGeometry().setCoordinates([currentLng, currentLat]);
+    //                 // This handles the "shortest path" (e.g. turning from 350 to 10 degrees)
+    //                 let rotationDiff = endRotation - startRotation;
+    //                 if (rotationDiff > 180) rotationDiff -= 360;
+    //                 if (rotationDiff < -180) rotationDiff += 360;
+    //                 const currentRotation = startRotation + (rotationDiff * fraction);
+    //                 feature.set("currentRotation", currentRotation);
+    //                 // feature.set("entryData", entry); // Update data for overlay
+    //                 feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
+    //                 if (fraction < 1) {
+    //                     requestAnimationFrame(animate);
+    //                 }
+    //             };
+
+    //             // Only animate if the distance is significant to save CPU
+    //             if (Math.abs(startCoords[0] - newCoords[0]) > 0.00001 || Math.abs(startCoords[1] - newCoords[1]) > 0.00001) {
+    //                 animate();
+    //             }
+
+    //             // Update style in case status changed (Green/Red/Orange)
+    //             feature.setStyle(getIconStyle(entry, entry?.device_tag_info?.category_info?.category, markerLabelMode, allMode));
+    //         }
+    //     });
+
+    //     // 3. REMOVE OFFLINE VEHICLES
+    //     Object.keys(activeFeaturesRef.current).forEach(imei => {
+    //         if (!currentImeis.has(imei)) {
+    //             vectorSource.removeFeature(activeFeaturesRef.current[imei]);
+    //             delete activeFeaturesRef.current[imei];
+    //         }
+    //     });
+
+    // }, [gpsData, policeData, map, vectorLayer, mapType, markerLabelMode, allMode  ]);
+
+
+useEffect(() => {
+    if (!map || !vectorLayer || mapType === 'hd') return;
+
+    const vectorSource = vectorLayer.getSource().getSource();
+    const allMarkers = [...gpsData, ...policeData];
+    const currentImeis = new Set();
+    
+    // Duration should be slightly less than your polling interval (e.g., if you poll every 5s, use 4500)
+    const animationDuration = 2500; 
+
+    allMarkers.forEach((entry) => {
+        const imei = entry.imei || entry.vehicle_registration_number;
+        if (!imei) return;
+        currentImeis.add(imei);
+
+        const targetPos = getAveragedLocation(entry);
+        const targetCoords = [targetPos.lng, targetPos.lat];
+        const targetRotation = entry.course || entry.heading || 0;
+        const vehicleType = entry?.device_tag_info?.category_info?.category || "bus";
+
+        let feature = activeFeaturesRef.current[imei];
+
+        if (!feature) {
+            // First time seeing this vehicle: Create it
+            feature = new Feature({
+                geometry: new Point(targetCoords),
+                entryData: entry,
+            });
+            feature.set("currentRotation", targetRotation);
+            feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode, targetRotation));
+            activeFeaturesRef.current[imei] = feature;
+            vectorSource.addFeature(feature);
+        } else {
+            // Existing vehicle: Animate movement
+            const startCoords = feature.getGeometry().getCoordinates();
+            const startRotation = feature.get("currentRotation") || 0;
+            const startTime = performance.now();
+
+            // Cancel any previous animation frame for this specific car
+            if (feature.get("animFrameId")) {
+                cancelAnimationFrame(feature.get("animFrameId"));
             }
-        };
 
-        const view = map.getView();
-        // Initial check
-        handleZoomChange();
+            const frame = (now) => {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / animationDuration, 1);
 
-        // Listen to changes
-        view.on('change:resolution', handleZoomChange);
+                // 1. Smoothly slide coordinates
+                const currLng = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
+                const currLat = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
+                const currentPos = [currLng, currLat];
+                feature.getGeometry().setCoordinates(currentPos);
 
-        return () => {
-            view.un('change:resolution', handleZoomChange);
-        };
-    }, [map, vectorLayer]);
+                // 2. Smoothly rotate (shortest path logic)
+                let rotDiff = targetRotation - startRotation;
+                if (rotDiff > 180) rotDiff -= 360;
+                if (rotDiff < -180) rotDiff += 360;
+                const currRot = startRotation + (rotDiff * progress);
+                feature.set("currentRotation", currRot);
+
+                // 3. Update Style
+                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode, currRot));
+
+                // 4. MAP FOLLOWING (Move camera with car if focused)
+                if (focusEntry && (focusEntry.imei === imei || focusEntry.vehicle_registration_number === imei)) {
+                    map.getView().setCenter(currentPos);
+                }
+
+                if (progress < 1) {
+                    feature.set("animFrameId", requestAnimationFrame(frame));
+                }
+            };
+
+            // Only start animation if the car has actually moved a bit
+            if (Math.abs(startCoords[0] - targetCoords[0]) > 0.000001 || Math.abs(startCoords[1] - targetCoords[1]) > 0.000001) {
+                feature.set("animFrameId", requestAnimationFrame(frame));
+            } else {
+                // Car is stationary, just update metadata/style
+                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode, targetRotation));
+            }
+        }
+    });
+
+    // Clean up features for cars that are no longer in the list
+    Object.keys(activeFeaturesRef.current).forEach(imei => {
+        if (!currentImeis.has(imei)) {
+            vectorSource.removeFeature(activeFeaturesRef.current[imei]);
+            delete activeFeaturesRef.current[imei];
+        }
+    });
+
+}, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry]);
 
     useEffect(() => {
         if (!focusEntry) return;
