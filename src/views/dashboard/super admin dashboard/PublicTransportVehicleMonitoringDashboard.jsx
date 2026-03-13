@@ -204,7 +204,7 @@ const [zoom, setZoom] = useState(8);
    {zoom >= 9 ? (
   <RoadsMapComponent onZoomChange={setZoom} data={data} />
 ) : (
-  <BhuvanMapComponent onZoomChange={setZoom} />
+  <BhuvanMapComponent onZoomChange={setZoom} data={data}/>
 )}
 
 

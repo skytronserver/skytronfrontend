@@ -66,7 +66,7 @@ const radius =
         new Style({
           image: new CircleStyle({
             radius: radius,
-            fill: new Fill({ color: "rgba(255,0,0,0.6)" }),
+            fill: new Fill({ color: "rgba(14,165,233,0.6)" }),
             stroke: new Stroke({ color: "#fff", width: 2 })
           }),
          

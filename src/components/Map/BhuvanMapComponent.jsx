@@ -20,6 +20,12 @@ import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
+import { fromLonLat } from "ol/proj";
+// import VectorLayer from "ol/layer/Vector";
+// import VectorSource from "ol/source/Vector";
+// import Feature from "ol/Feature";
+// import Point from "ol/geom/Point";
+// import { Style, Circle as CircleStyle, Fill, Stroke, Text } from "ol/style";
 
 /**
  * Reusable Bhuvan Map Component with OpenLayers
@@ -46,6 +52,7 @@ import HomePageService from "../../services/HomePage";
 const BhuvanMapComponent = ({
     gpsData = [],
     onZoomChange ,
+    data,
     policeData = [],
     pois = [],
     lookupPois,
@@ -1052,9 +1059,69 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             minZoom: 11,
         });
 
+
+// Vector source for district markers
+    const vectorSource = new VectorSource();
+debugger
+    // Add markers from JSON
+
+const counts = data.map(d => d.total_vehicle_count);
+const minVehicles = Math.min(...counts);
+const maxVehicles = Math.max(...counts);
+
+    data?.forEach(d => {
+
+      const feature = new Feature({
+        geometry: new Point([d.longitude, d.latitude]),
+        name: d.district_name,
+        vehicles: d.total_vehicle_count
+      });
+
+      // bubble size based on vehicles
+      const MIN_RADIUS = 20;
+const MAX_RADIUS = 40;
+
+const radius =
+  MIN_RADIUS +
+  ((d.total_vehicle_count - minVehicles) /
+    (maxVehicles - minVehicles)) *
+    (MAX_RADIUS - MIN_RADIUS);
+
+      feature.setStyle(
+        new Style({
+          image: new CircleStyle({
+            radius: radius,
+            fill: new Fill({ color: "rgba(14,165,233,0.6)" }),
+            stroke: new Stroke({ color: "#fff", width: 2 })
+          }),
+         
+    text: new Text({
+      text: String(d.total_vehicle_count),   // ⭐ show count
+      fill: new Fill({ color: "#fff" }),
+      stroke: new Stroke({ color: "#000", width: 3 }),
+      font: "bold 12px Arial",
+      textAlign: "center",
+      textBaseline: "middle"   })
+        })
+      );
+
+      vectorSource.addFeature(feature);
+
+    });
+
+    const vectorLayer = new VectorLayer({
+      source: vectorSource,
+      zIndex: 5,
+       
+    });
+
+
+
+
+
         const initialMap = new Map({
             target: normalMapContainerRef.current,
-            layers: [india3Layer, adminGroupLayer, roadsLayer],
+            layers: [india3Layer, adminGroupLayer, roadsLayer,vectorLayer],
 
             view: new View({
                 projection: "EPSG:4326",
@@ -1184,7 +1251,7 @@ view.on("change:resolution", () => {
                 normalMapRef.current = null;
             }
         };
-    }, [mapType]);
+    }, [mapType,data]);
    
 
     // Initialize SOI Map (Bhuvan base + skytron overlays)
