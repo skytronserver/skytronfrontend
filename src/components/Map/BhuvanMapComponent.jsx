@@ -1064,7 +1064,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
     const vectorSource = new VectorSource();
 debugger
     // Add markers from JSON
-
+if (!Array.isArray(data) || data.length === 0) return;
 const counts = data.map(d => d.total_vehicle_count);
 const minVehicles = Math.min(...counts);
 const maxVehicles = Math.max(...counts);

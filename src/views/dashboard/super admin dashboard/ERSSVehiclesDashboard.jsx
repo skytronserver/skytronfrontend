@@ -15,6 +15,7 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
 import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
+import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
 
 import { PageWrapper } from './SuperAdminCommon';
 
@@ -153,7 +154,7 @@ const buildDummyErssVehicles = () => {
   return vehicles;
 };
 
-const ErssVehicleMap = ({ vehicles }) => {
+const ErssVehicleMap = ({ vehicles,data }) => {
   const gpsData = useMemo(() => {
     const nowIso = new Date().toISOString();
     return (Array.isArray(vehicles) ? vehicles : []).map((v) => {
@@ -171,23 +172,269 @@ const ErssVehicleMap = ({ vehicles }) => {
       };
     });
   }, [vehicles]);
+  const [zoom, setZoom] = useState(8);
 
   return (
-    <BhuvanMapComponent
-      gpsData={gpsData}
-      width="100%"
-      height="100%"
-      autoFit
-      markerLabelMode="none"
-      showMapTypeToggle
-      showDrawControls={false}
-      showSoiLayerPanel={false}
-      showLogos
-    />
+
+<>
+
+ {zoom >= 9 ? (
+  <RoadsMapComponent onZoomChange={setZoom} data={data} />
+) : (
+  <BhuvanMapComponent onZoomChange={setZoom} data={data} />
+)}
+
+</>
+
+
+    // <BhuvanMapComponent
+    //   gpsData={gpsData}
+    //   width="100%"
+    //   height="100%"
+    //   autoFit
+    //   markerLabelMode="none"
+    //   showMapTypeToggle
+    //   showDrawControls={false}
+    //   showSoiLayerPanel={false}
+    //   showLogos
+    // />
   );
 };
 
 const ERSSVehiclesDashboard = () => {
+
+const [districtData, setDistrictData] = useState([]);
+const [totalDevices, setTotalDevices] = useState(0);
+const data = [
+  {
+    "district_name": "Baksa",
+    "latitude": 26.699,
+    "longitude": 91.487,
+    "total_vehicle_count": 18234
+  },
+  {
+    "district_name": "Bajali",
+    "latitude": 26.495,
+    "longitude": 91.180,
+    "total_vehicle_count": 12456
+  },
+  {
+    "district_name": "Barpeta",
+    "latitude": 26.320,
+    "longitude": 91.000,
+    "total_vehicle_count": 28765
+  },
+  {
+    "district_name": "Biswanath",
+    "latitude": 26.726,
+    "longitude": 93.147,
+    "total_vehicle_count": 15678
+  },
+  {
+    "district_name": "Bongaigaon",
+    "latitude": 26.478,
+    "longitude": 90.556,
+    "total_vehicle_count": 24321
+  },
+  {
+    "district_name": "Cachar",
+    "latitude": 24.833,
+    "longitude": 92.778,
+    "total_vehicle_count": 41234
+  },
+  {
+    "district_name": "Charaideo",
+    "latitude": 27.024,
+    "longitude": 95.016,
+    "total_vehicle_count": 11890
+  },
+  {
+    "district_name": "Chirang",
+    "latitude": 26.486,
+    "longitude": 90.558,
+    "total_vehicle_count": 10987
+  },
+  {
+    "district_name": "Darrang",
+    "latitude": 26.442,
+    "longitude": 92.030,
+    "total_vehicle_count": 17654
+  },
+  {
+    "district_name": "Dhemaji",
+    "latitude": 27.484,
+    "longitude": 94.588,
+    "total_vehicle_count": 13245
+  },
+  {
+    "district_name": "Dhubri",
+    "latitude": 26.018,
+    "longitude": 89.974,
+    "total_vehicle_count": 22110
+  },
+  {
+    "district_name": "Dibrugarh",
+    "latitude": 27.472,
+    "longitude": 94.912,
+    "total_vehicle_count": 33876
+  },
+  {
+    "district_name": "Dima Hasao",
+    "latitude": 25.164,
+    "longitude": 93.017,
+    "total_vehicle_count": 8456
+  },
+  {
+    "district_name": "Goalpara",
+    "latitude": 26.167,
+    "longitude": 90.626,
+    "total_vehicle_count": 16789
+  },
+  {
+    "district_name": "Golaghat",
+    "latitude": 26.523,
+    "longitude": 93.962,
+    "total_vehicle_count": 19876
+  },
+  {
+    "district_name": "Hailakandi",
+    "latitude": 24.683,
+    "longitude": 92.561,
+    "total_vehicle_count": 14567
+  },
+  {
+    "district_name": "Hojai",
+    "latitude": 26.002,
+    "longitude": 92.857,
+    "total_vehicle_count": 17345
+  },
+  {
+    "district_name": "Jorhat",
+    "latitude": 26.751,
+    "longitude": 94.203,
+    "total_vehicle_count": 29754
+  },
+  {
+    "district_name": "Kamrup Metropolitan",
+    "latitude": 26.144,
+    "longitude": 91.736,
+    "total_vehicle_count": 98543
+  },
+  {
+    "district_name": "Kamrup",
+    "latitude": 26.191,
+    "longitude": 91.692,
+    "total_vehicle_count": 26543
+  },
+  {
+    "district_name": "Karbi Anglong",
+    "latitude": 25.844,
+    "longitude": 93.431,
+    "total_vehicle_count": 15432
+  },
+  {
+    "district_name": "Sribhumi",
+    "latitude": 24.869,
+    "longitude": 92.355,
+    "total_vehicle_count": 21456
+  },
+  {
+    "district_name": "Kokrajhar",
+    "latitude": 26.402,
+    "longitude": 90.273,
+    "total_vehicle_count": 18976
+  },
+  {
+    "district_name": "Lakhimpur",
+    "latitude": 27.238,
+    "longitude": 94.105,
+    "total_vehicle_count": 17456
+  },
+  {
+    "district_name": "Majuli",
+    "latitude": 26.954,
+    "longitude": 94.204,
+    "total_vehicle_count": 5432
+  },
+  {
+    "district_name": "Morigaon",
+    "latitude": 26.252,
+    "longitude": 92.342,
+    "total_vehicle_count": 16234
+  },
+  {
+    "district_name": "Nagaon",
+    "latitude": 26.348,
+    "longitude": 92.684,
+    "total_vehicle_count": 35678
+  },
+  {
+    "district_name": "Nalbari",
+    "latitude": 26.442,
+    "longitude": 91.441,
+    "total_vehicle_count": 18567
+  },
+  {
+    "district_name": "Sivasagar",
+    "latitude": 26.984,
+    "longitude": 94.637,
+    "total_vehicle_count": 16890
+  },
+  {
+    "district_name": "Sonitpur",
+    "latitude": 26.633,
+    "longitude": 92.800,
+    "total_vehicle_count": 24890
+  },
+  {
+    "district_name": "South Salmara-Mankachar",
+    "latitude": 25.828,
+    "longitude": 89.901,
+    "total_vehicle_count": 9765
+  },
+  {
+    "district_name": "Tamulpur",
+    "latitude": 26.694,
+    "longitude": 91.102,
+    "total_vehicle_count": 8876
+  },
+  {
+    "district_name": "Tinsukia",
+    "latitude": 27.489,
+    "longitude": 95.359,
+    "total_vehicle_count": 28456
+  },
+  {
+    "district_name": "Udalguri",
+    "latitude": 26.753,
+    "longitude": 92.102,
+    "total_vehicle_count": 13456
+  },
+  {
+    "district_name": "West Karbi Anglong",
+    "latitude": 25.953,
+    "longitude": 92.873,
+    "total_vehicle_count": 7654
+  }
+];
+
+useEffect(() => {
+
+  // store dummy data
+  setDistrictData(data);
+
+  // calculate total
+  const total = data.reduce(
+    (sum, item) => sum + (item.total_vehicle_count || 0),
+    0
+  );
+
+  setTotalDevices(total);
+
+}, []);
+
+
+
   const [mode, setMode] = useState('light');
 
   const tokens = useMemo(() => {
@@ -324,12 +571,12 @@ const ERSSVehiclesDashboard = () => {
     });
 
     return [
-      { key: 'total', label: `Total ${selectedLabel}`, value: totals.total, helper: null },
+      { key: 'total', label: `Total ${selectedLabel}`, value: totalDevices, helper: null },
       { key: 'online', label: 'Online', value: totals.online, helper: null },
       { key: 'onEmergency', label: 'On Emergency', value: totals.onEmergency, helper: null },
       { key: 'offline', label: 'Offline', value: totals.offline, helper: null }
     ];
-  }, [filteredVehicles, filters.vehicleType]);
+  }, [filteredVehicles, filters.vehicleType,totalDevices]);
 
   return (
     <PageWrapper
@@ -376,6 +623,7 @@ const ERSSVehiclesDashboard = () => {
 
         <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
           <ErssVehicleMap
+          data={districtData}
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}
             selectedType={selectedType}
