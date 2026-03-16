@@ -7,11 +7,19 @@ export const dashboardInitialState = {
   },
   fitmentInfo: {
     fitted: 0,
+    taggedDevice: 0,
     onlineDevice: 0,
     offlineDevice: 0,
+    totalOnlineDevice: 0,
+    totalOfflineDevice: 0,
+    untaggedDevice: 0,
+    totalFitments: 0,
   },
   dealerFitmentInfo: {
     total: 0,
+    taggedDevice: 0,
+    onlineDevice: 0,
+    offlineDevice: 0,
     monthly: 0,
     daily: 0,
   },
@@ -45,8 +53,8 @@ export const dashboardInitialState = {
     // monthlyRequests: 0,
   },
   deviceStatusInfo: {
-    online: 0,
-    todayOffline: 0,
+    onlineNow: 0,
+    onlineToday: 0,
     sevenDaysOffline: 0,
     thirtyDaysOffline: 0,
   },
@@ -249,5 +257,14 @@ export const dashboardInitialState = {
     selectedItemId: null,
     previewMode: false,
     lastUpdated: null
+  },
+  activeUsersInfo: {
+    stateAdmin: 0,
+    esimProvider: 0,
+    manufacturer: 0,
+    sosAdmin: 0,
+    sosExecutive: 0,
+    sosTeamLead: 0,
+    sosDeskExecutive: 0,
   }
 };

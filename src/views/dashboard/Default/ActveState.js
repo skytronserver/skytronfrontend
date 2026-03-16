@@ -101,6 +101,7 @@ const ActiveState = () => {
   const [stateInfo, setStateInfo] = useState(dashboardInitialState.stateInfo);
   const [districtInfo, setDistrictInfo] = useState(dashboardInitialState.districtInfo);
   const [stockInfo, setStockInfo] = useState(dashboardInitialState.stockInfo);
+  const [activeUsersInfo, setActiveUsersInfo] = useState(dashboardInitialState.activeUsersInfo);
   const [dtoDashboardInfo, setDtoDashboardInfo] = useState(dashboardInitialState.dtoDashboardInfo)
   const [team, setTeam] = useState(dashboardInitialState.team)
   const [teamForLead, setTeamForLead] = useState(dashboardInitialState.teamForLead)
@@ -288,33 +289,32 @@ const ActiveState = () => {
       (async () => {
         const response = await UserServices.getDealerDashboard();
         const data = await response.data;
-        setDealerFitmentInfo(prev => ({
-          ...prev,
-          total: data.Total_Fitment_done,
-          monthly: data.Fitment_month,
-          daily: data.Fitment_today,
-        }));
-        setDealerDeviceInfo(prev => ({
-          ...prev,
-          assigned: data.Total_Device_Assigned,
-          returned: data.Total_Device_Returned,
-          stocked: data.Current_Device_stock,
-          faulty: data.Current_Device_faulty,
-          freeDevice: data.Available_Free_Device
-        }));
-        setDealerESIMInfo(prev => ({
-          ...prev,
-          totalActivation: data.Total_esim_activation_request,
-          oneYearRenewal: data.Total_1_year_renewal_request,
-          twoYearRenewal: data.Total_2_year_renewal_request
-        }));
-        setDeviceStatusInfo(prev => ({
-          ...prev,
-          online: data.Total_Online_now,
-          todayOffline: data.Total_Online_today ?? data.Total_Offline_today,
-          sevenDaysOffline: data.Total_Offline_7_days,
-          thirtyDaysOffline: data.Total_Offline_30_days,
-        }))
+        setDealerFitmentInfo({
+          total: data.Total_Fitment_done || 0,
+          taggedDevice: data.TotalTaggedDevice || 0,
+          onlineDevice: data.Total_Online_now || 0,
+          offlineDevice: (data.TotalTaggedDevice || 0) - (data.Total_Online_now || 0),
+          monthly: data.Fitment_month || 0,
+          daily: data.Fitment_today || 0,
+        });
+        setDealerDeviceInfo({
+          assigned: data.Total_Device_Assigned || 0,
+          returned: data.Total_Device_Returned || 0,
+          stocked: data.Current_Device_stock || 0,
+          faulty: data.Current_Device_faulty || 0,
+          freeDevice: data.Available_Free_Device || 0
+        });
+        setDealerESIMInfo({
+          totalActivation: data.Total_esim_activation_request || 0,
+          oneYearRenewal: data.Total_1_year_renewal_request || 0,
+          twoYearRenewal: data.Total_2_year_renewal_request || 0
+        });
+        setDeviceStatusInfo({
+          onlineNow: data.Total_Online_now || 0,
+          onlineToday: data.Total_Online_today || 0,
+          sevenDaysOffline: data.Total_Offline_7_days || 0,
+          thirtyDaysOffline: data.Total_Offline_30_days || 0,
+        })
       })();
     }
     //only for superAdmin
@@ -374,8 +374,13 @@ const ActiveState = () => {
         setFitmentInfo((prev => ({
           ...prev,
           fitted: data.Total_Fit_Device,
+          taggedDevice: data.TotalTaggedDevice,
           onlineDevice: data.Online_Devices,
-          offlineDevice: data.Offline_Devices
+          offlineDevice: data.Offline_Devices,
+          totalOnlineDevice: data.TotalOnlineDevice,
+          totalOfflineDevice: data.TotalOfflineDevice,
+          untaggedDevice: data.TotalUntaggedDevice,
+          totalFitments: data.TotalFitments
         })))
         setDeviceHealthInfo((prev => ({
           ...prev,
@@ -402,6 +407,12 @@ const ActiveState = () => {
           thisMonthAlert: data.This_month_harsh_brake_Alert,
           todayAlert: data.Today_harsh_brake_Alert
         }))
+        setSuddenBreakInfo(prev => ({
+          ...prev,
+          totalAlert: data.Total_sudden_turn_Alert,
+          thisMonthAlert: data.This_month_sudden_turn_Alert,
+          todayAlert: data.Today_sudden_turn_Alert
+        }))
         setStockInfo(prev => ({
           ...prev,
           total: data.Total_device_stock,
@@ -419,6 +430,16 @@ const ActiveState = () => {
           total: data.Total_district,
           active: data.Active_district,
           inactive: data.Discontinued_district
+        }))
+        setActiveUsersInfo(prev => ({
+          ...prev,
+          stateAdmin: data.ActiveUsers_stateadmin,
+          esimProvider: data.ActiveUsers_esimprovider,
+          manufacturer: data.ActiveUsers_manufacturer,
+          sosAdmin: data.ActiveUsers_sosadmin,
+          sosExecutive: data.ActiveUsers_sosexecutive,
+          sosTeamLead: data.ActiveUsers_sos_teamlead,
+          sosDeskExecutive: data.ActiveUsers_sos_deskexecutive
         }))
       })();
     }
@@ -2975,7 +2996,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label={t('dashboard.labels.fitmentStatistics')}
+                label="Total Fit Device,Tagged Device,Online Device,Offline Device,Total Online Device,Total Offline Device,Untagged Device,Total Fitments"
                 cardValue={fitmentInfo}
                 iconImage={Fitment}
                 heading={t('dashboard.headings.fitmentStatistics')}
@@ -3055,6 +3076,15 @@ const ActiveState = () => {
                 heading="District Information"
               />
             </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+                label="State Admin,eSIM Provider,Manufacturer,SOS Admin,SOS Executive,SOS Team Lead,SOS Desk Executive"
+                cardValue={activeUsersInfo}
+                iconImage={User}
+                heading="Active Users"
+              />
+            </Grid>
           </Grid>
         );
       case "dealer":
@@ -3063,7 +3093,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label={t('dashboard.labels.stockStatistics')}
+                label="Assigned, Returned, Stocked, Faulty, Available free device"
                 cardValue={dealerDeviceInfo}
                 iconImage={Stock}
                 heading={t('dashboard.headings.stockStatistics')}
@@ -3073,7 +3103,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label={t('dashboard.labels.fitmentStatistics')}
+                label="Total Fitment, Tagged Device, Online Device, Offline Device, Fitment Month, Fitment Today"
                 cardValue={dealerFitmentInfo}
                 iconImage={Fitment}
                 heading={t('dashboard.headings.fitmentStatistics')}
@@ -3082,7 +3112,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label={t('dashboard.labels.deviceStatistics')}
+                label="Online now, Online today, Offline for 7 days, Offline for 30 days"
                 cardValue={deviceStatusInfo}
                 iconImage={Car}
                 heading={t('dashboard.headings.deviceStatistics')}
@@ -3092,7 +3122,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                label={t('dashboard.labels.eSIMStatistics')}
+                label="Total eSIM Activation request, Total 1 year renewal, Total 2 year renewal"
                 cardValue={dealerESIMInfo}
                 iconImage={Sim}
                 heading={t('dashboard.headings.eSIMStatistics')}

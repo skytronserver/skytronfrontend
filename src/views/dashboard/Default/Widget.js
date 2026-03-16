@@ -12,6 +12,7 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   position: "relative",
   borderRadius: "8px",
   width: "100%",
+  height: "100%",
   minHeight: "150px",
 
   "& > div": {
@@ -44,7 +45,7 @@ const Widget = ({
   const labelNew = label.split(",");
   const arr = Object.values(cardValue);
   return (
-    <>
+    <Box sx={{ height: "100%" }}>
       <CardWrapper
         border={false}
         content={false}
@@ -89,7 +90,7 @@ const Widget = ({
           </Grid>
         </Box>
       </CardWrapper>
-    </>
+    </Box>
   );
 };
 
