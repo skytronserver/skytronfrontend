@@ -294,8 +294,6 @@ const ActiveState = () => {
           taggedDevice: data.TotalTaggedDevice || 0,
           onlineDevice: data.Total_Online_now || 0,
           offlineDevice: (data.TotalTaggedDevice || 0) - (data.Total_Online_now || 0),
-          monthly: data.Fitment_month || 0,
-          daily: data.Fitment_today || 0,
         });
         setDealerDeviceInfo({
           assigned: data.Total_Device_Assigned || 0,
@@ -377,10 +375,6 @@ const ActiveState = () => {
           taggedDevice: data.TotalTaggedDevice,
           onlineDevice: data.Online_Devices,
           offlineDevice: data.Offline_Devices,
-          totalOnlineDevice: data.TotalOnlineDevice,
-          totalOfflineDevice: data.TotalOfflineDevice,
-          untaggedDevice: data.TotalUntaggedDevice,
-          totalFitments: data.TotalFitments
         })))
         setDeviceHealthInfo((prev => ({
           ...prev,
@@ -2996,7 +2990,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label="Total Fit Device,Tagged Device,Online Device,Offline Device,Total Online Device,Total Offline Device,Untagged Device,Total Fitments"
+                label="Total Fit Device,Tagged Device,Online Device,Offline Device"
                 cardValue={fitmentInfo}
                 iconImage={Fitment}
                 heading={t('dashboard.headings.fitmentStatistics')}
@@ -3076,15 +3070,6 @@ const ActiveState = () => {
                 heading="District Information"
               />
             </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                cardColor="linear-gradient(to right, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-                label="State Admin,eSIM Provider,Manufacturer,SOS Admin,SOS Executive,SOS Team Lead,SOS Desk Executive"
-                cardValue={activeUsersInfo}
-                iconImage={User}
-                heading="Active Users"
-              />
-            </Grid>
           </Grid>
         );
       case "dealer":
@@ -3103,7 +3088,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label="Total Fitment, Tagged Device, Online Device, Offline Device, Fitment Month, Fitment Today"
+                label="Total Fitment, Tagged Device, Online Device, Offline Device"
                 cardValue={dealerFitmentInfo}
                 iconImage={Fitment}
                 heading={t('dashboard.headings.fitmentStatistics')}

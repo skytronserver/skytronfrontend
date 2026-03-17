@@ -10,18 +10,12 @@ export const dashboardInitialState = {
     taggedDevice: 0,
     onlineDevice: 0,
     offlineDevice: 0,
-    totalOnlineDevice: 0,
-    totalOfflineDevice: 0,
-    untaggedDevice: 0,
-    totalFitments: 0,
   },
   dealerFitmentInfo: {
     total: 0,
     taggedDevice: 0,
     onlineDevice: 0,
     offlineDevice: 0,
-    monthly: 0,
-    daily: 0,
   },
   dealerDeviceInfo: {
     assigned: 0,
