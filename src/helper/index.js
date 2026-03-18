@@ -423,26 +423,37 @@ export const convertErrorObjectToArray = (errorObject) => {
 };
 
 export const cipherEncryption = (salt) => {
-  const textToChars = text => text.split('').map(c => c.charCodeAt(0));
+  const textToChars = (text) => {
+    const val = (text === null || text === undefined) ? "" : String(text);
+    return val.split('').map(c => c.charCodeAt(0));
+  };
   const byteHex = n => ("0" + Number(n).toString(16)).substr(-2);
   const applySaltToChar = code => textToChars(salt).reduce((a, b) => a ^ b, code);
 
-  return text => text.split('')
-    .map(textToChars)
-    .map(applySaltToChar)
-    .map(byteHex)
-    .join('');
-}
+  return (text) => {
+    const val = (text === null || text === undefined) ? "" : String(text);
+    return val.split('')
+      .map(c => c.charCodeAt(0))
+      .map(applySaltToChar)
+      .map(byteHex)
+      .join('');
+  };
+};
 
 export const decipherEncryption = (salt) => {
   const textToChars = text => text.split('').map(c => c.charCodeAt(0));
   const applySaltToChar = code => textToChars(salt).reduce((a, b) => a ^ b, code);
-  return encoded => encoded.match(/.{1,2}/g)
-    .map(hex => parseInt(hex, 16))
-    .map(applySaltToChar)
-    .map(charCode => String.fromCharCode(charCode))
-    .join('');
-}
+  return (encoded) => {
+    if (!encoded || typeof encoded !== 'string') return "";
+    const matches = encoded.match(/.{1,2}/g);
+    if (!matches) return "";
+    return matches
+      .map(hex => parseInt(hex, 16))
+      .map(applySaltToChar)
+      .map(charCode => String.fromCharCode(charCode))
+      .join('');
+  };
+};
 
 export const getRole = () => {
   const myDecipher = decipherEncryption("skytrack");

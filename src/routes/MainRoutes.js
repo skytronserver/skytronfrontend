@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { SYSTEM_ENV } from "../store/constant";
 
 // project imports
 import MainLayout from "../layout/MainLayout";
@@ -85,6 +86,19 @@ const PrivateRoute = ({ element, roles }) => {
   ) {
     // User does not have any of the required roles
     return <NotAuthorized />;
+  }
+  const normalizedRole = (userRoles || '').toLowerCase().trim();
+  const isRestrictedRole = ['teamlead', 'team_lead', 'team lead', 'sos_teamlead', 'desk_ex', 'desk_executive', 'desk executive', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'].includes(normalizedRole);
+  console.log(`[ACL] Route Check - Role: ${normalizedRole}, Env: ${SYSTEM_ENV}, Restricted: ${isRestrictedRole}`);
+
+  if (SYSTEM_ENV === 'prod') {
+    if (isRestrictedRole) {
+      return <NotAuthorized />;
+    }
+  } else if (SYSTEM_ENV === 'sos') {
+    if (!isRestrictedRole) {
+      return <NotAuthorized />;
+    }
   }
   return element;
 };

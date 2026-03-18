@@ -1,5 +1,5 @@
 // userActions.js
-import { SET_USER, SET_LOADING, SET_ERROR, VERIFY_OTP, BASE_URL } from '../store/constant';
+import { SET_USER, SET_LOADING, SET_ERROR, VERIFY_OTP, BASE_URL, SYSTEM_ENV } from '../store/constant';
 import { cipherEncryption } from '../helper';
 import axios from 'axios';
 // Import node-forge for RSA encryption
@@ -78,6 +78,27 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
       captcha_reply
     });
     if (response?.data?.token) {
+      const userRole = (response.data?.user?.role || '').toLowerCase().trim();
+      const userType = (response.data?.info?.user_type || '').toLowerCase().trim();
+
+      const restrictedTypes = ['teamlead', 'team_lead', 'team lead', 'sos_teamlead', 'desk_ex', 'desk_executive', 'desk executive', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'];
+      const isRestricted = userRole === 'sosexecutive' || restrictedTypes.includes(userRole) || restrictedTypes.includes(userType);
+
+      console.log(`[ACL] Login - Env: ${SYSTEM_ENV} | Role: ${userRole} | Type: ${userType} | Restricted: ${isRestricted}`);
+
+      if (SYSTEM_ENV === 'prod') {
+        if (isRestricted) {
+          const err = new Error("Access Denied: SOS roles (Team Leads/Desk Executives) are not allowed in Production.");
+          err.role = userRole;
+          throw err;
+        }
+      } else if (SYSTEM_ENV === 'sos') {
+        if (!isRestricted) {
+          const err = new Error("Access Denied: This environment is restricted to SOS Team Leads and Desk Executives.");
+          err.role = userRole;
+          throw err;
+        }
+      }
       const myCipher = cipherEncryption('skytrack');
       const responseData = {
         isAuthenticated: false,
@@ -85,8 +106,9 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
         email: username,
         otpToken: response.data.token,
       }
-      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.mobile)}`
-      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.user?.role)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`
+      const effectiveRole = (userRole === 'sosexecutive' && userType) ? userType : userRole;
+      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(effectiveRole)}-${myCipher(response.data?.user?.mobile)}`
+      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(effectiveRole)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`
       const error = {
         message: null,
         status: null,
@@ -117,6 +139,7 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
       }
 
     } else {
+      console.error(`[ACL] Access Denied. Role: ${error.role || 'Unknown'}, Env: ${SYSTEM_ENV}`);
       message = error.message
     }
     if (message === "text is undefined") {
@@ -141,15 +164,37 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
       token,
       otp: encryptedOtp
     });
+    const userRole = (response.data?.user?.role || '').toLowerCase().trim();
+    const userType = (response.data?.info?.user_type || '').toLowerCase().trim();
+
+    const restrictedTypes = ['teamlead', 'team_lead', 'team lead', 'sos_teamlead', 'desk_ex', 'desk_executive', 'desk executive', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'];
+    const isRestricted = userRole === 'sosexecutive' || restrictedTypes.includes(userRole) || restrictedTypes.includes(userType);
+
+    console.log(`[ACL] OTP - Env: ${SYSTEM_ENV} | Role: ${userRole} | Type: ${userType} | Restricted: ${isRestricted}`);
+
+    if (SYSTEM_ENV === 'prod') {
+      if (isRestricted) {
+        const err = new Error("Access Denied: SOS roles (Team Leads/Desk Executives) are not allowed in Production.");
+        err.role = userRole;
+        throw err;
+      }
+    } else if (SYSTEM_ENV === 'sos') {
+      if (!isRestricted) {
+        const err = new Error("Access Denied: This environment is restricted to SOS Team Leads and Desk Executives.");
+        err.role = userRole;
+        throw err;
+      }
+    }
     const responseData = {
       isAuthenticated: true,
       token: response.data.token,
       email: username,
       otpToken: null,
     }
-    if (response?.data?.user?.role === 'sosexecutive') {
-      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.mobile)}`
-      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(response.data?.info?.user_type)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`
+    const effectiveRole = (userRole === 'sosexecutive' && userType) ? userType : userRole;
+    if (response?.data?.user?.role === 'sosexecutive' || response?.data?.info?.user_type) {
+      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(effectiveRole)}-${myCipher(response.data?.user?.mobile)}`
+      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(effectiveRole)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`
       sessionStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
       localStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
       localStorage.setItem('skytrackCookiesData', skytrack_cookiesData);
@@ -175,10 +220,11 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
     dispatch(setUser(responseData));
     dispatch(setError(errorData));
   } catch (error) {
+    console.error(`[ACL] Access Denied. Role: ${error.role || 'Unknown'}, Env: ${SYSTEM_ENV}`);
     const errorData = {
-      message: "Verification failed. Please check the code and try again.",
+      message: error.message || "Verification failed. Please check the code and try again.",
       status: null,
-    }
+    };
     dispatch(setError(errorData));
   } finally {
     dispatch(setLoading(false));

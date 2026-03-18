@@ -6,6 +6,7 @@ import NavGroup from './NavGroup';
 import menuItem from '../../../../menu-items';
 import { useSelector } from 'react-redux';
 import { decipherEncryption } from '../../../../helper';
+import { SYSTEM_ENV } from '../../../../store/constant';
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
@@ -18,6 +19,20 @@ const MenuList = () => {
   const webRestrictedRoles = ["police_ex", "ambulance_ex", "PCR", "ACR"];
   if (webRestrictedRoles.includes(role)) {
     return null;
+  }
+
+  // Environment-based role blocking
+  const normalizedRole = (role || '').toLowerCase().trim();
+  const isBlockedInProd = ['teamlead', 'team_lead', 'team lead', 'sos_teamlead', 'desk_ex', 'desk_executive', 'desk executive', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'].includes(normalizedRole);
+
+  if (SYSTEM_ENV === 'prod') {
+    if (isBlockedInProd) {
+      return null;
+    }
+  } else if (SYSTEM_ENV === 'sos') {
+    if (!isBlockedInProd) {
+      return null;
+    }
   }
 
   const navItems = menuItem.items.map((item) => {

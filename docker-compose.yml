@@ -10,6 +10,8 @@ services:
       - NODE_ENV=development
       - REACT_APP_BASE_URL=https://api.gromed.in/
       - REACT_APP_BHUVAN_URL=https://bhuvan-vec1.nrsc.gov.in
+      # System environment: dev | prod | sos
+      - REACT_APP_SYSTEM_ENV=dev
     volumes:
       - .:/app
       - /app/node_modules

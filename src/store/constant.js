@@ -9,6 +9,8 @@ export const VERIFY_OTP = 'VERIFY_OTP';
 export const FILE_SIZE = 512 * 1024; // 512 KB
 export const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 export const BASE_URL = process.env.REACT_APP_BASE_URL;
+export const SYSTEM_ENV = (process.env.REACT_APP_SYSTEM_ENV || 'dev').toLowerCase().trim();
+console.log(`[SYS] Initialized with Environment: ${SYSTEM_ENV}`);
 export const CUSTOM_BASE_URL = process.env.REACT_APP_CUSTOM_URL;
 export const isoDatePattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z/;
 export const fullText = {
