@@ -73,6 +73,7 @@ const ActiveState = () => {
   const [deviceHealthInfo, setDeviceHealthInfo] = useState(dashboardInitialState.deviceHealthInfo);
   const [overSpeedInfo, setOverSpeedInfo] = useState(dashboardInitialState.alertInfo);
   const [emergencyInfo, setEmergencyInfo] = useState(dashboardInitialState.alertInfo);
+  const [totalAlertInfo, setTotalAlertInfo] = useState(dashboardInitialState.alertInfo);
   const [harshBreakInfo, setHarshBreakInfo] = useState(dashboardInitialState.alertInfo);
   const [suddenBreakInfo, setSuddenBreakInfo] = useState(dashboardInitialState.alertInfo);
   const [miscInfo, setMiscInfo] = useState(dashboardInitialState.miscInfo);
@@ -336,11 +337,17 @@ const ActiveState = () => {
           onlineDevice: dashboardData.TotalOnlineDevice,
           offlineDevice: dashboardData.TotalOfflineDevice,
         })))
-        setEmergencyInfo(prev => ({
+        setTotalAlertInfo(prev => ({
           ...prev,
           totalAlert: dashboardData.TotalAlerts,
           thisMonthAlert: dashboardData.TotalAlerts_month,
           todayAlert: dashboardData.TotalAlerts_today
+        }))
+        setEmergencyInfo(prev => ({
+          ...prev,
+          totalAlert: dashboardData.EmergencyAlerts,
+          thisMonthAlert: dashboardData.EmergencyAlerts_month,
+          todayAlert: dashboardData.EmergencyAlerts_today
         }))
         setOverSpeedInfo(prev => ({
           ...prev,
@@ -578,6 +585,7 @@ const ActiveState = () => {
     userStats: userInfoForAdmin,
     fitmentStats: fitmentInfoForAdmin,
     alertStats: emergencyInfo,
+    totalAlertStats: totalAlertInfo,
     overspeedStats: overSpeedInfo,
     stateStats: stateInfo,
     deviceHealth: deviceStatusInfo,
@@ -586,6 +594,7 @@ const ActiveState = () => {
     userInfoForAdmin,
     fitmentInfoForAdmin,
     emergencyInfo,
+    totalAlertInfo,
     overSpeedInfo,
     stateInfo,
     deviceStatusInfo,
@@ -603,9 +612,12 @@ const ActiveState = () => {
     'fitmentStats.toggedDevice': 'Tagged Devices',
     'fitmentStats.onlineDevice': 'Online Devices',
     'fitmentStats.offlineDevice': 'Offline Devices',
-    'alertStats.totalAlert': 'Total Alerts',
-    'alertStats.thisMonthAlert': 'Monthly Alerts',
-    'alertStats.todayAlert': 'Today Alerts',
+    'alertStats.totalAlert': 'Emergency Alerts',
+    'alertStats.thisMonthAlert': 'Emergency Monthly Alerts',
+    'alertStats.todayAlert': 'Emergency Today Alerts',
+    'totalAlertStats.totalAlert': 'Total Alerts',
+    'totalAlertStats.thisMonthAlert': 'Total Monthly Alerts',
+    'totalAlertStats.todayAlert': 'Total Today Alerts',
     'overspeedStats.totalAlert': 'Overspeed Alerts',
     'overspeedStats.thisMonthAlert': 'Overspeed Monthly Alerts',
     'overspeedStats.todayAlert': 'Overspeed Today Alerts',
@@ -2941,6 +2953,15 @@ const ActiveState = () => {
                   cardValue={fitmentInfoForAdmin}
                   iconImage={Fitment}
                   heading={t('dashboard.headings.fitmentStatistics')}
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
+                <Widget
+                  cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
+                  label={t('dashboard.widgets.total_alert,this_month,today')}
+                  cardValue={totalAlertInfo}
+                  iconImage={Alert}
+                  heading={t('dashboard.headings.totalAlert')}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={4}>
