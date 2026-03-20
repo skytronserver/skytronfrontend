@@ -104,6 +104,7 @@ export const dealerAccountFormField = {
     name: "expirydate",
     type: "date",
     label: "dealerAccountForm.fields.expirydate",
+    disabled: true,
     validation: Yup.date().required("dealerAccountForm.validation.expirydateRequired"),
     minDate: today
   },

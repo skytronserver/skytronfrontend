@@ -322,17 +322,17 @@ const FormField = ({
       const isSelfCertifiedIdProofAuthorisedSignatory =
         fieldConfig.name === "file_selfCertifiedIdProofAuthorisedSignatory";
 
-      const officialTechnicalOnboardingRequestLetterTooltipTitle = (
-        <div style={{ whiteSpace: "pre-line" }}>
-          {"On company letterhead, duly signed by Director / Company Secretary / Partner/ Proprietor/ Authorised Signatory with company seal, clearly mentioning:\n"}
-          {"• Purpose of onboarding\n"}
-          {"• Vehicle model(s) involved\n"}
-          {"• AIS-140 device make & model\n"}
-          {"• Confirmation of factory fitment\n"}
-          {"• Nodal officer details (Name, Designation, Email, Mobile)\n\n"}
-          {"If signed by an officer other than Director/Company Secretary, / Partner/ Proprietor, corporate authorisation proof (Board Resolution extract / authorisation letter) must be enclosed."}
-        </div>
-      );
+      // const officialTechnicalOnboardingRequestLetterTooltipTitle = (
+      //   <div style={{ whiteSpace: "pre-line" }}>
+      //     {"On company letterhead, duly signed by Director / Company Secretary / Partner/ Proprietor/ Authorised Signatory with company seal, clearly mentioning:\n"}
+      //     {"• Purpose of onboarding\n"}
+      //     {"• Vehicle model(s) involved\n"}
+      //     {"• AIS-140 device make & model\n"}
+      //     {"• Confirmation of factory fitment\n"}
+      //     {"• Nodal officer details (Name, Designation, Email, Mobile)\n\n"}
+      //     {"If signed by an officer other than Director/Company Secretary, / Partner/ Proprietor, corporate authorisation proof (Board Resolution extract / authorisation letter) must be enclosed."}
+      //   </div>
+      // );
 
       const vehicleTypeApprovalTacAnnexureCopyTooltipTitle = (
         <div style={{ whiteSpace: "pre-line" }}>
@@ -514,9 +514,7 @@ const FormField = ({
           <label htmlFor={fieldConfig.name}>
             <Tooltip
               title={
-                isOfficialTechnicalOnboardingRequestLetter
-                  ? officialTechnicalOnboardingRequestLetterTooltipTitle
-                  : isVehicleTypeApprovalTacAnnexureCopy
+                isVehicleTypeApprovalTacAnnexureCopy
                     ? vehicleTypeApprovalTacAnnexureCopyTooltipTitle
                     : isFactoryFitmentDeclaration
                       ? factoryFitmentDeclarationTooltipTitle
@@ -529,7 +527,6 @@ const FormField = ({
               arrow
               placement="top"
               disableHoverListener={!(
-                isOfficialTechnicalOnboardingRequestLetter ||
                 isVehicleTypeApprovalTacAnnexureCopy ||
                 isFactoryFitmentDeclaration ||
                 isAffidavitCumUndertakingBackendAccess ||

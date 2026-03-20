@@ -75,6 +75,7 @@ export const dtoFormFields = {
     name:"expirydate",
     type: "date",
     label: "dtoForm.fields.expiryDate",
+    disabled: true,
     validation: Yup.date().required("dtoForm.validation.expiryDateRequired"),
     minDate:today
   },

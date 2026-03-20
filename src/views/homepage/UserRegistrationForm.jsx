@@ -67,6 +67,30 @@ const getReferencePrefixByRole = (roleLabel) => {
   return "REFERENCE";
 };
 
+const extractErrorMessage = (err) => {
+  if (err?.response?.data) {
+    const data = err.response.data;
+    if (typeof data === "string") return data;
+    if (data.message) return data.message;
+    if (data.detail) {
+      if (Array.isArray(data.detail)) {
+        return data.detail[0]?.msg || JSON.stringify(data.detail);
+      }
+      return data.detail;
+    }
+    if (data.error) return data.error;
+    if (typeof data === "object") {
+      const values = Object.values(data).flat();
+      if (values.length > 0) {
+        if (typeof values[0] === "string") return values.join(", ");
+        return JSON.stringify(data);
+      }
+    }
+    return JSON.stringify(data);
+  }
+  return err?.message || "Failed to submit registration request.";
+};
+
 const UserRegistrationForm = () => {
   const { role: roleSlug } = useParams();
   const selectedRole = getRoleLabel(roleSlug);
@@ -251,6 +275,14 @@ const UserRegistrationForm = () => {
 
           if (selectedRole === "Vehicle Manufacturer") {
             // keep factory fitment declaration for Vehicle Manufacturer
+            if (nextConfig.file_authLetter)
+              nextConfig.file_authLetter.downloadUrl = "/templates/Factory Fitted/Authorization of Representative for Technical Onboarding – Factory-Fitted AIS-140 Devices.pdf";
+            if (nextConfig.file_officialTechnicalOnboardingRequestLetter)
+              nextConfig.file_officialTechnicalOnboardingRequestLetter.downloadUrl = "/templates/Factory Fitted/Technical Onboarding request letter– Factory-Fitted AIS-140 Devices in Vehicles.pdf";
+            if (nextConfig.file_affidavitCumUndertakingBackendAccess)
+              nextConfig.file_affidavitCumUndertakingBackendAccess.downloadUrl = "/templates/Factory Fitted/MANUFACTURER AFFIDAVIT.pdf";
+            if (nextConfig.file_factoryFitmentDeclaration)
+              nextConfig.file_factoryFitmentDeclaration.downloadUrl = "/templates/Factory Fitted/FACTORY FITMENT DECLARATION.pdf";
           } else {
             delete nextConfig.file_factoryFitmentDeclaration;
           }
@@ -258,6 +290,12 @@ const UserRegistrationForm = () => {
           if (selectedRole === "AIS-140 Device Manufacturer") {
             delete nextConfig.device_model_details;
             delete nextConfig.file_vehicleTypeApprovalTacAnnexureCopy;
+            if (nextConfig.file_authLetter)
+              nextConfig.file_authLetter.downloadUrl = "/templates/RetroFitted/Authorization of Representative for Technical Onboarding – Retrofit AIS-140 Devices.pdf";
+            if (nextConfig.file_officialTechnicalOnboardingRequestLetter)
+              nextConfig.file_officialTechnicalOnboardingRequestLetter.downloadUrl = "/templates/RetroFitted/Official Technical Onboarding request letter – AIS-140 Compliant Retrofit VLTD Device Manufacturer.pdf";
+            if (nextConfig.file_affidavitCumUndertakingBackendAccess)
+              nextConfig.file_affidavitCumUndertakingBackendAccess.downloadUrl = "/templates/RetroFitted/MANUFACTURER AFFIDAVIT.pdf";
           }
 
           return nextConfig;
@@ -403,12 +441,7 @@ const UserRegistrationForm = () => {
       setShowSuccess(true);
       resetForm({ values: eSIMInitialValues });
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.detail ||
-        err?.message ||
-        "Failed to submit registration request.";
-      setErrorMessage(msg);
+      setErrorMessage(extractErrorMessage(err));
     } finally {
       setFormikSubmitting(false);
       setSubmitting(false);
@@ -575,14 +608,9 @@ const UserRegistrationForm = () => {
       setShowSuccess(true);
       resetForm({ values: manufacturerInitialValues });
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.detail ||
-        err?.message ||
-        "Failed to submit registration request.";
-      setErrorMessage(msg);
+      setErrorMessage(extractErrorMessage(err));
     } finally {
-      setFormikSubmitting(false);
+      setSubmitting(false);
       setSubmitting(false);
     }
   };
@@ -846,8 +874,7 @@ const UserRegistrationForm = () => {
       setSchoolDocError("");
       setOtpSent(false);
     } catch (err) {
-      const msg = err?.message || "Failed to submit registration request.";
-      setErrorMessage(msg);
+      setErrorMessage(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -878,20 +905,46 @@ const UserRegistrationForm = () => {
         <Box className="reg-form-body">
 
           {showSuccess && (
-            <Box className="reg-success-box" sx={{ mb: 3 }}>
+            <Box className="reg-success-box" sx={{ mb: 3, px: 2 }}>
               <CheckCircleOutlineIcon sx={{ fontSize: 52, color: "#2e7d32", mb: 1 }} />
               <Typography variant="h6" sx={{ fontWeight: 700, color: "#2e7d32" }}>
-                Registration Submitted!
+                {(isM2MServiceProvider || isManufacturerRole)
+                  ? "Registration request successfully submitted!"
+                  : "Registration Submitted!"}
               </Typography>
               <Typography variant="body2" sx={{ color: "#4caf50", mt: 0.5 }}>
                 Your request has been received and is under review.
               </Typography>
-              {referenceNo ? (
-                <Typography variant="body2" sx={{ color: "#1b5e20", mt: 1, fontWeight: 700 }}>
-                  Reference No: {referenceNo}
-                </Typography>
-              ) : null}
-              <Box sx={{ mt: 2, display: "flex", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
+
+              {referenceNo && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" sx={{ color: "#1b5e20", fontWeight: 700, fontSize: "1.1rem" }}>
+                    Reference No: {referenceNo}
+                  </Typography>
+                  {(isM2MServiceProvider || isManufacturerRole) && (
+                    <Typography variant="body2" sx={{ color: "#2e7d32", mt: 0.5, fontWeight: 500 }}>
+                      Kindly note down this reference number for further correspondence.
+                    </Typography>
+                  )}
+                </Box>
+              )}
+
+              {(isM2MServiceProvider || isManufacturerRole) && (
+                <Box sx={{ mt: 2.5, textAlign: "center", maxWidth: "500px", mx: "auto" }}>
+                  <Typography variant="body2" sx={{ color: "#444", lineHeight: 1.6, mb: 1.5 }}>
+                    Approved applicants shall receive user login credentials of Skytron Assam State VLTD
+                    backend platform via mobile SMS in the registered mobile number.
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#444" }}>
+                    For further assistance, please write to{" "}
+                    <a href="mailto:support@skytron.in" style={{ color: "#800080", fontWeight: 600, textDecoration: "none" }}>
+                      support@skytron.in
+                    </a>
+                  </Typography>
+                </Box>
+              )}
+
+              <Box sx={{ mt: 3, display: "flex", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
                 <Button
                   variant="outlined"
                   size="small"
@@ -1641,6 +1694,23 @@ const UserRegistrationForm = () => {
             <li>Implementation Agency reserves the right to verify submitted documents with issuing authorities.</li>
             <li>Implementation Agency may conduct technical compatibility evaluation prior to granting access.</li>
             <li>Backend access, if granted, shall be role-based, limited, and revocable at sole discretion of the Implementation Agency.</li>
+            {(isM2MServiceProvider || isManufacturerRole) && (
+              <>
+                <li>
+                  Non-refundable Registration Fee of Rs 5,000 + GST payable in favour of-
+                  <Box sx={{ mt: 1, fontWeight: 600, color: "#333", fontSize: "0.95em" }}>
+                    Assam Electronics Development Corporation Limited<br />
+                    Account No: 41625944536<br />
+                    Branch: New Guwahati Branch<br />
+                    IFSC: SBIN0000221
+                  </Box>
+                </li>
+                <li>
+                  Details of registration fee payment receipt with mode and payment reference no and registration
+                  application reference no should be emailed to <a href="mailto:support@skytron.in" style={{ color: "#800080", textDecoration: "none", fontWeight: 600 }}>support@skytron.in</a> for further processing
+                </li>
+              </>
+            )}
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>

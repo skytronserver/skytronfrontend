@@ -217,7 +217,7 @@ export const eSIMFormField = {
     type: "file",
     label: "Authorization Letter",
     message: "esimUser.form.validation.file_restrictions",
-    downloadUrl: "/templates/authorization-letter-format.txt",
+    downloadUrl: "/templates/M2M/M2M AUTHORISED REPRESENTATIVE.pdf",
     downloadLabel: "Format of authorisation letter",
     validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
@@ -275,7 +275,7 @@ export const eSIMFormField = {
     type: "file",
     label: "Official Technical Onboarding Request Letter",
     message: "esimUser.form.validation.file_restrictions",
-    downloadUrl: "/templates/technical-onboarding-request-letter-format.pdf",
+    downloadUrl: "/templates/M2M/M2M Service Provider – Technical Onboarding Request Letter.pdf",
     downloadLabel: "Format of request letter",
     validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;
@@ -291,7 +291,7 @@ export const eSIMFormField = {
     type: "file",
     label: "Affidavit-cum-Undertaking for Skytron Backend Access",
     message: "esimUser.form.validation.file_restrictions",
-    downloadUrl: "/templates/affidavit-cum-undertaking-format.pdf",
+    downloadUrl: "/templates/M2M/M2M AFFIDAVIT.pdf",
     downloadLabel: "Format of Affidavit-Cum-Undertaking",
     validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "esimUser.form.validation.file_size", value => {
       if (!value) return false;

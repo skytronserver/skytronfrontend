@@ -267,7 +267,7 @@ export const manufacturerFormField = {
     type: "file",
     label: "Auth Letter (PDF)",
     message: "manufacturer.form.validation.file_restrictions",
-    downloadUrl: "/templates/authorization-letter-format.txt",
+    downloadUrl: "/templates/Factory Fitted/Authorization of Representative for Technical Onboarding – Factory-Fitted AIS-140 Devices.pdf",
     downloadLabel: "Format of authorisation letter",
     validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -325,7 +325,7 @@ export const manufacturerFormField = {
     type: "file",
     label: "Official Technical Onboarding Request Letter",
     message: 'manufacturer.form.validation.file_restrictions',
-    downloadUrl: "/templates/technical-onboarding-request-letter-format.pdf",
+    downloadUrl: "/templates/Factory Fitted/Technical Onboarding request letter– Factory-Fitted AIS-140 Devices in Vehicles.pdf",
     downloadLabel: "Format of request letter",
     validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -341,7 +341,7 @@ export const manufacturerFormField = {
     type: "file",
     label: "Affidavit-cum-Undertaking for Skytron Backend Access",
     message: 'manufacturer.form.validation.file_restrictions',
-    downloadUrl: "/templates/affidavit-cum-undertaking-format.pdf",
+    downloadUrl: "/templates/Factory Fitted/MANUFACTURER AFFIDAVIT.pdf",
     downloadLabel: "Format of Affidavit-Cum-Undertaking",
     validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -355,7 +355,7 @@ export const manufacturerFormField = {
   file_vehicleTypeApprovalTacAnnexureCopy: {
     name: "file_vehicleTypeApprovalTacAnnexureCopy",
     type: "file",
-    label: "Self-Certified Vehicle Type Approval (TAC) Annexure Copy VLTD details",
+    label: "Self-Certified Vehicle Type Approval (TAC) Annexure Copy Showing the VLTD Details",
     message: 'manufacturer.form.validation.file_restrictions',
     validation: Yup.mixed().required("Vehicle Type Approval (TAC) Annexure Copy is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;
@@ -406,7 +406,7 @@ export const manufacturerFormField = {
     type: "file",
     label: "Factory Fitment Declaration",
     message: 'manufacturer.form.validation.file_restrictions',
-    downloadUrl: "/templates/factory-fitment-declaration-format.pdf",
+    downloadUrl: "/templates/Factory Fitted/FACTORY FITMENT DECLARATION.pdf",
     downloadLabel: "Format of Factory Fitment Declaration",
     validation: Yup.mixed().required("Factory Fitment Declaration is required").test("fileSize", "manufacturer.form.validation.file_size", value => {
       if (!value) return false;

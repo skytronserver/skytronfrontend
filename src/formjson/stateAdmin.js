@@ -53,6 +53,7 @@ export const stateAdminInitialValues = {
       name:"expirydate",
       type: "date",
       label: "Expiry Date",
+      disabled: true,
       validation: Yup.date().required("stateAdmin.validation.expiryDateRequired"),
       minDate:today
     },
