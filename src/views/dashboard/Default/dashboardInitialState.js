@@ -1,13 +1,13 @@
 export const dashboardInitialState = {
   userInfo: {
-    dealer: 0,
-    manufacturer: 0,
     dto: 0,
+    m2m: 0,
+    manufacturer: 0,
+    dealer: 0,
     owner: 0,
   },
   fitmentInfo: {
     fitted: 0,
-    taggedDevice: 0,
     onlineDevice: 0,
     offlineDevice: 0,
   },
@@ -59,6 +59,11 @@ export const dashboardInitialState = {
     inActiveFor30Days: 0,
   },
   alertInfo: {
+    totalAlert: 0,
+    thisMonthAlert: 0,
+    todayAlert: 0,
+  },
+  temperAlertInfo: {
     totalAlert: 0,
     thisMonthAlert: 0,
     todayAlert: 0,
@@ -117,10 +122,12 @@ export const dashboardInitialState = {
     fakeCalls: 0
   },
   userInfoForAdmin: {
-    stateUser: 0,
-    eSimUser: 0,
-    manufacturer: 0,
+    stateAdmin: 0,
     sosAdmin: 0,
+    m2mServiceProvider: 0,
+    manufacturer: 0,
+    dealer: 0,
+    vehicleOwner: 0,
   },
   stateInfo: {
     total: 0,
@@ -128,18 +135,16 @@ export const dashboardInitialState = {
     inactive: 0,
   },
   districtInfo: {
-    total: 0,
+    district: 0,
     active: 0,
-    inactive: 0,
   },
   stockInfo: {
     total: 0,
+    taggedDevice: 0,
     unassigned: 0,
-    waiting: 0,
   },
   adminFitmentInfo: {
-    fitted: 0,
-    toggedDevice: 0,
+    devicesFitted: 0,
     onlineDevice: 0,
     offlineDevice: 0,
   },
@@ -221,7 +226,9 @@ export const dashboardInitialState = {
     broadcasts: {
       total: 0,
       total_closed: 0,
-      closed_daily: 0,
+      broadcast_today: 0,
+      closed_today: 0,
+      pending_today: 0,
       closed_weekly: 0,
       closed_monthly: 0,
       closed_yearly: 0,
