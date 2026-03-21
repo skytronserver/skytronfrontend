@@ -11,115 +11,161 @@ import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import { Style, Circle as CircleStyle, Fill, Stroke, Text } from "ol/style";
 
-export default function RoadsMapComponent({ onZoomChange,data }) {
-
+export default function RoadsMapComponent({onBack, onZoomChange,data,onDistrictClick,level,onCityClick,onLocalityClick }) {
+debugger
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const vectorSourceRef = useRef(new VectorSource());
+const levelRef = useRef(level);
+ useEffect(() => {
+ levelRef.current = level;
+  if (!data || data.length === 0) return;
 
-  useEffect(() => {
-    debugger
-if (!data || data.length === 0) return; // ⭐ WAIT FOR DATA
+  // ✅ ALWAYS clear old features
+  vectorSourceRef.current.clear();
 
-    if (mapInstanceRef.current) return;
+  // =============================
+  // 1️⃣ CREATE MAP ONLY ONCE
+  // =============================
+  if (!mapInstanceRef.current) {
 
     const roadsLayer = new TileLayer({
       source: new XYZ({
         url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
-        attributions: "© OpenStreetMap contributors",
         maxZoom: 20,
-        projection: "EPSG:3857",
       }),
       zIndex: 3,
-      minZoom: 5,
-    });
-
- // Vector source for district markers
-    const vectorSource = new VectorSource();
-
-    // Add markers from JSON
-
-const counts = data.map(d => d.total_vehicle_count);
-const minVehicles = Math.min(...counts);
-const maxVehicles = Math.max(...counts);
-
-    data?.forEach(d => {
-
-      const feature = new Feature({
-        geometry: new Point(
-          fromLonLat([d.longitude, d.latitude])
-        ),
-        name: d.district_name,
-        vehicles: d.total_vehicle_count
-      });
-
-      // bubble size based on vehicles
-      const MIN_RADIUS = 20;
-const MAX_RADIUS = 40;
-
-const radius =
-  MIN_RADIUS +
-  ((d.total_vehicle_count - minVehicles) /
-    (maxVehicles - minVehicles)) *
-    (MAX_RADIUS - MIN_RADIUS);
-
-      feature.setStyle(
-        new Style({
-          image: new CircleStyle({
-            radius: radius,
-            fill: new Fill({ color: "rgba(14,165,233,0.6)" }),
-            stroke: new Stroke({ color: "#fff", width: 2 })
-          }),
-         
-    text: new Text({
-      text: String(d.total_vehicle_count),   // ⭐ show count
-      fill: new Fill({ color: "#fff" }),
-      stroke: new Stroke({ color: "#000", width: 3 }),
-      font: "bold 12px Arial",
-      textAlign: "center",
-      textBaseline: "middle"   })
-        })
-      );
-
-      vectorSource.addFeature(feature);
-
     });
 
     const vectorLayer = new VectorLayer({
-      source: vectorSource,
+      source: vectorSourceRef.current,
       zIndex: 5
     });
 
-
-
-    // CREATE VIEW FIRST
     const view = new View({
-      center: fromLonLat([91.7362, 26.1445]), // Guwahati
+      center: fromLonLat([91.7362, 26.1445]),
       zoom: 9,
-      projection: "EPSG:3857",
-       minZoom: 6,   // ⭐ IMPORTANT
-  maxZoom: 20
     });
 
     const map = new Map({
       target: mapRef.current,
-      layers: [roadsLayer,vectorLayer],
+      layers: [roadsLayer, vectorLayer],
       view: view,
     });
 
     mapInstanceRef.current = map;
 
-    // Listen for zoom change
-    view.on("change:resolution", () => {
+// =============================
+      // ✅ ADD BACK BUTTON INSIDE MAP
+      // =============================
+      const backBtn = document.createElement("button");
+      backBtn.innerHTML = "⬅ Back";
 
-      const zoom = Math.round(view.getZoom());
+      backBtn.style.position = "absolute";
+      backBtn.style.top = "10px";
+      backBtn.style.right = "10px";
+      backBtn.style.zIndex = "1000";
+      backBtn.style.padding = "8px 12px";
+      backBtn.style.background = "#0ea5e9";
+      backBtn.style.color = "#fff";
+      backBtn.style.border = "none";
+      backBtn.style.borderRadius = "6px";
+      backBtn.style.cursor = "pointer";
 
-      if (onZoomChange) {
-       onZoomChange(zoom); 
-      }
+      backBtn.onclick = () => {
+        
+        onBack?.(levelRef.current);
+      };
 
+      map.getTargetElement().appendChild(backBtn);
+
+
+    // ✅ CLICK EVENT
+    map.on("singleclick", function (evt) {
+      map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+
+        const props = feature.get("raw");
+ const currentLevel = levelRef.current; 
+    if (currentLevel === "district") {
+      onDistrictClick?.(props);
+    }
+
+    else if (currentLevel === "city") {
+      onCityClick?.(props);
+    }
+
+    else if (currentLevel === "locality") {
+      onLocalityClick?.(props);
+    }
+
+        view.animate({
+          center: feature.getGeometry().getCoordinates(),
+          zoom: view.getZoom() + 2,
+          duration: 500
+        });
+
+      });
     });
 
-  }, [data]);
+    // zoom listener
+    view.on("change:resolution", () => {
+      onZoomChange?.(Math.round(view.getZoom()));
+    });
+  }
+
+  // =============================
+  // 2️⃣ ALWAYS UPDATE FEATURES
+  // =============================
+
+const counts = data.map(d => d.total_vehicle_count ?? d.total_devices ?? 1);
+  const min = Math.min(...counts);
+  const max = Math.max(...counts);
+
+  data.forEach(d => {
+const lon = d.lon ?? d.longitude;
+const lat = d.lat ?? d.latitude;
+if (!lon || !lat) return;  
+    const feature = new Feature({
+      geometry: new Point(
+        fromLonLat([lon, lat])
+      ),
+     name:
+  d.city_village_name ||
+  d.district_name ||
+  d.locality_name ||   // ⭐ ADD THIS
+  d.vehicle_reg_no   ,
+  raw: d   // ⭐ FOR DEVICE LEVEL
+    });
+
+    const radius =
+  20 + ((d.total_vehicle_count ?? d.total_devices ?? 1) - min) / (max - min || 1) * 20;
+const label =
+  level === "device"
+    ? d.vehicle_reg_no
+    : (d.total_vehicle_count ?? d.total_devices ?? "");
+    feature.setStyle(
+      new Style({
+        image: new CircleStyle({
+          radius: radius,
+          fill: new Fill({ color: "rgba(14,165,233,0.6)" }),
+          stroke: new Stroke({ color: "#fff", width: 2 })
+        }),
+        text: new Text({
+          text: String(label),
+          fill: new Fill({ color: "#fff" }),
+          stroke: new Stroke({ color: "#000", width: 3 }),
+          font: "bold 12px Arial",
+          textAlign: "center",
+          textBaseline: "middle"
+        })
+      })
+    );
+
+    vectorSourceRef.current.addFeature(feature);
+
+  });
+
+}, [data,level]);
 
   return (
     <div

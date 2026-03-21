@@ -176,7 +176,8 @@ const buildDummyVehicles = (seed = []) => {
 
   return vehicles;
 };
-const DistrictVehicleMap = ({ vehicles,data  }) => {
+const DistrictVehicleMap = ({onBack, vehicles,data ,onDistrictClick,level, onZoomChange,onCityClick,onLocalityClick }) => {
+ 
   const gpsData = useMemo(() => {
     const nowIso = new Date().toISOString();
     return (Array.isArray(vehicles) ? vehicles : []).map((v) => {
@@ -202,7 +203,10 @@ const DistrictVehicleMap = ({ vehicles,data  }) => {
 const [zoom, setZoom] = useState(8);
   return (<>
    {zoom >= 9 ? (
-  <RoadsMapComponent onZoomChange={setZoom} data={data} />
+  <RoadsMapComponent onZoomChange={(z) => {
+    setZoom(z);
+    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
+  }} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick} />
 ) : (
   <BhuvanMapComponent onZoomChange={setZoom} data={data}/>
 )}
@@ -224,11 +228,41 @@ const [zoom, setZoom] = useState(8);
   );
 };
 
+const fetchAreaData = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard/areawise-device-count/",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
 const PublicTransportVehicleMonitoringDashboard = () => {
   // Using existing live data hook to seed dummy points (fallback to generated)
 
 
+
 const [districtData, setDistrictData] = useState([]);
+const [cityData, setCityData] = useState([]);
+const [localityData, setLocalityData] = useState([]);
+const [deviceData, setDeviceData] = useState([]);
+const [level, setLevel] = useState("district");
+const [mapData, setMapData] = useState([]);
+const levelRef = useRef(level);
+
+
 const [totalDevices, setTotalDevices] = useState(0);
 const data = [
   {
@@ -442,19 +476,266 @@ const data = [
     "total_vehicle_count": 7654
   }
 ];
+const cityLevelData=[{
+  "district_name": "Kamrup",
+  "total_locations": 5,
+  "locations": [
+    {
+      "location_type": "town",
+      "city_village_name": "Rangia",
+      "lat": 26.4700,
+      "lon": 91.6300,
+      "total_vehicle_count": 12840
+    },
+    {
+      "location_type": "town",
+      "city_village_name": "Palashbari",
+      "lat": 26.0181,
+      "lon": 91.0844,
+      "total_vehicle_count": 6840
+    },
+    {
+      "location_type": "town",
+      "city_village_name": "Hajo",
+      "lat": 26.2452,
+      "lon": 91.5253,
+      "total_vehicle_count": 5925
+    },
+    {
+      "location_type": "town",
+      "city_village_name": "Sualkuchi",
+      "lat": 26.1700,
+      "lon": 91.5709,
+      "total_vehicle_count": 4380
+    },
+    {
+      "location_type": "town",
+      "city_village_name": "Boko",
+      "lat": 25.9778,
+      "lon": 91.2356,
+      "total_vehicle_count": 5175
+    }
+  ]
+}];
+const locality=[{
+  "district_name": "Kamrup",
+  "city_name": "Rangia",
+  "city_center_lat": 26.4700,
+  "city_center_lon": 91.6300,
+  "total_localities": 10,
+  "localities": [
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 1",
+      "lat": 26.4728,
+      "lon": 91.6269,
+      "total_vehicle_count": 1180
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 2",
+      "lat": 26.4715,
+      "lon": 91.6288,
+      "total_vehicle_count": 1325
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 3",
+      "lat": 26.4694,
+      "lon": 91.6299,
+      "total_vehicle_count": 1490
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 4",
+      "lat": 26.4679,
+      "lon": 91.6314,
+      "total_vehicle_count": 980
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 5",
+      "lat": 26.4686,
+      "lon": 91.6330,
+      "total_vehicle_count": 1710
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 6",
+      "lat": 26.4701,
+      "lon": 91.6348,
+      "total_vehicle_count": 1045
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 7",
+      "lat": 26.4720,
+      "lon": 91.6339,
+      "total_vehicle_count": 1165
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 8",
+      "lat": 26.4734,
+      "lon": 91.6318,
+      "total_vehicle_count": 760
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 9",
+      "lat": 26.4711,
+      "lon": 91.6361,
+      "total_vehicle_count": 615
+    },
+    {
+      "locality_type": "ward",
+      "locality_name": "Ward No. 10",
+      "lat": 26.4689,
+      "lon": 91.6369,
+      "total_vehicle_count": 570
+    }
+  ]
+}];
+const vehicleLevel=[{
+  "district_name": "Kamrup",
+  "city_name": "Rangia",
+  "locality_name": "Ward No. 5",
+  "locality_center_lat": 26.4686,
+  "locality_center_lon": 91.6330,
+  "total_devices": 5,
+  "devices": [
+    {
+      "device_id": "DEV-KAM-RAN-W05-0001",
+      "vehicle_reg_no": "AS01AB1234",
+      "vehicle_type": "car",
+      "status": "online",
+      "lat": 26.4689,
+      "lon": 91.6335,
+      "last_seen": "2026-03-14T07:10:00+05:30",
+      "speed_kmph": 34
+    },
+    {
+      "device_id": "DEV-KAM-RAN-W05-0002",
+      "vehicle_reg_no": "AS01CD5678",
+      "vehicle_type": "bike",
+      "status": "idle",
+      "lat": 26.4682,
+      "lon": 91.6326,
+      "last_seen": "2026-03-14T07:09:10+05:30",
+      "speed_kmph": 0
+    },
+    {
+      "device_id": "DEV-KAM-RAN-W05-0003",
+      "vehicle_reg_no": "AS25EF9087",
+      "vehicle_type": "truck",
+      "status": "online",
+      "lat": 26.4693,
+      "lon": 91.6341,
+      "last_seen": "2026-03-14T07:08:40+05:30",
+      "speed_kmph": 21
+    },
+    {
+      "device_id": "DEV-KAM-RAN-W05-0004",
+      "vehicle_reg_no": "AS01GH4455",
+      "vehicle_type": "auto",
+      "status": "offline",
+      "lat": 26.4678,
+      "lon": 91.6329,
+      "last_seen": "2026-03-14T06:48:15+05:30",
+      "speed_kmph": 0
+    },
+    {
+      "device_id": "DEV-KAM-RAN-W05-0005",
+      "vehicle_reg_no": "AS01JK7788",
+      "vehicle_type": "bus",
+      "status": "online",
+      "lat": 26.4685,
+      "lon": 91.6338,
+      "last_seen": "2026-03-14T07:10:20+05:30",
+      "speed_kmph": 18
+    }
+  ]
+}];
+
+const handleDistrictClick = async (district) => {
+ debugger
+ const res = await fetchAreaData({
+    district_name: district.district_name
+  });
+
+  if (res?.locations) {
+    const cities = res.locations.map(c => ({
+      ...c,
+      district_name: res.district_name
+    }));
+
+    setCityData(cities);
+    setMapData(cities);
+    setLevel("city");
+  }
+};
+const handleCityClick = async(city) => {
+   debugger
+  const res = await fetchAreaData({
+    district_name: city.district_name,
+    city_name: city.city_village_name
+  });
+
+  if (res?.localities) {
+    setLocalityData(res.localities);
+    setMapData(res.localities);
+    setLevel("locality");
+  }
+};
+const handleLocalityClick =async (locality) => {
+   debugger
+  const res = await fetchAreaData({
+    district_name: locality.district_name,
+    city_name: locality.city_name,
+    locality_name: locality.locality_name
+  });
+
+  if (res?.devices) {
+    setDeviceData(res.devices);
+    setMapData(res.devices);
+    setLevel("device");
+  }
+};
+const handleBack = (level) => {
+ debugger
+  if (level === "device") {
+    setMapData([...localityData]);
+    setLevel("locality");
+  } 
+  else if (level === "locality") {
+    setMapData([...cityData]);
+    setLevel("city");
+  } 
+  else if (level === "city") {
+    setMapData([...districtData]);
+    setLevel("district");
+  }
+};
 
 useEffect(() => {
+ const loadDistricts = async () => {
+  debugger
+    const res = await fetchAreaData({}, "GET");
 
-  // store dummy data
-  setDistrictData(data);
+    if (Array.isArray(res)) {
+      setDistrictData(res);
+      setMapData(res);
 
-  // calculate total
-  const total = data.reduce(
-    (sum, item) => sum + (item.total_vehicle_count || 0),
-    0
-  );
+      const total = res.reduce(
+        (sum, item) => sum + (item.total_vehicle_count || 0),
+        0
+      );
 
-  setTotalDevices(total);
+      setTotalDevices(total);
+    }
+  };
+
+  loadDistricts();
 
 }, []);
 
@@ -623,7 +904,14 @@ useEffect(() => {
 
         <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
           <DistrictVehicleMap
-          data={districtData}
+          data={mapData}
+          level={level}
+          //  onZoomChange={handleZoomChange}
+          onBack={handleBack}
+  onDistrictClick={handleDistrictClick}
+  onCityClick={handleCityClick}
+  onLocalityClick={handleLocalityClick}
+          
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}
             onSelectDistrict={handleSelectDistrict}
