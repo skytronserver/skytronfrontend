@@ -106,7 +106,7 @@ export const dealerAccountFormField = {
     label: "dealerAccountForm.fields.expirydate",
     disabled: true,
     validation: Yup.date().required("dealerAccountForm.validation.expirydateRequired"),
-    minDate: today
+    minDate: today,
   },
   file_authLetter: {
     name: "file_authLetter",
