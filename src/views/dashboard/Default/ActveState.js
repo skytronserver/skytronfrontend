@@ -347,7 +347,7 @@ const ActiveState = () => {
           sosAdmin: data.SOS_admin || 0,
           m2mServiceProvider: data.eSimProvider || 0,
           manufacturer: data.manufacturer_admin || 0,
-          dealer: data.dealer_admin || 0,
+          dealer: data.Dealer || 0,
           vehicleOwner: data.VehicleOwner || 0
         }))
         setFitmentInfoForAdmin((prev => ({

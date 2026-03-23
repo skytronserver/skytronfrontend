@@ -38,6 +38,11 @@ const getDeviceHealthStatusPublic = (params) => {
   return publicAxiosInstance.get('/api/Statistics/manufacturer_model_stock_statistics/', { params });
 };
 
+const getDeviceOnboardingDashboard = () => {
+  return axios.get('https://api.gromed.in/api/public/device_onboarding_dashboard/');
+};
+
 export default {
-  getDeviceHealthStatusPublic
+  getDeviceHealthStatusPublic,
+  getDeviceOnboardingDashboard
 };

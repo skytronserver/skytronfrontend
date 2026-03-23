@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -22,23 +22,24 @@ import publicApi from '../../services/publicApi';
 const DeviceStats = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deviceStats, setDeviceStats] = useState(null);
+  const [totals, setTotals] = useState(null);
+  const [manufacturers, setManufacturers] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchDeviceStats = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Call the public device health status API
-      const response = await publicApi.getDeviceHealthStatusPublic();
+
+      const response = await publicApi.getDeviceOnboardingDashboard();
       const data = response?.data;
 
       if (data && typeof data === 'object') {
-        setDeviceStats(data);
+        setTotals(data.totals || {});
+        setManufacturers(data.manufacturers || []);
         setLastUpdated(new Date());
       } else {
-        throw new Error('Failed to fetch manufacturer statistics');
+        throw new Error('Failed to fetch device onboarding statistics');
       }
     } catch (err) {
       console.error('Error fetching device stats:', err);
@@ -51,39 +52,6 @@ const DeviceStats = () => {
   useEffect(() => {
     fetchDeviceStats();
   }, []);
-  const manufacturers = deviceStats?.manufacturers || [];
-
-  const aggregatedStats = useMemo(() => {
-    const initial = {
-      m2mServiceProviders: deviceStats?.total_m2m_providers || 0,
-      deviceManufacturers: deviceStats?.total_manufacturers || manufacturers.length || 0,
-      totalModels: 0,
-      totalStock: 0,
-      totalDeviceTags: 0,
-      totalOnlineDevices: 0,
-      totalOfflineDevices: 0,
-    };
-
-    return manufacturers.reduce((acc, manufacturer) => {
-      const models = manufacturer?.models || [];
-      const manufacturerTotals = models.reduce(
-        (modelAcc, model) => ({
-          totalStock: modelAcc.totalStock + (model?.total_stock || 0),
-          totalDeviceTags: modelAcc.totalDeviceTags + (model?.total_device_tags || 0),
-          totalOnlineDevices: modelAcc.totalOnlineDevices + (model?.online_devices || 0),
-          totalOfflineDevices: modelAcc.totalOfflineDevices + (model?.offline_devices || 0),
-        }),
-        { totalStock: 0, totalDeviceTags: 0, totalOnlineDevices: 0, totalOfflineDevices: 0 }
-      );
-
-      acc.totalModels += manufacturer?.total_models ?? models.length;
-      acc.totalStock += manufacturerTotals.totalStock;
-      acc.totalDeviceTags += manufacturerTotals.totalDeviceTags;
-      acc.totalOnlineDevices += manufacturerTotals.totalOnlineDevices;
-      acc.totalOfflineDevices += manufacturerTotals.totalOfflineDevices;
-      return acc;
-    }, initial);
-  }, [deviceStats, manufacturers]);
 
   if (loading) {
     return (
@@ -143,7 +111,7 @@ const DeviceStats = () => {
                 M2M Service Provider
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.m2mServiceProviders}
+                {totals?.total_esim_m2m_provider ?? 0}
               </Typography>
             </Paper>
           </Grid>
@@ -153,7 +121,7 @@ const DeviceStats = () => {
                 Device Manufacturer
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.deviceManufacturers}
+                {totals?.total_manufacturers_with_onboarding_done ?? 0}
               </Typography>
             </Paper>
           </Grid>
@@ -163,7 +131,7 @@ const DeviceStats = () => {
                 Device Models
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.totalModels}
+                {totals?.total_device_models_with_onboarding_done ?? 0}
               </Typography>
             </Paper>
           </Grid>
@@ -173,7 +141,7 @@ const DeviceStats = () => {
                 Total Stock
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.totalStock}
+                {totals?.total_device_stock ?? 0}
               </Typography>
             </Paper>
           </Grid>
@@ -183,7 +151,7 @@ const DeviceStats = () => {
                 Total Tagged Device
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.totalDeviceTags}
+                {totals?.total_tagged_device ?? 0}
               </Typography>
             </Paper>
           </Grid>
@@ -193,7 +161,7 @@ const DeviceStats = () => {
                 Total Online
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.totalOnlineDevices}
+                {totals?.total_online_device ?? 0}
               </Typography>
             </Paper>
           </Grid>
@@ -203,7 +171,7 @@ const DeviceStats = () => {
                 Total Offline
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.totalOfflineDevices}
+                {totals?.total_offline_device ?? 0}
               </Typography>
             </Paper>
           </Grid>
@@ -242,10 +210,10 @@ const DeviceStats = () => {
                 manufacturers.map((manufacturer) => (
                   <TableRow hover key={manufacturer.manufacturer_id}>
                     <TableCell>{manufacturer.company_name || 'N/A'}</TableCell>
-                    <TableCell>{manufacturer.address || 'N/A'}</TableCell>
-                    <TableCell>{manufacturer.gstnnumber || 'N/A'}</TableCell>
-                    <TableCell>{manufacturer.contact_number || manufacturer.phone || 'N/A'}</TableCell>
-                    <TableCell>{manufacturer.email || 'N/A'}</TableCell>
+                    <TableCell>{manufacturer.company_address || 'N/A'}</TableCell>
+                    <TableCell>{manufacturer.company_gstn || 'N/A'}</TableCell>
+                    <TableCell>{manufacturer.company_contact_no || 'N/A'}</TableCell>
+                    <TableCell>{manufacturer.company_email_id || 'N/A'}</TableCell>
                   </TableRow>
                 ))
               )}

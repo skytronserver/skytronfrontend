@@ -295,7 +295,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                     Resend OTP
                   </Button>
                 ) : null}
-                {allowLoginId === id || isApplicantActive ? (
+                {allowLoginId === id || isApplicantActive || requestStatus === "allow to login" ? (
                   <Button
                     size="small"
                     variant="outlined"
