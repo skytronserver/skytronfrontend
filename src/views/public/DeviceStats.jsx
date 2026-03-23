@@ -16,14 +16,13 @@ import {
   Card,
   Grid
 } from '@mui/material';
-import { Refresh as RefreshIcon, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import { Refresh as RefreshIcon } from '@mui/icons-material';
 import publicApi from '../../services/publicApi';
 
 const DeviceStats = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deviceStats, setDeviceStats] = useState(null);
-  const [expandedManufacturerIndex, setExpandedManufacturerIndex] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchDeviceStats = async () => {
@@ -56,7 +55,8 @@ const DeviceStats = () => {
 
   const aggregatedStats = useMemo(() => {
     const initial = {
-      totalManufacturers: deviceStats?.total_manufacturers || manufacturers.length || 0,
+      m2mServiceProviders: deviceStats?.total_m2m_providers || 0,
+      deviceManufacturers: deviceStats?.total_manufacturers || manufacturers.length || 0,
       totalModels: 0,
       totalStock: 0,
       totalDeviceTags: 0,
@@ -84,26 +84,6 @@ const DeviceStats = () => {
       return acc;
     }, initial);
   }, [deviceStats, manufacturers]);
-  const manufacturerSummary = useMemo(() => {
-    return manufacturers.map((manufacturer) => {
-      const models = manufacturer?.models || [];
-      const totals = models.reduce(
-        (acc, model) => ({
-          totalStock: acc.totalStock + (model?.total_stock || 0),
-          totalDeviceTags: acc.totalDeviceTags + (model?.total_device_tags || 0),
-          totalOnlineDevices: acc.totalOnlineDevices + (model?.online_devices || 0),
-          totalOfflineDevices: acc.totalOfflineDevices + (model?.offline_devices || 0),
-        }),
-        { totalStock: 0, totalDeviceTags: 0, totalOnlineDevices: 0, totalOfflineDevices: 0 }
-      );
-
-      return {
-        ...manufacturer,
-        models,
-        aggregated: totals,
-      };
-    });
-  }, [manufacturers]);
 
   if (loading) {
     return (
@@ -137,7 +117,7 @@ const DeviceStats = () => {
     <Box p={3} sx={{ backgroundColor: '#fff', minHeight: '100vh' }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Manufacturer & Model Statistics
+          Statistics
         </Typography>
         <Button
           variant="outlined"
@@ -159,18 +139,28 @@ const DeviceStats = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
             <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Manufacturers
+              <Typography variant="subtitle2" color="primary">
+                M2M Service Provider
               </Typography>
               <Typography variant="h5" fontWeight="bold">
-                {aggregatedStats.totalManufacturers}
+                {aggregatedStats.m2mServiceProviders}
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Models
+              <Typography variant="subtitle2" color="primary">
+                Device Manufacturer
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {aggregatedStats.deviceManufacturers}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle2" color="primary">
+                Device Models
               </Typography>
               <Typography variant="h5" fontWeight="bold">
                 {aggregatedStats.totalModels}
@@ -179,7 +169,7 @@ const DeviceStats = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle2" color="text.secondary">
+              <Typography variant="subtitle2" color="primary">
                 Total Stock
               </Typography>
               <Typography variant="h5" fontWeight="bold">
@@ -187,30 +177,30 @@ const DeviceStats = () => {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Tagged Devices
+              <Typography variant="subtitle2" color="primary">
+                Total Tagged Device
               </Typography>
               <Typography variant="h5" fontWeight="bold">
                 {aggregatedStats.totalDeviceTags}
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Online Devices
+              <Typography variant="subtitle2" color="primary">
+                Total Online
               </Typography>
               <Typography variant="h5" fontWeight="bold">
                 {aggregatedStats.totalOnlineDevices}
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total Offline Devices
+              <Typography variant="subtitle2" color="primary">
+                Total Offline
               </Typography>
               <Typography variant="h5" fontWeight="bold">
                 {aggregatedStats.totalOfflineDevices}
@@ -220,100 +210,45 @@ const DeviceStats = () => {
         </Grid>
       </Box>
 
+      <Box mb={1} mt={2}>
+        <Typography variant="h6" fontWeight="bold">
+          Technically Onboarded Device Manufacturer
+        </Typography>
+        <Divider sx={{ mt: 1 }} />
+      </Box>
+
       <Card variant="outlined">
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell width="5%"></TableCell>
-                <TableCell>Manufacturer</TableCell>
-                <TableCell>GSTIN</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell>Expiry</TableCell>
-                <TableCell align="right">Models</TableCell>
-                <TableCell align="right">Stock</TableCell>
-                <TableCell align="right">Tagged</TableCell>
-                <TableCell align="right">Online</TableCell>
-                <TableCell align="right">Offline</TableCell>
+              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                <TableCell><strong>Name</strong></TableCell>
+                <TableCell><strong>Address</strong></TableCell>
+                <TableCell><strong>GSTN</strong></TableCell>
+                <TableCell><strong>Contact Number</strong></TableCell>
+                <TableCell><strong>Email ID</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {manufacturerSummary.map((manufacturer, index) => (
-                <React.Fragment key={manufacturer.manufacturer_id}>
-                  <TableRow hover>
-                    <TableCell>
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          setExpandedManufacturerIndex((prev) => (prev === index ? null : index))
-                        }
-                        endIcon={
-                          expandedManufacturerIndex === index ? <KeyboardArrowUp /> : <KeyboardArrowDown />
-                        }
-                      >
-                        {expandedManufacturerIndex === index ? 'Hide' : 'View'}
-                      </Button>
-                    </TableCell>
-                    <TableCell>{manufacturer.company_name}</TableCell>
+              {manufacturers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    <Typography variant="body2" color="text.secondary">
+                      No manufacturers found.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                manufacturers.map((manufacturer) => (
+                  <TableRow hover key={manufacturer.manufacturer_id}>
+                    <TableCell>{manufacturer.company_name || 'N/A'}</TableCell>
+                    <TableCell>{manufacturer.address || 'N/A'}</TableCell>
                     <TableCell>{manufacturer.gstnnumber || 'N/A'}</TableCell>
-                    <TableCell>{manufacturer.created || 'N/A'}</TableCell>
-                    <TableCell>{manufacturer.expirydate || 'N/A'}</TableCell>
-                    <TableCell align="right">{manufacturer.total_models}</TableCell>
-                    <TableCell align="right">{manufacturer.aggregated.totalStock}</TableCell>
-                    <TableCell align="right">{manufacturer.aggregated.totalDeviceTags}</TableCell>
-                    <TableCell align="right">{manufacturer.aggregated.totalOnlineDevices}</TableCell>
-                    <TableCell align="right">{manufacturer.aggregated.totalOfflineDevices}</TableCell>
+                    <TableCell>{manufacturer.contact_number || manufacturer.phone || 'N/A'}</TableCell>
+                    <TableCell>{manufacturer.email || 'N/A'}</TableCell>
                   </TableRow>
-                  {expandedManufacturerIndex === index && (
-                    <TableRow>
-                      <TableCell colSpan={10} sx={{ backgroundColor: '#fafafa' }}>
-                        {manufacturer.models.length === 0 ? (
-                          <Typography variant="body2" color="text.secondary">
-                            No models available for this manufacturer.
-                          </Typography>
-                        ) : (
-                          <Box>
-                            <Typography variant="subtitle1" gutterBottom>
-                              Models
-                            </Typography>
-                            <Divider sx={{ mb: 1 }} />
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Model Name</TableCell>
-                                  <TableCell>Vendor ID</TableCell>
-                                  <TableCell>TAC No</TableCell>
-                                  <TableCell>Hardware Version</TableCell>
-                                  <TableCell>Test Agency</TableCell>
-                                  <TableCell align="right">Stock</TableCell>
-                                  <TableCell align="right">Tagged</TableCell>
-                                  <TableCell align="right">Online</TableCell>
-                                  <TableCell align="right">Offline</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {manufacturer.models.map((model) => (
-                                  <TableRow key={model.model_id}>
-                                    <TableCell>{model.model_name}</TableCell>
-                                    <TableCell>{model.vendor_id || 'N/A'}</TableCell>
-                                    <TableCell>{model.tac_no || 'N/A'}</TableCell>
-                                    <TableCell>{model.hardware_version || 'N/A'}</TableCell>
-                                    <TableCell>{model.test_agency || 'N/A'}</TableCell>
-                                    <TableCell align="right">{model.total_stock}</TableCell>
-                                    <TableCell align="right">{model.total_device_tags}</TableCell>
-                                    <TableCell align="right">{model.online_devices}</TableCell>
-                                    <TableCell align="right">{model.offline_devices}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </Box>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </React.Fragment>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>

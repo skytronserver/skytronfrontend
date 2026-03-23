@@ -66,6 +66,7 @@ const ActiveState = () => {
   const [fitmentInfo, setFitmentInfo] = useState(dashboardInitialState.fitmentInfo);
   const [dealerFitmentInfo, setDealerFitmentInfo] = useState(dashboardInitialState.dealerFitmentInfo);
   const [dealerDeviceInfo, setDealerDeviceInfo] = useState(dashboardInitialState.dealerDeviceInfo);
+  const [dealerVehicleOwnerInfo, setDealerVehicleOwnerInfo] = useState(dashboardInitialState.dealerVehicleOwnerInfo);
   const [dealerESIMInfo, setDealerESIMInfo] = useState(dashboardInitialState.dealerESIMInfo);
   const [eSIMInfo, setESIMInfo] = useState(dashboardInitialState.eSIMInfo);
   const [eSIMActivationInfo, setESIMActivationInfo] = useState(dashboardInitialState.eSIMActivationInfo);
@@ -106,6 +107,7 @@ const ActiveState = () => {
   const [activeUsersInfo, setActiveUsersInfo] = useState(dashboardInitialState.activeUsersInfo);
   const [dtoDashboardInfo, setDtoDashboardInfo] = useState(dashboardInitialState.dtoDashboardInfo)
   const [team, setTeam] = useState(dashboardInitialState.team)
+  const [sosUsers, setSosUsers] = useState(dashboardInitialState.sosUsers)
   const [teamForLead, setTeamForLead] = useState(dashboardInitialState.teamForLead)
   const [incomingCall, setIncomingCall] = useState(dashboardInitialState.incomingCall)
   const [fakeCall, setFakeCall] = useState(dashboardInitialState.fakeCall)
@@ -196,7 +198,12 @@ const ActiveState = () => {
           expired: data.ESim_Expired || 0,
           active: data.ESim_Active || 0,
           pending: data.ESim_Pending || 0,
-          invalid: data.ESim_Invalid || 0
+          invalid: data.ESim_Invalid || 0,
+          manufactures: data.Total_Manufacture || 0,
+          activationReceived: data.Total_esim_activation_request || 0,
+          activated: data.Total_Activation || 0,
+          oneYearActivation: data.Total_1year_renewal_request || 0,
+          twoYearsActivation: data.Total_2year_renewal_request || 0,
         }));
         setESIMActivationInfo(prev => ({
           ...prev,
@@ -307,10 +314,17 @@ const ActiveState = () => {
           faulty: data.Current_Device_faulty || 0,
           freeDevice: data.Available_Free_Device || 0
         });
+        setDealerVehicleOwnerInfo({
+          total: data.Total_Vehicle_Owner || 0,
+          month: data.Total_Vehicle_Owner_month || 0,
+          today: data.Total_Vehicle_Owner_today || 0,
+        });
         setDealerESIMInfo({
           totalActivation: data.Total_esim_activation_request || 0,
+          activated: data.Total_esim_activated || 0,
           oneYearRenewal: data.Total_1_year_renewal_request || 0,
-          twoYearRenewal: data.Total_2_year_renewal_request || 0
+          twoYearRenewal: data.Total_2_year_renewal_request || 0,
+          expired: data.Total_expired_device || 0
         });
         setDeviceStatusInfo({
           onlineNow: data.Total_Online_now || 0,
@@ -489,6 +503,17 @@ const ActiveState = () => {
           Total_Rejected_Assignemnt_thismonth: data.Total_Rejected_Assignemnt_thismonth,
           Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
           Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
+        }));
+        setSosUsers((prev) => ({
+          ...prev,
+          teamLeader: data.Total_Teams || 0,
+          onlineTeamLeader: data.Live_Teams || 0,
+          deskExecutive: data.Total_DeskExecutives || 0,
+          onlineDeskExecutive: data.Live_DeskExecutives || 0,
+          police: data.Total_Police || 0,
+          onlinePolice: data.Online_Police || 0,
+          ambulance: data.Total_Ambulance || 0,
+          onlineAmbulance: data.Online_Ambulance || 0,
         }));
 
         // Fetch vehicle alert statistics
@@ -3087,8 +3112,14 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label="Online now, Online today, Offline for 7 days, Offline for 30 days"
-                cardValue={deviceStatusInfo}
+                label={t('dashboard.labels.deviceStatistics')}
+                cardValue={{
+                  stocked: dealerDeviceInfo.stocked,
+                  tagged: dealerFitmentInfo.taggedDevice,
+                  onlineToday: deviceStatusInfo.onlineToday,
+                  sevenDaysOffline: deviceStatusInfo.sevenDaysOffline,
+                  thirtyDaysOffline: deviceStatusInfo.thirtyDaysOffline
+                }}
                 iconImage={Car}
                 heading={t('dashboard.headings.deviceStatistics')}
               />
@@ -3097,10 +3128,26 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                label="Total eSIM Activation request, Total 1 year renewal, Total 2 year renewal"
-                cardValue={dealerESIMInfo}
+                label={t('dashboard.labels.eSIMStatistics')}
+                cardValue={{
+                  totalActivation: dealerESIMInfo.totalActivation,
+                  activated: dealerESIMInfo.activated,
+                  oneYear: dealerESIMInfo.oneYearRenewal,
+                  twoYear: dealerESIMInfo.twoYearRenewal,
+                  expired: dealerESIMInfo.expired
+                }}
                 iconImage={Sim}
                 heading={t('dashboard.headings.eSIMStatistics')}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label={t('dashboard.labels.vehicleOwner')}
+                cardValue={dealerVehicleOwnerInfo}
+                iconImage={User}
+                heading={t('dashboard.headings.vehicleOwner')}
               />
             </Grid>
           </Grid>
@@ -3197,25 +3244,13 @@ const ActiveState = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label={t('dashboard.labels.dtoVehicleStatistics')}
-                cardValue={{
-                  vehicles: dtoDashboardInfo.vehicles,
-                  deviceActivated: dtoDashboardInfo.activated,
-                  onlineDevice: dtoDashboardInfo.onlineDevice,
-                  offlineDevice: dtoDashboardInfo.offlineDevice
-                }}
-                iconImage={Fitment}
-                heading={t('dashboard.headings.dtoVehicleStatistics')}
-              />
-            </Grid>
+
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label={t('dashboard.labels.dtoHealthStatistics')}
                 cardValue={{
+                  vehicles: dtoDashboardInfo.vehicles,
                   onlineDevice: dtoDashboardInfo.onlineDevice,
                   offlineDevice: dtoDashboardInfo.offlineDevice,
                   sevenDaysOffline: dtoDashboardInfo.sevenDaysOffline,
@@ -3226,33 +3261,7 @@ const ActiveState = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                label={t('dashboard.labels.dtoSOSStatistics')}
-                cardValue={{
-                  sosCalls: dtoDashboardInfo.sosCalls,
-                  genuineCalls: dtoDashboardInfo.genuineCalls,
-                  fakeCalls: dtoDashboardInfo.fakeCalls
-                }}
-                iconImage={Bell}
-                heading={t('dashboard.headings.dtoSOSStatistics')}
-              />
-            </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label={t('dashboard.labels.dtoActivationStatistics')}
-                cardValue={{
-                  totalActivations: dtoDashboardInfo.activations,
-                  monthlyActivations: dtoDashboardInfo.monthlyActivations,
-                  dailyActivations: dtoDashboardInfo.dailyActivations
-                }}
-                iconImage={Activation}
-                heading={t('dashboard.headings.dtoActivationStatistics')}
-              />
-            </Grid>
           </Grid>
         );
       case "devicemanufacture":
@@ -3422,30 +3431,104 @@ const ActiveState = () => {
                 heading="Provider Dates"
               />
             </Grid>
+
+            {/* Added eSIM statistics widget */}
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                label={t('dashboard.labels.esimproviderStatistics')}
+                cardValue={{
+                  manufactures: eSIMInfo.manufactures || 0,
+                  activationReceived: eSIMInfo.activationReceived || 0,
+                  activated: eSIMInfo.activated || 0,
+                  oneYear: eSIMInfo.oneYearActivation || 0,
+                  twoYears: eSIMInfo.twoYearsActivation || 0,
+                  expired: eSIMInfo.expired || 0
+                }}
+                iconImage={Sim}
+                heading={t('dashboard.headings.eSIMStatistics')}
+              />
+            </Grid>
           </Grid>
         );
       case "sosadmin":
+        return (
+          <Grid container spacing={2} marginBottom={mar}>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                label={t('dashboard.labels.sosUsers')}
+                cardValue={sosUsers}
+                iconImage={UserImage}
+                heading={t('dashboard.headings.sosUsers')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                label="Total,This month,Today"
+                cardValue={{
+                  total: vehicleAlertStats.sos_calls.total,
+                  thisMonth: vehicleAlertStats.sos_calls.monthly,
+                  today: vehicleAlertStats.sos_calls.daily
+                }}
+                iconImage={OnCall}
+                heading="SOS Calls"
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                label="Total, This month, Today"
+                cardValue={{
+                  total: fakeCall.Total_Fake_Calls,
+                  monthly: fakeCall.Total_Fake_Calls_thismonth,
+                  today: fakeCall.Total_Fake_Calls_today
+                }}
+                iconImage={FakeCall}
+                heading={t('dashboard.headings.fakeCalls')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
+                label="Closed,Pending"
+                cardValue={{
+                  closed: vehicleAlertStats.sos_calls.by_status.closed,
+                  pending: vehicleAlertStats.sos_calls.by_status.pending
+                }}
+                iconImage={OnCall}
+                heading="SOS Today"
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #FFBB28 0%, #ffc658 100%)"
+                label="Total Broadcast, Total Closed, Broadcast Today, Closed Today, Pending Today"
+                cardValue={{
+                  total: vehicleAlertStats.broadcasts.total,
+                  closed: vehicleAlertStats.broadcasts.total_closed,
+                  today: vehicleAlertStats.broadcasts.broadcast_today,
+                  closedToday: vehicleAlertStats.broadcasts.closed_today,
+                  pendingToday: vehicleAlertStats.broadcasts.pending_today
+                }}
+                iconImage={Alert}
+                heading="Broadcast Statistics"
+              />
+            </Grid>
+          </Grid>
+        );
       case "teamlead":
         return (
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
-              {role === "sosadmin" ? (
-                <Widget
-                  cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                  label={t('dashboard.labels.usersTeams')}
-                  cardValue={team}
-                  iconImage={UserImage}
-                  heading={t('dashboard.headings.usersTeams')}
-                />
-              ) : (
-                <Widget
-                  cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                  label={t('dashboard.labels.users')}
-                  cardValue={teamForLead}
-                  iconImage={UserImage}
-                  heading={t('dashboard.headings.users')}
-                />
-              )}
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label={t('dashboard.labels.users')}
+                cardValue={teamForLead}
+                iconImage={UserImage}
+                heading={t('dashboard.headings.users')}
+              />
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
@@ -3459,69 +3542,30 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label={role === "sosadmin" ? "Total, This month, Today" : t('dashboard.labels.fakeCalls')}
-                cardValue={role === "sosadmin" ? {
-                  total: fakeCall.Total_Fake_Calls,
-                  monthly: fakeCall.Total_Fake_Calls_thismonth,
-                  today: fakeCall.Total_Fake_Calls_today
-                } : fakeCall}
+                label={t('dashboard.labels.fakeCalls')}
+                cardValue={fakeCall}
                 iconImage={FakeCall}
                 heading={t('dashboard.headings.fakeCalls')}
               />
             </Grid>
-            {role !== "sosadmin" && (
-              <>
-                <Grid item xs={12} sm={12} md={6} lg={4}>
-                  <Widget
-                    cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                    label={t('dashboard.labels.incomingCalls')}
-                    cardValue={incomingCall}
-                    iconImage={IncomingC}
-                    heading={t('dashboard.headings.incomingCalls')}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={12} md={6} lg={4}>
-                  <Widget
-                    cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                    label={t('dashboard.labels.rejectedCalls')}
-                    cardValue={callRejection}
-                    iconImage={Rejection}
-                    heading={t('dashboard.headings.rejectedCalls')}
-                  />
-                </Grid>
-              </>
-            )}
-            {role === "sosadmin" && (
-              <>
-                <Grid item xs={12} sm={12} md={6} lg={4}>
-                  <Widget
-                    cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
-                    label="Closed,Pending"
-                    cardValue={{
-                      closed: vehicleAlertStats.sos_calls.by_status.closed,
-                      pending: vehicleAlertStats.sos_calls.by_status.pending
-                    }}
-                    iconImage={OnCall}
-                    heading="SOS Today"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={12} md={6} lg={4}>
-                  <Widget
-                    cardColor="linear-gradient(to right, #FFBB28 0%, #ffc658 100%)"
-                    label="Total Broadcast, Total Closed, Broadcast Today, Closed Today, Pending Today"
-                    cardValue={{
-                      total: vehicleAlertStats.broadcasts.total,
-                      closed: vehicleAlertStats.broadcasts.total_closed,
-                      today: vehicleAlertStats.broadcasts.broadcast_today,
-                      closedToday: vehicleAlertStats.broadcasts.closed_today,
-                      pendingToday: vehicleAlertStats.broadcasts.pending_today
-                    }}
-                    iconImage={Alert}
-                    heading="Broadcast Statistics"
-                  />
-                </Grid>
-              </>
-            )}
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                label={t('dashboard.labels.incomingCalls')}
+                cardValue={incomingCall}
+                iconImage={IncomingC}
+                heading={t('dashboard.headings.incomingCalls')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={4}>
+              <Widget
+                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                label={t('dashboard.labels.rejectedCalls')}
+                cardValue={callRejection}
+                iconImage={Rejection}
+                heading={t('dashboard.headings.rejectedCalls')}
+              />
+            </Grid>
           </Grid>
         );
       case "desk_ex":
