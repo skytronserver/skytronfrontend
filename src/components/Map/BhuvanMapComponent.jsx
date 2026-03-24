@@ -76,7 +76,8 @@ const BhuvanMapComponent = ({
     const [drawVectorLayer, setDrawVectorLayer] = useState(null);
     const [drawInteraction, setDrawInteraction] = useState(null);
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
-
+    const userHasInteractedRef = useRef(false);
+    const hasAutoFittedRef = useRef(false);
     useEffect(() => {
         const container = overlayElement.current;
         if (!container) return;
@@ -1061,6 +1062,9 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             pixelRatio: 1,
         });
 
+        initialMap.on("movestart", () => {
+            userHasInteractedRef.current = true;
+        });
         // Initialize vector layer for markers
         const initialVectorLayer = new VectorLayer({
             source: new VectorSource(),
@@ -2160,9 +2164,20 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             vectorLayer.getSource().addFeatures(features);
 
             // Only auto-fit if autoFit prop is true and there are markers
-            if (autoFit && features.length > 0) {
+            if (
+                autoFit &&
+                features.length > 0 &&
+                !hasAutoFittedRef.current
+            ) {
                 const extent = vectorLayer.getSource().getExtent();
-                map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+
+                map.getView().fit(extent, {
+                    padding: [50, 50, 50, 50],
+                    maxZoom: 15
+                });
+
+                // ✅ lock after first auto zoom
+                hasAutoFittedRef.current = true;
             }
 
             // Handle map click to display the overlay and zoom to street level
