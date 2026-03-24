@@ -78,6 +78,69 @@ const BhuvanMapComponent = ({
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
     const userHasInteractedRef = useRef(false);
     const hasAutoFittedRef = useRef(false);
+    const vehicleFeatureRef = useRef({});
+    const vehicleTrailRef = useRef({});
+
+    const getSmoothedPosition = (imei, newPoint) => {
+        if (!vehicleTrailRef.current[imei]) {
+            vehicleTrailRef.current[imei] = [];
+        }
+
+        const trail = vehicleTrailRef.current[imei];
+
+        trail.push(newPoint);
+
+        // Keep last 5 points only
+        if (trail.length > 5) {
+            trail.shift();
+        }
+
+        // Average
+        const avg = trail.reduce(
+            (acc, curr) => {
+                acc.lon += curr[0];
+                acc.lat += curr[1];
+                return acc;
+            },
+            { lon: 0, lat: 0 }
+        );
+        console.log("IMEI:", imei);
+        console.log("Trail:", trail);
+        console.log("Average:", [
+            avg.lon / trail.length,
+            avg.lat / trail.length
+        ]);
+
+        return [
+            avg.lon / trail.length,
+            avg.lat / trail.length
+        ];
+
+    };
+
+
+    const animateFeature = (feature, start, end, duration = 500) => {
+        const startTime = performance.now();
+
+        const animate = (time) => {
+            const elapsed = time - startTime;
+            const t = Math.min(elapsed / duration, 1);
+
+            const lon = start[0] + (end[0] - start[0]) * t;
+            const lat = start[1] + (end[1] - start[1]) * t;
+
+            feature.getGeometry().setCoordinates([lon, lat]);
+
+            if (t < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        console.log("Animating from:", start, "to:", end);
+
+        requestAnimationFrame(animate);
+    };
+
     useEffect(() => {
         const container = overlayElement.current;
         if (!container) return;
@@ -2278,7 +2341,80 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         autoFit,
         onMarkerClick,
     ]);
+    useEffect(() => {
+        if (!vectorLayer || !gpsData || gpsData.length === 0) return;
 
+        const source = vectorLayer.getSource();
+
+        gpsData.forEach((data) => {
+            const imei =
+                data.device_imei ||
+                data.device?.device?.imei ||
+                data.Assignment?.call?.device?.device?.imei ||
+                data.id ||
+                data.vehicle_reg_no ||
+                JSON.stringify(data);
+
+            if (!imei) return;
+
+            const newCoord = [data.longitude, data.latitude];
+
+            const smoothCoord = getSmoothedPosition(imei, newCoord);
+
+            let feature = vehicleFeatureRef.current[imei];
+
+            if (!feature) {
+                // CREATE feature first time
+                feature = new Feature({
+                    geometry: new Point(smoothCoord),
+                });
+
+                feature.setStyle(
+                    getIconStyle(data, data.vehicle_type, markerLabelMode)
+                );
+
+                vehicleFeatureRef.current[imei] = feature;
+                source.addFeature(feature);
+            } else {
+                // ANIMATE movement
+                const currentCoord =
+                    feature.getGeometry().getCoordinates();
+
+                animateFeature(feature, currentCoord, smoothCoord, 600);
+            }
+            // 🔍 DEBUG: RAW vs SMOOTH
+            const rawFeature = new Feature({
+                geometry: new Point(newCoord),
+            });
+
+            rawFeature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: 5,
+                        fill: new Fill({ color: "red" }), // RAW = RED
+                    }),
+                })
+            );
+
+            const smoothFeature = new Feature({
+                geometry: new Point(smoothCoord),
+            });
+
+            smoothFeature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: 5,
+                        fill: new Fill({ color: "green" }), // SMOOTH = GREEN
+                    }),
+                })
+            );
+
+            // Add to map
+            vectorLayer.getSource().addFeature(rawFeature);
+            vectorLayer.getSource().addFeature(smoothFeature);
+        });
+
+    }, [gpsData, vectorLayer]);
     // Render POIs
     useEffect(() => {
         if (!map || !poiVectorLayer) return;
