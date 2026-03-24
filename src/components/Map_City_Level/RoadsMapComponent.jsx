@@ -12,11 +12,12 @@ import Point from "ol/geom/Point";
 import { Style, Circle as CircleStyle, Fill, Stroke, Text } from "ol/style";
 
 export default function RoadsMapComponent({onBack, onZoomChange,data,onDistrictClick,level,onCityClick,onLocalityClick }) {
-debugger
+
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const vectorSourceRef = useRef(new VectorSource());
 const levelRef = useRef(level);
+const lastSelectedRef = useRef(null);
  useEffect(() => {
  levelRef.current = level;
   if (!data || data.length === 0) return;
@@ -74,7 +75,10 @@ const levelRef = useRef(level);
 
       backBtn.onclick = () => {
         
-        onBack?.(levelRef.current);
+        onBack?.({
+  level: levelRef.current,
+  data: lastSelectedRef.current
+});
       };
 
       map.getTargetElement().appendChild(backBtn);
@@ -85,6 +89,7 @@ const levelRef = useRef(level);
       map.forEachFeatureAtPixel(evt.pixel, function (feature) {
 
         const props = feature.get("raw");
+        lastSelectedRef.current = props; // ⭐ STORE LAST CLICKED
  const currentLevel = levelRef.current; 
     if (currentLevel === "district") {
       onDistrictClick?.(props);
@@ -109,6 +114,7 @@ const levelRef = useRef(level);
 
     // zoom listener
     view.on("change:resolution", () => {
+      debugger
       onZoomChange?.(Math.round(view.getZoom()));
     });
   }
