@@ -62,6 +62,9 @@ const GPSHistoryMap = ({
 
   const STREET_ZOOM_LEVEL = 18;
 
+  const isPlayingRef = useRef(false);
+  const animationSpeedRef = useRef(animationSpeed);
+
   function getStatusInfo(data) {
     if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
 
@@ -82,24 +85,130 @@ const GPSHistoryMap = ({
     }
   }
 
-  function playAnimation() {
-    setIsPlaying(true);
-    overlayRef.current.style.display = "none";
+  const interpolate = (start, end, t) => {
+  return start + (end - start) * t;
+};
 
-    animationIntervalId.current = setInterval(() => {
-      if (sliderValueRef.current < maxSliderValue) {
-        sliderValueRef.current += 1;
-        setSliderValue(sliderValueRef.current);
-        const entry = mapData[sliderValueRef.current];
-        if (entry) {
-          updateEmergencyPointer(entry);
-        }
-      } else {
-        clearInterval(animationIntervalId.current);
-        setIsPlaying(false);
-      }
-    }, (510 - animationSpeed));
+  const getSmoothedCoordinate = (data, index) => {
+  let sumLat = 0;
+  let sumLon = 0;
+  let count = 0;
+
+  const usedPoints = [];
+
+  for (let i = index - 2; i <= index + 2; i++) {
+    if (data[i]) {
+      const lat = parseFloat(data[i].lat);
+      const lon = parseFloat(data[i].lon);
+
+      sumLat += lat;
+      sumLon += lon;
+      count++;
+
+      usedPoints.push({ lat, lon });
+    }
   }
+
+  const avg = {
+    lat: sumLat / count,
+    lon: sumLon / count,
+  };
+
+  console.log("🔵 INDEX:", index);
+  console.log("📍 USED POINTS:", usedPoints);
+  console.log("✅ AVERAGE:", avg);
+
+  return avg;
+};
+
+function playAnimation() {
+  isPlayingRef.current = true;
+  setIsPlaying(true);
+  overlayRef.current.style.display = "none";
+
+  let lastTime = performance.now();
+
+  function animate(time) {
+    if (!isPlayingRef.current) return;
+
+    const delta = time - lastTime;
+    lastTime = time;
+
+    const speedFactor = Math.max(animationSpeedRef.current / 100, 0.2);
+    sliderValueRef.current += delta * 0.001 * speedFactor;
+
+    const baseIndex = Math.floor(sliderValueRef.current);
+    const nextIndex = baseIndex + 1;
+
+    // ✅ HARD SAFETY CHECK (MOST IMPORTANT FIX)
+    if (
+      baseIndex >= mapData.length - 1 ||
+      nextIndex >= mapData.length ||
+      !mapData[baseIndex] ||
+      !mapData[nextIndex]
+    ) {
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+      return;
+    }
+
+    const currData = mapData[baseIndex];
+    const nextData = mapData[nextIndex];
+
+    const currTime = new Date(currData.et).getTime();
+    const nextTime = new Date(nextData.et).getTime();
+
+    // ✅ EXTRA SAFETY (in case et missing)
+    if (!currData.et || !nextData.et) {
+      sliderValueRef.current = nextIndex;
+      setSliderValue(nextIndex);
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    const diffMinutes = (nextTime - currTime) / (1000 * 60);
+
+    // 🚨 OFFLINE → DIRECT JUMP
+    if (diffMinutes > 5) {
+      sliderValueRef.current = nextIndex;
+      setSliderValue(nextIndex);
+
+      updateEmergencyPointer(nextData);
+
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    const t = sliderValueRef.current - baseIndex;
+
+    // ✅ STAY ON LINE
+    const current = {
+      lat: parseFloat(currData.lat),
+      lon: parseFloat(currData.lon),
+    };
+
+    const next = {
+      lat: parseFloat(nextData.lat),
+      lon: parseFloat(nextData.lon),
+    };
+
+    const lat = interpolate(current.lat, next.lat, t);
+    const lon = interpolate(current.lon, next.lon, t);
+
+    const fakeEntry = {
+      ...currData,
+      lat,
+      lon,
+    };
+
+    setSliderValue(baseIndex);
+    updateEmergencyPointer(fakeEntry);
+
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+}
 
   const redM = new Style({
     image: new Icon({
@@ -345,75 +454,143 @@ const GPSHistoryMap = ({
 
   // Function to add markers and lines when data is loaded
   const loadMarkersAndLines = (data) => {
-    const coordinates = data.map((entry) => fromLonLat([parseFloat(entry.lon), parseFloat(entry.lat)]));
-    const lineFeature = new Feature({
-      geometry: new LineString(coordinates),
+  if (!data || data.length < 2) return;
+
+  markerRef.current.clear();
+  allFeaturesRef.current = [];
+
+  let isOfflineBreak = false; // 🔥 TRACK BREAK
+
+  for (let i = 0; i < data.length - 1; i++) {
+    const curr = data[i];
+    const next = data[i + 1];
+
+    const currCoord = fromLonLat([
+      parseFloat(curr.lon),
+      parseFloat(curr.lat),
+    ]);
+
+    const nextCoord = fromLonLat([
+      parseFloat(next.lon),
+      parseFloat(next.lat),
+    ]);
+
+    const currTime = new Date(curr.et).getTime();
+    const nextTime = new Date(next.et).getTime();
+    const diffMinutes = (nextTime - currTime) / (1000 * 60);
+
+    // 🚨 OFFLINE DETECTED
+    if (diffMinutes > 5) {
+      isOfflineBreak = true;
+
+      const offlineStyle = new Style({
+        image: new CircleStyle({
+          radius: 4,
+          fill: new Fill({ color: "#9e9e9e" }),
+        }),
+      });
+
+      const startPoint = new Feature({
+        geometry: new Point(currCoord),
+      });
+      startPoint.setStyle(offlineStyle);
+
+      const endPoint = new Feature({
+        geometry: new Point(nextCoord),
+      });
+      endPoint.setStyle(offlineStyle);
+
+      markerRef.current.addFeature(startPoint);
+      markerRef.current.addFeature(endPoint);
+
+      allFeaturesRef.current.push(startPoint, endPoint);
+
+      continue; // ❌ STOP LINE
+    }
+
+    // ❌ IMPORTANT: SKIP FIRST LINE AFTER OFFLINE
+    if (isOfflineBreak) {
+      isOfflineBreak = false;
+      continue;
+    }
+
+    // ✅ NORMAL LINE
+    const statusInfo = getStatusInfo(curr);
+
+    const segment = new Feature({
+      geometry: new LineString([currCoord, nextCoord]),
     });
 
-    // Styling the line between points
-    lineFeature.setStyle(
+    segment.setStyle(
       new Style({
         stroke: new Stroke({
-          color: "blue",
-          width: 2,
+          color: statusInfo.colorHex,
+          width: 3,
         }),
       })
     );
 
-    markerRef.current.addFeature(lineFeature);
-    allFeaturesRef.current.push(lineFeature); // Store for later
+    markerRef.current.addFeature(segment);
+    allFeaturesRef.current.push(segment);
+  }
 
-    const extent = markerRef.current.getExtent(); // Get the extent of all markers
+  // ✅ POINTS (no extra offline clutter)
+  data.forEach((entry, index) => {
+    const prev = data[index - 1];
 
-    data.forEach((entry, index) => {
-      const point = new Feature({
-        geometry: new Point(fromLonLat([parseFloat(entry.lon), parseFloat(entry.lat)])),
-        data: entry,
-      });
-      const statusInfo = getStatusInfo(entry);
+    if (prev) {
+      const diffMinutes =
+        (new Date(entry.et) - new Date(prev.et)) / (1000 * 60);
 
-      // Adding circular marker for each point
-      point.setStyle(
-        new Style({
-          image: new CircleStyle({
-            radius: 2,
-            fill: new Fill({ color: statusInfo.colorHex }),
-          }),
-          text: new Text({
-            text: (index + 1).toString(),
-            scale: 0.2,
-            fill: new Fill({ color: statusInfo.colorHex }),
-          }),
-        })
-      );
+      if (diffMinutes > 5) return;
+    }
 
-      markerRef.current.addFeature(point);
-      allFeaturesRef.current.push(point); // Store for later
+    const point = new Feature({
+      geometry: new Point(
+        fromLonLat([parseFloat(entry.lon), parseFloat(entry.lat)])
+      ),
+      data: entry,
     });
 
-    attachClickToPoints();
-    setIsPlaying(false);
-    setDownloadStatus("Play");
+    const statusInfo = getStatusInfo(entry);
 
-    // Set initial data for info box and vehicle marker
-    if (data.length > 0) {
-      setSliderValue(0);
-      sliderValueRef.current = 0;
-      setCurrentData(data[0]);
-      // Initialize the car marker at start position
-      updateEmergencyPointer(data[0]);
+    point.setStyle(
+      new Style({
+        image: new CircleStyle({
+          radius: 2,
+          fill: new Fill({ color: statusInfo.colorHex }),
+        }),
+      })
+    );
 
-      // Adjust the map to zoom level 15 (like the image) centered on the first point
-      // Must be called AFTER updateEmergencyPointer because updateEmergencyPointer calls setCenter, which would cancel the animation
-      const firstStartPoint = data[0];
-      const centerStart = fromLonLat([parseFloat(firstStartPoint.lon), parseFloat(firstStartPoint.lat)]);
-      map.getView().animate({
-        center: centerStart,
-        zoom: 15,
-        duration: 1000,
-      });
-    }
-  };
+    markerRef.current.addFeature(point);
+    allFeaturesRef.current.push(point);
+  });
+
+  attachClickToPoints();
+
+  setIsPlaying(false);
+  setDownloadStatus("Play");
+
+  if (data.length > 0) {
+    setSliderValue(0);
+    sliderValueRef.current = 0;
+    setCurrentData(data[0]);
+    updateEmergencyPointer(data[0]);
+
+    const first = data[0];
+    const center = fromLonLat([
+      parseFloat(first.lon),
+      parseFloat(first.lat),
+    ]);
+
+    map.getView().animate({
+      center,
+      zoom: 15,
+      duration: 1000,
+    });
+  }
+};
 
   // Attach click event to each point feature
   const attachClickToPoints = () => {
@@ -450,94 +627,109 @@ const GPSHistoryMap = ({
     }
   };
 
-  const updateEmergencyPointer = (entry) => {
-    if (!entry) return;
-    setCurrentData(entry);
-    const { lon, lat, ps, s } = entry;
-    // Ensure coordinates are numbers for smooth movement
-    const currentCoordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
+ const updateEmergencyPointer = (entry) => {
+  if (!entry) return;
 
-    const statusInfo = getStatusInfo(entry);
+  setCurrentData(entry);
 
-    const categoryData = entry?.device_tag_info?.category_info?.category;
-    const categoryName = typeof categoryData === 'object' ? categoryData?.category : categoryData;
-    const normalizedType = categoryName ? categoryName.toLowerCase().replace(/\s+/g, '_') : 'bus';
-    const availableTypes = ['ambulance', 'bus', 'dumper', 'police', 'school_bus', 'tanker', 'taxi', 'truck'];
-    const iconType = availableTypes.includes(normalizedType) ? normalizedType : 'bus';
+  const currentCoordinates = fromLonLat([
+    parseFloat(entry.lon),
+    parseFloat(entry.lat),
+  ]);
 
-    let iconSrc;
-    try {
-      iconSrc = require(`../../assets/images/${statusInfo.colorKey}/${iconType}.png`);
-    } catch (e) {
-      try {
-        iconSrc = require(`../../assets/images/${statusInfo.colorKey}/bus.png`);
-      } catch (e2) {
-        iconSrc = require("../../assets/images/grey/bus.png");
-      }
-    }
+  const statusInfo = getStatusInfo(entry);
 
-    const iconStyle = new Style({
-      image: new Icon({
-        anchor: [0.5, 0.8], // Bottom center touching the route
-        anchorXUnits: 'fraction',
-        anchorYUnits: 'fraction',
-        crossOrigin: 'anonymous',
-        src: iconSrc,
-        scale: 0.07,
-        rotation: 0, // Keep icon straight as requested
-      }),
+  const categoryData = entry?.device_tag_info?.category_info?.category;
+  const categoryName =
+    typeof categoryData === "object"
+      ? categoryData?.category
+      : categoryData;
+
+  const normalizedType = categoryName
+    ? categoryName.toLowerCase().replace(/\s+/g, "_")
+    : "bus";
+
+  const availableTypes = [
+    "ambulance",
+    "bus",
+    "dumper",
+    "police",
+    "school_bus",
+    "tanker",
+    "taxi",
+    "truck",
+  ];
+
+  const iconType = availableTypes.includes(normalizedType)
+    ? normalizedType
+    : "bus";
+
+  let iconSrc;
+  try {
+    iconSrc = require(`../../assets/images/${statusInfo.colorKey}/${iconType}.png`);
+  } catch {
+    iconSrc = require(`../../assets/images/${statusInfo.colorKey}/bus.png`);
+  }
+
+  const iconStyle = new Style({
+    image: new Icon({
+      anchor: [0.5, 0.8],
+      src: iconSrc,
+      scale: 0.07,
+    }),
+  });
+
+  // ✅ MOVE MARKER
+  if (animationMarkerRef.current) {
+    animationMarkerRef.current.getGeometry().setCoordinates(currentCoordinates);
+    animationMarkerRef.current.setStyle(iconStyle);
+  } else {
+    const marker = new Feature({
+      geometry: new Point(currentCoordinates),
     });
+    marker.setStyle(iconStyle);
+    markerRef.current.addFeature(marker);
+    animationMarkerRef.current = marker;
+  }
 
-    // Update existing marker or create new one
-    if (animationMarkerRef.current) {
-      animationMarkerRef.current.getGeometry().setCoordinates(currentCoordinates);
-      animationMarkerRef.current.setStyle(iconStyle);
-    } else {
-      const marker = new Feature({
-        geometry: new Point(currentCoordinates),
-      });
-      marker.setStyle(iconStyle);
-      markerRef.current.addFeature(marker);
-      animationMarkerRef.current = marker;
-    }
+  // ✅ MOVE INFO BOX
+  if (infoOverlayRef.current) {
+    infoOverlayRef.current.setPosition(currentCoordinates);
+    infoOverlayRef.current.setOffset([0, -110]);
+  }
 
-    setCurrentCoordinates(currentCoordinates);
-    // Update info box overlay position
-    if (infoOverlayRef.current) {
-      infoOverlayRef.current.setPosition(currentCoordinates);
-      // Force update offset to ensure it sits above the vehicle icon
-      // Assuming icon height ~35-40px after scale, -40 puts it at top of icon.
-      // We want it higher, so -85 or -100.
-      infoOverlayRef.current.setOffset([0, -110]);
-    }
-    // Optional: Only center if users wants to follow (current behavior: always follows)
+  // 🔥 FIX: PERFECT SYNC MAP MOVEMENT
+  if (map) {
     map.getView().setCenter(currentCoordinates);
-  };
+  }
+};
 
   const handleSliderChange = (event, value) => {
-    setSliderValue(value);
-    sliderValueRef.current = value;
-    const entry = mapData[value];
+  setSliderValue(value);
+  sliderValueRef.current = value;
 
-    animationIntervalId.current = setInterval(() => {
-      if (sliderValueRef.current < maxSliderValue) {
-        sliderValueRef.current += 1;
-        setSliderValue(sliderValueRef.current);
-        const entry = mapData[sliderValueRef.current];
-        if (entry) {
-          updateEmergencyPointer(entry);
-        }
-      } else {
-        clearInterval(animationIntervalId.current);
-        setIsPlaying(false);
-      }
-    }, (510 - animationSpeed)); // Invert speed: Higher value = Lower delay (Faster)
-  };
+  const curr = mapData[value];
+  const prev = mapData[value - 1];
 
-  const pauseAnimation = () => {
-    clearInterval(animationIntervalId.current);
-    setIsPlaying(false);
-  };
+  if (prev) {
+    const diffMinutes =
+      (new Date(curr.et) - new Date(prev.et)) / (1000 * 60);
+
+    // 🚨 OFFLINE → DIRECT POSITION
+    if (diffMinutes > 5) {
+      updateEmergencyPointer(curr);
+      return;
+    }
+  }
+
+  // ✅ USE ORIGINAL COORDINATES (no smoothing drift)
+  updateEmergencyPointer(curr);
+};
+
+ const pauseAnimation = () => {
+  isPlayingRef.current = false; // ✅ IMPORTANT
+  setIsPlaying(false);
+};
 
   const restartAnimation = () => {
     setSliderValue(0);
@@ -921,13 +1113,16 @@ const GPSHistoryMap = ({
   }, [isPlaying, isRecording, sliderValue, maxSliderValue]);
 
   // Handle speed change dynamically
-  useEffect(() => {
-    if (isPlaying) {
-      clearInterval(animationIntervalId.current);
-      playAnimation();
-    }
-  }, [animationSpeed]);
+  // useEffect(() => {
+  //   if (isPlaying) {
+  //     clearInterval(animationIntervalId.current);
+  //     playAnimation();
+  //   }
+  // }, [animationSpeed]);
 
+  useEffect(() => {
+  animationSpeedRef.current = animationSpeed;
+}, [animationSpeed]);
 
   useEffect(() => {
     if (mapData.length > 0 && markerRef.current) {
