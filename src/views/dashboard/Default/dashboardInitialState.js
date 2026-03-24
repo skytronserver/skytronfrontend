@@ -48,6 +48,7 @@ export const dashboardInitialState = {
     activated: 0,
     oneYearActivation: 0,
     twoYearsActivation: 0,
+    expiredEsim: 0,
   },
   eSIMActivationInfo: {
     activationRequestSent: 0,

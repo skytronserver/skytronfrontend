@@ -85,12 +85,16 @@ const ActiveState = () => {
     Total_Model: 0,
     Total_esim_linked: 0,
     Total_Dealer: 0,
+    Total_Inactive_Dealer: 0,
+    Total_Vehicle_Owner: 0,
+    Total_Expired_Vehicle_Owner: 0,
     Total_Stock_Created: 0,
     Total_Stock_Allocated: 0,
     Total_Activation: 0,
     Total_Return: 0,
     Total_Faulty: 0,
     Total_esim_activation_request: 0,
+    ESim_Activated: 0,
     Total_1year_renewal_request: 0,
     Total_2year_renewal_request: 0,
     Total_Online_Device: 0,
@@ -199,11 +203,12 @@ const ActiveState = () => {
           active: data.ESim_Active || 0,
           pending: data.ESim_Pending || 0,
           invalid: data.ESim_Invalid || 0,
-          manufactures: data.Total_Manufacture || 0,
-          activationReceived: data.Total_esim_activation_request || 0,
-          activated: data.Total_Activation || 0,
-          oneYearActivation: data.Total_1year_renewal_request || 0,
-          twoYearsActivation: data.Total_2year_renewal_request || 0,
+          manufactures: data.Manufacturers_With_This_ESimProvider || 0,
+          activationReceived: data.ESim_Activation_Request_Received || 0,
+          activated: data.ESim_Activated || 0,
+          oneYearActivation: data.ESim_1_Year_Expiry || 0,
+          twoYearsActivation: data.ESim_2_Year_Expiry || 0,
+          expiredEsim: data.ESim_Already_Expired || 0,
         }));
         setESIMActivationInfo(prev => ({
           ...prev,
@@ -231,24 +236,25 @@ const ActiveState = () => {
         const data = await response.data;
         setManufacturerDashboardInfo({
           Total_Model: data.Total_Model || 0,
-          Total_esim_linked: data.Total_esim_linked || 0,
-          Total_Dealer: data.Total_Dealer || 0,
-          Total_Stock_Created: data.Total_Stock_Created || 0,
-          Total_Stock_Allocated: data.Total_Stock_Allocated || 0,
-          Total_Activation: data.Total_Activation || 0,
+          Total_esim_linked: data.ESim_Attached_M2M_Service_Provider || data.Total_esim_linked || 0,
+          Total_Dealer: data.User_Total_Dealer || data.Total_Dealer || 0,
+          Total_Inactive_Dealer: data.User_Inactive_Dealer || data.Total_Inactive_Dealer || 0,
+          Total_Vehicle_Owner: data.User_Total_Unique_Vehicle_Owners || data.Total_Vehicle_Owner || 0,
+          Total_Expired_Vehicle_Owner: data.User_Expired_Vehicle_Owners || data.Total_Expired_Vehicle_Owner || 0,
+          Total_Stock_Created: data.Device_Total_Stock || data.Total_Stock_Created || 0,
+          Total_Stock_Allocated: data.Device_Assigned_To_Dealer || data.Total_Stock_Allocated || 0,
+          Total_Activation: data.Device_Tagged || data.Total_Activation || 0,
           Total_Return: data.Total_Return || 0,
           Total_Faulty: data.Total_Faulty || 0,
-          Total_esim_activation_request: data.Total_esim_activation_request || 0,
-          Total_1year_renewal_request: data.Total_1year_renewal_request || 0,
-          Total_2year_renewal_request: data.Total_2year_renewal_request || 0,
-          Total_Online_Device: data.Total_Online_Device || 0,
+          Total_esim_activation_request: data.ESim_Activation_Request_Sent || data.Total_esim_activation_request || 0,
+          ESim_Activated: data.ESim_Activated || 0,
+          Total_1year_renewal_request: data.ESim_1_Year_Expiry || data.Total_1year_renewal_request || 0,
+          Total_2year_renewal_request: data.ESim_2_Year_Expiry || data.Total_2year_renewal_request || 0,
+          Total_Online_Device: data.Device_Online_Today || data.Total_Online_Device || 0,
           Total_Offline_Device_today: data.Total_Offline_Device_today || 0,
-          Total_Offline_Device_7day: data.Total_Offline_Device_7day || 0,
-          Total_Offline_Device_30day: data.Total_Offline_Device_30day || 0,
-          Total_expired_device: data.Total_expired_device || 0,
-          Total_Inactive_Dealer: data.Total_Inactive_Dealer || 0,
-          Total_Vehicle_Owner: data.Total_Vehicle_Owner || 0,
-          Total_Expired_Vehicle_Owner: data.Total_Expired_Vehicle_Owner || 0
+          Total_Offline_Device_7day: data.Device_Offline_Since_7_Days || data.Total_Offline_Device_7day || 0,
+          Total_Offline_Device_30day: data.Device_Offline_Since_30_Days || data.Total_Offline_Device_30day || 0,
+          Total_expired_device: data.ESim_Already_Expired || data.Total_expired_device || 0
         });
         
         // Also update standard state objects in case they are referenced by generic charts
@@ -273,21 +279,25 @@ const ActiveState = () => {
         }));
         setManufacturerDashboardInfo({
           Total_Model: data.Total_Model || 0,
-          Total_esim_linked: data.Total_esim_linked || 0,
-          Total_Dealer: data.Total_Dealer || 0,
-          Total_Stock_Created: data.Total_Stock_Created || 0,
-          Total_Stock_Allocated: data.Total_Stock_Allocated || 0,
-          Total_Activation: data.Total_Activation || 0,
+          Total_esim_linked: data.ESim_Attached_M2M_Service_Provider || data.Total_esim_linked || 0,
+          Total_Dealer: data.User_Total_Dealer || data.Total_Dealer || 0,
+          Total_Inactive_Dealer: data.User_Inactive_Dealer || data.Total_Inactive_Dealer || 0,
+          Total_Vehicle_Owner: data.User_Total_Unique_Vehicle_Owners || data.Total_Vehicle_Owner || 0,
+          Total_Expired_Vehicle_Owner: data.User_Expired_Vehicle_Owners || data.Total_Expired_Vehicle_Owner || 0,
+          Total_Stock_Created: data.Device_Total_Stock || data.Total_Stock_Created || 0,
+          Total_Stock_Allocated: data.Device_Assigned_To_Dealer || data.Total_Stock_Allocated || 0,
+          Total_Activation: data.Device_Tagged || data.Total_Activation || 0,
           Total_Return: data.Total_Return || 0,
           Total_Faulty: data.Total_Faulty || 0,
-          Total_esim_activation_request: data.Total_esim_activation_request || 0,
-          Total_1year_renewal_request: data.Total_1year_renewal_request || 0,
-          Total_2year_renewal_request: data.Total_2year_renewal_request || 0,
-          Total_Online_Device: data.Total_Online_Device || 0,
+          Total_esim_activation_request: data.ESim_Activation_Request_Sent || data.Total_esim_activation_request || 0,
+          ESim_Activated: data.ESim_Activated || 0,
+          Total_1year_renewal_request: data.ESim_1_Year_Expiry || data.Total_1year_renewal_request || 0,
+          Total_2year_renewal_request: data.ESim_2_Year_Expiry || data.Total_2year_renewal_request || 0,
+          Total_Online_Device: data.Device_Online_Today || data.Total_Online_Device || 0,
           Total_Offline_Device_today: data.Total_Offline_Device_today || 0,
-          Total_Offline_Device_7day: data.Total_Offline_Device_7day || 0,
-          Total_Offline_Device_30day: data.Total_Offline_Device_30day || 0,
-          Total_expired_device: data.Total_expired_device || 0
+          Total_Offline_Device_7day: data.Device_Offline_Since_7_Days || data.Total_Offline_Device_7day || 0,
+          Total_Offline_Device_30day: data.Device_Offline_Since_30_Days || data.Total_Offline_Device_30day || 0,
+          Total_expired_device: data.ESim_Already_Expired || data.Total_expired_device || 0
         });
         setModelInfo(prev => ({
           ...prev,
@@ -315,16 +325,16 @@ const ActiveState = () => {
           freeDevice: data.Available_Free_Device || 0
         });
         setDealerVehicleOwnerInfo({
-          total: data.Total_Vehicle_Owner || 0,
-          month: data.Total_Vehicle_Owner_month || 0,
-          today: data.Total_Vehicle_Owner_today || 0,
+          total: data.Unique_Vehicle_Owners_Associated || data.Total_Vehicle_Owner || 0,
+          month: data.Unique_Vehicle_Owners_Associated_This_Month || data.Total_Vehicle_Owner_month || 0,
+          today: data.Unique_Vehicle_Owners_Associated_Today || data.Total_Vehicle_Owner_today || 0,
         });
         setDealerESIMInfo({
-          totalActivation: data.Total_esim_activation_request || 0,
+          totalActivation: data.Total_esim_activation_request || data.ESim_Activation_Request_Sent || 0,
           activated: data.Total_esim_activated || 0,
           oneYearRenewal: data.Total_1_year_renewal_request || 0,
           twoYearRenewal: data.Total_2_year_renewal_request || 0,
-          expired: data.Total_expired_device || 0
+          expired: data.Total_esim_expired || data.Total_expired_device || 0
         });
         setDeviceStatusInfo({
           onlineNow: data.Total_Online_now || 0,
@@ -346,9 +356,9 @@ const ActiveState = () => {
           stateAdmin: data.state_admin || 0,
           sosAdmin: data.SOS_admin || 0,
           m2mServiceProvider: data.eSimProvider || 0,
-          manufacturer: data.manufacturer_admin || 0,
-          dealer: data.Dealer || 0,
-          vehicleOwner: data.VehicleOwner || 0
+          manufacturer: dashboardData.Manufacture || 0,
+          dealer: dashboardData.Dealer || 0,
+          vehicleOwner: dashboardData.VehicleOwner || 0
         }))
         setFitmentInfoForAdmin((prev => ({
           ...prev,
@@ -382,9 +392,9 @@ const ActiveState = () => {
         }))
         setTemperAlertInfo(prev => ({
           ...prev,
-          totalAlert: dashboardData.BoxTamperAlerts || 0,
-          thisMonthAlert: dashboardData.BoxTamperAlerts_month || 0,
-          todayAlert: dashboardData.BoxTamperAlerts_today || 0,
+          totalAlert: dashboardData.TemperatureAlerts || 0,
+          thisMonthAlert: dashboardData.TemperatureAlerts_month || 0,
+          todayAlert: dashboardData.TemperatureAlerts_today || 0,
         }))
         setStockInfo(prev => ({
           ...prev,
@@ -402,7 +412,7 @@ const ActiveState = () => {
         const data = await response.data;
         setUserInfo({
           dto: data.Total_DTO_available,
-          m2m: data.Total_eSimProvider_available || 0,
+          m2m: data.Total_M2M_Service_Provider_available || 0,
           manufacturer: data.Total_Manufacture_available,
           dealer: data.Total_Dealer_available,
           owner: data.Total_Vehicle_Owner_available
@@ -471,10 +481,10 @@ const ActiveState = () => {
         const data = await response.data;
         setTeam((prev) => ({
           ...prev,
-          Total_Teams: data.Total_Teams,
-          Total_DeskExecutives: data.Total_DeskExecutives,
-          Live_Teams: data.Live_Teams,
-          Live_DeskExecutives: data.Live_DeskExecutives,
+          Total_Teams: data.SOS_Team_Leads,
+          Total_DeskExecutives: data.SOS_Desk_Executives,
+          Live_Teams: data.SOS_Online_Team_Leads,
+          Live_DeskExecutives: data.SOS_Online_Desk_Executives,
         }));
         setIncomingCall((prev) => ({
           ...prev,
@@ -506,21 +516,33 @@ const ActiveState = () => {
         }));
         setSosUsers((prev) => ({
           ...prev,
-          teamLeader: data.Total_Teams || 0,
-          onlineTeamLeader: data.Live_Teams || 0,
-          deskExecutive: data.Total_DeskExecutives || 0,
-          onlineDeskExecutive: data.Live_DeskExecutives || 0,
-          police: data.Total_Police || 0,
-          onlinePolice: data.Online_Police || 0,
-          ambulance: data.Total_Ambulance || 0,
-          onlineAmbulance: data.Online_Ambulance || 0,
+          teamLeader: data.SOS_Team_Leads || 0,
+          onlineTeamLeader: data.SOS_Online_Team_Leads || 0,
+          deskExecutive: data.SOS_Desk_Executives || 0,
+          onlineDeskExecutive: data.SOS_Online_Desk_Executives || 0,
+          police: data.SOS_Police_Executives || 0,
+          onlinePolice: data.SOS_Online_Police_Executives || 0,
+          ambulance: data.SOS_Ambulance_Executives || 0,
+          onlineAmbulance: data.SOS_Online_Ambulance_Executives || 0,
         }));
 
         // Fetch vehicle alert statistics
         try {
           const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics();
           const vehicleAlertData = await vehicleAlertResponse.data;
-          setVehicleAlertStats(vehicleAlertData);
+          
+          // Merge broadcast statistics from the main SOS dashboard response
+          setVehicleAlertStats({
+            ...vehicleAlertData,
+            broadcasts: {
+              ...vehicleAlertData.broadcasts,
+              total: data.Broadcast_Total || 0,
+              total_closed: data.Broadcast_Total_Closed || 0,
+              broadcast_today: data.Broadcast_Total_Today || 0,
+              closed_today: data.Broadcast_Total_Closed_Today || 0,
+              pending_today: data.Broadcast_Currently_Pending || 0,
+            }
+          });
         } catch (error) {
           console.error('Error fetching vehicle alert statistics:', error);
         }
@@ -1320,7 +1342,8 @@ const ActiveState = () => {
         { name: 'Dealers', value: userInfo.dealer || 0 },
         { name: 'Manufacturers', value: userInfo.manufacturer || 0 },
         { name: 'DTOs', value: userInfo.dto || 0 },
-        { name: 'Vehicle Owners', value: userInfo.owner || 0 }
+        { name: 'Vehicle Owners', value: userInfo.owner || 0 },
+        { name: 'M2M Service Providers', value: userInfo.m2m || 0 }
       ];
 
       charts.push(
@@ -3318,7 +3341,7 @@ const ActiveState = () => {
                 cardValue={{
                   m2mServiceProvider: manufacturerDashboardInfo.Total_esim_linked,
                   eSimActivationRequest: manufacturerDashboardInfo.Total_esim_activation_request,
-                  eSimActivated: manufacturerDashboardInfo.Total_Activation,
+                  eSimActivated: manufacturerDashboardInfo.ESim_Activated,
                   oneYearRenewal: manufacturerDashboardInfo.Total_1year_renewal_request,
                   twoYearRenewal: manufacturerDashboardInfo.Total_2year_renewal_request,
                   expired: manufacturerDashboardInfo.Total_expired_device
@@ -3443,7 +3466,7 @@ const ActiveState = () => {
                   activated: eSIMInfo.activated || 0,
                   oneYear: eSIMInfo.oneYearActivation || 0,
                   twoYears: eSIMInfo.twoYearsActivation || 0,
-                  expired: eSIMInfo.expired || 0
+                  expired: eSIMInfo.expiredEsim || 0
                 }}
                 iconImage={Sim}
                 heading={t('dashboard.headings.eSIMStatistics')}
