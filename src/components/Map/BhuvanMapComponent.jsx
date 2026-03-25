@@ -50,6 +50,7 @@ import { fromLonLat } from "ol/proj";
  * @param {number} props.zoom - Initial zoom level (default: 10)
  */
 const BhuvanMapComponent = ({
+    erss=false,
     gpsData = [],
     onZoomChange ,
     data,
@@ -1068,7 +1069,11 @@ if (!Array.isArray(data) || data.length === 0) return;
 const counts = data.map(d => d.total_vehicle_count);
 const minVehicles = Math.min(...counts);
 const maxVehicles = Math.max(...counts);
+const fillColor = erss
+  ? "rgba(255, 0, 0, 0.7)"      // 🔴 RED for ERSS
+  : "rgba(14,165,233,0.6)";     // 🔵 default
 
+const strokeColor = erss ? "#ff0000" : "#fff";
     data?.forEach(d => {
 
       const feature = new Feature({
@@ -1091,8 +1096,8 @@ const radius =
         new Style({
           image: new CircleStyle({
             radius: radius,
-            fill: new Fill({ color: "rgba(14,165,233,0.6)" }),
-            stroke: new Stroke({ color: "#fff", width: 2 })
+            fill: new Fill({ color: fillColor }),
+            stroke: new Stroke({ color: strokeColor, width: 2 })
           }),
          
     text: new Text({

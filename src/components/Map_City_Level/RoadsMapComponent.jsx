@@ -11,7 +11,7 @@ import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import { Style, Circle as CircleStyle, Fill, Stroke, Text } from "ol/style";
 
-export default function RoadsMapComponent({onBack, onZoomChange,data,onDistrictClick,level,onCityClick,onLocalityClick }) {
+export default function RoadsMapComponent({erss=false,onBack, onZoomChange,data,onDistrictClick,level,onCityClick,onLocalityClick }) {
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -126,7 +126,11 @@ const lastSelectedRef = useRef(null);
 const counts = data.map(d => d.total_vehicle_count ?? d.total_devices ?? 1);
   const min = Math.min(...counts);
   const max = Math.max(...counts);
+const fillColor = erss
+  ? "rgba(255, 0, 0, 0.7)"      // 🔴 RED for ERSS
+  : "rgba(14,165,233,0.6)";     // 🔵 default
 
+const strokeColor = erss ? "#ff0000" : "#fff";
   data.forEach(d => {
 const lon = d.lon ?? d.longitude;
 const lat = d.lat ?? d.latitude;
@@ -153,8 +157,8 @@ const label =
       new Style({
         image: new CircleStyle({
           radius: radius,
-          fill: new Fill({ color: "rgba(14,165,233,0.6)" }),
-          stroke: new Stroke({ color: "#fff", width: 2 })
+          fill: new Fill({ color: fillColor }),
+          stroke: new Stroke({ color:strokeColor, width: 2 })
         }),
         text: new Text({
           text: String(label),

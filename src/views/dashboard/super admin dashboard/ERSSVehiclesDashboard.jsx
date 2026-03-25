@@ -198,7 +198,7 @@ const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
 
 
 
-const ErssVehicleMap = ({ onBack, vehicles,data ,onDistrictClick,level, onZoomChange,onCityClick,onLocalityClick }) => {
+const ErssVehicleMap = ({erss, onBack, vehicles,data ,onDistrictClick,level, onZoomChange,onCityClick,onLocalityClick }) => {
   const gpsData = useMemo(() => {
     const nowIso = new Date().toISOString();
     return (Array.isArray(vehicles) ? vehicles : []).map((v) => {
@@ -226,9 +226,9 @@ const ErssVehicleMap = ({ onBack, vehicles,data ,onDistrictClick,level, onZoomCh
   <RoadsMapComponent onZoomChange={(z) => {
     setZoom(z);
     // onZoomChange?.(z);   // ⭐ PASS TO PARENT
-  }} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick}/>
+  }}erss={erss} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick}/>
 ) : (
-  <BhuvanMapComponent onZoomChange={setZoom} data={data} />
+  <BhuvanMapComponent erss={true} onZoomChange={setZoom} data={data} />
 )}
 
 </>
@@ -858,6 +858,7 @@ try {
 
         <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
           <ErssVehicleMap
+          erss={true}
             data={mapData}
           level={level}
           //  onZoomChange={handleZoomChange}
