@@ -76,6 +76,79 @@ const BhuvanMapComponent = ({
     const [drawVectorLayer, setDrawVectorLayer] = useState(null);
     const [drawInteraction, setDrawInteraction] = useState(null);
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
+    const userHasInteractedRef = useRef(false);
+    const hasAutoFittedRef = useRef(false);
+    const vehicleFeatureRef = useRef({});
+    const vehicleTrailRef = useRef({});
+    const lastValidPositionRef = useRef({});
+
+    const isInsideIndia = (lon, lat) => {
+        // Approx bounding box for India
+        return (
+            lat >= 6 && lat <= 38 &&
+            lon >= 68 && lon <= 98
+        );
+    };
+
+    const getSmoothedPosition = (imei, newPoint) => {
+        if (!vehicleTrailRef.current[imei]) {
+            vehicleTrailRef.current[imei] = [];
+        }
+
+        const trail = vehicleTrailRef.current[imei];
+
+        trail.push(newPoint);
+
+        // Keep last 5 points only
+        if (trail.length > 5) {
+            trail.shift();
+        }
+
+        // Average
+        const avg = trail.reduce(
+            (acc, curr) => {
+                acc.lon += curr[0];
+                acc.lat += curr[1];
+                return acc;
+            },
+            { lon: 0, lat: 0 }
+        );
+        console.log("IMEI:", imei);
+        console.log("Trail:", trail);
+        console.log("Average:", [
+            avg.lon / trail.length,
+            avg.lat / trail.length
+        ]);
+
+        return [
+            avg.lon / trail.length,
+            avg.lat / trail.length
+        ];
+
+    };
+
+
+    const animateFeature = (feature, start, end, duration = 500) => {
+        const startTime = performance.now();
+
+        const animate = (time) => {
+            const elapsed = time - startTime;
+            const t = Math.min(elapsed / duration, 1);
+
+            const lon = start[0] + (end[0] - start[0]) * t;
+            const lat = start[1] + (end[1] - start[1]) * t;
+
+            feature.getGeometry().setCoordinates([lon, lat]);
+
+            if (t < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        console.log("Animating from:", start, "to:", end);
+
+        requestAnimationFrame(animate);
+    };
 
     useEffect(() => {
         const container = overlayElement.current;
@@ -1061,6 +1134,9 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             pixelRatio: 1,
         });
 
+        initialMap.on("movestart", () => {
+            userHasInteractedRef.current = true;
+        });
         // Initialize vector layer for markers
         const initialVectorLayer = new VectorLayer({
             source: new VectorSource(),
@@ -2160,9 +2236,20 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             vectorLayer.getSource().addFeatures(features);
 
             // Only auto-fit if autoFit prop is true and there are markers
-            if (autoFit && features.length > 0) {
+            if (
+                autoFit &&
+                features.length > 0 &&
+                !hasAutoFittedRef.current
+            ) {
                 const extent = vectorLayer.getSource().getExtent();
-                map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+
+                map.getView().fit(extent, {
+                    padding: [50, 50, 50, 50],
+                    maxZoom: 15
+                });
+
+                // ✅ lock after first auto zoom
+                hasAutoFittedRef.current = true;
             }
 
             // Handle map click to display the overlay and zoom to street level
@@ -2263,7 +2350,103 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         autoFit,
         onMarkerClick,
     ]);
+    useEffect(() => {
+        if (!vectorLayer || !gpsData || gpsData.length === 0) return;
 
+        const source = vectorLayer.getSource();
+
+
+    // Merge all vehicle sources
+    const allVehicles = [
+        ...(gpsData || []).map(v => ({ ...v, markerCategory: "vehicle" })),
+        ...(policeData || []).map(v => ({ ...v, markerCategory: "police" })),
+    ];
+
+        allVehicles.forEach((data) => {
+            const imei =
+                data.device_imei ||
+                data.device?.device?.imei ||
+                data.Assignment?.call?.device?.device?.imei ||
+                data.id ||
+                data.vehicle_reg_no ||
+                JSON.stringify(data);
+
+            if (!imei) return;
+
+            
+            const newCoord = [data.longitude, data.latitude];
+            // ✅ CHECK INDIA BOUNDARY
+            const isValidIndia = isInsideIndia(newCoord[0], newCoord[1]);
+
+            // ✅ If outside India → fallback to last valid
+            if (!isValidIndia) {
+                if (lastValidPositionRef.current[imei]) {
+                    newCoord = lastValidPositionRef.current[imei];
+                } else {
+                    // If no previous valid → skip this point completely
+                    return;
+                }
+            } else {
+                // ✅ Store valid coordinate
+                lastValidPositionRef.current[imei] = newCoord;
+            }
+
+            const smoothCoord = getSmoothedPosition(imei, newCoord);
+
+            let feature = vehicleFeatureRef.current[imei];
+
+            if (!feature) {
+                // CREATE feature first time
+                feature = new Feature({
+                    geometry: new Point(smoothCoord),
+                });
+
+                feature.setStyle(
+                    getIconStyle(data, data.vehicle_type, markerLabelMode)
+                );
+
+                vehicleFeatureRef.current[imei] = feature;
+                source.addFeature(feature);
+            } else {
+                // ANIMATE movement
+                const currentCoord =
+                    feature.getGeometry().getCoordinates();
+
+                animateFeature(feature, currentCoord, smoothCoord, 600);
+            }
+            // 🔍 DEBUG: RAW vs SMOOTH
+            const rawFeature = new Feature({
+                geometry: new Point(newCoord),
+            });
+
+            rawFeature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: 5,
+                        fill: new Fill({ color: "red" }), // RAW = RED
+                    }),
+                })
+            );
+
+            const smoothFeature = new Feature({
+                geometry: new Point(smoothCoord),
+            });
+
+            smoothFeature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: 5,
+                        fill: new Fill({ color: "green" }), // SMOOTH = GREEN
+                    }),
+                })
+            );
+
+            // Add to map
+            vectorLayer.getSource().addFeature(rawFeature);
+            vectorLayer.getSource().addFeature(smoothFeature);
+        });
+
+    }, [gpsData, vectorLayer]);
     // Render POIs
     useEffect(() => {
         if (!map || !poiVectorLayer) return;
