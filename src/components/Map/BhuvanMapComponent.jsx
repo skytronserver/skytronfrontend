@@ -80,6 +80,15 @@ const BhuvanMapComponent = ({
     const hasAutoFittedRef = useRef(false);
     const vehicleFeatureRef = useRef({});
     const vehicleTrailRef = useRef({});
+    const lastValidPositionRef = useRef({});
+
+    const isInsideIndia = (lon, lat) => {
+        // Approx bounding box for India
+        return (
+            lat >= 6 && lat <= 38 &&
+            lon >= 68 && lon <= 98
+        );
+    };
 
     const getSmoothedPosition = (imei, newPoint) => {
         if (!vehicleTrailRef.current[imei]) {
@@ -2346,7 +2355,14 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
         const source = vectorLayer.getSource();
 
-        gpsData.forEach((data) => {
+
+    // Merge all vehicle sources
+    const allVehicles = [
+        ...(gpsData || []).map(v => ({ ...v, markerCategory: "vehicle" })),
+        ...(policeData || []).map(v => ({ ...v, markerCategory: "police" })),
+    ];
+
+        allVehicles.forEach((data) => {
             const imei =
                 data.device_imei ||
                 data.device?.device?.imei ||
@@ -2357,7 +2373,23 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
             if (!imei) return;
 
+            
             const newCoord = [data.longitude, data.latitude];
+            // ✅ CHECK INDIA BOUNDARY
+            const isValidIndia = isInsideIndia(newCoord[0], newCoord[1]);
+
+            // ✅ If outside India → fallback to last valid
+            if (!isValidIndia) {
+                if (lastValidPositionRef.current[imei]) {
+                    newCoord = lastValidPositionRef.current[imei];
+                } else {
+                    // If no previous valid → skip this point completely
+                    return;
+                }
+            } else {
+                // ✅ Store valid coordinate
+                lastValidPositionRef.current[imei] = newCoord;
+            }
 
             const smoothCoord = getSmoothedPosition(imei, newCoord);
 

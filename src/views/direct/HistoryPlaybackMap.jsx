@@ -114,9 +114,9 @@ const GPSHistoryMap = ({
     lon: sumLon / count,
   };
 
-  console.log("🔵 INDEX:", index);
-  console.log("📍 USED POINTS:", usedPoints);
-  console.log("✅ AVERAGE:", avg);
+  console.log(" INDEX:", index);
+  console.log(" USED POINTS:", usedPoints);
+  console.log(" AVERAGE:", avg);
 
   return avg;
 };
@@ -140,7 +140,7 @@ function playAnimation() {
     const baseIndex = Math.floor(sliderValueRef.current);
     const nextIndex = baseIndex + 1;
 
-    // ✅ HARD SAFETY CHECK (MOST IMPORTANT FIX)
+    //  HARD SAFETY CHECK (MOST IMPORTANT FIX)
     if (
       baseIndex >= mapData.length - 1 ||
       nextIndex >= mapData.length ||
@@ -158,7 +158,7 @@ function playAnimation() {
     const currTime = new Date(currData.et).getTime();
     const nextTime = new Date(nextData.et).getTime();
 
-    // ✅ EXTRA SAFETY (in case et missing)
+    // EXTRA SAFETY (in case et missing)
     if (!currData.et || !nextData.et) {
       sliderValueRef.current = nextIndex;
       setSliderValue(nextIndex);
@@ -168,7 +168,7 @@ function playAnimation() {
 
     const diffMinutes = (nextTime - currTime) / (1000 * 60);
 
-    // 🚨 OFFLINE → DIRECT JUMP
+    // OFFLINE → DIRECT JUMP
     if (diffMinutes > 5) {
       sliderValueRef.current = nextIndex;
       setSliderValue(nextIndex);
@@ -181,7 +181,7 @@ function playAnimation() {
 
     const t = sliderValueRef.current - baseIndex;
 
-    // ✅ STAY ON LINE
+    // STAY ON LINE
     const current = {
       lat: parseFloat(currData.lat),
       lon: parseFloat(currData.lon),
@@ -459,7 +459,7 @@ function playAnimation() {
   markerRef.current.clear();
   allFeaturesRef.current = [];
 
-  let isOfflineBreak = false; // 🔥 TRACK BREAK
+  let isOfflineBreak = false; // TRACK BREAK
 
   for (let i = 0; i < data.length - 1; i++) {
     const curr = data[i];
@@ -479,7 +479,7 @@ function playAnimation() {
     const nextTime = new Date(next.et).getTime();
     const diffMinutes = (nextTime - currTime) / (1000 * 60);
 
-    // 🚨 OFFLINE DETECTED
+    // OFFLINE DETECTED
     if (diffMinutes > 5) {
       isOfflineBreak = true;
 
@@ -505,16 +505,16 @@ function playAnimation() {
 
       allFeaturesRef.current.push(startPoint, endPoint);
 
-      continue; // ❌ STOP LINE
+      continue; // STOP LINE
     }
 
-    // ❌ IMPORTANT: SKIP FIRST LINE AFTER OFFLINE
+    // IMPORTANT: SKIP FIRST LINE AFTER OFFLINE
     if (isOfflineBreak) {
       isOfflineBreak = false;
       continue;
     }
 
-    // ✅ NORMAL LINE
+    // NORMAL LINE
     const statusInfo = getStatusInfo(curr);
 
     const segment = new Feature({
@@ -534,7 +534,7 @@ function playAnimation() {
     allFeaturesRef.current.push(segment);
   }
 
-  // ✅ POINTS (no extra offline clutter)
+  // POINTS (no extra offline clutter)
   data.forEach((entry, index) => {
     const prev = data[index - 1];
 
@@ -679,7 +679,7 @@ function playAnimation() {
     }),
   });
 
-  // ✅ MOVE MARKER
+  // MOVE MARKER
   if (animationMarkerRef.current) {
     animationMarkerRef.current.getGeometry().setCoordinates(currentCoordinates);
     animationMarkerRef.current.setStyle(iconStyle);
@@ -692,13 +692,13 @@ function playAnimation() {
     animationMarkerRef.current = marker;
   }
 
-  // ✅ MOVE INFO BOX
+  // MOVE INFO BOX
   if (infoOverlayRef.current) {
     infoOverlayRef.current.setPosition(currentCoordinates);
     infoOverlayRef.current.setOffset([0, -110]);
   }
 
-  // 🔥 FIX: PERFECT SYNC MAP MOVEMENT
+  // FIX: PERFECT SYNC MAP MOVEMENT
   if (map) {
     map.getView().setCenter(currentCoordinates);
   }
@@ -715,19 +715,19 @@ function playAnimation() {
     const diffMinutes =
       (new Date(curr.et) - new Date(prev.et)) / (1000 * 60);
 
-    // 🚨 OFFLINE → DIRECT POSITION
+    // OFFLINE → DIRECT POSITION
     if (diffMinutes > 5) {
       updateEmergencyPointer(curr);
       return;
     }
   }
 
-  // ✅ USE ORIGINAL COORDINATES (no smoothing drift)
+  // USE ORIGINAL COORDINATES (no smoothing drift)
   updateEmergencyPointer(curr);
 };
 
  const pauseAnimation = () => {
-  isPlayingRef.current = false; // ✅ IMPORTANT
+  isPlayingRef.current = false; // IMPORTANT
   setIsPlaying(false);
 };
 
