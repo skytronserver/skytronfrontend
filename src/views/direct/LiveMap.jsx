@@ -1233,7 +1233,7 @@ const MapComponent = ({
 
         const iconScale = scaleByColor[color] || scaleByColor.default;
         const labelGap = color === "grey" ? 15 : 5;
-        const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
+        const labelOffsetY = -(Math.round(iconScale * 400) + labelGap);
 
         const textStyle = labelText
             ? new Text({
