@@ -20,6 +20,9 @@ RUN rm -rf ./*
 # Copy build output from builder stage
 COPY --from=builder /app/build .
 
+# Ensure Nginx worker user can read template PDFs.
+RUN chmod -R a+rX /usr/share/nginx/html/templates
+
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
