@@ -16,7 +16,7 @@ const MinimalFooter = () => {
           target="_blank"
           underline="hover"
         >
-          <img
+          {/* <img
             src={amtronlogo}
             alt="Amtron Logo"
             width={isMobile ? "40" : "38"}
@@ -28,7 +28,7 @@ const MinimalFooter = () => {
             style={{ width: isMobile ? "365px" : "365px", display: "block" }}
           >
             Implemented by Assam Electronics Development Corporation Ltd
-          </span>
+          </span> */}
         </Typography>
       </Stack>
     </div>

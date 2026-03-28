@@ -17,7 +17,7 @@ import RouterIcon from "@mui/icons-material/Router";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
 import DevicesIcon from "@mui/icons-material/Devices";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import skytronlogo from "../../assets/images/skytron-logo2.png";
+import skytronlogo from "../../assets/images/logo.png";
 import "./registrationForm.css";
 
 const ROLE_OPTIONS = [

@@ -15,7 +15,7 @@ import { Formik, useFormik, Form } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { loginUser } from "../../actions/loginActions";
-import skytronlogo from "../../assets/images/skytron-logo2.png";
+import MapWalalogo from "../../assets/images/logo.png";
 import stqclogo from "../../assets/images/icons/stqc_logo.png";
 import { Navigate } from "react-router-dom";
 import CaptchaServices from "../../services/CaptchaServices";
@@ -120,25 +120,52 @@ function Home() {
         spacing={3}
         justifyContent="center"
         alignItems="center"
-        sx={{ height: "70vh" }}
+        sx={{ height: "80vh" }}
       >
         <Grid
           item
-          xs={12}
-          md={8}
+          xs={8}
+          md={12}
           sx={{ display: { xs: "none", md: "block" } }}
         ></Grid>
         <Grid item xs={12} md={4} justifyContent="center" alignItems="center">
-          <Paper sx={paperStyle}>
-            <Typography variant="h6" gutterBottom align="center">
+          <Paper
+            elevation={12}
+            sx={{
+              zIndex: 2,
+              width: { xs: "90%", sm: 400 },
+              p: { xs: 3, md: 4 },
+              borderRadius: 4,
+              backdropFilter: "blur(18px)",
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              color: "#fff",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-6px)",
+                boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
+              },
+            }}>
+            {/* <Typography variant="h6" gutterBottom align="center">
               <img
-                src={skytronlogo}
+                src={MapWalalogo}
                 alt={t('common.logo')}
-                style={{ height: "auto", width: "36px" }}
+                style={{
+                  height: "auto", width: "150px", background: "rgba(0,0,0,0.4)",
+                  backdropFilter: "blur(2px)"
+                }}
               />
               <br />
-              <span style={logoStyle}>SKYTRON</span>
-            </Typography>
+              <span style={logoStyle}>MapWala</span>
+            </Typography> */}
+            {/* Logo */}
+            <Box textAlign="center" mb={2}>
+              <img
+                src={MapWalalogo}
+                alt="logo"
+                style={{ width: 140 }}
+              />
+            </Box>
             <Formik
               initialValues={formik.initialValues}
               validationSchema={formik.validationSchema}
@@ -152,15 +179,22 @@ function Home() {
                   variant="outlined"
                   fullWidth
                   margin="normal"
-                  sx={{ backgroundColor: "none" }}
-                  inputProps={{
+                  sx={{
+                    input: { color: "#fff" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                      "&:hover fieldset": { borderColor: "#42a5f5" },
+                      "&.Mui-focused fieldset": { borderColor: "#42a5f5" },
+                    },
+                  }} inputProps={{
                     inputMode: 'numeric',
                     pattern: '[0-9]*',
                     maxLength: 10,
                   }}
                   onKeyPress={(e) => {
                     if (
-                      !/[0-9]/.test(e.key) || 
+                      !/[0-9]/.test(e.key) ||
                       (formik.values.mobile.length >= 10 && e.key !== 'Backspace')
                     ) {
                       e.preventDefault();
@@ -199,6 +233,10 @@ function Home() {
                         </IconButton>
                       </InputAdornment>
                     ),
+                  }}
+                  sx={{
+                    input: { color: "#fff" },
+                    label: { color: "#bbb" },
                   }}
                 />
 
@@ -248,8 +286,20 @@ function Home() {
                 />
                 <Button
                   variant="contained"
-                  color="primary"
                   type="submit"
+                  sx={{
+                    mt: 3,
+                    py: 1.5,
+                    borderRadius: 2,
+                    fontWeight: "bold",
+                    background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      background: "linear-gradient(135deg, #1565c0, #1e88e5)",
+                      transform: "scale(1.03)",
+                    },
+                  }}
+
                   fullWidth
                   disabled={submitting || !captcha.isLoaded}
                 >
@@ -265,18 +315,21 @@ function Home() {
                 </Box>
               </Form>
             </Formik>
-            <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Link href="/user-registration-request" variant="body2">
-                {t('auth.noAccountCTA')}
-              </Link>
-              <Link href="/forgot-password" variant="body2">
+            <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <Link href="/forgot-password" sx={{
+                color: "#90caf9",
+                fontSize: "0.9rem",
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}>
                 {t('login.forgotPassword')}
               </Link>
             </Box>
           </Paper>
         </Grid>
       </Grid>
-      
+
       {/* STQC Certification Badge - Bottom Left, Responsive */}
       <Box
         sx={{
@@ -286,7 +339,7 @@ function Home() {
           zIndex: 10,
         }}
       >
-        <Box
+        {/* <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -336,7 +389,7 @@ function Home() {
               width: 'auto',
             }}
           />
-        </Box>
+        </Box> */}
       </Box>
     </Container>
   );

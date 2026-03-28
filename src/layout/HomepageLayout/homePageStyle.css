@@ -2,15 +2,15 @@
 .layout-container {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Strictly enforce full viewport height for dashboard pages */
 .layout-container.dashboard-mode {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .slider {
@@ -18,15 +18,15 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  z-index: 1;
+  height: 100vh;
+  z-index: 0;
   overflow: hidden;
 }
 
 .slide {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

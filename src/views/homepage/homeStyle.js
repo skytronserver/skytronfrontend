@@ -14,7 +14,7 @@ export const paperStyle={
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
 }
 export const logoStyle={
-    color: "#800080",
+    color: "#1D3A5C",
     fontfamily: "Quantico",
     fontWeight: "900px",
     fontSize: "15px",

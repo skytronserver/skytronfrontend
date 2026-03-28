@@ -21,7 +21,7 @@ import {
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import skytronlogo from "../../assets/images/skytron-logo2.png";
+import MapWalalogo from "../../assets/images/logo.png";
 import PublicRegistrationMockService from "../../services/PublicRegistrationMockService";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
@@ -892,8 +892,8 @@ const UserRegistrationForm = () => {
 
         {/* ── Premium Header Banner ── */}
         <Box className="reg-header-banner">
-          <img src={skytronlogo} alt="Skytron Logo" className="reg-logo-img" />
-          <span className="reg-brand-name">SKYTRON</span>
+          <img src={MapWalalogo} alt="MapWala Logo" className="reg-logo-img" />
+          <span className="reg-brand-name">MapWala</span>
           <Box sx={{ display: "flex", justifyContent: "center", mt: 1.5 }}>
             <PersonAddIcon sx={{ fontSize: 42, color: "rgba(255,255,255,0.9)", mb: 0.5 }} />
           </Box>

@@ -4,7 +4,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import FormField from '../../ui-component/CustomTextField';
 import SchoolBusService from '../../services/SchoolBusService';
-import skytronlogo from '../../assets/images/skytron-logo2.png';
+import MapWalalogo from '../../assets/images/logo.png';
 
 function SchoolRegistration() {
   const [error, setError] = useState('');
@@ -98,9 +98,9 @@ function SchoolRegistration() {
           }}
         >
           <Stack spacing={1} sx={{ mb: 3, alignItems: 'center' }}>
-            <Box component="img" src={skytronlogo} alt="SKYTRON" sx={{ width: 56, height: 56 }} />
+            <Box component="img" src={MapWalalogo} alt="MapWala" sx={{ width: 56, height: 56 }} />
             <Typography variant="h5" fontWeight={900} sx={{ letterSpacing: 1 }}>
-              SKYTRON
+              MapWala
             </Typography>
             <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
               School Registration / Application

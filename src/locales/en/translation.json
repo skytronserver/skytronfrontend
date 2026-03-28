@@ -75,7 +75,7 @@
     "settings": "Settings",
     "search": "Search",
     "allRights": "All Rights Reserved",
-    "implementedBy": "Implemented by Assam Electronics Development Corporation Ltd",
+    "implementedBy": "Implemented by MapWala",
     "error": "Error",
     "home": "Home",
     "logo": "Logo",
@@ -595,8 +595,7 @@
     "failedPasswordReset": "Failed to reset password",
     "failedPasswordResetEmpty": "Failed to reset password or password field is empty",
     "skytronPasswordSet": "Skytron Password Set",
-    "passwordSetSuccess": "Password has been set successfully go to home page and login using the credentials",
-    "noAccountCTA": "Don't have an account? Click here"
+    "passwordSetSuccess": "Password has been set successfully go to home page and login using the credentials"
   },
   "login": {
     "mobile": "Mobile",

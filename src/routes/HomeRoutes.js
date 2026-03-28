@@ -11,7 +11,9 @@ import PublicTransportVehicleMonitoringDashboard from "../views/dashboard/super 
 import ERSSVehiclesDashboard from "../views/dashboard/super admin dashboard/ERSSVehiclesDashboard";
 import SOSMonitoringDashboard from "../views/dashboard/super admin dashboard/SOSMonitoringDashboard";
 import SOSAnalyticsDashboard from "../views/dashboard/super admin dashboard/SOSAnalyticsDashboard";
-
+import AboutUs from "../views/landingpage/AboutUs"
+import ContactUs from "../views/landingpage/ContactUs" 
+import ProductAndServices from "../views/landingpage/productAndServices" 
 
 const HomeRoutes = {
   path: "/",
@@ -20,6 +22,18 @@ const HomeRoutes = {
     {
       path: "/",
       element: <Home />,
+    },
+    {
+      path: "/about-us",
+      element: <AboutUs />,
+    },
+    {
+      path: "/contact",
+      element: <ContactUs />,
+    },
+    {
+      path: "/products",
+      element: <ProductAndServices />,
     },
     {
       path: "/camera-feeds",

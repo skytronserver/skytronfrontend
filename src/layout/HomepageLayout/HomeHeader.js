@@ -3,9 +3,12 @@ import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListIt
 import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
-import { Link } from "react-router-dom";
-import logo from "../../assets/images/skytron-logo3.png";
+import { Link,useLocation } from "react-router-dom";
+import logo from "../../assets/images/logo.png";
 import WebFont from "webfontloader";
+import InfoIcon from "@mui/icons-material/Info";
+import MiscellaneousServicesIcon from "@mui/icons-material/MiscellaneousServices";
+import ContactMailIcon from "@mui/icons-material/ContactMail";
 WebFont.load({
   google: {
     families: ["Pacifico", "sans-serif", "Lobster", "Caveat"],
@@ -18,6 +21,17 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
   const dashboardOpen = Boolean(dashboardAnchorEl);
 
+  
+  const location = useLocation(); // current route
+  const currentPath = location.pathname;
+
+  const navButtonStyle = (path) => ({
+    mr: 2,
+    borderBottom: currentPath === path ? "2px solid #FFC94A" : "none",
+    color: currentPath === path ? "#FFC94A" : "#fff",
+    fontWeight: currentPath === path ? "bold" : "normal",
+  });
+  
   const handleImportantLinksClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -36,10 +50,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
   return (
     <div>
-      <AppBar position="static" sx={{ backgroundColor: 'purple', padding: '4px' }}>
+      <AppBar position="static" sx={{ backgroundColor: '#1D3A5C', padding: '4px' }}>
         <Toolbar>
           {/* Ashoka Stambh Icon - Moved to the start */}
-          <img
+          {/* <img
             src={ashokstambh}
             alt={t('common.ashokStambh')}
             style={{
@@ -47,7 +61,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               height: 'auto',
               marginRight: '12px'
             }}
-          />
+          /> */}
 
           {/* Logo and Title Container */}
           <Typography
@@ -66,23 +80,24 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
                 <img
                   src={logo}
-                  alt={t('common.skytronLogo')}
+                  alt={t('common.Mapwala Logo')}
                   style={{
-                    width: '30px',
-                    height: 'auto',
+                    width: '100%',
+                    maxWidth: '256px',
+                    height: '48px',
                     marginRight: '8px'
                   }}
                 />
-                <span style={{ fontFamily: "Bicubik", fontSize: '1.6rem' }}>
+                {/* <span style={{ fontFamily: "Bicubik", fontSize: '1.6rem' }}>
                   SkyTron<sup style={{
                     fontSize: '18px',
                     marginLeft: '5px',
                     position: 'relative',
                     top: '-2px'
                   }}>®</sup>
-                </span>
+                </span> */}
               </div>
-              <Typography
+              {/* <Typography
                 variant="caption"
                 sx={{
                   color: 'white',
@@ -94,7 +109,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                 }}
               >
                 {t('common.vltdBackend')}
-              </Typography>
+              </Typography> */}
             </div>
           </Typography>
 
@@ -112,8 +127,51 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           {/* Navigation buttons: Home, Important Links, Privacy Policy */}
 
           <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
+           {/* Home */}
+<Button
+  color="inherit"
+  startIcon={<HomeIcon />}
+  component={Link}
+  to="/"
+  sx={navButtonStyle("/")}
+>
+  Home
+</Button>
+
+{/* About Us */}
+<Button
+  color="inherit"
+  startIcon={<InfoIcon />}
+  component={Link}
+  to="/about-us"
+  sx={navButtonStyle("/about-us")}
+>
+  About Us
+</Button>
+
+{/* Products & Services */}
+<Button
+  color="inherit"
+  startIcon={<MiscellaneousServicesIcon />}
+  component={Link}
+  to="/products"
+  sx={navButtonStyle("/products")}
+>
+  Products & Services
+</Button>
+
+{/* Contact */}
+<Button
+  color="inherit"
+  startIcon={<ContactMailIcon />}
+  component={Link}
+  to="/contact"
+  sx={navButtonStyle("/contact")}
+>
+  Contact Us
+</Button>
             {/* Home */}
-            <Button
+            {/* <Button
               color="inherit"
               startIcon={<HomeIcon />}
               component={Link}
@@ -121,7 +179,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               sx={{ mr: 2 }}
             >
               {t('common.home')}
-            </Button>
+            </Button> */}
 
             {/* Dashboards Dropdown
             <Button
@@ -157,7 +215,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             </Menu> */}
 
             {/* Important Links Dropdown */}
-            <Button
+            {/* <Button
               color="inherit"
               startIcon={<ImportantLinksIcon />}
               endIcon={<ArrowDownIcon />}
@@ -177,12 +235,12 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
                 {t('common.manufacturerDeviceUptimeDetails')}
               </MenuItem>
-            </Menu>
+            </Menu> */}
 
             {/* Privacy Policy */}
-            <Button color="inherit" component={Link} to="/privacy-policy">
+            {/* <Button color="inherit" component={Link} to="/privacy-policy">
               {t('common.privacyPolicy')}
-            </Button>
+            </Button> */}
           </Grid>
 
         </Toolbar>
@@ -201,10 +259,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
           sx={{ width: '50%', backgroundColor: 'purple' }}
         >
           <List>
-            <ListItem button component={Link} to="/">
+            <ListItem button component={Link} to="/" selected={currentPath === "/"}>
               <ListItemText primary={t('common.home')} />
             </ListItem>
-            <ListItem button component={Link} to="/user-registration-request">
+            {/* <ListItem button component={Link} to="/user-registration-request">
               <ListItemText primary="Register" />
             </ListItem>
             <ListItem button>
@@ -212,10 +270,21 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             </ListItem>
             <ListItem button>
               <ListItemText primary={t('common.aboutUs')} />
-            </ListItem>
-            <ListItem button component={Link} to="/privacy-policy">
+            </ListItem> */}
+            <ListItem button component={Link} to="/about-us" selected={currentPath === "/about-us"}>
+  <ListItemText primary="About Us" />
+</ListItem>
+
+<ListItem button component={Link} to="/products" selected={currentPath === "/products"}>
+  <ListItemText primary="Products & Services" />
+</ListItem>
+
+<ListItem button component={Link} to="/contact" selected={currentPath === "/contact"}>
+  <ListItemText primary="Contact" />
+</ListItem>
+            {/* <ListItem button component={Link} to="/privacy-policy">
               <ListItemText primary={t('common.privacyPolicy')} />
-            </ListItem>
+            </ListItem> */}
           </List>
           <Divider />
           <List>
