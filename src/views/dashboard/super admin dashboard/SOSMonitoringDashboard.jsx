@@ -1,4 +1,4 @@
-import { useMemo, useState,useEffect } from 'react';
+import { useMemo, useState,useEffect,useRef } from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -34,6 +34,7 @@ import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
 import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
 
 import HomePageService from 'services/HomePage';
+import { display } from '@mui/system';
 
 const formatNumber = (value) => {
   const numeric = Number(value);
@@ -69,9 +70,87 @@ const getStatusChipStyles = (mode, status) => {
   };
 };
 
+
+const fetchAreaData = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard/areawise-device-count/",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
+const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard/sos-monitoring/?state_id=1",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
+
 const SOSMonitoringDashboard = () => {
   const [mode, setMode] = useState('dark');
   const [activeTab, setActiveTab] = useState(0);
+  const [districtData, setDistrictData] = useState([]);
+ const [cityData, setCityData] = useState([]);
+ const [localityData, setLocalityData] = useState([]);
+ const [deviceData, setDeviceData] = useState([]);
+ const [level, setLevel] = useState("district");
+ const [mapData, setMapData] = useState([]);
+ const levelRef = useRef(level);
+ const [dashboardData,setDashboardData]=useState({
+   // Calls Overview
+  totalEmergencyCallsToday: 0,
+  totalClosedCallsToday: 0,
+  liveCallsNow: 0,
+  unattendedCallsNow: 0,
+
+  // ⏱️ Response Time
+  avgAmbulanceAcceptTime: 0,
+  avgPoliceAcceptTime: 0,
+  avgDeskAcceptTime: 0,
+
+  // 👨‍💼 Team Lead Performance
+  teamLeadHandledCallsPercent: 0,
+  teamLeadHandledCallsTotal: 0,
+
+total_triggered_calls:0,
+total_assigned_calls:0,
+total_exec_accepted_calls:0,
+total_broadcasted_calls:0,
+total_on_scene_calls:0,
+total_closed_calls:0
+
+
+
+});
+     const [zoom, setZoom] = useState(8);
 
   const initialCases = useMemo(
     () => [
@@ -215,40 +294,72 @@ const SOSMonitoringDashboard = () => {
   const kpis = useMemo(() => {
     if (mode === 'dark') {
       return [
-        { label: 'Total Calls', value: 1256, bg: '#1e3a5f' },
-        { label: 'Live Calls', value: 18, bg: '#2a4a7c', emphasis: true },
-        { label: 'Pending Calls', value: 7, bg: '#3d4e6b' },
-        { label: 'Closed Calls', value: 1231, bg: '#1e3a5f' },
-        { label: 'Avg Exec Accept', value: '1.2 min', bg: '#2c5f6f' },
-        { label: 'Avg Police On-Scene', value: '8.5 min', bg: '#2c5f6f' },
-        { label: 'Escalation Rate', value: '5.2%', bg: '#2c5f6f' }
+        { label: 'Total Calls', value:dashboardData.totalEmergencyCallsToday, bg: '#1e3a5f' },
+        { label: 'Live Calls', value:  dashboardData.liveCallsNow, bg: '#2a4a7c', emphasis: true },
+        { label: 'Pending Calls', value: dashboardData.unattendedCallsNow, bg: '#3d4e6b' },
+        { label: 'Closed Calls', value: dashboardData.unattendedCallsNow, bg: '#1e3a5f' },
+        { label: 'Avg Exec Accept', value:  dashboardData.avgDeskAcceptTime != null
+        ? dashboardData.avgDeskAcceptTime
+        : '0 min', bg: '#2c5f6f' },
+        { label: 'Avg Police On-Scene', value:  dashboardData.avgPoliceAcceptTime != null
+        ? dashboardData.avgPoliceAcceptTime
+        : '0 min', bg: '#2c5f6f' },
+        { label: 'Escalation Rate', value:   dashboardData.teamLeadHandledCallsPercent != null
+        ? dashboardData.teamLeadHandledCallsPercent
+        : '0%', bg: '#2c5f6f' }
       ];
     }
 
     return [
-      { label: 'Total Calls', value: 1256, bg: '#eef2ff' },
-      { label: 'Live Calls', value: 18, bg: '#dbeafe', emphasis: true },
-      { label: 'Pending Calls', value: 7, bg: '#ecfeff' },
-      { label: 'Closed Calls', value: 1231, bg: '#f1f5f9' },
-      { label: 'Avg Exec Accept', value: '1.2 min', bg: '#fef3c7' },
-      { label: 'Avg Police On-Scene', value: '8.5 min', bg: '#ffe4e6' },
-      { label: 'Escalation Rate', value: '5.2%', bg: '#dcfce7' }
+      { label: 'Total Calls', value: dashboardData.totalEmergencyCallsToday, bg: '#eef2ff' },
+      { label: 'Live Calls', value:  dashboardData.liveCallsNow, bg: '#dbeafe', emphasis: true },
+      { label: 'Pending Calls', value: dashboardData.unattendedCallsNow, bg: '#ecfeff' },
+      { label: 'Closed Calls', value: dashboardData.unattendedCallsNow, bg: '#f1f5f9' },
+      { label: 'Avg Exec Accept', value:  dashboardData.avgDeskAcceptTime != null
+        ? dashboardData.avgDeskAcceptTime
+        : '0 min', bg: '#fef3c7' },
+      { label: 'Avg Police On-Scene', value:  dashboardData.avgPoliceAcceptTime != null
+        ? dashboardData.avgPoliceAcceptTime
+        : '0 min', bg: '#ffe4e6' },
+      { label: 'Escalation Rate', value:  dashboardData.teamLeadHandledCallsPercent != null
+        ? dashboardData.teamLeadHandledCallsPercent
+        : '0%', bg: '#dcfce7' }
     ];
-  }, [mode]);
+  }, [mode,dashboardData]);
 
-  const statusRows = useMemo(
-    () => [
-      { label: 'Triggered', value: 1256, color: '#3b82f6', width: 100 },
-      { label: 'Assigned', value: 1190, color: '#4ade80', width: 95 },
-      { label: 'Exec Accepted', value: 1175, color: '#4ade80', width: 93 },
-      { label: 'Broadcasted', value: 980, color: '#fb923c', width: 78 },
-      { label: 'Police Accepted', value: 920, color: '#ef4444', width: 73 },
-      { label: 'Amb Accepted', value: 880, color: '#dc2626', width: 70 },
-      { label: 'On-Scene', value: 845, color: '#6366f1', width: 67 },
-      { label: 'Closed', value: 1231, color: '#64748b', width: 98 }
-    ],
-    []
-  );
+const statusRows = useMemo(() => {
+  // keep your original structure (with width key)
+  const rows = [
+    { label: 'Triggered', value: dashboardData.total_triggered_calls ?? 0, color: '#3b82f6', width: 0 },
+    { label: 'Assigned', value: dashboardData.total_assigned_calls ?? 0, color: '#4ade80', width: 0 },
+    { label: 'Exec Accepted', value: dashboardData.total_exec_accepted_calls ?? 0, color: '#4ade80', width: 0 },
+    { label: 'Broadcasted', value: dashboardData.total_broadcasted_calls ?? 0, color: '#fb923c', width: 0 },
+    { label: 'Police Accepted', value: dashboardData.avgPoliceAcceptTime ?? 0, color: '#ef4444', width: 0 },
+    { label: 'Amb Accepted', value: dashboardData.avgAmbulanceAcceptTime ?? 0, color: '#dc2626', width: 0 },
+    { label: 'On-Scene', value: dashboardData.total_on_scene_calls ?? 0, color: '#6366f1', width: 0 },
+    { label: 'Closed', value: dashboardData.total_closed_calls ?? 0, color: '#64748b', width: 0 }
+  ];
+
+  // 🔹 extract values
+  const values = rows.map(r => r.value);
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values);
+
+  const minWidth = 30;
+  const maxWidth = 100;
+
+  const getWidth = (value) => {
+    if (max === min) return maxWidth;
+    return minWidth + ((value - min) / (max - min)) * (maxWidth - minWidth);
+  };
+
+  // 🔹 replace only width
+  return rows.map(row => ({
+    ...row,
+    width: Math.round(getWidth(row.value))
+  }));
+
+}, [dashboardData]);
 
   const incidents = useMemo(
     () => [
@@ -346,236 +457,188 @@ const SOSMonitoringDashboard = () => {
     }
   };
 
-  const [districtData, setDistrictData] = useState([]);
-  const [totalDevices, setTotalDevices] = useState(0);
-  const [zoom, setZoom] = useState(8);
-  const data = [
-    {
-      "district_name": "Baksa",
-      "latitude": 26.699,
-      "longitude": 91.487,
-      "total_vehicle_count": 18234
-    },
-    {
-      "district_name": "Bajali",
-      "latitude": 26.495,
-      "longitude": 91.180,
-      "total_vehicle_count": 12456
-    },
-    {
-      "district_name": "Barpeta",
-      "latitude": 26.320,
-      "longitude": 91.000,
-      "total_vehicle_count": 28765
-    },
-    {
-      "district_name": "Biswanath",
-      "latitude": 26.726,
-      "longitude": 93.147,
-      "total_vehicle_count": 15678
-    },
-    {
-      "district_name": "Bongaigaon",
-      "latitude": 26.478,
-      "longitude": 90.556,
-      "total_vehicle_count": 24321
-    },
-    {
-      "district_name": "Cachar",
-      "latitude": 24.833,
-      "longitude": 92.778,
-      "total_vehicle_count": 41234
-    },
-    {
-      "district_name": "Charaideo",
-      "latitude": 27.024,
-      "longitude": 95.016,
-      "total_vehicle_count": 11890
-    },
-    {
-      "district_name": "Chirang",
-      "latitude": 26.486,
-      "longitude": 90.558,
-      "total_vehicle_count": 10987
-    },
-    {
-      "district_name": "Darrang",
-      "latitude": 26.442,
-      "longitude": 92.030,
-      "total_vehicle_count": 17654
-    },
-    {
-      "district_name": "Dhemaji",
-      "latitude": 27.484,
-      "longitude": 94.588,
-      "total_vehicle_count": 13245
-    },
-    {
-      "district_name": "Dhubri",
-      "latitude": 26.018,
-      "longitude": 89.974,
-      "total_vehicle_count": 22110
-    },
-    {
-      "district_name": "Dibrugarh",
-      "latitude": 27.472,
-      "longitude": 94.912,
-      "total_vehicle_count": 33876
-    },
-    {
-      "district_name": "Dima Hasao",
-      "latitude": 25.164,
-      "longitude": 93.017,
-      "total_vehicle_count": 8456
-    },
-    {
-      "district_name": "Goalpara",
-      "latitude": 26.167,
-      "longitude": 90.626,
-      "total_vehicle_count": 16789
-    },
-    {
-      "district_name": "Golaghat",
-      "latitude": 26.523,
-      "longitude": 93.962,
-      "total_vehicle_count": 19876
-    },
-    {
-      "district_name": "Hailakandi",
-      "latitude": 24.683,
-      "longitude": 92.561,
-      "total_vehicle_count": 14567
-    },
-    {
-      "district_name": "Hojai",
-      "latitude": 26.002,
-      "longitude": 92.857,
-      "total_vehicle_count": 17345
-    },
-    {
-      "district_name": "Jorhat",
-      "latitude": 26.751,
-      "longitude": 94.203,
-      "total_vehicle_count": 29754
-    },
-    {
-      "district_name": "Kamrup Metropolitan",
-      "latitude": 26.144,
-      "longitude": 91.736,
-      "total_vehicle_count": 98543
-    },
-    {
-      "district_name": "Kamrup",
-      "latitude": 26.191,
-      "longitude": 91.692,
-      "total_vehicle_count": 26543
-    },
-    {
-      "district_name": "Karbi Anglong",
-      "latitude": 25.844,
-      "longitude": 93.431,
-      "total_vehicle_count": 15432
-    },
-    {
-      "district_name": "Sribhumi",
-      "latitude": 24.869,
-      "longitude": 92.355,
-      "total_vehicle_count": 21456
-    },
-    {
-      "district_name": "Kokrajhar",
-      "latitude": 26.402,
-      "longitude": 90.273,
-      "total_vehicle_count": 18976
-    },
-    {
-      "district_name": "Lakhimpur",
-      "latitude": 27.238,
-      "longitude": 94.105,
-      "total_vehicle_count": 17456
-    },
-    {
-      "district_name": "Majuli",
-      "latitude": 26.954,
-      "longitude": 94.204,
-      "total_vehicle_count": 5432
-    },
-    {
-      "district_name": "Morigaon",
-      "latitude": 26.252,
-      "longitude": 92.342,
-      "total_vehicle_count": 16234
-    },
-    {
-      "district_name": "Nagaon",
-      "latitude": 26.348,
-      "longitude": 92.684,
-      "total_vehicle_count": 35678
-    },
-    {
-      "district_name": "Nalbari",
-      "latitude": 26.442,
-      "longitude": 91.441,
-      "total_vehicle_count": 18567
-    },
-    {
-      "district_name": "Sivasagar",
-      "latitude": 26.984,
-      "longitude": 94.637,
-      "total_vehicle_count": 16890
-    },
-    {
-      "district_name": "Sonitpur",
-      "latitude": 26.633,
-      "longitude": 92.800,
-      "total_vehicle_count": 24890
-    },
-    {
-      "district_name": "South Salmara-Mankachar",
-      "latitude": 25.828,
-      "longitude": 89.901,
-      "total_vehicle_count": 9765
-    },
-    {
-      "district_name": "Tamulpur",
-      "latitude": 26.694,
-      "longitude": 91.102,
-      "total_vehicle_count": 8876
-    },
-    {
-      "district_name": "Tinsukia",
-      "latitude": 27.489,
-      "longitude": 95.359,
-      "total_vehicle_count": 28456
-    },
-    {
-      "district_name": "Udalguri",
-      "latitude": 26.753,
-      "longitude": 92.102,
-      "total_vehicle_count": 13456
-    },
-    {
-      "district_name": "West Karbi Anglong",
-      "latitude": 25.953,
-      "longitude": 92.873,
-      "total_vehicle_count": 7654
-    }
-  ];
+ 
+ 
+ const handleDistrictClick = async (district) => {
+  debugger
+   //  setSelectedDistrictObj(district); // ⭐ ADD THIS
+  const res = await fetchAreaData({
+     district_name: district.district_name
+   });
+ 
+   if (res?.locations) {
+     const cities = res.locations.map(c => ({
+       ...c,
+       district_name: res.district_name
+     }));
+ 
+     setCityData(cities);
+     setMapData(cities);
+     setLevel("city");
+   }
+ };
+ const handleCityClick = async(city) => {
+    debugger
+   //  setSelectedCityObj(city); // ⭐ ADD THIS
+   const res = await fetchAreaData({
+     district_name: city.district_name,
+     city_name: city.city_village_name
+   });
+ 
+   if (res?.localities) {
+     const localitiesWithParent = res.localities.map(l => ({
+       ...l,
+       district_name: res.district_name,
+       city_name: res.city_name
+     }));
+ 
+     setLocalityData(localitiesWithParent);
+     setMapData(localitiesWithParent);
+     setLevel("locality");
+   }
+ };
+ const handleLocalityClick =async (locality) => {
+    debugger
+     //  setSelectedLocalityObj(locality); // ⭐ ADD THIS
+   const res = await fetchAreaData({
+     district_name: locality.district_name,
+     city_name: locality.city_name,
+     locality_name: locality.locality_name
+   });
+ 
+   if (res?.devices) {
+     setDeviceData(res.devices);
+     setMapData(res.devices);
+     setLevel("device");
+   }
+ };
+ const handleBack = async ({ level, data }) => {
+  debugger
+   if (level === "device" && data) {
+   const res = await fetchAreaData({
+     district_name: data.district_name,
+     city_name: data.city_name
+   });
+ 
+  if (res?.localities) {
+   const localities = res.localities.map(l => ({
+     ...l,
+     district_name: res.district_name,
+     city_name: res.city_name
+   }));
+ 
+   setMapData(localities);
+   setLevel("locality");
+ }
+ }
+   else if (level === "locality" && data) {
+     debugger
+   const res = await fetchAreaData({
+     district_name: data.district_name
+   });
+ 
+     if (res?.locations) {
+ 
+     const cities = res.locations.map(c => ({
+       ...c,
+       district_name: res.district_name
+     }));
+ 
+     setMapData(cities); // ✅ FIXED
+     setLevel("city");
+   }
+ }
+  else if (level === "city") {
+   setMapData(districtData);
+   setLevel("district");
+ }
+ };
+ 
+ useEffect(() => {
+  const loadData  = async () => {
+ try {
+       const [areaRes, metricsRes] = await Promise.all([
+         fetchAreaData({}, "GET"),
+         fetchDashboardMetrics({}, "GET")
+       ]);
+ 
+       if (Array.isArray(areaRes)) {
+         setDistrictData(areaRes);
+          setMapData(areaRes);
+       }
+ debugger
+     if (metricsRes?.sos_monitoring_metrics) {
+       debugger
+   const sos = metricsRes.sos_monitoring_metrics;
+ 
+   setDashboardData({
+         // 📞 Calls Overview
+    totalEmergencyCallsToday: sos.total_emergency_calls_today,
+    totalClosedCallsToday: sos.total_closed_calls_today,
+    liveCallsNow: sos.total_live_calls_now,
+    unattendedCallsNow: sos.total_unattended_calls_now,
+
+    // ⏱️ Response Time (Seconds)
+    avgAmbulanceAcceptTime:
+      sos.average_time_to_accept_broadcast_by_ambulance_seconds,
+
+    avgPoliceAcceptTime:
+      sos.average_time_to_accept_broadcast_by_police_seconds,
+
+    avgDeskAcceptTime:
+      sos.average_time_to_accept_by_desk_executive_seconds,
+
+    // 👨‍💼 Team Lead Performance
+    teamLeadHandledCallsPercent:
+      sos.calls_accepted_by_team_lead_percent_of_total_calls,
+
+    teamLeadHandledCallsTotal:
+      sos.calls_accepted_by_team_lead_total,
+
+
+//for sos call status
+total_triggered_calls:
+      sos.total_triggered_calls ?? 0,
+total_assigned_calls:
+      sos.total_assigned_calls ?? 0,
+      total_exec_accepted_calls:
+      sos.total_exec_accepted_calls ?? 0,
+        total_broadcasted_calls:
+      sos.total_broadcasted_calls ?? 0,
+          total_on_scene_calls:
+      sos.total_on_scene_calls ?? 0,
+          total_closed_calls:
+      sos.total_closed_calls ?? 0,
+
+
+
+
+   });
+ }
+ 
+     } catch (err) {
+       console.error(err);
+     }
+   };
+   
+ 
+   loadData ();
+ 
+ }, []);
+  // useEffect(() => {
   
-  useEffect(() => {
+  //   // store dummy data
+  //   setDistrictData(data);
   
-    // store dummy data
-    setDistrictData(data);
+  //   // calculate total
+  //   const total = data.reduce(
+  //     (sum, item) => sum + (item.total_vehicle_count || 0),
+  //     0
+  //   );
   
-    // calculate total
-    const total = data.reduce(
-      (sum, item) => sum + (item.total_vehicle_count || 0),
-      0
-    );
+  //   setTotalDevices(total);
   
-    setTotalDevices(total);
-  
-  }, []);
+  // }, []);
   return (
     <Box
       sx={{
@@ -681,7 +744,7 @@ const SOSMonitoringDashboard = () => {
           }}
         >
           <Tab label="Dashboard Overview" />
-          <Tab label="Active SOS Cases" />
+          {/* <Tab label="Active SOS Cases" /> */}
         </Tabs>
       </Box>
 
@@ -753,9 +816,19 @@ const SOSMonitoringDashboard = () => {
               <Box sx={{ height: { xs: 320, md: '100%' }, flexGrow: 1 }}>
 
  {zoom >= 9 ? (
-  <RoadsMapComponent onZoomChange={setZoom} data={data} />
+  <RoadsMapComponent   erss={false}
+            data={mapData}
+          level={level}
+         onZoomChange={(z) => {
+    setZoom(z);
+    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
+  }}
+          onBack={handleBack}
+  onDistrictClick={handleDistrictClick}
+  onCityClick={handleCityClick}
+  onLocalityClick={handleLocalityClick} />
 ) : (
-  <BhuvanMapComponent onZoomChange={setZoom} data={data} />
+  <BhuvanMapComponent onZoomChange={setZoom} data={mapData}  />
 )}
 
                 {/* <BhuvanMapComponent
@@ -777,7 +850,7 @@ const SOSMonitoringDashboard = () => {
 
       {/* Tab Panel 2: Active SOS Cases */}
       {activeTab === 1 && (
-        <Grid container spacing={1.5} sx={{ flexGrow: 1, overflow: { xs: 'visible', md: 'hidden' }, maxHeight: { md: 'calc(100% - 10px)' } }}>
+        <Grid style={{display:"none"}} container spacing={1.5} sx={{ flexGrow: 1, overflow: { xs: 'visible', md: 'hidden' }, maxHeight: { md: 'calc(100% - 10px)' } }}>
           <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: '100%' } }}>
             <Box sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <Box

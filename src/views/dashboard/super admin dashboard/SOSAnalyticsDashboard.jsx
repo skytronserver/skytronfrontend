@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState,useEffect } from 'react';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -7,6 +7,7 @@ import Tab from '@mui/material/Tab';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import { alpha } from '@mui/material/styles';
+import axios from 'axios';
 
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
@@ -115,6 +116,13 @@ const SOSAnalyticsDashboard = () => {
   const [policeStationSubTab, setPoliceStationSubTab] = useState(0);
   const [typeDistSubTab, setTypeDistSubTab] = useState(0);
   const [topPerformersSubTab, setTopPerformersSubTab] = useState(0);
+   const [monthwiseData, setMonthwiseData] = useState([]);
+   const [hourlyData, setHourlyData] = useState([]);
+   const [districtSeries, setDistrictSeries] = useState([]);
+   const [policeStationSeries, setPoliceStationSeries] = useState([]);
+
+
+  
 
   const tokens = useMemo(() => {
     if (mode === 'dark') {
@@ -140,125 +148,259 @@ const SOSAnalyticsDashboard = () => {
     setTabValue(newValue);
   };
 
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+        );
+debugger
+        // Transform API response to your previous dummy structure
+        const transformed = response.data.month_wise_metrics.map((item) => ({
+          month: item.month,
+          total: item.total_calls_count,
+          genuine:
+            'genuine' in item
+              ? item.genuine
+              : 0,
+          panic: 'panic' in item
+              ? item.panic
+              : 0, // map as per your logic
+          policeAccepted: item.total_police_accepted_count,
+          ambAccepted: item.total_ambulance_accepted_count,
+          other:  'other' in item
+              ? item.other
+              : 0,// if API doesn't have, put 0
+          fake: item.total_fake_call_close,
+        }));
+
+        setMonthwiseData(transformed);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        // setError(err.message);
+      } 
+    };
+
+    fetchData();
+  }, []);
+
+
   // Monthwise data from user's image
-  const monthwiseData = useMemo(
-    () => [
-      { month: 'Jan', total: 50, genuine: 40, panic: 4, policeAccepted: 3, ambAccepted: 2, other: 1, fake: 10 },
-      { month: 'Feb', total: 20, genuine: 15, panic: 2, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 },
-      { month: 'Mar', total: 39, genuine: 32, panic: 2, policeAccepted: 2, ambAccepted: 1, other: 2, fake: 7 },
-      { month: 'Apr', total: 40, genuine: 35, panic: 1, policeAccepted: 2, ambAccepted: 1, other: 1, fake: 5 },
-      { month: 'May', total: 37, genuine: 30, panic: 2, policeAccepted: 2, ambAccepted: 1, other: 2, fake: 7 },
-      { month: 'Jun', total: 48, genuine: 40, panic: 3, policeAccepted: 2, ambAccepted: 2, other: 1, fake: 8 },
-      { month: 'Jul', total: 95, genuine: 80, panic: 6, policeAccepted: 4, ambAccepted: 3, other: 2, fake: 15 },
-      { month: 'Aug', total: 29, genuine: 24, panic: 1, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 },
-      { month: 'Sept', total: 30, genuine: 25, panic: 1, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 },
-      { month: 'Oct', total: 47, genuine: 38, panic: 3, policeAccepted: 2, ambAccepted: 1, other: 3, fake: 9 },
-      { month: 'Nov', total: 49, genuine: 42, panic: 2, policeAccepted: 2, ambAccepted: 1, other: 2, fake: 7 },
-      { month: 'Dec', total: 29, genuine: 24, panic: 1, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 }
-    ],
-    []
-  );
+  // const monthwiseData = useMemo(
+  //   () => [
+  //     { month: 'Jan', total: 50, genuine: 40, panic: 4, policeAccepted: 3, ambAccepted: 2, other: 1, fake: 10 },
+  //     { month: 'Feb', total: 20, genuine: 15, panic: 2, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 },
+  //     { month: 'Mar', total: 39, genuine: 32, panic: 2, policeAccepted: 2, ambAccepted: 1, other: 2, fake: 7 },
+  //     { month: 'Apr', total: 40, genuine: 35, panic: 1, policeAccepted: 2, ambAccepted: 1, other: 1, fake: 5 },
+  //     { month: 'May', total: 37, genuine: 30, panic: 2, policeAccepted: 2, ambAccepted: 1, other: 2, fake: 7 },
+  //     { month: 'Jun', total: 48, genuine: 40, panic: 3, policeAccepted: 2, ambAccepted: 2, other: 1, fake: 8 },
+  //     { month: 'Jul', total: 95, genuine: 80, panic: 6, policeAccepted: 4, ambAccepted: 3, other: 2, fake: 15 },
+  //     { month: 'Aug', total: 29, genuine: 24, panic: 1, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 },
+  //     { month: 'Sept', total: 30, genuine: 25, panic: 1, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 },
+  //     { month: 'Oct', total: 47, genuine: 38, panic: 3, policeAccepted: 2, ambAccepted: 1, other: 3, fake: 9 },
+  //     { month: 'Nov', total: 49, genuine: 42, panic: 2, policeAccepted: 2, ambAccepted: 1, other: 2, fake: 7 },
+  //     { month: 'Dec', total: 29, genuine: 24, panic: 1, policeAccepted: 1, ambAccepted: 1, other: 1, fake: 5 }
+  //   ],
+  //   []
+  // );
 
   const monthwiseTotals = useMemo(
     () => monthwiseData.map((d) => ({ month: d.month, total: d.total })),
     [monthwiseData]
   );
 
-  const hourlyData = useMemo(
-    () => [
-      { time: '00:00-01:00', total: 50 },
-      { time: '01:00-02:00', total: 20 },
-      { time: '02:00-03:00', total: 39 },
-      { time: '03:00-04:00', total: 40 },
-      { time: '04:00-05:00', total: 37 },
-      { time: '05:00-06:00', total: 48 },
-      { time: '06:00-07:00', total: 95 },
-      { time: '07:00-08:00', total: 29 },
-      { time: '08:00-09:00', total: 30 },
-      { time: '09:00-10:00', total: 47 },
-      { time: '10:00-11:00', total: 49 },
-      { time: '11:00-12:00', total: 29 },
-      { time: '12:00-13:00', total: 20 },
-      { time: '13:00-14:00', total: 20 },
-      { time: '14:00-15:00', total: 40 },
-      { time: '15:00-16:00', total: 50 },
-      { time: '16:00-17:00', total: 37 },
-      { time: '17:00-18:00', total: 48 },
-      { time: '18:00-19:00', total: 59 },
-      { time: '19:00-20:00', total: 29 },
-      { time: '20:00-21:00', total: 50 },
-      { time: '21:00-22:00', total: 58 },
-      { time: '22:00-23:00', total: 39 },
-      { time: '23:00-24:00', total: 20 }
-    ],
-    []
-  );
 
-  const districtSeries = useMemo(
-    () => [
-      { name: 'Baksa', total: 50 },
-      { name: 'Barpeta', total: 20 },
-      { name: 'Chirang', total: 39 },
-      { name: 'Goalpara', total: 40 },
-      { name: 'Kamrup Metropolitan', total: 37 },
-      { name: 'Nalbari', total: 48 },
-      { name: 'Tamulpur', total: 95 },
-      { name: 'Darrang', total: 29 },
-      { name: 'Udalguri', total: 30 },
-      { name: 'Dhemaji', total: 47 },
-      { name: 'Golaghat', total: 49 },
-      { name: 'Lakhimpur', total: 29 },
-      { name: 'Sivasagar', total: 20 },
-      { name: 'Dima Hasao', total: 20 },
-      { name: 'Karbi Anglong', total: 40 },
-      { name: 'West Karbi Anglong', total: 50 },
-      { name: 'Cachar', total: 37 },
-      { name: 'Hailakandi', total: 48 },
-      { name: 'Karimganj', total: 58 }
-    ],
-    []
-  );
 
-  const policeStationSeries = useMemo(
-    () => [
-      { name: 'Dispur', total: 50 },
-      { name: 'Panbazar', total: 20 },
-      { name: 'Latasil', total: 39 },
-      { name: 'Paltan Bazar', total: 40 },
-      { name: 'Gorchuk', total: 37 },
-      { name: 'Noonmati', total: 48 },
-      { name: 'Chandmari', total: 95 },
-      { name: 'Basistha', total: 29 },
-      { name: 'Panjabari', total: 30 },
-      { name: 'Geetanagar', total: 47 },
-      { name: 'Nalbari', total: 49 },
-      { name: 'South Salmara-Mankachar', total: 29 },
-      { name: 'Tamulpur', total: 20 },
-      { name: 'Biswanath', total: 20 },
-      { name: 'Darrang', total: 40 },
-      { name: 'Sonitpur', total: 50 },
-      { name: 'Udalguri', total: 37 },
-      { name: 'Charaideo', total: 48 },
-      { name: 'Dhemaji', total: 59 },
-      { name: 'Dibrugarh', total: 29 },
-      { name: 'Golaghat', total: 50 },
-      { name: 'Jorhat', total: 58 },
-      { name: 'Lakhimpur', total: 39 },
-      { name: 'Majuli', total: 20 },
-      { name: 'Sivasagar', total: 20 },
-      { name: 'Tinsukia', total: 20 },
-      { name: 'Dima Hasao', total: 40 },
-      { name: 'Hojai', total: 50 },
-      { name: 'Morigaon', total: 37 },
-      { name: 'Nagaon', total: 48 },
-      { name: 'Karbi Anglong', total: 58 },
-      { name: 'West Karbi Anglong', total: 39 },
-      { name: 'Cachar', total: 20 },
-      { name: 'Hailakandi', total: 20 },
-      { name: 'Karimganj', total: 20 }
-    ],
-    []
-  );
+  useEffect(() => {
+    const fetchHourlyData = async () => {
+      try {
+        const response = await axios.get(
+          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+        );
+debugger
+        // Transform API response to your previous dummy structure
+        const transformed = response.data.hour_of_day_wise_metrics.map((item) => ({
+          time: item.hour_of_day,
+          total: item.total_calls_count,
+         
+        }));
+
+        setHourlyData(transformed);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        // setError(err.message);
+      } 
+    };
+
+    fetchHourlyData();
+  }, []);
+
+
+  // const hourlyData = useMemo(
+  //   () => [
+  //     { time: '00:00-01:00', total: 50 },
+  //     { time: '01:00-02:00', total: 20 },
+  //     { time: '02:00-03:00', total: 39 },
+  //     { time: '03:00-04:00', total: 40 },
+  //     { time: '04:00-05:00', total: 37 },
+  //     { time: '05:00-06:00', total: 48 },
+  //     { time: '06:00-07:00', total: 95 },
+  //     { time: '07:00-08:00', total: 29 },
+  //     { time: '08:00-09:00', total: 30 },
+  //     { time: '09:00-10:00', total: 47 },
+  //     { time: '10:00-11:00', total: 49 },
+  //     { time: '11:00-12:00', total: 29 },
+  //     { time: '12:00-13:00', total: 20 },
+  //     { time: '13:00-14:00', total: 20 },
+  //     { time: '14:00-15:00', total: 40 },
+  //     { time: '15:00-16:00', total: 50 },
+  //     { time: '16:00-17:00', total: 37 },
+  //     { time: '17:00-18:00', total: 48 },
+  //     { time: '18:00-19:00', total: 59 },
+  //     { time: '19:00-20:00', total: 29 },
+  //     { time: '20:00-21:00', total: 50 },
+  //     { time: '21:00-22:00', total: 58 },
+  //     { time: '22:00-23:00', total: 39 },
+  //     { time: '23:00-24:00', total: 20 }
+  //   ],
+  //   []
+  // );
+
+ useEffect(() => {
+    const fetchDistrictSeries = async () => {
+      try {
+        const response = await axios.get(
+          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+        );
+debugger
+        // Transform API response to your previous dummy structure
+        const transformed = response.data.district_wise_metrics.map((item) => ({
+          name: item.district_name,
+          total: item.total_calls_count,
+         
+        }));
+
+        setDistrictSeries(transformed);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        // setError(err.message);
+      } 
+    };
+
+    fetchDistrictSeries();
+  }, []);
+
+  // const districtSeries = useMemo(
+  //   () => [
+  //     { name: 'Baksa', total: 50 },
+  //     { name: 'Barpeta', total: 20 },
+  //     { name: 'Chirang', total: 39 },
+  //     { name: 'Goalpara', total: 40 },
+  //     { name: 'Kamrup Metropolitan', total: 37 },
+  //     { name: 'Nalbari', total: 48 },
+  //     { name: 'Tamulpur', total: 95 },
+  //     { name: 'Darrang', total: 29 },
+  //     { name: 'Udalguri', total: 30 },
+  //     { name: 'Dhemaji', total: 47 },
+  //     { name: 'Golaghat', total: 49 },
+  //     { name: 'Lakhimpur', total: 29 },
+  //     { name: 'Sivasagar', total: 20 },
+  //     { name: 'Dima Hasao', total: 20 },
+  //     { name: 'Karbi Anglong', total: 40 },
+  //     { name: 'West Karbi Anglong', total: 50 },
+  //     { name: 'Cachar', total: 37 },
+  //     { name: 'Hailakandi', total: 48 },
+  //     { name: 'Karimganj', total: 58 }
+  //   ],
+  //   []
+  // );
+
+
+ useEffect(() => {
+    const fetchPoliceStationSeries = async () => {
+      try {
+        const response = await axios.get(
+          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+        );
+debugger
+        // // Transform API response to your previous dummy structure
+        // const transformed = response.data.policeStation_wise_metrics.map((item) => ({
+        //   name: item.district_name,
+        //   total: item.total_calls_count,
+         
+        // }));
+const apiData = response.data.policeStation_wise_metrics;
+
+     let transformed = [];
+           if (Array.isArray(apiData) && apiData.length > 0) {
+        // ✅ Use API data if available
+        transformed = apiData.map((item) => ({
+          name: item.district_name ?? "Unknown",
+          total: item.total_calls_count ?? 0,
+        }));
+      } else {
+        // ✅ Fallback dummy data
+        transformed = [
+          { name: "Station A", total: 120 },
+          { name: "Station B", total: 95 },
+          { name: "Station C", total: 60 },
+        ];
+      }
+
+        setPoliceStationSeries(transformed);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        // setError(err.message);
+      } 
+    };
+
+    fetchPoliceStationSeries();
+  }, []);
+
+
+
+  // const policeStationSeries = useMemo(
+  //   () => [
+  //     { name: 'Dispur', total: 50 },
+  //     { name: 'Panbazar', total: 20 },
+  //     { name: 'Latasil', total: 39 },
+  //     { name: 'Paltan Bazar', total: 40 },
+  //     { name: 'Gorchuk', total: 37 },
+  //     { name: 'Noonmati', total: 48 },
+  //     { name: 'Chandmari', total: 95 },
+  //     { name: 'Basistha', total: 29 },
+  //     { name: 'Panjabari', total: 30 },
+  //     { name: 'Geetanagar', total: 47 },
+  //     { name: 'Nalbari', total: 49 },
+  //     { name: 'South Salmara-Mankachar', total: 29 },
+  //     { name: 'Tamulpur', total: 20 },
+  //     { name: 'Biswanath', total: 20 },
+  //     { name: 'Darrang', total: 40 },
+  //     { name: 'Sonitpur', total: 50 },
+  //     { name: 'Udalguri', total: 37 },
+  //     { name: 'Charaideo', total: 48 },
+  //     { name: 'Dhemaji', total: 59 },
+  //     { name: 'Dibrugarh', total: 29 },
+  //     { name: 'Golaghat', total: 50 },
+  //     { name: 'Jorhat', total: 58 },
+  //     { name: 'Lakhimpur', total: 39 },
+  //     { name: 'Majuli', total: 20 },
+  //     { name: 'Sivasagar', total: 20 },
+  //     { name: 'Tinsukia', total: 20 },
+  //     { name: 'Dima Hasao', total: 40 },
+  //     { name: 'Hojai', total: 50 },
+  //     { name: 'Morigaon', total: 37 },
+  //     { name: 'Nagaon', total: 48 },
+  //     { name: 'Karbi Anglong', total: 58 },
+  //     { name: 'West Karbi Anglong', total: 39 },
+  //     { name: 'Cachar', total: 20 },
+  //     { name: 'Hailakandi', total: 20 },
+  //     { name: 'Karimganj', total: 20 }
+  //   ],
+  //   []
+  // );
 
 
   const timeOfDayHeatmap = useMemo(

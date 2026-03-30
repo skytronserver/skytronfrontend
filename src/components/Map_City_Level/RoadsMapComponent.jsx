@@ -181,6 +181,7 @@ const label =
     <div
       ref={mapRef}
       style={{
+         position: "relative",
         width: "100%",
         height: "500px",
       }}
