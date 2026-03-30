@@ -18,7 +18,7 @@ const SUPPORTED_FORMATS = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 ];
 const today = new Date().toISOString().split('T')[0];
-export const eSIMInitialValues = {
+export const m2mUserInitialValues = {
   name: "",
   email: "",
   mobile: "",
@@ -56,37 +56,37 @@ export const eSIMInitialValues = {
   expirydate: formattedDate,
 };
 
-export const eSIMFormField = {
+export const m2mUserFormField = {
   name: {
     name: "name",
     type: "text",
-    label: "esimUser.form.fields.name",
-    validation: Yup.string().required("esimUser.form.validation.name_required"),
+    label: "m2mUser.form.fields.name",
+    validation: Yup.string().required("m2mUser.form.validation.name_required"),
   },
   email: {
     name: "email",
     type: "text",
-    label: "esimUser.form.fields.email",
-    validation: Yup.string().email("esimUser.form.validation.invalid_email").required("esimUser.form.validation.email_required"),
+    label: "m2mUser.form.fields.email",
+    validation: Yup.string().email("m2mUser.form.validation.invalid_email").required("m2mUser.form.validation.email_required"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
-    label: "esimUser.form.fields.mobile",
-    validation: Yup.string().matches(/^\d{10}$/, 'esimUser.form.validation.invalid_mobile').required('esimUser.form.validation.mobile_required'),
+    label: "m2mUser.form.fields.mobile",
+    validation: Yup.string().matches(/^\d{10}$/, 'm2mUser.form.validation.invalid_mobile').required('m2mUser.form.validation.mobile_required'),
   },
   dob: {
     name: "dob",
     type: "date",
-    label: "esimUser.form.fields.dob",
-    validation: Yup.date().required("esimUser.form.validation.dob_required"),
+    label: "m2mUser.form.fields.dob",
+    validation: Yup.date().required("m2mUser.form.validation.dob_required"),
     maxDate: today
   },
   idProofno: {
     name: "idProofno",
     type: "text",
-    label: "esimUser.form.fields.id_proof_number",
-    validation: Yup.string().min(5, "esimUser.form.validation.id_proof_min_length").required("esimUser.form.validation.id_proof_required"),
+    label: "m2mUser.form.fields.id_proof_number",
+    validation: Yup.string().min(5, "m2mUser.form.validation.id_proof_min_length").required("m2mUser.form.validation.id_proof_required"),
   },
   address: {
     name: "address",
@@ -105,16 +105,16 @@ export const eSIMFormField = {
   state: {
     name: "state",
     type: "select",
-    label: "esimUser.form.fields.state",
-    validation: Yup.string().required("esimUser.form.validation.state_required"),
+    label: "m2mUser.form.fields.state",
+    validation: Yup.string().required("m2mUser.form.validation.state_required"),
     options: stateList,
   },
 
   company_name: {
     name: "company_name",
     type: "text",
-    label: "esimUser.form.fields.company_name",
-    validation: Yup.string().required("esimUser.form.validation.company_name_required"),
+    label: "m2mUser.form.fields.company_name",
+    validation: Yup.string().required("m2mUser.form.validation.company_name_required"),
   },
   company_email: {
     name: "company_email",
@@ -167,7 +167,7 @@ export const eSIMFormField = {
         /^([0][1-9]|[1-2][0-9]|[3][0-7])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$/,
         "Please enter a valid GST number"
       )
-      .required("esimUser.form.validation.gst_no_required"),
+      .required("m2mUser.form.validation.gst_no_required"),
   },
   panno: {
     name: "panno",
@@ -202,12 +202,12 @@ export const eSIMFormField = {
     name: "file_selfCertifiedIdProofAuthorisedSignatory",
     type: "file",
     label: "Self-Certified ID Proof of Authorised Signatory",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified ID Proof of Authorised Signatory is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    message: "m2mUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Self-Certified ID Proof of Authorised Signatory is required").test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
@@ -216,14 +216,14 @@ export const eSIMFormField = {
     name: "file_authLetter",
     type: "file",
     label: "Authorization Letter",
-    message: "esimUser.form.validation.file_restrictions",
+    message: "m2mUser.form.validation.file_restrictions",
     downloadUrl: "/templates/M2M/M2M AUTHORISED REPRESENTATIVE.pdf",
     downloadLabel: "Format of authorisation letter",
-    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    validation: Yup.mixed().required("Authorization Letter is required").test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
@@ -232,12 +232,12 @@ export const eSIMFormField = {
     name: "file_selfCertifiedPanCard",
     type: "file",
     label: "Self-Certified Company Pan Card",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified Company Pan Card is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    message: "m2mUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Self-Certified Company Pan Card is required").test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
@@ -246,12 +246,12 @@ export const eSIMFormField = {
     name: "file_selfCertifiedGstRegistrationCertificate",
     type: "file",
     label: "Self-Certified Company GST Registration Certificate",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified Company GST Registration Certificate is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    message: "m2mUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Self-Certified Company GST Registration Certificate is required").test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
@@ -260,12 +260,12 @@ export const eSIMFormField = {
     name: "file_selfCertifiedCompanyRegistrationCertificateOptional",
     type: "file",
     label: "Self Certified Company registration certificate (Optional)",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().notRequired().test("fileSize", "esimUser.form.validation.file_size", value => {
+    message: "m2mUser.form.validation.file_restrictions",
+    validation: Yup.mixed().notRequired().test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return true;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return true;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
@@ -274,14 +274,14 @@ export const eSIMFormField = {
     name: "file_officialTechnicalOnboardingRequestLetter",
     type: "file",
     label: "Official Technical Onboarding Request Letter",
-    message: "esimUser.form.validation.file_restrictions",
+    message: "m2mUser.form.validation.file_restrictions",
     downloadUrl: "/templates/M2M/M2M Service Provider – Technical Onboarding Request Letter.pdf",
     downloadLabel: "Format of request letter",
-    validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    validation: Yup.mixed().required("Official Technical Onboarding Request Letter is required").test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
@@ -290,14 +290,14 @@ export const eSIMFormField = {
     name: "file_affidavitCumUndertakingBackendAccess",
     type: "file",
     label: "Affidavit-cum-Undertaking for Skytron Backend Access",
-    message: "esimUser.form.validation.file_restrictions",
+    message: "m2mUser.form.validation.file_restrictions",
     downloadUrl: "/templates/M2M/M2M AFFIDAVIT.pdf",
     downloadLabel: "Format of Affidavit-Cum-Undertaking",
-    validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    validation: Yup.mixed().required("Affidavit-cum-Undertaking for Skytron Backend Access is required").test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
@@ -306,12 +306,12 @@ export const eSIMFormField = {
     name: "file_selfCertifiedDotM2mRegistrationCertificate",
     type: "file",
     label: "Self-Certified DoT M2M Registration Certificate",
-    message: "esimUser.form.validation.file_restrictions",
-    validation: Yup.mixed().required("Self-Certified DoT M2M Registration Certificate is required").test("fileSize", "esimUser.form.validation.file_size", value => {
+    message: "m2mUser.form.validation.file_restrictions",
+    validation: Yup.mixed().required("Self-Certified DoT M2M Registration Certificate is required").test("fileSize", "m2mUser.form.validation.file_size", value => {
       if (!value) return false;
       return value.size <= FILE_SIZE;
     })
-      .test("fileFormat", "esimUser.form.validation.file_format", value => {
+      .test("fileFormat", "m2mUser.form.validation.file_format", value => {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),

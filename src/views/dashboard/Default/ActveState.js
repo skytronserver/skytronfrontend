@@ -256,7 +256,7 @@ const ActiveState = () => {
           Total_Offline_Device_30day: data.Device_Offline_Since_30_Days || data.Total_Offline_Device_30day || 0,
           Total_expired_device: data.ESim_Already_Expired || data.Total_expired_device || 0
         });
-        
+
         // Also update standard state objects in case they are referenced by generic charts
         setESIMInfo(prev => ({
           ...prev,
@@ -421,6 +421,8 @@ const ActiveState = () => {
           fitted: data.Total_Fit_Device,
           onlineDevice: data.Online_Devices,
           offlineDevice: data.Offline_Devices,
+          inActiveFor7Days: data.Inactive_Device_7days,
+          inActiveFor30Days: data.Inactive_Device_30days,
         });
         setDeviceHealthInfo((prev => ({
           ...prev,
@@ -530,7 +532,7 @@ const ActiveState = () => {
         try {
           const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics();
           const vehicleAlertData = await vehicleAlertResponse.data;
-          
+
           // Merge broadcast statistics from the main SOS dashboard response
           setVehicleAlertStats({
             ...vehicleAlertData,
@@ -1567,7 +1569,7 @@ const ActiveState = () => {
     }
 
     if (role === 'esimprovider') {
-      // eSIM Status Distribution Pie Chart
+      // M2M Status Distribution Pie Chart
       const esimStatusData = [
         { name: 'Validated', value: eSIMInfo.validated || 0 },
         { name: 'Active', value: eSIMInfo.active || 0 },
@@ -1579,7 +1581,7 @@ const ActiveState = () => {
       charts.push(
         <Grid item xs={12} md={6} key="esim-status">
           <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>eSIM Status Distribution</Typography>
+            <Typography variant="h6" gutterBottom>M2M Status Distribution</Typography>
             <ResponsiveContainer width="100%" height="90%">
               <PieChart>
                 <Pie
@@ -1601,7 +1603,7 @@ const ActiveState = () => {
         </Grid>
       );
 
-      // eSIM Activation Trends Bar Chart (All activation data)
+      // M2M Activation Trends Bar Chart (All activation data)
       const activationTrendsData = [
         { name: 'Requests Sent', count: eSIMActivationInfo.activationRequestSent || 0 },
         { name: 'Confirmed', count: eSIMActivationInfo.activationConfirmed || 0 },
@@ -1612,7 +1614,7 @@ const ActiveState = () => {
       charts.push(
         <Grid item xs={12} md={6} key="activation-trends">
           <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>eSIM Activation Status</Typography>
+            <Typography variant="h6" gutterBottom>M2M Activation Status</Typography>
             <ResponsiveContainer width="100%" height="90%">
               <BarChart data={activationTrendsData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -1655,7 +1657,7 @@ const ActiveState = () => {
       // Total Devices Overview
       const deviceOverviewData = [
         { name: 'Total Devices', value: eSIMInfo.totalDevicesWithESim || 0 },
-        { name: 'With eSIM Status', value: (eSIMInfo.validated || 0) + (eSIMInfo.active || 0) + (eSIMInfo.expired || 0) + (eSIMInfo.pending || 0) + (eSIMInfo.invalid || 0) }
+        { name: 'With M2M Status', value: (eSIMInfo.validated || 0) + (eSIMInfo.active || 0) + (eSIMInfo.expired || 0) + (eSIMInfo.pending || 0) + (eSIMInfo.invalid || 0) }
       ];
 
       charts.push(
@@ -1696,9 +1698,6 @@ const ActiveState = () => {
                 <strong>State:</strong> {providerInfo.state || '-'}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Status:</strong> {providerInfo.status || '-'}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
                 <strong>Created Date:</strong> {providerInfo.createdDate || '-'}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
@@ -1709,7 +1708,7 @@ const ActiveState = () => {
                   Total Devices: {eSIMInfo.totalDevicesWithESim || 0}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Validated eSIMs: {eSIMInfo.validated || 0}
+                  Validated M2Ms: {eSIMInfo.validated || 0}
                 </Typography>
               </Box>
             </Box>
@@ -1717,7 +1716,7 @@ const ActiveState = () => {
         </Grid>
       );
 
-      // Complete eSIM Status Breakdown
+      // Complete M2M Status Breakdown
       const completeStatusData = [
         { name: 'Validated', value: eSIMInfo.validated || 0, color: '#00C49F' },
         { name: 'Active', value: eSIMInfo.active || 0, color: '#0088FE' },
@@ -1729,7 +1728,7 @@ const ActiveState = () => {
       charts.push(
         <Grid item xs={12} md={6} key="complete-status">
           <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>Complete eSIM Status Breakdown</Typography>
+            <Typography variant="h6" gutterBottom>Complete M2M Status Breakdown</Typography>
             <ResponsiveContainer width="100%" height="90%">
               <BarChart data={completeStatusData} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" />
@@ -1749,8 +1748,8 @@ const ActiveState = () => {
       // Stock Statistics Pie Chart
       const stockData = [
         { name: 'Assigned', value: dealerDeviceInfo.assigned || 0 },
+        { name: 'Available for Fitment', value: dealerDeviceInfo.freeDevice || 0 },
         { name: 'Returned', value: dealerDeviceInfo.returned || 0 },
-        { name: 'Stocked', value: dealerDeviceInfo.stocked || 0 },
         { name: 'Faulty', value: dealerDeviceInfo.faulty || 0 }
       ];
 
@@ -1836,9 +1835,9 @@ const ActiveState = () => {
         </Grid>
       );
 
-      // eSIM Statistics Bar Chart
+      // M2M Statistics Bar Chart
       const esimStatsData = [
-        { name: 'Total with eSIM', count: eSIMInfo.totalDevicesWithESim || 0 },
+        { name: 'Total with M2M', count: eSIMInfo.totalDevicesWithESim || 0 },
         { name: 'Validated', count: eSIMInfo.validated || 0 },
         { name: 'Active', count: eSIMInfo.active || 0 },
         { name: 'Expired', count: eSIMInfo.expired || 0 },
@@ -1849,7 +1848,7 @@ const ActiveState = () => {
       charts.push(
         <Grid item xs={12} md={6} key="esim-statistics">
           <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>eSIM Statistics</Typography>
+            <Typography variant="h6" gutterBottom>M2M Statistics</Typography>
             <ResponsiveContainer width="100%" height="90%">
               <BarChart data={esimStatsData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -3046,21 +3045,13 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label="Devices Fitted, Online Device, Offline Device"
+                label="Devices Fitted, Online Device, Offline Device, Inactive for 7 days, Inactive for 30 days"
                 cardValue={fitmentInfo}
                 iconImage={Fitment}
                 heading={t('dashboard.headings.fitmentStatistics')}
               />
             </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label={t('dashboard.labels.healthStatistics')}
-                cardValue={deviceHealthInfo}
-                iconImage={Car}
-                heading={t('dashboard.headings.healthStatistics')}
-              />
-            </Grid>
+
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
@@ -3116,8 +3107,13 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label="Assigned, Returned, Stocked, Faulty, Available free device"
-                cardValue={dealerDeviceInfo}
+                label="Assigned, Available for Fitment, Returned, Faulty"
+                cardValue={{
+                  assigned: dealerDeviceInfo.assigned || 0,
+                  availableForFitment: dealerDeviceInfo.freeDevice || 0,
+                  returned: dealerDeviceInfo.returned || 0,
+                  faulty: dealerDeviceInfo.faulty || 0
+                }}
                 iconImage={Stock}
                 heading={t('dashboard.headings.stockStatistics')}
               />
@@ -3126,8 +3122,10 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                label="Total Fitment, Tagged Device, Online Device, Offline Device"
-                cardValue={dealerFitmentInfo}
+                label="Total Fitment"
+                cardValue={{
+                  total: dealerFitmentInfo.total || 0,
+                }}
                 iconImage={Fitment}
                 heading={t('dashboard.headings.fitmentStatistics')}
               />
@@ -3135,13 +3133,15 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                label={t('dashboard.labels.deviceStatistics')}
+                label="Total Stock, Tagged, Online Device, Offline Device, Online today, Offline 7 days, Offline 30 days"
                 cardValue={{
-                  stocked: dealerDeviceInfo.stocked,
-                  tagged: dealerFitmentInfo.taggedDevice,
-                  onlineToday: deviceStatusInfo.onlineToday,
-                  sevenDaysOffline: deviceStatusInfo.sevenDaysOffline,
-                  thirtyDaysOffline: deviceStatusInfo.thirtyDaysOffline
+                  stocked: dealerDeviceInfo.stocked || 0,
+                  tagged: dealerFitmentInfo.taggedDevice || 0,
+                  online: dealerFitmentInfo.onlineDevice || 0,
+                  offline: dealerFitmentInfo.offlineDevice || 0,
+                  onlineToday: deviceStatusInfo.onlineToday || 0,
+                  sevenDaysOffline: deviceStatusInfo.sevenDaysOffline || 0,
+                  thirtyDaysOffline: deviceStatusInfo.thirtyDaysOffline || 0
                 }}
                 iconImage={Car}
                 heading={t('dashboard.headings.deviceStatistics')}
@@ -3410,7 +3410,7 @@ const ActiveState = () => {
                   total: eSIMInfo.totalDevicesWithESim || 0
                 }}
                 iconImage={Sim}
-                heading="eSIM Status Overview"
+                heading="M2M Status Overview"
               />
             </Grid>
 
@@ -3431,29 +3431,19 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
-                label="Company,State,Status"
+                label="Company,State,Created Date,Expiry Date"
                 cardValue={{
                   company: providerInfo.company || '-',
                   state: providerInfo.state || '-',
-                  status: providerInfo.status || '-'
+                  createdDate: providerInfo.createdDate || '-',
+                  expiryDate: providerInfo.expiryDate || '-'
                 }}
                 iconImage={User}
                 heading="Provider Information"
               />
             </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                cardColor="linear-gradient(to left, #ff7300 0%, #ffcc66 100%)"
-                label="Created Date,Expiry Date"
-                cardValue={{
-                  created: providerInfo.createdDate || '-',
-                  expiry: providerInfo.expiryDate || '-'
-                }}
-                iconImage={Alert}
-                heading="Provider Dates"
-              />
-            </Grid>
+
 
             {/* Added eSIM statistics widget */}
             <Grid item xs={12} sm={12} md={6} lg={4}>

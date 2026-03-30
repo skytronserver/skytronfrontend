@@ -25,7 +25,7 @@ import CombinedStockReport from "../views/showDevice/CombinedStockReport";
 import AllTaggedDevice from "../views/showDevice/AllTaggedDevice";
 import ApprovedModelsList from "../views/reports/ApprovedModelsList";
 import ApprovedCOPsList from "../views/reports/ApprovedCOPsList";
-import EsimStatusReport from "../views/reports/EsimStatusReport";
+import M2MStatusReport from "../views/reports/M2MStatusReport";
 import ManufacturerOnboarding from "../views/pages/ManufacturerOnboarding";
 import DeviceModelTechnicalOnboardingCreate from "../views/pages/DeviceModelTechnicalOnboardingCreate";
 import DeviceModelTechnicalOnboardingList from "../views/pages/DeviceModelTechnicalOnboardingList";
@@ -88,7 +88,7 @@ const DeviceRoutes = {
       roles: ["devicemanufacture"],
     },
     {
-      path: "/device/eSimActivation",
+      path: "/device/m2m-activation",
       element: <SimActivation />,
       roles: ["dealer"],
     },
@@ -178,8 +178,8 @@ const DeviceRoutes = {
       roles: ["superadmin", "stateadmin"],
     },
     {
-      path: "/device/esim-status",
-      element: <EsimStatusReport />,
+      path: "/device/m2m-status",
+      element: <M2MStatusReport />,
       roles: ["dealer"],
     },
   ].map((route) => applyPrivateRoute(route)),

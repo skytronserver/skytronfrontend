@@ -22,7 +22,7 @@ import VehicleOwner from "../views/forms/VehicleOwner";
 import DealerList from "../views/reports/DealerList";
 import DtoRto from "../views/forms/DtoRto";
 import Manufacturer from "../views/forms/Manufacturer";
-import EsimUser from "../views/forms/EsimUser";
+import M2MUser from "../views/forms/M2MUser";
 import SOSAdmin from "../views/forms/SOSAdmin";
 import SOSUser from "../views/forms/SOSUser";
 import SystemAdmin from "../views/forms/SystemAdmin";
@@ -36,7 +36,7 @@ import SOSOtherList from "../views/reports/SOSOtherList";
 import SOSReport from "../views/reports/SOSReport";
 import StateAdminList from "../views/reports/StateAdminList";
 import DTOUserList from "../views/reports/DTOUserList";
-import EsimProviderList from "../views/reports/EsimProviderList";
+import M2MProviderList from "../views/reports/M2MProviderList";
 import NoticeList from "../views/reports/NoticeList";
 import CreateEMTeam from "../views/sosManagement/CreateEMTeam";
 import ListEmTeam from "../views/sosManagement/ListEmTeam";
@@ -108,8 +108,8 @@ const UserRoutes = {
       roles: ["superadmin"],
     },
     {
-      path: "/user/newEsimUser",
-      element: <EsimUser />,
+      path: "/user/newM2MUser",
+      element: <M2MUser />,
       roles: ["superadmin"],
     },
     {
@@ -226,8 +226,8 @@ const UserRoutes = {
       roles: ["superadmin"],
     },
     {
-      path: "/user/esim-provider-list",
-      element: <EsimProviderList />,
+      path: "/user/m2m-provider-list",
+      element: <M2MProviderList />,
       roles: ["superadmin"],
     },
     {

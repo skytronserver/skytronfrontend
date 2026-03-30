@@ -19,10 +19,10 @@ const checkEsimStatus = (data) => {
   const http = getAxiosInstance(); 
   return http.post("/api/dealer/check_esim_status/", data);
 };
-
+const checkM2MStatus = checkEsimStatus;
 const DealerServices = {
     dealerUser,dealerList,assignDeviceToDealer,
-    checkEsimStatus
+    checkEsimStatus, checkM2MStatus
   };
   
   export default DealerServices;

@@ -97,6 +97,7 @@ const createEsimUser = (formData) => {
         }
     })
 }
+const createM2MUser = createEsimUser;
 const createVehicleOwner = (ownerData) => {
     const http = getAxiosInstance();
     return http.post(`/api/VehicleOwner/create_VehicleOwner/`, ownerData, {
@@ -222,6 +223,7 @@ const getESIMProviderDashboard = () => {
     const http = getAxiosInstance();
     return http.post("/api/homepageandstat/homepage_esimProvider/");
 };
+const getM2MProviderDashboard = getESIMProviderDashboard;
 
 const getVehicleAlertStatistics = () => {
     const http = getAxiosInstance();
@@ -276,6 +278,7 @@ const UserServices = {
     createDTO,
     createManufacturer,
     createEsimUser,
+    createM2MUser,
     createSOSAdmin,
     createSOSUser,
     createSystemAdmin,
@@ -299,6 +302,7 @@ const UserServices = {
     activateUser,
     resendUserCreationOtp,
     getESIMProviderDashboard,
+    getM2MProviderDashboard,
     getVehicleAlertStatistics,
     publicUserRegistration,
     setLoginSettings,

@@ -133,7 +133,7 @@
       "suddenTurnAlert": "Total Alerts,Alerts this Month,Alerts Today",
       "stockStatistics": "Assigned,Returned,Stocked,Faulty,Available free device",
       "deviceStatistics": "Total Stock,Tagged,Online today,Offline 7 days,Offline 30 days",
-      "eSIMStatistics": "eSIM activation requested,eSIM activated,1 year activation,2 years activation,Expired",
+      "eSIMStatistics": "M2M activation requested,M2M activated,1 year activation,2 years activation,Expired",
       "alertStatistics": "Total Alert,Alert this Month,Alert Today",
       "vehicleStatistics": "Total Vehicle,Active Device,Inactive Device",
       "ownerVehicleStatistics": "Total Vehicles,Total Device Activated,Total Travel Distance(km)",
@@ -150,12 +150,12 @@
       "activationStatistics": "Total Activation,Activation this Month,Activation Today",
       "modelStatistics": "Total Model,Total M2M provider",
       "manufacturerStockStatistics": "Stock Created,Stock Allocated,Returned,Faulty",
-      "manufacturerModelStatistics": "Total Model,eSIM Linked",
+      "manufacturerModelStatistics": "Total Model,M2M Linked",
       "manufacturerMiscStatistics": "Total Dealer,Total Activation,Total Expired Device",
       "manufacturerUserStatistics": "Total Dealers,Inactive Dealers,Total Vehicle Owners,Expired Vehicle Owners",
       "manufacturerDeviceStatistics": "Total Stock,Assigned to dealers,Tagged,Online today,Offline 7 days,Offline 30 days",
-      "manufacturereSIMStatistics": "M2M Service provider,eSIM activation requested,eSIM activated,1 year activation,2 years activation,Expired",
-      "esimproviderStatistics": "Manufactures,eSIM activation received,eSIM activated,1 year activation,2 years activation,Expired",
+      "manufacturereSIMStatistics": "M2M Service provider,M2M activation requested,M2M activated,1 year activation,2 years activation,Expired",
+      "esimproviderStatistics": "Manufactures,M2M activation received,M2M activated,1 year activation,2 years activation,Expired",
       "usersTeams": "Team,Desk Executive,Live Team,Live Desk Executive",
       "sosUsers": "Team Leader,Online Team Leader,Desk Executive,Online Desk Executive,Police,Online Police,Ambulance,Online Ambulance",
       "users": "Desk Executive,Live Desk Executive",
@@ -200,7 +200,7 @@
       "suddenTurnAlert": "Sudden Turn Alert",
       "stockStatistics": "Stock Statistics",
       "deviceStatistics": "Device Statistics",
-      "eSIMStatistics": "eSIM Statistics",
+      "eSIMStatistics": "M2M Statistics",
       "alertStatistics": "Alert Statistics",
       "vehicleStatistics": "Vehicle Statistics",
       "ownerVehicleStatistics": "Vehicle Statistics",
@@ -239,7 +239,7 @@
       "SuddenTurnAlert": "Sudden Turn Alert",
       "StockStatistics": "Stock Statistics",
       "DeviceStatistics": "Device Statistics",
-      "ESIMStatistics": "eSIM Statistics",
+      "ESIMStatistics": "M2M Statistics",
       "AlertStatistics": "Alert Statistics",
       "VehicleStatistics": "Vehicle Statistics",
       "DriverBehaviour": "Driver Behaviour",
@@ -259,7 +259,7 @@
       "weekly": "Weekly",
       "daily": "Daily",
       "total": "Total",
-      "esimDeviceStatus": "eSIM Device Status",
+      "esimDeviceStatus": "M2M Device Status",
       "activationStatus": "Activation Status"
     },
     "widgets": {
@@ -274,7 +274,7 @@
       "sudden_turn_alert": "Sudden Turn Alert",
       "stock_statistics": "Stock Statistics",
       "device_statistics": "Device Statistics",
-      "esim_statistics": "eSIM Statistics",
+      "esim_statistics": "M2M Statistics",
       "alert_statistics": "Alert Statistics",
       "vehicle_statistics": "Vehicle Statistics",
       "driver_behaviour": "Driver Behaviour",
@@ -524,10 +524,10 @@
     "busassignment": "Bus Assignment",
     "Profilemanagement": "Profile Management",
     "parenttracking": "Parent tracking",
-    "activation": "Pending eSIM activation request ",
+    "activation": "Pending M2M activation request ",
     "rejected": "Rejected requests",
     "accepted": "Accepted requests",
-    "requestEsimActivation": "Request eSIM Activation",
+    "requestEsimActivation": "Request M2M Activation",
     "modelAwaitingApproval": "Pending Model Approval",
     "awaitingCopDeviceList": "Pending COP",
     "deviceModel": "Device Model",
@@ -679,7 +679,7 @@
       },
       "validation": {
         "state_required": "State is required",
-        "esim_provider_required": "eSim Provider is required",
+        "esim_provider_required": "M2M Provider is required",
         "name_required": "Name is required",
         "invalid_email": "Invalid email address",
         "email_required": "Email is required",
@@ -703,7 +703,7 @@
     },
     "listTitle": "Manufacturer"
   },
-  "esimUser": {
+  "m2mUser": {
     "title": "Create M2M Service Provider",
     "form": {
       "submit": "Submit",
@@ -820,16 +820,16 @@
       "model": "Model",
       "test_agency": "Test Agency Name",
       "device_esn": "Device ESN",
-      "esim_validity": "eSIM Validity",
-      "esim_provider": "eSIM Provider",
+      "esim_validity": "M2M Validity",
+      "esim_provider": "M2M Provider",
       "tac_no": "TAC Number",
       "tac_validity": "TAC Validity",
       "cop_no": "COP Number",
       "cop_validity": "COP Validity",
       "iccid": "Primary ICCID",
       "iccid2": "Fallback ICCID",
-      "telecom_provider1": "eSIM Telecom Service Provider 1",
-      "telecom_provider2": "eSIM Telecom Service Provider 2",
+      "telecom_provider1": "M2M Telecom Service Provider 1",
+      "telecom_provider2": "M2M Telecom Service Provider 2",
       "msisdn1": "Primary MSISDN",
       "msisdn2": "Fallback MSISDN",
       "remarks": "Remarks"
@@ -839,17 +839,17 @@
       "imeiRequired": "IMEI No. is required",
       "modelRequired": "Model is required",
       "deviceEsnRequired": "Device ESN cannot be blank",
-      "esimValidityRequired": "eSIM Validity is required",
-      "esimProviderRequired": "eSIM Provider is required",
+      "esimValidityRequired": "M2M Validity is required",
+      "esimProviderRequired": "M2M Provider is required",
       "tacNoRequired": "TAC Number is required",
       "tacValidityRequired": "TAC Validity is required",
       "copNoRequired": "COP Number is required",
       "copValidityRequired": "COP Validity is required",
-      "iccidRequired": "eSIM No (ICCID) is required",
-      "telecomProvider1Required": "eSIM Telecom Service Provider 1 is required",
-      "msisdn1Number": "eSIM Mobile No. MSISDN 1 must be a number",
-      "msisdn1Required": "eSIM Mobile No. MSISDN 1 is required",
-      "msisdn2Number": "eSIM Mobile No. MSISDN 2 must be a number"
+      "iccidRequired": "M2M No (ICCID) is required",
+      "telecomProvider1Required": "M2M Telecom Service Provider 1 is required",
+      "msisdn1Number": "M2M Mobile No. MSISDN 1 must be a number",
+      "msisdn1Required": "M2M Mobile No. MSISDN 1 is required",
+      "msisdn2Number": "M2M Mobile No. MSISDN 2 must be a number"
     },
     "submit": "Submit",
     "submitError": "Unable to Submit",
@@ -957,12 +957,12 @@
     "title": "Bulk Upload Stocks",
     "fields": {
       "model": "Model Name",
-      "esimProvider": "eSIM Provider",
+      "esimProvider": "M2M Provider",
       "excelFile": "Select the Excel file"
     },
     "validation": {
       "modelRequired": "Model is required",
-      "esimProviderRequired": "eSIM Provider is required",
+      "esimProviderRequired": "M2M Provider is required",
       "excelFileRequired": "Excel File is required"
     },
     "buttons": {
@@ -1378,10 +1378,10 @@
   },
   "simActivation": {
     "titles": {
-      "valid": "Activated eSIM Device",
-      "invalid": "Rejected eSIM Device",
+      "valid": "Activated M2M Device",
+      "invalid": "Rejected M2M Device",
       "pending": "Activation Request",
-      "checkStatus": "Check eSIM Status"
+      "checkStatus": "Check M2M Status"
     },
     "actions": {
       "accept": "Accept",
@@ -1397,7 +1397,7 @@
       "error": "Error updating request",
       "enterImei": "Please enter IMEI number",
       "statusSuccess": "Status retrieved successfully",
-      "statusError": "Error checking eSIM status"
+      "statusError": "Error checking M2M status"
     },
     "fields": {
       "imeiNumber": "Enter IMEI Number",

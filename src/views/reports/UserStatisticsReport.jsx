@@ -66,7 +66,8 @@ const UserStatisticsReport = () => {
                      role === 'sosexecutive' ? 'primary' :
                      role === 'dtorto' ? 'warning' :
                      role === 'esimprovider' ? 'info' : 'default';
-        return <Chip label={role} color={color} size="small" />;
+        const displayRole = role === 'esimprovider' ? 'M2M Provider' : role;
+        return <Chip label={displayRole} color={color} size="small" />;
       }
     },
     {

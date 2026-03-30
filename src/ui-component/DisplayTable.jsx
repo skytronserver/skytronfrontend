@@ -14,7 +14,7 @@ const transformKey = (key) => {
     .split('_')
     .map(word => {
       if (word.toLowerCase() === 'esim') {
-        return 'eSIM';
+        return 'M2M';
       }
       return word.charAt(0).toUpperCase() + word.slice(1);
     })

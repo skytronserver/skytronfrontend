@@ -184,7 +184,9 @@ const ProfileSection = () => {
                         </Typography>
                       </Stack>
                       <Typography variant="subtitle2">
-                        {userData && data.length > 2 && <span>{data[1]}</span>}
+                        {userData && data.length > 2 && (
+                          <span>{data[1] === 'esimprovider' ? 'M2M PROVIDER' : data[1]}</span>
+                        )}
                       </Typography>
                     </Stack>
                   </Box>

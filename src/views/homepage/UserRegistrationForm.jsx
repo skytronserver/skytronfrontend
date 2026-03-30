@@ -28,7 +28,7 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import axios from "axios";
 import { retriveCreatedSimProviderPub, retriveStateListPub } from "../../helper";
-import { eSIMFormField, eSIMInitialValues } from "../../formjson/eSIMUser";
+import { m2mUserFormField, m2mUserInitialValues } from "../../formjson/M2MUser";
 import {
   manufacturerFormField,
   manufacturerInitialValues,
@@ -100,11 +100,11 @@ const UserRegistrationForm = () => {
     selectedRole === "Vehicle Manufacturer" ||
     selectedRole === "AIS-140 Device Manufacturer";
 
-  const [m2mInitialValuesState, setM2MInitialValuesState] = useState(eSIMInitialValues);
+  const [m2mInitialValuesState, setM2MInitialValuesState] = useState(m2mUserInitialValues);
   const [manufacturerInitialValuesState, setManufacturerInitialValuesState] =
     useState(manufacturerInitialValues);
 
-  const [m2mUpdatedFormFields, setM2MUpdatedFormField] = useState(eSIMFormField);
+  const [m2mUpdatedFormFields, setM2MUpdatedFormField] = useState(m2mUserFormField);
   const [isM2MFormLoaded, setIsM2MFormLoaded] = useState(false);
 
   const [manufacturerUpdatedFormFields, setManufacturerUpdatedFormField] =
@@ -154,7 +154,7 @@ const UserRegistrationForm = () => {
     let active = true;
     if (!isM2MServiceProvider) {
       setIsM2MFormLoaded(false);
-      setM2MUpdatedFormField(eSIMFormField);
+      setM2MUpdatedFormField(m2mUserFormField);
       return () => {
         active = false;
       };
@@ -439,7 +439,7 @@ const UserRegistrationForm = () => {
       });
       setReferenceNo(buildReferenceNo(getReferencePrefixByRole(selectedRole), res?.data));
       setShowSuccess(true);
-      resetForm({ values: eSIMInitialValues });
+      resetForm({ values: m2mUserInitialValues });
     } catch (err) {
       setErrorMessage(extractErrorMessage(err));
     } finally {

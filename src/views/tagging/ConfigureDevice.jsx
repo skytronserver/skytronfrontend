@@ -151,21 +151,21 @@ const ConfigureDevice = ({ status }) => {
                 size="small"
                 sx={{ width: "100%" }}
                 disabled={showAction?.fitment.button}
-                onClick={()=>buttonAction('fitment','eSimActivate')}
+                onClick={()=>buttonAction('fitment','m2mActivate')}
               >
-                Request eSIM Activation
+                Request M2M Activation
               </Button>
             </td>
             <td>
-            {!showAction?.eSimActivate?.status && showAction?.fitment.button && (<CircularProgress color="success"/>)}
+            {!showAction?.m2mActivate?.status && showAction?.fitment.button && (<CircularProgress color="success"/>)}
             </td>
           </tr>
         )}
-        {showAction?.eSimActivate?.status && (<tr>
+        {showAction?.m2mActivate?.status && (<tr>
           <td>
             <Stack sx={{ width: "100%" }} spacing={2}>
               <Alert severity="success">
-                eSIM activation request is successfully send
+                M2M activation request is successfully send
               </Alert>
             </Stack>
           </td>
@@ -176,20 +176,20 @@ const ConfigureDevice = ({ status }) => {
               color="primary"
               size="small"
               sx={{ width: "100%" }}
-              disabled={showAction?.eSimActivate.button}
-              onClick={()=>buttonAction('eSimActivate','eSimActivated')}
+              disabled={showAction?.m2mActivate.button}
+              onClick={()=>buttonAction('m2mActivate','m2mActivated')}
             >
-              Activate eSIM
+              Activate M2M
             </Button>
           </td>
           <td>
-            {!showAction?.eSimActivated?.status && showAction?.eSimActivate.button && (<CircularProgress color="success"/>)}
+            {!showAction?.m2mActivated?.status && showAction?.m2mActivate.button && (<CircularProgress color="success"/>)}
             </td>
         </tr>)}
-        {showAction?.eSimActivated?.status && (<tr>
+        {showAction?.m2mActivated?.status && (<tr>
           <td>
             <Stack sx={{ width: "100%" }} spacing={2}>
-              <Alert severity="success">eSIM is activated </Alert>
+              <Alert severity="success">M2M is activated </Alert>
             </Stack>
           </td>
           <td>
@@ -199,14 +199,14 @@ const ConfigureDevice = ({ status }) => {
               color="primary"
               size="small"
               sx={{ width: "100%" }}
-              disabled={showAction?.eSimActivated.button}
-              onClick={()=>buttonAction('eSimActivated','configIP')}
+              disabled={showAction?.m2mActivated.button}
+              onClick={()=>buttonAction('m2mActivated','configIP')}
             >
               Configure IP Port
             </Button>
           </td>
           <td>
-            {!showAction?.configIP?.status && showAction?.eSimActivated.button && (<CircularProgress color="success"/>)}
+            {!showAction?.configIP?.status && showAction?.m2mActivated.button && (<CircularProgress color="success"/>)}
             </td>
         </tr>)}
         {showAction?.configIP?.status && (<tr>

@@ -10,12 +10,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { convertErrorObjectToArray, retriveStateList } from "../../helper";
-import { eSIMInitialValues, eSIMFormField } from "../../formjson/eSIMUser";
+import { m2mUserInitialValues, m2mUserFormField } from "../../formjson/M2MUser";
 
 const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 
-const EsimUser = () => {
+const M2MUser = () => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({
@@ -24,7 +24,7 @@ const EsimUser = () => {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-  const [updatedFormFields, setUpdatedFormField] = useState(eSIMFormField);
+  const [updatedFormFields, setUpdatedFormField] = useState(m2mUserFormField);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [showResend, setShowResend] = useState(false);
 
@@ -79,7 +79,7 @@ const EsimUser = () => {
 
   const handleCreateUser = async (userData) => {
     try {
-      const response = await UserServices.createEsimUser(userData);
+      const response = await UserServices.createM2MUser(userData);
       console.log("User created successfully:");
       return { code: "200", message: response.data };
     } catch (error) {
@@ -146,7 +146,7 @@ const EsimUser = () => {
 
   const handleResend = (resetForm) => {
     setShowResend(false);
-    resetForm(eSIMInitialValues);
+    resetForm(m2mUserInitialValues);
   };
 
   return (
@@ -189,10 +189,10 @@ const EsimUser = () => {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
-          <MainCard title={t("esimUser.title")}>
+          <MainCard title={t("m2mUser.title")}>
             {isFormLoaded && (
               <Formik
-                initialValues={eSIMInitialValues}
+                initialValues={m2mUserInitialValues}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
                 enableReinitialize
@@ -246,4 +246,4 @@ const EsimUser = () => {
   );
 };
 
-export default EsimUser;
+export default M2MUser;

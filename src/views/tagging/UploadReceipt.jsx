@@ -109,9 +109,9 @@ const UploadReceipt = () => {
           { label: "VLTD Make", value: certificateData.vltdMake },
           { label: "VLTD Model", value: certificateData.vltdModel },
           { label: "VLTD IMEI Number", value: certificateData.vltdImei },
-          { label: "eSIM ICCID Number", value: certificateData.esimIccid },
-          { label: "eSIM ICCID Number 2", value: certificateData.esimIccid2 },
-          { label: "eSIM Validity", value: certificateData.esimValidity },
+          { label: "M2M ICCID Number", value: certificateData.esimIccid },
+          { label: "M2M ICCID Number 2", value: certificateData.esimIccid2 },
+          { label: "M2M Validity", value: certificateData.esimValidity },
         ];
 
         fields.forEach((field) => {
@@ -525,7 +525,7 @@ const UploadReceipt = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <Phone sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            ESIM ICCID NUMBER
+                            M2M ICCID NUMBER
                           </Typography>
                         </Box>
                         <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
@@ -537,7 +537,7 @@ const UploadReceipt = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <Phone sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            ESIM ICCID NUMBER 2
+                            M2M ICCID NUMBER 2
                           </Typography>
                         </Box>
                         <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
@@ -549,7 +549,7 @@ const UploadReceipt = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <CalendarToday sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            ESIM VALIDITY
+                            M2M VALIDITY
                           </Typography>
                         </Box>
                         <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>

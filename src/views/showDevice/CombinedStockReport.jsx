@@ -128,7 +128,7 @@ const CombinedStockReport = () => {
     },
     {
       name: "esim_status",
-      label: "eSIM Status",
+      label: "M2M Status",
       options: {
         filter: true,
         sort: true,
@@ -205,7 +205,7 @@ const CombinedStockReport = () => {
     },
     {
       name: "esim_validity",
-      label: "eSIM Validity",
+      label: "M2M Validity",
       options: {
         filter: true,
         sort: true,

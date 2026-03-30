@@ -67,7 +67,7 @@ export const availableForSalesColumnForFitment = [
   },
   {
     name: "esim_validity",
-    label: "ESIM Validity",
+    label: "M2M Validity",
     options: {
       filter: true,
       sort: false,
@@ -133,7 +133,7 @@ export const availableForSalesColumn = [
   },
   {
     name: "esim_provider",
-    label: "ESIM Provider",
+    label: "M2M Provider",
     options: {
       filter: true,
       sort: false,
@@ -142,12 +142,12 @@ export const availableForSalesColumn = [
   },
   {
     name: "esim_status",
-    label: "ESIM Status",
+    label: "M2M Status",
     options: { filter: true, sort: false },
   },
   {
     name: "esim_validity",
-    label: "ESIM Validity",
+    label: "M2M Validity",
     options: {
       filter: true,
       sort: false,
@@ -273,7 +273,7 @@ export const taggedColumn = [
   },
   {
     name: "esim_provider",
-    label: "ESIM Provider",
+    label: "M2M Provider",
     options: {
       filter: false,
       sort: false,
@@ -286,7 +286,7 @@ export const taggedColumn = [
   },
   {
     name: "esim_validity",
-    label: "ESIM Validity",
+    label: "M2M Validity",
     options: {
       filter: false,
       sort: false,
@@ -474,7 +474,7 @@ export const requestList = [
   },
 ];
 
-export const esimStatusColumns = [
+export const m2mStatusColumns = [
   {
     name: "device_esn",
     label: "ESN",

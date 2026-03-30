@@ -21,9 +21,9 @@ export const showDeviceColumns = [
   { name: "imei", label: "IMEI", options: { filter: false, sort: false } },
   { name: "model", label: "Model", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{value.model_name}</p>), csvExportKey: "model_name" } },
   { name: "device_esn", label: "ESN", options: { filter: true, sort: false } },
-  { name: "esim_validity", label: "ESIM Validity", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{formatDate(value)}</p>) } },
+  { name: "esim_validity", label: "M2M Validity", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{formatDate(value)}</p>) } },
   {
-    name: "esim_provider", label: "ESIM Provider", options: {
+    name: "esim_provider", label: "M2M Provider", options: {
       filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (
         <p>{Array.isArray(value) && value[0] ? value[0].company_name : ''}</p>
       ), csvExportKey: "company_name", columnKey: 0
@@ -379,7 +379,7 @@ export const manufacturerColumns = [
   { name: "company_registration_no", label: "Company Registration No", options: { filter: false, sort: false } },
 
   {
-    name: "esim_provider", label: "ESIM Provider", options: {
+    name: "esim_provider", label: "M2M Provider", options: {
       filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
         return (
           <p>{value[0]?.company_name}</p>
@@ -492,7 +492,7 @@ export const deviceModelColumns = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
   { name: "model_name", label: "Model", options: { filter: true, sort: false } },
   {
-    name: 'eSimProviders', label: 'ESIM Providers', options: {
+    name: 'eSimProviders', label: 'M2M Providers', options: {
       filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
         return (
           <p>{value[0]?.company_name}</p>

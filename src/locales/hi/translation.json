@@ -190,7 +190,7 @@
       "suddenTurnAlert": "कुल अलर्ट,इस महीने,आज",
       "stockStatistics": "आवंटित,वापस किया गया,स्टॉक किया गया,दोषपूर्ण,उपलब्ध फ्री डिवाइस",
       "deviceStatistics": "कुल स्टॉक,टैग किए गए,आज ऑनलाइन,7 दिनों के लिए ऑफलाइन,30 दिनों के लिए ऑफलाइन",
-      "eSIMStatistics": "ई-सिम सक्रियण अनुरोध,ई-सिम सक्रिय,1 वर्ष का सक्रियण,2 वर्ष का सक्रियण,समाप्त",
+      "M2MStatistics": "ई-सिम सक्रियण अनुरोध,ई-सिम सक्रिय,1 वर्ष का सक्रियण,2 वर्ष का सक्रियण,समाप्त",
       "alertStatistics": "कुल अलर्ट,इस महीने का अलर्ट,आज का अलर्ट",
       "vehicleStatistics": "कुल वाहन,सक्रिय डिवाइस,निष्क्रिय डिवाइस",
       "ownerVehicleStatistics": "कुल वाहन,कुल डिवाइस सक्रिय,कुल यात्रा दूरी(किमी)",
@@ -208,8 +208,8 @@
       "modelStatistics": "कुल मॉडल,कुल एम2एम प्रदाता",
       "manufacturerUserStatistics": "कुल डीलर,निष्क्रिय डीलर,कुल वाहन मालिक,समाप्त वाहन मालिक",
       "manufacturerDeviceStatistics": "कुल स्टॉक,डीलरों को आवंटित,टैग किए गए,आज ऑनलाइन,7 दिनों के लिए ऑफलाइन,30 दिनों के लिए ऑफलाइन",
-      "manufacturereSIMStatistics": "M2M सेवा प्रदाता,ई-सिम सक्रियण अनुरोध,ई-सिम सक्रिय,1 वर्ष का सक्रियण,2 वर्ष का सक्रियण,समाप्त",
-      "esimproviderStatistics": "विनिर्माता, ई-सिम सक्रियण प्राप्त, ई-सिम सक्रिय, 1 वर्ष सक्रियण, 2 वर्ष सक्रियण, समाप्त",
+      "manufacturerM2MStatistics": "M2M सेवा प्रदाता,ई-सिम सक्रियण अनुरोध,ई-सिम सक्रिय,1 वर्ष का सक्रियण,2 वर्ष का सक्रियण,समाप्त",
+      "M2MproviderStatistics": "विनिर्माता, ई-सिम सक्रियण प्राप्त, ई-सिम सक्रिय, 1 वर्ष सक्रियण, 2 वर्ष सक्रियण, समाप्त",
       "usersTeams": "टीम,डेस्क एक्जीक्यूटिव,लाइव टीम,लाइव डेस्क एक्जीक्यूटिव",
       "users": "डेस्क एक्जीक्यूटिव,लाइव डेस्क एक्जीक्यूटिव",
       "calls": "सक्रिय,बंद किए गए,लंबित,औसत स्वीकृति समय",
@@ -221,7 +221,7 @@
       "closedAssignment": "मासिक,साप्ताहिक,दैनिक,कुल",
       "rejected": "मासिक,साप्ताहिक,दैनिक,कुल",
       "vehicleOwner": "कुल,इस महीने,आज",
-      "esimDevices": {
+      "M2MDevices": {
         "totalDevices": "कुल डिवाइस",
         "validated": "मान्य किए गए",
         "active": "सक्रिय",
@@ -251,7 +251,7 @@
       "suddenTurnAlert": "अचानक मोड़ अलर्ट",
       "stockStatistics": "स्टॉक सांख्यिकी",
       "deviceStatistics": "डिवाइस सांख्यिकी",
-      "eSIMStatistics": "ईसिम सांख्यिकी",
+      "M2MStatistics": "ईसिम सांख्यिकी",
       "alertStatistics": "अलर्ट सांख्यिकी",
       "vehicleStatistics": "वाहन सांख्यिकी",
       "ownerVehicleStatistics": "वाहन सांख्यिकी",
@@ -281,7 +281,7 @@
       "weekly": "साप्ताहिक",
       "daily": "दैनिक",
       "total": "कुल",
-      "esimDeviceStatus": "ईसिम डिवाइस स्थिति",
+      "M2MDeviceStatus": "ईसिम डिवाइस स्थिति",
       "activationStatus": "सक्रियण स्थिति"
     },
     "widgets": {
@@ -295,7 +295,7 @@
       "sudden_turn_alert": "अचानक मोड़ अलर्ट",
       "stock_statistics": "स्टॉक सांख्यिकी",
       "device_statistics": "डिवाइस सांख्यिकी",
-      "esim_statistics": "ई-सिम सांख्यिकी",
+      "M2M_statistics": "ई-सिम सांख्यिकी",
       "alert_statistics": "अलर्ट सांख्यिकी",
       "vehicle_statistics": "वाहन सांख्यिकी",
       "driver_behaviour": "चालक व्यवहार",
@@ -311,7 +311,7 @@
       "false_assignment": "झूठा असाइनमेंट",
       "closed_assignment": "बंद असाइनमेंट",
       "rejected": "अस्वीकृत",
-      "total_state_admin,total_esim_provider,total_manufacturer,total_sos_admin": "कुल राज्य प्रशासक,कुल ई-सिम प्रदाता,कुल निर्माता,कुल एसओएस प्रशासक",
+      "total_state_admin,total_M2M_provider,total_manufacturer,total_sos_admin": "कुल राज्य प्रशासक,कुल ई-सिम प्रदाता,कुल निर्माता,कुल एसओएस प्रशासक",
       "total_fitment,tagged_device,online_device,offline_device": "कुल फिटमेंट,टैग किए गए डिवाइस,ऑनलाइन डिवाइस,ऑफलाइन डिवाइस",
       "total_alert,this_month,today": "कुल अलर्ट,इस महीने,आज",
       "total_state,active,inactive": "कुल राज्य,सक्रिय,निष्क्रिय",
@@ -324,7 +324,7 @@
       "todayInbound": "आज का इनबाउंड",
       "totalInbound": "कुल इनबाउंड",
       "averageAcceptanceTime": "औसत स्वीकृति समय",
-      "esimDevices": {
+      "M2MDevices": {
         "totalDevices": "कुल डिवाइस",
         "validated": "मान्य किए गए",
         "active": "सक्रिय",
@@ -552,7 +552,7 @@
     "activation": "सक्रियण",
     "rejected": "अस्वीकृत",
     "accepted": "स्वीकृत",
-    "requestEsimActivation": "ई-सिम सक्रियण अनुरोध",
+    "requestM2MActivation": "ई-सिम सक्रियण अनुरोध",
     "modelAwaitingApproval": "अनुमोदन के लिए प्रतीक्षारत मॉडल",
     "awaitingCopDeviceList": "कप डिवाइस सूची के लिए प्रतीक्षारत",
     "deviceModel": "डिवाइस मॉडल",
@@ -573,7 +573,7 @@
     "stateAdmin": "राज्य प्रशासक",
     "sosAdmin": "एसओएस प्रशासक",
     "systemAdmin": "सिस्टम प्रशासक",
-    "esimProvider": "ई-सिम प्रदाता",
+    "M2MProvider": "ई-सिम प्रदाता",
     "m2mProvider": "एम2एम प्रदाता",
     "deviceList": "डिवाइस सूची",
     "stockReport": "स्टॉक रिपोर्ट",
@@ -709,7 +709,7 @@
       },
       "validation": {
         "state_required": "राज्य आवश्यक है",
-        "esim_provider_required": "ई-सिम प्रदाता आवश्यक है",
+        "M2M_provider_required": "ई-सिम प्रदाता आवश्यक है",
         "name_required": "नाम आवश्यक है",
         "invalid_email": "अमान्य ईमेल पता",
         "email_required": "ईमेल आवश्यक है",
@@ -733,7 +733,7 @@
     },
     "listTitle": "निर्माता"
   },
-  "esimUser": {
+  "M2MUser": {
     "title": "एम2एम सेवा प्रदाता बनाएं",
     "form": {
       "submit": "जमा करें",
@@ -854,8 +854,8 @@
       "model": "मॉडल",
       "test_agency": "परीक्षण एजेंसी का नाम",
       "device_esn": "डिवाइस ईएसएन",
-      "esim_validity": "ईसिम वैधता",
-      "esim_provider": "ईसिम प्रदाता",
+      "M2M_validity": "ईसिम वैधता",
+      "M2M_provider": "ईसिम प्रदाता",
       "tac_no": "टीएसी नंबर",
       "tac_validity": "टीएसी वैधता",
       "cop_no": "सीओपी नंबर",
@@ -873,8 +873,8 @@
       "imeiRequired": "आईएमईआई नंबर आवश्यक है",
       "modelRequired": "मॉडल आवश्यक है",
       "deviceEsnRequired": "डिवाइस ईएसएन खाली नहीं हो सकता",
-      "esimValidityRequired": "ईसिम वैधता आवश्यक है",
-      "esimProviderRequired": "ईसिम प्रदाता आवश्यक है",
+      "M2MValidityRequired": "ईसिम वैधता आवश्यक है",
+      "M2MProviderRequired": "ईसिम प्रदाता आवश्यक है",
       "tacNoRequired": "टीएसी नंबर आवश्यक है",
       "tacValidityRequired": "टीएसी वैधता आवश्यक है",
       "copNoRequired": "सीओपी नंबर आवश्यक है",
@@ -991,12 +991,12 @@
     "title": "स्टॉक का बल्क अपलोड",
     "fields": {
       "model": "मॉडल का नाम",
-      "esimProvider": "ईसिम प्रदाता",
+      "M2MProvider": "ईसिम प्रदाता",
       "excelFile": "एक्सेल फ़ाइल चुनें"
     },
     "validation": {
       "modelRequired": "मॉडल आवश्यक है",
-      "esimProviderRequired": "ईसिम प्रदाता आवश्यक है",
+      "M2MProviderRequired": "ईसिम प्रदाता आवश्यक है",
       "excelFileRequired": "एक्सेल फ़ाइल आवश्यक है"
     },
     "buttons": {
@@ -1190,7 +1190,7 @@
     "listTitle": "एसओएस प्रशासक सूची",
     "otherListTitle": "उपयोगकर्ता सूची"
   },
-  "esim": {
+  "M2M": {
     "serviceProviderTitle": "एम2एम सेवा प्रदाता"
   },
   "dealer": {
