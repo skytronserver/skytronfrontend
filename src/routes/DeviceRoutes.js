@@ -182,6 +182,14 @@ const DeviceRoutes = {
       element: <M2MStatusReport />,
       roles: ["dealer"],
     },
+    {
+      path: "/device/esim-status",
+      element: <Navigate to="/device/m2m-status" replace />,
+    },
+    {
+      path: "/device/eSimActivation",
+      element: <Navigate to="/device/m2m-activation" replace />,
+    },
   ].map((route) => applyPrivateRoute(route)),
 };
 
