@@ -651,9 +651,9 @@ const BhuvanMapComponent = ({
                 make: "",
                 district: "",
                 speed_limit: "",
-                poi_id: "",
                 in_range: false,
                 poi_as_polygon: false,
+                poi_t: "",
             });
 
             const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;

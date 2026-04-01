@@ -624,7 +624,6 @@ const LiveTracking = () => {
       regno: vehicleNo,
       owner: owner,
       poi: poi,
-      poi_id: poi,
       roads: roads,
       route_id: '',
       polygon: polygon,
@@ -636,6 +635,7 @@ const LiveTracking = () => {
       speed_limit: speedLimit,
       in_range: inRange,
       poi_as_polygon: poiAsPolygon,
+      poi_t: poi,
     };
 
     setSelectedId(null); // Reset selection when submitting new search
@@ -652,7 +652,6 @@ const LiveTracking = () => {
       regno: vehicleNo,
       owner: owner,
       poi: poi,
-      poi_id: poi,
       roads: roads,
       route_id: '',
       polygon: polygon,
@@ -664,6 +663,7 @@ const LiveTracking = () => {
       speed_limit: speedLimit,
       in_range: inRange,
       poi_as_polygon: poiAsPolygon,
+      poi_t: poi,
     };
 
     // Single fetch when filters/inputs change, no repeating interval
@@ -680,8 +680,7 @@ const LiveTracking = () => {
       imei: selectedRow.imei,
       regno: '',
       owner: '',
-      poi: '',
-      poi_id: poi,
+      poi: poi,
       roads: '',
       route_id: '',
       polygon: '',
@@ -693,6 +692,7 @@ const LiveTracking = () => {
       speed_limit: speedLimit,
       in_range: inRange,
       poi_as_polygon: poiAsPolygon,
+      poi_t: poi,
     };
 
     try {
@@ -1068,7 +1068,7 @@ const LiveTracking = () => {
                       </Grid>
                       <Grid item xs={12}>
                         <Box display="flex" flexDirection="column" gap={0.5}>
-                          <Box display="flex" gap={1}>
+                           <Box display="flex" gap={1}>
                             <TextField
                               fullWidth
                               label="POI"
