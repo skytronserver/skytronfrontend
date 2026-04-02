@@ -39,7 +39,7 @@ const getDeviceHealthStatusPublic = (params) => {
 };
 
 const getDeviceOnboardingDashboard = () => {
-  return axios.get('https://api.gromed.in/api/public/device_onboarding_dashboard/');
+  return axios.get('https://api.skytron.in/api/public/device_onboarding_dashboard/');
 };
 
 export default {
