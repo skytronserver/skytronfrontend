@@ -1033,11 +1033,12 @@
   "tagDeviceForm": {
     "title": "Tag Device to Vehicle",
     "steps": {
+      "otCommandConfiguration": "OT Command Configuration",
       "tagDevice": "Tag Device to Vehicle",
       "dealerVerification": "Dealer Verification",
       "sendOwnerOtp": "Send Owner OTP",
       "ownerVerification": "Vehicle Owner Verification",
-      "readyForActivation": "Ready for Activation",
+      "readyForActivation": "Data from VAHAN portal",
       "sosButtonPress": "SOS Button Press",
       "activateSosInApp": "Activate SOS in App",
       "getLocation": "Get Location",

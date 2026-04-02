@@ -31,31 +31,25 @@ import MapComponent from "views/direct/LiveMap";
 import { useLocation } from "react-router-dom";
 
 const steps = [
-  { label: "tagDeviceForm.steps.tagDevice", name: "Step 1" },
-  { label: "tagDeviceForm.steps.dealerVerification", name: "Step 2" },
-  { label: "tagDeviceForm.steps.sendOwnerOtp", name: "Step 3" },
-  { label: "tagDeviceForm.steps.ownerVerification", name: "Step 4" },
-  { label: "tagDeviceForm.steps.readyForActivation", name: "Step 5" },
-  { label: "tagDeviceForm.steps.getLocation", name: "Step 6" },
-  { label: "tagDeviceForm.steps.otCommandConfiguration", name: "Step 7" },
-  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 8" },
-  { label: "tagDeviceForm.steps.sosButtonPress", name: "Step 9" },
-  { label: "tagDeviceForm.steps.activateSosInApp", name: "Step 10" },
-  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 11" },
+  { label: "tagDeviceForm.steps.otCommandConfiguration", name: "Step 1" },
+  { label: "tagDeviceForm.steps.tagDevice", name: "Step 2" },
+  { label: "tagDeviceForm.steps.readyForActivation", name: "Step 3" },
+  { label: "tagDeviceForm.steps.dealerVerification", name: "Step 4" },
+  { label: "tagDeviceForm.steps.sendOwnerOtp", name: "Step 5" },
+  { label: "tagDeviceForm.steps.ownerVerification", name: "Step 6" },
+  { label: "tagDeviceForm.steps.sosButtonPress", name: "Step 7" },
+  { label: "tagDeviceForm.steps.activateSosInApp", name: "Step 8" },
+  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 9" },
+  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 10" },
 ];
 
 const rawOtCommands = [
-  "@SETPIP-135.235.166.209*",
-  "@SETPPORT-6000*",
-  "@SETEIP-135.235.166.209*",
-  "@SETEPORT-5001*",
-  "@SETESCN-9101109854*",
-  "@SETAPN-airtelgprs.com*",
+  "1. IP: 103.195.217.127",
+  "2. Port: 8883",
+  "3. Emergency Fallback no: 9999999999",
 ];
 
-const formattedOtCommands = rawOtCommands.map((command) =>
-  command.replace(/^@SET/i, "")
-);
+const formattedOtCommands = rawOtCommands;
 
 function TagDeviceToVehicle() {
   const { t } = useTranslation();
@@ -137,6 +131,50 @@ function TagDeviceToVehicle() {
     type: "success",
     message: "",
   });
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const handleResendOtp = async (type) => {
+    setLoading((prev) => ({ ...prev, loader: true }));
+    const otpData = {
+      device_id: deviceId,
+    };
+    try {
+      if (type === "dealer") {
+        await TaggingService.tagSendDealerOtp(otpData);
+      } else if (type === "owner") {
+        await TaggingService.tagSendOwnerOtp(otpData);
+      } else if (type === "finalOwner") {
+        await TaggingService.sendTagSendOwnerOtpFinal(otpData);
+      }
+      setResendTimer(60);
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message: "OTP has been sent successfully",
+        type: "success",
+      }));
+    } catch (error) {
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message:
+          "Something went wrong while resending OTP! Please try again later.",
+        type: "error",
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
+    }
+  };
 
 
   const [ownerDetails, setOwnerDetails] = useState({
@@ -233,6 +271,12 @@ function TagDeviceToVehicle() {
     if (stepFromQuery === null) return;
     setActiveStep(stepFromQuery);
   }, [location.search]);
+
+  useEffect(() => {
+    if (activeStep === 2) {
+      getVahanDetail();
+    }
+  }, [activeStep]);
 
   useEffect(() => {
     if (activeStep === 8) {
@@ -417,9 +461,7 @@ function TagDeviceToVehicle() {
         tac_valid_upto: vahanData?.tacValidUpto,
         vehicle_class: vahanData?.vehClass,
       }));
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
       setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'Vahan Details are successfully fetched', type: 'success' }));
-
     } catch (error) {
       console.error("Error :", error?.message);
       let errorString = "Something went wrong! Please try after sometimes or check your details";
@@ -581,7 +623,42 @@ function TagDeviceToVehicle() {
               </React.Fragment>
             )}
 
-            {activeStep === 0 && loading.form && (
+            {/* Step 1: OT Command Configuration (Original Step 7) */}
+            {activeStep === 0 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography sx={{ mb: 1 }}>
+                    {t(
+                      "tagDeviceForm.messages.executeOtCommands",
+                      "Please set the following parameters in the device before proceeding"
+                    )}
+                  </Typography>
+                  <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+                    {formattedOtCommands.map((command) => (
+                      <li key={command}>
+                        <Typography variant="body1">
+                          {command}
+                        </Typography>
+                      </li>
+                    ))}
+                  </ul>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="button"
+                      variant="contained"
+                      onClick={() => setActiveStep((prev) => prev + 1)}
+                    >
+                      {t("common.continue", "Continue")}
+                    </Button>
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
+            {/* Step 2: Tagging Form (Original Step 1) */}
+            {activeStep === 1 && loading.form && (
               <Formik
                 initialValues={taggingInitials}
                 validationSchema={validationTagging}
@@ -591,11 +668,10 @@ function TagDeviceToVehicle() {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field, idx, arr) => {
+                      {Object.keys(updatedFormFields).map((field) => {
                         const isNewVehicle = formik?.values?.vehicle_type === "new";
-                        if (field === "vehicle_reg_no") return null; // skip old field
-                        if (field === "state_code") return null; // rendered inside vehicle_reg_group
-                        // Custom rendering for state_code + district_code + vehicle_number as one row
+                        if (field === "vehicle_reg_no") return null;
+                        if (field === "state_code") return null;
                         if (field === "district_code") {
                           return (
                             <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
@@ -634,9 +710,7 @@ function TagDeviceToVehicle() {
                             </Grid>
                           );
                         }
-                        // Skip vehicle_number, since it's rendered above
                         if (field === "vehicle_number") return null;
-
                         if (field === "owner_id") return null;
 
                         return (
@@ -689,119 +763,15 @@ function TagDeviceToVehicle() {
                 )}
               </Formik>
             )}
-            {activeStep === 1 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>
-                    {t("tagDeviceForm.messages.dealerOtpSent")}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <MuiOtpInput
-                    value={otp.dealer}
-                    onChange={handleDealerOtp}
-                    length={6}
-                  />
-                  <br />
-                  <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={() => handleOtpSubmit("dealer")}
-                    >
-                      {t("common.Confirm")}
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
+            {/* Step 3: Ready for Activation / Vahan (Original Step 5) */}
             {activeStep === 2 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={() => sendOwnerOtp("owner")}
-                    >
-                      {t("common.Request")}
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-            {activeStep === 3 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>
-                    An OTP has been sent to vehicle owner mobile number. Please
-                    enter the OTP below to continue.
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <MuiOtpInput
-                    value={otp.owner}
-                    onChange={handleOwnerOtp}
-                    length={6}
-                  />
-                  <br />
-                  <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={() => handleOtpSubmit("owner")}
-                    >
-                      Confirm
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-            {activeStep === 4 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>Click below to get details from Vahan</Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <br />
-                  <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={getVahanDetail}
-                    >
-                      Get Details
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-            {activeStep === 5 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>
-                    Click below to get location of Vehicle
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <br />
-                  <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={retriveMapData}
-                    >
-                      Get Location
-                    </Button>
-                  </Typography>
+                  {!vahanDetails.IMEI && !loading.loader && (
+                    <Typography color="error">
+                      Failed to fetch VAHAN data. Please ensure the device is correctly tagged or try again.
+                    </Typography>
+                  )}
                 </Grid>
                 <Grid item xs={12}>
                   <Grid container spacing={1}>
@@ -834,55 +804,92 @@ function TagDeviceToVehicle() {
                       />
                     </Grid>
                   </Grid>
-
                 </Grid>
-              </Grid>
-            )}
-            {activeStep === 6 && (
-              <Grid container spacing={2}>
+
                 <Grid item xs={12}>
-                  <Typography sx={{ mb: 1 }}>
-                    {t(
-                      "tagDeviceForm.messages.executeOtCommands",
-                      "Before proceeding, execute the following OT commands for the device."
+                  <br />
+                  <Typography align="right" sx={{ mt: 2 }}>
+                    {loading.loader ? (
+                      <CircularProgress size={24} />
+                    ) : (
+                      vahanDetails.IMEI && (
+                        <Button
+                          color="primary"
+                          type="button"
+                          variant="contained"
+                          onClick={() => setActiveStep((prev) => prev + 1)}
+                        >
+                          Next
+                        </Button>
+                      )
+                    )}
+                    {!vahanDetails.IMEI && !loading.loader && (
+                       <Button
+                       color="secondary"
+                       type="button"
+                       variant="outlined"
+                       onClick={getVahanDetail}
+                       sx={{ ml: 1 }}
+                     >
+                       Retry Fetching Data
+                     </Button>
                     )}
                   </Typography>
-                  <Typography sx={{ mb: 2 }} variant="subtitle1">
-                    {ownerDetails?.model
-                      ? t(
-                        "tagDeviceForm.messages.deviceModelOtCommands",
-                        `Device model: ${ownerDetails.model}`
-                      )
-                      : t(
-                        "tagDeviceForm.messages.deviceModelUnavailable",
-                        "Device model information is unavailable."
-                      )}
+                </Grid>
+              </Grid>
+            )}
+
+            {/* Step 4: Dealer Verification (Original Step 2) */}
+            {activeStep === 3 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>
+                    {t("tagDeviceForm.messages.dealerOtpSent")}
                   </Typography>
-                  <ul style={{ paddingLeft: 24 }}>
-                    {formattedOtCommands.map((command) => (
-                      <li key={command}>
-                        <Typography variant="body1" component="span">
-                          {command}
-                        </Typography>
-                      </li>
-                    ))}
-                  </ul>
                 </Grid>
                 <Grid item xs={12} md={5}>
+                  <MuiOtpInput
+                    value={otp.dealer}
+                    onChange={handleDealerOtp}
+                    length={6}
+                  />
+                  <br />
                   <Typography>
-                    <Button
-                      color="primary"
-                      type="button"
-                      variant="contained"
-                      onClick={() => setActiveStep((prevActiveStep) => prevActiveStep + 1)}
-                    >
-                      {t("common.continue", "Continue")}
-                    </Button>
+                    <Grid container spacing={1} alignItems="center">
+                      <Grid item>
+                        <Button
+                          color="primary"
+                          type="submit"
+                          variant="contained"
+                          onClick={() => handleOtpSubmit("dealer")}
+                        >
+                          {t("common.Confirm")}
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        {resendTimer > 0 ? (
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            {t("auth.resendOtpIn", { seconds: resendTimer })}
+                          </Typography>
+                        ) : (
+                          <Button
+                            size="small"
+                            onClick={() => handleResendOtp("dealer")}
+                            disabled={loading.loader}
+                            sx={{ textTransform: "none", ml: 1 }}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
+                      </Grid>
+                    </Grid>
                   </Typography>
                 </Grid>
               </Grid>
             )}
-            {activeStep === 7 && (
+
+            {/* Step 5: Send Owner OTP (Original Step 3) */}
+            {activeStep === 4 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
@@ -893,24 +900,66 @@ function TagDeviceToVehicle() {
                       color="primary"
                       type="submit"
                       variant="contained"
-                      onClick={() => sendOwnerOtp("finalOwner")}
+                      onClick={() => sendOwnerOtp("owner")}
                     >
-                      {t("common.request")}
+                      {t("common.Request")}
                     </Button>
                   </Typography>
                 </Grid>
+              </Grid>
+            )}
+
+            {/* Step 6: Owner Verification (Original Step 4) */}
+            {activeStep === 5 && (
+              <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  {mapLoaded && (
-                    <MapComponent
-                      gpsData={htmlContent?.data}
-                      width="100%"
-                      height="600px"
-                    />
-                  )}
+                  <Typography>
+                    An OTP has been sent to the vehicle owner’s mobile no to verify the owner's consent for vehicle tagging.
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <MuiOtpInput
+                    value={otp.owner}
+                    onChange={handleOwnerOtp}
+                    length={6}
+                  />
+                  <br />
+                  <Typography>
+                    <Grid container spacing={1} alignItems="center">
+                      <Grid item>
+                        <Button
+                          color="primary"
+                          type="submit"
+                          variant="contained"
+                          onClick={() => handleOtpSubmit("owner")}
+                        >
+                          Continue to confirm SOS
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        {resendTimer > 0 ? (
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            {t("auth.resendOtpIn", { seconds: resendTimer })}
+                          </Typography>
+                        ) : (
+                          <Button
+                            size="small"
+                            onClick={() => handleResendOtp("owner")}
+                            disabled={loading.loader}
+                            sx={{ textTransform: "none", ml: 1 }}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
+                      </Grid>
+                    </Grid>
+                  </Typography>
                 </Grid>
               </Grid>
             )}
-            {activeStep === 8 && (
+
+            {/* Step 7: SOS Button Press (Original Step 9) */}
+            {activeStep === 6 && (
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
@@ -959,7 +1008,9 @@ function TagDeviceToVehicle() {
                 )}
               </Grid>
             )}
-            {activeStep === 9 && (
+
+            {/* Step 8: Activate SOS in App (Original Step 10) */}
+            {activeStep === 7 && (
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
@@ -1008,7 +1059,39 @@ function TagDeviceToVehicle() {
                 )}
               </Grid>
             )}
-            {activeStep === 10 && (
+
+            {/* Step 9: Confirm Location / Map (Original Step 8) */}
+            {activeStep === 8 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Typography>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      variant="contained"
+                      onClick={() => sendOwnerOtp("finalOwner")}
+                    >
+                      {t("common.request")}
+                    </Button>
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  {mapLoaded && (
+                    <MapComponent
+                      gpsData={htmlContent?.data}
+                      width="100%"
+                      height="600px"
+                    />
+                  )}
+                </Grid>
+              </Grid>
+            )}
+
+            {/* Step 10: Final Owner OTP (Original Step 11) */}
+            {activeStep === 9 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>
@@ -1024,14 +1107,34 @@ function TagDeviceToVehicle() {
                   />
                   <br />
                   <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={() => handleOtpSubmit("finalOwner")}
-                    >
-                      Submit
-                    </Button>
+                    <Grid container spacing={1} alignItems="center">
+                      <Grid item>
+                        <Button
+                          color="primary"
+                          type="submit"
+                          variant="contained"
+                          onClick={() => handleOtpSubmit("finalOwner")}
+                        >
+                          Submit
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        {resendTimer > 0 ? (
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            {t("auth.resendOtpIn", { seconds: resendTimer })}
+                          </Typography>
+                        ) : (
+                          <Button
+                            size="small"
+                            onClick={() => handleResendOtp("finalOwner")}
+                            disabled={loading.loader}
+                            sx={{ textTransform: "none", ml: 1 }}
+                          >
+                            {t("auth.resend")}
+                          </Button>
+                        )}
+                      </Grid>
+                    </Grid>
                   </Typography>
                 </Grid>
               </Grid>

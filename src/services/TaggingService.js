@@ -90,6 +90,10 @@ const cancelTagDevice=(deviceId)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/cancelTagDevice2Vehicle/',deviceId)
 }
+const tagSendDealerOtp = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/tag/TagSendDealerOtp/", data);
+};
 const gettaggedDeviceList=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/StateAdmin_view_all_tagging/')
@@ -102,6 +106,7 @@ const TaggingService = {
     tagSendOwnerOtp,
     tagVerifyOwnerOtp,
     tagVerifyDealerOtp,
+    tagSendDealerOtp,
     uploadTagReceipt,
     downloadTagReceipt,
     vahanVerificationApi,
