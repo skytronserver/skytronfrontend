@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider, Grid, Button, Menu, MenuItem } from '@mui/material';
-import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
+import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider, Grid, Button, Menu, MenuItem, Collapse, ListItemIcon, Box } from '@mui/material';
+import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, Dashboard as DashboardIcon, ExpandLess, ExpandMore } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
@@ -17,6 +17,12 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const importantLinksOpen = Boolean(anchorEl);
   const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
   const dashboardOpen = Boolean(dashboardAnchorEl);
+  const [drawerImportantLinksOpen, setDrawerImportantLinksOpen] = useState(false);
+
+  const handleDrawerImportantLinksClick = (event) => {
+    event.stopPropagation();
+    setDrawerImportantLinksOpen(!drawerImportantLinksOpen);
+  };
 
   const handleImportantLinksClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -192,61 +198,41 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
         anchor="left"
         open={isDrawerOpen}
         onClose={toggleDrawer(false)}
-        sx={{ '& .MuiDrawer-paper': { width: '50%' }, backgroundColor: 'purple' }}
+        sx={{ 
+          '& .MuiDrawer-paper': { 
+            width: '280px', 
+          } 
+        }}
       >
-        <div
+        <Box
           role="presentation"
-          onClick={toggleDrawer(false)}
-          onKeyDown={toggleDrawer(false)}
-          sx={{ width: '50%', backgroundColor: 'purple' }}
+          sx={{ width: '100%', height: '100%' }}
         >
           <List>
-            <ListItem button component={Link} to="/">
+            <ListItem button component={Link} to="/" onClick={toggleDrawer(false)}>
               <ListItemText primary={t('common.home')} />
             </ListItem>
-            <ListItem button component={Link} to="/user-registration-request">
-              <ListItemText primary="Register" />
+
+            {/* Important Links (Collapsible) - Reordered and collapsible to match dropdown */}
+            <ListItem button onClick={handleDrawerImportantLinksClick}>
+              <ListItemText primary={t('common.importantLinks')} />
+              <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                {drawerImportantLinksOpen ? <ExpandLess /> : <ExpandMore />}
+              </Box>
             </ListItem>
-            <ListItem button>
-              <ListItemText primary={t('common.contactUs')} />
-            </ListItem>
-            <ListItem button>
-              <ListItemText primary={t('common.aboutUs')} />
-            </ListItem>
-            <ListItem button component={Link} to="/privacy-policy">
+            <Collapse in={drawerImportantLinksOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItem button component={Link} to="/device-stats" onClick={toggleDrawer(false)} sx={{ pl: 4 }}>
+                  <ListItemText primary={t('common.manufacturerDeviceUptimeDetails')} />
+                </ListItem>
+              </List>
+            </Collapse>
+
+            <ListItem button component={Link} to="/privacy-policy" onClick={toggleDrawer(false)}>
               <ListItemText primary={t('common.privacyPolicy')} />
             </ListItem>
           </List>
-          <Divider />
-          <List>
-            <ListItem>
-              <ListItemText primary="Dashboards" sx={{ fontWeight: 'bold' }} />
-            </ListItem>
-            <ListItem button component={Link} to="/superadmin-dashboard/vehicle-monitoring">
-              <ListItemText primary="Vehicle Monitoring" />
-            </ListItem>
-            <ListItem button component={Link} to="/superadmin-dashboard/erss-vehicles">
-              <ListItemText primary="ERSS Vehicles" />
-            </ListItem>
-            <ListItem button component={Link} to="/superadmin-dashboard/sos">
-              <ListItemText primary="SOS Dashboard" />
-            </ListItem>
-            <ListItem button component={Link} to="/superadmin-dashboard/sos-analytics">
-              <ListItemText primary="SOS Analytics" />
-            </ListItem>
-
-          </List>
-          <Divider />
-          <List>
-            <ListItem>
-              <ListItemText primary={t('common.importantLinks')} sx={{ fontWeight: 'bold' }} />
-            </ListItem>
-            <ListItem button component={Link} to="/device-stats">
-              <ListItemText primary={t('common.manufacturerDeviceUptimeDetails')} />
-            </ListItem>
-          </List>
-          <Divider />
-        </div>
+        </Box>
       </Drawer>
     </div>
   );

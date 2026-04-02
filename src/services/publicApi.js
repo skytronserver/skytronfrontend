@@ -39,8 +39,11 @@ const getDeviceHealthStatusPublic = (params) => {
 };
 
 const getDeviceOnboardingDashboard = () => {
-  return axios.get('https://api.skytron.in/api/public/device_onboarding_dashboard/');
+  return axios.get(
+    `${process.env.REACT_APP_BASE_URL}api/public/device_onboarding_dashboard/`
+  );
 };
+
 
 export default {
   getDeviceHealthStatusPublic,
