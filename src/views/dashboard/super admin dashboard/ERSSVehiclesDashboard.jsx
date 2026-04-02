@@ -156,8 +156,9 @@ const buildDummyErssVehicles = () => {
 
 const fetchAreaData = async (payload = {}, method = "POST") => {
   try {
+    debugger
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard/areawise-device-count/",
+      "https://api.gromed.in/api/dashboard_ERSS/areawise-device-count/",
       {
         method,
         headers: {

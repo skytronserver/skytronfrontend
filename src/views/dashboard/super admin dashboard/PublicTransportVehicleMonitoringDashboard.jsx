@@ -810,11 +810,11 @@ try {
 
         debugger
         setDashboardData({
-    total: m.total_active_device_tags,
-    online: m.online_device_tags,
-    offline: m.offline_device_tags,
-    emergency: m.total_emergency_alerts_today,
-    other: m.total_other_alerts_today
+    total: m.total_active_device_tags??0,
+    online: m.online_device_tags ??0,
+    offline: m.offline_device_tags??0,
+    emergency: m.total_emergency_alerts_today??0,
+    other: m.total_other_alerts_today??0
   }); 
       
 

@@ -120,6 +120,33 @@ const SOSAnalyticsDashboard = () => {
    const [hourlyData, setHourlyData] = useState([]);
    const [districtSeries, setDistrictSeries] = useState([]);
    const [policeStationSeries, setPoliceStationSeries] = useState([]);
+   const [timeOfDayHeatmap, setTimeOfDayHeatmap] = useState([]);
+const [sosByTypeData, setSosByTypeData] = useState({
+  panic_alert: 1,
+  medical_emergency: 1,
+  accident: 1,
+  others: 1
+});
+const [panicBreakdownData, setPanicBreakdownData] = useState({
+  sital_alert: 1,
+  medical: 1,
+  fire_alarm: 1
+});
+const [ambulanceBreakdownData, setAmbulanceBreakdownData] = useState({
+  threat_perception: 1,
+  others: 1
+});
+const [topDistricts, setTopDistricts] = useState([
+  { name: 'unknown', total: 1, sla: 1, policeAccepted: 1 }
+ ]);
+ const [districtsTrend, setDistrictsTrend] = useState([
+  { t: 'unknown', Central: 1, West: 1, South: 1 }
+
+]);
+const [topPoliceStations, setTopPoliceStations] = useState([
+  { month: 'Jan', Dispur: 50, Panbazar: 45, Latasil: 40 }
+]);
+const [overallSLACompliance, setOverallSLACompliance] = useState({OverallSLAOverallSLA_Value:1}); // default 90%
 
 
   
@@ -403,79 +430,320 @@ const apiData = response.data.policeStation_wise_metrics;
   // );
 
 
-  const timeOfDayHeatmap = useMemo(
-    () => [
-      { day: 'Mon', values: [8, 6, 5, 4, 3, 4, 6, 7, 9, 10, 8, 7, 6, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5] },
-      { day: 'Tue', values: [7, 5, 4, 3, 3, 4, 6, 8, 10, 11, 9, 8, 7, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6] },
-      { day: 'Wed', values: [6, 5, 4, 3, 2, 3, 5, 7, 9, 10, 9, 8, 7, 6, 6, 7, 8, 9, 10, 10, 9, 8, 7, 6] },
-      { day: 'Thu', values: [6, 4, 4, 3, 2, 3, 5, 7, 9, 11, 10, 9, 7, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6] },
-      { day: 'Fri', values: [7, 5, 4, 3, 2, 3, 5, 8, 10, 12, 11, 10, 8, 7, 8, 9, 10, 11, 13, 12, 11, 10, 8, 7] },
-      { day: 'Sat', values: [8, 7, 6, 5, 4, 5, 7, 9, 11, 13, 12, 11, 9, 8, 9, 10, 11, 12, 14, 13, 12, 11, 9, 8] },
-      { day: 'Sun', values: [9, 8, 7, 6, 5, 6, 8, 10, 12, 14, 13, 12, 10, 9, 10, 11, 12, 13, 15, 14, 13, 12, 10, 9] }
-    ],
-    []
-  );
+ useEffect(() => {
+    const fetchtimeOfDayHeatmap = async () => {
+      try {
+        const response = await axios.get(
+          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+        );
+
+const apiData = response.data.timeOfDayHeatmap_wise_metrics;
+
+     let transformed = [];
+           if (Array.isArray(apiData) && apiData.length > 0) {
+        // ✅ Use API data if available
+        transformed = apiData.map((item) => ({
+          day: item.day ?? "Unknown",
+          values: item.values ?? [1,10,15],
+        }));
+      } else {
+        // ✅ Fallback dummy data
+        transformed = [
+          { day: "Unknown", values:[1,10,15] },
+         
+        ];
+      }
+
+        setTimeOfDayHeatmap(transformed);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        // setError(err.message);
+      } 
+    };
+
+    fetchtimeOfDayHeatmap();
+  }, []);
+
+
+  // const timeOfDayHeatmap = useMemo(
+  //   () => [
+  //     { day: 'Mon', values: [8, 6, 5, 4, 3, 4, 6, 7, 9, 10, 8, 7, 6, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5] },
+  //     { day: 'Tue', values: [7, 5, 4, 3, 3, 4, 6, 8, 10, 11, 9, 8, 7, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6] },
+  //     { day: 'Wed', values: [6, 5, 4, 3, 2, 3, 5, 7, 9, 10, 9, 8, 7, 6, 6, 7, 8, 9, 10, 10, 9, 8, 7, 6] },
+  //     { day: 'Thu', values: [6, 4, 4, 3, 2, 3, 5, 7, 9, 11, 10, 9, 7, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6] },
+  //     { day: 'Fri', values: [7, 5, 4, 3, 2, 3, 5, 8, 10, 12, 11, 10, 8, 7, 8, 9, 10, 11, 13, 12, 11, 10, 8, 7] },
+  //     { day: 'Sat', values: [8, 7, 6, 5, 4, 5, 7, 9, 11, 13, 12, 11, 9, 8, 9, 10, 11, 12, 14, 13, 12, 11, 9, 8] },
+  //     { day: 'Sun', values: [9, 8, 7, 6, 5, 6, 8, 10, 12, 14, 13, 12, 10, 9, 10, 11, 12, 13, 15, 14, 13, 12, 10, 9] }
+  //   ],
+  //   []
+  // );
+
+useEffect(() => {
+  const fetchsosByType = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+      );
+
+      // ✅ Only set API values if key exists and is an object
+      if (response.data && response.data.fetchsosByType_wise_metrics) {
+        const apiData = response.data.fetchsosByType_wise_metrics;
+
+        // Set values from API
+        setSosByTypeData({
+          panic_alert: apiData.panic_alert ?? sosByTypeData.panic_alert,
+          medical_emergency: apiData.medical_emergency ?? sosByTypeData.medical_emergency,
+          accident: apiData.accident ?? sosByTypeData.accident,
+          others: apiData.others ?? sosByTypeData.others
+        });
+      }
+      // else: do nothing, keep default values
+
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      // Optional: keep default values on error
+    }
+  };
+
+  fetchsosByType();
+}, []);
 
   const sosByType = useMemo(
     () => [
-      { name: 'Panic Alert', value: 45, color: COLORS.primary },
-      { name: 'Medical Emergency', value: 21, color: COLORS.secondary },
-      { name: 'Accident', value: 27, color: COLORS.warning },
-      { name: 'Others', value: 7, color: COLORS.accent }
+      { name: 'Panic Alert', value: sosByTypeData.panic_alert, color: COLORS.primary },
+      { name: 'Medical Emergency', value:  sosByTypeData.medical_emergency, color: COLORS.secondary },
+      { name: 'Accident', value: sosByTypeData.accident, color: COLORS.warning },
+      { name: 'Others', value: sosByTypeData.others, color: COLORS.accent }
     ],
-    []
+    [sosByTypeData]
   );
+useEffect(() => {
+  const fetchPanicBreakdown = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/panic-breakdown/?state_id=1"
+      );
+
+      // ✅ Only update if API key exists
+      if (response.data && response.data.fetchPanicBreakdown_metrics) {
+        const apiData = response.data.fetchPanicBreakdown_metrics;
+
+        setPanicBreakdownData({
+          sital_alert: apiData.sital_alert ?? panicBreakdownData.sital_alert,
+          medical: apiData.medical ?? panicBreakdownData.medical,
+          fire_alarm: apiData.fire_alarm ?? panicBreakdownData.fire_alarm
+        });
+      }
+      // else: keep default values
+    } catch (err) {
+      console.error("Error fetching panic breakdown:", err);
+      // keep default values
+    }
+  };
+
+  fetchPanicBreakdown();
+}, []);
+
+
 
   const panicBreakdown = useMemo(
     () => [
-      { name: 'Sital Alert', value: 35, color: COLORS.success },
-      { name: 'Medical', value: 40, color: COLORS.primary },
-      { name: 'Fire Alarm', value: 25, color: COLORS.danger }
+      { name: 'Sital Alert', value:  panicBreakdownData.sital_alert, color: COLORS.success },
+      { name: 'Medical', value: panicBreakdownData.medical, color: COLORS.primary },
+      { name: 'Fire Alarm', value: panicBreakdownData.fire_alarm, color: COLORS.danger }
     ],
-    []
+    [panicBreakdownData]
   );
+useEffect(() => {
+  const fetchAmbulanceBreakdown = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/ambulance-breakdown/?state_id=1"
+      );
+
+      // ✅ Only update if API key exists
+      if (response.data && response.data.fetchAmbulanceBreakdown_metrics) {
+        const apiData = response.data.fetchAmbulanceBreakdown_metrics;
+
+        setAmbulanceBreakdownData({
+          threat_perception: apiData.threat_perception ?? ambulanceBreakdownData.threat_perception,
+          others: apiData.others ?? ambulanceBreakdownData.others
+        });
+      }
+      // else: keep default values
+    } catch (err) {
+      console.error("Error fetching ambulance breakdown:", err);
+      // keep default values
+    }
+  };
+
+  fetchAmbulanceBreakdown();
+}, []);
+
+
 
   const ambulanceBreakdown = useMemo(
     () => [
-      { name: 'Threat Perception', value: 32, color: COLORS.warning },
-      { name: 'Others', value: 68, color: COLORS.secondary }
+      { name: 'Threat Perception', value: ambulanceBreakdownData.threat_perception, color: COLORS.warning },
+      { name: 'Others', value: ambulanceBreakdownData.others, color: COLORS.secondary }
     ],
-    []
+    [ambulanceBreakdownData]
   );
 
-  const topDistricts = useMemo(
-    () => [
-      { name: 'Central', total: 528, sla: 96, policeAccepted: 93 },
-      { name: 'West', total: 93, sla: 92, policeAccepted: 88 },
-      { name: 'South', total: 30, sla: 97, policeAccepted: 85 }
-    ],
-    []
-  );
+useEffect(() => {
+  const fetchTopDistricts = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/top-districts/?state_id=1"
+      );
 
-  const districtsTrend = useMemo(
-    () => [
-      { t: 'Jan', Central: 120, West: 58, South: 34 },
-      { t: 'Feb', Central: 140, West: 62, South: 30 },
-      { t: 'Mar', Central: 132, West: 60, South: 38 },
-      { t: 'Apr', Central: 150, West: 65, South: 42 },
-      { t: 'May', Central: 148, West: 70, South: 40 },
-      { t: 'Jun', Central: 160, West: 72, South: 45 }
-    ],
-    []
-  );
+      const apiData = response.data.topDistricts_metrics; // change as per your API key
 
-  const topPoliceStations = useMemo(
-    () => [
-      { month: 'Jan', Dispur: 50, Panbazar: 45, Latasil: 40 },
-      { month: 'Feb', Dispur: 48, Panbazar: 42, Latasil: 38 },
-      { month: 'Mar', Dispur: 55, Panbazar: 47, Latasil: 41 },
-      { month: 'Apr', Dispur: 52, Panbazar: 46, Latasil: 39 },
-      { month: 'May', Dispur: 58, Panbazar: 49, Latasil: 42 },
-      { month: 'Jun', Dispur: 60, Panbazar: 52, Latasil: 44 },
-      { month: 'Jul', Dispur: 65, Panbazar: 56, Latasil: 50 }
-    ],
-    []
-  );
+      if (Array.isArray(apiData) && apiData.length > 0) {
+        setTopDistricts(
+          apiData.map((item) => ({
+            name: item.name ?? "Unknown",
+            total: item.total ?? 0,
+            sla: item.sla ?? 0,
+            policeAccepted: item.policeAccepted ?? 0
+          }))
+        );
+      }
+      // else: keep default values
+    } catch (err) {
+      console.error("Error fetching top districts:", err);
+      // fallback: keep default values
+    }
+  };
+
+  fetchTopDistricts();
+}, []);
+
+
+  // const topDistricts = useMemo(
+  //   () => [
+  //     { name: 'Central', total: 528, sla: 96, policeAccepted: 93 },
+  //     { name: 'West', total: 93, sla: 92, policeAccepted: 88 },
+  //     { name: 'South', total: 30, sla: 97, policeAccepted: 85 }
+  //   ],
+  //   []
+  // );
+
+
+
+
+  useEffect(() => {
+  const fetchDistrictsTrend = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/districts-trend/?state_id=1"
+      );
+
+      const apiData = response.data.districtsTrend_metrics; // change key to match API
+
+      if (Array.isArray(apiData) && apiData.length > 0) {
+        setDistrictsTrend(
+          apiData.map((item) => ({
+            t: item.t ?? "Unknown",
+            Central: item.Central ?? 0,
+            West: item.West ?? 0,
+            South: item.South ?? 0
+          }))
+        );
+      }
+      // else: keep default values
+
+    } catch (err) {
+      console.error("Error fetching districts trend:", err);
+      // fallback: keep default values
+    }
+  };
+
+  fetchDistrictsTrend();
+}, []);
+
+  // const districtsTrend = useMemo(
+  //   () => [
+  //     { t: 'Jan', Central: 120, West: 58, South: 34 },
+  //     { t: 'Feb', Central: 140, West: 62, South: 30 },
+  //     { t: 'Mar', Central: 132, West: 60, South: 38 },
+  //     { t: 'Apr', Central: 150, West: 65, South: 42 },
+  //     { t: 'May', Central: 148, West: 70, South: 40 },
+  //     { t: 'Jun', Central: 160, West: 72, South: 45 }
+  //   ],
+  //   []
+  // );
+
+
+useEffect(() => {
+  const fetchTopPoliceStations = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/top-police-stations/?state_id=1"
+      );
+
+      const apiData = response.data.topPoliceStations_metrics; // replace with actual API key
+
+      if (Array.isArray(apiData) && apiData.length > 0) {
+        setTopPoliceStations(
+          apiData.map((item) => ({
+            month: item.month ?? "Unknown",
+            Dispur: item.Dispur ?? 0,
+            Panbazar: item.Panbazar ?? 0,
+            Latasil: item.Latasil ?? 0
+          }))
+        );
+      }
+      // else: keep default values
+
+    } catch (err) {
+      console.error("Error fetching top police stations:", err);
+      // fallback: keep default values
+    }
+  };
+
+  fetchTopPoliceStations();
+}, []);
+
+
+
+
+  // const topPoliceStations = useMemo(
+  //   () => [
+  //     { month: 'Jan', Dispur: 50, Panbazar: 45, Latasil: 40 },
+  //     { month: 'Feb', Dispur: 48, Panbazar: 42, Latasil: 38 },
+  //     { month: 'Mar', Dispur: 55, Panbazar: 47, Latasil: 41 },
+  //     { month: 'Apr', Dispur: 52, Panbazar: 46, Latasil: 39 },
+  //     { month: 'May', Dispur: 58, Panbazar: 49, Latasil: 42 },
+  //     { month: 'Jun', Dispur: 60, Panbazar: 52, Latasil: 44 },
+  //     { month: 'Jul', Dispur: 65, Panbazar: 56, Latasil: 50 }
+  //   ],
+  //   []
+  // );
+
+useEffect(() => {
+  const fetchOverallSLA = async () => {
+    try {
+      debugger
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/overall-sla/?state_id=1"
+      );
+
+      const apiValue = response.data.overallSLA; // replace with actual API key
+
+      if (apiValue !== undefined && apiValue !== null) {
+        setOverallSLACompliance(apiValue.OverallSLAOverallSLA_Value);
+      }
+      // else: keep default value
+
+    } catch (err) {
+      console.error("Error fetching Overall SLA Compliance:", err);
+      // fallback: keep default value
+    }
+  };
+
+  fetchOverallSLA();
+}, []);
 
 
   const heatMax = useMemo(
@@ -502,8 +770,11 @@ const apiData = response.data.policeStation_wise_metrics;
       }}
       titleSx={{ color: tokens.text, fontSize: '1.5rem', mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: '0.75rem' }}
+
+
+      
     >
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
         <IconButton
           size="small"
           onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
@@ -517,7 +788,8 @@ const apiData = response.data.policeStation_wise_metrics;
         >
           {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
         </IconButton>
-      </Box>
+      </Box> */}
+<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
 
       <Paper
         elevation={0}
@@ -525,7 +797,9 @@ const apiData = response.data.policeStation_wise_metrics;
           borderRadius: 3,
           bgcolor: tokens.cardBg,
           border: `1px solid ${tokens.border}`,
-          overflow: 'visible'
+          overflow: 'visible',
+           flex: 1,           // take available space
+      mr: 2,  
         }}
       >
         <Tabs
@@ -565,7 +839,28 @@ const apiData = response.data.policeStation_wise_metrics;
           <Tab label="District-wise" />
           <Tab label="Police Station-wise" />
         </Tabs>
+
+
+        
       </Paper>
+
+ <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+        <IconButton
+          size="small"
+          onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          sx={{
+            color: tokens.text,
+            bgcolor: alpha(tokens.text, mode === 'dark' ? 0.08 : 0.06),
+            border: `1px solid ${alpha(tokens.text, 0.12)}`,
+            borderRadius: 1.5,
+            '&:hover': { bgcolor: alpha(tokens.text, mode === 'dark' ? 0.12 : 0.08) }
+          }}
+        >
+          {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
+        </IconButton>
+      </Box>
+</Box>
+
 
       <TabPanel value={tabValue} index={0}>
         {/* Nested tabs for Overview */}
@@ -575,7 +870,7 @@ const apiData = response.data.policeStation_wise_metrics;
             borderRadius: 2,
             bgcolor: alpha(tokens.cardBg, 0.5),
             border: `1px solid ${alpha(tokens.border, 0.5)}`,
-            mb: 1.5
+            mb: 1.5,
           }}
         >
           <Tabs
@@ -920,7 +1215,7 @@ const apiData = response.data.policeStation_wise_metrics;
 
                     <Box sx={{ mt: 1, pt: 1.25, borderTop: `1px solid ${alpha(tokens.text, 0.12)}` }}>
                       <Typography sx={{ fontSize: '0.8rem', color: tokens.muted }}>Overall SLA Compliance</Typography>
-                      <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: tokens.text }}>92%</Typography>
+                      <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: tokens.text }}>{overallSLACompliance.OverallSLAOverallSLA_Value}</Typography>
                     </Box>
                   </Box>
                 </ChartCard>

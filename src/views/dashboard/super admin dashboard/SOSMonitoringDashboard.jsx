@@ -74,7 +74,7 @@ const getStatusChipStyles = (mode, status) => {
 const fetchAreaData = async (payload = {}, method = "POST") => {
   try {
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard/areawise-device-count/",
+      "https://api.gromed.in/api/dashboard_SOS/areawise-device-count/",
       {
         method,
         headers: {
@@ -126,18 +126,18 @@ const SOSMonitoringDashboard = () => {
  const levelRef = useRef(level);
  const [dashboardData,setDashboardData]=useState({
    // Calls Overview
-  totalEmergencyCallsToday: 0,
-  totalClosedCallsToday: 0,
-  liveCallsNow: 0,
-  unattendedCallsNow: 0,
+  total_emergency_calls_today: 0,
+  total_closed_calls_today: 0,
+  total_live_calls_now: 0,
+  total_unattended_calls_now: 0,
 
   // ⏱️ Response Time
   avgAmbulanceAcceptTime: 0,
-  avgPoliceAcceptTime: 0,
-  avgDeskAcceptTime: 0,
+  avgPolice_OnScene: 0,
+  avg_Exec_accept: 0,
 
   // 👨‍💼 Team Lead Performance
-  teamLeadHandledCallsPercent: 0,
+  escalation_Rate: 0,
   teamLeadHandledCallsTotal: 0,
 
 total_triggered_calls:0,
@@ -145,7 +145,10 @@ total_assigned_calls:0,
 total_exec_accepted_calls:0,
 total_broadcasted_calls:0,
 total_on_scene_calls:0,
-total_closed_calls:0
+total_closed_calls:0,
+police_Accepted:0,
+ amb_Accepted:0
+
 
 
 
@@ -294,35 +297,35 @@ total_closed_calls:0
   const kpis = useMemo(() => {
     if (mode === 'dark') {
       return [
-        { label: 'Total Calls', value:dashboardData.totalEmergencyCallsToday, bg: '#1e3a5f' },
-        { label: 'Live Calls', value:  dashboardData.liveCallsNow, bg: '#2a4a7c', emphasis: true },
-        { label: 'Pending Calls', value: dashboardData.unattendedCallsNow, bg: '#3d4e6b' },
-        { label: 'Closed Calls', value: dashboardData.unattendedCallsNow, bg: '#1e3a5f' },
-        { label: 'Avg Exec Accept', value:  dashboardData.avgDeskAcceptTime != null
-        ? dashboardData.avgDeskAcceptTime
+        { label: 'Total Calls', value:dashboardData.total_emergency_calls_today, bg: '#1e3a5f' },
+        { label: 'Live Calls', value:  dashboardData.total_live_calls_now, bg: '#2a4a7c', emphasis: true },
+        { label: 'Pending Calls', value: dashboardData.total_unattended_calls_now, bg: '#3d4e6b' },
+        { label: 'Closed Calls', value: dashboardData.total_closed_calls_today, bg: '#1e3a5f' },
+        { label: 'Avg Exec Accept', value:  dashboardData.avg_Exec_accept != null
+        ? dashboardData.avg_Exec_accept
         : '0 min', bg: '#2c5f6f' },
-        { label: 'Avg Police On-Scene', value:  dashboardData.avgPoliceAcceptTime != null
-        ? dashboardData.avgPoliceAcceptTime
+        { label: 'Avg Police On-Scene', value:  dashboardData.avgPolice_OnScene != null
+        ? dashboardData.avgPolice_OnScene
         : '0 min', bg: '#2c5f6f' },
-        { label: 'Escalation Rate', value:   dashboardData.teamLeadHandledCallsPercent != null
-        ? dashboardData.teamLeadHandledCallsPercent
+        { label: 'Escalation Rate', value:   dashboardData.escalation_Rate != null
+        ? dashboardData.escalation_Rate
         : '0%', bg: '#2c5f6f' }
       ];
     }
 
     return [
-      { label: 'Total Calls', value: dashboardData.totalEmergencyCallsToday, bg: '#eef2ff' },
-      { label: 'Live Calls', value:  dashboardData.liveCallsNow, bg: '#dbeafe', emphasis: true },
-      { label: 'Pending Calls', value: dashboardData.unattendedCallsNow, bg: '#ecfeff' },
-      { label: 'Closed Calls', value: dashboardData.unattendedCallsNow, bg: '#f1f5f9' },
-      { label: 'Avg Exec Accept', value:  dashboardData.avgDeskAcceptTime != null
-        ? dashboardData.avgDeskAcceptTime
+      { label: 'Total Calls', value: dashboardData.total_emergency_calls_today, bg: '#eef2ff' },
+      { label: 'Live Calls', value:  dashboardData.total_live_calls_now, bg: '#dbeafe', emphasis: true },
+      { label: 'Pending Calls', value: dashboardData.total_unattended_calls_now, bg: '#ecfeff' },
+      { label: 'Closed Calls', value: dashboardData.total_closed_calls_today, bg: '#f1f5f9' },
+      { label: 'Avg Exec Accept', value:  dashboardData.avg_Exec_accept != null
+        ? dashboardData.avg_Exec_accept
         : '0 min', bg: '#fef3c7' },
-      { label: 'Avg Police On-Scene', value:  dashboardData.avgPoliceAcceptTime != null
-        ? dashboardData.avgPoliceAcceptTime
+      { label: 'Avg Police On-Scene', value:  dashboardData.avgPolice_OnScene != null
+        ? dashboardData.avgPolice_OnScene
         : '0 min', bg: '#ffe4e6' },
-      { label: 'Escalation Rate', value:  dashboardData.teamLeadHandledCallsPercent != null
-        ? dashboardData.teamLeadHandledCallsPercent
+      { label: 'Escalation Rate', value:  dashboardData.escalation_Rate != null
+        ? dashboardData.escalation_Rate
         : '0%', bg: '#dcfce7' }
     ];
   }, [mode,dashboardData]);
@@ -334,8 +337,8 @@ const statusRows = useMemo(() => {
     { label: 'Assigned', value: dashboardData.total_assigned_calls ?? 0, color: '#4ade80', width: 0 },
     { label: 'Exec Accepted', value: dashboardData.total_exec_accepted_calls ?? 0, color: '#4ade80', width: 0 },
     { label: 'Broadcasted', value: dashboardData.total_broadcasted_calls ?? 0, color: '#fb923c', width: 0 },
-    { label: 'Police Accepted', value: dashboardData.avgPoliceAcceptTime ?? 0, color: '#ef4444', width: 0 },
-    { label: 'Amb Accepted', value: dashboardData.avgAmbulanceAcceptTime ?? 0, color: '#dc2626', width: 0 },
+    { label: 'Police Accepted', value: dashboardData.police_Accepted ?? 0, color: '#ef4444', width: 0 },
+    { label: 'Amb Accepted', value: dashboardData.amb_Accepted ?? 0, color: '#dc2626', width: 0 },
     { label: 'On-Scene', value: dashboardData.total_on_scene_calls ?? 0, color: '#6366f1', width: 0 },
     { label: 'Closed', value: dashboardData.total_closed_calls ?? 0, color: '#64748b', width: 0 }
   ];
@@ -460,7 +463,7 @@ const statusRows = useMemo(() => {
  
  
  const handleDistrictClick = async (district) => {
-  debugger
+
    //  setSelectedDistrictObj(district); // ⭐ ADD THIS
   const res = await fetchAreaData({
      district_name: district.district_name
@@ -478,7 +481,7 @@ const statusRows = useMemo(() => {
    }
  };
  const handleCityClick = async(city) => {
-    debugger
+
    //  setSelectedCityObj(city); // ⭐ ADD THIS
    const res = await fetchAreaData({
      district_name: city.district_name,
@@ -498,7 +501,7 @@ const statusRows = useMemo(() => {
    }
  };
  const handleLocalityClick =async (locality) => {
-    debugger
+   
      //  setSelectedLocalityObj(locality); // ⭐ ADD THIS
    const res = await fetchAreaData({
      district_name: locality.district_name,
@@ -513,7 +516,7 @@ const statusRows = useMemo(() => {
    }
  };
  const handleBack = async ({ level, data }) => {
-  debugger
+
    if (level === "device" && data) {
    const res = await fetchAreaData({
      district_name: data.district_name,
@@ -532,7 +535,7 @@ const statusRows = useMemo(() => {
  }
  }
    else if (level === "locality" && data) {
-     debugger
+   
    const res = await fetchAreaData({
      district_name: data.district_name
    });
@@ -573,24 +576,24 @@ const statusRows = useMemo(() => {
  
    setDashboardData({
          // 📞 Calls Overview
-    totalEmergencyCallsToday: sos.total_emergency_calls_today,
-    totalClosedCallsToday: sos.total_closed_calls_today,
-    liveCallsNow: sos.total_live_calls_now,
-    unattendedCallsNow: sos.total_unattended_calls_now,
+    total_emergency_calls_today: sos.total_emergency_calls_today,
+    total_closed_calls_today: sos.total_closed_calls_today,
+    total_live_calls_now: sos.total_live_calls_now,
+    total_unattended_calls_now: sos.total_unattended_calls_now,
 
     // ⏱️ Response Time (Seconds)
     avgAmbulanceAcceptTime:
       sos.average_time_to_accept_broadcast_by_ambulance_seconds,
 
-    avgPoliceAcceptTime:
-      sos.average_time_to_accept_broadcast_by_police_seconds,
+    avgPolice_OnScene:
+      sos.avgPolice_OnScene,
 
-    avgDeskAcceptTime:
-      sos.average_time_to_accept_by_desk_executive_seconds,
+    avg_Exec_accept:
+      sos.avg_Exec_accept,
 
     // 👨‍💼 Team Lead Performance
-    teamLeadHandledCallsPercent:
-      sos.calls_accepted_by_team_lead_percent_of_total_calls,
+    escalation_Rate:
+      sos.escalation_Rate,
 
     teamLeadHandledCallsTotal:
       sos.calls_accepted_by_team_lead_total,
@@ -609,6 +612,10 @@ total_assigned_calls:
       sos.total_on_scene_calls ?? 0,
           total_closed_calls:
       sos.total_closed_calls ?? 0,
+        police_Accepted:
+      sos.police_Accepted ?? 0,
+        amb_Accepted:
+      sos.amb_Accepted ?? 0,
 
 
 
