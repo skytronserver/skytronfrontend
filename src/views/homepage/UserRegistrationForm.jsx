@@ -662,8 +662,8 @@ const UserRegistrationForm = () => {
       (pos) => {
         setFormData((prev) => ({
           ...prev,
-          latitude: String(pos.coords.latitude),
-          longitude: String(pos.coords.longitude),
+          latitude: String(pos.coords.latitude.toFixed(6)),
+          longitude: String(pos.coords.longitude.toFixed(6)),
         }));
         setInfoMessage("Location captured.");
       },
@@ -758,6 +758,12 @@ const UserRegistrationForm = () => {
       }
       if (!formData.latitude.trim() || !formData.longitude.trim()) {
         setErrorMessage("School latitude and longitude are required.");
+        setSubmitting(false);
+        return;
+      }
+      const latLongRegex = /^-?\d+\.\d+$/;
+      if (!latLongRegex.test(formData.latitude) || !latLongRegex.test(formData.longitude)) {
+        setErrorMessage("Latitude and Longitude must be in decimal format (e.g., 21.9974). At least one decimal point is required.");
         setSubmitting(false);
         return;
       }
@@ -1385,23 +1391,25 @@ const UserRegistrationForm = () => {
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="School Latitude"
+                          label="Latitude"
                           name="latitude"
                           value={formData.latitude}
                           onChange={handleInputChange}
                           required
                           variant="outlined"
+                          placeholder="e.g., 21.9974"
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="School Longitude"
+                          label="Longitude"
                           name="longitude"
                           value={formData.longitude}
                           onChange={handleInputChange}
                           required
                           variant="outlined"
+                          placeholder="e.g., 79.0011"
                         />
                       </Grid>
 

@@ -20,8 +20,12 @@ function SchoolRegistration() {
         mobile: Yup.string().required('Mobile is required'),
         email: Yup.string().email('Invalid email').required('Email is required'),
         address: Yup.string().required('Address is required'),
-        latitude: Yup.string().required('Latitude is required'),
-        longitude: Yup.string().required('Longitude is required'),
+        latitude: Yup.string()
+          .matches(/^-?\d+\.\d+$/, 'Latitude must be in decimal format (e.g., 21.9974)')
+          .required('Latitude is required'),
+        longitude: Yup.string()
+          .matches(/^-?\d+\.\d+$/, 'Longitude must be in decimal format (e.g., 79.0011)')
+          .required('Longitude is required'),
         otp: Yup.string().length(6, 'OTP must be 6 digits').required('OTP is required'),
         principalRequestLetter: Yup.mixed().required('Request letter is required'),
         representativeKycDocument: Yup.mixed().required('KYC document is required')
@@ -40,8 +44,8 @@ function SchoolRegistration() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setFieldValue('latitude', String(pos.coords.latitude));
-        setFieldValue('longitude', String(pos.coords.longitude));
+        setFieldValue('latitude', String(pos.coords.latitude.toFixed(6)));
+        setFieldValue('longitude', String(pos.coords.longitude.toFixed(6)));
         setInfo('Location captured');
       },
       (error) => {

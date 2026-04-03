@@ -110,8 +110,8 @@ const FormField = ({
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
-            formik.setFieldValue("lat", latitude);
-            formik.setFieldValue("lon", longitude);
+            formik.setFieldValue("lat", String(latitude.toFixed(6)));
+            formik.setFieldValue("lon", String(longitude.toFixed(6)));
           },
           (error) => {
             console.error("Geolocation error detail:", error);
@@ -193,7 +193,7 @@ const FormField = ({
             label={t("Latitude")}
             variant="outlined"
             size="small"
-            type="number"
+            type="text"
             disabled={disabled ? true : false}
             {...formik.getFieldProps("lat")}
             error={formik.touched["lat"] && Boolean(formik.errors["lat"])}
@@ -207,7 +207,7 @@ const FormField = ({
             label={t("Longitude")}
             variant="outlined"
             size="small"
-            type="number"
+            type="text"
             disabled={disabled ? true : false}
             {...formik.getFieldProps("lon")}
             error={formik.touched["lon"] && Boolean(formik.errors["lon"])}

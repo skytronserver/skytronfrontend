@@ -165,18 +165,18 @@ export const manufacturerFormField = {
     name: "lat",
     type: "number",
     label: "Company Address Lat",
-    validation: Yup.number()
-      .typeError("Latitude must be a number")
-      .nullable(),
+    validation: Yup.string()
+      .matches(/^-?\d+\.\d+$/, "Latitude must be in decimal format (e.g., 21.9974)")
+      .required("Latitude is required"),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Company Address Lon",
     gridHidden: true,
-    validation: Yup.number()
-      .typeError("Longitude must be a number")
-      .nullable(),
+    validation: Yup.string()
+      .matches(/^-?\d+\.\d+$/, "Longitude must be in decimal format (e.g., 79.0011)")
+      .required("Longitude is required"),
   },
   gstnnumber: {
     name: "gstnnumber",
