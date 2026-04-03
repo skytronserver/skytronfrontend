@@ -118,7 +118,7 @@ const SOSAnalyticsDashboard = () => {
   const [topPerformersSubTab, setTopPerformersSubTab] = useState(0);
    const [monthwiseData, setMonthwiseData] = useState([]);
    const [hourlyData, setHourlyData] = useState([]);
-   const [districtSeries, setDistrictSeries] = useState([]);
+   const [districtSeries, setDistrictSeries] = useState([{  name: 'Baksa', total: 1 }]);
    const [policeStationSeries, setPoliceStationSeries] = useState([]);
    const [timeOfDayHeatmap, setTimeOfDayHeatmap] = useState([]);
 const [sosByTypeData, setSosByTypeData] = useState({
@@ -140,13 +140,13 @@ const [topDistricts, setTopDistricts] = useState([
   { name: 'unknown', total: 1, sla: 1, policeAccepted: 1 }
  ]);
  const [districtsTrend, setDistrictsTrend] = useState([
-  { t: 'unknown', Central: 1, West: 1, South: 1 }
+  { t: 'unknown', Guwahati: 1 }
 
 ]);
 const [topPoliceStations, setTopPoliceStations] = useState([
   { month: 'Jan', Dispur: 50, Panbazar: 45, Latasil: 40 }
 ]);
-const [overallSLACompliance, setOverallSLACompliance] = useState({OverallSLAOverallSLA_Value:1}); // default 90%
+const [overallSLACompliance, setOverallSLACompliance] = useState({OverallSLA_Value:1}); // default 90%
 
 
   
@@ -175,43 +175,191 @@ const [overallSLACompliance, setOverallSLACompliance] = useState({OverallSLAOver
     setTabValue(newValue);
   };
 
+// -------------------------------start--------------------------------------
 
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+useEffect(() => {
+  const fetchAllDashboardData = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+      );
+      const data = response.data;
+console.log(data);
+      // Monthwise data
+      if (data.month_wise_metrics) {
+        setMonthwiseData(
+          data.month_wise_metrics.map((item) => ({
+            month: item.month,
+            total: item.total_calls_count,
+            genuine: item.genuine ?? 0,
+            panic: item.panic ?? 0,
+            policeAccepted: item.total_police_accepted_count ?? 0,
+            ambAccepted: item.total_ambulance_accepted_count ?? 0,
+            other: item.other ?? 0,
+            fake: item.total_fake_call_close ?? 0
+          }))
         );
+      }
+
+      // Hourly data
+      if (data.hour_of_day_wise_metrics) {
+        setHourlyData(
+          data.hour_of_day_wise_metrics.map((item) => ({
+            time: item.hour_of_day,
+            total: item.total_calls_count
+          }))
+        );
+      }
+
+      // District series
+      if (data.district_wise_metrics) {
+        setDistrictSeries(
+          data.district_wise_metrics.map((item) => ({
+            name: item.district_name,
+            total: item.total_calls_count ?? 0
+          }))
+        );
+      }
 debugger
-        // Transform API response to your previous dummy structure
-        const transformed = response.data.month_wise_metrics.map((item) => ({
-          month: item.month,
-          total: item.total_calls_count,
-          genuine:
-            'genuine' in item
-              ? item.genuine
-              : 0,
-          panic: 'panic' in item
-              ? item.panic
-              : 0, // map as per your logic
-          policeAccepted: item.total_police_accepted_count,
-          ambAccepted: item.total_ambulance_accepted_count,
-          other:  'other' in item
-              ? item.other
-              : 0,// if API doesn't have, put 0
-          fake: item.total_fake_call_close,
-        }));
+      // Police Station series
+      if (data.policestation_wise_metrics) {
+        setPoliceStationSeries(
+          data.policestation_wise_metrics.map((item) => ({
+            name: item.policestation_name ?? "Unknown",
+            total: item.total_calls_count ?? 0
+          }))
+        );
+      }
+debugger
+      // Time of Day Heatmap
+      if (data.timeOfDayHeatmap_wise_metrics) {
+        setTimeOfDayHeatmap(
+          data.timeOfDayHeatmap_wise_metrics.map((item) => ({
+            day: item.day ?? "Unknown",
+            values: item.values ?? [1, 10, 15]
+          }))
+        );
+      }
 
-        setMonthwiseData(transformed);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        // setError(err.message);
-      } 
-    };
+      // SOS by Type
+      if (data.fetchsosByType_wise_metrics) {
+        const apiData = data.fetchsosByType_wise_metrics;
+        setSosByTypeData({
+          panic_alert: apiData.panic_alert ?? sosByTypeData.panic_alert,
+          medical_emergency: apiData.medical_emergency ?? sosByTypeData.medical_emergency,
+          accident: apiData.accident ?? sosByTypeData.accident,
+          others: apiData.others ?? sosByTypeData.others
+        });
+      }
 
-    fetchData();
-  }, []);
+      // Panic Breakdown
+      if (data.fetchPanicBreakdown_metrics) {
+        const apiData = data.fetchPanicBreakdown_metrics;
+        setPanicBreakdownData({
+          sital_alert: apiData.sital_alert ?? panicBreakdownData.sital_alert,
+          medical: apiData.medical ?? panicBreakdownData.medical,
+          fire_alarm: apiData.fire_alarm ?? panicBreakdownData.fire_alarm
+        });
+      }
+
+      // Ambulance Breakdown
+      if (data.fetchAmbulanceBreakdown_metrics) {
+        const apiData = data.fetchAmbulanceBreakdown_metrics;
+        setAmbulanceBreakdownData({
+          threat_perception: apiData.threat_perception ?? ambulanceBreakdownData.threat_perception,
+          others: apiData.Others ?? ambulanceBreakdownData.others
+        });
+      }
+
+ 
+
+      // Districts Trend
+      if (data.districtsTrend_metrics) {
+        setDistrictsTrend(
+          data.districtsTrend_metrics.map((item) => ({
+            t: item.t ?? "Unknown",
+            Central: item.Guwahati ?? 0
+            // West: item.West ?? 0,
+            // South: item.South ?? 0
+          }))
+        );
+      }
+
+      // Top Police Stations
+      if (data.topPoliceStations_metrics) {
+        setTopPoliceStations(
+          data.topPoliceStations_metrics.map((item) => ({
+            month: item.month ?? "Unknown",
+            Dispur: item.Dispur ?? 0,
+            Panbazar: item.Panbazar ?? 0,
+            Latasil: item.Latasil ?? 0
+          }))
+        );
+      }
+debugger
+      // Overall SLA
+      if (data.overallSLA) {
+        setOverallSLACompliance(data.overallSLA ?? 1);
+      }
+
+           // Top Districts
+      if (data.topDistrict_metrics) {
+        setTopDistricts(
+          data.topDistrict_metrics.map((item) => ({
+            name: item.name ?? "Unknown",
+            total: item.total ?? 0,
+            sla: item.sla ?? 0,
+            policeAccepted: item.policeAccepted ?? 0
+          }))
+        );
+      }
+
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      // fallback: all states keep their default values
+    }
+  };
+
+  fetchAllDashboardData();
+}, []);
+
+// ---------------------------------end-------------------------------------------
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         const response = await axios.get(
+//           "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//         );
+// debugger
+//         // Transform API response to your previous dummy structure
+//         const transformed = response.data.month_wise_metrics.map((item) => ({
+//           month: item.month,
+//           total: item.total_calls_count,
+//           genuine:
+//             'genuine' in item
+//               ? item.genuine
+//               : 0,
+//           panic: 'panic' in item
+//               ? item.panic
+//               : 0, // map as per your logic
+//           policeAccepted: item.total_police_accepted_count,
+//           ambAccepted: item.total_ambulance_accepted_count,
+//           other:  'other' in item
+//               ? item.other
+//               : 0,// if API doesn't have, put 0
+//           fake: item.total_fake_call_close,
+//         }));
+
+//         setMonthwiseData(transformed);
+//       } catch (err) {
+//         console.error('Error fetching data:', err);
+//         // setError(err.message);
+//       } 
+//     };
+
+//     fetchData();
+//   }, []);
 
 
   // Monthwise data from user's image
@@ -240,29 +388,29 @@ debugger
 
 
 
-  useEffect(() => {
-    const fetchHourlyData = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
-        );
-debugger
-        // Transform API response to your previous dummy structure
-        const transformed = response.data.hour_of_day_wise_metrics.map((item) => ({
-          time: item.hour_of_day,
-          total: item.total_calls_count,
+//   useEffect(() => {
+//     const fetchHourlyData = async () => {
+//       try {
+//         const response = await axios.get(
+//           "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//         );
+// debugger
+//         // Transform API response to your previous dummy structure
+//         const transformed = response.data.hour_of_day_wise_metrics.map((item) => ({
+//           time: item.hour_of_day,
+//           total: item.total_calls_count,
          
-        }));
+//         }));
 
-        setHourlyData(transformed);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        // setError(err.message);
-      } 
-    };
+//         setHourlyData(transformed);
+//       } catch (err) {
+//         console.error('Error fetching data:', err);
+//         // setError(err.message);
+//       } 
+//     };
 
-    fetchHourlyData();
-  }, []);
+//     fetchHourlyData();
+//   }, []);
 
 
   // const hourlyData = useMemo(
@@ -295,29 +443,31 @@ debugger
   //   []
   // );
 
- useEffect(() => {
-    const fetchDistrictSeries = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
-        );
-debugger
-        // Transform API response to your previous dummy structure
-        const transformed = response.data.district_wise_metrics.map((item) => ({
-          name: item.district_name,
-          total: item.total_calls_count,
+//  useEffect(() => {
+//     const fetchDistrictSeries = async () => {
+//       try {
+//         const response = await axios.get(
+//           "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//         );
+// debugger
+// console.log(response.data);
+//         // Transform API response to your previous dummy structure
+//          if (response ) {
+//         const transformed = response.data.district_wise_metrics.map((item) => ({
+//           name: item.district_name,
+//           total: item.total_calls_count,
          
-        }));
+//         }));
 
-        setDistrictSeries(transformed);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        // setError(err.message);
-      } 
-    };
+//         setDistrictSeries(transformed);}
+//       } catch (err) {
+//         console.error('Error fetching data:', err);
+//         // setError(err.message);
+//       } 
+//     };
 
-    fetchDistrictSeries();
-  }, []);
+//     fetchDistrictSeries();
+//   }, []);
 
   // const districtSeries = useMemo(
   //   () => [
@@ -345,46 +495,46 @@ debugger
   // );
 
 
- useEffect(() => {
-    const fetchPoliceStationSeries = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
-        );
-debugger
-        // // Transform API response to your previous dummy structure
-        // const transformed = response.data.policeStation_wise_metrics.map((item) => ({
-        //   name: item.district_name,
-        //   total: item.total_calls_count,
+//  useEffect(() => {
+//     const fetchPoliceStationSeries = async () => {
+//       try {
+//         const response = await axios.get(
+//           "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//         );
+// debugger
+//         // // Transform API response to your previous dummy structure
+//         // const transformed = response.data.policeStation_wise_metrics.map((item) => ({
+//         //   name: item.district_name,
+//         //   total: item.total_calls_count,
          
-        // }));
-const apiData = response.data.policeStation_wise_metrics;
+//         // }));
+// const apiData = response.data.policeStation_wise_metrics;
 
-     let transformed = [];
-           if (Array.isArray(apiData) && apiData.length > 0) {
-        // ✅ Use API data if available
-        transformed = apiData.map((item) => ({
-          name: item.district_name ?? "Unknown",
-          total: item.total_calls_count ?? 0,
-        }));
-      } else {
-        // ✅ Fallback dummy data
-        transformed = [
-          { name: "Station A", total: 120 },
-          { name: "Station B", total: 95 },
-          { name: "Station C", total: 60 },
-        ];
-      }
+//      let transformed = [];
+//            if (Array.isArray(apiData) && apiData.length > 0) {
+//         // ✅ Use API data if available
+//         transformed = apiData.map((item) => ({
+//           name: item.district_name ?? "Unknown",
+//           total: item.total_calls_count ?? 0,
+//         }));
+//       } else {
+//         // ✅ Fallback dummy data
+//         transformed = [
+//           { name: "Station A", total: 1 },
+//           { name: "Station B", total: 1 },
+//           { name: "Station C", total: 1 },
+//         ];
+//       }
 
-        setPoliceStationSeries(transformed);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        // setError(err.message);
-      } 
-    };
+//         setPoliceStationSeries(transformed);
+//       } catch (err) {
+//         console.error('Error fetching data:', err);
+//         // setError(err.message);
+//       } 
+//     };
 
-    fetchPoliceStationSeries();
-  }, []);
+//     fetchPoliceStationSeries();
+//   }, []);
 
 
 
@@ -430,39 +580,39 @@ const apiData = response.data.policeStation_wise_metrics;
   // );
 
 
- useEffect(() => {
-    const fetchtimeOfDayHeatmap = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
-        );
+//  useEffect(() => {
+//     const fetchtimeOfDayHeatmap = async () => {
+//       try {
+//         const response = await axios.get(
+//           "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//         );
 
-const apiData = response.data.timeOfDayHeatmap_wise_metrics;
+// const apiData = response.data.timeOfDayHeatmap_wise_metrics;
 
-     let transformed = [];
-           if (Array.isArray(apiData) && apiData.length > 0) {
-        // ✅ Use API data if available
-        transformed = apiData.map((item) => ({
-          day: item.day ?? "Unknown",
-          values: item.values ?? [1,10,15],
-        }));
-      } else {
-        // ✅ Fallback dummy data
-        transformed = [
-          { day: "Unknown", values:[1,10,15] },
+//      let transformed = [];
+//            if (Array.isArray(apiData) && apiData.length > 0) {
+//         // ✅ Use API data if available
+//         transformed = apiData.map((item) => ({
+//           day: item.day ?? "Unknown",
+//           values: item.values ?? [1,10,15],
+//         }));
+//       } else {
+//         // ✅ Fallback dummy data
+//         transformed = [
+//           { day: "Unknown", values:[1,10,15] },
          
-        ];
-      }
+//         ];
+//       }
 
-        setTimeOfDayHeatmap(transformed);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        // setError(err.message);
-      } 
-    };
+//         setTimeOfDayHeatmap(transformed);
+//       } catch (err) {
+//         console.error('Error fetching data:', err);
+//         // setError(err.message);
+//       } 
+//     };
 
-    fetchtimeOfDayHeatmap();
-  }, []);
+//     fetchtimeOfDayHeatmap();
+//   }, []);
 
 
   // const timeOfDayHeatmap = useMemo(
@@ -478,35 +628,35 @@ const apiData = response.data.timeOfDayHeatmap_wise_metrics;
   //   []
   // );
 
-useEffect(() => {
-  const fetchsosByType = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
-      );
+// useEffect(() => {
+//   const fetchsosByType = async () => {
+//     try {
+//       const response = await axios.get(
+//         "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//       );
 
-      // ✅ Only set API values if key exists and is an object
-      if (response.data && response.data.fetchsosByType_wise_metrics) {
-        const apiData = response.data.fetchsosByType_wise_metrics;
+//       // ✅ Only set API values if key exists and is an object
+//       if (response.data && response.data.fetchsosByType_wise_metrics) {
+//         const apiData = response.data.fetchsosByType_wise_metrics;
 
-        // Set values from API
-        setSosByTypeData({
-          panic_alert: apiData.panic_alert ?? sosByTypeData.panic_alert,
-          medical_emergency: apiData.medical_emergency ?? sosByTypeData.medical_emergency,
-          accident: apiData.accident ?? sosByTypeData.accident,
-          others: apiData.others ?? sosByTypeData.others
-        });
-      }
-      // else: do nothing, keep default values
+//         // Set values from API
+//         setSosByTypeData({
+//           panic_alert: apiData.panic_alert ?? sosByTypeData.panic_alert,
+//           medical_emergency: apiData.medical_emergency ?? sosByTypeData.medical_emergency,
+//           accident: apiData.accident ?? sosByTypeData.accident,
+//           others: apiData.others ?? sosByTypeData.others
+//         });
+//       }
+//       // else: do nothing, keep default values
 
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      // Optional: keep default values on error
-    }
-  };
+//     } catch (err) {
+//       console.error("Error fetching data:", err);
+//       // Optional: keep default values on error
+//     }
+//   };
 
-  fetchsosByType();
-}, []);
+//   fetchsosByType();
+// }, []);
 
   const sosByType = useMemo(
     () => [
@@ -517,32 +667,33 @@ useEffect(() => {
     ],
     [sosByTypeData]
   );
-useEffect(() => {
-  const fetchPanicBreakdown = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/panic-breakdown/?state_id=1"
-      );
+// useEffect(() => {
+//   const fetchPanicBreakdown = async () => {
+//     try {
+//       debugger
+//       const response = await axios.get(
+//        "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//       );
+// debugger
+//       // ✅ Only update if API key exists
+//       if (response.data && response.data.fetchPanicBreakdown_metrics) {
+//         const apiData = response.data.fetchPanicBreakdown_metrics;
+// debugger
+//         setPanicBreakdownData({
+//           sital_alert: apiData.sital_alert ,
+//           medical: apiData.medical ,
+//           fire_alarm: apiData.fire_alarm 
+//         });
+//       }
+//       // else: keep default values
+//     } catch (err) {
+//       console.error("Error fetching panic breakdown:", err);
+//       // keep default values
+//     }
+//   };
 
-      // ✅ Only update if API key exists
-      if (response.data && response.data.fetchPanicBreakdown_metrics) {
-        const apiData = response.data.fetchPanicBreakdown_metrics;
-
-        setPanicBreakdownData({
-          sital_alert: apiData.sital_alert ?? panicBreakdownData.sital_alert,
-          medical: apiData.medical ?? panicBreakdownData.medical,
-          fire_alarm: apiData.fire_alarm ?? panicBreakdownData.fire_alarm
-        });
-      }
-      // else: keep default values
-    } catch (err) {
-      console.error("Error fetching panic breakdown:", err);
-      // keep default values
-    }
-  };
-
-  fetchPanicBreakdown();
-}, []);
+//   fetchPanicBreakdown();
+// }, []);
 
 
 
@@ -554,31 +705,32 @@ useEffect(() => {
     ],
     [panicBreakdownData]
   );
-useEffect(() => {
-  const fetchAmbulanceBreakdown = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/ambulance-breakdown/?state_id=1"
-      );
+// useEffect(() => {
+//   const fetchAmbulanceBreakdown = async () => {
+//     try {
+//       const response = await axios.get(
+//       "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//       );
+//       debugger
 
-      // ✅ Only update if API key exists
-      if (response.data && response.data.fetchAmbulanceBreakdown_metrics) {
-        const apiData = response.data.fetchAmbulanceBreakdown_metrics;
+//       // ✅ Only update if API key exists
+//       if (response.data && response.data.fetchAmbulanceBreakdown_metrics) {
+//         const apiData = response.data.fetchAmbulanceBreakdown_metrics;
 
-        setAmbulanceBreakdownData({
-          threat_perception: apiData.threat_perception ?? ambulanceBreakdownData.threat_perception,
-          others: apiData.others ?? ambulanceBreakdownData.others
-        });
-      }
-      // else: keep default values
-    } catch (err) {
-      console.error("Error fetching ambulance breakdown:", err);
-      // keep default values
-    }
-  };
+//         setAmbulanceBreakdownData({
+//           threat_perception: apiData.threat_perception ,
+//           others: apiData.Others 
+//         });
+//       }
+//       // else: keep default values
+//     } catch (err) {
+//       console.error("Error fetching ambulance breakdown:", err);
+//       // keep default values
+//     }
+//   };
 
-  fetchAmbulanceBreakdown();
-}, []);
+//   fetchAmbulanceBreakdown();
+// }, []);
 
 
 
@@ -590,34 +742,34 @@ useEffect(() => {
     [ambulanceBreakdownData]
   );
 
-useEffect(() => {
-  const fetchTopDistricts = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/top-districts/?state_id=1"
-      );
+// useEffect(() => {
+//   const fetchTopDistricts = async () => {
+//     try {
+//       const response = await axios.get(
+//        "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//       );
+// debugger
+//       const apiData = response.data.topDistrict_metrics; // change as per your API key
 
-      const apiData = response.data.topDistricts_metrics; // change as per your API key
+//       if (apiData ) {
+//         setTopDistricts(
+//           apiData.map((item) => ({
+//             name: item.name ?? "Unknown",
+//             total: item.total ?? 0,
+//             sla: item.sla ?? 0,
+//             policeAccepted: item.policeAccepted ?? 0
+//           }))
+//         );
+//       }
+//       // else: keep default values
+//     } catch (err) {
+//       console.error("Error fetching top districts:", err);
+//       // fallback: keep default values
+//     }
+//   };
 
-      if (Array.isArray(apiData) && apiData.length > 0) {
-        setTopDistricts(
-          apiData.map((item) => ({
-            name: item.name ?? "Unknown",
-            total: item.total ?? 0,
-            sla: item.sla ?? 0,
-            policeAccepted: item.policeAccepted ?? 0
-          }))
-        );
-      }
-      // else: keep default values
-    } catch (err) {
-      console.error("Error fetching top districts:", err);
-      // fallback: keep default values
-    }
-  };
-
-  fetchTopDistricts();
-}, []);
+//   fetchTopDistricts();
+// }, []);
 
 
   // const topDistricts = useMemo(
@@ -632,35 +784,35 @@ useEffect(() => {
 
 
 
-  useEffect(() => {
-  const fetchDistrictsTrend = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/districts-trend/?state_id=1"
-      );
+//   useEffect(() => {
+//   const fetchDistrictsTrend = async () => {
+//     try {
+//       const response = await axios.get(
+//          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//       );
 
-      const apiData = response.data.districtsTrend_metrics; // change key to match API
+//       const apiData = response.data.districtsTrend_metrics; // change key to match API
 
-      if (Array.isArray(apiData) && apiData.length > 0) {
-        setDistrictsTrend(
-          apiData.map((item) => ({
-            t: item.t ?? "Unknown",
-            Central: item.Central ?? 0,
-            West: item.West ?? 0,
-            South: item.South ?? 0
-          }))
-        );
-      }
-      // else: keep default values
+//       if (apiData)  {
+//         setDistrictsTrend(
+//           apiData.map((item) => ({
+//             t: item.t ?? "Unknown",
+//             Central: item.Central ?? 0,
+//             West: item.West ?? 0,
+//             South: item.South ?? 0
+//           }))
+//         );
+//       }
+//       // else: keep default values
 
-    } catch (err) {
-      console.error("Error fetching districts trend:", err);
-      // fallback: keep default values
-    }
-  };
+//     } catch (err) {
+//       console.error("Error fetching districts trend:", err);
+//       // fallback: keep default values
+//     }
+//   };
 
-  fetchDistrictsTrend();
-}, []);
+//   fetchDistrictsTrend();
+// }, []);
 
   // const districtsTrend = useMemo(
   //   () => [
@@ -675,35 +827,35 @@ useEffect(() => {
   // );
 
 
-useEffect(() => {
-  const fetchTopPoliceStations = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/top-police-stations/?state_id=1"
-      );
+// useEffect(() => {
+//   const fetchTopPoliceStations = async () => {
+//     try {
+//       const response = await axios.get(
+//          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//       );
 
-      const apiData = response.data.topPoliceStations_metrics; // replace with actual API key
+//       const apiData = response.data.topPoliceStations_metrics; // replace with actual API key
 
-      if (Array.isArray(apiData) && apiData.length > 0) {
-        setTopPoliceStations(
-          apiData.map((item) => ({
-            month: item.month ?? "Unknown",
-            Dispur: item.Dispur ?? 0,
-            Panbazar: item.Panbazar ?? 0,
-            Latasil: item.Latasil ?? 0
-          }))
-        );
-      }
-      // else: keep default values
+//       if (apiData) {
+//         setTopPoliceStations(
+//           apiData.map((item) => ({
+//             month: item.month ?? "Unknown",
+//             Dispur: item.Dispur ?? 0,
+//             Panbazar: item.Panbazar ?? 0,
+//             Latasil: item.Latasil ?? 0
+//           }))
+//         );
+//       } 
+//       // else: keep default values 
 
-    } catch (err) {
-      console.error("Error fetching top police stations:", err);
-      // fallback: keep default values
-    }
-  };
+//     } catch (err) {
+//       console.error("Error fetching top police stations:", err); 
+//       // fallback: keep default values
+//     }
+//   };
 
-  fetchTopPoliceStations();
-}, []);
+//   fetchTopPoliceStations();
+// }, []);
 
 
 
@@ -721,29 +873,29 @@ useEffect(() => {
   //   []
   // );
 
-useEffect(() => {
-  const fetchOverallSLA = async () => {
-    try {
-      debugger
-      const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/overall-sla/?state_id=1"
-      );
+// useEffect(() => {
+//   const fetchOverallSLA = async () => {
+//     try {
+//       debugger
+//       const response = await axios.get(
+//          "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+//       );
 
-      const apiValue = response.data.overallSLA; // replace with actual API key
+//       const apiValue = response.data.overallSLA; // replace with actual API key
 
-      if (apiValue !== undefined && apiValue !== null) {
-        setOverallSLACompliance(apiValue.OverallSLAOverallSLA_Value);
-      }
-      // else: keep default value
+//       if (apiValue !== undefined && apiValue !== null) {
+//         setOverallSLACompliance(apiValue.OverallSLA_Value);
+//       }
+//       // else: keep default value
 
-    } catch (err) {
-      console.error("Error fetching Overall SLA Compliance:", err);
-      // fallback: keep default value
-    }
-  };
+//     } catch (err) {
+//       console.error("Error fetching Overall SLA Compliance:", err);
+//       // fallback: keep default value
+//     }
+//   };
 
-  fetchOverallSLA();
-}, []);
+//   fetchOverallSLA();
+// }, []);
 
 
   const heatMax = useMemo(
@@ -837,7 +989,7 @@ useEffect(() => {
           <Tab label="Monthwise" />
           <Tab label="Time-based (Hourly)" />
           <Tab label="District-wise" />
-          <Tab label="Police Station-wise" />
+          {/* <Tab label="Police Station-wise" /> */}
         </Tabs>
 
 
@@ -905,8 +1057,8 @@ useEffect(() => {
           >
             <Tab label="Breakdown" />
             <Tab label="Time Heatmap" />
-            <Tab label="Type Distribution" />
-            <Tab label="Top Performers" />
+            {/* <Tab label="Type Distribution" />
+            <Tab label="Top Performers" /> */}
           </Tabs>
         </Paper>
 
@@ -1215,7 +1367,7 @@ useEffect(() => {
 
                     <Box sx={{ mt: 1, pt: 1.25, borderTop: `1px solid ${alpha(tokens.text, 0.12)}` }}>
                       <Typography sx={{ fontSize: '0.8rem', color: tokens.muted }}>Overall SLA Compliance</Typography>
-                      <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: tokens.text }}>{overallSLACompliance.OverallSLAOverallSLA_Value}</Typography>
+                      <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: tokens.text }}>{overallSLACompliance.OverallSLA_Value}</Typography>
                     </Box>
                   </Box>
                 </ChartCard>
@@ -1584,14 +1736,14 @@ useEffect(() => {
               }
             }}
           >
-            <Tab label="Area Chart" />
-            <Tab label="Line Chart" />
+            {/* <Tab label="Area Chart" />
+            <Tab label="Line Chart" /> */}
           </Tabs>
         </Paper>
 
         {/* Sub-tab 0: Area Chart */}
-        <TabPanel value={policeStationSubTab} index={0}>
-          <Grid container spacing={2}>
+        <TabPanel  value={policeStationSubTab} index={0}>
+          <Grid  style={{ display: "none" }}  container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Area chart)" color={COLORS.danger} tokens={tokens}>
                 <ResponsiveContainer width="100%" height={260}>
@@ -1623,7 +1775,7 @@ useEffect(() => {
 
         {/* Sub-tab 1: Line Chart */}
         <TabPanel value={policeStationSubTab} index={1}>
-          <Grid container spacing={2}>
+          <Grid  style={{ display: "none" }}  container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Line chart)" color={COLORS.primary} tokens={tokens}>
                 <ResponsiveContainer width="100%" height={260}>
