@@ -654,7 +654,7 @@ const UserRegistrationForm = () => {
     setErrorMessage("");
     setInfoMessage("");
     if (!navigator.geolocation) {
-      setErrorMessage("Geolocation is not supported in this browser.");
+      setErrorMessage("Geolocation is not supported in this browser or requires a secure connection (HTTPS).");
       return;
     }
 
@@ -667,9 +667,10 @@ const UserRegistrationForm = () => {
         }));
         setInfoMessage("Location captured.");
       },
-      () => {
+      (error) => {
+        console.error("Geolocation error:", error);
         setErrorMessage(
-          "Unable to capture location. Please allow location permission."
+          "Unable to capture location. Please allow location permission or check your secure connection (HTTPS)."
         );
       },
       { enableHighAccuracy: true, timeout: 10000 }

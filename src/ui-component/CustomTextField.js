@@ -104,6 +104,7 @@ const FormField = ({
 
       const handleUseMyLocation = () => {
         if (!navigator.geolocation) {
+          alert(t("Geolocation is not supported by this browser or requires a secure connection (HTTPS)."));
           return;
         }
         navigator.geolocation.getCurrentPosition(
@@ -112,7 +113,19 @@ const FormField = ({
             formik.setFieldValue("lat", latitude);
             formik.setFieldValue("lon", longitude);
           },
-          () => { }
+          (error) => {
+            console.error("Geolocation error:", error);
+            let msg = t("Unable to retrieve your location.");
+            if (error.code === error.PERMISSION_DENIED) {
+              msg = t("Location permission denied. Please enable it in browser settings.");
+            } else if (error.code === error.POSITION_UNAVAILABLE) {
+              msg = t("Location information is unavailable.");
+            } else if (error.code === error.TIMEOUT) {
+              msg = t("The request to get user location timed out.");
+            }
+            alert(msg);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       };
 

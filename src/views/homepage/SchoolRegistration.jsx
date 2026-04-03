@@ -34,7 +34,7 @@ function SchoolRegistration() {
     setError('');
 
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported in this browser');
+      setError('Geolocation is not supported in this browser or requires a secure connection (HTTPS)');
       return;
     }
 
@@ -44,8 +44,9 @@ function SchoolRegistration() {
         setFieldValue('longitude', String(pos.coords.longitude));
         setInfo('Location captured');
       },
-      () => {
-        setError('Unable to capture location. Please allow location permission.');
+      (error) => {
+        console.error("Geolocation error:", error);
+        setError('Unable to capture location. Please allow location permission or check your secure connection (HTTPS).');
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );

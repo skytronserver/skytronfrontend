@@ -877,7 +877,7 @@ const createBhuvanSource = (layerName) => {
 };
 
 const MapComponent = ({
-    gpsData,
+    gpsData = [],
     policeData = [],
     incidentData = [],
     width = "100%",
@@ -3167,7 +3167,7 @@ display: none !important;
 
         try {
             // Add vehicle markers
-            allMarkers = [...gpsData, ...policeData];
+            allMarkers = [...(Array.isArray(gpsData) ? gpsData : []), ...(Array.isArray(policeData) ? policeData : [])];
             if (allMarkers.length > 0) {
                 allMarkers.forEach((entry) => {
                     const averagedPos = getAveragedLocation(entry);
@@ -3859,7 +3859,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
             return;
         }
 
-        const allMarkers = [...gpsData, ...policeData];
+        const allMarkers = [...(Array.isArray(gpsData) ? gpsData : []), ...(Array.isArray(policeData) ? policeData : [])];
 
         if (allMarkers.length > 0) {
             // Clear the previous markers (Access inner source from Cluster)

@@ -150,11 +150,11 @@ function TagDeviceToVehicle() {
     };
     try {
       if (type === "dealer") {
-        await TaggingService.tagSendDealerOtp(otpData);
+        await TaggingService.tagResendDealerOtp(otpData);
       } else if (type === "owner") {
-        await TaggingService.tagSendOwnerOtp(otpData);
+        await TaggingService.tagResendOwnerOtp(otpData);
       } else if (type === "finalOwner") {
-        await TaggingService.sendTagSendOwnerOtpFinal(otpData);
+        await TaggingService.tagResendOwnerOtp(otpData);
       }
       setResendTimer(60);
       setDismissibleAlert((prev) => ({
@@ -275,22 +275,26 @@ function TagDeviceToVehicle() {
   useEffect(() => {
     if (activeStep === 2) {
       getVahanDetail();
+    } else if (activeStep === 4) {
+      sendOwnerOtp("owner");
     }
   }, [activeStep]);
 
   useEffect(() => {
-    if (activeStep === 8) {
+    if (activeStep === 6) {
       if (!deviceSosEnteredAtRef.current) deviceSosEnteredAtRef.current = new Date();
-    } else if (activeStep === 9) {
+    } else if (activeStep === 7) {
       if (!appSosEnteredAtRef.current) appSosEnteredAtRef.current = new Date();
+    } else if (activeStep === 8) {
+      retriveMapData();
     }
   }, [activeStep]);
 
   useEffect(() => {
-    if (activeStep !== 8 && activeStep !== 9) return;
+    if (activeStep !== 6 && activeStep !== 7) return;
 
-    const enteredAt = activeStep === 8 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current;
-    const alreadyReceived = activeStep === 8 ? deviceSosAlertReceived : appSosAlertReceived;
+    const enteredAt = activeStep === 6 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current;
+    const alreadyReceived = activeStep === 6 ? deviceSosAlertReceived : appSosAlertReceived;
     if (alreadyReceived) return;
     if (!enteredAt) return;
 
@@ -322,9 +326,9 @@ function TagDeviceToVehicle() {
 
         if (!hasNew) return;
 
-        if (activeStep === 8) {
+        if (activeStep === 6) {
           setDeviceSosAlertReceived(true);
-        } else if (activeStep === 9) {
+        } else if (activeStep === 7) {
           setAppSosAlertReceived(true);
         }
       } catch (e) {
@@ -482,28 +486,19 @@ function TagDeviceToVehicle() {
   const retriveMapData = async () => {
     setLoading((prev) => ({ ...prev, loader: true }));
     try {
-      const retriveData = await HomePageService.getLiveTracking_data(getMap);
+      let retriveData;
+      try {
+        retriveData = await HomePageService.getLiveTracking(getMap);
+      } catch (e) {
+        retriveData = await HomePageService.getLiveTracking_data(getMap);
+      }
+      
       console.log("Retrieved Map Data:", retriveData.data);
       setHtmlContent(retriveData.data);
-      setMapLoaded(true);
-
-      setDismissibleAlert((prev) => ({
-        ...prev,
-        isOpen: true,
-        message: "Map Details is fetched successfully",
-        type: "success",
-      }));
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
     } catch (error) {
       console.log("Error retrieving map data:", error);
-      setDismissibleAlert((prev) => ({
-        ...prev,
-        isOpen: true,
-        message:
-          "Something went wrong! Please try after sometimes or check your details",
-        type: "error",
-      }));
     } finally {
+      setMapLoaded(true);
       setLoading((prev) => ({ ...prev, loader: false }));
     }
   };
@@ -1064,7 +1059,7 @@ function TagDeviceToVehicle() {
             {activeStep === 8 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
+                  <Typography>Confirm the vehicle location on the map and request OTP for final verification.</Typography>
                 </Grid>
                 <Grid item xs={12} md={5}>
                   <Typography>
@@ -1073,6 +1068,7 @@ function TagDeviceToVehicle() {
                       type="submit"
                       variant="contained"
                       onClick={() => sendOwnerOtp("finalOwner")}
+                      disabled={!htmlContent?.data || !Array.isArray(htmlContent.data) || htmlContent.data.length === 0}
                     >
                       {t("common.request")}
                     </Button>
@@ -1084,6 +1080,7 @@ function TagDeviceToVehicle() {
                       gpsData={htmlContent?.data}
                       width="100%"
                       height="600px"
+                      autoFit={true}
                     />
                   )}
                 </Grid>
