@@ -59,8 +59,10 @@ function TagDeviceToVehicle() {
   const [activeStep, setActiveStep] = useState(0);
   const [deviceSosAlertReceived, setDeviceSosAlertReceived] = useState(false);
   const [appSosAlertReceived, setAppSosAlertReceived] = useState(false);
-  const [htmlContent, setHtmlContent] = useState("");
+  const [htmlContent, setHtmlContent] = useState({ data: [] });
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [step9EnteredAt, setStep9EnteredAt] = useState(null);
+  const pollingIntervalRef = useRef(null);
   const [reload, setReload] = useState(false);
   const [getMap, setGetMap] = useState({ imei: "", regno: "" });
   const deviceSosEnteredAtRef = useRef(null);
@@ -286,7 +288,13 @@ function TagDeviceToVehicle() {
     } else if (activeStep === 7) {
       if (!appSosEnteredAtRef.current) appSosEnteredAtRef.current = new Date();
     } else if (activeStep === 8) {
+      setStep9EnteredAt(new Date());
       retriveMapData();
+    } else {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
     }
   }, [activeStep]);
 
@@ -319,7 +327,13 @@ function TagDeviceToVehicle() {
           ? parsed.some((item) => {
               const ts = item?.fields?.timestamp;
               if (!ts) return false;
-              const tms = new Date(ts).getTime();
+              // Normalize server timestamp to UTC for comparison
+              let normalizedTs = ts;
+              if (normalizedTs && !normalizedTs.endsWith("Z") && !normalizedTs.includes("+")) {
+                  normalizedTs = normalizedTs.replace(" ", "T") + "Z";
+              }
+              const tms = new Date(normalizedTs).getTime();
+              // Compare with enteredAt (which was already Date object)
               return Number.isFinite(tms) && tms > enteredAt.getTime();
             })
           : false;
@@ -328,8 +342,12 @@ function TagDeviceToVehicle() {
 
         if (activeStep === 6) {
           setDeviceSosAlertReceived(true);
+          // Optional: Auto-advance to next step for better UX
+          // setTimeout(() => setActiveStep(7), 1500); 
         } else if (activeStep === 7) {
           setAppSosAlertReceived(true);
+          // Optional: Auto-advance to next step
+          // setTimeout(() => setActiveStep(8), 1500);
         }
       } catch (e) {
         // ignore polling errors
@@ -484,23 +502,98 @@ function TagDeviceToVehicle() {
     }
   };
   const retriveMapData = async () => {
-    setLoading((prev) => ({ ...prev, loader: true }));
-    try {
-      let retriveData;
-      try {
-        retriveData = await HomePageService.getLiveTracking(getMap);
-      } catch (e) {
-        retriveData = await HomePageService.getLiveTracking_data(getMap);
-      }
-      
-      console.log("Retrieved Map Data:", retriveData.data);
-      setHtmlContent(retriveData.data);
-    } catch (error) {
-      console.log("Error retrieving map data:", error);
-    } finally {
-      setMapLoaded(true);
-      setLoading((prev) => ({ ...prev, loader: false }));
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
     }
+
+    const poll = async () => {
+      try {
+        setLoading((prev) => ({ ...prev, loader: true }));
+        const response = await HomePageService.getGpsDataLog({ search: getMap.imei });
+        let logs = [];
+        const rawData = response?.data?.data;
+        if (typeof rawData === "string") {
+          try {
+            logs = JSON.parse(rawData);
+          } catch (e) {
+            console.error("Failed to parse logs string:", e);
+          }
+        } else {
+          logs = Array.isArray(response.data)
+            ? response.data
+            : response.data?.results || [];
+        }
+
+        console.log("GPS Logs retrieved for polling:", logs.length);
+        setMapLoaded(true);
+
+        if (logs.length > 0) {
+          const latestLog = logs[0];
+          const fields = latestLog?.fields || latestLog;
+          let logTimeStr = fields?.timestamp || fields?.entry_time || fields?.created_at || latestLog?.entry_time || "";
+          
+          if (logTimeStr && !logTimeStr.endsWith("Z") && !logTimeStr.includes("+")) {
+            logTimeStr = logTimeStr.replace(" ", "T") + "Z";
+          }
+          const logTime = new Date(logTimeStr).getTime();
+          
+          // enteredAt should also be treated as UTC if comparing with logTime (which we forced to "Z")
+          const enteredAt = step9EnteredAt ? step9EnteredAt.getTime() : new Date().getTime();
+          
+          // Allow 10 mins grace for drift + handle the fact that Date().getTime() is local 
+          // We normalize the threshold comparison
+          const freshEnough = logTime >= (enteredAt - 600000);
+
+          const parseRawData = (raw) => {
+            if (!raw || typeof raw !== "string") return { lat: 0, lon: 0 };
+            const parts = raw.split(",");
+            if (parts[1] === "PVT") {
+              let lat = parseFloat(parts[12]);
+              let lon = parseFloat(parts[14]);
+              if (parts[13] === "S") lat = -lat;
+              if (parts[15] === "W") lon = -lon;
+              return { lat, lon };
+            }
+            return { lat: 0, lon: 0 };
+          };
+
+          if (freshEnough) {
+            console.log("Valid GPS packet found. Checking coordinates...");
+            const mappedData = logs.map((log) => {
+                const f = log?.fields || log;
+                const { lat: rawLat, lon: rawLon } = parseRawData(f.raw_data);
+                return {
+                  ...f,
+                  latitude: Number(f.latitude || f.lat || f.latitude_dec || rawLat || 0),
+                  longitude: Number(f.longitude || f.lon || f.longitude_dec || rawLon || 0),
+                  category: f.category || "bus",
+                  vehicle_registration_number: getMap.regno || getMap.imei,
+                };
+              })
+              .filter((log) => log.latitude !== 0 && log.longitude !== 0);
+
+            if (mappedData.length > 0) {
+              setHtmlContent({ data: mappedData });
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+              }
+            } else {
+              console.log("Packet is fresh, but Latitude/Longitude are still 0,0 (No GPS Fix)");
+            }
+          } else {
+            console.log("Log data found but it is old. Skipping.");
+          }
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      } finally {
+        setLoading((prev) => ({ ...prev, loader: false }));
+      }
+    };
+
+    poll();
+    pollingIntervalRef.current = setInterval(poll, 7000);
   };
   const handleFileChange = (event, formik) => {
     const selectedFile = event.target.files[0];

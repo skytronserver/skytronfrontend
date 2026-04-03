@@ -114,18 +114,18 @@ const FormField = ({
             formik.setFieldValue("lon", longitude);
           },
           (error) => {
-            console.error("Geolocation error:", error);
+            console.error("Geolocation error detail:", error);
             let msg = t("Unable to retrieve your location.");
             if (error.code === error.PERMISSION_DENIED) {
               msg = t("Location permission denied. Please enable it in browser settings.");
             } else if (error.code === error.POSITION_UNAVAILABLE) {
-              msg = t("Location information is unavailable.");
+              msg = t("Location information is unavailable (could be due to low signal or lack of GPS/Wi-Fi triangulation).");
             } else if (error.code === error.TIMEOUT) {
-              msg = t("The request to get user location timed out.");
+              msg = t("The request to get user location timed out. Try again or check your internet connection.");
             }
             alert(msg);
           },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
         );
       };
 
