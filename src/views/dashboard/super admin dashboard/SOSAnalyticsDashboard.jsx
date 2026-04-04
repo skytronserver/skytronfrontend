@@ -118,7 +118,7 @@ const SOSAnalyticsDashboard = () => {
   const [topPerformersSubTab, setTopPerformersSubTab] = useState(0);
    const [monthwiseData, setMonthwiseData] = useState([]);
    const [hourlyData, setHourlyData] = useState([]);
-   const [districtSeries, setDistrictSeries] = useState([{  name: 'Baksa', total: 1 }]);
+   const [districtSeries, setDistrictSeries] = useState([{  name: 'unknown', total: 1 }]);
    const [policeStationSeries, setPoliceStationSeries] = useState([]);
    const [timeOfDayHeatmap, setTimeOfDayHeatmap] = useState([]);
 const [sosByTypeData, setSosByTypeData] = useState({
@@ -210,13 +210,14 @@ console.log(data);
           }))
         );
       }
-
+debugger
       // District series
-      if (data.district_wise_metrics) {
+      if (data.district_wise_metrics && data.district_wise_metrics.length > 0) {
+       
         setDistrictSeries(
           data.district_wise_metrics.map((item) => ({
             name: item.district_name,
-            total: item.total_calls_count ?? 0
+            total: item.total_calls_count 
           }))
         );
       }
@@ -1058,7 +1059,7 @@ debugger
             <Tab label="Breakdown" />
             <Tab label="Time Heatmap" />
             {/* <Tab label="Type Distribution" />
-            <Tab label="Top Performers" /> */}
+            <Tab label="Top Performers" /> */} 
           </Tabs>
         </Paper>
 

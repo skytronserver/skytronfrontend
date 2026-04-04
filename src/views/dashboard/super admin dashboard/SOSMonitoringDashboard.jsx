@@ -570,10 +570,10 @@ const statusRows = useMemo(() => {
           setMapData(areaRes);
        }
  debugger
-     if (metricsRes?.sos_monitoring_metrics) {
+     if (metricsRes) {
        debugger
-   const sos = metricsRes.sos_monitoring_metrics;
- 
+   const sos = metricsRes;
+ console.log(sos);
    setDashboardData({
          // 📞 Calls Overview
     total_emergency_calls_today: sos.total_emergency_calls_today,
