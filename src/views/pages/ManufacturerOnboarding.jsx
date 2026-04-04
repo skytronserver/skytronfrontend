@@ -47,10 +47,10 @@ const ManufacturerOnboarding = () => {
                 "&:hover": { borderColor: "#660066", color: "#660066" },
               }}
               onClick={() => {
-                window.open("/", "_blank");
+                window.open("/docs/TechnicalOnboarding.pdf", "_blank");
               }}
             >
-              Open Technical Document (Mock)
+              Open Technical Document
             </Button>
           </Box>
 

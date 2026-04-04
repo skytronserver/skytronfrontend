@@ -371,7 +371,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                 <Button
                   variant="outlined"
                   color="primary"
-                  onClick={() => window.open("/", "_blank")}
+                  onClick={() => window.open("/docs/TechnicalOnboarding.pdf", "_blank")}
                 >
                   Open Technical Document
                 </Button>
