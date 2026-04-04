@@ -1033,7 +1033,7 @@
   "tagDeviceForm": {
     "title": "Tag Device to Vehicle",
     "steps": {
-      "otCommandConfiguration": "OT Command Configuration",
+      "otCommandConfiguration": "Device Configuration",
       "tagDevice": "Tag Device to Vehicle",
       "dealerVerification": "Dealer Verification",
       "sendOwnerOtp": "Send Owner OTP",

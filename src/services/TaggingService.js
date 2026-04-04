@@ -98,6 +98,10 @@ const tagResendOwnerOtp = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/tag/TagResendOwnerOtp/", data);
 };
+const tagResendOwnerOtpFinal = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/tag/TagResendOwnerOtpFinal/", data);
+};
 const gettaggedDeviceList=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/StateAdmin_view_all_tagging/')
@@ -112,6 +116,7 @@ const TaggingService = {
     tagVerifyDealerOtp,
     tagResendDealerOtp,
     tagResendOwnerOtp,
+    tagResendOwnerOtpFinal,
     uploadTagReceipt,
     downloadTagReceipt,
     vahanVerificationApi,

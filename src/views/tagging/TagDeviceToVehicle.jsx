@@ -47,6 +47,7 @@ const rawOtCommands = [
   "1. IP: 103.195.217.127",
   "2. Port: 8883",
   "3. Emergency Fallback no: 9999999999",
+  "4. Registration No: As provided by DTO.",
 ];
 
 const formattedOtCommands = rawOtCommands;
@@ -67,6 +68,7 @@ function TagDeviceToVehicle() {
   const [getMap, setGetMap] = useState({ imei: "", regno: "" });
   const deviceSosEnteredAtRef = useRef(null);
   const appSosEnteredAtRef = useRef(null);
+  const mapStepEnteredAtRef = useRef(null);
   const [loading, setLoading] = useState({
     loader: false,
     form: false,
@@ -156,9 +158,9 @@ function TagDeviceToVehicle() {
       } else if (type === "owner") {
         await TaggingService.tagResendOwnerOtp(otpData);
       } else if (type === "finalOwner") {
-        await TaggingService.tagResendOwnerOtp(otpData);
+        await TaggingService.tagResendOwnerOtpFinal(otpData);
       }
-      setResendTimer(60);
+      setResendTimer(180);
       setDismissibleAlert((prev) => ({
         ...prev,
         isOpen: true,
@@ -277,6 +279,8 @@ function TagDeviceToVehicle() {
   useEffect(() => {
     if (activeStep === 2) {
       getVahanDetail();
+    } else if (activeStep === 3 || activeStep === 5 || activeStep === 9) {
+      setResendTimer(180);
     } else if (activeStep === 4) {
       sendOwnerOtp("owner");
     }
@@ -288,6 +292,7 @@ function TagDeviceToVehicle() {
     } else if (activeStep === 7) {
       if (!appSosEnteredAtRef.current) appSosEnteredAtRef.current = new Date();
     } else if (activeStep === 8) {
+      if (!mapStepEnteredAtRef.current) mapStepEnteredAtRef.current = new Date();
       setStep9EnteredAt(new Date());
       retriveMapData();
     } else {
@@ -301,10 +306,9 @@ function TagDeviceToVehicle() {
   useEffect(() => {
     if (activeStep !== 6 && activeStep !== 7) return;
 
-    const enteredAt = activeStep === 6 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current;
+    const enteredAt = (activeStep === 6 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current) || new Date();
     const alreadyReceived = activeStep === 6 ? deviceSosAlertReceived : appSosAlertReceived;
     if (alreadyReceived) return;
-    if (!enteredAt) return;
 
     const baseUrl = (process.env.REACT_APP_BASE_URL || "").replace(/\/+$/, "");
     const emergencyLogUrl = baseUrl
@@ -313,51 +317,51 @@ function TagDeviceToVehicle() {
 
     const poll = async () => {
       try {
-        const searchValue = ownerDetails?.IMEI || getMap?.imei || "";
-        const res = await axios.get(
-          emergencyLogUrl,
-          {
-            params: { search: searchValue },
-          }
-        );
+        const registrationNo = ownerDetails?.vehicle_reg_no || getMap?.regno || "";
+        const searchValue = (activeStep === 7 && registrationNo) ? `SOS_PUB_${registrationNo}` : (ownerDetails?.IMEI || getMap?.imei || "");
+
+        const res = await axios.get(emergencyLogUrl, { params: { search: searchValue } });
         const dataString = res?.data?.data;
         if (!dataString) return;
         const parsed = JSON.parse(dataString);
-        const hasNew = Array.isArray(parsed)
-          ? parsed.some((item) => {
-              const ts = item?.fields?.timestamp;
-              if (!ts) return false;
-              // Normalize server timestamp to UTC for comparison
-              let normalizedTs = ts;
-              if (normalizedTs && !normalizedTs.endsWith("Z") && !normalizedTs.includes("+")) {
-                  normalizedTs = normalizedTs.replace(" ", "T") + "Z";
-              }
-              const tms = new Date(normalizedTs).getTime();
-              // Compare with enteredAt (which was already Date object)
-              return Number.isFinite(tms) && tms > enteredAt.getTime();
-            })
-          : false;
+        if (!Array.isArray(parsed) || parsed.length === 0) return;
 
-        if (!hasNew) return;
+        const latestItem = parsed[0];
+        const fields = latestItem?.fields || latestItem;
+        let ts = fields?.timestamp || fields?.entry_time || "";
+        if (!ts) return;
 
-        if (activeStep === 6) {
-          setDeviceSosAlertReceived(true);
-          // Optional: Auto-advance to next step for better UX
-          // setTimeout(() => setActiveStep(7), 1500); 
-        } else if (activeStep === 7) {
-          setAppSosAlertReceived(true);
-          // Optional: Auto-advance to next step
-          // setTimeout(() => setActiveStep(8), 1500);
+        if (ts && !ts.endsWith("Z") && !ts.includes("+")) {
+          ts = ts.replace(" ", "T") + "Z";
         }
-      } catch (e) {
-        // ignore polling errors
+        const logTime = new Date(ts).getTime();
+        const now = Date.now();
+        const fiveMinutesAgo = now - 5 * 60 * 1000;
+        // Strict "After Entry" logic: No buffer, must be >= the exact second you reached the step.
+        const entryTime = enteredAt.getTime();
+        const hasNew = logTime >= entryTime && logTime >= fiveMinutesAgo;
+
+        if (hasNew) {
+          if (activeStep === 6) setDeviceSosAlertReceived(true);
+          else if (activeStep === 7) setAppSosAlertReceived(true);
+        }
+      } catch (error) {
+        console.error("SOS Polling error:", error);
       }
     };
 
     poll();
-    const id = setInterval(poll, 5000);
-    return () => clearInterval(id);
-  }, [activeStep, deviceSosAlertReceived, appSosAlertReceived, ownerDetails?.IMEI, getMap?.imei]);
+    const intervalId = setInterval(poll, 5000);
+    // Timeout polling after 5 minutes
+    const timeoutId = setTimeout(() => {
+        clearInterval(intervalId);
+    }, 5 * 60 * 1000);
+
+    return () => {
+        clearInterval(intervalId);
+        clearTimeout(timeoutId);
+    };
+  }, [activeStep, deviceSosAlertReceived, appSosAlertReceived, ownerDetails?.IMEI, getMap?.imei, ownerDetails?.vehicle_reg_no, getMap?.regno]);
 
   const handleDealerOtp = (otp) => {
     setOtp((prev) => ({ ...prev, dealer: otp }));
@@ -402,6 +406,7 @@ function TagDeviceToVehicle() {
       if (type === 'owner') { await TaggingService.tagSendOwnerOtp(otpData); }
       if (type === 'finalOwner') { await TaggingService.sendTagSendOwnerOtpFinal(otpData); }
       setActiveStep(prevActiveStep => prevActiveStep + 1)
+      setResendTimer(180);
       setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'Vehicle Owner OTP has been sent successfully', type: 'success' }));
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -519,9 +524,7 @@ function TagDeviceToVehicle() {
             console.error("Failed to parse logs string:", e);
           }
         } else {
-          logs = Array.isArray(response.data)
-            ? response.data
-            : response.data?.results || [];
+          logs = Array.isArray(response.data) ? response.data : response.data?.results || [];
         }
 
         console.log("GPS Logs retrieved for polling:", logs.length);
@@ -530,59 +533,51 @@ function TagDeviceToVehicle() {
         if (logs.length > 0) {
           const latestLog = logs[0];
           const fields = latestLog?.fields || latestLog;
-          let logTimeStr = fields?.timestamp || fields?.entry_time || fields?.created_at || latestLog?.entry_time || "";
-          
+          const imei = getMap.imei || ownerDetails?.imei_no || "";
+
+          let logTimeStr = fields?.timestamp || fields?.entry_time || fields?.created_at || "";
           if (logTimeStr && !logTimeStr.endsWith("Z") && !logTimeStr.includes("+")) {
             logTimeStr = logTimeStr.replace(" ", "T") + "Z";
           }
           const logTime = new Date(logTimeStr).getTime();
-          
-          // enteredAt should also be treated as UTC if comparing with logTime (which we forced to "Z")
-          const enteredAt = step9EnteredAt ? step9EnteredAt.getTime() : new Date().getTime();
-          
-          // Allow 10 mins grace for drift + handle the fact that Date().getTime() is local 
-          // We normalize the threshold comparison
-          const freshEnough = logTime >= (enteredAt - 600000);
+          const now = Date.now();
+          const fiveMinutesAgo = now - 5 * 60 * 1000;
+          // Use the locked ref time - No buffer allowed per user request
+          const enteredAtTime = mapStepEnteredAtRef.current.getTime();
 
-          const parseRawData = (raw) => {
-            if (!raw || typeof raw !== "string") return { lat: 0, lon: 0 };
-            const parts = raw.split(",");
-            if (parts[1] === "PVT") {
-              let lat = parseFloat(parts[12]);
-              let lon = parseFloat(parts[14]);
-              if (parts[13] === "S") lat = -lat;
-              if (parts[15] === "W") lon = -lon;
-              return { lat, lon };
-            }
-            return { lat: 0, lon: 0 };
-          };
+          const freshEnough = logTime >= enteredAtTime && logTime >= fiveMinutesAgo;
 
           if (freshEnough) {
-            console.log("Valid GPS packet found. Checking coordinates...");
-            const mappedData = logs.map((log) => {
-                const f = log?.fields || log;
-                const { lat: rawLat, lon: rawLon } = parseRawData(f.raw_data);
-                return {
-                  ...f,
-                  latitude: Number(f.latitude || f.lat || f.latitude_dec || rawLat || 0),
-                  longitude: Number(f.longitude || f.lon || f.longitude_dec || rawLon || 0),
-                  category: f.category || "bus",
-                  vehicle_registration_number: getMap.regno || getMap.imei,
-                };
-              })
-              .filter((log) => log.latitude !== 0 && log.longitude !== 0);
+            const parseRawData = (raw) => {
+              if (!raw || typeof raw !== "string") return { lat: 0, lon: 0 };
+              const parts = raw.split(",");
+              if (parts[1] === "PVT") {
+                let lat = parseFloat(parts[12]);
+                let lon = parseFloat(parts[14]);
+                if (parts[13] === "S") lat = -lat;
+                if (parts[15] === "W") lon = -lon;
+                return { lat, lon };
+              }
+              return { lat: 0, lon: 0 };
+            };
 
-            if (mappedData.length > 0) {
-              setHtmlContent({ data: mappedData });
+            const { lat: rawLat, lon: rawLon } = parseRawData(fields.raw_data);
+            const latestPoint = {
+              ...fields,
+              latitude: Number(fields.latitude || fields.lat || fields.latitude_dec || rawLat || 0),
+              longitude: Number(fields.longitude || fields.lon || fields.longitude_dec || rawLon || 0),
+              category: fields.category || "bus",
+              vehicle_registration_number: getMap.regno || getMap.imei,
+              imei: imei
+            };
+
+            if (latestPoint.latitude !== 0 && latestPoint.longitude !== 0) {
+              setHtmlContent({ data: [latestPoint] });
               if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
                 pollingIntervalRef.current = null;
               }
-            } else {
-              console.log("Packet is fresh, but Latitude/Longitude are still 0,0 (No GPS Fix)");
             }
-          } else {
-            console.log("Log data found but it is old. Skipping.");
           }
         }
       } catch (error) {
@@ -631,6 +626,7 @@ function TagDeviceToVehicle() {
       resetForm(taggingInitials);
       setDeviceId(response?.data?.data?.device);
       setActiveStep(prevActiveStep => prevActiveStep + 1);
+      setResendTimer(180);
       setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'Successfully OTP has been sent to your registered mobile number', type: 'success' }));
     } catch (error) {
       console.log(error);
@@ -690,19 +686,19 @@ function TagDeviceToVehicle() {
         >
           <MainCard>
             {activeStep === steps.length ? (
-              <React.Fragment>
-                <Typography sx={{ mt: 2, mb: 1 }}>
-                  {t("tagDeviceForm.messages.allStepsCompleted")}
-                </Typography>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  onClick={reset}
-                >
-                  {t("common.finish")}
-                </Button>
-              </React.Fragment>
+              <Grid
+                container
+                direction="column"
+                justifyContent="center"
+                alignItems="center"
+                sx={{ minHeight: "350px", textAlign: "center", p: 2 }}
+              >
+                <Grid item xs={12}>
+                  <Typography variant="h2" sx={{ fontWeight: "bold", color: "#000" }}>
+                    Tagging for {ownerDetails?.vehicle_reg_no || getMap?.regno || "N/A"} with {ownerDetails?.IMEI || getMap?.imei || "N/A"} is completed.
+                  </Typography>
+                </Grid>
+              </Grid>
             ) : (
               <React.Fragment>
                 <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
@@ -711,7 +707,7 @@ function TagDeviceToVehicle() {
               </React.Fragment>
             )}
 
-            {/* Step 1: OT Command Configuration (Original Step 7) */}
+            {/* Step 1: Device Configuration (Original Step 7) */}
             {activeStep === 0 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
@@ -1163,7 +1159,7 @@ function TagDeviceToVehicle() {
                       onClick={() => sendOwnerOtp("finalOwner")}
                       disabled={!htmlContent?.data || !Array.isArray(htmlContent.data) || htmlContent.data.length === 0}
                     >
-                      {t("common.request")}
+                      {t("common.confirmLocation", "Confirm Location")}
                     </Button>
                   </Typography>
                 </Grid>

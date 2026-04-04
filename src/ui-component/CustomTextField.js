@@ -31,7 +31,6 @@ const FormField = ({
     ...(fieldConfig.maxDate && { max: fieldConfig.maxDate }),
   };
   const { type, label, options, disabled } = fieldConfig;
-  const restrictedFields = ['name', 'title', 'category', 'company_name', 'companyName'];
   switch (type) {
     case "hidden":
       return (
@@ -80,11 +79,18 @@ const FormField = ({
               formik.setFieldValue(fieldConfig.name, value);
             }
             // Check if field is one of the restricted fields
-            else if (restrictedFields.includes(fieldConfig.name)) {
+            else if (['name', 'title', 'category'].includes(fieldConfig.name)) {
               // Only allow letters and single spaces, prevent consecutive spaces
               const sanitizedValue = value.replace(/\s+/g, ' '); // Replace multiple spaces with single space
               const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ''); // Remove non-letters
               formik.setFieldValue(fieldConfig.name, letterOnlyValue);
+            }
+            // Check if field is a company-related name field
+            else if (['company_name', 'companyName', 'org_name', 'organization_name'].includes(fieldConfig.name)) {
+              // Allow letters, numbers, and single spaces
+              const sanitizedValue = value.replace(/\s+/g, ' ');
+              const alphanumericValue = sanitizedValue.replace(/[^A-Za-z0-9\s]/g, '');
+              formik.setFieldValue(fieldConfig.name, alphanumericValue);
             } else {
               formik.setFieldValue(fieldConfig.name, value);
             }

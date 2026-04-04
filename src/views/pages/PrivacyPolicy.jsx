@@ -22,7 +22,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography variant="body1">
-              Welcome to SkyTron<sup>®</sup>, a vehicle tracking application developed by Skytrack Technologies Pvt Ltd and implemented in collaboration with AMTRON. Your privacy is important to us, and this Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application SkyTron<sup>®</sup>. By using the application, you agree to the terms outlined in this policy.
+              Welcome to SkyTron<sup>®</sup>, a vehicle tracking application implemented by AMTRON. Your privacy is important to us, and this Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application SkyTron<sup>®</sup>. By using the application, you agree to the terms outlined in this policy.
               </Typography>
             </AccordionDetails>
           </Accordion>
