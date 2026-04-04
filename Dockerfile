@@ -22,6 +22,7 @@ COPY --from=builder /app/build .
 
 # Ensure Nginx worker user can read template PDFs.
 RUN chmod -R a+rX /usr/share/nginx/html/templates
+RUN chmod -R a+rX /usr/share/nginx/html/docs
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
