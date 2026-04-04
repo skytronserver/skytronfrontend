@@ -325,7 +325,7 @@ export const retriveCreatedSimProvider = async (data) => {
     const filtered = response.data.filter((simProvider) => simProvider.users[0].status !== 'pending');
     const list = filtered.map((simProvider) => ({
       value: simProvider.id,
-      label: simProvider.users[0].name,
+      label: simProvider.company_name,
     }));
     return list;
   } catch (error) {
@@ -349,7 +349,7 @@ export const retriveCreatedSimProviderPub = async (data) => {
     );
     const list = filtered.map((simProvider) => ({
       value: simProvider.id,
-      label: simProvider?.users?.[0]?.name,
+      label: simProvider.company_name,
     }));
     return list;
   } catch (error) {
