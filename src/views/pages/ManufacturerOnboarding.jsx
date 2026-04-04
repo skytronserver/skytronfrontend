@@ -54,32 +54,12 @@ const ManufacturerOnboarding = () => {
             </Button>
           </Box>
 
-          <Divider />
-
+          {/* B) Integration Checklist */}
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-              B) Test Server Details
+              B) Test Device &amp; Integration Checklist
             </Typography>
-            <Alert severity="warning">
-              <Typography variant="body2">
-                <strong>Base URL:</strong> {process.env.REACT_APP_BASE_URL || "http://UAT-IP-ADDRESS"}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Port:</strong> 0000
-              </Typography>
-              <Typography variant="body2">
-                <strong>Note:</strong> Share your public IP for allowlisting (if required).
-              </Typography>
-            </Alert>
-          </Box>
-
-          <Divider />
-
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-              C) Test Device & Integration Checklist
-            </Typography>
-            <Alert severity="success" sx={{ mb: 1 }}>
+            <Alert severity="success" icon={false} sx={{ mb: 1 }}>
               <Typography variant="body2">
                 1) Login credentials received
               </Typography>
@@ -90,7 +70,7 @@ const ManufacturerOnboarding = () => {
                 3) Test device shared / arranged
               </Typography>
               <Typography variant="body2">
-                4) Functionality & integration verified on platform
+                4) Functionality &amp; integration verified on platform
               </Typography>
             </Alert>
             <Alert severity="info">

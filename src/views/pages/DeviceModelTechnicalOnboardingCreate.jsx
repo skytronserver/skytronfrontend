@@ -53,11 +53,11 @@ const emptyTestDevice = () => ({
 
 const TEST_DEVICE_FIELDS = [
   { key: "device_serial_no", label: "Device Serial No", placeholder: "e.g. SN-1001" },
-  { key: "imei", label: "IMEI", placeholder: "15-digit IMEI number" },
-  { key: "ccid1", label: "ICCID 1", placeholder: "19-digit ICCID" },
-  { key: "ccid2", label: "ICCID 2", placeholder: "19-digit ICCID" },
-  { key: "msisdn1", label: "MSISDN 1", placeholder: "e.g. 919876543210" },
-  { key: "msisdn2", label: "MSISDN 2", placeholder: "e.g. 919876543211" },
+  { key: "imei", label: "IMEI", placeholder: "15-digit IMEI number", maxLength: 15 },
+  { key: "ccid1", label: "ICCID 1", placeholder: "19 or 20-digit ICCID", maxLength: 20 },
+  { key: "ccid2", label: "ICCID 2", placeholder: "19 or 20-digit ICCID", maxLength: 20 },
+  { key: "msisdn1", label: "MSISDN 1", placeholder: "e.g. 919876543210", maxLength: 15 },
+  { key: "msisdn2", label: "MSISDN 2", placeholder: "e.g. 919876543211", maxLength: 15 },
 ];
 
 /* ── reusable PDF upload card ── */
@@ -215,8 +215,17 @@ const DeviceModelTechnicalOnboardingCreate = () => {
       }
       testDevices.forEach((d, i) => {
         TEST_DEVICE_FIELDS.forEach(({ key }) => {
-          if (!d[key] || String(d[key]).trim() === "") {
+          const val = String(d[key] || "").trim();
+          if (!val) {
             errors[`device_${i}_${key}`] = "Required";
+          } else {
+            // length-specific validations
+            if (key === "imei" && val.length !== 15) {
+              errors[`device_${i}_${key}`] = "IMEI must be 15 digits";
+            }
+            if ((key === "ccid1" || key === "ccid2") && val.length !== 19 && val.length !== 20) {
+              errors[`device_${i}_${key}`] = "ICCID must be 19 or 20 digits";
+            }
           }
         });
       });
@@ -377,34 +386,12 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                 </Button>
               </Box>
 
-              <Divider />
-
-              {/* B) Test Server Details */}
+              {/* B) Integration Checklist */}
               <Box>
                 <Typography variant="h6" fontWeight={700} mb={1}>
-                  B) Test Server Details
+                  B) Test Device &amp; Integration Checklist
                 </Typography>
-                <Alert severity="warning">
-                  <Typography variant="body2">
-                    <strong>Base URL:</strong> {process.env.REACT_APP_BASE_URL || "http://UAT-IP-ADDRESS"}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Port:</strong> 0000
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Note:</strong> Share your public IP for allowlisting (if required).
-                  </Typography>
-                </Alert>
-              </Box>
-
-              <Divider />
-
-              {/* C) Integration Checklist */}
-              <Box>
-                <Typography variant="h6" fontWeight={700} mb={1}>
-                  C) Test Device &amp; Integration Checklist
-                </Typography>
-                <Alert severity="success">
+                <Alert severity="success" icon={false}>
                   <Typography variant="body2">1) Login credentials received</Typography>
                   <Typography variant="body2">2) API integration completed on UAT</Typography>
                   <Typography variant="body2">3) Test device shared / arranged</Typography>
@@ -555,6 +542,9 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                             error={!!fieldErrors[`device_${index}_${key}`]}
                             helperText={fieldErrors[`device_${index}_${key}`]}
                             size="small"
+                            inputProps={{
+                              maxLength: TEST_DEVICE_FIELDS.find(f => f.key === key)?.maxLength
+                            }}
                           />
                         </Grid>
                       ))}
