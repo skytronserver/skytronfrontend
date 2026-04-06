@@ -10,6 +10,7 @@ import {
   TableCell,
   Paper,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
@@ -84,7 +85,11 @@ const StateAdminCOPModelView = () => {
     } else {
       setOpenAlert(true);
       setAlertType("error");
-      setMessage(t('copModelView.messages.internalError'));
+      if (response.code === 400 || response.code === "400" || response.code === 401 || response.code === "401") {
+        setMessage(t('copModelView.messages.wrongOtp') || "WRONG OTP");
+      } else {
+        setMessage(t('copModelView.messages.internalError'));
+      }
     }
   };
 
@@ -112,9 +117,9 @@ const StateAdminCOPModelView = () => {
     } catch (error) {
       console.error("Error while submitting data", error.message);
       return {
-        code: "400",
+        code: error.response?.status || "400",
         message: error.message,
-        errors: error.response.data,
+        errors: error.response?.data,
       };
     }
   };
@@ -126,9 +131,9 @@ const StateAdminCOPModelView = () => {
     } catch (error) {
       console.error("Error while submitting data", error.message);
       return {
-        code: "400",
+        code: error.response?.status || "400",
         message: error.message,
-        errors: error.response.data,
+        errors: error.response?.data,
       };
     }
   };
@@ -203,13 +208,19 @@ const StateAdminCOPModelView = () => {
                             <strong>{t('copModelView.modelDetails.copFile')}:</strong>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              startIcon={<DescriptionIcon />}
-                              sx={styles.documentButton}
-                              onClick={(e) => openFile(e, deviceDetails.cop_file)}
-                            >
-                              View COP
-                            </Button>
+                            {deviceDetails.cop_file ? (
+                              <Tooltip title="View and Print" arrow>
+                                <Button
+                                  startIcon={<DescriptionIcon />}
+                                  sx={styles.documentButton}
+                                  onClick={(e) => openFile(e, deviceDetails.cop_file)}
+                                >
+                                  View COP
+                                </Button>
+                              </Tooltip>
+                            ) : (
+                              <span>No file available</span>
+                            )}
                           </TableCell>
                         </TableRow>
                         <TableRow>

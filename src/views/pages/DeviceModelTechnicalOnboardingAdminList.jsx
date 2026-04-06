@@ -137,6 +137,14 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
     const handleConfirm = async () => {
         setError(""); setSubmitting(true);
         try {
+            if (evalDatetime) {
+                const minVal = toDatetimeLocalValue(row?.request_datetime || row?.created_at || row?.created);
+                if (evalDatetime < minVal) {
+                    setError("Testing date cannot be earlier than the request date.");
+                    setSubmitting(false);
+                    return;
+                }
+            }
             const payload = { onboarding_request_id: row.id };
             const isoVal = toISOString(evalDatetime);
             if (isoVal) payload.evaluation_datetime = isoVal;
@@ -194,7 +202,12 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
                             value={evalDatetime}
                             onChange={(e) => setEvalDatetime(e.target.value)}
                             InputLabelProps={{ shrink: true }}
-                            helperText="Leave blank to use server time."
+                            inputProps={{
+                                min: toDatetimeLocalValue(row?.request_datetime || row?.created_at || row?.created)
+                            }}
+                            helperText={
+                                evalDatetime ? "Select a date on or after the request date." : "Leave blank to use server time."
+                            }
                         />
                     </Box>
                     {error && <Alert severity="error">{error}</Alert>}
@@ -713,7 +726,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                                             <Typography variant="caption">{lbl}</Typography>
                                                         </Stack>
                                                         <Chip
-                                                            label="View / Download"
+                                                            label="View / Print"
                                                             size="small"
                                                             color="primary"
                                                             variant="outlined"

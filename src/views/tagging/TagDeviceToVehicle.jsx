@@ -386,11 +386,15 @@ function TagDeviceToVehicle() {
       setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'OTP has been successfully verified', type: 'success' }));
 
     } catch (error) {
+      const status = error.response?.status;
+      let message = "Something went wrong! Please try after sometimes or check your details";
+      if (status === 400 || status === 401 || status === 403) {
+        message = t('common.wrongOtp') || "WRONG OTP";
+      }
       setDismissibleAlert((prev) => ({
         ...prev,
         isOpen: true,
-        message:
-          "Something went wrong! Please try after sometimes or check your details",
+        message: message,
         type: "error",
       }));
     } finally {

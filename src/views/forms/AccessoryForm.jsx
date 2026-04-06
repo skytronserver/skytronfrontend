@@ -10,7 +10,8 @@ import * as Yup from 'yup';
 import DialogComponent from '../../ui-component/DialogComponent';
 import StockServices from '../../services/StockServices';
 import { accessoryInitials, accessoryFormField } from '../../formjson/accessoryForm';
-import { filterModelList } from '../../helper';
+import { filterModelList, retriveTechnicalOnboardedModelList } from "../../helper";
+
 
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0];
@@ -30,16 +31,19 @@ const AccessoryForm = ({ formTitle }) => {
 
   useEffect(() => {
     (async () => {
-      const models = await filterModelList({ status: 'StateAdminApproved' });
-      if (!models?.status) {
+      const modelOptions = await retriveTechnicalOnboardedModelList();
+      if (modelOptions.length > 0) {
         setUpdatedFormField(prevConfig => ({
           ...prevConfig,
           model: {
             ...prevConfig.model,
-            options: models,
+            options: modelOptions,
           }
         }));
       }
+
+
+
       setIsFormLoaded(true);
     })();
   }, []);

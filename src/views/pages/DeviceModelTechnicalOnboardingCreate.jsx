@@ -451,7 +451,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
         return (
           <SectionBlock
             label="VLTD Devices"
-            description="5 VLTD device is required. All fields are mandatory."
+            description="Five VLTD devices are required for compatibility assessment. All fields are mandatory."
             action={
               <Button
                 startIcon={<AddIcon />}
@@ -586,7 +586,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
         >
           <Typography variant="body2" color="text.secondary" mb={4}>
             Submit a technical onboarding request for your device model. Provide the
-            required documents and at least one VLTD device.
+            required documents and five VLTD devices for compatibility assessment.
           </Typography>
 
           {/* ── Stepper ── */}

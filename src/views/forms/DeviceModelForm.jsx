@@ -120,7 +120,12 @@ const DeviceModelForm = () => {
       console.error("Error while submitting OTP", error.message);
       setOpenAlert(true);
       setAlertType("error");
-      setMessage(t('deviceModelForm.internalServerError'));
+      const status = error.response?.status;
+      if (status === 400 || status === 401 || status === 403) {
+        setMessage(t('deviceModelForm.wrongOtp') || "WRONG OTP");
+      } else {
+        setMessage(t('deviceModelForm.internalServerError'));
+      }
     }
   };
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {

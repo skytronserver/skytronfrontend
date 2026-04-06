@@ -221,8 +221,13 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
     dispatch(setError(errorData));
   } catch (error) {
     console.error(`[ACL] Access Denied. Role: ${error.role || 'Unknown'}, Env: ${SYSTEM_ENV}`);
+    const status = error.response?.status;
+    let message = error.message || "Verification failed. Please check the code and try again.";
+    if (status === 400 || status === 401 || status === 403) {
+      message = "WRONG OTP";
+    }
     const errorData = {
-      message: error.message || "Verification failed. Please check the code and try again.",
+      message: message,
       status: null,
     };
     dispatch(setError(errorData));

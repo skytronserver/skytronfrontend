@@ -12,7 +12,8 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import CustomLoader from "../../ui-component/CustomLoader";
 import { modelExtensionInitials, modelExtensionFormField } from "../../formjson/modelExtension";
-import { filterModelList } from "../../helper";
+import { filterModelList, retriveTechnicalOnboardedModelList } from "../../helper";
+
 import { useTranslation } from 'react-i18next';
 
 const ModelExtension = ({ formTitle }) => {
@@ -33,10 +34,8 @@ const ModelExtension = ({ formTitle }) => {
 
   useEffect(() => {
     (async () => {
-      const modelList = await filterModelList({ status: 'StateAdminApproved' });
-      if (modelList?.status) {
-        console.error(t('common.internalServerError'));
-      } else {
+      const modelList = await retriveTechnicalOnboardedModelList();
+      if (modelList.length > 0) {
         setUpdatedFormField(prevConfig => ({
           ...prevConfig,
           device_model: {
@@ -45,6 +44,7 @@ const ModelExtension = ({ formTitle }) => {
           },
         }));
       }
+
       setIsFormLoaded(true);
     })();
   }, [t]);
@@ -62,8 +62,21 @@ const ModelExtension = ({ formTitle }) => {
 
     if (response.code === "200") {
       setShowOTP(false);
+      setAlert({
+        error: false,
+        message: t('deviceModelForm.otpVerified') || "Model has been successfully verified",
+        errorList: [],
+      });
+      setOpen(true);
     } else {
-      console.log(response.error);
+      setAlert({
+        error: true,
+        message: (response.code === 400 || response.code === "400" || response.code === 401 || response.code === "401" || response.code === 403 || response.code === "403") 
+          ? (t('deviceModelForm.wrongOtp') || "WRONG OTP") 
+          : (t('deviceModelForm.internalServerError') || "Internal Server Error"),
+        errorList: [],
+      });
+      setOpen(true);
     }
   };
 
@@ -75,9 +88,9 @@ const ModelExtension = ({ formTitle }) => {
     } catch (error) {
       console.error(t('modelExtensionForm.submitError'), error.message);
       return {
-        code: "400",
+        code: error.response?.status || "400",
         message: error.message,
-        errors: error.response.data,
+        errors: error.response?.data,
       };
     }
   };

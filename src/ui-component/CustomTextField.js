@@ -30,7 +30,7 @@ const FormField = ({
     ...(fieldConfig.minDate && { min: fieldConfig.minDate }),
     ...(fieldConfig.maxDate && { max: fieldConfig.maxDate }),
   };
-  const { type, label, options, disabled } = fieldConfig;
+  const { type, label, options, disabled, placeholder } = fieldConfig;
   switch (type) {
     case "hidden":
       return (
@@ -44,6 +44,7 @@ const FormField = ({
       return (
         <TextField
           label={t(label)}
+          placeholder={placeholder ? t(placeholder) : ""}
           variant="outlined"
           fullWidth
           margin="normal"

@@ -12,11 +12,13 @@ import {
   TableRow,
   TableCell,
   Paper,
+  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { useTranslation } from "react-i18next";
 import SettingService from "../../services/SettingService";
+import DescriptionIcon from '@mui/icons-material/Description';
 /* project component/helper import sections */
 import AutoHideAlert from "../../ui-component/AutoHideAlert"
 import { getDeviceModel } from "../../actions/deviceModelActions";
@@ -76,7 +78,12 @@ const StateAdminDeviceModelView = () => {
     } catch (error) {
       setOpenAlert(true);
       setAlertType("error")
-      setMessage(t('deviceModelView.messages.internalError'));
+      const status = error.response?.status;
+      if (status === 400 || status === 401 || status === 403) {
+        setMessage(t('deviceModelView.messages.wrongOtp') || "WRONG OTP");
+      } else {
+        setMessage(t('deviceModelView.messages.internalError'));
+      }
     }
   };
 
@@ -243,10 +250,23 @@ const StateAdminDeviceModelView = () => {
                               <strong>{t('deviceModelView.modelDetails.tacFile')}:</strong>
                             </TableCell>
                             <TableCell>
-                              {deviceDetails.tac_doc_path ? (
-                                <Button color="primary" style={docViewStyle} onClick={(e) => openFile(e, deviceDetails.tac_doc_path)} >
-                                  <span>{t('deviceModelView.modelDetails.viewTac')}</span>
-                                </Button>
+                              {deviceDetails.tac_doc_path || deviceDetails.tac_file ? (
+                                <Tooltip title="View and Print" arrow>
+                                  <Button 
+                                    color="primary" 
+                                    startIcon={<DescriptionIcon />}
+                                    sx={{ 
+                                      textTransform: 'none',
+                                      padding: '4px 8px',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(0, 136, 255, 0.04)'
+                                      }
+                                    }} 
+                                    onClick={(e) => openFile(e, deviceDetails.tac_doc_path || deviceDetails.tac_file)} 
+                                  >
+                                    <span>{t('deviceModelView.modelDetails.viewTac')}</span>
+                                  </Button>
+                                </Tooltip>
                               ) : (
                                 <span>No file available</span>
                               )}

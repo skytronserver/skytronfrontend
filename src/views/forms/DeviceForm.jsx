@@ -10,7 +10,8 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import StockServices from "../../services/StockServices";
 import { useNavigate } from "react-router-dom";
 import {deviceInitials,deviceFormField} from "../../formjson/deviceForm";
-import {retriveModelList,retriveCreatedSimProvider,filterModelList} from "../../helper";
+import {retriveModelList,retriveCreatedSimProvider,filterModelList,retriveTechnicalOnboardedModelList} from "../../helper";
+
 import { useTranslation } from 'react-i18next';
 const currentDate = new Date();
 const formattedCurrentDate = currentDate.toISOString().split('T')[0]; 
@@ -23,43 +24,11 @@ const DeviceForm = ({formTitle }) => {
   useEffect(()=>{
     (async()=>{
     const eSimProvider = await retriveCreatedSimProvider();
-    let modelOptions = [];
-    try {
-      const res = await DeviceModelServices.listManufacturerTechnicalOnboardingRequests({});
-      const data = res?.data;
-      const rows = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.results)
-          ? data.results
-          : Array.isArray(data?.data)
-            ? data.data
-            : [];
+      let modelOptions = await retriveTechnicalOnboardedModelList();
+      if (modelOptions.length === 0) {
+        modelOptions = [{ value: "", label: "No Technically Onboarded Models" }];
+      }
 
-      const eligible = rows.filter((r) => {
-        const s = String(r?.status ?? "").trim().toLowerCase();
-        return s === "accepted" || s === "approved";
-      });
-
-      const mapped = eligible
-        .map((r) => {
-          const id =
-            r?.device_model_id ??
-            (typeof r?.device_model === "object" && r?.device_model !== null
-              ? r.device_model.id
-              : r?.device_model);
-          const name = r?.device_model?.model_name || r?.device_model_name;
-          return id ? { value: String(id), label: name || String(id) } : null;
-        })
-        .filter(Boolean);
-
-      modelOptions = [...new Map(mapped.map((m) => [String(m.value), m])).values()];
-    } catch (e) {
-      modelOptions = [];
-    }
-
-    if (modelOptions.length === 0) {
-      modelOptions = [{ value: "", label: "No Technically Onboarded Models" }];
-    }
 
     setUpdatedFormField(prevConfig =>({
       ...prevConfig,

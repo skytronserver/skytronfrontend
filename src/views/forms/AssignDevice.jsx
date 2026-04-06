@@ -41,26 +41,26 @@ const AssignDevice = () => {
   const handleClose = () => {
     setOpen(false);
   };
+  const fetchInitialData = async () => {
+    const filter = { stock_status: "NotAssigned" };
+    const deviceList = await retriveDeviceModelList(filter);
+    const dealerList = await retriveDealerList();
+    setUpdatedFormField((prevConfig) => ({
+      ...prevConfig,
+      dealer: {
+        ...prevConfig.dealer,
+        options: dealerList,
+      },
+      device: {
+        ...prevConfig.device,
+        options: deviceList,
+      },
+    }));
+    setIsFormLoaded(true);
+  };
+
   useEffect(() => {
-    (async () => {
-      const filter={
-        stock_status:"NotAssigned"
-      }
-      const deviceList = await retriveDeviceModelList(filter);
-      const dealerList = await retriveDealerList();
-      setUpdatedFormField((prevConfig) => ({
-        ...prevConfig,
-        dealer: {
-          ...prevConfig.dealer,
-          options: dealerList,
-        },
-        device: {
-          ...prevConfig.device,
-          options: deviceList,
-        },
-      }));
-      setIsFormLoaded(true);
-    })();
+    fetchInitialData();
   }, []);
 
   const handleFileChange = (event, formik) => {
@@ -84,16 +84,27 @@ const AssignDevice = () => {
     try {
       const response = await DealerServices.assignDeviceToDealer(values);
       setDeviceId(response.data.id);
+      setAlert({
+        error: false,
+        message: t("common.formSubmittedSuccessfully"),
+        errorList: [],
+      });
+      setOpen(true);
       resetForm(assignDeviceInitials);
+      // Wait for a short moment then refresh lists
+      await fetchInitialData();
     } catch (error) {
       if (error.message === "Network Error") {
         setApiError(true);
       } else {
+        const errorData = error.response?.data || error.message;
         setAlert((prevAlert) => ({
           ...prevAlert,
           error: true,
-          errorList: convertErrorObjectToArray(error.message),
+          message: t("common.formNotSubmitted"),
+          errorList: convertErrorObjectToArray(errorData),
         }));
+        setOpen(true);
       }
     } finally {
       setLoading(false);

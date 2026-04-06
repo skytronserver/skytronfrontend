@@ -461,14 +461,6 @@ const user = {
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
-        {
-          id: "bulk-assign-device",
-          title: "Bulk Assign Stock",
-          type: "item",
-          url: "/device/bulk-assign",
-          breadcrumbs: false,
-          roles: ["devicemanufacture"],
-        },
       ]
     },
     {

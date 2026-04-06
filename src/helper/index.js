@@ -81,6 +81,41 @@ export const filterModelList = async (data) => {
     return { status: 500 }
   }
 };
+export const retriveTechnicalOnboardedModelList = async () => {
+    try {
+      const res = await DeviceModelServices.listManufacturerTechnicalOnboardingRequests({});
+      const data = res?.data;
+      const rows = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.results)
+          ? data.results
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+      const eligible = rows.filter((r) => {
+        const s = String(r?.status ?? "").trim().toLowerCase();
+        return s === "accepted" || s === "approved";
+      });
+
+      const mapped = eligible
+        .map((r) => {
+          const id =
+            r?.device_model_id ??
+            (typeof r?.device_model === "object" && r?.device_model !== null
+              ? r.device_model.id
+              : r?.device_model);
+          const name = r?.device_model?.model_name || r?.device_model_name;
+          return id ? { value: String(id), label: name || String(id) } : null;
+        })
+        .filter(Boolean);
+
+      const modelOptions = [...new Map(mapped.map((m) => [String(m.value), m])).values()];
+      return modelOptions;
+    } catch (e) {
+      return [];
+    }
+}
 
 export const retriveStateList = async () => {
   try {
@@ -491,12 +526,21 @@ export const debounce = (func, wait) => {
   };
 }
 export const openFile = async (e, filePath) => {
-  let splitData = filePath.split("/");
+  if (e && e.preventDefault) e.preventDefault();
+  if (!filePath) return;
+
+  // Sanitize the file path to remove any leading slash that might cause issues with the download API
+  let sanitizedPath = filePath;
+  if (typeof sanitizedPath === "string" && sanitizedPath.startsWith("/")) {
+    sanitizedPath = sanitizedPath.substring(1);
+  }
+  
+  let splitData = sanitizedPath.split("/");
   let filename = splitData.length >= 1 && splitData[splitData.length - 1];
-  e.preventDefault();
+  
   try {
     const response = await SettingService.file_Download({
-      file_path: filePath,
+      file_path: sanitizedPath,
     });
     const contentDisposition = response.headers["content-disposition"];
     let fileName = filename;
@@ -506,29 +550,66 @@ export const openFile = async (e, filePath) => {
         fileName = fileNameMatch[1];
       }
     }
-    const contentType = response.headers["content-type"] || "application/octet-stream";
+    const contentTypeRaw = response.headers["content-type"];
+    let contentType = contentTypeRaw;
+    
+    // Improved detection: use file extension if server returns generic type
+    const lowerFileName = fileName.toLowerCase();
+    if (lowerFileName.endsWith(".pdf")) {
+      contentType = "application/pdf";
+    } else if (lowerFileName.endsWith(".jpg") || lowerFileName.endsWith(".jpeg")) {
+      contentType = "image/jpeg";
+    } else if (lowerFileName.endsWith(".png")) {
+      contentType = "image/png";
+    } else if (!contentType) {
+      contentType = "application/octet-stream";
+    }
+
     const blob = new Blob([response.data], { type: contentType });
-    if (blob.size === 0) {
-      throw new Error("The downloaded file is empty.");
+    if (blob.size === 0 || (response.data instanceof Blob && response.data.size === 0)) {
+        throw new Error("File not found or empty.");
+    }
+    
+    // Check if the response is actually a JSON error hidden in a Blob
+    if (contentTypeRaw && contentTypeRaw.includes("application/json")) {
+        const text = await response.data.text();
+        const json = JSON.parse(text);
+        if (json.error) {
+            throw new Error(json.error);
+        }
     }
 
     // Create URL for the blob
     const url = window.URL.createObjectURL(blob);
 
-    // Create temporary link element
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
+    // If PDF or Image, open in a new window/tab for viewing and printing
+    if (contentType === "application/pdf" || contentType.startsWith("image/")) {
+      // Use anchor element as it is more reliable for bypassing popup blockers
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      // This is necessary for viewing and printing (it tells the browser to NOT download)
+      // a.download = fileName; (Omit this to avoid forced download)
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      // Create temporary link element for download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
 
-    // Append to body, click and remove
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+      // Append to body, click and remove
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
 
     // Clean up the URL
-    setTimeout(() => window.URL.revokeObjectURL(url), 60000); // revoke after 1 minute
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000); 
   } catch (error) {
-    console.error("Error downloading file:", error);
+    console.error("Error opening file:", error);
+    alert(error.message || "Failed to open document. Please verify the file exists on the server.");
   }
 };
 

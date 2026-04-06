@@ -41,6 +41,8 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
     try {
       const response = await ManufacturerServices.findManufacturer({});
       let data = Array.isArray(response?.data) ? response.data : [];
+      // Filter for AIS-140 device manufacturers only
+      data = data.filter(item => item.manufacturer_type === "Device manufacturer");
       data.sort((a, b) => new Date(b.created) - new Date(a.created));
       const merged = data.map((row) => {
         const overrides = overridesArg ?? statusOverrides;

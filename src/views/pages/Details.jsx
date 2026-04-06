@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import { Grid, Box, Alert, Stack, IconButton } from '@mui/material';
+import { Grid, Box, Alert, Stack, IconButton, Tooltip } from '@mui/material';
 import { useNavigate, useParams } from "react-router-dom";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import DealerServices from "../../services/DealerServices";
@@ -206,24 +206,18 @@ const Details = () => {
     setInfoMessage("");
     setLoadingAction(true);
     try {
-      const retrieveData =
-        userType === 'manufacturer'
-          ? await ManufacturerServices.findManufacturer({ manufacturer_id: userId })
-          : await UserServices.fetchSimProvider({ eSimProvider_id: userId });
-
-      const row = retrieveData?.data?.[0];
-      const userRowId = row?.users?.[0]?.id;
+      const userRowId = rawRecord?.users?.[0]?.id || rawRecord?.id;
       if (!userRowId) {
         setErrorMessage("User ID not found for this record.");
         return;
       }
       await UserServices.resendUserCreationOtp({ user_id: userRowId });
-      setInfoMessage("OTP resent successfully.");
+      setInfoMessage("Validation link resent successfully.");
     } catch (e) {
       setErrorMessage(
         e?.response?.data?.message ||
         e?.message ||
-        "Failed to resend OTP."
+        "Failed to resend validation link."
       );
     } finally {
       setLoadingAction(false);
@@ -472,7 +466,7 @@ const Details = () => {
                 </Typography>
               </Box>
 
-              {(userType === 'serviceProvider' || userType === 'manufacturer') && (
+              {(userType === 'serviceProvider' || userType === 'manufacturer' || isRequestPending) && (
                 <Box sx={{ ml: { sm: 'auto' }, width: { xs: '100%', sm: 'auto' } }}>
                   {errorMessage && (
                     <Alert severity="error" sx={{ mb: 1 }}>
@@ -491,7 +485,8 @@ const Details = () => {
                     justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
                     sx={{ flexWrap: 'wrap' }}
                   >
-                    {((userType === 'serviceProvider' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'accept')) ||
+                    {(isRequestPending ||
+                      (userType === 'serviceProvider' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'accept')) ||
                       (userType === 'manufacturer' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'allow to login' || effectiveStatusLower === 'allow to add dealer'))) && (
                         <Button
                           size="small"
@@ -508,7 +503,7 @@ const Details = () => {
                             },
                           }}
                         >
-                          Resend OTP
+                          Resend Link
                         </Button>
                       )}
                     {userType === 'serviceProvider' ? (
@@ -661,17 +656,19 @@ const Details = () => {
             {/* Documents */}
             {documentsToRender.length > 0 && (
               <>
-                <Typography sx={{ ...styles.sectionTitle, mt: 4 }}>Documents</Typography>
+                <Typography sx={{ ...styles.sectionTitle, mt: 4 }}>Documents (View and Print)</Typography>
                 <Grid container spacing={2}>
                   {documentsToRender.map((doc) => (
                     <Grid item key={doc.key}>
-                      <Button
-                        startIcon={<DescriptionIcon />}
-                        sx={styles.documentButton}
-                        onClick={(e) => openFile(e, doc.fileUrl)}
-                      >
-                        {doc.label}
-                      </Button>
+                      <Tooltip title="View and Print" arrow>
+                        <Button
+                          startIcon={<DescriptionIcon />}
+                          sx={styles.documentButton}
+                          onClick={(e) => openFile(e, doc.fileUrl)}
+                        >
+                          {doc.label}
+                        </Button>
+                      </Tooltip>
                     </Grid>
                   ))}
                 </Grid>

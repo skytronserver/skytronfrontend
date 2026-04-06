@@ -1222,18 +1222,10 @@ const MapComponent = ({
             }
         }
 
-        const scaleByColor = {
-            blue: 0.055,
-            green: 0.065,
-            red: 0.065,
-            orange: 0.065,
-            grey: 0.065,
-            default: 0.065,
-        };
-
-        const iconScale = scaleByColor[color] || scaleByColor.default;
+        const standardWidth = 55;
+        const iconWidth = standardWidth;
         const labelGap = color === "grey" ? 15 : 5;
-        const labelOffsetY = -(Math.round(iconScale * 400) + labelGap);
+        const labelOffsetY = -(Math.round(iconWidth * 0.9) + labelGap);
 
         const textStyle = labelText
             ? new Text({
@@ -1263,33 +1255,25 @@ const MapComponent = ({
                     image: new Icon({
                         anchor: [0.5, 1],
                         src: iconPath,
-                        scale: iconScale,
+                        width: iconWidth,
                     }),
                     text: textStyle,
                 }),
             ];
         }
 
-        // return new Style({
-        //     image: new Icon({
-        //         anchor: [0.5, 1],
-        //         src: iconPath,
-        //         scale: iconScale,
-        //     }),
-        //     text: textStyle,
-        // });
         const rotationInRadians = (rotation * Math.PI) / 180;
 
-    return new Style({
-        image: new Icon({
-            anchor: [0.5, 0.5], // Centered anchor for clean rotation
-            src: iconPath,
-            scale: iconScale,
-            rotation: rotationInRadians,
-            rotateWithView: true,
-        }),
-        text: textStyle,
-    });
+        return new Style({
+            image: new Icon({
+                anchor: [0.5, 0.5], // Centered anchor for clean rotation
+                src: iconPath,
+                width: iconWidth,
+                rotation: rotationInRadians,
+                rotateWithView: true,
+            }),
+            text: textStyle,
+        });
     };
 
     const getMarkerLabel = (entry, mode) => {

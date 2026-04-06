@@ -13,8 +13,10 @@ import { fetchTaggedAwaitingOwner } from "../../actions/commonDataActions";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { awaitingOwnerApproval } from "../../datatables/rowsColumn";
 import MainCard from "../../ui-component/cards/MainCard";
-import {openFile} from "../../helper"
+import { openFile } from "../../helper";
+import { useTranslation } from 'react-i18next';
 const UnApprovedTag = () => {
+  const { t } = useTranslation();
   const [load, setLoad] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [otp, setOtp] = useState("");
@@ -71,8 +73,15 @@ const UnApprovedTag = () => {
       setReload(prev=>!prev)
       navigate("/tag/unapproved-vehicle");
     } catch (error) {
-      setApiError(true);
       console.error("Error while submitting data", error.message);
+      const status = error.response?.status;
+      if (status === 400 || status === 401 || status === 403) {
+        // Here we could use an alert state, but current code uses apiError
+        // I will add a text-based error message if possible or just use the global one
+        alert(t('common.wrongOtp') || "WRONG OTP");
+      } else {
+        setApiError(true);
+      }
     }
   };
 

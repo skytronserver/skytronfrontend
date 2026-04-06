@@ -92,6 +92,7 @@
     "formSubmittedSuccessfully": "Form Submitted Successfully",
     "formNotSubmitted": "Form Not Submitted",
     "internalServerError": "Internal Server Error",
+    "wrongOtp": "WRONG OTP",
     "action": "Action",
     "noDataFound": "No Data Found",
     "timestamp": "Timestamp",
@@ -820,16 +821,17 @@
       "model": "Model",
       "test_agency": "Test Agency Name",
       "device_esn": "Device ESN",
-      "esim_validity": "M2M Validity",
-      "esim_provider": "M2M Provider",
+      "esim_validity": "Validity",
+      "esim_provider": "Provider",
       "tac_no": "TAC Number",
       "tac_validity": "TAC Validity",
       "cop_no": "COP Number",
       "cop_validity": "COP Validity",
       "iccid": "Primary ICCID",
       "iccid2": "Fallback ICCID",
-      "telecom_provider1": "M2M Telecom Service Provider 1",
-      "telecom_provider2": "M2M Telecom Service Provider 2",
+      "telecom_provider1": "Telecom service provider 1",
+      "telecom_provider2": "Telecom service provider 2",
+      "telecom_provider_placeholder": "Airtel, BSNL, Jio, Vodafone",
       "msisdn1": "Primary MSISDN",
       "msisdn2": "Fallback MSISDN",
       "remarks": "Remarks"
@@ -839,17 +841,21 @@
       "imeiRequired": "IMEI No. is required",
       "modelRequired": "Model is required",
       "deviceEsnRequired": "Device ESN cannot be blank",
-      "esimValidityRequired": "M2M Validity is required",
-      "esimProviderRequired": "M2M Provider is required",
+      "esimValidityRequired": "Validity is required",
+      "esimProviderRequired": "Provider is required",
       "tacNoRequired": "TAC Number is required",
       "tacValidityRequired": "TAC Validity is required",
       "copNoRequired": "COP Number is required",
       "copValidityRequired": "COP Validity is required",
-      "iccidRequired": "M2M No (ICCID) is required",
-      "telecomProvider1Required": "M2M Telecom Service Provider 1 is required",
-      "msisdn1Number": "M2M Mobile No. MSISDN 1 must be a number",
-      "msisdn1Required": "M2M Mobile No. MSISDN 1 is required",
-      "msisdn2Number": "M2M Mobile No. MSISDN 2 must be a number"
+      "iccidRequired": "No (ICCID) is required",
+      "telecomProvider1Required": "Telecom Service Provider 1 is required",
+      "telecomProvider2Required": "Telecom Service Provider 2 is required",
+      "msisdn1Number": "Mobile No. MSISDN 1 must be a number",
+      "msisdn1Required": "Mobile No. MSISDN 1 is required",
+      "msisdn2Number": "Mobile No. MSISDN 2 must be a number",
+      "msisdn2Required": "Mobile No. MSISDN 2 is required",
+      "imsi1Required": "imsi1 is required",
+      "imsi2Required": "imsi2 is required"
     },
     "submit": "Submit",
     "submitError": "Unable to Submit",
@@ -864,6 +870,7 @@
     "formNotSubmitted": "Form Not Submitted",
     "modelSentForApproval": "Model has been sent successfully for approval to state admin",
     "internalServerError": "Internal Server Error",
+    "wrongOtp": "WRONG OTP",
     "unableToFetchData": "Unable to fetch data. An error occurred while retrieving data from the server. Please contact the server administrator.",
     "fields": {
       "m2mServiceProvider": "M2M Service Provider",
@@ -1099,8 +1106,8 @@
       "dob": "User Date of Birth",
       "address": "User Address",
       "expiryDate": "Expiry Date",
-      "idProofNo": "ID Proof Number",
-      "idProof": "Upload ID Proof",
+      "idProofNo": "ID Proof Number (Voter ID, Passport, Driving License, AADHAR)",
+      "idProof": "Upload ID Proof (Voter ID, Passport, Driving License, AADHAR)",
       "fileMessage": "Only JPG, PNG, PDF files are allowed and size should be less than 512KB"
     },
     "validation": {
@@ -1356,6 +1363,7 @@
       "otpSent": "OTP has been successfully send to your registered mobile number please enter in the below form",
       "verificationSuccess": "Model has been successfully verified",
       "internalError": "Internal Server Error ! Please try again",
+      "wrongOtp": "WRONG OTP",
       "enterOtp": "Please validate your submission by entering the OTP sent to your registered mobile no."
     }
   },
@@ -1374,7 +1382,8 @@
     "messages": {
       "otpSent": "OTP has been successfully sent to your registered mobile number",
       "verificationSuccess": "COP Model has been successfully verified",
-      "internalError": "Internal Server Error! Please try again"
+      "internalError": "Internal Server Error! Please try again",
+      "wrongOtp": "WRONG OTP"
     }
   },
   "simActivation": {

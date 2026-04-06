@@ -110,6 +110,28 @@ const UsersList = () => {
     }
   };
 
+  const handleResendValidationLink = async (userId) => {
+    try {
+      const response = await UserServices.resendUserCreationOtp({ user_id: userId });
+      if (response.status === 200 || response.status === 201) {
+        setNotification({
+          open: true,
+          message: 'Validation link resent successfully',
+          severity: 'success'
+        });
+      } else {
+        throw new Error('Failed to resend');
+      }
+    } catch (error) {
+      console.error('Error resending validation link:', error);
+      setNotification({
+        open: true,
+        message: 'Failed to resend validation link',
+        severity: 'error'
+      });
+    }
+  };
+
 
 
   const handleCloseNotification = () => {
@@ -150,6 +172,7 @@ const UsersList = () => {
           // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
           const userId = tableMeta.rowData[0]; // Assuming id is the first column
           const userName = tableMeta.rowData[2]; // Assuming name is the third column
+          const status = (tableMeta.rowData[5] || "").toString().toUpperCase();
           const isActive = !!tableMeta.rowData[8]; // is_active hidden column
           const currentExpiry = tableMeta.rowData[9]; // expirydate column we just added (index 9)
 
@@ -168,6 +191,21 @@ const UsersList = () => {
               >
                 {isActive ? 'Deactivate' : 'Reactivate'}
               </button>
+              {status === 'PENDING' && (
+                <button
+                  onClick={() => handleResendValidationLink(userId)}
+                  style={{
+                    padding: '5px 10px',
+                    backgroundColor: '#0088ff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Resend Link
+                </button>
+              )}
             </div>
           );
         }

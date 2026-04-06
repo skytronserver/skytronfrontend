@@ -128,6 +128,7 @@ export const deviceFormField = {
     name: "telecom_provider1",
     type: "text",
     label: "deviceForm.fields.telecom_provider1",
+    placeholder: "deviceForm.fields.telecom_provider_placeholder",
     validation: Yup.string()
       .min(2, "Provider name must be at least 2 characters")
       .max(50, "Provider name cannot exceed 50 characters")
@@ -137,6 +138,7 @@ export const deviceFormField = {
     name: "telecom_provider2",
     type: "text",
     label: "deviceForm.fields.telecom_provider2",
+    placeholder: "deviceForm.fields.telecom_provider_placeholder",
     validation: Yup.string()
     .min(2, "Provider name must be at least 2 characters")
     .max(50, "Provider name cannot exceed 50 characters")
