@@ -11,6 +11,15 @@ import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import { Style, Circle as CircleStyle, Fill, Stroke, Text } from "ol/style";
 
+
+
+const ZOOM_BACK_THRESHOLD = {
+  city: 10,
+  locality: 12,
+  device: 14,
+};
+
+
 export default function RoadsMapComponent({erss=false,onBack, onZoomChange,data,onDistrictClick,level,onCityClick,onLocalityClick }) {
 
   const mapRef = useRef(null);
@@ -18,8 +27,14 @@ export default function RoadsMapComponent({erss=false,onBack, onZoomChange,data,
   const vectorSourceRef = useRef(new VectorSource());
 const levelRef = useRef(level);
 const lastSelectedRef = useRef(null);
+ const zoomBackFiredRef = useRef(false);
+  const debounceTimerRef = useRef(null);
+  const prevZoomRef = useRef(null); 
+
+
  useEffect(() => {
  levelRef.current = level;
+   zoomBackFiredRef.current = false;
   if (!data || data.length === 0) return;
 
   // ✅ ALWAYS clear old features
@@ -56,32 +71,32 @@ const lastSelectedRef = useRef(null);
 
     mapInstanceRef.current = map;
 
-// =============================
-      // ✅ ADD BACK BUTTON INSIDE MAP
-      // =============================
-      const backBtn = document.createElement("button");
-      backBtn.innerHTML = "⬅ Back";
+// // =============================
+//       // ✅ ADD BACK BUTTON INSIDE MAP
+//       // =============================
+//       const backBtn = document.createElement("button");
+//       backBtn.innerHTML = "⬅ Back";
 
-      backBtn.style.position = "absolute";
-      backBtn.style.top = "10px";
-      backBtn.style.right = "10px";
-      backBtn.style.zIndex = "1000";
-      backBtn.style.padding = "8px 12px";
-      backBtn.style.background = "#0ea5e9";
-      backBtn.style.color = "#fff";
-      backBtn.style.border = "none";
-      backBtn.style.borderRadius = "6px";
-      backBtn.style.cursor = "pointer";
+//       backBtn.style.position = "absolute";
+//       backBtn.style.top = "10px";
+//       backBtn.style.right = "10px";
+//       backBtn.style.zIndex = "1000";
+//       backBtn.style.padding = "8px 12px";
+//       backBtn.style.background = "#0ea5e9";
+//       backBtn.style.color = "#fff";
+//       backBtn.style.border = "none";
+//       backBtn.style.borderRadius = "6px";
+//       backBtn.style.cursor = "pointer";
 
-      backBtn.onclick = () => {
+//       backBtn.onclick = () => {
         
-        onBack?.({
-  level: levelRef.current,
-  data: lastSelectedRef.current
-});
-      };
+//         onBack?.({
+//   level: levelRef.current,
+//   data: lastSelectedRef.current
+// });
+//       };
 
-      map.getTargetElement().appendChild(backBtn);
+//       map.getTargetElement().appendChild(backBtn);
 
 
     // ✅ CLICK EVENT
@@ -90,7 +105,9 @@ const lastSelectedRef = useRef(null);
 
         const props = feature.get("raw");
         lastSelectedRef.current = props; // ⭐ STORE LAST CLICKED
- const currentLevel = levelRef.current; 
+ 
+ 
+        const currentLevel = levelRef.current; 
     if (currentLevel === "district") {
       onDistrictClick?.(props);
     }
@@ -108,14 +125,39 @@ const lastSelectedRef = useRef(null);
           zoom: view.getZoom() + 2,
           duration: 500
         });
+         // ✅ Reset flags
+          zoomBackFiredRef.current = false;
 
       });
     });
 
     // zoom listener
     view.on("change:resolution", () => {
-      debugger
-      onZoomChange?.(Math.round(view.getZoom()));
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+        debounceTimerRef.current = setTimeout(() => {
+          const currentZoom = Math.round(view.getZoom());
+          onZoomChange?.(currentZoom);
+
+          const currentLevel = levelRef.current;
+          const threshold = ZOOM_BACK_THRESHOLD[currentLevel];
+
+          const isZoomingOut = prevZoomRef.current !== null && currentZoom < prevZoomRef.current;
+
+          // ✅ Update prevZoom AFTER comparison
+          prevZoomRef.current = currentZoom;
+
+          if (
+            !threshold ||                    // no threshold for this level (district)
+            !isZoomingOut ||                 // only on zoom OUT
+            zoomBackFiredRef.current ||      // already fired
+            currentZoom >= threshold         // not crossed threshold yet
+          ) return;
+
+          zoomBackFiredRef.current = true;
+          onBack?.({ level: currentLevel, data: lastSelectedRef.current });
+        }, 300);
+
     });
   }
 

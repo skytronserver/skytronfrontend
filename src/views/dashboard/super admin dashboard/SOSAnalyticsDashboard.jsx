@@ -117,7 +117,7 @@ const SOSAnalyticsDashboard = () => {
   const [typeDistSubTab, setTypeDistSubTab] = useState(0);
   const [topPerformersSubTab, setTopPerformersSubTab] = useState(0);
    const [monthwiseData, setMonthwiseData] = useState([]);
-   const [hourlyData, setHourlyData] = useState([]);
+   const [hourlyData, setHourlyData] = useState([{time:1,total:1}]);
    const [districtSeries, setDistrictSeries] = useState([{  name: 'unknown', total: 1 }]);
    const [policeStationSeries, setPoliceStationSeries] = useState([]);
    const [timeOfDayHeatmap, setTimeOfDayHeatmap] = useState([]);
@@ -202,7 +202,7 @@ console.log(data);
       }
 
       // Hourly data
-      if (data.hour_of_day_wise_metrics) {
+      if (data.hour_of_day_wise_metrics && data.hour_of_day_wise_metrics.length > 0) {
         setHourlyData(
           data.hour_of_day_wise_metrics.map((item) => ({
             time: item.hour_of_day,

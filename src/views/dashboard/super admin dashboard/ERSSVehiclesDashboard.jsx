@@ -217,16 +217,19 @@ const ErssVehicleMap = ({erss, onBack, vehicles,data ,onDistrictClick,level, onZ
       };
     });
   }, [vehicles]);
-  const [zoom, setZoom] = useState(8);
+  const [zoom, setZoom] = useState(7);
 
   return (
 
 <>
 
  {zoom >= 9 ? (
-  <RoadsMapComponent erss={erss} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick}/>
+  <RoadsMapComponent  onZoomChange={(z) => {
+    setZoom(z);
+    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
+  }} erss={erss} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick}/>
 ) : (
-  <BhuvanMapComponent erss={true} onZoomChange={setZoom} data={data} />
+  <BhuvanMapComponent erss={true} onZoomChange={setZoom} data={data} onDistrictClick={onDistrictClick} level={level} />
 )}
 
 </>

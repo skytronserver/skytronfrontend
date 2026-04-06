@@ -153,7 +153,7 @@ police_Accepted:0,
 
 
 });
-     const [zoom, setZoom] = useState(8);
+     const [zoom, setZoom] = useState(7);
 
   const initialCases = useMemo(
     () => [
@@ -835,7 +835,7 @@ total_assigned_calls:
   onCityClick={handleCityClick}
   onLocalityClick={handleLocalityClick} />
 ) : (
-  <BhuvanMapComponent onZoomChange={setZoom} data={mapData}  />
+  <BhuvanMapComponent onZoomChange={setZoom} data={mapData} onDistrictClick={handleDistrictClick} level={level} />
 )}
 
                 {/* <BhuvanMapComponent

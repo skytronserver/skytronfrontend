@@ -50,6 +50,8 @@ import { fromLonLat } from "ol/proj";
  * @param {number} props.zoom - Initial zoom level (default: 10)
  */
 const BhuvanMapComponent = ({
+    level,
+    onDistrictClick,
     erss=false,
     gpsData = [],
     onZoomChange ,
@@ -71,7 +73,7 @@ const BhuvanMapComponent = ({
     showSoiLayerPanel = true,
     defaultMapType = "normal",
     center = [91.7362, 26.1445], // Guwahati, Assam
-    zoom = 8,
+    zoom = 7,
     routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
 }) => {
     const poisForLookup = Array.isArray(lookupPois) ? lookupPois : pois;
@@ -85,8 +87,8 @@ const BhuvanMapComponent = ({
     const [drawVectorLayer, setDrawVectorLayer] = useState(null);
     const [drawInteraction, setDrawInteraction] = useState(null);
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
-   
-
+   const lastSelectedRef = useRef(null);
+const levelRef = useRef(level);
     useEffect(() => {
         const container = overlayElement.current;
         if (!container) return;
@@ -1063,7 +1065,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
 // Vector source for district markers
     const vectorSource = new VectorSource();
-debugger
+
     // Add markers from JSON
 if (!Array.isArray(data) || data.length === 0) return;
 const counts = data.map(d => d.total_vehicle_count);
@@ -1079,7 +1081,8 @@ const strokeColor = erss ? "#ff0000" : "#fff";
       const feature = new Feature({
         geometry: new Point([d.longitude, d.latitude]),
         name: d.district_name,
-        vehicles: d.total_vehicle_count
+        vehicles: d.total_vehicle_count,
+          raw: d 
       });
 
       // bubble size based on vehicles
@@ -1138,6 +1141,27 @@ const radius =
 
             pixelRatio: 1,
         });
+
+ // ✅ CLICK EVENT
+    initialMap.on("singleclick", function (evt) {
+      initialMap.forEachFeatureAtPixel(evt.pixel, function (feature) {
+
+        const props = feature.get("raw");
+        lastSelectedRef.current = props; // ⭐ STORE LAST CLICKED
+ const currentLevel = levelRef.current; 
+    if (currentLevel === "district") {
+      onDistrictClick?.(props);
+    }
+
+   
+        view.animate({
+          center: feature.getGeometry().getCoordinates(),
+          zoom: view.getZoom() + 4,
+          duration: 500
+        });
+
+      });
+    });
 
 
         /* ⭐ ADD THIS BLOCK HERE */
