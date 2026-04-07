@@ -148,7 +148,7 @@ const [topPoliceStations, setTopPoliceStations] = useState([
 ]);
 const [overallSLACompliance, setOverallSLACompliance] = useState({OverallSLA_Value:1}); // default 90%
 
-
+const [highestValue,setHighestValue]=useState(null);
   
 
   const tokens = useMemo(() => {
@@ -233,14 +233,17 @@ debugger
       }
 debugger
       // Time of Day Heatmap
-      if (data.timeOfDayHeatmap_wise_metrics) {
-        setTimeOfDayHeatmap(
-          data.timeOfDayHeatmap_wise_metrics.map((item) => ({
-            day: item.day ?? "Unknown",
-            values: item.values ?? [1, 10, 15]
-          }))
-        );
-      }
+     if (data.timeOfDayHeatmap_wise_metrics) {
+  const mappedData = data.timeOfDayHeatmap_wise_metrics.map(item => ({
+    day: item.day ?? "Unknown",
+    values: item.values ?? [1, 10, 15]
+  }));
+
+  setTimeOfDayHeatmap(mappedData);
+
+  const allValues = mappedData.flatMap(row => row.values);
+  setHighestValue(allValues.length ? Math.max(...allValues) : 0);
+}
 
       // SOS by Type
       if (data.fetchsosByType_wise_metrics) {
@@ -1098,11 +1101,45 @@ debugger
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <ChartCard
-                title="SOS Calls by Time of Day"
-                subtitle="Heatmap view (Day vs Hour)"
-                color={COLORS.secondary}
-                tokens={tokens}
+                title={
+          <Box sx={{ display: "flex", flexDirection: "row", gap:1, justifyContent: "space-between" }}>
+    
+              {/* Title Text */}
+              <Typography sx={{ fontWeight: 700, color: tokens.text }}>
+                SOS Calls by Time of Day
+              </Typography>
+
+              {/* Gradient Legend Line */}
+              <Box sx={{ display: "flex",
+              alignItems: "center",
+             
+              gap: 1 }}>
+                
+                <Typography sx={{ fontSize: "0.7rem", color: tokens.muted }}>
+                  0
+                </Typography>
+
+                <Box
+                  sx={{
+                    width: 120,   // 👈 small width (important)
+                    height: 4,
+                    borderRadius: 2,
+                    background: "linear-gradient(to right, #bbdefb, #0b8bf4)"
+                  }}
+                />
+
+                <Typography sx={{ fontSize: "0.7rem", color: tokens.muted }}>
+                   {highestValue}
+                </Typography>
+
+              </Box>
+            </Box>
+        }
+        subtitle="Heatmap view (Day vs Hour)"
+        color={COLORS.secondary}
+        tokens={tokens}
               >
+                
                 <Box sx={{ display: 'grid', gridTemplateColumns: '52px repeat(24, 1fr)', gap: 0.75 }}>
                   <Box />
                   {Array.from({ length: 24 }).map((_, i) => (
