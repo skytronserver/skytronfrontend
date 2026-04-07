@@ -27,6 +27,8 @@ import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import { parentProfileFields, studentProfileFields } from '../../formjson/schoolprofiles';
 import SchoolBusService from '../../services/SchoolBusService';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const ProfileManagement = () => {
     const theme = useTheme();
@@ -153,6 +155,7 @@ const ProfileManagement = () => {
 
                 {/* Tabs & Tables */}
                 <Grid item xs={12}>
+                    <ThemeProvider theme={tableTheme}>
                     <MainCard>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                             <Tabs value={tabValue} onChange={handleTabChange}>
@@ -179,6 +182,7 @@ const ProfileManagement = () => {
                             />
                         )}
                     </MainCard>
+                    </ThemeProvider>
                 </Grid>
             </Grid>
 

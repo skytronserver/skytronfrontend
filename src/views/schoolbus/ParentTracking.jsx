@@ -20,6 +20,8 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { gridSpacing } from '../../store/constant';
 import SchoolBusService from '../../services/SchoolBusService';
 import LiveMap from '../direct/LiveMap';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const ParentTracking = () => {
     const theme = useTheme();
@@ -208,6 +210,7 @@ const ParentTracking = () => {
 
                 {/* Logs & History */}
                 <Grid item xs={12}>
+                    <ThemeProvider theme={tableTheme}>
                     <MainCard>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                             <Tabs value={tabValue} onChange={handleTabChange}>
@@ -234,6 +237,7 @@ const ParentTracking = () => {
                             />
                         )}
                     </MainCard>
+                    </ThemeProvider>
                 </Grid>
 
                 {/* System Constraints */}

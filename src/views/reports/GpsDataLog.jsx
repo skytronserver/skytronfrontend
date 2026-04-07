@@ -11,6 +11,9 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
+
 
 const GpsDataLog = () => {
     const { t } = useTranslation();
@@ -154,6 +157,7 @@ const gpsDataColumns = [
                 </form>
             </Grid>
             <Grid item xs={12}>
+                <ThemeProvider theme={tableTheme}>
                 {!loading && (
                     <DynamicDatatables
                         tableTitle={t('gpsData.title')}
@@ -163,6 +167,7 @@ const gpsDataColumns = [
                         helperText="Timestamps are in GMT/UTC."
                     />
                 )}
+                </ThemeProvider>
             </Grid>
         </Grid>
     )

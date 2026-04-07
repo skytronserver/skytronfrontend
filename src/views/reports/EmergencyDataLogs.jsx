@@ -7,6 +7,9 @@ import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
+
 
 const EmergencyDataLogs = () => {
     const { t } = useTranslation();
@@ -118,6 +121,7 @@ const gpsDataColumns = [
                 </form>
             </Grid>
             <Grid item xs={12}>
+                <ThemeProvider theme={tableTheme}>
                 {!loading && (
                     <DynamicDatatables
                         tableTitle={t('emergencyData.title')}
@@ -127,6 +131,7 @@ const gpsDataColumns = [
                         helperText="Timestamps are in GMT/UTC."
                     />
                 )}
+                </ThemeProvider>
             </Grid>
         </Grid>
     )

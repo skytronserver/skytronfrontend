@@ -35,7 +35,8 @@ const Header = ({ handleLeftDrawerToggle }) => {
           sx={{
             display: { xs: "none", md: "block" },
             flexGrow: 1,
-            backgroundColor: "#8644A2",
+            //backgroundColor: "#8644A2",
+            
           }}
         >
           <LogoSection />

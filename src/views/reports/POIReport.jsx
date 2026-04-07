@@ -488,15 +488,32 @@ const POIReport = () => {
                             <Box sx={{
                                 height: 600,
                                 width: '100%',
-                                '& .MuiDataGrid-root': {
-                                    border: 'none',
-                                    '& .MuiDataGrid-cell': {
-                                        borderBottom: '1px solid #e0e0e0'
-                                    },
-                                    '& .MuiDataGrid-columnHeaders': {
-                                        backgroundColor: '#f5f5f5',
-                                        borderBottom: '2px solid #e0e0e0'
-                                    }
+                                // '& .MuiDataGrid-root': {
+                                //     border: 'none',
+                                //     '& .MuiDataGrid-cell': {
+                                //         borderBottom: '1px solid #e0e0e0'
+                                //     },
+                                //     '& .MuiDataGrid-columnHeaders': {
+                                //         backgroundColor: '#f5f5f5',
+                                //         borderBottom: '2px solid #e0e0e0'
+                                //     }
+                                // }
+                                '& .MuiDataGrid-cell': {
+                                    padding: '8px',
+                                    alignItems: 'center'
+                                },
+                                '& .MuiDataGrid-row:nth-of-type(even)': {
+                                    backgroundColor: '#f8fafc',
+                                },
+                                '& .MuiDataGrid-row:nth-of-type(odd)': {
+                                    backgroundColor: '#ffffff',
+                                },
+                                '& .MuiDataGrid-row:hover': {
+                                    backgroundColor: '#e2e8f0',
+                                },
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: '#0f172a',
+                                    color: '#fff',
                                 }
                             }}>
                                 <DataGrid

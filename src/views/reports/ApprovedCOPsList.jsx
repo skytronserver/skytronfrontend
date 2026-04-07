@@ -10,6 +10,8 @@ import { approvedCOPColumns } from '../../datatables/approvedCOPColumns';
 import { Link } from "react-router-dom";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const ApprovedCOPsList = () => {
   const { t } = useTranslation();
@@ -74,12 +76,14 @@ const ApprovedCOPsList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {load && <DynamicDatatables 
           tableTitle={t('deviceModel.approvedCOPsTitle')} 
           rows={data} 
           columns={actionColumn.concat(approvedCOPColumns)}
           helperText="Timestamps are in GMT/UTC."
         />}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );

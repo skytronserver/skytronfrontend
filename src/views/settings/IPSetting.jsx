@@ -7,6 +7,8 @@ import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 import {
   ipSettingInitials,
   ipSettingFormFields,
@@ -212,6 +214,7 @@ function IPSetting() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
+          <ThemeProvider theme={tableTheme}>
           <MainCard title={t('ipSetting.listTitle')}>
             {load && (
               <DynamicDatatables
@@ -221,6 +224,7 @@ function IPSetting() {
               />
             )}
           </MainCard>
+          </ThemeProvider>
         </Grid>
       </Grid>
     </>

@@ -10,6 +10,8 @@ import Datatable from '../../datatables/Datatable';
 import { registeredUserColumns } from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
 import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField } from '@mui/material';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const generateDummyManufacturerUsers = () => {
   const dummyUsers = [];
@@ -181,7 +183,9 @@ const UsersList = () => {
         <PageHeader title={t('users.listTitle')} />
       </Grid>
       <Grid item xs={12}>
-        {load && <Datatable tableTitle="" userRows={users} userColumns={columnsWithActions} helperText="Timestamps are in GMT/UTC." />}
+        <ThemeProvider theme={tableTheme}>
+          {load && <Datatable tableTitle="" userRows={users} userColumns={columnsWithActions} helperText="Timestamps are in GMT/UTC." />}
+        </ThemeProvider>
       </Grid>
       <Snackbar
         open={notification.open}

@@ -256,7 +256,7 @@ const ActiveState = () => {
           Total_Offline_Device_30day: data.Device_Offline_Since_30_Days || data.Total_Offline_Device_30day || 0,
           Total_expired_device: data.ESim_Already_Expired || data.Total_expired_device || 0
         });
-        
+
         // Also update standard state objects in case they are referenced by generic charts
         setESIMInfo(prev => ({
           ...prev,
@@ -530,7 +530,7 @@ const ActiveState = () => {
         try {
           const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics();
           const vehicleAlertData = await vehicleAlertResponse.data;
-          
+
           // Merge broadcast statistics from the main SOS dashboard response
           setVehicleAlertStats({
             ...vehicleAlertData,
@@ -1210,7 +1210,15 @@ const ActiveState = () => {
   const canvasGridColumns = reportBuilderState.previewMode || !showConfigurationPanel ? 9 : 6;
 
   // Simple chart rendering functions for existing dashboard data
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+  //const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+  const COLORS = [
+    "#ff4b2b", // alert red
+    "#ff8a00", // warning orange
+    "#00c9ff", // blue
+    "#43e97b", // green
+    "#6a11cb", // premium purple
+    "#ffd200", // yellow accent
+  ];
 
   const renderDashboardCharts = (role) => {
     const charts = [];
@@ -1296,7 +1304,7 @@ const ActiveState = () => {
                 <Legend />
                 <Bar dataKey="total" fill="#8884d8" />
                 <Bar dataKey="monthly" fill="#82ca9d" />
-                <Bar dataKey="today" fill="#ffc658" />
+                <Bar dataKey="today" fill="#ff003c" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -2964,7 +2972,9 @@ const ActiveState = () => {
             <Grid container spacing={2} marginBottom={mar}>
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
-                  cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  //cardColor="linear-gradient(135deg, #ff0080, #7928ca)"
+                  cardColor="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                   label={t('dashboard.widgets.total_state_admin,sos_admin,m2m_service_provider,manufacturer,dealer,vehicle_owner')}
                   cardValue={userInfoForAdmin}
                   iconImage={User}
@@ -2974,7 +2984,8 @@ const ActiveState = () => {
 
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
-                  cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                  //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                  cardColor="linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)"
                   label={t('dashboard.widgets.devices_fitted,online_device,offline_device')}
                   cardValue={fitmentInfoForAdmin}
                   iconImage={Fitment}
@@ -2983,7 +2994,8 @@ const ActiveState = () => {
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
-                  cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
+                  //cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
+                  cardColor="linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%)"
                   label={t('dashboard.widgets.total_alerts,alerts_this_month,alerts_today')}
                   cardValue={totalAlertInfo}
                   iconImage={Alert}
@@ -2992,7 +3004,8 @@ const ActiveState = () => {
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
-                  cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                  //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                  cardColor="linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%)"
                   label={t('dashboard.widgets.total_alerts,alerts_this_month,alerts_today')}
                   cardValue={overSpeedInfo}
                   iconImage={Overspeed}
@@ -3001,7 +3014,8 @@ const ActiveState = () => {
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
-                  cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                  //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                  cardColor="linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)"
                   label={t('dashboard.widgets.total_alerts,alerts_this_month,alerts_today')}
                   cardValue={emergencyInfo}
                   iconImage={Bell}
@@ -3011,7 +3025,8 @@ const ActiveState = () => {
 
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
-                  cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  cardColor="linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)"
                   label={t('dashboard.widgets.total_temper,temper_this_month,temper_today')}
                   cardValue={temperAlertInfo}
                   iconImage={Alert}
@@ -3020,7 +3035,8 @@ const ActiveState = () => {
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Widget
-                  cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                  cardColor="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
                   label="Total Stock, Tagged Device, Unassigned"
                   cardValue={stockInfo}
                   iconImage={Stock}
@@ -3035,7 +3051,8 @@ const ActiveState = () => {
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #00c6ff, #0072ff)"
                 label="DTO, M2M Service Provider, Manufacturer, Dealer, Vehicle Owner"
                 cardValue={userInfo}
                 iconImage={User}
@@ -3045,7 +3062,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                cardColor="linear-gradient(135deg, #43e97b, #38f9d7)"
                 label="Devices Fitted, Online Device, Offline Device"
                 cardValue={fitmentInfo}
                 iconImage={Fitment}
@@ -3054,7 +3072,8 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
                 label={t('dashboard.labels.healthStatistics')}
                 cardValue={deviceHealthInfo}
                 iconImage={Car}
@@ -3063,7 +3082,8 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
                 label={t('dashboard.labels.overSpeeding')}
                 cardValue={overSpeedInfo}
                 iconImage={Overspeed}
@@ -3072,7 +3092,8 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                cardColor="linear-gradient(135deg, #ff512f, #dd2476)"
                 label={t('dashboard.labels.emergencyAlert')}
                 cardValue={emergencyInfo}
                 iconImage={Bell}
@@ -3082,7 +3103,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #7f00ff, #e100ff)"
                 label={t('dashboard.labels.harshBreakAlert')}
                 cardValue={harshBreakInfo}
                 iconImage={Brake}
@@ -3092,7 +3114,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                cardColor="linear-gradient(135deg, #7f00ff, #e100ff)"
                 label={t('dashboard.labels.suddenTurnAlert')}
                 cardValue={suddenBreakInfo}
                 iconImage={Suddenturn}
@@ -3101,7 +3124,8 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                cardColor="linear-gradient(135deg, #4facfe, #00f2fe)"
                 label="District, Active"
                 cardValue={districtInfo}
                 iconImage={state}
@@ -3115,7 +3139,8 @@ const ActiveState = () => {
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #ff0080, #7928ca)"
                 label="Assigned, Returned, Stocked, Faulty, Available free device"
                 cardValue={dealerDeviceInfo}
                 iconImage={Stock}
@@ -3125,7 +3150,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                cardColor="linear-gradient(135deg, #0f2027, #2c5364)"
                 label="Total Fitment, Tagged Device, Online Device, Offline Device"
                 cardValue={dealerFitmentInfo}
                 iconImage={Fitment}
@@ -3134,7 +3160,8 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #1d4350, #a43931)"
                 label={t('dashboard.labels.deviceStatistics')}
                 cardValue={{
                   stocked: dealerDeviceInfo.stocked,
@@ -3150,7 +3177,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                cardColor="linear-gradient(135deg, #134e5e, #71b280)"
                 label={t('dashboard.labels.eSIMStatistics')}
                 cardValue={{
                   totalActivation: dealerESIMInfo.totalActivation,
@@ -3166,7 +3194,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b)"
                 label={t('dashboard.labels.vehicleOwner')}
                 cardValue={dealerVehicleOwnerInfo}
                 iconImage={User}
@@ -3180,7 +3209,9 @@ const ActiveState = () => {
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                index={0}
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #ff416c, #ff4b2b)"
                 label={t('dashboard.labels.alertStatistics')}
                 cardValue={{
                   alert: ownerDashboardInfo.alert,
@@ -3194,7 +3225,9 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                index={0}
+                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                cardColor="linear-gradient(135deg, #36d1dc, #5b86e5)"
                 label={t('dashboard.labels.ownerVehicleStatus')}
                 cardValue={{
                   total: ownerDashboardInfo.vehicles,
@@ -3207,7 +3240,9 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                index={0}
+                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #11998e, #38ef7d)"
                 label={t('dashboard.labels.ownerHealthStatistics')}
                 cardValue={{
                   vehicles: ownerDashboardInfo.vehicles,
@@ -3223,7 +3258,9 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                index={0}
+                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                cardColor="linear-gradient(135deg, #ff9966, #ff5e62)"
                 label={t('dashboard.labels.ownerSOSStatistics')}
                 cardValue={{
                   sosCalls: ownerDashboardInfo.sosCalls,
@@ -3237,7 +3274,9 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                index={0}
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #654ea3, #eaafc8)"
                 label={t('dashboard.labels.ownerDriverBehaviour')}
                 cardValue={{
                   harshBreaking: ownerDashboardInfo.harshBreaking,
@@ -3255,7 +3294,8 @@ const ActiveState = () => {
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #ff0080, #7928ca)"
                 label={t('dashboard.labels.alertStatistics')}
                 cardValue={{
                   alert: dtoDashboardInfo.alert,
@@ -3270,7 +3310,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #43e97b, #38f9d7)"
                 label={t('dashboard.labels.dtoHealthStatistics')}
                 cardValue={{
                   vehicles: dtoDashboardInfo.vehicles,
@@ -3292,7 +3333,8 @@ const ActiveState = () => {
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #232526, #414345)"
                 label={t('dashboard.labels.manufacturerStockStatistics')}
                 cardValue={{
                   created: manufacturerDashboardInfo.Total_Stock_Created,
@@ -3307,7 +3349,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                cardColor="linear-gradient(135deg, #2b5876, #4e4376)"
                 label={t('dashboard.labels.manufacturerModelStatistics')}
                 cardValue={{
                   model: manufacturerDashboardInfo.Total_Model,
@@ -3319,7 +3362,8 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #0f2027, #203a43, #2c5364)"
                 label={t('dashboard.labels.manufacturerDeviceStatistics')}
                 cardValue={{
                   totalStock: manufacturerDashboardInfo.Total_Stock_Created,
@@ -3336,7 +3380,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                cardColor="linear-gradient(135deg, #1f1c2c, #928dab)"
                 label={t('dashboard.labels.manufacturereSIMStatistics')}
                 cardValue={{
                   m2mServiceProvider: manufacturerDashboardInfo.Total_esim_linked,
@@ -3353,7 +3398,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
+                //cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
+                cardColor="linear-gradient(135deg, #134e5e, #71b280)"
                 label={t('dashboard.labels.manufacturerUserStatistics')}
                 cardValue={{
                   totalDealers: manufacturerDashboardInfo.Total_Dealer,
@@ -3372,7 +3418,8 @@ const ActiveState = () => {
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #ff416c, #ff4b2b)"
                 label={`${t('dashboard.labels.esimDevices.totalDevices')},${t('dashboard.labels.esimDevices.validated')},${t('dashboard.labels.esimDevices.active')},${t('dashboard.labels.esimDevices.expired')}`}
                 cardValue={{
                   total: eSIMInfo.totalDevicesWithESim || 0,
@@ -3387,7 +3434,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+                cardColor="linear-gradient(135deg, #00c9ff, #1fd1f9)"
                 label={`${t('dashboard.labels.activationStatus.requestsSent')},${t('dashboard.labels.activationStatus.confirmed')},${t('dashboard.labels.activationStatus.rejected')},${t('dashboard.labels.activationStatus.expiringSoon')}`}
                 cardValue={{
                   sent: eSIMActivationInfo.activationRequestSent || 0,
@@ -3402,7 +3450,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
+                //cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
                 label="Pending,Invalid,Total Devices"
                 cardValue={{
                   pending: eSIMInfo.pending || 0,
@@ -3416,7 +3465,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #00C49F 0%, #82ca9d 100%)"
+                //cardColor="linear-gradient(to left, #00C49F 0%, #82ca9d 100%)"
+                cardColor="linear-gradient(135deg, #43e97b, #38f9d7)"
                 label="Today,This Week,This Month"
                 cardValue={{
                   today: eSIMActivationInfo.todayRequests || 0,
@@ -3430,7 +3480,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
+                //cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
+                cardColor="linear-gradient(135deg, #667eea, #764ba2)"
                 label="Company,State,Status"
                 cardValue={{
                   company: providerInfo.company || '-',
@@ -3444,7 +3495,8 @@ const ActiveState = () => {
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff7300 0%, #ffcc66 100%)"
+                //cardColor="linear-gradient(to left, #ff7300 0%, #ffcc66 100%)"
+                cardColor="linear-gradient(135deg, #ff9a9e, #fecfef)"
                 label="Created Date,Expiry Date"
                 cardValue={{
                   created: providerInfo.createdDate || '-',
@@ -3458,7 +3510,8 @@ const ActiveState = () => {
             {/* Added eSIM statistics widget */}
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+                cardColor="linear-gradient(135deg, #6a11cb, #2575fc)"
                 label={t('dashboard.labels.esimproviderStatistics')}
                 cardValue={{
                   manufactures: eSIMInfo.manufactures || 0,
@@ -3546,7 +3599,8 @@ const ActiveState = () => {
           <Grid container spacing={2} marginBottom={mar}>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #ff0080, #7928ca)"
                 label={t('dashboard.labels.users')}
                 cardValue={teamForLead}
                 iconImage={UserImage}
@@ -3582,7 +3636,8 @@ const ActiveState = () => {
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
-                cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+                cardColor="linear-gradient(135deg, #ff0080, #7928ca)"
                 label={t('dashboard.labels.rejectedCalls')}
                 cardValue={callRejection}
                 iconImage={Rejection}

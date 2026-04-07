@@ -29,6 +29,8 @@ import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import { routeFields, busStopFields } from '../../formjson/schoolbus';
 import SchoolBusService from '../../services/SchoolBusService';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const RouteManagement = () => {
     const theme = useTheme();
@@ -278,6 +280,7 @@ const RouteManagement = () => {
 
                 {/* Routes Report */}
                 <Grid item xs={12} lg={7}>
+                    <ThemeProvider theme={tableTheme}>
                     <MainCard title="Registered Routes">
                         <DynamicDatatables
                             tableTitle="School Route Directory"
@@ -297,6 +300,7 @@ const RouteManagement = () => {
                             }}
                         />
                     </MainCard>
+                    </ThemeProvider>
                 </Grid>
 
                 {/* Map Shortcut/Stops */}
@@ -314,13 +318,14 @@ const RouteManagement = () => {
                             </Button>
                         }
                     >
+                        <ThemeProvider theme={tableTheme}>
                         <DynamicDatatables
                             tableTitle="Stops on Selected Route"
                             rows={stops}
                             columns={stopColumns}
                             options={{ selectableRows: 'none', filter: false, search: true, pagination: false }}
                         />
-                        
+                        </ThemeProvider>
                     </MainCard>
                 </Grid>
             </Grid>

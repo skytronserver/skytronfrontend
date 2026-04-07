@@ -9,6 +9,8 @@ import {
 import { gridSpacing } from "../../../store/constant";
 import StockServices from '../../../services/StockServices';
 import DeviceModelServices from '../../../services/DeviceModelServices';
+import tableTheme from "../../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 // Datatables
 import { useSelector, useDispatch } from 'react-redux';
 import { getDeviceListAvailable } from '../../../actions/stockActions';
@@ -156,6 +158,7 @@ const SimActivation = () => {
 
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
+          <ThemeProvider theme={tableTheme}>
           {load && (
             <DynamicDatatables
               tableTitle={t('simActivation.titles.pending')}
@@ -163,6 +166,7 @@ const SimActivation = () => {
               columns={availableForSalesColumnForFitment.concat(actionColumn)}
             />
           )}
+          </ThemeProvider> 
         </Grid>
       </Grid>
 

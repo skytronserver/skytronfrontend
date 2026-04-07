@@ -9,6 +9,8 @@ import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { convertErrorObjectToArray, retriveStateList, } from "../../helper";
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 //Datatables
 import { useSelector, useDispatch } from "react-redux";
@@ -283,6 +285,7 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
+          <ThemeProvider theme={tableTheme}>
           <MainCard title={t('state.listTitle')}>
             {load && (
               <DynamicDatatables
@@ -292,6 +295,7 @@ function StateDistrict({
               />
             )}
           </MainCard>
+          </ThemeProvider>
         </Grid>
         <Grid
           item
@@ -301,6 +305,7 @@ function StateDistrict({
             transition: "opacity 0.3s ease-in-out",
           }}
         >
+          <ThemeProvider theme={tableTheme}>
           <MainCard title={t('district.listTitle')}>
             {load && (
               <DynamicDatatables
@@ -310,6 +315,7 @@ function StateDistrict({
               />
             )}
           </MainCard>
+          </ThemeProvider>
         </Grid>
       </Grid>
     </>

@@ -499,7 +499,24 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
         <>
             <TableRow
                 hover
-                sx={{ "& > *": { borderBottom: "unset" }, cursor: "pointer" }}
+                sx={{
+    "& > *": { borderBottom: "unset" },
+    cursor: "pointer",
+
+    // ✅ zebra striping
+    "&:nth-of-type(odd)": {
+      backgroundColor: "#ffffff",
+    },
+    "&:nth-of-type(even)": {
+      backgroundColor: "#f8fafc",
+    },
+
+    // ✅ hover effect (overrides both)
+    "&:hover": {
+      backgroundColor: "#e2e8f0",
+      transition: "all 0.2s ease",
+    },
+  }}
                 onClick={() => setOpen((p) => !p)}
             >
                 {/* expand toggle */}
@@ -942,7 +959,7 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
                                 <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
                                     <Table size="small">
                                         <TableHead>
-                                            <TableRow sx={{ bgcolor: "primary.main" }}>
+                                            <TableRow sx={{ backgroundColor: "#0f172a", }}>
                                                 <TableCell sx={{ width: 40 }} />
                                                 <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
                                                 <TableCell sx={{ color: "white", fontWeight: 700 }}>Manufacturer</TableCell>
@@ -956,6 +973,7 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
                                                 <RequestRow
                                                     key={row.id ?? idx}
                                                     row={row}
+                                                    index={idx}
                                                     onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
                                                     onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
                                                 />

@@ -27,10 +27,12 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 // project imports
 import MainCard from '../../../../ui-component/cards/MainCard';
 import Transitions from '../../../../ui-component/extended/Transitions';
-import User1 from '../../../../assets/images/users/user-round.svg';
+//import User1 from '../../../../assets/images/users/user-round.svg';
+import User1 from '../../../../assets/images/user icon.png';
+
 import { decipherEncryption } from "../../../../helper";
 // assets
-import { IconLogout, IconSettings, IconHelp, IconMap } from '@tabler/icons';
+import { IconLogout, IconSettings, IconHelp, IconMap,IconLayoutGrid  } from '@tabler/icons';
 import { logout } from "../../../../actions/loginActions";
 import useIdle from "../../../../hooks/useIdle";
 // ==============================|| PROFILE MENU ||============================== //
@@ -144,7 +146,7 @@ const ProfileSection = () => {
             color="inherit"
           />
         }
-        label={<IconSettings stroke={1.5} size="1.5rem" color={theme.palette.primary.main} />}
+        label={<IconLayoutGrid  stroke={1.5} size="1.5rem" color={theme.palette.primary.main} />}
         variant="outlined"
         ref={anchorRef}
         aria-controls={open ? 'menu-list-grow' : undefined}

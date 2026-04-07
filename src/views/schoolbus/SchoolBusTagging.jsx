@@ -25,6 +25,8 @@ import { busTaggingFields } from '../../formjson/schoolbus';
 import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import SchoolBusService from '../../services/SchoolBusService';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const SchoolBusTagging = () => {
     const theme = useTheme();
@@ -305,6 +307,7 @@ const SchoolBusTagging = () => {
 
                 {/* Reports Table */}
                 <Grid item xs={12}>
+                    <ThemeProvider theme={tableTheme}>
                     <MainCard title="Tagging History & Status">
                         <DynamicDatatables
                             tableTitle="Vehicle Tagging Logs"
@@ -313,6 +316,7 @@ const SchoolBusTagging = () => {
                             options={{ selectableRows: 'none', filter: true, search: true }}
                         />
                     </MainCard>
+                    </ThemeProvider>
                 </Grid>
             </Grid>
         </Box>

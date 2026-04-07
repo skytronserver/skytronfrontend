@@ -791,13 +791,15 @@ const TripViewer = () => {
               <TableContainer>
                 <Table>
                   <TableHead>
-                    <TableRow>
-                      <TableCell>{t('tripViewer.table.startTime')}</TableCell>
-                      <TableCell>{t('tripViewer.table.endTime')}</TableCell>
-                      <TableCell>{t('tripViewer.table.distance')}</TableCell>
-                      <TableCell>{t('tripViewer.table.duration')}</TableCell>
-                      <TableCell>{t('tripViewer.table.speed')}</TableCell>
-                      <TableCell>{t('tripViewer.table.points')}</TableCell>
+                    <TableRow sx={{
+                      backgroundColor: "#0f172a",
+                    }}>
+                      <TableCell sx={{ color: "#fff", fontWeight: 600 }}>{t('tripViewer.table.startTime')}</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: 600 }}>{t('tripViewer.table.endTime')}</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: 600 }}>{t('tripViewer.table.distance')}</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: 600 }}>{t('tripViewer.table.duration')}</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: 600 }}>{t('tripViewer.table.speed')}</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: 600 }}>{t('tripViewer.table.points')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -1152,7 +1154,6 @@ const TripViewer = () => {
                   {mapType === "normal" ? "Satellite View" : "Normal View"}
                 </Button>
 
-                <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
               </Box>
             </Paper>
           </>

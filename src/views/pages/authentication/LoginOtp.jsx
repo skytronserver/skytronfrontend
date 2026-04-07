@@ -137,7 +137,7 @@ const LoginOtp = () => {
                               gutterBottom
                               variant={matchDownSM ? "h3" : "h2"}
                             >
-                              SKYTRON
+                              MAPWALA
                             </Typography>
                             <Typography
                               variant="caption"

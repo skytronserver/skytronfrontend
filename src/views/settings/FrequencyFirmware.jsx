@@ -7,6 +7,8 @@ import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 import { convertErrorObjectToArray } from "../../helper";
 import {retriveModelList} from "../../helper";
 import {
@@ -396,6 +398,7 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
+          <ThemeProvider theme={tableTheme}>
           <MainCard title={t('ota.listTitle')}>
             {load && (
               <DynamicDatatables
@@ -405,6 +408,7 @@ function FrequencyFirmware() {
               />
             )}
           </MainCard>
+          </ThemeProvider>
         </Grid>
         <Grid
           item
@@ -414,6 +418,7 @@ function FrequencyFirmware() {
             transition: "opacity 0.3s ease-in-out",
           }}
         >
+          <ThemeProvider theme={tableTheme}>
           <MainCard title={t('firmware.listTitle')}>
             {load && (
               <DynamicDatatables
@@ -423,6 +428,7 @@ function FrequencyFirmware() {
               />
             )}
           </MainCard>
+          </ThemeProvider>
         </Grid>
       </Grid>
     </>

@@ -38,7 +38,7 @@ const App = () => {
             </div>
           }> */}
           <Routes />
-          <StickyLanguageSwitcher />
+          {/* <StickyLanguageSwitcher /> */}
           {/* </Suspense> */}
         </NavigationScroll>
       </ThemeProvider>

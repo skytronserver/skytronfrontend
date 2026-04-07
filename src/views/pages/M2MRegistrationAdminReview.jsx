@@ -15,6 +15,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { serviceProviderCol } from "../../datatables/rowsColumn";
 import UserServices from "../../services/UserServices";
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const M2MRegistrationAdminReview = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -28,8 +30,9 @@ const M2MRegistrationAdminReview = () => {
   const paperStyle = useMemo(
     () => ({
       p: 3,
-      borderRadius: "8px",
-      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+      borderRadius: "16px",
+      background: "#ffffff",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.06)",
     }),
     []
   );
@@ -218,7 +221,13 @@ const M2MRegistrationAdminReview = () => {
                   size="small"
                   component={Link}
                   to={`/user/detail/serviceProvider/${id}`}
-                  sx={{ color: "#800080" }}
+                  sx={{
+                    color: "#6366f1", // indigo
+                    backgroundColor: "#eef2ff",
+                    "&:hover": {
+                      backgroundColor: "#e0e7ff",
+                    },
+                  }}
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
@@ -228,12 +237,16 @@ const M2MRegistrationAdminReview = () => {
                     variant="outlined"
                     onClick={() => handleResend(id, rows?.[tableMeta?.rowIndex])}
                     sx={{
-                      borderColor: "#800080",
-                      color: "#800080",
-                      whiteSpace: "nowrap",
+                      borderRadius: "6px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      borderColor: "#f59e0b",
+                      color: "#f59e0b",
+                      px: 2,
                       "&:hover": {
-                        borderColor: "#660066",
-                        color: "#660066",
+                        backgroundColor: "#fff7ed",
+                        borderColor: "#d97706",
+                        color: "#d97706",
                       },
                     }}
                   >
@@ -247,7 +260,19 @@ const M2MRegistrationAdminReview = () => {
                       variant="outlined"
                       color="error"
                       onClick={() => handleReject(id)}
-                      sx={{ whiteSpace: "nowrap" }}
+                      sx={{
+                        borderRadius: "6px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        borderColor: "#ef4444",
+                        color: "#ef4444",
+                        px: 2,
+                        "&:hover": {
+                          backgroundColor: "#fee2e2",
+                          borderColor: "#dc2626",
+                          color: "#dc2626",
+                        },
+                      }}
                     >
                       Reject
                     </Button>
@@ -256,8 +281,8 @@ const M2MRegistrationAdminReview = () => {
                       variant="contained"
                       onClick={() => handleAccept(id, rows?.[tableMeta?.rowIndex])}
                       sx={{
-                        backgroundColor: "#800080",
-                        "&:hover": { backgroundColor: "#660066" },
+                        backgroundColor: "#2563eb",
+                        "&:hover": { backgroundColor: "#1d4ed8" },
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -312,12 +337,14 @@ const M2MRegistrationAdminReview = () => {
             ) : rows.length === 0 ? (
               <Alert severity="info">No M2M registration requests found.</Alert>
             ) : (
-              <DynamicDatatables
-                tableTitle="M2M Service Provider Registration Requests"
-                rows={rows}
-                columns={serviceProviderCol.concat(actionColumn)}
-                options={tableOptions}
-              />
+              <ThemeProvider theme={tableTheme}>
+                <DynamicDatatables
+                  tableTitle="M2M Service Provider Registration Requests"
+                  rows={rows}
+                  columns={serviceProviderCol.concat(actionColumn)}
+                  options={tableOptions}
+                />
+              </ThemeProvider >
             )}
           </Paper>
         </Grid>

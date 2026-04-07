@@ -9,6 +9,8 @@ import { gridSpacing } from '../../store/constant';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import HomePageService from '../../services/HomePage';
 import { dateTimeUpdate } from '../../helper';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -351,6 +353,7 @@ const SOSReport = () => {
         </Paper>
       </Grid>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {!loading && (
           <DynamicDatatables
             tableTitle="SOS Report"
@@ -381,6 +384,7 @@ const SOSReport = () => {
             }}
           />
         )}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );

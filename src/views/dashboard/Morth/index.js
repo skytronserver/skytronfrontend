@@ -6,6 +6,9 @@ import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { fetchMorthDashboardData } from 'services/MorthService';
+//import tableTheme from "../../ui-component/customTableUi";
+import tableTheme from "../../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const MorthDashboard = () => {
     // Mock data for the dashboard (used as initial and fallback values)
@@ -202,6 +205,7 @@ const vltPieData = [
 
             {/* Alerts Table */}
             <Grid item xs={12}>
+                <ThemeProvider theme={tableTheme}>
                 <MainCard title="Alerts Details">
                     <TableContainer component={Paper}>
                         <Table>
@@ -226,6 +230,7 @@ const vltPieData = [
                         </Table>
                     </TableContainer>
                 </MainCard>
+                </ThemeProvider>
             </Grid>
         </Grid>
     );

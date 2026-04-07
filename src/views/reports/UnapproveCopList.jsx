@@ -12,6 +12,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import MUIDataTable from "mui-datatables";
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const UnapproveCopList = () => {
   const { t } = useTranslation();
@@ -64,7 +66,7 @@ const UnapproveCopList = () => {
       },
     },
   ];
- 
+
   const options = {
     selectableRows: "none",
     viewColumns: false,
@@ -75,35 +77,37 @@ const UnapproveCopList = () => {
       <Grid item xs={12}>
         {load && (
           <div className="datatable">
-      {shouldShowGmtNote && (
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          Timestamps are in GMT/UTC.
-        </Typography>
-      )}
-      <MUIDataTable
+            {shouldShowGmtNote && (
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Timestamps are in GMT/UTC.
+              </Typography>
+            )}
+            <ThemeProvider theme={tableTheme}>
+            <MUIDataTable
               title={t('deviceModel.copListTitle')}
-        data={deviceCOPModelList}
-        columns={actionColumn.concat(
-          deviceCOPModelColumns.map((col) => {
-            if (col?.name !== 'timestamp') {
-              return col;
-            }
-            if (!shouldShowGmtNote) {
-              return col;
-            }
-            const label = col?.label;
-            if (typeof label !== 'string') {
-              return col;
-            }
-            if (label.includes('(GMT/UTC)')) {
-              return col;
-            }
-            return { ...col, label: `${label} (GMT/UTC)` };
-          })
-        )}
-        options={options}
-      />
-    </div>
+              data={deviceCOPModelList}
+              columns={actionColumn.concat(
+                deviceCOPModelColumns.map((col) => {
+                  if (col?.name !== 'timestamp') {
+                    return col;
+                  }
+                  if (!shouldShowGmtNote) {
+                    return col;
+                  }
+                  const label = col?.label;
+                  if (typeof label !== 'string') {
+                    return col;
+                  }
+                  if (label.includes('(GMT/UTC)')) {
+                    return col;
+                  }
+                  return { ...col, label: `${label} (GMT/UTC)` };
+                })
+              )}
+              options={options}
+            />
+            </ThemeProvider>
+          </div>
         )}
       </Grid>
     </Grid>

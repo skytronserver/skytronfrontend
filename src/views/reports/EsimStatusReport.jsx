@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import AutoHideAlert from '../../ui-component/AutoHideAlert';
 import Datatable from '../../datatables/DynamicDatatables';
 import { esimStatusColumns } from '../../datatables/deviceColumns';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const EsimStatusReport = () => {
   const { t } = useTranslation();
@@ -78,6 +80,7 @@ const EsimStatusReport = () => {
 
           <Grid item xs={12}>
             {console.log('Data being passed to Datatable:', statusData?.devices)}
+            <ThemeProvider theme={tableTheme}>
             <Datatable
               rows={statusData?.devices || []}
               columns={esimStatusColumns}
@@ -98,6 +101,7 @@ const EsimStatusReport = () => {
                 }
               }}
             />
+            </ThemeProvider>
           </Grid>
         </Grid>
       )}

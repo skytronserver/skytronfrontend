@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import HomePageService from "../../services/HomePage";
-import GPSHistoryMap from "./HistoryPlaybackMap";
-import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
+//import GPSHistoryMap from "./HistoryPlaybackMap";
+import GPSHistoryMap from "./GPSHistoryMap";
+import GoogleMapComponent from "./HistoryGoogleMapComponent";
+//import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 import { dateTimeUpdate } from "../../helper";
 import { FormControl, Autocomplete, TextField, Button, Grid, Typography, Box, CircularProgress, Collapse, IconButton, Tooltip } from '@mui/material';
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -337,27 +339,40 @@ const HistoryPlayback = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <BhuvanMapComponent
-              gpsData={vehicleGpsData}
-              width="100%"
-              height="600px"
-              autoFit={true}
-              showMapTypeToggle={true}
-              showDrawControls={false}
-              showLogos={true}
-              defaultMapType="normal"
-              markerLabelMode="vehicle"
-              onMarkerClick={(entryData) => {
-                // Extract vehicle registration number and trigger selection
-                const vehicleRegNo = entryData.vehicle_registration_number ||
-                  entryData.vehicle_reg_no ||
-                  entryData.device_tag_info?.device?.vehicle_reg_no ||
-                  entryData.device_tag_info?.vehicle?.vehicle_reg_no;
-                if (vehicleRegNo) {
-                  handleVehicleSelect(vehicleRegNo);
-                }
-              }}
-            />
+            // <BhuvanMapComponent
+            //   gpsData={vehicleGpsData}
+            //   width="100%"
+            //   height="600px"
+            //   autoFit={true}
+            //   showMapTypeToggle={true}
+            //   showDrawControls={false}
+            //   showLogos={true}
+            //   defaultMapType="normal"
+            //   markerLabelMode="vehicle"
+            //   onMarkerClick={(entryData) => {
+            //     // Extract vehicle registration number and trigger selection
+            //     const vehicleRegNo = entryData.vehicle_registration_number ||
+            //       entryData.vehicle_reg_no ||
+            //       entryData.device_tag_info?.device?.vehicle_reg_no ||
+            //       entryData.device_tag_info?.vehicle?.vehicle_reg_no;
+            //     if (vehicleRegNo) {
+            //       handleVehicleSelect(vehicleRegNo);
+            //     }
+            //   }}
+            // />
+            <GoogleMapComponent
+  gpsData={vehicleGpsData}
+  onMarkerClick={(entryData) => {
+    const vehicleRegNo =
+      entryData.vehicle_registration_number ||
+      entryData.vehicle_reg_no ||
+      entryData.device_tag_info?.device?.vehicle_reg_no;
+
+    if (vehicleRegNo) {
+      handleVehicleSelect(vehicleRegNo);
+    }
+  }}
+/>
           )}
         </Box>
       )}
@@ -377,7 +392,7 @@ const HistoryPlayback = () => {
               Select Different Vehicle
             </Button>
           </Box>
-          <GPSHistoryMap
+          {/* <GPSHistoryMap
             startDateTime={fromDate}
             endDateTime={toDate}
             vehicleRegistrationNumber={vehicleNo}
@@ -387,7 +402,16 @@ const HistoryPlayback = () => {
             owner={owner}
             roads={roads}
             polygon={polygon}
-          />
+          /> */}
+          <GPSHistoryMap
+  startDateTime={fromDate}
+  endDateTime={toDate}
+  vehicleRegistrationNumber={vehicleNo}
+  poi={poi}
+  owner={owner}
+  roads={roads}
+  polygon={polygon}
+/>
         </Box>
       )}
     </MainCard>

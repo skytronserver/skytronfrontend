@@ -63,6 +63,7 @@ import HomePageService from "../../services/HomePage";
 import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
+import mapwalaLogo from "../../assets/images/logo.png";
 
 const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
 
@@ -6146,7 +6147,18 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
 
             {/* --- Attribution Logos --- */}
             <Box sx={{ position: 'absolute', bottom: 4, right: 4, zIndex: 1000, pointerEvents: 'none' }}>
-                <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ height: '50px' }} alt="Skytron" />
+                {/* <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ height: '50px' }} alt="Skytron" /> */}
+                <img 
+  src={mapwalaLogo}
+  style={{ 
+    position: 'absolute', 
+    bottom: "20px", 
+    right: "10px",
+    width: '180px',
+    backgroundColor: 'transparent',
+  }} 
+  alt="MapWala Logo"
+/>
             </Box>
 
             {/* Overlay for displaying marker details */}

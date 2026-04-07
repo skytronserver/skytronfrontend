@@ -10,6 +10,8 @@ import { approvedModelColumns } from '../../datatables/approvedModelColumns';
 import { Link } from "react-router-dom";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const ApprovedModelsList = () => {
   const { t } = useTranslation();
@@ -77,12 +79,14 @@ const ApprovedModelsList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {load && <DynamicDatatables 
           tableTitle={t('deviceModel.approvedModelsTitle')} 
           rows={data} 
           columns={actionColumn.concat(approvedModelColumns)}
           helperText="Timestamps are in GMT/UTC."
         />}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );

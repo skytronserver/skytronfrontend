@@ -35,7 +35,7 @@ function LandingPage() {
               wordWrap: "break-word", // Ensures text breaks properly on smaller screens
             }}
           >
-            WELCOME TO SKYTRACK
+            WELCOME TO MAPWALA
           </Typography>
         </Container>
       </Box>

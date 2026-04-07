@@ -134,11 +134,11 @@ const DeviceHealthReport = () => {
       sortable: true,
       renderCell: (params) => {
         const status = params.row?.device_status || 'Unknown';
-        const color = status === 'online' ? 'success' : 
-                     status === 'offline' ? 'warning' : 
-                     status === 'no_data' ? 'error' : 'default';
-        const label = status === 'no_data' ? 'No Data' : 
-                     status.charAt(0).toUpperCase() + status.slice(1);
+        const color = status === 'online' ? 'success' :
+          status === 'offline' ? 'warning' :
+            status === 'no_data' ? 'error' : 'default';
+        const label = status === 'no_data' ? 'No Data' :
+          status.charAt(0).toUpperCase() + status.slice(1);
         return <Chip label={label} color={color} size="small" />;
       }
     },
@@ -190,7 +190,7 @@ const DeviceHealthReport = () => {
         retriveManufacturerList(),
         retriveDeviceModelList()
       ]);
-      
+
       setStatesList(states || []);
       setManufacturersList(manufacturers || []);
       setDeviceModelsList(deviceModels || []);
@@ -215,7 +215,7 @@ const DeviceHealthReport = () => {
       });
 
       const response = await showDeviceApi.getDeviceHealthStatus(params);
-      
+
       if (response.data && response.data.status === 'success') {
         const devices = response.data.devices || [];
         // Add unique IDs for DataGrid (required by MUI DataGrid)
@@ -223,10 +223,10 @@ const DeviceHealthReport = () => {
           ...device,
           id: device.device_tag_id || index
         }));
-        
+
         setHealthData(devicesWithIds);
         setTotalRows(response.data.total_devices || 0);
-        
+
         // Update health statistics
         setHealthStats({
           total_devices: response.data.total_devices || 0,
@@ -356,7 +356,7 @@ const DeviceHealthReport = () => {
 
   const getActiveFiltersCount = () => {
     const excludeFields = ['page', 'page_size'];
-    return Object.entries(filters).filter(([key, value]) => 
+    return Object.entries(filters).filter(([key, value]) =>
       !excludeFields.includes(key) && value !== '' && value !== null && value !== undefined
     ).length;
   };
@@ -510,11 +510,11 @@ const DeviceHealthReport = () => {
         {/* Collapsible Filters Section */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Box 
+            <Box
               onClick={toggleFiltersExpanded}
-              sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
@@ -522,10 +522,10 @@ const DeviceHealthReport = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="h6">Filter Options</Typography>
                 {!filtersExpanded && getActiveFiltersCount() > 0 && (
-                  <Chip 
-                    label={`${getActiveFiltersCount()} active`} 
-                    color="primary" 
-                    size="small" 
+                  <Chip
+                    label={`${getActiveFiltersCount()} active`}
+                    color="primary"
+                    size="small"
                   />
                 )}
               </Box>
@@ -533,7 +533,7 @@ const DeviceHealthReport = () => {
                 {filtersExpanded ? <ExpandLess /> : <ExpandMore />}
               </IconButton>
             </Box>
-            
+
             <Collapse in={filtersExpanded}>
               <Box sx={{ mt: 2 }}>
                 <Grid container spacing={2}>
@@ -546,7 +546,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -556,7 +556,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -566,7 +566,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -576,7 +576,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <FormControl fullWidth size="small">
                       <InputLabel>Device Model</InputLabel>
@@ -594,7 +594,7 @@ const DeviceHealthReport = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -604,7 +604,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <FormControl fullWidth size="small">
                       <InputLabel>Manufacturer</InputLabel>
@@ -622,7 +622,7 @@ const DeviceHealthReport = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -692,7 +692,7 @@ const DeviceHealthReport = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-                
+
                 <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <Button
                     variant="contained"
@@ -702,7 +702,7 @@ const DeviceHealthReport = () => {
                   >
                     Apply Filters
                   </Button>
-                  
+
                   <Button
                     variant="outlined"
                     onClick={handleClearFilters}
@@ -711,7 +711,7 @@ const DeviceHealthReport = () => {
                   >
                     Clear Filters
                   </Button>
-                  
+
                   <Button
                     variant="outlined"
                     onClick={handleRefresh}
@@ -720,7 +720,7 @@ const DeviceHealthReport = () => {
                   >
                     Refresh
                   </Button>
-                  
+
                   <Tooltip title="Export to CSV">
                     <Button
                       variant="outlined"
@@ -756,13 +756,30 @@ const DeviceHealthReport = () => {
               '& .MuiDataGrid-root': {
                 border: 'none',
               },
+              // '& .MuiDataGrid-cell': {
+              //   borderBottom: '1px solid #f0f0f0',
+              // },
+              // '& .MuiDataGrid-columnHeaders': {
+              //   backgroundColor: '#fafafa',
+              //   borderBottom: '1px solid #d0d0d0',
+              // },
               '& .MuiDataGrid-cell': {
-                borderBottom: '1px solid #f0f0f0',
+                padding: '8px',
+                alignItems: 'center'
+              },
+              '& .MuiDataGrid-row:nth-of-type(even)': {
+                backgroundColor: '#f8fafc',
+              },
+              '& .MuiDataGrid-row:nth-of-type(odd)': {
+                backgroundColor: '#ffffff',
+              },
+              '& .MuiDataGrid-row:hover': {
+                backgroundColor: '#e2e8f0',
               },
               '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#fafafa',
-                borderBottom: '1px solid #d0d0d0',
-              },
+                backgroundColor: '#0f172a',
+                color: '#fff',
+              }
             }}
           />
         </Paper>

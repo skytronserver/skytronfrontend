@@ -14,21 +14,51 @@ const CardWrapper = styled(MainCard)(({ theme, data }) => ({
   width: "100%",
   height: "100%",
   minHeight: "150px",
+  cursor:"pointer",
+  transition: "all 0.4s ease",
 
   "& > div": {
     position: "relative",
     zIndex: 5,
   },
-  "&:after, &:before": {
+  /* HOVER EFFECT */
+  "&:hover": {
+    transform: "translateY(-8px) scale(1.02)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+    filter: "brightness(1.1)",
+  },
+  /* ICON ANIMATION */
+  "&:hover .widget-icon": {
+    transform: "scale(1.2) rotate(5deg)",
+  },
+
+  // "&:after, &:before": {
+  //   content: '""',
+  //   position: "absolute",
+  //   width: "100%", 
+  //   height: "100%", 
+  //   borderRadius: "50%",
+  //   zIndex: 1,
+  //   top: 0,
+  //   left: 0,
+  //   opacity: 0.5,
+  // },
+
+    "&:after": {
     content: '""',
     position: "absolute",
-    width: "100%", 
-    height: "100%", 
-    borderRadius: "50%",
-    zIndex: 1,
-    top: 0,
-    left: 0,
-    opacity: 0.5,
+    width: "200%",
+    height: "200%",
+    top: "-50%",
+    left: "-50%",
+    background:
+      "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%)",
+    transition: "0.5s",
+    opacity: 0,
+  },
+
+  "&:hover::after": {
+    opacity: 0.8,
   },
 }));
 
@@ -39,13 +69,28 @@ const Widget = ({
   cardValue,
   iconImage,
   heading,
+  index = 0,
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const labelNew = label.split(",");
   const arr = Object.values(cardValue);
+  const [loaded, setLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoaded(true);
+    }, 100 + index * 120); // stagger effect
+
+    return () => clearTimeout(timer);
+  }, [index]);
+
   return (
-    <Box sx={{ height: "100%" }}>
+    <Box sx={{ height: "100%", transform: loaded
+          ? "translateY(0px) scale(1)"
+          : "translateY(40px) scale(0.95)",
+        opacity: loaded ? 1 : 0,
+        transition: "all 0.5s ease", }}>
       <CardWrapper
         border={false}
         content={false}
@@ -84,7 +129,11 @@ const Widget = ({
                 src={iconImage}
                 alt={heading}
                 width="50"
-                style={{ marginLeft: "50px" }}
+                className="widget-icon"
+                style={{
+                  marginLeft: "50px",
+                  transition: "transform 0.3s ease",
+                }}
               />
             </Grid>
           </Grid>
@@ -100,6 +149,7 @@ Widget.propTypes = {
   onClick: PropTypes.func,
   cardValue: PropTypes.any,
   heading: PropTypes.any,
+  index: PropTypes.number,
 };
 
 export default Widget;

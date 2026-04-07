@@ -7,6 +7,8 @@ import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 //Datatables
 import { useSelector, useDispatch } from 'react-redux'
 import { stockFilterAction } from '../../actions/stockActions';
@@ -105,6 +107,7 @@ const ShowDevice = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {error && (
           <Alert severity="error">
             <AlertTitle>{t('showDevice.errors.title')}</AlertTitle>
@@ -118,6 +121,7 @@ const ShowDevice = () => {
             columns={columns}
           />
         )}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );

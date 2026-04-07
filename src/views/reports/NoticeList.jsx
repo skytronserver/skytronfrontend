@@ -15,6 +15,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {openFile} from "../../helper";
 import Button from '@mui/material/Button';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
+import { Box, IconButton } from "@mui/material";
 
 const docViewStyle={
   padding:"0px"
@@ -81,28 +84,69 @@ const NoticeList = () => {
       label: "Action",
       options: {
         filter: false,
-        customBodyRender: (value, tableMeta) => {
-          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
-          return (
-            <div className="cellAction" style={{ display: "flex" }}>
-              <Link
-                to={`/setting/notice/${tableMeta.rowData[0]}`}
-                style={{ textDecoration: "none" }}
-              >
-                <div className="viewButton" style={docViewStyle}>
-                  <CreateIcon />
-                </div>
-              </Link>
+        // customBodyRender: (value, tableMeta) => {
+        //   // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
+        //   return (
+        //     <div className="cellAction" style={{ display: "flex" }}>
+        //       <Link
+        //         to={`/setting/notice/${tableMeta.rowData[0]}`}
+        //         style={{ textDecoration: "none" }}
+        //       >
+        //         <div className="viewButton" style={docViewStyle}>
+        //           <CreateIcon />
+        //         </div>
+        //       </Link>
 
              
-              <Button color="primary" 
-              onClick={(e)=>deleteNotice(e,tableMeta.rowData[0])}
-                >
-                   <DeleteIcon />
-                </Button>
-            </div>
-          );
-        },
+        //       <Button color="primary" 
+        //       onClick={(e)=>deleteNotice(e,tableMeta.rowData[0])}
+        //         >
+        //            <DeleteIcon />
+        //         </Button>
+        //     </div>
+        //   );
+        // },
+        customBodyRender: (value, tableMeta) => {
+  return (
+    <Box sx={{ display: "flex", gap: 1 }}>
+      
+      {/*  EDIT */}
+      <Link
+        to={`/setting/notice/${tableMeta.rowData[0]}`}
+        style={{ textDecoration: "none" }}
+      >
+        <IconButton
+          sx={{
+            backgroundColor: "#e0f2fe", // light blue
+            color: "#0284c7", // blue
+            "&:hover": {
+              backgroundColor: "#0284c7",
+              color: "#fff",
+            },
+          }}
+        >
+          <CreateIcon fontSize="small" />
+        </IconButton>
+      </Link>
+
+      {/*  DELETE */}
+      <IconButton
+        onClick={(e) => deleteNotice(e, tableMeta.rowData[0])}
+        sx={{
+          backgroundColor: "#fee2e2", // light red
+          color: "#dc2626", // red
+          "&:hover": {
+            backgroundColor: "#dc2626",
+            color: "#fff",
+          },
+        }}
+      >
+        <DeleteIcon fontSize="small" />
+      </IconButton>
+
+    </Box>
+  );
+}
       },
     },
     
@@ -113,6 +157,7 @@ const NoticeList = () => {
         <PageHeader title={t('menu.notice')} />
       </Grid>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {notices.length >= 1 ? (
           <DynamicDatatables
             tableTitle=""
@@ -125,6 +170,7 @@ const NoticeList = () => {
             {t('common.no_results_found')}
           </div>
         )}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );

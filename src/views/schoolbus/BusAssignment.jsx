@@ -28,6 +28,8 @@ import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import { busAssignmentFields } from '../../formjson/schoolbus';
 import SchoolBusService from '../../services/SchoolBusService';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const BusAssignment = () => {
     const theme = useTheme();
@@ -219,6 +221,7 @@ const BusAssignment = () => {
 
                 {/* Reports Table */}
                 <Grid item xs={12}>
+                    <ThemeProvider theme={tableTheme}>
                     <MainCard title="Active Assignments">
                         <DynamicDatatables
                             tableTitle="Current Bus Deployment"
@@ -227,6 +230,7 @@ const BusAssignment = () => {
                             options={{ selectableRows: 'none', filter: true, search: true }}
                         />
                     </MainCard>
+                    </ThemeProvider>
                 </Grid>
             </Grid>
 

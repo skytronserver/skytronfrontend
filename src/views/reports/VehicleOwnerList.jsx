@@ -10,6 +10,9 @@ import { useEffect, useState } from 'react';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { vehicleOwnerCols } from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
+
 
 const VehicleOwnerList = () => {
   const { t } = useTranslation();
@@ -166,7 +169,9 @@ const VehicleOwnerList = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {load && <DynamicDatatables tableTitle={t('vehicleOwner.listTitle')} rows={ownerList} columns={columnsWithActions} helperText="Timestamps are in GMT/UTC." />}
+      </ThemeProvider>
       </Grid>
 
       <Snackbar

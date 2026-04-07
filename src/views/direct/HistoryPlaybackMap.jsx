@@ -21,6 +21,8 @@ import { getCenter } from "ol/extent"; // For centering the map
 import axios from "axios";
 import Select from "ol/interaction/Select";
 import { formatDateTime } from "../../helper";
+import mapwalaLogo from "../../assets/images/logo.png";
+
 
 const GPSHistoryMap = ({
   startDateTime,
@@ -1202,8 +1204,19 @@ function playAnimation() {
 
 
 
-      <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative' }}>
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
+      <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative', zIndex: 1000}}>
+        {/* <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} /> */}
+                      <img 
+          src={mapwalaLogo}
+          style={{ 
+            position: 'absolute', 
+            bottom: "20px", 
+            right: "10px",
+            width: '180px',
+            backgroundColor: 'transparent',
+          }} 
+          alt="MapWala Logo"
+        />
 
         {/* Hidden Container for Overlay Content - React Renders Here, OL uses DOM element */}
         <div ref={infoBoxElementRef} style={{ position: 'absolute', minWidth: '150px', top: '-17px', left: '50%', transform: 'translateX(-50%)' }}>

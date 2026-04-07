@@ -81,7 +81,7 @@ function Navbar() {
     >
       <Toolbar>
         <Typography variant="h3" component={Link} to="/" sx={{ flexGrow: 1, color: 'white', textDecoration: 'none' }}>
-          SKYTRACK
+          MAPWALA
         </Typography>
 
         {/* Right-side navigation links for larger screens */}

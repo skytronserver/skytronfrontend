@@ -1595,7 +1595,7 @@ const TripPlanning = () => {
           overflow: 'hidden',
           boxShadow: 1
         }}>
-          <img
+          {/* <img
             src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
             style={{
               position: 'absolute',
@@ -1605,7 +1605,7 @@ const TripPlanning = () => {
               zIndex: 1000,
               filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
             }}
-          />
+          /> */}
         </Box>
       )}
 

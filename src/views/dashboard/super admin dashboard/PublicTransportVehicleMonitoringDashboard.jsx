@@ -414,7 +414,7 @@ const DistrictVehicleMap = ({ vehicles, selectedDistrict, onSelectDistrict, mode
           '& .ol-attribution': { display: 'none' }
         }}
       />
-      <img
+      {/* <img
         src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
         style={{
           position: 'absolute',
@@ -426,7 +426,7 @@ const DistrictVehicleMap = ({ vehicles, selectedDistrict, onSelectDistrict, mode
           opacity: 0.8
         }}
         alt="Skytron Logo"
-      />
+      /> */}
     </Box>
   );
 };
@@ -549,7 +549,7 @@ const PublicTransportVehicleMonitoringDashboard = () => {
 
   return (
     <PageWrapper
-      title="Skytron – Public Transport Vehicle Monitoring"
+      title="MapWala – Public Transport Vehicle Monitoring"
       description="All vehicles/devices on board Skytron platform (dummy data)."
       sx={{
         bgcolor: tokens.pageBg,

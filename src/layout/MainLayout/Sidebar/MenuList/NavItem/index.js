@@ -23,15 +23,37 @@ const NavItem = ({ item, level }) => {
   const { pathname } = useLocation();
   const customization = useSelector((state) => state.customization);
   const matchesSM = useMediaQuery(theme.breakpoints.down('lg'));
+  const isSelected =
+  customization.isOpen.findIndex((id) => id === item.id) > -1;
 
   const Icon = item.icon;
+  // const itemIcon = item?.icon ? (
+  //   <Icon stroke={1.5} size="1.3rem" />
+  // ) : (
+  //   <FiberManualRecordIcon
+  //     sx={{
+  //       width: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6,
+  //       height: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6
+  //     }}
+  //     fontSize={level > 0 ? 'inherit' : 'medium'}
+  //   />
+  // );
+
   const itemIcon = item?.icon ? (
-    <Icon stroke={1.5} size="1.3rem" />
+    <Icon
+      stroke={1.5}
+      size="1.3rem"
+      style={{
+        color: isSelected ? '#ffffff' : '#64748b',
+        transition: '0.3s'
+      }}
+    />
   ) : (
     <FiberManualRecordIcon
       sx={{
-        width: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6,
-        height: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6
+        width: isSelected ? 8 : 6,
+        height: isSelected ? 8 : 6,
+        color: isSelected ? '#ffffff' : '#64748b'
       }}
       fontSize={level > 0 ? 'inherit' : 'medium'}
     />
@@ -102,7 +124,24 @@ const NavItem = ({ item, level }) => {
         alignItems: 'flex-start',
         backgroundColor: level > 1 ? 'transparent !important' : 'inherit',
         py: level > 1 ? 1 : 1.25,
-        pl: `${level * 24}px`
+        pl: `${level * 24}px`,
+        // ✅ default text color
+  color: '#64748b',
+
+  // 🔥 SELECTED ITEM STYLE
+  '&.Mui-selected': {
+    background: 'linear-gradient(135deg, #6a11cb, #2575fc)',
+    color: '#fff',
+  },
+
+  '&.Mui-selected:hover': {
+    background: 'linear-gradient(135deg, #5a0fb5, #1e63d6)',
+  },
+
+  // hover effect
+  '&:hover': {
+    backgroundColor: 'rgba(106,17,203,0.08)',
+  }
       }}
       selected={customization.isOpen.findIndex((id) => id === item.id) > -1}
       onClick={() => itemHandler(item.id)}

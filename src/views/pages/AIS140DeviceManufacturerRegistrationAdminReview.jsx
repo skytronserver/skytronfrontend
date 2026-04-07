@@ -16,6 +16,8 @@ import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { manufacturerColumns } from "../../datatables/rowsColumn";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import UserServices from "../../services/UserServices";
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const AIS140DeviceManufacturerRegistrationAdminReview = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -273,8 +275,13 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                   size="small"
                   component={Link}
                   to={`/user/detail/manufacturer/${id}`}
-                  sx={{ color: "#800080" }}
-                >
+                  sx={{
+                    color: "#6366f1", // indigo
+                    backgroundColor: "#eef2ff",
+                    "&:hover": {
+                      backgroundColor: "#e0e7ff",
+                    },
+                  }}                >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
                 {canResendOtp ? (
@@ -283,12 +290,16 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                     variant="outlined"
                     onClick={() => handleResend(id, rows?.[tableMeta?.rowIndex])}
                     sx={{
-                      borderColor: "#800080",
-                      color: "#800080",
-                      whiteSpace: "nowrap",
+                      borderRadius: "6px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      borderColor: "#f59e0b",
+                      color: "#f59e0b",
+                      px: 2,
                       "&:hover": {
-                        borderColor: "#660066",
-                        color: "#660066",
+                        backgroundColor: "#fff7ed",
+                        borderColor: "#d97706",
+                        color: "#d97706",
                       },
                     }}
                   >
@@ -301,13 +312,17 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                     variant="outlined"
                     onClick={() => handleAllowAddDealer(id, rows?.[tableMeta?.rowIndex])}
                     sx={{
-                      borderColor: "#800080",
-                      color: "#800080",
+                      borderRadius: "6px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      px: 2,
+                      borderColor: "#7c3aed", // 🟣 violet
+                      color: "#7c3aed",
                       "&:hover": {
-                        borderColor: "#660066",
-                        color: "#660066",
+                        backgroundColor: "#f5f3ff",
+                        borderColor: "#6d28d9",
+                        color: "#6d28d9",
                       },
-                      whiteSpace: "nowrap",
                     }}
                   >
                     Allow to add dealer
@@ -319,7 +334,19 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                       variant="outlined"
                       color="error"
                       onClick={() => handleReject(id)}
-                      sx={{ whiteSpace: "nowrap" }}
+                      sx={{
+                        borderRadius: "6px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        borderColor: "#ef4444",
+                        color: "#ef4444",
+                        px: 2,
+                        "&:hover": {
+                          backgroundColor: "#fee2e2",
+                          borderColor: "#dc2626",
+                          color: "#dc2626",
+                        },
+                      }}
                     >
                       Reject
                     </Button>
@@ -328,8 +355,8 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                       variant="contained"
                       onClick={() => handleAllowLogin(id, rows?.[tableMeta?.rowIndex])}
                       sx={{
-                        backgroundColor: "#800080",
-                        "&:hover": { backgroundColor: "#660066" },
+                        backgroundColor: "#2563eb",
+                        "&:hover": { backgroundColor: "#1d4ed8" },
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -376,12 +403,14 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
             ) : rows.length === 0 ? (
               <Alert severity="info">No AIS-140 device manufacturer requests found.</Alert>
             ) : (
-              <DynamicDatatables
-                tableTitle="AIS-140 Device Manufacturer Registration Requests"
-                rows={rows}
-                columns={manufacturerColumns.concat(actionColumn)}
-                options={tableOptions}
-              />
+              <ThemeProvider theme={tableTheme}>
+                <DynamicDatatables
+                  tableTitle="AIS-140 Device Manufacturer Registration Requests"
+                  rows={rows}
+                  columns={manufacturerColumns.concat(actionColumn)}
+                  options={tableOptions}
+                />
+              </ThemeProvider>
             )}
           </Paper>
         </Grid>

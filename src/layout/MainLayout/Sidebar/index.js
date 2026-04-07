@@ -13,16 +13,65 @@ import MenuList from './MenuList';
 import LogoSection from '../LogoSection';
 import { drawerWidth } from '../../../store/constant';
 
+// helper to get role
+const getUserRole = () => {
+  try {
+    const userData =
+      sessionStorage.getItem('cookiesData') ||
+      localStorage.getItem('cookiesData');
+
+    if (!userData) return 'default';
+
+    const data = userData.split('-');
+    return data[1]; // role
+  } catch (err) {
+    return 'default';
+  }
+};
+
+// ROLE BASED THEMES
+const roleThemes = {
+  superadmin: {
+    gradient: '#0F172A',
+
+  },
+  stateadmin: {
+    gradient: '#064E3B',
+
+  },
+  dealer: {
+    gradient: '#7C2D12',
+
+  },
+  devicemanufacture: {
+    gradient: '#1F2937',
+
+  },
+  esimprovider: {
+    gradient: '#7F1D1D',
+
+  },
+  default: {
+    gradient: '#111827',
+
+  }
+};
+
+
 // ==============================|| SIDEBAR DRAWER ||============================== //
 
 const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
   const theme = useTheme();
   const matchUpMd = useMediaQuery(theme.breakpoints.up('md'));
 
+
+  const role = getUserRole();
+  const currentTheme = roleThemes[role] || roleThemes.default;
+
   const drawer = (
     <>
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-        <Box sx={{ display: 'flex', p: 2, mx: 'auto' }}>
+        <Box sx={{ display: 'flex', p: 0, mx: 0 }}>
           <LogoSection />
         </Box>
       </Box>
@@ -52,18 +101,26 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
     <Box component="nav" sx={{ flexShrink: { md: 0 }, width: matchUpMd ? drawerWidth : 'auto' }} aria-label="mailbox folders">
       <Drawer
         container={container}
-        variant={matchUpMd ? 'persistent' : 'permanent'}
+        variant={matchUpMd ? 'persistent' : 'temporary'}
         anchor="left"
         open={drawerOpen}
         onClose={drawerToggle}
         sx={{
           '& .MuiDrawer-paper': {
             width: drawerWidth,
-            background: theme.palette.background.default,
-            color: theme.palette.text.primary,
-            borderRight: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            //  ROLE BASED BACKGROUND
+            background: currentTheme.gradient,
+            position: 'fixed',
+            overflow: 'hidden',
+            color: "#ffffff",
+            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            borderRight: '1px solid rgba(255,255,255,0.05)',
+
             [theme.breakpoints.up('md')]: {
-              top: '88px'
+              top: '65px',
+              height: 'calc(100vh - 88px)'
             },
             [theme.breakpoints.down('md')]: {
               position: 'fixed',
@@ -81,7 +138,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
           disableScrollLock: true,
           disableEnforceFocus: true,
           disableAutoFocus: true,
-          hideBackdrop: true
+          // hideBackdrop: true
         }}
         color="inherit"
       >

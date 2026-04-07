@@ -748,10 +748,10 @@ const AlertReport = () => {
                   '& .MuiDataGrid-cell': {
                     borderBottom: '1px solid #e0e0e0'
                   },
-                  '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: '#f5f5f5',
-                    borderBottom: '2px solid #e0e0e0'
-                  }
+                  // '& .MuiDataGrid-columnHeaders': {
+                  //   backgroundColor: '#f5f5f5',
+                  //   borderBottom: '2px solid #e0e0e0'
+                  // }
                 }
               }}>
                 <DataGrid
@@ -767,14 +767,30 @@ const AlertReport = () => {
                   paginationMode="server"
                   disableSelectionOnClick
                   getRowHeight={() => 'auto'}
+                  // sx={{
+
+                  //   '& .MuiDataGrid-columnHeader': {
+                  //     padding: '8px',
+                  //     fontWeight: 'bold'
+                  //   }
+                  // }}
                   sx={{
                     '& .MuiDataGrid-cell': {
                       padding: '8px',
                       alignItems: 'center'
                     },
-                    '& .MuiDataGrid-columnHeader': {
-                      padding: '8px',
-                      fontWeight: 'bold'
+                    '& .MuiDataGrid-row:nth-of-type(even)': {
+                      backgroundColor: '#f8fafc',
+                    },
+                    '& .MuiDataGrid-row:nth-of-type(odd)': {
+                      backgroundColor: '#ffffff',
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      backgroundColor: '#e2e8f0',
+                    },
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: '#0f172a',
+                      color: '#fff',
                     }
                   }}
                 />

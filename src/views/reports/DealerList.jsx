@@ -13,6 +13,8 @@ import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { getRole } from '../../helper';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const DealerList = () => {
   const { t } = useTranslation();
@@ -71,6 +73,7 @@ const DealerList = () => {
         <PageHeader title={t('dealer.reportTitle')} />
       </Grid>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {dealers.length >= 1 && (
           <DynamicDatatables
             tableTitle={t('dealer.listTitle')}
@@ -79,6 +82,7 @@ const DealerList = () => {
             helperText="Timestamps are in GMT/UTC."
           />
         )}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );

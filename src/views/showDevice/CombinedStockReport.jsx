@@ -4,6 +4,8 @@ import MainCard from '../../ui-component/cards/MainCard';
 import StockServices from '../../services/StockServices';
 import CustomLoader from '../../ui-component/CustomLoader';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const CombinedStockReport = () => {
   const [loading, setLoading] = useState(true);
@@ -257,6 +259,7 @@ const CombinedStockReport = () => {
     <MainCard title="Device Report">
       <Grid container spacing={2}>
         <Grid item xs={12}>
+          <ThemeProvider theme={tableTheme}>
           {loading ? (
             <CustomLoader />
           ) : (
@@ -267,6 +270,7 @@ const CombinedStockReport = () => {
               tableTitle=""
             />
           )}
+          </ThemeProvider>
         </Grid>
       </Grid>
     </MainCard>

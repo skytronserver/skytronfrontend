@@ -120,7 +120,7 @@ function Home() {
         spacing={3}
         justifyContent="center"
         alignItems="center"
-        sx={{ height: "80vh" }}
+        sx={{ minHeight: "80vh" }}
       >
         <Grid
           item
@@ -139,8 +139,7 @@ function Home() {
               backdropFilter: "blur(18px)",
               background: "rgba(255,255,255,0.08)",
               border: "1px solid rgba(255,255,255,0.2)",
-              color: "#fff",
-              transition: "all 0.3s ease",
+              transition: "all 0.3s ease", 
               "&:hover": {
                 transform: "translateY(-6px)",
                 boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
@@ -180,7 +179,6 @@ function Home() {
                   fullWidth
                   margin="normal"
                   sx={{
-                    input: { color: "#fff" },
                     label: { color: "#bbb" },
                     "& .MuiOutlinedInput-root": {
                       "& fieldset": { borderColor: "#555" },
@@ -235,7 +233,6 @@ function Home() {
                     ),
                   }}
                   sx={{
-                    input: { color: "#fff" },
                     label: { color: "#bbb" },
                   }}
                 />

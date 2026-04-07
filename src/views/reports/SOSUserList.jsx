@@ -12,6 +12,9 @@ import {SOSAdminList} from "../../actions/commonDataActions";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
+
 
 const SOSUserList = () => {
   const { t } = useTranslation();
@@ -63,6 +66,7 @@ const SOSUserList = () => {
         <PageHeader title={t('sos.listTitle')} />
       </Grid>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {sosUsers.length >= 1 && (
           <DynamicDatatables
             tableTitle={t('sos.listTitle')}
@@ -71,6 +75,7 @@ const SOSUserList = () => {
             helperText="Timestamps are in GMT/UTC."
           />
         )}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );

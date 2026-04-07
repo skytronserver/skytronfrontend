@@ -5,6 +5,8 @@ import PageHeader from "../../ui-component/cards/PageHeader";
 import { gridSpacing } from "../../store/constant";
 import StockServices from '../../services/StockServices';
 import { useEffect, useState } from 'react';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 //Datatables
 import { useSelector, useDispatch } from 'react-redux'
 import { getDeviceListAvailable } from '../../actions/stockActions';
@@ -88,6 +90,7 @@ const AvailableForSale = () => {
 
   const columns = role !== 'devicemanufacture' ? availableForSalesColumn : availableForSalesColumn;
   return (
+    <ThemeProvider theme={tableTheme}>
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
         <PageHeader title={t('device.reportTitle')} />
@@ -96,6 +99,7 @@ const AvailableForSale = () => {
         {load && <DynamicDatatables tableTitle={t('device.availableDevices')} rows={availableDeviceList} columns={columns} />}
       </Grid>
     </Grid>
+    </ThemeProvider>
   );
 }
 

@@ -499,12 +499,16 @@ const Details = () => {
                           disabled={loadingAction}
                           onClick={handleResendOtp}
                           sx={{
-                            borderColor: "#800080",
-                            color: "#800080",
-                            whiteSpace: "nowrap",
+                            borderRadius: "6px",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            borderColor: "#f59e0b",
+                            color: "#f59e0b",
+                            px: 2,
                             "&:hover": {
-                              borderColor: "#660066",
-                              color: "#660066",
+                              backgroundColor: "#fff7ed",
+                              borderColor: "#d97706",
+                              color: "#d97706",
                             },
                           }}
                         >
@@ -520,8 +524,19 @@ const Details = () => {
                             color="error"
                             disabled={loadingAction}
                             onClick={handleServiceProviderReject}
-                            sx={{ whiteSpace: "nowrap" }}
-                          >
+                            sx={{
+                              borderRadius: "6px",
+                              textTransform: "none",
+                              fontWeight: 600,
+                              borderColor: "#ef4444",
+                              color: "#ef4444",
+                              px: 2,
+                              "&:hover": {
+                                backgroundColor: "#fee2e2",
+                                borderColor: "#dc2626",
+                                color: "#dc2626",
+                              },
+                            }}                          >
                             Reject
                           </Button>
                           <Button
@@ -530,8 +545,8 @@ const Details = () => {
                             disabled={loadingAction}
                             onClick={handleServiceProviderAccept}
                             sx={{
-                              backgroundColor: "#800080",
-                              "&:hover": { backgroundColor: "#660066" },
+                              backgroundColor: "#2563eb",
+                              "&:hover": { backgroundColor: "#1d4ed8" },
                               whiteSpace: "nowrap",
                             }}
                           >
@@ -547,12 +562,16 @@ const Details = () => {
                           disabled={loadingAction}
                           onClick={handleManufacturerAllowAddDealer}
                           sx={{
-                            borderColor: "#800080",
-                            color: "#800080",
-                            whiteSpace: "nowrap",
+                            borderRadius: "6px",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            px: 2,
+                            borderColor: "#7c3aed", // 🟣 violet
+                            color: "#7c3aed",
                             "&:hover": {
-                              borderColor: "#660066",
-                              color: "#660066",
+                              backgroundColor: "#f5f3ff",
+                              borderColor: "#6d28d9",
+                              color: "#6d28d9",
                             },
                           }}
                         >
@@ -566,8 +585,19 @@ const Details = () => {
                             color="error"
                             disabled={loadingAction}
                             onClick={handleManufacturerReject}
-                            sx={{ whiteSpace: "nowrap" }}
-                          >
+                            sx={{
+                              borderRadius: "6px",
+                              textTransform: "none",
+                              fontWeight: 600,
+                              borderColor: "#ef4444",
+                              color: "#ef4444",
+                              px: 2,
+                              "&:hover": {
+                                backgroundColor: "#fee2e2",
+                                borderColor: "#dc2626",
+                                color: "#dc2626",
+                              },
+                            }}                          >
                             Reject
                           </Button>
                           <Button
@@ -576,8 +606,8 @@ const Details = () => {
                             disabled={loadingAction}
                             onClick={handleManufacturerAllowLogin}
                             sx={{
-                              backgroundColor: "#800080",
-                              "&:hover": { backgroundColor: "#660066" },
+                              backgroundColor: "#2563eb",
+                              "&:hover": { backgroundColor: "#1d4ed8" },
                               whiteSpace: "nowrap",
                             }}
                           >

@@ -410,7 +410,7 @@ const ErssVehicleMap = ({ vehicles, selectedDistrict, selectedType, onSelectClus
           '& .ol-attribution': { display: 'none' }
         }}
       />
-      <img
+      {/* <img
         src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
         style={{
           position: 'absolute',
@@ -422,7 +422,7 @@ const ErssVehicleMap = ({ vehicles, selectedDistrict, selectedType, onSelectClus
           opacity: 0.8
         }}
         alt="Skytron Logo"
-      />
+      /> */}
     </Box>
   );
 };
@@ -577,7 +577,7 @@ const ERSSVehiclesDashboard = () => {
 
   return (
     <PageWrapper
-      title="Skytron – ERSS Vehicles Monitoring"
+      title="Mapwala – ERSS Vehicles Monitoring"
       description="Ambulance & Police live monitoring across districts (dummy data)."
       sx={{
         bgcolor: tokens.pageBg,

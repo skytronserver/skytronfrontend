@@ -523,12 +523,29 @@ const IncidentReport = () => {
                                         '& .MuiDataGrid-virtualScroller': {
                                             overflowY: 'auto'
                                         },
-                                        '& .MuiDataGrid-columnHeaders': {
-                                            backgroundColor: '#fff'
-                                        },
+                                        // '& .MuiDataGrid-columnHeaders': {
+                                        //     backgroundColor: '#fff'
+                                        // },
                                         '& .MuiDataGrid-columnHeaderTitle': {
-                                            color: '#1976d2',
+                                            // color: '#1976d2',
                                             fontWeight: 'bold'
+                                        },
+                                        '& .MuiDataGrid-cell': {
+                                            padding: '8px',
+                                            alignItems: 'center'
+                                        },
+                                        '& .MuiDataGrid-row:nth-of-type(even)': {
+                                            backgroundColor: '#f8fafc',
+                                        },
+                                        '& .MuiDataGrid-row:nth-of-type(odd)': {
+                                            backgroundColor: '#ffffff',
+                                        },
+                                        '& .MuiDataGrid-row:hover': {
+                                            backgroundColor: '#e2e8f0',
+                                        },
+                                        '& .MuiDataGrid-columnHeaders': {
+                                            backgroundColor: '#0f172a',
+                                            color: '#fff',
                                         }
                                     }}
                                 />

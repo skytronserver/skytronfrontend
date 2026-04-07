@@ -2744,7 +2744,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                         )}
                         {showLogos && (
                             <>
-                                <img
+                                {/* <img
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
@@ -2756,7 +2756,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                                         backgroundColor: "transparent",
                                     }}
                                     alt="Skytron Logo"
-                                />
+                                /> */}
                             </>
                         )}
                     </div>
@@ -2799,7 +2799,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                         )}
                         {showLogos && (
                             <>
-                                <img
+                                {/* <img
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
@@ -2811,7 +2811,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                                         backgroundColor: "transparent",
                                     }}
                                     alt="Skytron Logo"
-                                />
+                                /> */}
                             </>
                         )}
                     </div>
@@ -2854,7 +2854,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                         )}
                         {showLogos && (
                             <>
-                                <img
+                                {/* <img
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
@@ -2866,7 +2866,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                                         backgroundColor: "transparent",
                                     }}
                                     alt="Skytron Logo"
-                                />
+                                /> */}
                             </>
                         )}
                     </div>

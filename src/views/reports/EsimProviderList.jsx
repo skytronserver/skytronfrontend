@@ -10,6 +10,8 @@ import {serviceProviderCol} from '../../datatables/rowsColumn';
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const EsimProviderList = () => {
   const { t } = useTranslation();
@@ -61,7 +63,9 @@ const EsimProviderList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
+          <ThemeProvider theme={tableTheme}>
         {load && <DynamicDatatables tableTitle={t('esim.serviceProviderTitle')} rows={serviceProvider} columns={serviceProviderCol.concat(actionColumn)} helperText="Timestamps are in GMT/UTC."/>}
+        </ThemeProvider>
         </Grid>
     </Grid>
   );

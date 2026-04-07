@@ -10,6 +10,8 @@ import TextField from "@mui/material/TextField";
 import { gridSpacing } from "../../store/constant";
 import StockServices from '../../services/StockServices';
 import { useEffect,useState } from 'react';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 //Datatables
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import {taggedColumn} from '../../datatables/deviceColumns';
@@ -211,7 +213,9 @@ const TaggedList = () => {
   return (
     <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
+          <ThemeProvider theme={tableTheme}>
         {load && <DynamicDatatables tableTitle={t('tagged.title')} rows={tagged} columns={columns} helperText="Timestamps are in GMT/UTC."/>}
+        </ThemeProvider>
         </Grid>
 
         <Dialog open={updateDialog.open} onClose={closeUpdateDialog} fullWidth maxWidth="sm">

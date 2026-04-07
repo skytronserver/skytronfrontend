@@ -29,6 +29,8 @@ import {
 import MainCard from '../../ui-component/cards/MainCard';
 import { gridSpacing } from '../../store/constant';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 // Icons
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
@@ -192,6 +194,7 @@ const SchoolBusDashboard = () => {
 
                 {/* Active Trips Monitor Table */}
                 <Grid item xs={12} md={8}>
+                    <ThemeProvider theme={tableTheme}>
                     <MainCard title="Active Trip Monitor">
                         <DynamicDatatables
                             tableTitle="Live Tracking Overview"
@@ -208,6 +211,7 @@ const SchoolBusDashboard = () => {
                             }}
                         />
                     </MainCard>
+                    </ThemeProvider>
                 </Grid>
 
                 {/* Quick Links / System Info */}

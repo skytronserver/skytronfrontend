@@ -10,6 +10,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const ApiDataLog = () => {
     const { t } = useTranslation();
@@ -368,6 +370,7 @@ const ApiDataLog = () => {
                                 {t('common.pageInfo', { page: page + 1, rowsPerPage, total: totalCount })}
                             </small>
                         </Box>
+                        <ThemeProvider theme={tableTheme}>
                         <DynamicDatatables
                             tableTitle={t('apiData.title')}
                             rows={data}
@@ -375,6 +378,7 @@ const ApiDataLog = () => {
                             options={options}
                             helperText="Timestamps are in GMT/UTC."
                         />
+                        </ThemeProvider>
                     </Box>
                 )}
             </Grid>

@@ -57,15 +57,15 @@ const UserStatisticsReport = () => {
       sortable: true,
       renderCell: (params) => {
         const role = params.row?.role || 'Unknown';
-        const color = role === 'superadmin' ? 'error' : 
-                     role === 'stateadmin' ? 'warning' : 
-                     role === 'dealer' ? 'info' : 
-                     role === 'devicemanufacture' ? 'secondary' :
-                     role === 'owner' ? 'success' :
-                     role === 'sosadmin' ? 'primary' :
-                     role === 'sosexecutive' ? 'primary' :
-                     role === 'dtorto' ? 'warning' :
-                     role === 'esimprovider' ? 'info' : 'default';
+        const color = role === 'superadmin' ? 'error' :
+          role === 'stateadmin' ? 'warning' :
+            role === 'dealer' ? 'info' :
+              role === 'devicemanufacture' ? 'secondary' :
+                role === 'owner' ? 'success' :
+                  role === 'sosadmin' ? 'primary' :
+                    role === 'sosexecutive' ? 'primary' :
+                      role === 'dtorto' ? 'warning' :
+                        role === 'esimprovider' ? 'info' : 'default';
         return <Chip label={role} color={color} size="small" />;
       }
     },
@@ -107,7 +107,7 @@ const UserStatisticsReport = () => {
     setError('');
     try {
       const response = await showDeviceApi.getUserStatistics();
-      
+
       if (response.data) {
         // The API returns statistics directly, not a list of users
         const stats = {
@@ -127,9 +127,9 @@ const UserStatisticsReport = () => {
           online_users_by_role: response.data.online_users_by_role || {},
           active_sessions_by_role: response.data.active_sessions_by_role || {}
         };
-        
+
         setUserStats(stats);
-        
+
         const roleData = createRoleData(stats.users_by_role, stats.total_registered_users);
         const loggedInRoleData = createRoleData(stats.logged_in_users_by_role, stats.currently_logged_in_registered_users);
         const onlineRoleData = createRoleData(stats.online_users_by_role, stats.online_registered_users);
@@ -391,7 +391,7 @@ const UserStatisticsReport = () => {
               >
                 Refresh Data
               </Button>
-              
+
               <Tooltip title="Export to CSV">
                 <Button
                   variant="outlined"
@@ -430,13 +430,30 @@ const UserStatisticsReport = () => {
                   '& .MuiDataGrid-root': {
                     border: 'none',
                   },
+                  // '& .MuiDataGrid-cell': {
+                  //   borderBottom: '1px solid #f0f0f0',
+                  // },
+                  // '& .MuiDataGrid-columnHeaders': {
+                  //   backgroundColor: '#fafafa',
+                  //   borderBottom: '1px solid #d0d0d0',
+                  // },
                   '& .MuiDataGrid-cell': {
-                    borderBottom: '1px solid #f0f0f0',
+                    padding: '8px',
+                    alignItems: 'center'
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(even)': {
+                    backgroundColor: '#f8fafc',
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(odd)': {
+                    backgroundColor: '#ffffff',
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    backgroundColor: '#e2e8f0',
                   },
                   '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: '#fafafa',
-                    borderBottom: '1px solid #d0d0d0',
-                  },
+                    backgroundColor: '#0f172a',
+                    color: '#fff',
+                  }
                 }}
               />
             </Paper>
@@ -461,13 +478,31 @@ const UserStatisticsReport = () => {
                   '& .MuiDataGrid-root': {
                     border: 'none',
                   },
+                  // '& .MuiDataGrid-cell': {
+                  //   borderBottom: '1px solid #f0f0f0',
+                  // },
+                  // '& .MuiDataGrid-columnHeaders': {
+                  //   backgroundColor: '#fafafa',
+                  //   borderBottom: '1px solid #d0d0d0',
+                  // },
                   '& .MuiDataGrid-cell': {
-                    borderBottom: '1px solid #f0f0f0',
+                    padding: '8px',
+                    alignItems: 'center'
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(even)': {
+                    backgroundColor: '#f8fafc',
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(odd)': {
+                    backgroundColor: '#ffffff',
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    backgroundColor: '#e2e8f0',
                   },
                   '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: '#fafafa',
-                    borderBottom: '1px solid #d0d0d0',
-                  },
+                    backgroundColor: '#0f172a',
+                    color: '#fff',
+                  }
+
                 }}
               />
             </Paper>
@@ -492,13 +527,31 @@ const UserStatisticsReport = () => {
                   '& .MuiDataGrid-root': {
                     border: 'none',
                   },
+                  // '& .MuiDataGrid-cell': {
+                  //   borderBottom: '1px solid #f0f0f0',
+                  // },
+                  // '& .MuiDataGrid-columnHeaders': {
+                  //   backgroundColor: '#fafafa',
+                  //   borderBottom: '1px solid #d0d0d0',
+                  // },
                   '& .MuiDataGrid-cell': {
-                    borderBottom: '1px solid #f0f0f0',
+                    padding: '8px',
+                    alignItems: 'center'
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(even)': {
+                    backgroundColor: '#f8fafc',
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(odd)': {
+                    backgroundColor: '#ffffff',
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    backgroundColor: '#e2e8f0',
                   },
                   '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: '#fafafa',
-                    borderBottom: '1px solid #d0d0d0',
-                  },
+                    backgroundColor: '#0f172a',
+                    color: '#fff',
+                  }
+
                 }}
               />
             </Paper>
@@ -523,13 +576,31 @@ const UserStatisticsReport = () => {
                   '& .MuiDataGrid-root': {
                     border: 'none',
                   },
+                  // '& .MuiDataGrid-cell': {
+                  //   borderBottom: '1px solid #f0f0f0',
+                  // },
+                  // '& .MuiDataGrid-columnHeaders': {
+                  //   backgroundColor: '#fafafa',
+                  //   borderBottom: '1px solid #d0d0d0',
+                  // },
                   '& .MuiDataGrid-cell': {
-                    borderBottom: '1px solid #f0f0f0',
+                    padding: '8px',
+                    alignItems: 'center'
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(even)': {
+                    backgroundColor: '#f8fafc',
+                  },
+                  '& .MuiDataGrid-row:nth-of-type(odd)': {
+                    backgroundColor: '#ffffff',
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    backgroundColor: '#e2e8f0',
                   },
                   '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: '#fafafa',
-                    borderBottom: '1px solid #d0d0d0',
-                  },
+                    backgroundColor: '#0f172a',
+                    color: '#fff',
+                  }
+
                 }}
               />
             </Paper>

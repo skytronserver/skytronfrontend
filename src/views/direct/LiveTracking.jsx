@@ -26,12 +26,17 @@ import {
   Switch,
   FormControlLabel,
   Checkbox,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
-import MapComponent from "./LiveMap";
+//import MapComponent from "./LiveMap";
+import GoogleMapComponent from "./GoogleMapComponent";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -83,6 +88,106 @@ const LiveTracking = () => {
   const fullRawRef = useRef([]);  // raw items from API (unprocessed)
   const listContainerRef = useRef(null);
   const [visibleCount, setVisibleCount] = useState(0);
+  // NEW STATE
+  const [vehicleOptions, setVehicleOptions] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef();
+  const debounceRef = useRef();
+  const [manualSearch, setManualSearch] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+
+  // FETCH VEHICLE LIST (Debounced)
+  const fetchVehicleDropdown = async (value) => {
+    try {
+      const res = await HomePageService.getVehicleList({
+        vehicle_no: value
+      });
+
+      const list =
+        res?.data?.data ||
+        res?.data?.results ||
+        res?.data ||
+        [];
+
+      //  FILTER
+      const filtered = list.filter((item) => {
+        const val =
+          typeof item === "string"
+            ? item.toLowerCase()
+            : (item.vehicle_registration_number || item.regno || "").toLowerCase();
+
+        return val.includes(value.toLowerCase());
+      });
+
+      //  EXACT MATCH → AUTO SELECT
+      const exactMatch = filtered.find(
+        (item) =>
+          (typeof item === "string"
+            ? item
+            : item.vehicle_registration_number || item.regno
+          ).toLowerCase() === value.toLowerCase()
+      );
+
+      if (exactMatch) {
+        const vehicle =
+          typeof exactMatch === "string"
+            ? exactMatch
+            : exactMatch.vehicle_registration_number || exactMatch.regno;
+
+        handleSelectVehicle(vehicle);
+        return;
+      }
+
+      // LIMIT RESULTS
+      setVehicleOptions(filtered.slice(0, 8));
+      setDropdownOpen(filtered.length > 0);
+
+    } catch (err) {
+      console.error("Dropdown API error", err);
+    }
+  };
+
+  // HANDLE INPUT
+  const handleVehicleSearch = (e) => {
+    const value = e.target.value;
+    setVehicleNo(value);
+
+    clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(() => {
+      if (value.length >= 2) {
+        fetchVehicleDropdown(value);
+      } else {
+        setDropdownOpen(false);
+        setVehicleOptions([]);
+      }
+    }, 300);
+  };
+
+  // SELECT VEHICLE
+  const handleSelectVehicle = (vehicle) => {
+    setVehicleNo(vehicle);
+    setDropdownOpen(false);
+    setVehicleOptions([]);
+
+    setSelectedId(null);
+    setManualSearch(true);
+
+    retriveMapData({
+      regno: vehicle
+    });
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -619,6 +724,7 @@ const LiveTracking = () => {
   // Triggered on form submit to fetch new data
   const handleSubmit = (event) => {
     event.preventDefault();
+    setManualSearch(false);
     const params = {
       imei: imeiNo,
       regno: vehicleNo,
@@ -647,6 +753,7 @@ const LiveTracking = () => {
   };
 
   useEffect(() => {
+    if (manualSearch) return;
     const params = {
       imei: imeiNo,
       regno: vehicleNo,
@@ -992,17 +1099,61 @@ const LiveTracking = () => {
                     alignItems="center"
                     gap={1}
                   >
-                    <TextField
-                      fullWidth
-                      label={t('liveTracking.vehicleRegistrationNo')}
-                      type="text"
-                      value={vehicleNo}
-                      name="vehicleNo"
-                      onChange={handleInput}
-                      variant="outlined"
-                      size="small"
-                      InputProps={{ sx: { borderRadius: 1 } }}
-                    />
+                    <Box ref={dropdownRef} position="relative" sx={{ width: "300px" }}>
+                      <TextField
+                        fullWidth
+                        label="Vehicle Registration No"
+                        value={vehicleNo}
+                        onChange={handleVehicleSearch}
+                        size="small"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px"
+                          }
+                        }}
+                      />
+
+                      {dropdownOpen && vehicleOptions.length > 0 && (
+                        <Paper
+                          elevation={4}
+                          sx={{
+                            position: "absolute",
+                            top: "105%",
+                            left: 0,
+                            width: "100%",
+                            maxHeight: 250,
+                            overflowY: "auto",
+                            zIndex: 9999,
+                            borderRadius: 2,
+                            boxShadow: "0px 6px 20px rgba(0,0,0,0.15)"
+                          }}
+                        >
+                          {vehicleOptions.map((item, index) => {
+                            const label =
+                              typeof item === "string"
+                                ? item
+                                : item.vehicle_registration_number || item.regno;
+
+                            return (
+                              <MenuItem
+                                key={`${label}-${index}`}
+                                onClick={() => handleSelectVehicle(label)}
+                                sx={{
+                                  fontSize: "14px",
+                                  padding: "10px 14px",
+                                  borderBottom: "1px solid #f0f0f0",
+                                  "&:hover": {
+                                    backgroundColor: "#e6f2ff"
+                                  }
+                                }}
+                              >
+                                {label}
+                              </MenuItem>
+                            );
+                          })}
+                        </Paper>
+                      )}
+                    </Box>
                     <Tooltip title="Toggle Advanced Filters">
                       <IconButton
                         onClick={() => setShowFilters(!showFilters)}
@@ -1167,95 +1318,39 @@ const LiveTracking = () => {
               </Grid>
             </Grid>
           </form>
-          <TableContainer
-            component={Paper}
-            className="table-container"
-            sx={{ maxHeight: '80vh', overflow: 'auto' }}
-            ref={listContainerRef}
-            onScroll={handleListScroll}
-          >
-            <Table>
-              {iconData && <TableHead>
-                <TableRow>
-                  {iconData.slice(0, 4).map((item, index) => (
-                    <TableCell
-                      key={index}
-                      onClick={() => filterByType(item.key)}
-                      className="tracking-icon"
-                      sx={{ backgroundColor: '#f5f5f5' }}
-                    >
-                      {item.iconUrl ? (
-                        <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
-                      ) : null}
+          {selectedId && focusedEntry && (
+            <Paper sx={{ p: 2, mt: 2, }}>
+              <Typography variant="h6">Vehicle Details</Typography>
 
-                      <Typography variant="caption" className="icon-text">
-                        {item.text}
+              <Grid container spacing={1}>
+                {Object.keys(keyMapping).slice(0, 5).map((key) => (
+                  <React.Fragment key={key}>
+                    <Grid item xs={5}>
+                      <Typography fontWeight="bold">
+                        {keyMapping[key]}
                       </Typography>
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  {iconData.slice(4, 8).map((item, index) => (
-                    <TableCell
-                      key={index}
-                      onClick={() => filterByType(item.key)}
-                      className="tracking-icon"
-                      sx={{ backgroundColor: '#f5f5f5' }}
-                    >
-                      {item.iconUrl ? (
-                        <img src={item.iconUrl} alt={item.text} style={{ width: '24px', height: '24px' }} />
-                      ) : null}
+                    </Grid>
+                    <Grid item xs={7}>
+                      <Typography>
+                        {getDisplayCellValue(focusedEntry, key)}
+                      </Typography>
+                    </Grid>
+                  </React.Fragment>
+                ))}
+              </Grid>
+              {/*  VIEW MORE BUTTON */}
+              <Box textAlign="right" mt={2}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setOpenModal(true)}
+                >
+                  View More
+                </Button>
+              </Box>
+            </Paper>
+          )}
 
-                      <Typography variant="caption" className="icon-text">
-                        {item.text}
-                      </Typography>
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              }
-              <TableBody>
-                {tableDataTop.length > 0 ? (
-                  tableDataTop.map(
-                    (row, index) =>
-                      checkType(typeFilter, row) && (
-                        <TableRow
-                          key={`${row.id || ''}-${index}`}
-                          className="table-row"
-                          sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
-                        >
-                          <TableCell
-                            colSpan={6}
-                            onClick={() => handleButtonClick(`vehicle-${row.imei}`)}
-                            className={`table-cell ${selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
-                              }`}
-                          >
-                            <Box display="flex" alignItems="center" gap={1}>
-                              <img
-                                src={
-                                  typeFilter === "default"
-                                    ? createIconPath("default", row?.device_tag_info?.category_info?.category)
-                                    : getIconStyle(row)
-                                }
-                                alt="status icon"
-                                style={{ width: '24px', height: '24px' }}
-                              />
-                              <Typography>{row.vehicle_registration_number}</Typography>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      )
-                  )
-                ) : (
-                  <TableRow key="no-data">
-                    <TableCell colSpan={6} style={{ textAlign: 'center' }}>
-                      <CircularProgress size="30px" title={t('liveTracking.noData')} />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
         </div>
 
         {/* HTML Content (iframe) */}
@@ -1274,158 +1369,55 @@ const LiveTracking = () => {
                 <MenuItem value="route">Route Information</MenuItem>
               </Select>
             </FormControl>
-            <FormControlLabel
-              sx={{ ml: 2 }}
-              control={
-                <Switch
-                  color="primary"
-                  checked={useOldGeocodingApi}
-                  onChange={(event) => {
-                    const enabled = event.target.checked;
-                    setUseOldGeocodingApi(enabled);
-                    setUseOldGeocodingApiState(enabled);
-                  }}
-                />
-              }
-              label="Old Geocoding API"
-            />
-            <FormControlLabel
-              sx={{ ml: 2 }}
-              control={
-                <Switch
-                  color="primary"
-                  checked={useNmrLocation}
-                  onChange={async (event) => {
-                    const enabled = event.target.checked;
-                    setUseNmrLocation(enabled);
-
-                    // When turning OFF, revert to latest GNSS for selected vehicle
-                    if (!enabled) {
-                      // Clear NMR area so circle disappears
-                      setNmrArea(null);
-                      if (selectedId) {
-                        await refreshSelectedVehicle();
-                      }
-                      return;
-                    }
-
-                    // Require a focused entry to apply manual NMR
-                    if (!focusedEntry) {
-                      return;
-                    }
-
-                    const mcc = focusedEntry.mcc;
-                    const mnc = focusedEntry.mnc;
-                    const lac = focusedEntry.lac;
-                    const cellId = focusedEntry.cell_id;
-
-                    if (!mcc || !mnc || !lac || !cellId) {
-                      return;
-                    }
-
-                    try {
-                      const payload = {
-                        mcc: String(mcc),
-                        mnc: String(mnc),
-                        lac: String(lac),
-                        cell_id: String(cellId),
-                      };
-                      const response = await HomePageService.getCellLocation(payload);
-                      const latValue =
-                        response?.data?.average_latitude ??
-                        response?.data?.lat ??
-                        response?.data?.latitude;
-                      const lonValue =
-                        response?.data?.average_longitude ??
-                        response?.data?.lon ??
-                        response?.data?.lng ??
-                        response?.data?.longitude;
-
-                      const lat = Number(latValue);
-                      const lon = Number(lonValue);
-
-                      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-                        return;
-                      }
-
-                      // Set NMR circle radius to 0.5 km (~500 meters)
-                      setNmrArea({ latitude: lat, longitude: lon, radiusKm: 0.5 });
-                      const nmrEntry = { ...focusedEntry, latitude: lat, longitude: lon };
-                      setFilteredData([nmrEntry]);
-                      setFocusedEntry(nmrEntry);
-                    } catch (e) {
-                    }
-                  }}
-                />
-              }
-              label="Use NMR Location"
-            />
           </Box>
-
-          <MapComponent
+          <GoogleMapComponent
             gpsData={filteredData}
             policeData={policeLocations}
-            incidentData={incidentData}
             onVehicleClick={handleVehicleMarkerClick}
-            width="100%"
             height={selectedId ? "400px" : "600px"}
-            onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
             focusEntry={focusedEntry}
-            markerLabelMode={markerLabelMode}
             nmrArea={nmrArea}
-            allMode={typeFilter === "default"}
           />
         </div>
       </div>
+      <Dialog
+        open={openModal}
+        onClose={() => setOpenModal(false)} //  outside click close
+        maxWidth="sm"
+        fullWidth
+      >
+        {/* HEADER */}
+        <DialogTitle sx={{ display: "flex", justifyContent: "space-between" }}>
+          Vehicle Full Details
 
-      {selectedId && (
-        <TableContainer component={Paper} className="skytron-table-container" sx={{ mt: 2, maxHeight: '400px' }}>
-          <Table stickyHeader className="skytron-table">
-            <TableHead>
-              <TableRow>
-                {Object.keys(keyMapping).map((key) => (
-                  <TableCell
-                    key={key}
-                    className="skytron-table-header-cell"
-                    sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
-                  >
-                    {keyMapping[key]}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredData.length > 0 ? (
-                filteredData.map((row, rowIndex) => (
-                  <TableRow
-                    key={`filtered-${row.id || ''}-${rowIndex}`}
-                    className="skytron-table-row"
-                    sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
-                  >
-                    {Object.keys(keyMapping).map((key, cellIndex) => (
-                      <TableCell
-                        key={`cell-${key}-${cellIndex}`}
-                        className="skytron-table-cell"
-                      >
-                        {getDisplayCellValue(row, key)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow key="no-filtered-data">
-                  <TableCell
-                    colSpan={Object.keys(keyMapping).length}
-                    className="skytron-no-data-cell"
-                  >
-                    {t('liveTracking.noData')}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+          <IconButton onClick={() => setOpenModal(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent dividers>
+          {focusedEntry && (
+            <Grid container spacing={2}>
+              {Object.keys(keyMapping).map((key) => (
+                <React.Fragment key={key}>
+                  <Grid item xs={5}>
+                    <Typography fontWeight="bold">
+                      {keyMapping[key]}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={7}>
+                    <Typography>
+                      {getDisplayCellValue(focusedEntry, key)}
+                    </Typography>
+                  </Grid>
+                </React.Fragment>
+              ))}
+            </Grid>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </MainCard>
   );
 };

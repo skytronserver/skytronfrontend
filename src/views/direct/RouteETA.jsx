@@ -1434,7 +1434,7 @@ const RouteETA = () => {
           </Box>
 
           {/* Logos */}
-          <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '50px', width: 'auto', zIndex: 1, backgroundColor: 'transparent' }} alt="Skytron" />
+          {/* <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, height: '50px', width: 'auto', zIndex: 1, backgroundColor: 'transparent' }} alt="Skytron" /> */}
         </Box>
 
         {/* Legend - Absolute Bottom Left (above logos) */}

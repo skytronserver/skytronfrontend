@@ -17,6 +17,8 @@ import { requestList } from '../../../datatables/deviceColumns';
 import { useParams } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import AutoHideAlert from '../../../ui-component/AutoHideAlert';
+import tableTheme from "../../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
 
 const ListSimActivation = () => {
   const { t } = useTranslation();
@@ -290,6 +292,7 @@ const ListSimActivation = () => {
       </Dialog>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
+          <ThemeProvider theme={tableTheme}>
           {load && (
             <DynamicDatatables
               tableTitle={pageTitle}
@@ -297,6 +300,7 @@ const ListSimActivation = () => {
               columns={deviceStatus === 'pending' ? actionColumn.concat(requestList) : requestList}
             />
           )}
+          </ThemeProvider>
         </Grid>
       </Grid>
     </>

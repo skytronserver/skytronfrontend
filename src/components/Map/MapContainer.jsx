@@ -125,10 +125,10 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
 
   return (
     <div ref={mapElement} style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <img
+      {/* <img
         src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
         style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }}
-      />
+      /> */}
     </div>
   );
 }; 

@@ -7,6 +7,9 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SearchIcon from '@mui/icons-material/Search';
 import { useTranslation } from 'react-i18next';
+import tableTheme from "../../ui-component/customTableUi";
+import { ThemeProvider } from "@mui/material/styles";
+
 
 const ActivationLogReport = () => {
   const { t } = useTranslation();
@@ -122,6 +125,7 @@ const ActivationLogReport = () => {
         </form>
       </Grid>
       <Grid item xs={12}>
+        <ThemeProvider theme={tableTheme}>
         {!loading && (
           <DynamicDatatables
             tableTitle="Activation Log Report"
@@ -131,6 +135,7 @@ const ActivationLogReport = () => {
             helperText="Timestamps are in GMT/UTC."
           />
         )}
+        </ThemeProvider>
       </Grid>
     </Grid>
   );
