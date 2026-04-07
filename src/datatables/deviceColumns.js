@@ -295,6 +295,23 @@ export const taggedColumn = [
       },
     },
   },
+  {
+    name: "stock_status",
+    label: "Status",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => (
+        <p>
+          {value === "Not Assigned" || value === null ? (
+            <span style={{ color: "red" }}>Not Assigned</span>
+          ) : (
+            <span style={{ color: "green" }}>{value}</span>
+          )}
+        </p>
+      ),
+    },
+  },
 ];
 
 export const requestList = [

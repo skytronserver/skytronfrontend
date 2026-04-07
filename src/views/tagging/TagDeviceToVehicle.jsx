@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { gridSpacing } from "../../store/constant";
 import TaggingService from "../../services/TaggingService";
 import HomePageService from "../../services/HomePage";
+import StockServices from "../../services/StockServices";
 import * as Yup from "yup";
 import axios from "axios";
 import FormField from "../../ui-component/CustomTextField";
@@ -279,7 +280,12 @@ function TagDeviceToVehicle() {
   useEffect(() => {
     if (activeStep === 2) {
       getVahanDetail();
-    } else if (activeStep === 3 || activeStep === 5 || activeStep === 9) {
+    } else if (activeStep === 3) {
+      if (deviceId) {
+        handleResendOtp("dealer");
+      }
+      setResendTimer(180);
+    } else if (activeStep === 5 || activeStep === 9) {
       setResendTimer(180);
     } else if (activeStep === 4) {
       sendOwnerOtp("owner");
@@ -517,7 +523,6 @@ function TagDeviceToVehicle() {
 
     const poll = async () => {
       try {
-        setLoading((prev) => ({ ...prev, loader: true }));
         const response = await HomePageService.getGpsDataLog({ search: getMap.imei });
         let logs = [];
         const rawData = response?.data?.data;
@@ -586,8 +591,6 @@ function TagDeviceToVehicle() {
         }
       } catch (error) {
         console.error("Polling error:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, loader: false }));
       }
     };
 
@@ -628,7 +631,18 @@ function TagDeviceToVehicle() {
       delete apiValues.vehicle_number;
       const response = await TaggingService.tagDeviceToVehicle(apiValues);
       resetForm(taggingInitials);
-      setDeviceId(response?.data?.data?.device);
+      const newDeviceId = response?.data?.data?.device;
+      setDeviceId(newDeviceId);
+      
+      // Mark device as fitted after tagging
+      if (newDeviceId) {
+        try {
+          await StockServices.sellFitDevice(newDeviceId);
+        } catch (fitError) {
+          console.error("Error marking device as fitted:", fitError);
+        }
+      }
+
       setActiveStep(prevActiveStep => prevActiveStep + 1);
       setResendTimer(180);
       setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'Successfully OTP has been sent to your registered mobile number', type: 'success' }));
@@ -1168,14 +1182,12 @@ function TagDeviceToVehicle() {
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  {mapLoaded && (
-                    <MapComponent
-                      gpsData={htmlContent?.data}
-                      width="100%"
-                      height="600px"
-                      autoFit={true}
-                    />
-                  )}
+                  <MapComponent
+                    gpsData={htmlContent?.data}
+                    width="100%"
+                    height="600px"
+                    autoFit={true}
+                  />
                 </Grid>
               </Grid>
             )}

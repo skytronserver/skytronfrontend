@@ -68,7 +68,7 @@ const ListSimActivation = () => {
       }
     };
     retrieveList();
-  }, [deviceStatus]);
+  }, [deviceStatus, reload]);
 
   useEffect(() => {
     const fetchOtaFilter = async () => {

@@ -54,10 +54,12 @@ const StateAdminCOPModelView = () => {
   const [showOTP, setShowOTP] = useState(false);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(true);
+  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState(null);
   const [openAlert, setOpenAlert] = useState(false);
   const [alertType, setAlertType] = useState("success");
   const [message, setMessage] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
 
   /* custom helper functionality */
   const handleChange = (newValue) => {
@@ -110,6 +112,26 @@ const StateAdminCOPModelView = () => {
     }
   };
 
+  const handleResendOTP = async () => {
+    const deviceOTPData = {
+      device_model_id: deviceId,
+    };
+    try {
+      setResendLoading(true);
+      await OtpServices.AdminCOPDeviceSendOtp(deviceOTPData);
+      setResendTimer(180);
+      setOpenAlert(true);
+      setAlertType("success");
+      setMessage(t('copModelView.messages.otpSent'));
+    } catch (error) {
+      setOpenAlert(true);
+      setAlertType("error");
+      setMessage(t('copModelView.messages.internalError'));
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const handleOTPValidation = async (modelOtpData) => {
     try {
       const response = await OtpServices.AdminCOPDeviceVerifyOtp(modelOtpData);
@@ -150,6 +172,16 @@ const StateAdminCOPModelView = () => {
     };
     retrieveSingleItem();
   }, [dispatch, deviceId]);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
 
@@ -225,9 +257,9 @@ const StateAdminCOPModelView = () => {
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <strong>{t('copModelView.modelDetails.createdBy')}:</strong>
+                            <strong>{t('deviceModelView.modelDetails.manufacturerName')}:</strong>
                           </TableCell>
-                          <TableCell>{deviceDetails.created_by}</TableCell>
+                          <TableCell>{deviceDetails.manufacturer_details?.company_name || deviceDetails.created_by}</TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -240,7 +272,10 @@ const StateAdminCOPModelView = () => {
                       size="large"
                       type="submit"
                       variant="contained"
-                      onClick={handleSendOTP}
+                      onClick={() => {
+                        handleSendOTP();
+                        setResendTimer(180);
+                      }}
                     >
                       {t('copModelView.actions.verifyAndSendOtp')}
                     </Button>
@@ -259,17 +294,38 @@ const StateAdminCOPModelView = () => {
                 <Grid item xs={12} md={5}>
                   <MuiOtpInput value={otp} onChange={handleChange} length={6} />
                   <br />
-                  <Typography align="center">
-                    <Button
-                      color="primary"
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      onClick={handleOTPSubmit}
-                    >
-                      {t('copModelView.actions.verifyOtp')}
-                    </Button>
-                  </Typography>
+                    <Typography align="center" sx={{ mt: 2 }}>
+                      <Grid container spacing={1} justifyContent="center" alignItems="center">
+                        <Grid item>
+                          <Button
+                            color="primary"
+                            size="large"
+                            type="submit"
+                            variant="contained"
+                            onClick={handleOTPSubmit}
+                            sx={{ minWidth: 150 }}
+                          >
+                            {t('copModelView.actions.verifyOtp')}
+                          </Button>
+                        </Grid>
+                        <Grid item>
+                          {resendTimer > 0 ? (
+                            <Typography variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                              {t("auth.resendOtpIn", { seconds: resendTimer })}
+                            </Typography>
+                          ) : (
+                            <Button
+                              size="small"
+                              onClick={handleResendOTP}
+                              disabled={resendLoading}
+                              sx={{ textTransform: "none", ml: 1 }}
+                            >
+                              {t("auth.resend")}
+                            </Button>
+                          )}
+                        </Grid>
+                      </Grid>
+                    </Typography>
                 </Grid>
               )}
             </Grid>

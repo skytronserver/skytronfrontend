@@ -900,6 +900,7 @@ const MapComponent = ({
     const positionHistoryRef = useRef({}); // Format: { [imei]: [{lat, lng}, ...] }
     // Inside MapComponent, add this ref
     const activeFeaturesRef = useRef({}); // Format: { [imei]: FeatureObject }
+    const hasAutoFittedRef = useRef(false); 
 
     const [map, setMap] = useState(null);
     const [vectorLayer, setVectorLayer] = useState(null);
@@ -3846,7 +3847,8 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
         const allMarkers = [...(Array.isArray(gpsData) ? gpsData : []), ...(Array.isArray(policeData) ? policeData : [])];
 
         if (allMarkers.length > 0) {
-            // Clear the previous markers (Access inner source from Cluster)
+            // REDUNDANT MARKER LOGIC - Conflicts with animation effect at line 4866
+            /*
             const vectorSource = vectorLayer.getSource().getSource();
             vectorSource.clear();
 
@@ -3860,18 +3862,14 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                         return null;
                     }
 
-                    // Get vehicle type from entry data
                     const vehicleType = entry?.device_tag_info?.category_info?.category;
 
-
-                    // Create the marker feature
                     const markerFeature = new Feature({
                         geometry: new Point([longitude, latitude]),
-                        entryData: entry, // Store entry data for overlay
-                        vehicleType: vehicleType, // Store vehicle type on the feature
+                        entryData: entry,
+                        vehicleType: vehicleType,
                     });
 
-                    // Set the appropriate style for the marker with vehicle type
                     markerFeature.setStyle(
                         getIconStyle(entry, vehicleType, markerLabelMode, allMode)
                     );
@@ -3880,15 +3878,13 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 })
                 .filter(Boolean);
 
-            // Add all features (markers) to the vector layer
             vectorSource.addFeatures(features);
 
-            // Only auto-fit if autoFit prop is true and there are markers
             if (autoFit && features.length > 0) {
-                // Use Cluster source extent (which covers all features)
                 const extent = vectorLayer.getSource().getExtent();
                 map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
             }
+            */
 
             // Handle map click to display the overlay and zoom to street level or expand cluster
             const clickHandler = function (event) {
@@ -4274,119 +4270,6 @@ ${policeInfoRows || policeDetailsRows
                             map.getView().animate({ center: coordinates, duration: 300 });
                         }
                     }
-                }
-
-
-
-                if (false) {
-                    // Check if we can't separate them further (same duplicate location or max zoom)
-                    const currentZoom = map.getView().getZoom();
-                    const isSameLocation = features.every(f => {
-                        const c = f.getGeometry().getCoordinates();
-                        const c0 = features[0].getGeometry().getCoordinates();
-                        return c[0] === c0[0] && c[1] === c0[1];
-                    });
-
-                    if (currentZoom >= 16 || isSameLocation) {
-                        // Show list of vehicles
-                        let listHtml = `
-<div class="overlay-card" style="min-width: 260px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
-<div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
-<div class="overlay-title">${features.length} Vehicles Here</div>
-</div>
-<div class="overlay-body" style="padding: 0;">
-`;
-
-                        features.forEach(f => {
-                            const entry = f.get('entryData');
-                            if (!entry) return;
-
-                            const vehicleNum = entry.vehicle_registration_number || entry.imei || "Unknown";
-                            const speed = entry.speed > 0 ? `${entry.speed} km/h` : "Stopped";
-
-                            listHtml += `
-<div class="clustered-vehicle-row" style="padding: 10px; border-bottom: 1px solid #f3f4f6; cursor: pointer;">
-<div style="font-weight: 600; color: #111827; margin-bottom: 2px;">${vehicleNum}</div>
-<div style="font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
-<span>${speed}</span>
-<span>${entry.time || ""}</span>
-</div>
-</div>
-`;
-                        });
-
-                        listHtml += `</div></div>`;
-
-                        document.getElementById("overlay-content").innerHTML = listHtml;
-                        dynamicOverlay.setPosition(features[0].getGeometry().getCoordinates());
-                        dynamicOverlay.getElement().style.display = "block";
-                        return;
-                    }
-
-                    // Calculate extent of all features in cluster
-                    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                    features.forEach(f => {
-                        const coords = f.getGeometry().getCoordinates();
-                        if (coords[0] < minX) minX = coords[0];
-                        if (coords[0] > maxX) maxX = coords[0];
-                        if (coords[1] < minY) minY = coords[1];
-                        if (coords[1] > maxY) maxY = coords[1];
-                    });
-                    map.getView().fit([minX, minY, maxX, maxY], { padding: [100, 100, 100, 100], duration: 500 });
-                    return;
-                }
-
-                if (false) {
-                    const originalFeature = features[0];
-                    const entryData = originalFeature.get("entryData");
-                    const coordinates = originalFeature.getGeometry().getCoordinates();
-
-                    if (!entryData) return;
-
-                    const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-                    const alertType = entryData.packet_type || "NR";
-                    const alertClass =
-                        alertType === "NR" ? "overlay-pill--normal" : "overlay-pill--alert";
-
-                    // Set overlay content with styled card layout
-                    document.getElementById("overlay-content").innerHTML = `
-<div class="overlay-card">
-<div class="overlay-header">
-<div class="overlay-title">${entryData.vehicle_registration_number || "-"
-                        }</div>
-<div class="overlay-pill ${alertClass}">${alertType}</div>
-</div>
-<div class="overlay-body">
-<div class="overlay-row">
-<span class="overlay-label">Date</span>
-<span class="overlay-value">${entryData.date || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Time</span>
-<span class="overlay-value">${entryData.time || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Speed</span>
-<span class="overlay-value">${speedValue} km/h</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Battery</span>
-<span class="overlay-value">${entryData.internal_battery_voltage || "-"
-                        } - ${entryData.main_input_voltage || "-"}</span>
-</div>
-</div>
-</div>
-`;
-
-                    dynamicOverlay.setPosition(coordinates);
-                    dynamicOverlay.getElement().style.display = "block";
-
-                    // Zoom to street level when clicked (zoom level 18)
-                    map.getView().animate({
-                        center: coordinates,
-                        zoom: 18,
-                        duration: 500, // Animate the zoom for 500ms
-                    });
                 }
             };
 
@@ -4954,7 +4837,19 @@ useEffect(() => {
         }
     });
 
-}, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry]);
+    if (autoFit && allMarkers.length > 0 && !hasAutoFittedRef.current) {
+        const extent = vectorSource.getExtent();
+        // Check if extent is valid (not infinite)
+        if (extent && extent[0] !== Infinity) {
+            map.getView().fit(extent, { padding: [100, 100, 100, 100], maxZoom: 16, duration: 800 });
+            hasAutoFittedRef.current = true;
+        }
+    } else if (allMarkers.length === 0) {
+        // Reset the auto-fitted ref if data is cleared so next time we fit again
+        hasAutoFittedRef.current = false;
+    }
+
+}, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit]);
 
     useEffect(() => {
         if (!focusEntry) return;

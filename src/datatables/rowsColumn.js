@@ -35,7 +35,7 @@ export const showDeviceColumns = [
   { name: "telecom_provider2", label: "Telecom 2", options: { filter: false, sort: false } },
   { name: "msisdn1", label: "Primary MSISDN", options: { filter: false, sort: false } },
   { name: "msisdn2", label: "Fallback MSISDN", options: { filter: false, sort: false } },
-  { name: "assigned", label: "Status", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{value === null ? <span style={{ color: "red" }}>Not Assigned</span> : <span style={{ color: "green" }}>Assigned</span>}</p>) } },
+  { name: "stock_status", label: "Status", options: { filter: true, sort: false, customBodyRender: (value) => (<p>{value === "Not Assigned" || value === null ? <span style={{ color: "red" }}>Not Assigned</span> : <span style={{ color: "green" }}>{value}</span>}</p>) } },
   { name: "remarks", label: "Remarks", options: { filter: false, sort: false } },
   { name: "created_by", label: "Created By", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{value.name}</p>), csvExportKey: "name" } },
   { name: "created", label: "Created", options: { filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => (<p>{formatDate(value)}</p>) } },
@@ -507,12 +507,12 @@ export const deviceModelColumns = [
   { name: "hardware_version", label: "Hardware Version", options: { filter: false, sort: false } },
   { name: "status", label: "Status", options: { filter: false, sort: false } },
   {
-    name: "created_by", label: "Manufacturer Name", options: {
+    name: "manufacturer_details", label: "Manufacturer Name", options: {
       filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
         return (
-          <p>{value.name}</p>
+          <p>{value?.company_name || tableMeta.rowData?.[9]?.name || 'N/A'}</p>
         );
-      }, csvExportKey: "name"
+      }, csvExportKey: "company_name"
     }
   },
   { name: "created", label: "Created On", options: { filter: true, sort: false } },
@@ -522,7 +522,15 @@ export const deviceCOPModelColumns = [
   { name: "cop_no", label: "COP No", options: { filter: true, sort: false } },
   { name: "cop_file", label: "COP File", options: { filter: false, sort: false } },
   { name: "device_model", label: "Device Model", options: { filter: false, sort: false } },
-  { name: "created_by", label: "Created By", options: { filter: false, sort: false } },
+  {
+    name: "manufacturer_details", label: "Manufacturer Name", options: {
+      filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
+        return (
+          <p>{value?.company_name || tableMeta.rowData?.[4] || 'N/A'}</p>
+        );
+      }, csvExportKey: "company_name"
+    }
+  },
 ];
 export const callListColumn = [
   { name: "call_id", label: "ID", options: { filter: false, sort: false, display: false } },

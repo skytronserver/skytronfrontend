@@ -11,12 +11,22 @@ import { filterModelList ,retriveCreatedSimProvider, retriveTechnicalOnboardedMo
 import { bulkInitials, bulkFormField } from "../../formjson/bulkUpload";
 import StockServices from "../../services/StockServices";
 import { useState, useEffect } from "react";
+import DialogComponent from "../../ui-component/DialogComponent";
 
 const BulkUpload = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [updatedFormFields, setUpdatedFormField] = useState(bulkFormField);
-  const [isFormLoaded, setIsFormLoaded] = useState(false);
+   const [updatedFormFields, setUpdatedFormField] = useState(bulkFormField);
+   const [isFormLoaded, setIsFormLoaded] = useState(false);
+   const [open, setOpen] = useState(false);
+   const [alert, setAlert] = useState({
+     message: "",
+     errorList: [],
+   });
+
+   const handleClose = () => {
+     setOpen(false);
+   };
   useEffect(() => {
     (async () => {
       let modelOptions = await retriveTechnicalOnboardedModelList();
@@ -63,9 +73,28 @@ const BulkUpload = () => {
     try {
       const response = await StockServices.createBulkStock(values);
       setLoading(false);
-      resetForm(bulkInitials);
+      if (response.status === 200 || response.status === 201) {
+        let displayMessage = response.data.message || "Stocks uploaded successfully";
+        const successRows = response.data.success_rows || [];
+        
+        let finalAlertContent = `<strong>Message:</strong> ${displayMessage}`;
+        finalAlertContent += `<br/><strong>success_rows:</strong> [${successRows.join(", ")}]`;
+
+        setAlert({
+          message: finalAlertContent,
+          errorList: [],
+        });
+        setOpen(true);
+        resetForm(bulkInitials);
+      }
     } catch (error) {
       console.error("Error :", error.message);
+      setLoading(false);
+      setAlert({
+        message: error.response?.data?.message || "Failed to upload stocks",
+        errorList: [],
+      });
+      setOpen(true);
     }
   };
 
@@ -94,6 +123,12 @@ const BulkUpload = () => {
   };
   return (
     <MainCard title={t('bulkUploadForm.title')}>
+      <DialogComponent
+        open={open}
+        handleClose={handleClose}
+        message={alert.message}
+        errorList={alert.errorList}
+      />
       {isFormLoaded && (
         <Formik
           initialValues={bulkInitials}

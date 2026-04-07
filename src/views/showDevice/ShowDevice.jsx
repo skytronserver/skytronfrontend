@@ -51,19 +51,6 @@ const ShowDevice = () => {
     }
   };
 
-  const handleSell = async (e, id) => {
-    e.preventDefault();
-    const confirmed = window.confirm(t('device.confirmSell'));
-    if (confirmed) {
-      try {
-        // Add your API call to mark device as sold
-        console.log('Marking device as sold:', id);
-      } catch (error) {
-        console.error('Error marking device as sold:', error);
-      }
-    }
-  };
-
   const actionColumn = [
     {
       name: "Action",
@@ -82,15 +69,6 @@ const ShowDevice = () => {
                 onClick={(event) => handleMarkDefective(event, tableMeta.rowData[1])}
               >
                 {t('device.defective')}
-              </Button>
-              <Button
-                type="submit"
-                variant="outlined"
-                color="primary"
-                size="small"
-                onClick={(event) => handleSell(event, tableMeta.rowData[1])}
-              >
-                {t('device.sell')}
               </Button>
             </div>
           );
