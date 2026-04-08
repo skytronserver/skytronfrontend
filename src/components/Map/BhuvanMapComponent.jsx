@@ -60,7 +60,7 @@ const BhuvanMapComponent = ({
     pois = [],
     lookupPois,
     width = "100%",
-    height = "400px",
+    height = "100%",
     onPolygonComplete,
     onMarkerClick,
     onMapReady,
@@ -68,7 +68,7 @@ const BhuvanMapComponent = ({
     focusEntry = null,
     markerLabelMode = "vehicle",
     showMapTypeToggle = true,
-    showDrawControls = true,
+    showDrawControls = false,//removed by ruteek
     showLogos = true,
     showSoiLayerPanel = true,
     defaultMapType = "normal",
@@ -2579,7 +2579,7 @@ view.on("change:resolution", () => {
                                     Satellite
                                 </Button>
                             </Tooltip>
-                            <Tooltip title="SOI Map - Bhuvan base + SOI overlays">
+                            {/* <Tooltip title="SOI Map - Bhuvan base + SOI overlays">
                                 <Button
                                     onClick={() => setMapType("soi")}
                                     variant={mapType === "soi" ? "contained" : "outlined"}
@@ -2591,7 +2591,7 @@ view.on("change:resolution", () => {
                                 >
                                     SOI
                                 </Button>
-                            </Tooltip>
+                            </Tooltip> */}
                         </ButtonGroup>
 
                         {mapType === "soi" && showSoiLayerPanel && (

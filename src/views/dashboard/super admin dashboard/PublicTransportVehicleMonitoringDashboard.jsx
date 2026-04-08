@@ -956,16 +956,55 @@ try {
 
   return (
     <PageWrapper
-      title="Public Transport Vehicle Monitoring"
-      // description="All vehicles/devices on board Skytron platform (dummy data)."
+       title={
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "100%",
+      }}
+    >
+      <Typography
+        sx={{
+          color: tokens.text,
+          fontSize: { xs: "1.5rem", md: "1.75rem" },
+          fontWeight: 600,
+        }}
+      >
+        Public Transport Vehicle Monitoring
+      </Typography>
 
+      <IconButton
+        size="small"
+        onClick={() =>
+          setMode((prev) => (prev === "dark" ? "light" : "dark"))
+        }
+        sx={{
+          color: tokens.text,
+          bgcolor: alpha(tokens.text, mode === "dark" ? 0.08 : 0.06),
+          border: `1px solid ${alpha(tokens.text, 0.12)}`,
+          borderRadius: 1.5,
+          "&:hover": {
+            bgcolor: alpha(tokens.text, mode === "dark" ? 0.12 : 0.08),
+          },
+        }}
+      >
+        {mode === "dark" ? (
+          <LightModeOutlinedIcon fontSize="small" />
+        ) : (
+          <DarkModeOutlinedIcon fontSize="small" />
+        )}
+      </IconButton>
+    </Box>
+  }
       
       sx={{
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
         minHeight: '100vh',
         height: { xs: 'auto', md: '100%' },
-        maxHeight: { xs: 'none', md: '100%' },
+        maxHeight: { xs: 'none', md: '100%' }, 
         overflow: { xs: 'auto', md: 'hidden' }
       }}
       titleSx={{ color: tokens.text, fontSize: { xs: '1.5rem', md: '1.75rem' }, mb: 0.5 }}
@@ -974,7 +1013,7 @@ try {
     >
       
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 1 }, height: { xs: 'auto', md: '100%' } }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
+        {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
           <IconButton
             size="small"
             onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
@@ -988,7 +1027,7 @@ try {
           >
             {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
           </IconButton>
-        </Box>
+        </Box> */}
 
 
 
