@@ -51,7 +51,8 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
-import { openFile } from "../../helper";
+import ManufacturerServices from "../../services/ManufacturerServices";
+import { openFile, getRole } from "../../helper";
 
 /* ─── helpers ─── */
 const formatDateTime = (value) => {
@@ -488,8 +489,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 /* ═══════════════════════════════════════════════════
    COLLAPSIBLE TABLE ROW
 ═══════════════════════════════════════════════════ */
-const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
+const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
     const [open, setOpen] = useState(false);
+    const userRole = getRole();
+    const isStateAdmin = userRole === "stateadmin";
 
     const demoDevices = useMemo(() => {
         if (!row.demo_devices) return [];
@@ -573,7 +576,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                 </Button>
                             </Tooltip>
                         )}
-                        {isOngoingEval && (
+                        {isOngoingEval && !isStateAdmin && (
                             <Tooltip title="Finalize — Accept or Reject this request">
                                 <Button
                                     size="small" variant="contained" color="primary"
@@ -582,6 +585,20 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize }) => {
                                     sx={{ whiteSpace: "nowrap", fontSize: "0.72rem" }}
                                 >
                                     Finalize
+                                </Button>
+                            </Tooltip>
+                        )}
+                        {isStateAdmin && (statusKey === "accepted" || statusKey === "approved") && (
+                            <Tooltip title="State Admin Final Approval">
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={<CheckCircleIcon fontSize="small" />}
+                                    onClick={() => onStateApprove(row)}
+                                    sx={{ whiteSpace: "nowrap", fontSize: "0.72rem" }}
+                                >
+                                    Approve Technical Onboarding
                                 </Button>
                             </Tooltip>
                         )}
@@ -792,6 +809,30 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
     const [finalizeDialog, setFinalizeDialog] = useState({ open: false, row: null });
     const [actionMsg, setActionMsg] = useState({ type: "", text: "" });
 
+    const handleStateApprove = async (row) => {
+        const mfrObj = row.manufacturer || row.manufacturer_info || row.created_by_info || {};
+        const mfrId = mfrObj.id || row.manufacturer_id || row.created_by || row.submitted_by;
+
+        if (!mfrId) {
+            setActionMsg({ type: "error", text: "Could not identify manufacturer ID." });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await ManufacturerServices.approveTechOnboarding({
+                manufacturer_id: mfrId,
+                action: "approve"
+            });
+            setActionMsg({ type: "success", text: "Technical Onboarding approved successfully by State Admin!" });
+            loadData();
+        } catch (err) {
+            setActionMsg({ type: "error", text: extractError(err) });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const loadData = useCallback(async () => {
         setError(""); setLoading(true);
         try {
@@ -970,7 +1011,7 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
                                                     key={row.id ?? idx}
                                                     row={row}
                                                     onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
-                                                    onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
+                                                    onFinalize={(r) => setFinalizeDialog({ open: true, row: r })} onStateApprove={handleStateApprove}
                                                 />
                                             ))}
                                         </TableBody>

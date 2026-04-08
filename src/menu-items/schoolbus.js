@@ -10,7 +10,7 @@ const schoolbus = {
     id: 'schoolbus-management',
     title: 'School Bus',
     type: 'group',
-    roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent'],
+    roles: ['superadmin', 'schooladmin', 'parent'],
     children: [
         {
             id: 'schoolbus-main',
@@ -25,7 +25,7 @@ const schoolbus = {
                     url: '/schoolbus',
                     icon: icons.IconDashboard,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                    roles: ['superadmin', 'schooladmin']
                 },
                 {
                     id: 'bus-tagging',
@@ -34,7 +34,7 @@ const schoolbus = {
                     url: '/schoolbus/bus-tagging',
                     icon: icons.IconLockAccess,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                    roles: ['superadmin', 'schooladmin']
                 },
                 {
                     id: 'route-management',
@@ -43,7 +43,7 @@ const schoolbus = {
                     url: '/schoolbus/route-management',
                     icon: icons.IconRoute,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                    roles: ['superadmin', 'schooladmin']
                 },
                 {
                     id: 'bus-assignment',
@@ -52,7 +52,7 @@ const schoolbus = {
                     url: '/schoolbus/bus-assignment',
                     icon: icons.IconBus,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                    roles: ['superadmin', 'schooladmin']
                 },
                 {
                     id: 'profile-management',
@@ -61,7 +61,7 @@ const schoolbus = {
                     url: '/schoolbus/profile-management',
                     icon: icons.IconUserCircle,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                    roles: ['superadmin', 'schooladmin']
                 },
                 {
                     id: 'parent-tracking',
@@ -70,7 +70,7 @@ const schoolbus = {
                     url: '/schoolbus/parent-tracking',
                     icon: icons.IconMapPin,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
+                    roles: ['superadmin', 'schooladmin', 'parent']
                 }
             ]
         }

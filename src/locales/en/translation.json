@@ -448,7 +448,7 @@
     }
   },
   "Super Admin Dashboard": {
-    "title": "Super Admin Dashboard"
+    "title": "System Admin Dashboard"
   },
   "Transport Dashboard": {
     "title": "Transport Dashboard"
@@ -485,7 +485,7 @@
   "menu": {
     "createVehicleOwner": "Create Vehicle Owner",
     "dashboard": "Dashboard",
-    "superAdminDashboard": "Super Admin Dashboard",
+    "superAdminDashboard": "System Admin Dashboard",
     "transportDashboard": "Transport Dashboard",
     "publicSafetyDashboard": "Public Safety Dashboard",
     "sos Dashboard": "SOS Dashboard",

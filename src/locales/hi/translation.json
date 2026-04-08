@@ -464,7 +464,7 @@
     }
   },
     "Super Admin Dashboard": {
-    "title": "सुपर प्रशासक डैशबोर्ड"
+    "title": "सिस्टम एडमिन डैशबोर्ड"
   },
 
 "Transport Dashboard": {
@@ -506,7 +506,7 @@
   "menu": {
     "createVehicleOwner": "वाहन मालिक बनाएं",
     "dashboard": "डैशबोर्ड",
-    "superAdminDashboard": "सुपर प्रशासक डैशबोर्ड",
+    "superAdminDashboard": "सिस्टम एडमिन डैशबोर्ड",
     "transportDashboard": "परिवहन डैशबोर्ड",
     "publicSafetyDashboard": "सार्वजनिक सुरक्षा डैशबोर्ड",
       "sosDashboard": "आपातकालीन सहायता डैशबोर्ड",

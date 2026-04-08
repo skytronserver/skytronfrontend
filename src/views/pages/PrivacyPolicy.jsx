@@ -3,209 +3,368 @@ import { Container, Typography, Box, Accordion, AccordionSummary, AccordionDetai
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 function PrivacyPolicy() {
+  const brandBlue = '#2b6cb0'; // Professional corporate blue
+  const bodyTextColor = '#333333'; // Dark gray
+
   return (
-    <>
-      <Box sx={{ py: 8, backgroundColor: '#f5f5f5' }}>
-        <Container maxWidth="md">
+    <Box sx={{ py: 6, backgroundColor: '#ffffff' }}>
+      <Container maxWidth="md">
+        {/* Title Section */}
+        <Box sx={{ textAlign: "center", mb: 5 }}>
           <Typography
-            variant="h4"
+            variant="h5"
             component="h1"
             gutterBottom
-            sx={{ textAlign: "center", fontWeight: 400, marginBottom: 4 }}
+            sx={{ 
+              fontWeight: 700, 
+              color: '#1a202c',
+              letterSpacing: '-0.2px',
+              fontSize: { xs: '1.4rem', md: '1.6rem' }
+            }}
           >
-            Privacy Policy
+            SkyTron<sup>®</sup> <span style={{ color: brandBlue }}>App - Terms & Conditions</span>
           </Typography>
+          <Typography variant="body2" sx={{ fontSize: '1rem', color: '#666' }}>
+            Last Updated: 06.04.2026
+          </Typography>
+        </Box>
 
+        {/* Welcome Section */}
+        <Box sx={{ 
+          p: { xs: 3, md: 4 }, 
+          mb: 5, 
+          borderRadius: 2, 
+          border: '1px solid #e2e8f0',
+          borderLeft: `6px solid ${brandBlue}`,
+          backgroundColor: '#ffffff',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}>
+          <Typography variant="body1" sx={{ fontWeight: 700, color: '#1a202c', mb: 2 }}>
+            Welcome to SkyTron<sup>®</sup>!
+          </Typography>
+          <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6, color: bodyTextColor, mb: 2 }}>
+            SkyTron<sup>®</sup> is an intelligent vehicle tracking and passenger safety / emergency assistance platform 
+            implemented by AMTRON ("Company," "we," "us," or "our"). It enables real-time monitoring, safety alerts, 
+            and compliance for public transport and emergency services under the Nirbhaya framework.
+          </Typography>
+          <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6, color: bodyTextColor }}>
+            These Terms and Conditions ("Terms") govern your access to and use of the SkyTron<sup>®</sup> mobile application 
+            ("App"). By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not 
+            agree, please do not use the App.
+          </Typography>
+        </Box>
+
+        {/* Sections */}
+        <Box sx={{ 
+          '& .MuiAccordion-root': { 
+            mb: 1, 
+            borderRadius: '8px !important', 
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)', 
+            '&:before': { display: 'none' } 
+          } 
+        }}>
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">1. Introduction</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>1. Acceptance of Terms</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1">
-              Welcome to SkyTron<sup>®</sup>, a vehicle tracking application implemented by AMTRON. Your privacy is important to us, and this Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application SkyTron<sup>®</sup>. By using the application, you agree to the terms outlined in this policy.
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
+                By accessing and using SkyTron<sup>®</sup>, you acknowledge that you have read, understood, and agree to comply 
+                with these Terms. These Terms apply to all users, including those who register an account or use the App 
+                without an account.
               </Typography>
             </AccordionDetails>
           </Accordion>
 
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">2. Information We Collect</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>2. Eligibility</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1" paragraph>
-                We collect various types of information to enhance our service, including:
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
+                You must be at least 18 years old to use this App. By using SkyTron<sup>®</sup>, you represent that you have the legal 
+                capacity to enter into this agreement.
               </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
-                (a) Personal Information:
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>3. Use of the App</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', lineHeight: 1.7, color: bodyTextColor }}>
+                - You agree to use the App only for lawful purposes and in accordance with these Terms.<br />
+                - You shall not misuse, exploit, or interfere with the functionality, security, or integrity of the App.<br />
+                - Unauthorized access, reverse engineering, or data extraction from the App is strictly prohibited.
               </Typography>
-              <ul>
-                <li>Name, email address, phone number, and other contact details provided during registration.</li>
-                <li>Login credentials to access your SkyTron<sup>®</sup> account.</li>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>4. Permissions Required</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ mb: 2, color: bodyTextColor }}>
+                To provide the best experience, the App may request the following permissions:
+              </Typography>
+              
+              <ul style={{ paddingLeft: '20px', listStyleType: 'disc', margin: 0 }}>
+                <li style={{ marginBottom: '15px' }}>
+                  <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                    <strong>Camera Access</strong> – Required for capturing driver photos for identification and verification for vehicle owner.
+                  </Typography>
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <Typography variant="body2" sx={{ color: bodyTextColor, mb: 1 }}>
+                    <strong>Location Access</strong> – Used for real-time vehicle tracking and navigation:
+                  </Typography>
+                  <ul style={{ paddingLeft: '20px', listStyleType: 'circle' }}>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Precise Location (GPS)</strong> – Required for accurate tracking of driver and vehicle location by vehicle owner or Police/ambulance.
+                      </Typography>
+                    </li>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Approximate Location</strong> – Used for general location-based features.
+                      </Typography>
+                    </li>
+                    <li>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Background Location</strong> – Needed for tracking even when the app is not in use, ensuring uninterrupted service.
+                      </Typography>
+                    </li>
+                  </ul>
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <Typography variant="body2" sx={{ color: bodyTextColor, mb: 1 }}>
+                    <strong>Storage Access</strong> – Allows saving and retrieving files and media within the app:
+                  </Typography>
+                  <ul style={{ paddingLeft: '20px', listStyleType: 'circle' }}>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Read Storage</strong> – To access images and media files.
+                      </Typography>
+                    </li>
+                    <li>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Write Storage</strong> – To store downloaded alerts.
+                      </Typography>
+                    </li>
+                  </ul>
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <Typography variant="body2" sx={{ color: bodyTextColor, mb: 1 }}>
+                    <strong>Network & Internet Access</strong> – Ensures connectivity for real-time data exchange and MQTT communication:
+                  </Typography>
+                  <ul style={{ paddingLeft: '20px', listStyleType: 'circle' }}>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Internet Access</strong> – Required for cloud-based operations and data synchronization.
+                      </Typography>
+                    </li>
+                    <li>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Network Status Check</strong> – Ensures stable network connectivity for uninterrupted service.
+                      </Typography>
+                    </li>
+                  </ul>
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <Typography variant="body2" sx={{ color: bodyTextColor, mb: 1 }}>
+                    <strong>Bluetooth Access</strong> – Enables communication with external devices, such as vehicle tracking hardware for guest user:
+                  </Typography>
+                  <ul style={{ paddingLeft: '20px', listStyleType: 'circle' }}>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Connect to Bluetooth Devices</strong> – Required for pairing with IoT and tracking devices.
+                      </Typography>
+                    </li>
+                    <li>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Scan for Bluetooth Devices</strong> – To detect and establish connections with Vehicle Tracking devices.
+                      </Typography>
+                    </li>
+                  </ul>
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <Typography variant="body2" sx={{ color: bodyTextColor, mb: 1 }}>
+                    <strong>Foreground Services</strong> – Used for critical app functions such as continuous tracking and data sync for vehicle owner alerts and Police/Ambulance SOS alerts:
+                  </Typography>
+                  <ul style={{ paddingLeft: '20px', listStyleType: 'circle' }}>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Data Sync</strong> – Ensures real-time MQTT-based location updates and server communication for vehicle owner alerts and Police/Ambulance SOS alerts.
+                      </Typography>
+                    </li>
+                    <li>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Location Services</strong> – Enables background and foreground tracking for seamless monitoring.
+                      </Typography>
+                    </li>
+                  </ul>
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                    <strong>Notifications Access</strong> – Allows the app to send important alerts and updates regarding trip status, driver updates, SOS alerts and system messages.
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2" sx={{ color: bodyTextColor, mb: 1 }}>
+                    <strong>Device & System Access:</strong>
+                  </Typography>
+                  <ul style={{ paddingLeft: '20px', listStyleType: 'circle' }}>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Auto-start on Reboot</strong> – Ensures essential services (such as tracking) resume automatically after a device restart.
+                      </Typography>
+                    </li>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Wake Lock</strong> – Prevents the device from sleeping during critical operations, such as continuous location tracking.
+                      </Typography>
+                    </li>
+                    <li style={{ marginBottom: '6px' }}>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>App License Verification</strong> – Ensures the authenticity of the app and prevents unauthorized usage.
+                      </Typography>
+                    </li>
+                    <li>
+                      <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                        <strong>Internal App Functionality</strong> – Supports secure internal communication and processing within the app.
+                      </Typography>
+                    </li>
+                  </ul>
+                </li>
               </ul>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
-                (b) Vehicle and Tracking Information:
-              </Typography>
-              <ul>
-                <li>GPS location of registered vehicles in real time.</li>
-                <li>Vehicle registration details, including make, model, and identification numbers.</li>
-                <li>Trip history, routes, and movement data.</li>
-              </ul>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
-                (c) Device and Usage Information:
-              </Typography>
-              <ul>
-                <li>Device type, operating system, IP address, and mobile network information.</li>
-                <li>App usage patterns, interactions, and error logs.</li>
-              </ul>
-            </AccordionDetails>
-          </Accordion>
 
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">3. How We Use Your Information</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1">
-                We use the collected data for the following purposes:
-              </Typography>
-              <ul>
-                <li>To provide real-time vehicle tracking and monitoring services.</li>
-                <li>To ensure vehicle security and improve road safety.</li>
-                <li>To enable users to access trip history and analytics.</li>
-                <li>To send important updates, notifications, and alerts related to vehicle movement.</li>
-                <li>To prevent fraudulent activities and unauthorized access.</li>
-                <li>To comply with legal obligations and regulatory requirements.</li>
-              </ul>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">4. Data Sharing and Disclosure</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1" paragraph>
-                We do not sell or rent your personal information. However, we may share information in the following cases:
-              </Typography>
-              <ul>
-                <li>
-                  <strong>With Government Authorities &amp; Law Enforcement:</strong> If required by law, we may provide data to government agencies, police, or legal authorities.
-                </li>
-                <li>
-                  <strong>With Service Providers:</strong> We may share data with third-party vendors who assist in hosting, analytics, and technical support.
-                </li>
-                <li>
-                  <strong>With Business Partners:</strong> If SkyTron<sup>®</sup> collaborates with authorized fleet management companies or service partners, necessary information may be shared.
-                </li>
-                <li>
-                  <strong>In Case of Business Transfers:</strong> In the event of a merger, acquisition, or sale of assets, user data may be transferred as part of business restructuring.
-                </li>
-              </ul>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">5. Data Security Measures</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1" paragraph>
-                We take strict security measures to protect user data, including:
-              </Typography>
-              <ul>
-                <li>Encryption of sensitive information, including location data.</li>
-                <li>Secure authentication mechanisms for access control.</li>
-                <li>Regular security audits to detect vulnerabilities.</li>
-                <li>Restricted access to personal data on a need-to-know basis.</li>
-              </ul>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">6. User Rights &amp; Choices</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1" paragraph>
-                Users have the following rights concerning their data:
-              </Typography>
-              <ul>
-                <li>
-                  <strong>Access &amp; Update:</strong> Users can access and update their profile details.
-                </li>
-                <li>
-                  <strong>Opt-out:</strong> Users can disable location tracking through device settings.
-                </li>
-                <li>
-                  <strong>Data Deletion:</strong> Users can request the deletion of their data by contacting support.
-                </li>
-                <li>
-                  <strong>Withdrawal of Consent:</strong> Users can withdraw consent for data collection by uninstalling the app and notifying us.
-                </li>
-              </ul>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">7. Retention of Data</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1">
-                We retain user data only as long as necessary for service provision, legal compliance, or security purposes. Once the data is no longer required, it is securely deleted or anonymized.
+              <Typography variant="body2" sx={{ mt: 2, color: bodyTextColor }}>
+                These permissions will be requested explicitly, and you can manage them via your device settings.
               </Typography>
             </AccordionDetails>
           </Accordion>
 
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">8. Third-Party Services &amp; External Links</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>5. User Accounts</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1">
-                SkyTron<sup>®</sup> may integrate third-party services (such as Bhuvan Maps or payment gateways). We do not control these third-party services, and users should review their respective privacy policies.
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', lineHeight: 1.7, color: bodyTextColor }}>
+                - You may be required to create an account to access certain features.<br />
+                - You are responsible for maintaining the confidentiality of your account credentials.<br />
+                - We reserve the right to suspend or terminate your account if we detect any unauthorized activity.
               </Typography>
             </AccordionDetails>
           </Accordion>
 
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">9. Children's Privacy</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>6. Privacy Policy</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1">
-                SkyTron<sup>®</sup> is not intended for use by children under 13 years old. We do not knowingly collect data from minors. If we become aware of such data collection, we will take steps to delete it.
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
+                Our Privacy Policy governs how we collect, use, and protect your personal information. By using SkyTron<sup>®</sup>, 
+                you acknowledge and accept our Privacy Policy.
               </Typography>
             </AccordionDetails>
           </Accordion>
 
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">10. Changes to This Privacy Policy</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>7. Intellectual Property</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1">
-                We may update this policy periodically. Users will be notified of major changes through in-app notifications or email. Continued use of the app after changes implies acceptance of the updated policy.
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', lineHeight: 1.7, color: bodyTextColor }}>
+                - All content within the App, including text, graphics, trademarks, logos, and software, is owned or licensed 
+                by us and protected under applicable copyright and trademark laws.<br />
+                - You may not copy, modify, distribute, or create derivative works from any content without our prior 
+                written consent.
               </Typography>
             </AccordionDetails>
           </Accordion>
 
-          <Accordion defaultExpanded>
+          <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">11. Contact Us</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>8. Third-Party Services</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1" paragraph>
-                For any questions or concerns regarding this Privacy Policy, contact us at:
-              </Typography>
-              <Typography variant="body1">
-                Email: contact@skytrack.tech
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
+                SkyTron<sup>®</sup> may integrate with third-party services, and we are not responsible for their terms, policies, or 
+                actions. Your use of third-party services is at your own risk.
               </Typography>
             </AccordionDetails>
           </Accordion>
-        </Container>
-      </Box>
-    </>
+
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>9. Limitation of Liability</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', lineHeight: 1.7, color: bodyTextColor }}>
+                - We provide the App on an "AS IS" and "AS AVAILABLE" basis, without warranties of any kind.<br />
+                - We are not responsible for any direct, indirect, incidental, or consequential damages arising from the use or 
+                inability to use the App.<br />
+                - We do not guarantee uninterrupted, error-free operation of the App.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>10. Termination</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
+                We reserve the right to suspend or terminate your access to the App at our discretion, without notice, if we 
+                determine that you have violated these Terms or engaged in unlawful activity.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>11. Governing Law & Dispute Resolution</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
+                These Terms shall be governed by the laws of India. Any disputes shall be resolved in the courts of Guwahati, 
+                Assam, India.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>12. Modifications to the Terms</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
+                We reserve the right to update these Terms at any time. Changes will be effective upon posting within the 
+                App. Continued use after modifications constitutes acceptance of the new Terms.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion sx={{ borderRadius: '8px !important', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', '&:before': { display: 'none' } }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: brandBlue }}>13. Contact Information</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <Box sx={{ py: 2 }}>
+                <Typography variant="body2" sx={{ color: bodyTextColor }}>
+                  For any questions or concerns regarding these Terms, please contact us at{' '}
+                  <a href="mailto:support@skytron.in" style={{ color: brandBlue, fontWeight: 700, textDecoration: 'none' }}>
+                    support@skytron.in
+                  </a>
+                </Typography>
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+      </Container>
+    </Box>
   );
 }
 

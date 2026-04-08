@@ -16,6 +16,7 @@ import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { manufacturerColumns } from "../../datatables/rowsColumn";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import UserServices from "../../services/UserServices";
+import { getRole } from "../../helper";
 
 const VehicleManufacturerRegistrationAdminReview = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -279,7 +280,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
-                {canResendOtp ? (
+                {getRole() !== "stateadmin" && canResendOtp ? (
                   <Button
                     size="small"
                     variant="outlined"
@@ -297,7 +298,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                     Resend OTP
                   </Button>
                 ) : null}
-                {allowLoginId === id || isApplicantActive || requestStatus === "allow to login" ? (
+                {getRole() !== "stateadmin" && (allowLoginId === id || isApplicantActive || requestStatus === "allow to login") ? (
                   <Button
                     size="small"
                     variant="outlined"

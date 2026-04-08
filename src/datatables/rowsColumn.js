@@ -278,7 +278,11 @@ export const columns = [
 
 export const registeredUserColumns = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
-  { name: "role", label: "Role", options: { filter: true, sort: false } },
+  { name: "role", label: "Role", options: { filter: true, sort: false, customBodyRender: (value) => {
+    if (value === 'superadmin') return <p>System Admin</p>;
+    if (value === 'esimprovider') return <p>M2M Provider</p>;
+    return <p>{value}</p>;
+  } } },
   { name: "name", label: "User Name", options: { filter: false, sort: false } },
   { name: "email", label: "User Email", options: { filter: false, sort: false } },
   { name: "mobile", label: "User Mobile Number", options: { filter: false, sort: false } },

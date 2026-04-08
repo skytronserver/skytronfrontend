@@ -145,7 +145,7 @@ const SettingRoutes = {
       element: (
         <SendCommand />
       ),
-      roles: ['stateadmin']
+      roles: ['superadmin']
     },
   ].map((route) => applyPrivateRoute(route)),
 };

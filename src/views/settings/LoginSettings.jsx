@@ -102,7 +102,7 @@ const LoginSettings = () => {
               >
                 {ROLE_OPTIONS.map((role) => (
                   <MenuItem key={role} value={role}>
-                    {role === 'esimprovider' ? 'm2m provider' : role}
+                    {role === 'esimprovider' ? 'M2M Provider' : role === 'superadmin' ? 'System Admin' : role}
                   </MenuItem>
                 ))}
               </TextField>

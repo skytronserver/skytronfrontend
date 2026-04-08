@@ -89,7 +89,7 @@ const user = {
           type: "item",
           url: "/user/newDealerAccount",
           breadcrumbs: false,
-          roles: ["stateadmin"],
+          roles: ["superadmin"],
         },
         {
           id: "vehicle-owner",
@@ -150,7 +150,16 @@ const user = {
       url: "/superadmin-dashboard/vehicle-manufacturer-registration-requests",
       icon: icons.IconCircleCheck,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin"],
+      roles: ["superadmin"],
+    },
+    {
+      id: "stateadmin-vehicle-manufacturer-registration-requests",
+      title: "Vehicle Manufacturer Tech Onboard Approval/Rejection",
+      type: "item",
+      url: "/stateadmin-dashboard/vehicle-manufacturer-registration-requests",
+      icon: icons.IconCircleCheck,
+      breadcrumbs: false,
+      roles: ["stateadmin"],
     },
     {
       id: "ais140-manufacturer-registration-requests",
@@ -159,10 +168,19 @@ const user = {
       url: "/superadmin-dashboard/ais-140-device-manufacturer-registration-requests",
       icon: icons.IconCircleCheck,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin"],
+      roles: ["superadmin"],
     },
     {
-      id: "technical-onboarding-requests",
+      id: "stateadmin-ais140-device-manufacturer-registration-requests",
+      title: "AIS-140 Device Manufacturer Tech Onboard Approval/Rejection",
+      type: "item",
+      url: "/stateadmin-dashboard/ais-140-device-manufacturer-registration-requests",
+      icon: icons.IconCircleCheck,
+      breadcrumbs: false,
+      roles: ["stateadmin"],
+    },
+    {
+      id: "superadmin-technical-onboarding-requests",
       title: "Technical Onboarding Requests",
       type: "item",
       url: "/superadmin-dashboard/technical-onboarding-requests",
@@ -238,7 +256,7 @@ const user = {
       url: "/history-playback",
       icon: icons.IconMap,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dtorto"],
+      roles: ["superadmin", "owner", "dtorto"],
     },
     {
       id: "trip-viewer",
@@ -247,7 +265,7 @@ const user = {
       url: "/trip-viewer",
       icon: icons.IconMap,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dtorto"],
+      roles: ["superadmin", "owner", "dtorto"],
     },
     // {
     //   id: "sos-tracking",
@@ -327,7 +345,7 @@ const user = {
       title: "Device Management",
       type: "collapse",
       icon: icons.IconDeviceSim,
-      roles: ["superadmin", "stateadmin"],
+      roles: ["superadmin"],
       children: [
         {
           id: "view-device",
@@ -335,7 +353,7 @@ const user = {
           type: "item",
           url: "/device/list",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin"],
+          roles: ["superadmin"],
         },
         {
           id: "view-device-cop",
@@ -343,7 +361,7 @@ const user = {
           type: "item",
           url: "/deviceCOP/list",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin"],
+          roles: ["superadmin"],
         },
         {
           id: "approved-models",
@@ -351,7 +369,7 @@ const user = {
           type: "item",
           url: "/device/approved-models",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin"],
+          roles: ["superadmin"],
         },
         {
           id: "approved-cops",
@@ -359,7 +377,7 @@ const user = {
           type: "item",
           url: "/device/approved-cops",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin"],
+          roles: ["superadmin"],
         },
       ]
     },
@@ -521,7 +539,7 @@ const user = {
       url: "/poi-viewer",
       icon: icons.IconMapPin,
       breadcrumbs: false,
-      roles: ["superadmin", "stateadmin", "owner", "dto"],
+      roles: ["superadmin", "owner", "dto"],
     },
     {
       id: "icons-report",
@@ -754,7 +772,7 @@ const user = {
           url: '/reports/gps-data-log',
           icon: icons.IconDeviceAnalytics,
           breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin']
+          roles: ['superadmin']
         },
         {
           id: 'activation-log-report',
@@ -763,7 +781,7 @@ const user = {
           url: '/reports/activation-log-report',
           icon: icons.IconDeviceAnalytics,
           breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin']
+          roles: ['superadmin']
         },
         {
           id: 'emergency-data-logs',
@@ -814,7 +832,7 @@ const user = {
           type: 'item',
           url: '/reports/poi-report',
           breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin', 'dto', 'owner']
+          roles: ['superadmin', 'dto', 'owner']
         },
         {
           id: 'incident-report',

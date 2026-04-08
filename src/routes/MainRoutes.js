@@ -63,6 +63,8 @@ import M2MRegistrationAdminReview from "../views/pages/M2MRegistrationAdminRevie
 import VehicleManufacturerRegistrationAdminReview from "../views/pages/VehicleManufacturerRegistrationAdminReview";
 import AIS140DeviceManufacturerRegistrationAdminReview from "../views/pages/AIS140DeviceManufacturerRegistrationAdminReview";
 import DeviceModelTechnicalOnboardingAdminList from "../views/pages/DeviceModelTechnicalOnboardingAdminList";
+import StateAdminVehicleRegistrationReview from "../views/pages/StateAdminVehicleRegistrationReview";
+import StateAdminAIS140RegistrationReview from "../views/pages/StateAdminAIS140RegistrationReview";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -153,17 +155,32 @@ const MainRoutes = {
     {
       path: "/superadmin-dashboard/manufacturer-registration-requests",
       element: <Navigate to="/superadmin-dashboard/vehicle-manufacturer-registration-requests" replace />,
-      roles: ["superadmin", "stateadmin"],
+      roles: ["superadmin"],
     },
     {
       path: "/superadmin-dashboard/vehicle-manufacturer-registration-requests",
       element: <VehicleManufacturerRegistrationAdminReview />,
-      roles: ["superadmin", "stateadmin"],
+      roles: ["superadmin"],
     },
     {
       path: "/superadmin-dashboard/ais-140-device-manufacturer-registration-requests",
       element: <AIS140DeviceManufacturerRegistrationAdminReview />,
-      roles: ["superadmin", "stateadmin"],
+      roles: ["superadmin"],
+    },
+    {
+      path: "/stateadmin-dashboard/vehicle-manufacturer-registration-requests",
+      element: <StateAdminVehicleRegistrationReview />,
+      roles: ["stateadmin"],
+    },
+    {
+      path: "/stateadmin-dashboard/ais-140-device-manufacturer-registration-requests",
+      element: <StateAdminAIS140RegistrationReview />,
+      roles: ["stateadmin"],
+    },
+    {
+      path: "/stateadmin-dashboard/manufacturer-registration-requests",
+      element: <Navigate to="/stateadmin-dashboard/vehicle-manufacturer-registration-requests" replace />,
+      roles: ["stateadmin"],
     },
     {
       path: "/superadmin-dashboard/technical-onboarding-requests",

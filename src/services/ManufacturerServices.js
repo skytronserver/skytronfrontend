@@ -28,6 +28,16 @@ const updateManufacturer = (data) => {
   const http = getAxiosInstance();
   return http.post('/api/manufacturer/update_manufacturer/', data);
 }
+const filterTechOnboardManufacturers = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/manufacturer/filter_TechOnboardmanufacturers/', data);
+}
+
+const approveTechOnboarding = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/manufacturer/approve_tech_onboarding/', data);
+}
+
 const ManufacturerServices = {
   getAll,
   getSingle,
@@ -36,6 +46,8 @@ const ManufacturerServices = {
   deleteOne,
   findManufacturer,
   updateManufacturer,
+  filterTechOnboardManufacturers,
+  approveTechOnboarding,
 };
 
 export default ManufacturerServices;

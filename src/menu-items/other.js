@@ -9,7 +9,7 @@ const icons = { IconBrandChrome, IconHelp, IconSettings };
 const other = {
   id: 'setting-all-routes',
   type: 'group',
-  roles: ['superadmin', 'devicemanufacture', 'dealer', 'stateadmin'],
+  roles: ['superadmin', 'devicemanufacture', 'dealer'],
   children: [
     {
       id: 'setting-all',
@@ -31,7 +31,7 @@ const other = {
           type: 'item',
           url: '/setting/send-command',
           breadcrumbs: false,
-          roles: ['stateadmin']
+          roles: ['superadmin']
         },
         {
           id: 'vehicle-category',

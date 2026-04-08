@@ -18,12 +18,11 @@ import ManufacturerServices from "../../services/ManufacturerServices";
 import UserServices from "../../services/UserServices";
 import { getRole } from "../../helper";
 
-const AIS140DeviceManufacturerRegistrationAdminReview = () => {
+const StateAdminVehicleRegistrationReview = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [allowLoginId, setAllowLoginId] = useState(null);
   const [statusOverrides, setStatusOverrides] = useState({});
   const [tableState, setTableState] = useState({ page: 0, rowsPerPage: 10 });
 
@@ -40,10 +39,10 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
     setErrorMessage("");
     setLoading(true);
     try {
-      const response = await ManufacturerServices.findManufacturer({});
+      const response = await ManufacturerServices.filterTechOnboardManufacturers({});
       let data = Array.isArray(response?.data) ? response.data : [];
-      // Filter for AIS-140 device manufacturers only
-      data = data.filter(item => item.manufacturer_type === "Device manufacturer");
+      // Filter for vehicle manufacturers only
+      data = data.filter(item => item.manufacturer_type === "Vehicle manufacturer");
       data.sort((a, b) => new Date(b.created) - new Date(a.created));
       const merged = data.map((row) => {
         const overrides = overridesArg ?? statusOverrides;
@@ -62,7 +61,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
       setErrorMessage(
         e?.response?.data?.message ||
         e?.message ||
-        "Failed to load AIS-140 device manufacturer registration requests."
+        "Failed to load vehicle manufacturer registration requests."
       );
     } finally {
       setLoading(false);
@@ -94,68 +93,30 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
     [tableState.page, tableState.rowsPerPage]
   );
 
-  const handleActionClick = useCallback((action, id) => {
-    setErrorMessage("");
-    setInfoMessage(`${action} clicked for ID: ${id}`);
-  }, []);
-
-  const handleAllowLogin = useCallback(
+  const handleApprove = useCallback(
     async (id, row) => {
       setErrorMessage("");
       setInfoMessage("");
       setLoading(true);
       try {
-        await ManufacturerServices.updateManufacturer({
+        await ManufacturerServices.approveTechOnboarding({
           manufacturer_id: id,
-          status: "Allow to login",
+          action: "approve",
         });
 
-        const userId = row?.users?.[0]?.id;
-        if (userId) {
-          await UserServices.resendUserCreationOtp({ user_id: userId });
-        }
-
-        setAllowLoginId(id);
-        setStatusOverrides((prev) => ({ ...prev, [id]: "Allow to login" }));
+        setStatusOverrides((prev) => ({ ...prev, [id]: "Approved" }));
         setRows((prevRows) =>
           (Array.isArray(prevRows) ? prevRows : []).map((r) => {
             if (r?.id !== id) return r;
-            return { ...r, status: "Allow to login" };
+            return { ...r, status: "Approved" };
           })
         );
-        setInfoMessage(`Allow to login successful for ID: ${id}`);
+        setInfoMessage(`Technical Onboarding approved successfully for ID: ${id}`);
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
           e?.message ||
-          "Failed to allow login."
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [loadRows]
-  );
-
-  const handleResend = useCallback(
-    async (id, row) => {
-      if (!id) return;
-      const userId = row?.users?.[0]?.id;
-      if (!userId) {
-        setErrorMessage("User ID not found for this row.");
-        return;
-      }
-      setErrorMessage("");
-      setInfoMessage("");
-      setLoading(true);
-      try {
-        await UserServices.resendUserCreationOtp({ user_id: userId });
-        setInfoMessage(`OTP resent successfully for ID: ${id}`);
-      } catch (e) {
-        setErrorMessage(
-          e?.response?.data?.message ||
-          e?.message ||
-          "Failed to resend OTP."
+          "Failed to approve technical onboarding."
         );
       } finally {
         setLoading(false);
@@ -164,62 +125,23 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
     []
   );
 
-  const handleAllowAddDealer = useCallback(
-    async (id, row) => {
-      if (!id) return;
-      setErrorMessage("");
-      setInfoMessage("");
-      setLoading(true);
-      try {
-        await ManufacturerServices.updateManufacturer({
-          manufacturer_id: id,
-          status: "Allow to add dealer",
-        });
-
-        const userId = row?.users?.[0]?.id;
-        if (userId) {
-          await UserServices.resendUserCreationOtp({ user_id: userId });
-        }
-
-        setInfoMessage(`Allow to add dealer successful for ID: ${id}`);
-        setStatusOverrides((prev) => ({ ...prev, [id]: "Allow to add dealer" }));
-        setRows((prevRows) =>
-          (Array.isArray(prevRows) ? prevRows : []).map((r) => {
-            if (r?.id !== id) return r;
-            return { ...r, status: "Allow to add dealer" };
-          })
-        );
-      } catch (e) {
-        setErrorMessage(
-          e?.response?.data?.message ||
-          e?.message ||
-          "Failed to allow add dealer."
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [loadRows]
-  );
-
   const handleReject = useCallback(
     async (id) => {
       setErrorMessage("");
       setInfoMessage("");
       setLoading(true);
       try {
-        await ManufacturerServices.updateManufacturer({
+        await ManufacturerServices.approveTechOnboarding({
           manufacturer_id: id,
-          status: "Reject",
+          action: "reject",
         });
 
-        const nextOverrides = { ...statusOverrides, [id]: "Reject" };
+        const nextOverrides = { ...statusOverrides, [id]: "Rejected" };
         setStatusOverrides(nextOverrides);
-        setAllowLoginId((prev) => (prev === id ? null : prev));
         setRows((prevRows) =>
           (Array.isArray(prevRows) ? prevRows : []).map((r) => {
             if (r?.id !== id) return r;
-            return { ...r, status: "Reject" };
+            return { ...r, status: "Rejected" };
           })
         );
         setInfoMessage(`Rejected ID: ${id}`);
@@ -233,7 +155,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
         setLoading(false);
       }
     },
-    [loadRows, statusOverrides]
+    [statusOverrides]
   );
 
   const actionColumn = useMemo(
@@ -251,17 +173,8 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
             const requestStatusRaw = statusOverrides?.[id] ?? currentRow?.status ?? "";
             const requestStatus = String(requestStatusRaw).trim().toLowerCase();
 
-            const applicantStatusRaw = currentRow?.users?.[0]?.status ?? "";
-            const applicantStatus = String(applicantStatusRaw).trim().toLowerCase();
-            const isApplicantActive = applicantStatus === "active";
+            const isRequestPending = requestStatus === "allow to login";
 
-            const isRequestPending =
-              requestStatus === "pending" || requestStatus === "created" || requestStatus === "";
-            const canResendOtp =
-              allowLoginId === id ||
-              isApplicantActive ||
-              requestStatus === "allow to login" ||
-              requestStatus === "allow to add dealer";
             return (
               <Stack
                 direction="row"
@@ -280,42 +193,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
-                {getRole() !== "stateadmin" && canResendOtp ? (
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => handleResend(id, rows?.[tableMeta?.rowIndex])}
-                    sx={{
-                      borderColor: "#800080",
-                      color: "#800080",
-                      whiteSpace: "nowrap",
-                      "&:hover": {
-                        borderColor: "#660066",
-                        color: "#660066",
-                      },
-                    }}
-                  >
-                    Resend OTP
-                  </Button>
-                ) : null}
-                {getRole() !== "stateadmin" && (allowLoginId === id || isApplicantActive || requestStatus === "allow to login") ? (
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => handleAllowAddDealer(id, rows?.[tableMeta?.rowIndex])}
-                    sx={{
-                      borderColor: "#800080",
-                      color: "#800080",
-                      "&:hover": {
-                        borderColor: "#660066",
-                        color: "#660066",
-                      },
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Allow to add dealer
-                  </Button>
-                ) : isRequestPending ? (
+                {isRequestPending ? (
                   <>
                     <Button
                       size="small"
@@ -329,14 +207,14 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                     <Button
                       size="small"
                       variant="contained"
-                      onClick={() => handleAllowLogin(id, rows?.[tableMeta?.rowIndex])}
+                      onClick={() => handleApprove(id, rows?.[tableMeta?.rowIndex])}
                       sx={{
                         backgroundColor: "#800080",
                         "&:hover": { backgroundColor: "#660066" },
                         whiteSpace: "nowrap",
                       }}
                     >
-                      Allow to login
+                      Approve
                     </Button>
                   </>
                 ) : null}
@@ -346,7 +224,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
         },
       },
     ],
-    [allowLoginId, handleAllowAddDealer, handleAllowLogin, handleReject, handleResend, rows]
+    [handleApprove, handleReject, rows, statusOverrides]
   );
 
   return (
@@ -357,7 +235,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" sx={{ fontWeight: "bold", color: "#800080" }}>
-                  AIS-140 Device Manufacturer Registration Requests
+                  Vehicle Manufacturer Final approval and rejection of the technical onboard
                 </Typography>
               </Box>
             </Stack>
@@ -377,10 +255,10 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
             {loading && rows.length === 0 ? (
               <Alert severity="info">Loading...</Alert>
             ) : rows.length === 0 ? (
-              <Alert severity="info">No AIS-140 device manufacturer requests found.</Alert>
+              <Alert severity="info">No vehicle manufacturer requests found for technical onboarding.</Alert>
             ) : (
               <DynamicDatatables
-                tableTitle="AIS-140 Device Manufacturer Registration Requests"
+                tableTitle="Vehicle Manufacturer Final approval and rejection of the technical onboard"
                 rows={rows}
                 columns={manufacturerColumns.concat(actionColumn)}
                 options={tableOptions}
@@ -393,4 +271,5 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
   );
 };
 
-export default AIS140DeviceManufacturerRegistrationAdminReview;
+export default StateAdminVehicleRegistrationReview;
+

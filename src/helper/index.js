@@ -95,7 +95,7 @@ export const retriveTechnicalOnboardedModelList = async () => {
 
       const eligible = rows.filter((r) => {
         const s = String(r?.status ?? "").trim().toLowerCase();
-        return s === "accepted" || s === "approved";
+        return s === "approved";
       });
 
       const mapped = eligible

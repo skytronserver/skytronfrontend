@@ -185,7 +185,13 @@ const ProfileSection = () => {
                       </Stack>
                       <Typography variant="subtitle2">
                         {userData && data.length > 2 && (
-                          <span>{data[1] === 'esimprovider' ? 'M2M PROVIDER' : data[1]}</span>
+                          <span>
+                            {data[1] === 'esimprovider'
+                              ? 'M2M PROVIDER'
+                              : data[1] === 'superadmin'
+                              ? 'System Admin'
+                              : data[1]}
+                          </span>
                         )}
                       </Typography>
                     </Stack>

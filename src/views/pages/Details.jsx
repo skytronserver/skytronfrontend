@@ -6,7 +6,7 @@ import { Grid, Box, Alert, Stack, IconButton, Tooltip } from '@mui/material';
 import { useNavigate, useParams } from "react-router-dom";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import DealerServices from "../../services/DealerServices";
-import { formatDate, openFile } from "../../helper";
+import { formatDate, getRole, openFile } from "../../helper";
 import SettingService from "../../services/SettingService";
 import DescriptionIcon from '@mui/icons-material/Description';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -175,10 +175,11 @@ const Details = () => {
   const effectiveStatus = (statusOverride || requestStatus || "").toString();
   const effectiveStatusLower = effectiveStatus.trim().toLowerCase();
   const isApplicantActive = effectiveStatusLower === "active";
-  const isRequestPending =
-    effectiveStatusLower === "pending" ||
-    effectiveStatusLower === "created" ||
-    effectiveStatusLower === "";
+  const isRequestPending = getRole() === "stateadmin"
+    ? effectiveStatusLower === "allow to login"
+    : (effectiveStatusLower === "pending" ||
+       effectiveStatusLower === "created" ||
+       effectiveStatusLower === "");
 
   const handleBack = () => {
     try {
@@ -282,10 +283,18 @@ const Details = () => {
     setInfoMessage("");
     setLoadingAction(true);
     try {
-      await ManufacturerServices.updateManufacturer({
-        manufacturer_id: userId,
-        status: "Allow to login",
-      });
+      const userRole = getRole();
+      if (userType === 'manufacturer' && userRole === 'stateadmin') {
+        await ManufacturerServices.approveTechOnboarding({
+          manufacturer_id: userId,
+          action: "approve",
+        });
+      } else {
+        await ManufacturerServices.updateManufacturer({
+          manufacturer_id: userId,
+          status: "Allow to login",
+        });
+      }
 
       const retrieveData = await ManufacturerServices.findManufacturer({ manufacturer_id: userId });
       const row = retrieveData?.data?.[0];
@@ -343,10 +352,18 @@ const Details = () => {
     setInfoMessage("");
     setLoadingAction(true);
     try {
-      await ManufacturerServices.updateManufacturer({
-        manufacturer_id: userId,
-        status: "Reject",
-      });
+      const userRole = getRole();
+      if (userType === 'manufacturer' && userRole === 'stateadmin') {
+        await ManufacturerServices.approveTechOnboarding({
+          manufacturer_id: userId,
+          action: "reject",
+        });
+      } else {
+        await ManufacturerServices.updateManufacturer({
+          manufacturer_id: userId,
+          status: "Reject",
+        });
+      }
       setStatusOverride("Reject");
       setInfoMessage("Request rejected.");
     } catch (e) {
@@ -485,7 +502,7 @@ const Details = () => {
                     justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
                     sx={{ flexWrap: 'wrap' }}
                   >
-                    {(isRequestPending ||
+                    {getRole() !== "stateadmin" && (
                       (userType === 'serviceProvider' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'accept')) ||
                       (userType === 'manufacturer' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'allow to login' || effectiveStatusLower === 'allow to add dealer'))) && (
                         <Button
@@ -503,7 +520,7 @@ const Details = () => {
                             },
                           }}
                         >
-                          Resend Link
+                          Resend OTP
                         </Button>
                       )}
                     {userType === 'serviceProvider' ? (
@@ -535,51 +552,81 @@ const Details = () => {
                         </>
                       ) : null
                     ) : userType === 'manufacturer' ? (
-                      lastApprovedId === userId || effectiveStatusLower === 'allow to login' || isApplicantActive ? (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          disabled={loadingAction}
-                          onClick={handleManufacturerAllowAddDealer}
-                          sx={{
-                            borderColor: "#800080",
-                            color: "#800080",
-                            whiteSpace: "nowrap",
-                            "&:hover": {
-                              borderColor: "#660066",
-                              color: "#660066",
-                            },
-                          }}
-                        >
-                          Allow to add dealer
-                        </Button>
-                      ) : isRequestPending ? (
-                        <>
+                      getRole() === "stateadmin" ? (
+                        isRequestPending ? (
+                          <>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                              disabled={loadingAction}
+                              onClick={handleManufacturerReject}
+                              sx={{ whiteSpace: "nowrap" }}
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              disabled={loadingAction}
+                              onClick={handleManufacturerAllowLogin}
+                              sx={{
+                                backgroundColor: "#800080",
+                                "&:hover": { backgroundColor: "#660066" },
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Approve
+                            </Button>
+                          </>
+                        ) : null
+                      ) : (
+                        lastApprovedId === userId || effectiveStatusLower === 'allow to login' || isApplicantActive ? (
                           <Button
                             size="small"
                             variant="outlined"
-                            color="error"
                             disabled={loadingAction}
-                            onClick={handleManufacturerReject}
-                            sx={{ whiteSpace: "nowrap" }}
-                          >
-                            Reject
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            disabled={loadingAction}
-                            onClick={handleManufacturerAllowLogin}
+                            onClick={handleManufacturerAllowAddDealer}
                             sx={{
-                              backgroundColor: "#800080",
-                              "&:hover": { backgroundColor: "#660066" },
+                              borderColor: "#800080",
+                              color: "#800080",
                               whiteSpace: "nowrap",
+                              "&:hover": {
+                                borderColor: "#660066",
+                                color: "#660066",
+                              },
                             }}
                           >
-                            Allow to login
+                            Allow to add dealer
                           </Button>
-                        </>
-                      ) : null
+                        ) : isRequestPending ? (
+                          <>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                              disabled={loadingAction}
+                              onClick={handleManufacturerReject}
+                              sx={{ whiteSpace: "nowrap" }}
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              disabled={loadingAction}
+                              onClick={handleManufacturerAllowLogin}
+                              sx={{
+                                backgroundColor: "#800080",
+                                "&:hover": { backgroundColor: "#660066" },
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Allow to login
+                            </Button>
+                          </>
+                        ) : null
+                      )
                     ) : null}
                   </Stack>
                 </Box>
