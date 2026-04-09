@@ -82,39 +82,42 @@ export const filterModelList = async (data) => {
   }
 };
 export const retriveTechnicalOnboardedModelList = async () => {
-    try {
-      const res = await DeviceModelServices.listManufacturerTechnicalOnboardingRequests({});
-      const data = res?.data;
-      const rows = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.results)
-          ? data.results
-          : Array.isArray(data?.data)
-            ? data.data
-            : [];
+  try {
+    const res = await DeviceModelServices.listManufacturerTechnicalOnboardingRequests({});
+    const data = res?.data;
+    const rows = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.results)
+        ? data.results
+        : Array.isArray(data?.data)
+          ? data.data
+          : [];
 
-      const eligible = rows.filter((r) => {
-        const s = String(r?.status ?? "").trim().toLowerCase();
-        return s === "approved";
-      });
+    const eligible = rows.filter((r) => {
+      const s = String(r?.status ?? "").trim().toLowerCase();
+      const modelStatus = String(r?.device_model?.status ?? r?.device_model_status ?? "").trim().toLowerCase();
 
-      const mapped = eligible
-        .map((r) => {
-          const id =
-            r?.device_model_id ??
-            (typeof r?.device_model === "object" && r?.device_model !== null
-              ? r.device_model.id
-              : r?.device_model);
-          const name = r?.device_model?.model_name || r?.device_model_name;
-          return id ? { value: String(id), label: name || String(id) } : null;
-        })
-        .filter(Boolean);
+      // Check if either the request status OR the actual device model status is approved
+      return s.includes("approved") || modelStatus.includes("approved");
+    });
 
-      const modelOptions = [...new Map(mapped.map((m) => [String(m.value), m])).values()];
-      return modelOptions;
-    } catch (e) {
-      return [];
-    }
+    const mapped = eligible
+      .map((r) => {
+        const id =
+          r?.device_model_id ??
+          (typeof r?.device_model === "object" && r?.device_model !== null
+            ? r.device_model.id
+            : r?.device_model);
+        const name = r?.device_model?.model_name || r?.device_model_name;
+        return id ? { value: String(id), label: name || String(id) } : null;
+      })
+      .filter(Boolean);
+
+    const modelOptions = [...new Map(mapped.map((m) => [String(m.value), m])).values()];
+    return modelOptions;
+  } catch (e) {
+    return [];
+  }
 }
 
 export const retriveStateList = async () => {
@@ -534,10 +537,10 @@ export const openFile = async (e, filePath) => {
   if (typeof sanitizedPath === "string" && sanitizedPath.startsWith("/")) {
     sanitizedPath = sanitizedPath.substring(1);
   }
-  
+
   let splitData = sanitizedPath.split("/");
   let filename = splitData.length >= 1 && splitData[splitData.length - 1];
-  
+
   try {
     const response = await SettingService.file_Download({
       file_path: sanitizedPath,
@@ -552,7 +555,7 @@ export const openFile = async (e, filePath) => {
     }
     const contentTypeRaw = response.headers["content-type"];
     let contentType = contentTypeRaw;
-    
+
     // Improved detection: use file extension if server returns generic type
     const lowerFileName = fileName.toLowerCase();
     if (lowerFileName.endsWith(".pdf")) {
@@ -567,16 +570,16 @@ export const openFile = async (e, filePath) => {
 
     const blob = new Blob([response.data], { type: contentType });
     if (blob.size === 0 || (response.data instanceof Blob && response.data.size === 0)) {
-        throw new Error("File not found or empty.");
+      throw new Error("File not found or empty.");
     }
-    
+
     // Check if the response is actually a JSON error hidden in a Blob
     if (contentTypeRaw && contentTypeRaw.includes("application/json")) {
-        const text = await response.data.text();
-        const json = JSON.parse(text);
-        if (json.error) {
-            throw new Error(json.error);
-        }
+      const text = await response.data.text();
+      const json = JSON.parse(text);
+      if (json.error) {
+        throw new Error(json.error);
+      }
     }
 
     // Create URL for the blob
@@ -606,7 +609,7 @@ export const openFile = async (e, filePath) => {
     }
 
     // Clean up the URL
-    setTimeout(() => window.URL.revokeObjectURL(url), 60000); 
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000);
   } catch (error) {
     console.error("Error opening file:", error);
     alert(error.message || "Failed to open document. Please verify the file exists on the server.");

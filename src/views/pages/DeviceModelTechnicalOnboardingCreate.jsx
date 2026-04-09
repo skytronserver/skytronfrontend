@@ -148,17 +148,32 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     const loadModels = async () => {
       setModelsLoading(true);
       try {
-        const [stateApprovedResp, superApprovedResp] = await Promise.all([
+        const [stateApprovedResp, superApprovedResp, existingRequestsResp] = await Promise.all([
           DeviceModelServices.getFilterModels({ status: "StateAdminApproved" }),
           DeviceModelServices.getFilterModels({ status: "SuperAdminApproved" }).catch(() => null),
+          DeviceModelServices.listManufacturerTechnicalOnboardingRequests({}).catch(() => null),
         ]);
 
         const stateList = Array.isArray(stateApprovedResp?.data) ? stateApprovedResp.data : [];
         const superList = Array.isArray(superApprovedResp?.data) ? superApprovedResp.data : [];
         const merged = [...stateList, ...superList];
-        const unique = [...new Map(merged.map((m) => [String(m?.id), m])).values()].filter(
-          (m) => m?.id !== undefined && m?.id !== null
+
+        // Get IDs of models that already have a non-rejected onboarding request
+        const existingData = existingRequestsResp?.data || existingRequestsResp?.results || existingRequestsResp?.data?.results || [];
+        const existingModelIds = new Set(
+          Array.isArray(existingData)
+            ? existingData
+              .filter(r => {
+                const s = String(r?.status ?? "").trim().toLowerCase();
+                return s !== "rejected"; // Allow re-submission only if rejected
+              })
+              .map(r => String(r?.device_model_id || (typeof r?.device_model === 'object' ? r?.device_model?.id : r?.device_model)))
+            : []
         );
+
+        const unique = [...new Map(merged.map((m) => [String(m?.id), m])).values()]
+          .filter((m) => m?.id !== undefined && m?.id !== null)
+          .filter((m) => !existingModelIds.has(String(m.id))); // Filter out already onboarded models
 
         if (isMounted) setDeviceModels(unique);
       } catch (err) {

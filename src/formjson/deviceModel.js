@@ -37,9 +37,10 @@ export const deviceModelFormField = {
   },
   test_agency: {
     name: "test_agency",
-    type: "text",
+    type: "select",
     label: "deviceModelForm.fields.testAgency",
     validation: Yup.string().required("deviceModelForm.validation.testAgencyRequired"),
+    options: []
   },
   tac_validity: {
     name: "tac_validity",

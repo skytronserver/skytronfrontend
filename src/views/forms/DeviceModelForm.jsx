@@ -16,6 +16,7 @@ import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import AutoHideAlert from "../../ui-component/AutoHideAlert"
 import { useTranslation } from 'react-i18next';
+import TestAgencyServices from "../../services/TestAgencyServices";
 
 const DeviceModelForm = () => {
   const { t } = useTranslation();
@@ -58,18 +59,33 @@ const DeviceModelForm = () => {
 
   useEffect(() => {
     (async () => {
-      const providerList = await retriveCreatedSimProvider();
-      console.log(providerList, 'providerList')
-      setUpdatedFormField(prevConfig => ({
-        ...prevConfig,
-        eSimProviders: {
-          ...prevConfig.eSimProviders,
-          options: providerList,
-        }
-      }))
-      setIsFormLoaded(true)
-    }
-    )()
+      try {
+        const [providerList, agencyRes] = await Promise.all([
+          retriveCreatedSimProvider(),
+          TestAgencyServices.getNameList().catch(() => ({ data: [] }))
+        ]);
+
+        const agencyOptions = Array.isArray(agencyRes?.data) 
+          ? agencyRes.data.map(item => ({ value: item.agency_name, label: item.agency_name })) 
+          : [];
+
+        setUpdatedFormField(prevConfig => ({
+          ...prevConfig,
+          eSimProviders: {
+            ...prevConfig.eSimProviders,
+            options: providerList,
+          },
+          test_agency: {
+            ...prevConfig.test_agency,
+            options: agencyOptions,
+          }
+        }));
+        setIsFormLoaded(true);
+      } catch (err) {
+        console.error("Error loading form dependencies", err);
+        setIsFormLoaded(true);
+      }
+    })();
   }, []);
 
   const handleAlert = (message) => {

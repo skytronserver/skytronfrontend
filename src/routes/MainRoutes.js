@@ -110,6 +110,10 @@ const applyPrivateRoute = (route) => ({
   element: <PrivateRoute element={route.element} roles={route.roles} />,
 });
 
+const AgencyDeviceModelList = Loadable(
+  lazy(() => import("../views/pages/AgencyDeviceModelList"))
+);
+
 // dashboard routing
 const DashboardDefault = Loadable(
   lazy(() => import("../views/dashboard/Default"))
@@ -397,6 +401,11 @@ const MainRoutes = {
       path: '/schoolbus/onboarding',
       element: <SchoolOnboarding />,
       roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/test-agency/assigned-models',
+      element: <AgencyDeviceModelList />,
+      roles: ['testagency']
     }
 
   ].map((route) => applyPrivateRoute(route)),
