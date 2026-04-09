@@ -97,8 +97,8 @@ export const retriveTechnicalOnboardedModelList = async () => {
       const s = String(r?.status ?? "").trim().toLowerCase();
       const modelStatus = String(r?.device_model?.status ?? r?.device_model_status ?? "").trim().toLowerCase();
 
-      // Check if either the request status OR the actual device model status is approved
-      return s.includes("approved") || modelStatus.includes("approved");
+      // Strictly require State Admin Approval for the model to appear in stock upload
+      return modelStatus.includes("stateadminapproved");
     });
 
     const mapped = eligible

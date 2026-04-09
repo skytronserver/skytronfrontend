@@ -396,7 +396,7 @@ export const manufacturerColumns = [
   { name: "tac_validity", label: "TAC Validity", options: { filter: false, sort: false } },
   { name: "cop_no", label: "COP No", options: { filter: false, sort: false } },
   { name: "cop_validity", label: "COP Validity", options: { filter: false, sort: false } },
-  { name: "device_model_details", label: "Device Model Details", options: { filter: false, sort: false } },
+  { name: "model_name", label: "Model Name", options: { filter: true, sort: true } },
 
   { name: "status", label: "Request Status", options: { filter: false, sort: false } },
   { name: "created", label: "Created On", options: { filter: true, sort: false } },

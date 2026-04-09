@@ -40,23 +40,37 @@ const StateAdminVehicleRegistrationReview = () => {
     setLoading(true);
     try {
       const response = await ManufacturerServices.filterTechOnboardManufacturers({});
-      let data = Array.isArray(response?.data) ? response.data : [];
-      // Filter for vehicle manufacturers only
-      data = data.filter(item => item.manufacturer_type === "Vehicle manufacturer");
-      data.sort((a, b) => new Date(b.created) - new Date(a.created));
-      const merged = data.map((row) => {
-        const overrides = overridesArg ?? statusOverrides;
-        const overrideStatus = overrides?.[row?.id];
-        if (!overrideStatus) return row;
+      const data = Array.isArray(response?.data) ? response.data : [];
 
-        const users = Array.isArray(row?.users) ? [...row.users] : row?.users;
-        if (Array.isArray(users) && users[0]) {
-          users[0] = { ...users[0], status: overrideStatus };
+      const flattenedRows = [];
+      data.forEach((manufacturer) => {
+        if (manufacturer.manufacturer_type === "Vehicle manufacturer") {
+          const models = Array.isArray(manufacturer.tech_onboarded_models)
+            ? manufacturer.tech_onboarded_models
+            : [];
+
+          if (models.length > 0) {
+            models.forEach((model) => {
+              const overrides = overridesArg ?? statusOverrides;
+              const rowId = manufacturer.id; 
+              const overrideStatus = overrides?.[rowId];
+
+              flattenedRows.push({
+                ...manufacturer,
+                ...model,
+                manufacturer_id: manufacturer.id,
+                model_id: model.id,
+                status: overrideStatus || manufacturer.status,
+                users: manufacturer.users,
+                id: model.id 
+              });
+            });
+          }
         }
-
-        return { ...row, status: overrideStatus, users };
       });
-      setRows(merged);
+
+      flattenedRows.sort((a, b) => new Date(b.created) - new Date(a.created));
+      setRows(flattenedRows);
     } catch (e) {
       setErrorMessage(
         e?.response?.data?.message ||
@@ -94,7 +108,8 @@ const StateAdminVehicleRegistrationReview = () => {
   );
 
   const handleApprove = useCallback(
-    async (id, row) => {
+    async (row) => {
+      const id = row?.manufacturer_id;
       setErrorMessage("");
       setInfoMessage("");
       setLoading(true);
@@ -107,7 +122,7 @@ const StateAdminVehicleRegistrationReview = () => {
         setStatusOverrides((prev) => ({ ...prev, [id]: "Approved" }));
         setRows((prevRows) =>
           (Array.isArray(prevRows) ? prevRows : []).map((r) => {
-            if (r?.id !== id) return r;
+            if (r?.manufacturer_id !== id) return r;
             return { ...r, status: "Approved" };
           })
         );
@@ -126,7 +141,8 @@ const StateAdminVehicleRegistrationReview = () => {
   );
 
   const handleReject = useCallback(
-    async (id) => {
+    async (row) => {
+      const id = row?.manufacturer_id;
       setErrorMessage("");
       setInfoMessage("");
       setLoading(true);
@@ -140,7 +156,7 @@ const StateAdminVehicleRegistrationReview = () => {
         setStatusOverrides(nextOverrides);
         setRows((prevRows) =>
           (Array.isArray(prevRows) ? prevRows : []).map((r) => {
-            if (r?.id !== id) return r;
+            if (r?.manufacturer_id !== id) return r;
             return { ...r, status: "Rejected" };
           })
         );
@@ -168,12 +184,14 @@ const StateAdminVehicleRegistrationReview = () => {
           sort: false,
           download: false,
           customBodyRender: (value, tableMeta) => {
-            const id = tableMeta?.rowData?.[0];
             const currentRow = rows?.[tableMeta?.rowIndex];
+            const id = currentRow?.manufacturer_id || tableMeta?.rowData?.[0];
             const requestStatusRaw = statusOverrides?.[id] ?? currentRow?.status ?? "";
             const requestStatus = String(requestStatusRaw).trim().toLowerCase();
 
-            const isRequestPending = requestStatus === "allow to login";
+            const isRequestPending = 
+              requestStatus === "allow to login" || 
+              requestStatus === "technicalonboardingapproved";
 
             return (
               <Stack
@@ -199,7 +217,7 @@ const StateAdminVehicleRegistrationReview = () => {
                       size="small"
                       variant="outlined"
                       color="error"
-                      onClick={() => handleReject(id)}
+                      onClick={() => handleReject(currentRow)}
                       sx={{ whiteSpace: "nowrap" }}
                     >
                       Reject
@@ -207,7 +225,7 @@ const StateAdminVehicleRegistrationReview = () => {
                     <Button
                       size="small"
                       variant="contained"
-                      onClick={() => handleApprove(id, rows?.[tableMeta?.rowIndex])}
+                      onClick={() => handleApprove(currentRow)}
                       sx={{
                         backgroundColor: "#800080",
                         "&:hover": { backgroundColor: "#660066" },
