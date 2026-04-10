@@ -93,34 +93,54 @@ export const retriveTechnicalOnboardedModelList = async () => {
           ? data.data
           : [];
 
-    const eligible = rows.filter((r) => {
-      const s = String(r?.status ?? "").trim().toLowerCase();
-      const modelStatus = String(r?.device_model?.status ?? r?.device_model_status ?? "").trim().toLowerCase();
-      const applicantStatus = String(r?.users?.[0]?.status ?? "").trim().toLowerCase();
+    const eligibleModels = [];
 
-      // Strictly require State Admin Approval for the model to appear in stock upload
-      // OR allow if the manufacturer is already 'active' AND Super Admin has approved the tech onboarding
-      return (
-        modelStatus.includes("stateadminapproved") || 
-        (applicantStatus === "active" && s.includes("technicalonboardingapproved"))
-      );
+    rows.forEach((r) => {
+      // 1. Get statuses from the correct paths in the JSON
+      const requestStatus = String(r?.status || "").trim().toLowerCase();
+      const manufacturerStatus = String(r?.manufacturer?.status || "").trim().toLowerCase();
+      const userStatus = String(r?.manufacturer?.users?.[0]?.status || "").trim().toLowerCase();
+      const modelStatus = String(r?.device_model?.status || "").trim().toLowerCase();
+      
+      // 2. Determine if this request is officially 'Ready'
+      const isActiveManufacturer = 
+        manufacturerStatus === "technicalonboardingapproved" || 
+        manufacturerStatus === "allow to add dealer" ||
+        manufacturerStatus === "active";
+
+      const isApprovedRequest = 
+        requestStatus === "accepted" || 
+        requestStatus === "technicalonboardingapproved";
+
+      const isReady = isActiveManufacturer && isApprovedRequest;
+
+      if (isReady) {
+        // 3. Extract the model details (prioritize the device_model object)
+        const modelObj = r.device_model || r;
+        if (modelObj.model_name) {
+          eligibleModels.push({
+            value: String(modelObj.id), // Using the Model ID (44), not the Request ID (26)
+            label: modelObj.model_name,
+          });
+        }
+
+        // Handle legacy nested structure just in case
+        if (Array.isArray(r.tech_onboarded_models)) {
+          r.tech_onboarded_models.forEach((m) => {
+            eligibleModels.push({
+              value: String(m.id),
+              label: m.model_name || m.device_model?.model_name || String(m.id),
+            });
+          });
+        }
+      }
     });
 
-    const mapped = eligible
-      .map((r) => {
-        const id =
-          r?.device_model_id ??
-          (typeof r?.device_model === "object" && r?.device_model !== null
-            ? r.device_model.id
-            : r?.device_model);
-        const name = r?.device_model?.model_name || r?.device_model_name;
-        return id ? { value: String(id), label: name || String(id) } : null;
-      })
-      .filter(Boolean);
-
-    const modelOptions = [...new Map(mapped.map((m) => [String(m.value), m])).values()];
-    return modelOptions;
+    // Deduplicate models by value (ID)
+    const uniqueModels = [...new Map(eligibleModels.map((m) => [m.value, m])).values()];
+    return uniqueModels;
   } catch (e) {
+    console.error("retriveTechnicalOnboardedModelList error:", e);
     return [];
   }
 }

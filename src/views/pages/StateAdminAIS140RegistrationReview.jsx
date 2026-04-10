@@ -119,11 +119,11 @@ const StateAdminAIS140RegistrationReview = () => {
           action: "approve",
         });
 
-        setStatusOverrides((prev) => ({ ...prev, [id]: "Approved" }));
+        setStatusOverrides((prev) => ({ ...prev, [id]: "TechnicalOnboardingApproved" }));
         setRows((prevRows) =>
           (Array.isArray(prevRows) ? prevRows : []).map((r) => {
             if (r?.manufacturer_id !== id) return r;
-            return { ...r, status: "Approved" };
+            return { ...r, status: "TechnicalOnboardingApproved" };
           })
         );
         setInfoMessage(`Technical Onboarding approved successfully for ID: ${id}`);
@@ -186,16 +186,17 @@ const StateAdminAIS140RegistrationReview = () => {
           customBodyRender: (value, tableMeta) => {
             const currentRow = rows?.[tableMeta?.rowIndex];
             const id = currentRow?.manufacturer_id || tableMeta?.rowData?.[0];
-            const requestStatusRaw = statusOverrides?.[id] ?? currentRow?.status ?? "";
-            const requestStatus = String(requestStatusRaw).trim().toLowerCase();
-            const applicantStatus = String(currentRow?.users?.[0]?.status ?? "").trim().toLowerCase();
-            const isManufacturerActive = applicantStatus === "active";
+            const manufacturerStatusRaw = currentRow?.status || "";
+            const manufacturerStatus = String(manufacturerStatusRaw).trim().toLowerCase();
+
+            const isManufacturerActive = 
+              manufacturerStatus === "technicalonboardingapproved" || 
+              manufacturerStatus === "approved" || 
+              manufacturerStatus === "active" || 
+              manufacturerStatus === "allow to add dealer";
 
             const isRequestPending = 
-              !isManufacturerActive && (
-                requestStatus === "allow to login" || 
-                requestStatus === "technicalonboardingapproved"
-              );
+              !isManufacturerActive && manufacturerStatus === "allow to login";
 
             return (
               <Stack
