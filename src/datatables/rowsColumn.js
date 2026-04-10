@@ -549,7 +549,17 @@ export const awaitingOwnerApproval = [
   { name: "chassis_no", label: "Chassis No", options: { filter: false, sort: false } },
   { name: "vehicle_make", label: "Vehicle Make", options: { filter: false, sort: false } },
   { name: "vehicle_model", label: "Vehicle Model", options: { filter: false, sort: false } },
-  { name: "category", label: "Category", options: { filter: true, sort: false } },
+  {
+    name: "category",
+    label: "Category",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => {
+        return value ? value.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) : "-";
+      }
+    }
+  },
   {
     name: "rc_file", label: "RC File", options: {
       filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {

@@ -771,6 +771,10 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
     )
         } - ${formatDisplayValue(entry?.main_input_voltage)} `;
 
+    const categoryValue = formatDisplayValue(
+        entry?.device_tag_info?.category_info?.category || entry?.category
+    ).replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
     const policeRows = [
         nearestStationValue
             ? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Nearest Police Station</span><span class="mappls-hd-popup-value">${nearestStationValue}</span></div>`
@@ -800,6 +804,10 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
 <span class="mappls-hd-popup-value">${addressValue}</span>
 </div>
 ${policeRows}
+        <div class="mappls-hd-popup-row">
+<span class="mappls-hd-popup-label">Category</span>
+<span class="mappls-hd-popup-value">${categoryValue}</span>
+</div>
 <div class="mappls-hd-popup-row">
 <span class="mappls-hd-popup-label">Battery</span>
 <span class="mappls-hd-popup-value">${batteryValue}</span>
@@ -1193,7 +1201,7 @@ const MapComponent = ({
         return USE_TYPE_COLORS[key] || "#1E88E5";
     };
 
-    const createIconStyle = (color, vehicleType, labelText, forceLightBlue = false, rotation = 0) => {
+    const createIconStyle = (color, vehicleType, labelText) => {
         const normalizedVehicleType = vehicleType
             ? vehicleType.toLowerCase().replace(/\s+/g, "_")
             : "bus";
@@ -1223,10 +1231,11 @@ const MapComponent = ({
             }
         }
 
-        const standardWidth = 55;
+        const standardWidth = 45;
         const iconWidth = standardWidth;
-        const labelGap = color === "grey" ? 15 : 5;
-        const labelOffsetY = -(Math.round(iconWidth * 0.9) + labelGap);
+        // Reduce gap to make it "stick" to top of the icon
+        const labelGap = color === "grey" ? 5 : 0; 
+        const labelOffsetY = -(Math.round(iconWidth / 2) + labelGap);
 
         const textStyle = labelText
             ? new Text({
@@ -1242,32 +1251,13 @@ const MapComponent = ({
             })
             : undefined;
 
-        if (forceLightBlue) {
-            return [
-                new Style({
-                    image: new CircleStyle({
-                        radius: 18,
-                        fill: new Fill({ color: "rgba(33, 150, 243, 0.30)" }),
-                        stroke: new Stroke({ color: "rgba(33, 150, 243, 0.75)", width: 2 }),
-                    }),
-                    text: textStyle,
-                }),
-                new Style({
-                    image: new Icon({
-                        anchor: [0.5, 1],
-                        src: iconPath,
-                        width: iconWidth,
-                    }),
-                    text: textStyle,
-                }),
-            ];
-        }
-
+        // Force rotation to 0
+        const rotation = 0;
         const rotationInRadians = (rotation * Math.PI) / 180;
 
         return new Style({
             image: new Icon({
-                anchor: [0.5, 0.5], // Centered anchor for clean rotation
+                anchor: [0.5, 0.5],
                 src: iconPath,
                 width: iconWidth,
                 rotation: rotationInRadians,
@@ -3814,30 +3804,30 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
     //     return createIconStyle(color, iconVehicleType, labelText, false, rotation);
     // };
 
-    const getIconStyle = (data, vehicleType, labelMode, forceDefault = false, rotation = 0) => {
-    const entryTimeMs = resolveEntryTimestampMs(data);
-    const currentTimeMs = new Date().getTime();
-    const timeDifference = Number.isFinite(entryTimeMs)
-        ? calculateTimeDifference(entryTimeMs, currentTimeMs)
-        : Number.POSITIVE_INFINITY;
-    const isStale = timeDifference > 15;
-    const isPoliceMarker = data.markerCategory === "police";
+    const getIconStyle = (data, vehicleType, labelMode, forceDefault = false) => {
+        const entryTimeMs = resolveEntryTimestampMs(data);
+        const currentTimeMs = new Date().getTime();
+        const timeDifference = Number.isFinite(entryTimeMs)
+            ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+            : Number.POSITIVE_INFINITY;
+        const isStale = timeDifference > 15;
+        const isPoliceMarker = data.markerCategory === "police";
 
-    let color = "default";
-    if (forceDefault) { color = "default"; }
-    else if (isPoliceMarker) { color = "blue"; }
-    else if (isStale) { color = "grey"; }
-    else if (data.packet_type === "EA") { color = "red"; }
-    else if (data.packet_type !== "NR") { color = "orange"; }
-    else if (resolveEntrySpeedValue(data) > 0) { color = "green"; }
-    else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) === 0) { color = "blue"; }
+        let color = "default";
+        if (forceDefault) { color = "default"; }
+        else if (isPoliceMarker) { color = "blue"; }
+        else if (isStale) { color = "grey"; }
+        else if (data.packet_type === "EA") { color = "red"; }
+        else if (data.packet_type !== "NR") { color = "orange"; }
+        else if (resolveEntrySpeedValue(data) > 0) { color = "green"; }
+        else if (String(data.ignition_status) === "1" && resolveEntrySpeedValue(data) === 0) { color = "blue"; }
 
-    const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
-    const labelText = getMarkerLabel(data, labelMode);
-    
-    // Pass rotation here
-    return createIconStyle(color, iconVehicleType, labelText, false, rotation);
-};
+        const iconVehicleType = isPoliceMarker ? "police" : vehicleType;
+        const labelText = getMarkerLabel(data, labelMode);
+
+        // Enforce 0 rotation
+        return createIconStyle(color, iconVehicleType, labelText);
+    };
 
     useEffect(() => {
         if (!map || !vectorLayer) {
@@ -4087,6 +4077,7 @@ ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;">
                             };
 
                             const addressValue = entryData?.address ? entryData.address : "-";
+                            const categoryValue = (entryData?.device_tag_info?.category_info?.category || entryData?.category || "-").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
                             const packetTypeLabel = (isStale || isOfflineResolved)
                                 ? "Offline"
                                 : resolvePacketTypeLabel(entryData);
@@ -4178,6 +4169,10 @@ ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;">
 <div class="overlay-row">
 <span class="overlay-label">Speed</span>
 <span class="overlay-value">${speedValue} km/h</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Category</span>
+<span class="overlay-value">${categoryValue}</span>
 </div>
 <div class="overlay-row">
 <span class="overlay-label">Battery</span>
@@ -4457,6 +4452,10 @@ ${policeInfoRows || policeDetailsRows
 <div class="overlay-row">
 <span class="overlay-label">Speed</span>
 <span class="overlay-value">${speedValue} km/h</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label">Category</span>
+<span class="overlay-value">${(focusEntry?.device_tag_info?.category_info?.category || focusEntry?.category || "-").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}</span>
 </div>
 <div class="overlay-row">
 <span class="overlay-label">Battery</span>
@@ -4763,7 +4762,6 @@ useEffect(() => {
 
         const targetPos = getAveragedLocation(entry);
         const targetCoords = [targetPos.lng, targetPos.lat];
-        const targetRotation = entry.course || entry.heading || 0;
         const vehicleType = entry?.device_tag_info?.category_info?.category || "bus";
 
         let feature = activeFeaturesRef.current[imei];
@@ -4774,14 +4772,13 @@ useEffect(() => {
                 geometry: new Point(targetCoords),
                 entryData: entry,
             });
-            feature.set("currentRotation", targetRotation);
-            feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode, targetRotation));
+            feature.set("currentRotation", 0);
+            feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
             activeFeaturesRef.current[imei] = feature;
             vectorSource.addFeature(feature);
         } else {
             // Existing vehicle: Animate movement
             const startCoords = feature.getGeometry().getCoordinates();
-            const startRotation = feature.get("currentRotation") || 0;
             const startTime = performance.now();
 
             // Cancel any previous animation frame for this specific car
@@ -4799,15 +4796,11 @@ useEffect(() => {
                 const currentPos = [currLng, currLat];
                 feature.getGeometry().setCoordinates(currentPos);
 
-                // 2. Smoothly rotate (shortest path logic)
-                let rotDiff = targetRotation - startRotation;
-                if (rotDiff > 180) rotDiff -= 360;
-                if (rotDiff < -180) rotDiff += 360;
-                const currRot = startRotation + (rotDiff * progress);
-                feature.set("currentRotation", currRot);
+                // 2. Rotation is fixed to 0
+                feature.set("currentRotation", 0);
 
                 // 3. Update Style
-                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode, currRot));
+                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
 
                 // 4. MAP FOLLOWING (Move camera with car if focused)
                 if (focusEntry && (focusEntry.imei === imei || focusEntry.vehicle_registration_number === imei)) {
@@ -4824,7 +4817,7 @@ useEffect(() => {
                 feature.set("animFrameId", requestAnimationFrame(frame));
             } else {
                 // Car is stationary, just update metadata/style
-                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode, targetRotation));
+                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
             }
         }
     });

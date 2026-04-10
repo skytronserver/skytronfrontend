@@ -540,7 +540,8 @@ const BhuvanMapComponent = ({
         };
 
         const iconScale = scaleByColor[color] || scaleByColor.default;
-        const labelGap = color === "grey" ? 15 : 5;
+        // Reducing labelGap to 0 to make it stick to the top
+        const labelGap = color === "grey" ? 5 : 0;
         const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
 
         return new Style({
