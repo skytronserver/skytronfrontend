@@ -49,23 +49,21 @@ const StateAdminAIS140RegistrationReview = () => {
             ? manufacturer.tech_onboarded_models
             : [];
 
+          // Only show the manufacturer if they have at least one technical onboarding request
           if (models.length > 0) {
-            models.forEach((model) => {
-              const overrides = overridesArg ?? statusOverrides;
-              const rowId = manufacturer.id; // Still track overrides by manufacturer if approval is global
-              const overrideStatus = overrides?.[rowId];
+            const firstModel = models[0];
+            const overrides = overridesArg ?? statusOverrides;
+            const rowId = manufacturer.id;
+            const overrideStatus = overrides?.[rowId];
 
-              flattenedRows.push({
-                ...manufacturer,
-                ...model,
-                manufacturer_id: manufacturer.id,
-                model_id: model.id,
-                // Status for the row shows manufacturer status or override
-                status: overrideStatus || manufacturer.status,
-                users: manufacturer.users,
-                // ID for table key (using model ID to ensure uniqueness across flattened rows)
-                id: model.id 
-              });
+            flattenedRows.push({
+              ...manufacturer,
+              ...firstModel,
+              manufacturer_id: manufacturer.id,
+              model_id: firstModel.id,
+              status: overrideStatus || manufacturer.status,
+              users: manufacturer.users,
+              id: manufacturer.id // Use manufacturer ID as the unique row ID
             });
           }
         }
@@ -190,10 +188,14 @@ const StateAdminAIS140RegistrationReview = () => {
             const id = currentRow?.manufacturer_id || tableMeta?.rowData?.[0];
             const requestStatusRaw = statusOverrides?.[id] ?? currentRow?.status ?? "";
             const requestStatus = String(requestStatusRaw).trim().toLowerCase();
+            const applicantStatus = String(currentRow?.users?.[0]?.status ?? "").trim().toLowerCase();
+            const isManufacturerActive = applicantStatus === "active";
 
             const isRequestPending = 
-              requestStatus === "allow to login" || 
-              requestStatus === "technicalonboardingapproved";
+              !isManufacturerActive && (
+                requestStatus === "allow to login" || 
+                requestStatus === "technicalonboardingapproved"
+              );
 
             return (
               <Stack
@@ -237,6 +239,10 @@ const StateAdminAIS140RegistrationReview = () => {
                       Approve
                     </Button>
                   </>
+                ) : isManufacturerActive ? (
+                  <Typography variant="caption" sx={{ color: "green", fontWeight: "bold" }}>
+                    Manufacturer Active
+                  </Typography>
                 ) : null}
               </Stack>
             );

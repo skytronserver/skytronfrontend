@@ -96,9 +96,14 @@ export const retriveTechnicalOnboardedModelList = async () => {
     const eligible = rows.filter((r) => {
       const s = String(r?.status ?? "").trim().toLowerCase();
       const modelStatus = String(r?.device_model?.status ?? r?.device_model_status ?? "").trim().toLowerCase();
+      const applicantStatus = String(r?.users?.[0]?.status ?? "").trim().toLowerCase();
 
       // Strictly require State Admin Approval for the model to appear in stock upload
-      return modelStatus.includes("stateadminapproved");
+      // OR allow if the manufacturer is already 'active' AND Super Admin has approved the tech onboarding
+      return (
+        modelStatus.includes("stateadminapproved") || 
+        (applicantStatus === "active" && s.includes("technicalonboardingapproved"))
+      );
     });
 
     const mapped = eligible
