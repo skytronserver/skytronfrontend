@@ -16,9 +16,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { loginUser } from "../../actions/loginActions";
 import MapWalalogo from "../../assets/images/logo.png";
-import stqclogo from "../../assets/images/icons/stqc_logo.png";
 import { Navigate } from "react-router-dom";
 import CaptchaServices from "../../services/CaptchaServices";
+import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
+import LockIcon from "@mui/icons-material/Lock";
 import {
   iconStyle,
   paperStyle,
@@ -114,56 +115,59 @@ function Home() {
     setError(true);
   }
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container maxWidth={false}
+      disableGutters
+      sx={{
+        minHeight: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: { xs: 2, sm: 3, md: 4 },
+      }}>
       <Grid
         container
         spacing={3}
         justifyContent="center"
         alignItems="center"
-        sx={{ minHeight: "80vh" }}
+        sx={{ minHeight: "100%" }}
       >
-        <Grid
-          item
-          xs={8}
-          md={12}
-          sx={{ display: { xs: "none", md: "block" } }}
-        ></Grid>
-        <Grid item xs={12} md={4} justifyContent="center" alignItems="center">
+        <Grid item
+          xs={12}
+          sm={8}
+          md={5}
+          lg={4}
+          xl={3} justifyContent="center" alignItems="center">
           <Paper
             elevation={12}
             sx={{
               zIndex: 2,
-              width: { xs: "90%", sm: 400 },
-              p: { xs: 3, md: 4 },
-              borderRadius: 4,
-              backdropFilter: "blur(18px)",
+              maxWidth: { xs: "100%", sm: 420, md: 420 },
+              p: { xs: 2.5, sm: 3, md: 4 },
+              borderRadius: { xs: 3, md: 4 },
+              // backdropFilter: "blur(18px)",
               background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              transition: "all 0.3s ease", 
+              border: "1px solid rgba(255,255,255,0.8)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+              transition: "all 0.3s ease",
               "&:hover": {
                 transform: "translateY(-6px)",
-                boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
               },
             }}>
-            {/* <Typography variant="h6" gutterBottom align="center">
-              <img
-                src={MapWalalogo}
-                alt={t('common.logo')}
-                style={{
-                  height: "auto", width: "150px", background: "rgba(0,0,0,0.4)",
-                  backdropFilter: "blur(2px)"
-                }}
-              />
-              <br />
-              <span style={logoStyle}>MapWala</span>
-            </Typography> */}
-            {/* Logo */}
-            <Box textAlign="center" mb={2}>
-              <img
-                src={MapWalalogo}
-                alt="logo"
-                style={{ width: 140 }}
-              />
+            {/* Title Section */}
+            <Box textAlign="center" mb={3}>
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                sx={{ color: "#0b0b0bda", letterSpacing: 0.5 }}
+              >
+                Welcome Back
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: "#0b0b0bda", mt: 1 }}
+              >
+                Login to continue to your dashboard
+              </Typography>
             </Box>
             <Formik
               initialValues={formik.initialValues}
@@ -178,14 +182,18 @@ function Home() {
                   variant="outlined"
                   fullWidth
                   margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIphoneIcon sx={{ fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={{
-                    label: { color: "#bbb" },
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": { borderColor: "#555" },
-                      "&:hover fieldset": { borderColor: "#42a5f5" },
-                      "&.Mui-focused fieldset": { borderColor: "#42a5f5" },
-                    },
-                  }} inputProps={{
+                    label: { color: "#0b0b0bda" },
+                  }}
+
+                  inputProps={{
                     inputMode: 'numeric',
                     pattern: '[0-9]*',
                     maxLength: 10,
@@ -214,26 +222,35 @@ function Home() {
                   fullWidth
                   name="password"
                   margin="normal"
+
                   {...formik.getFieldProps("password")}
                   error={
                     formik.touched.password && Boolean(formik.errors.password)
                   }
                   helperText={formik.touched.password && formik.errors.password}
                   InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon sx={{ fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label={t('login.togglePasswordVisibility')}
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
                         >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                          {showPassword ? (
+                            <VisibilityOff sx={{ fontSize: 20 }} />
+                          ) : (
+                            <Visibility sx={{ fontSize: 20 }} />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
                   }}
                   sx={{
-                    label: { color: "#bbb" },
+                    label: { color: "#0b0b0bda" },
                   }}
                 />
 
@@ -289,11 +306,10 @@ function Home() {
                     py: 1.5,
                     borderRadius: 2,
                     fontWeight: "bold",
-                    background: "linear-gradient(135deg, #1976d2, #42a5f5)",
-                    transition: "all 0.3s ease",
+                    background: "linear-gradient(135deg, #2563eb, #38bdf8)", transition: "all 0.3s ease",
                     "&:hover": {
-                      background: "linear-gradient(135deg, #1565c0, #1e88e5)",
-                      transform: "scale(1.03)",
+                      transform: "translateY(-2px)",
+                      background: "linear-gradient(135deg, #1e40af, #0ea5e9)",
                     },
                   }}
 
@@ -327,67 +343,6 @@ function Home() {
         </Grid>
       </Grid>
 
-      {/* STQC Certification Badge - Bottom Left, Responsive */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: { xs: '8px', sm: '12px', md: '16px' },
-          left: { xs: '8px', sm: '12px', md: '16px' },
-          zIndex: 10,
-        }}
-      >
-        {/* <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: { xs: 1.5, sm: 2 },
-            padding: { xs: '4px 8px', sm: '6px 10px', md: '8px 12px' },
-            maxWidth: { xs: '80vw', sm: '60vw', md: '380px' },
-            backgroundColor: 'rgba(227, 242, 253, 0.95)',
-            borderRadius: { xs: '6px', sm: '8px' },
-            border: '1px solid rgba(13,71,161,0.25)',
-            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.15)',
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: { xs: '12px', sm: '14px', md: '15px' },
-                fontWeight: 800,
-                letterSpacing: { xs: '2px', sm: '3px' },
-                fontFamily: '"Arial Black", "Segoe UI", Arial, sans-serif',
-                color: '#0056a8',
-                lineHeight: 1,
-              }}
-            >
-              STQC
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                mt: { xs: 0.3, sm: 0.4 },
-                fontSize: { xs: '7px', sm: '8px', md: '9px' },
-                letterSpacing: { xs: '3px', sm: '4px' },
-                fontFamily: '"Arial", "Segoe UI", sans-serif',
-                color: '#00a1ff',
-                textTransform: 'uppercase',
-              }}
-            >
-              Certified
-            </Typography>
-          </Box>
-          <Box
-            component="img"
-            src={stqclogo}
-            alt="STQC Logo"
-            sx={{
-              height: { xs: '26px', sm: '30px', md: '34px' },
-              width: 'auto',
-            }}
-          />
-        </Box> */}
-      </Box>
     </Container>
   );
 }

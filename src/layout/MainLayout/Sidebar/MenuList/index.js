@@ -9,7 +9,7 @@ import { decipherEncryption } from '../../../../helper';
 import { SYSTEM_ENV } from '../../../../store/constant';
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
-const MenuList = () => {
+const MenuList = ({ onMenuClick }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData = useSelector((state) => state.login.cookiesData) || sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
   const data = userData && userData.split("-").map(item => myDecipher(item))
@@ -39,8 +39,8 @@ const MenuList = () => {
     switch (item.type) {
       case 'group':
         const group = item?.roles ?
-          (item.roles.includes(role) ? <NavGroup key={item.id} item={item} role={role} /> : '')
-          : <NavGroup key={item.id} item={item} role={role} />;
+          (item.roles.includes(role) ? <NavGroup key={item.id} item={item} role={role} onMenuClick={onMenuClick} /> : '')
+          : <NavGroup key={item.id} item={item} role={role} onMenuClick={onMenuClick}/>;
         return group;
       default:
         return (

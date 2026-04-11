@@ -12,8 +12,12 @@ import image1 from "../../assets/images/image1.jpg";
 import image5 from "../../assets/images/Image5.png";
 //import image4 from "../../assets/images/image4.jpg";
 import image6 from "../../assets/images/image6.png";
+import login1 from "../../assets/images/login1.jpg"
+import login2 from "../../assets/images/login2.jpg"
+import login3 from "../../assets/images/login3.jpg"
+import login4 from "../../assets/images/login5.jpg"
 
-const images = [image1, image7, image5, image6];
+const images = [login1, login2, login3, login4];
 const delay = 6000; // Time delay for slide transition
 
 // ==============================|| HOME PAGE LAYOUT ||============================== //

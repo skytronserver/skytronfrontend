@@ -42,8 +42,8 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
         duration: theme.transitions.duration.shorter,
       }),
       [theme.breakpoints.up("md")]: {
-        marginLeft: -(drawerWidth - 20),
-        width: `calc(100% - ${drawerWidth}px)`,
+        marginLeft: 0,
+        width: "100%",
       },
       [theme.breakpoints.down("md")]: {
         marginLeft: "0px",
@@ -94,8 +94,14 @@ const MainLayout = () => {
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
   const dispatch = useDispatch();
-  const handleLeftDrawerToggle = () => {
-    dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
+  // const handleLeftDrawerToggle = () => {
+  //   dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
+  // };
+  const handleLeftDrawerToggle = (openState) => {
+    dispatch({
+      type: SET_MENU,
+      opened: openState !== undefined ? openState : !leftDrawerOpened
+    });
   };
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
@@ -126,6 +132,16 @@ const MainLayout = () => {
       dispatch({ type: SET_MENU, opened: true });
     }
   }, [location, matchDownMd, dispatch]);
+
+  useEffect(() => {
+    dispatch({ type: SET_MENU, opened: false });
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname === '/live-tracking') {
+      dispatch({ type: SET_MENU, opened: false });
+    }
+  }, [location.pathname, dispatch]);
 
   const oAuthToken =
     sessionStorage.getItem("oAuthToken") ||
@@ -245,7 +261,13 @@ const MainLayout = () => {
   }
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{
+      display: "flex",
+      flexDirection: "column",
+      height: "100vh",
+      width: "100%",
+      overflow: "hidden",
+    }}>
       <CssBaseline />
       {/* header */}
       <AppBar
@@ -254,7 +276,8 @@ const MainLayout = () => {
         color="inherit"
         elevation={0}
         sx={{
-          bgColor: theme.palette.background.default,
+          // bgColor: theme.palette.background.default,
+          backgroundColor: "#1D3A5C",
           transition: leftDrawerOpened
             ? theme.transitions.create("width")
             : "none",
@@ -270,36 +293,83 @@ const MainLayout = () => {
           <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
         </Toolbar>
       </AppBar>
+      {leftDrawerOpened && (
+        <Box
+          onClick={() => handleLeftDrawerToggle(false)}
+          sx={{
+            position: "fixed",
+            top: "64px",
+            left: 0,
+            width: "100%",
+            height: "calc(100% - 64px)",
+
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            backgroundColor: "rgba(0,0,0,0.2)",
+
+            zIndex: 1200,
+            opacity: leftDrawerOpened ? 1 : 0,
+            transition: "opacity 0.3s ease-in-out",
+          }}
+        />
+      )}
 
       {/* drawer */}
-
       <Sidebar
-        drawerOpen={matchDownMd ? leftDrawerOpened : leftDrawerOpened}
+        drawerOpen={leftDrawerOpened}
         drawerToggle={handleLeftDrawerToggle}
       />
       {/* main content */}
-      <Main theme={theme} open={leftDrawerOpened}>
-        {/* breadcrumb */}
-        <Breadcrumbs
-          separator={IconChevronRight}
-          navigation={navigation}
-          icon
-          title
-          rightAlign
-        />
+      <Main
+        theme={theme}
+        open={leftDrawerOpened}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minHeight: 0,
+          marginTop: "64px",
+          overflow: "hidden",
+        }}
+      >
+        {/* SCROLLABLE CONTENT */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            width: "100vw",
+            position: "relative",
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "16px",
+          }}
+        >
+          <Breadcrumbs
+            separator={IconChevronRight}
+            navigation={navigation}
+            icon
+            title
+            rightAlign
+          />
 
-        <Outlet />
-        <div
-          style={{
-            paddingTop: "20px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+          <Outlet />
+        </Box>
+
+        {/* FIXED FOOTER */}
+        <Box
+          sx={{
+            height: "50px",
+            flexShrink: 0,
+            width: "100vw",
+            position: "relative",
+            left: "50%",
+            transform: "translateX(-50%)",
+            borderTop: "1px solid #e0e0e0",
+            backgroundColor: "#1E293B",
           }}
         >
           <AuthFooter />
-          <div style={{ marginTop: "0px" }}>&copy; {t('common.allRights')}</div>
-        </div>
+        </Box>
       </Main>
       <Snackbar
         open={ownerAlertNotification.open}

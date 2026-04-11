@@ -27,9 +27,18 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
   const navButtonStyle = (path) => ({
     mr: 2,
-    borderBottom: currentPath === path ? "2px solid #FFC94A" : "none",
-    color: currentPath === path ? "#FFC94A" : "#fff",
-    fontWeight: currentPath === path ? "bold" : "normal",
+  borderBottom: currentPath === path ? "2px solid #94A3B8" : "none", // soft grey
+  color: currentPath === path ? "#CBD5F5" : "#E2E8F0", // light grey text
+  backgroundColor: currentPath === path ? "rgba(148, 163, 184, 0.15)" : "transparent",
+  fontWeight: currentPath === path ? "600" : "400",
+  borderRadius: "6px",
+  px: 1.5,
+  transition: "all 0.3s ease",
+
+  "&:hover": {
+    backgroundColor: "rgba(148, 163, 184, 0.25)",
+    color: "#F1F5F9",
+  },
   });
   
   const handleImportantLinksClick = (event) => {
@@ -50,8 +59,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
   return (
     <div>
-      <AppBar position="static" sx={{ backgroundColor: '#1D3A5C', padding: '4px' }}>
-        <Toolbar>
+      <AppBar position="static" elevation={0} sx={{ backgroundColor: "#1E293B !important", 
+          boxShadow: "none",
+          zIndex: 10, padding: '4px' }}>
+        <Toolbar sx={{ backgroundColor: "#1E293B" }}>
           {/* Ashoka Stambh Icon - Moved to the start */}
           {/* <img
             src={ashokstambh}
@@ -65,7 +76,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
           {/* Logo and Title Container */}
           <Typography
-            variant="h2"
+            variant="body1"
             component="div"
             sx={{
               flexGrow: 1,
@@ -250,13 +261,13 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
         anchor="left"
         open={isDrawerOpen}
         onClose={toggleDrawer(false)}
-        sx={{ '& .MuiDrawer-paper': { width: '50%' }, backgroundColor: 'purple' }}
+        sx={{ '& .MuiDrawer-paper': { width: '50%' }, backgroundColor: "rgba(30, 41, 59, 0.98)" }}
       >
         <div
           role="presentation"
           onClick={toggleDrawer(false)}
           onKeyDown={toggleDrawer(false)}
-          sx={{ width: '50%', backgroundColor: 'purple' }}
+          sx={{ width: '50%', backgroundColor: "rgba(30, 41, 59, 0.98)" }}
         >
           <List>
             <ListItem button component={Link} to="/" selected={currentPath === "/"}>

@@ -209,7 +209,7 @@ const ProfileSection = () => {
                           }
                         }}
                       >
-                        <ListItemButton
+                        {/* <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
                           selected={selectedIndex === 3}
                           onClick={() => {
@@ -221,8 +221,8 @@ const ProfileSection = () => {
                             <IconHelp stroke={1.5} size="1.3rem" />
                           </ListItemIcon>
                           <ListItemText primary={<Typography variant="body2">{t('common.help')}</Typography>} />
-                        </ListItemButton>
-                        <ListItemButton
+                        </ListItemButton> */}
+                        {/* <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
                           selected={selectedIndex === 5}
                           onClick={() => {
@@ -234,7 +234,7 @@ const ProfileSection = () => {
                             <IconMap stroke={1.5} size="1.3rem" />
                           </ListItemIcon>
                           <ListItemText primary={<Typography variant="body2">{t('common.mapPolicy')}</Typography>} />
-                        </ListItemButton>
+                        </ListItemButton> */}
                         <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
                           selected={selectedIndex === 4}

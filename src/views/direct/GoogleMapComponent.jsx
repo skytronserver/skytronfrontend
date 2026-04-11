@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   GoogleMap,
   Marker,
@@ -15,7 +15,8 @@ const GoogleMapComponent = ({
   focusEntry,
   nmrArea
 }) => {
-
+  console.log("GPS DATA:", gpsData);
+  console.log("POLICE DATA:", policeData);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY
   });
@@ -23,7 +24,98 @@ const GoogleMapComponent = ({
   const [selected, setSelected] = useState(null);
   const [mapRef, setMapRef] = useState(null);
 
-  //  Center logic
+  const markerRefs = useRef({});
+  const animationRefs = useRef({});
+  const followRef = useRef(true);
+
+  // ==============================
+  //   SMOOTH ANIMATION
+  // ==============================
+  const animateMarker = (id, newPos) => {
+    const marker = markerRefs.current[id];
+    if (!marker) return;
+
+    const start = marker.getPosition();
+    if (!start) return;
+
+    const startLat = start.lat();
+    const startLng = start.lng();
+
+    const deltaLat = newPos.lat - startLat;
+    const deltaLng = newPos.lng - startLng;
+
+    let step = 0;
+    const steps = 30;
+
+    if (animationRefs.current[id]) {
+      cancelAnimationFrame(animationRefs.current[id]);
+    }
+
+    const animate = () => {
+      step++;
+      const progress = step / steps;
+
+      const lat = startLat + deltaLat * progress;
+      const lng = startLng + deltaLng * progress;
+
+      marker.setPosition({ lat, lng });
+
+      //  FOLLOW MAP
+      if (followRef.current && focusEntry?.imei === id && mapRef) {
+        mapRef.panTo({ lat, lng });
+      }
+
+      if (step < steps) {
+        animationRefs.current[id] = requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  };
+
+  // ==============================
+  // UPDATE MARKERS WITH ANIMATION
+  // ==============================
+  useEffect(() => {
+    gpsData.forEach((item) => {
+      const id = item.imei;
+      const lat = Number(item.latitude);
+      const lng = Number(item.longitude);
+
+      if (!lat || !lng) return;
+
+      if (markerRefs.current[id]) {
+        animateMarker(id, { lat, lng });
+      }
+    });
+  }, [gpsData]);
+
+  // ==============================
+  // USER INTERACTION
+  // ==============================
+  const handleUserInteraction = () => {
+    followRef.current = false;
+  };
+
+  const enableFollow = () => {
+    followRef.current = true;
+  };
+
+  // ==============================
+  // ICON WITH ROTATION
+  // ==============================
+  const getIcon = (item) => {
+    return {
+      url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+      scaledSize: new window.google.maps.Size(40, 40),
+      anchor: new window.google.maps.Point(20, 20),
+      rotation: Number(item.heading || 0)
+    };
+  };
+
+  // ==============================
+  // CENTER
+  // ==============================
   const center = useMemo(() => {
     if (focusEntry?.latitude && focusEntry?.longitude) {
       return {
@@ -31,105 +123,105 @@ const GoogleMapComponent = ({
         lng: Number(focusEntry.longitude)
       };
     }
-
-    if (gpsData.length > 0) {
-      const first = gpsData.find(
-        (i) => Number(i.latitude) && Number(i.longitude)
-      );
-      if (first) {
-        return {
-          lat: Number(first.latitude),
-          lng: Number(first.longitude)
-        };
-      }
-    }
-
     return { lat: 26.1445, lng: 91.7362 };
-  }, [gpsData, focusEntry]);
+  }, [focusEntry]);
 
-  //  Auto follow selected vehicle
-  useEffect(() => {
-    if (mapRef && focusEntry?.latitude && focusEntry?.longitude) {
-      mapRef.panTo({
-        lat: Number(focusEntry.latitude),
-        lng: Number(focusEntry.longitude)
-      });
-      mapRef.setZoom(15);
-    }
-  }, [focusEntry, mapRef]);
-
-  if (!isLoaded) return <div>Loading Google Map...</div>;
+  if (!isLoaded) return <div>Loading...</div>;
 
   return (
-    <GoogleMap
-      mapContainerStyle={{ width: "100%", height }}
-      center={center}
-      zoom={12}
-      onLoad={(map) => setMapRef(map)}
-    >
-      {/*  VEHICLES */}
-      {gpsData.map((item, index) => {
-        const lat = Number(item.latitude);
-        const lng = Number(item.longitude);
-        if (!lat || !lng) return null;
+    <>
+      {/*  FOLLOW BUTTON */}
+      <button
+        onClick={enableFollow}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          zIndex: 999,
+          padding: "8px 12px",
+          background: "#1976d2",
+          color: "#fff",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer"
+        }}
+      >
+        Follow Vehicle
+      </button>
 
-        return (
+      <GoogleMap
+        mapContainerStyle={{ width: "100%", height }}
+        center={center}
+        zoom={15}
+        onLoad={(map) => setMapRef(map)}
+        onZoomChanged={handleUserInteraction}
+        onDragStart={handleUserInteraction}
+      >
+        {/*  VEHICLES */}
+        {gpsData.map((item) => {
+          const lat = Number(item.latitude);
+          const lng = Number(item.longitude);
+          if (!lat || !lng) return null;
+
+          return (
+            <Marker
+              key={item.imei}
+              position={{ lat, lng }}
+              icon={getIcon(item)}
+              onLoad={(marker) => {
+                markerRefs.current[item.imei] = marker;
+              }}
+              onClick={() => {
+                setSelected(item);
+                onVehicleClick && onVehicleClick(item);
+              }}
+            />
+          );
+        })}
+
+        {/*  POLICE */}
+        {policeData.map((item, i) => (
           <Marker
-            key={`${item.imei}-${index}`}
-            position={{ lat, lng }}
-            onClick={() => {
-              setSelected(item);
-              onVehicleClick && onVehicleClick(item);
+            key={i}
+            position={{
+              lat: Number(item.latitude),
+              lng: Number(item.longitude)
             }}
-          />
-        );
-      })}
-
-      {/*  POLICE */}
-      {policeData.map((item, index) => {
-        const lat = Number(item.latitude);
-        const lng = Number(item.longitude);
-        if (!lat || !lng) return null;
-
-        return (
-          <Marker
-            key={`police-${index}`}
-            position={{ lat, lng }}
             icon={{
-              url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+              url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
             }}
           />
-        );
-      })}
+        ))}
 
-      {/*  NMR CIRCLE */}
-      {nmrArea && (
-        <Circle
-          center={{
-            lat: Number(nmrArea.latitude),
-            lng: Number(nmrArea.longitude)
-          }}
-          radius={nmrArea.radiusKm * 1000}
-        />
-      )}
+        {/* NMR */}
+        {nmrArea && (
+          <Circle
+            center={{
+              lat: Number(nmrArea.latitude),
+              lng: Number(nmrArea.longitude)
+            }}
+            radius={nmrArea.radiusKm * 1000}
+          />
+        )}
 
-      {/*  INFO WINDOW */}
-      {selected && (
-        <InfoWindow
-          position={{
-            lat: Number(selected.latitude),
-            lng: Number(selected.longitude)
-          }}
-          onCloseClick={() => setSelected(null)}
-        >
-          <div>
-            <h4>{selected.vehicle_registration_number}</h4>
-            <p>Speed: {selected.speed}</p>
-            <p>Status: {selected.packet_type}</p>
-          </div>
-        </InfoWindow>
-      )}
-    </GoogleMap>
+        {/*  INFO */}
+        {selected && (
+          <InfoWindow
+            position={{
+              lat: Number(selected.latitude),
+              lng: Number(selected.longitude)
+            }}
+            onCloseClick={() => setSelected(null)}
+          >
+            <div>
+              <h4>{selected.vehicle_registration_number}</h4>
+              <p>Speed: {selected.speed}</p>
+              <p>Status: {selected.packet_type}</p>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </>
   );
 };
 

@@ -3,14 +3,14 @@ import { useTranslation } from "react-i18next";
 
 // material-ui
 import { useTheme } from "@mui/material/styles";
-import { Avatar, Box, ButtonBase } from "@mui/material";
-import { getRole } from "../../../helper";
+import { Avatar, Box, ButtonBase,useMediaQuery, Typography, Button,  } from "@mui/material";
+import { getRole,decipherEncryption  } from "../../../helper";
 // project imports
 import LogoSection from "../LogoSection";
 import ProfileSection from "./ProfileSection";
 
 // assets
-import { IconMenu2 } from "@tabler/icons";
+import { IconMenu2,IconLogout } from "@tabler/icons";
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -18,63 +18,121 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const theme = useTheme();
   const { t } = useTranslation();
 
+    // ✅ Detect screen size
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // ✅ Get user data (same logic as ProfileSection)
+  const myDecipher = decipherEncryption("skytrack");
+  const userData = localStorage.getItem("skytrackCookiesData");
+  const data = userData && userData.split("-").map((item) => myDecipher(item));
+
+  const userName = data && data.length > 2 ? data[3] : "User";
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = "/";
+  };
+
   return (
     <>
       {/* logo & toggler button */}
       <Box
         sx={{
-          width: 270,
+          width: "100%",
           display: "flex",
-          [theme.breakpoints.down("md")]: {
-            width: "auto",
-          },
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
+        {/* LEFT SECTION */}
         <Box
-          component="span"
           sx={{
-            display: { xs: "none", md: "block" },
-            flexGrow: 1,
-            //backgroundColor: "#8644A2",
-            
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
           }}
         >
           <LogoSection />
+
+          <ButtonBase onMouseEnter={() => handleLeftDrawerToggle(true)}
+            onMouseLeave={() => handleLeftDrawerToggle(false)} 
+            onClick={() => handleLeftDrawerToggle(true)}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                ...theme.typography.commonAvatar,
+                ...theme.typography.mediumAvatar,
+                background: "#ffffff22",
+                color: "#fff",
+                "&:hover": {
+                  background: "#ffffff44",
+                },
+              }}
+              onClick={handleLeftDrawerToggle}
+            >
+              <IconMenu2 stroke={1.5} size="1.3rem" />
+            </Avatar>
+          </ButtonBase>
         </Box>
-        <ButtonBase
-          sx={{ borderRadius: "12px", overflow: "hidden", left: "10px" }}
-        >
-          <Avatar
-            variant="rounded"
-            sx={{
-              ...theme.typography.commonAvatar,
-              ...theme.typography.mediumAvatar,
-              transition: "all .2s ease-in-out",
-              background: theme.palette.secondary.light,
-              color: theme.palette.secondary.dark,
-              "&:hover": {
-                background: theme.palette.secondary.dark,
-                color: theme.palette.secondary.light,
-              },
-            }}
-            onClick={handleLeftDrawerToggle}
-            color="inherit"
-          >
-            <IconMenu2 stroke={1.5} size="1.3rem" />
-          </Avatar>
-        </ButtonBase>
+
+        {/* RIGHT SECTION */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        {isMobile ? (
+          // MOBILE → Keep old dropdown
+          <ProfileSection />
+        ) : (
+          //  DESKTOP → Show direct info
+          <>
+            <Typography variant="h4" sx={{ color: "#fff" }}>
+              {t("common.welcome")}, {userName}
+            </Typography>
+
+         <Box
+  onClick={handleLogout}
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 0.8,
+    cursor: "pointer",
+    color: "rgba(255,255,255,0.85)",
+    fontSize: "14px",
+    fontWeight: 500,
+    px: 1,
+    py: 0.5,
+    borderRadius: "6px",
+    transition: "all 0.25s ease",
+
+    "&:hover": {
+      color: "#ef4444",
+      background: "rgba(255,255,255,0.05)",
+    },
+
+    "& svg": {
+      transition: "all 0.25s ease",
+    },
+
+    "&:hover svg": {
+      transform: "translateX(2px)",
+    },
+  }}
+>
+  <IconLogout size={18} />
+  <Typography
+    variant="body2"
+    sx={{
+      fontWeight: 500,
+      color:"rgba(255,255,255,0.85)",
+    }}
+  >
+    {t("common.logout")}
+  </Typography>
+</Box>
+          </>
+        )}
       </Box>
 
-      {/* header search */}
-
-      <Box sx={{ flexGrow: 1 }} />
-
-      {/* language switcher */}
-
-      <Box sx={{ flexGrow: 1 }} />
-
-      {/* notification & profile */}
-      <ProfileSection />
+      </Box>
     </>
   );
 };

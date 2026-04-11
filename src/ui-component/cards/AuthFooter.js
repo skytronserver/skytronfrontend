@@ -1,66 +1,63 @@
-// import { Typography, Stack } from "@mui/material";
-// import { useTranslation } from "react-i18next";
-// import amtronlogo from "../../assets/images/Amtron.svg";
-// import { useMediaQuery } from "@mui/material";
-// import { useTheme } from "@mui/material/styles";
-
-// // ==============================|| FOOTER - AUTHENTICATION 2 & 3 ||============================== //
-
-// const AuthFooter = () => {
-//   const theme = useTheme();
-//   const { t } = useTranslation();
-//   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-//   return (
-//     <div>
-//       <Stack direction="row" justifyContent="center">
-//         <Typography
-//           variant="subtitle2"
-//           href=""
-//           target="_blank"
-//           underline="hover"
-//         >
-//           {/* <img
-//             src={amtronlogo}
-//             alt="Amtron Logo"
-//             width={isMobile ? "40" : "38"}
-//             height={isMobile ? "40" : "38"}
-//             style={{ marginLeft: isMobile ? "150px" : "150px" }}
-//           /> */}
-
-//           <span
-//             style={{ width: isMobile ? "365px" : "365px", display: "block" }}
-            
-//           >
-//             {t('common.implementedBy')}
-//           </span>
-//         </Typography>
-//       </Stack>
-//     </div>
-//   );
-// };
-
-// export default AuthFooter;
-
-import { Typography, Box } from "@mui/material";
-import { useTranslation } from "react-i18next";
+import { Typography, Box, Stack } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const AuthFooter = () => {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const linkStyle = {
+    cursor: "pointer",
+    fontSize: "13px",
+    "&:hover": {
+      textDecoration: "underline",
+      color: "#38bdf8",
+    },
+  };
 
   return (
     <Box
       sx={{
         width: "100%",
+        background: "#1E293B",
+        color: "#fff",
+        px: { xs: 2, sm: 3 },
+        py: 1.5,
         display: "flex",
-        justifyContent: "center",
+        justifyContent: "space-between",
         alignItems: "center",
-        textAlign: "center",
+        flexWrap: "wrap",
+        gap: 1,
+        flexShrink: 0, // 🔥 VERY IMPORTANT
       }}
     >
-      <Typography variant="subtitle2" sx={{ color: "#64748b" }}>
-        {t('common.implementedBy')}
+      <Typography
+        variant="body2"
+        sx={{
+          fontSize: { xs: "12px", sm: "13px" },
+          width: { xs: "100%", sm: "auto" },
+          textAlign: { xs: "center", sm: "left" },
+                  color: "#fff",
+
+        }}
+      >
+        © PreciTrack Mapwala Private Limited 2024
       </Typography>
+
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{
+          width: { xs: "100%", sm: "auto" },
+          justifyContent: { xs: "center", sm: "flex-end" },
+        }}
+      >
+        <Typography sx={linkStyle} onClick={() => navigate("/help")}>
+          Help
+        </Typography>
+
+        <Typography sx={linkStyle} onClick={() => navigate("/map-policy")}>
+          Map Policy
+        </Typography>
+      </Stack>
     </Box>
   );
 };

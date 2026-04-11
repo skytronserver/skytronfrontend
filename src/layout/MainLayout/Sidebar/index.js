@@ -84,7 +84,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             paddingRight: '16px'
           }}
         >
-          <MenuList />
+          <MenuList onMenuClick={() => drawerToggle(false)}/>
         </PerfectScrollbar>
       </BrowserView>
       <MobileView>
@@ -97,17 +97,24 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
 
   const container = window !== undefined ? () => window.document.body : undefined;
 
+  const handleMenuClick = () => {
+  drawerToggle(false);
+};
+
   return (
     <Box component="nav" sx={{ flexShrink: { md: 0 }, width: matchUpMd ? drawerWidth : 'auto' }} aria-label="mailbox folders">
       <Drawer
         container={container}
         variant={matchUpMd ? 'persistent' : 'temporary'}
-        anchor="left"
+        anchor="top"
         open={drawerOpen}
-        onClose={drawerToggle}
+        onClose={() => drawerToggle(false)}
+        onMouseEnter={() => drawerToggle(true)}
+        onMouseLeave={() => drawerToggle(false)}
         sx={{
           '& .MuiDrawer-paper': {
-            width: drawerWidth,
+            height: '50vh',
+            width: '350px',
             display: 'flex',
             flexDirection: 'column',
             //  ROLE BASED BACKGROUND
@@ -115,8 +122,18 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             position: 'fixed',
             overflow: 'hidden',
             color: "#ffffff",
+            '& *': {
+      color: "#ffffff !important",
+    },
+            zIndex: 1300,
+            transform: drawerOpen ? 'translateY(0)' : 'translateY(-100%)',
+            opacity: drawerOpen ? 1 : 0.95,
+
+            transition: 'transform 0.35s ease-in-out, opacity 0.3s ease-in-out',
+
             boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
             borderRight: '1px solid rgba(255,255,255,0.05)',
+            
 
             [theme.breakpoints.up('md')]: {
               top: '65px',
@@ -125,11 +142,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             [theme.breakpoints.down('md')]: {
               position: 'fixed',
               top: 0,
-              left: drawerOpen ? 0 : -drawerWidth,
-              transition: theme.transitions.create(['left'], {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-              }),
+
             }
           }
         }}

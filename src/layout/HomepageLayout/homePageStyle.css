@@ -2,7 +2,8 @@
 .layout-container {
   position: relative;
   min-height: 100vh;
-  overflow: visible;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Strictly enforce full viewport height for dashboard pages */
@@ -38,10 +39,10 @@
   opacity: 1;
 }
 
-.content {
+/* .content {
   position: relative;
   z-index: 5;
-}
+} */
 
 /* Flexbox fix for dashboard content */
 .dashboard-mode .content {
@@ -56,7 +57,17 @@
 .header,
 .footer {
   position: relative;
-  z-index: 4;
+  z-index: 5;
   flex-shrink: 0;
   /* Prevent header/footer from shrinking */
+}
+
+.content {
+  flex: 1; /* 🔥 pushes footer down */
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* center login box */
+  align-items: center;
 }
