@@ -395,17 +395,17 @@ export const requestList = [
     },
   },
   {
-    name: "device",
+    name: "valid_upto",
     label: "Validity",
     options: {
       filter: true,
       sort: false,
-      customBodyRender: (value, tableMeta, updateValue) => {
+      customBodyRender: (value) => {
         return (
-          <p>{formatDate(value.esim_validity)}</p>
+          <p>{value ? formatDate(value) : ""}</p>
         );
       },
-      csvExportKey: "esim_validity",
+      csvExportKey: "valid_upto",
     },
   },
   {

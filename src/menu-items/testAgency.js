@@ -23,8 +23,17 @@ const testAgency = {
             roles: ['superadmin', 'testagency'],
             children: [
                 {
+                    id: 'test-agency-details-create',
+                    title: 'Create Agency Details',
+                    type: 'item',
+                    url: '/new/test-agency-details',
+                    icon: icons.IconPlus,
+                    breadcrumbs: false,
+                    roles: ['superadmin'],
+                },
+                {
                     id: 'test-agency-create-menu',
-                    title: 'Create Test Agency',
+                    title: 'Create Agency User',
                     type: 'item',
                     url: '/new/test-agency',
                     icon: icons.IconPlus,
@@ -33,7 +42,7 @@ const testAgency = {
                 },
                 {
                     id: 'test-agency-list-menu',
-                    title: 'Test Agency List',
+                    title: 'Test agency user list',
                     type: 'item',
                     url: '/test-agency/list',
                     icon: icons.IconList,

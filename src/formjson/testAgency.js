@@ -8,7 +8,6 @@ export const testAgencyInitialValues = {
     company_address: '',
     company_pin: '',
     idProofno: '',
-    status: 'Accept',
     name: '',
     email: '',
     mobile: '',
@@ -22,18 +21,21 @@ export const testAgencyFormFields = {
         name: 'agency_name',
         type: 'text',
         label: 'Agency Name',
+        disabled: true,
         validation: Yup.string().required('Agency name is required'),
     },
     company_address: {
         name: 'company_address',
         type: 'text',
         label: 'Company Address',
+        disabled: true,
         validation: Yup.string(),
     },
     company_pin: {
         name: 'company_pin',
         type: 'text',
         label: 'PIN / Postal Code',
+        disabled: true,
         validation: Yup.string(),
     },
     idProofno: {
@@ -41,18 +43,6 @@ export const testAgencyFormFields = {
         type: 'text',
         label: 'Applicant ID Proof Number (PAN CARD, ADHAR, VOTER ID, DRIVING LICENSE, PASSPORT)',
         validation: Yup.string(),
-    },
-    status: {
-        name: 'status',
-        type: 'select',
-        label: 'Status',
-        options: [
-            { value: 'Accept', label: 'Accept' },
-            { value: 'Allow to login', label: 'Allow to login' },
-            { value: 'Allow to add dealer', label: 'Allow to add dealer' },
-            { value: 'Reject', label: 'Reject' },
-        ],
-        validation: Yup.string().required('Status is required'),
     },
     name: {
         name: 'name',

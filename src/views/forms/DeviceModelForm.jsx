@@ -42,6 +42,7 @@ const DeviceModelForm = () => {
   const [error, setError] = useState(false);
   const [apiError, setApiError] = useState(false);
   const [isCopFlow, setIsCopFlow] = useState(false);
+  const [agencies, setAgencies] = useState([]);
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
@@ -65,9 +66,13 @@ const DeviceModelForm = () => {
           TestAgencyServices.getNameList().catch(() => ({ data: [] }))
         ]);
 
-        const agencyOptions = Array.isArray(agencyRes?.data) 
-          ? agencyRes.data.map(item => ({ value: item.agency_name, label: item.agency_name })) 
-          : [];
+        const agencyData = Array.isArray(agencyRes?.data) ? agencyRes.data : [];
+        setAgencies(agencyData);
+
+        const agencyOptions = agencyData.map(item => ({ 
+              value: item.id || item.agency_name || item.name, 
+              label: item.agency_name || item.name 
+            }));
 
         setUpdatedFormField(prevConfig => ({
           ...prevConfig,
@@ -97,6 +102,17 @@ const DeviceModelForm = () => {
     const fieldName = event.target.name;
     if (selectedFile) {
       formik.setFieldValue(fieldName, selectedFile);
+    }
+  };
+  const handleAgencyChange = (event, formik) => {
+    const val = event.target.value;
+    const agency = agencies.find(item => (item.id === val || item.agency_name === val || item.name === val));
+    if (agency) {
+      formik.setFieldValue("agency_address", agency.address || "");
+      formik.setFieldValue("agency_pincode", agency.pincode || "");
+    } else {
+      formik.setFieldValue("agency_address", "");
+      formik.setFieldValue("agency_pincode", "");
     }
   };
 
@@ -289,6 +305,7 @@ const DeviceModelForm = () => {
                               fieldConfig={updatedFormFields[field]}
                               formik={formik}
                               handleFileChange={handleFileChange}
+                              handleOptionChange={field === 'test_agency' ? (e) => handleAgencyChange(e, formik) : undefined}
                             />
                           </Grid>
                         )

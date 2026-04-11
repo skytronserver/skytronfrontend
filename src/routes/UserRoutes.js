@@ -26,6 +26,7 @@ import M2MUser from "../views/forms/M2MUser";
 import SOSAdmin from "../views/forms/SOSAdmin";
 import SOSUser from "../views/forms/SOSUser";
 import SystemAdmin from "../views/forms/SystemAdmin";
+import TestAgencyDetailsForm from "../views/forms/TestAgencyDetailsForm";
 import TestAgencyCreate from "../views/forms/TestAgencyCreate";
 import TestAgencyList from "../views/pages/TestAgencyList";
 import { decipherEncryption } from "../helper";
@@ -169,6 +170,11 @@ const UserRoutes = {
     {
       path: "/new/test-agency",
       element: <TestAgencyCreate />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/new/test-agency-details",
+      element: <TestAgencyDetailsForm />,
       roles: ["superadmin"],
     },
     {

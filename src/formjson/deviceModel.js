@@ -13,7 +13,8 @@ export const deviceModelInitials = {
   cop_no: "",
   cop_validity: "",
   cop_file: null,
-
+  agency_address: "",
+  agency_pincode: "",
 };
 export const deviceModelFormField = {
   eSimProviders: {
@@ -107,5 +108,19 @@ export const deviceModelFormField = {
       then: Yup.mixed().required("modelExtensionForm.validation.copRequired"),
       otherwise: Yup.mixed().nullable()
     }),
+  },
+  agency_address: {
+    name: "agency_address",
+    type: "text",
+    label: "Agency Address",
+    disabled: true,
+    validation: Yup.string(),
+  },
+  agency_pincode: {
+    name: "agency_pincode",
+    type: "text",
+    label: "Agency Pincode",
+    disabled: true,
+    validation: Yup.string(),
   },
 };

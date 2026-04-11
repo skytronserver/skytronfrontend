@@ -5,7 +5,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import FormField from '../../ui-component/CustomTextField';
 import DialogComponent from '../../ui-component/DialogComponent';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TestAgencyServices from '../../services/TestAgencyServices';
 import { testAgencyInitialValues, testAgencyFormFields } from '../../formjson/testAgency';
 
@@ -18,6 +18,8 @@ const TestAgencyCreate = () => {
     });
     const [loading, setLoading] = useState(false);
     const [showResend, setShowResend] = useState(false);
+    const [agencies, setAgencies] = useState([]);
+    const [selectedAgencyId, setSelectedAgencyId] = useState('');
 
     const handleClose = () => {
         setOpen(false);
@@ -27,6 +29,18 @@ const TestAgencyCreate = () => {
         setAlert((prev) => ({ ...prev, message }));
         setOpen(true);
     };
+
+    useEffect(() => {
+        const fetchAgencies = async () => {
+            try {
+                const res = await TestAgencyServices.getNameList();
+                setAgencies(res.data || []);
+            } catch (error) {
+                console.error('Failed to fetch agencies', error);
+            }
+        };
+        fetchAgencies();
+    }, []);
 
     const validationSchema = Yup.object(
         Object.keys(testAgencyFormFields).reduce((acc, field) => {
@@ -55,7 +69,7 @@ const TestAgencyCreate = () => {
         try {
             await TestAgencyServices.createTestAgency(fd);
             setAlert((prev) => ({ ...prev, error: false, errorList: [] }));
-            handleAlert('Test Agency created successfully');
+            handleAlert('Test Agency user created successfully');
             setShowResend(true);
         } catch (error) {
             const data = error?.response?.data;
@@ -85,7 +99,19 @@ const TestAgencyCreate = () => {
 
     const handleResend = (resetForm) => {
         setShowResend(false);
+        setSelectedAgencyId('');
         resetForm(testAgencyInitialValues);
+    };
+
+    const handleAgencySelect = (event, formik) => {
+        const agencyId = event.target.value;
+        setSelectedAgencyId(agencyId);
+        const agency = agencies.find((a) => a.id === agencyId || a.agency_name === agencyId);
+        if (agency) {
+            formik.setFieldValue('agency_name', agency.agency_name || agency.name || '');
+            formik.setFieldValue('company_address', agency.address || '');
+            formik.setFieldValue('company_pin', agency.pincode || '');
+        }
     };
 
     return (
@@ -128,7 +154,7 @@ const TestAgencyCreate = () => {
                         transition: 'opacity 0.3s ease-in-out',
                     }}
                 >
-                    <MainCard title="Create Test Agency">
+                    <MainCard title="Test agency user creation">
                         <Formik
                             initialValues={testAgencyInitialValues}
                             validationSchema={validationSchema}
@@ -138,14 +164,31 @@ const TestAgencyCreate = () => {
                             {(formik) => (
                                 <form onSubmit={formik.handleSubmit}>
                                     <Grid container spacing={2} className="form-controller">
-                                        {Object.keys(testAgencyFormFields).map((field) => (
-                                            <Grid key={field} item md={6} sm={12} xs={12}>
-                                                <FormField
-                                                    fieldConfig={testAgencyFormFields[field]}
-                                                    formik={formik}
-                                                />
-                                            </Grid>
-                                        ))}
+                                        <Grid item md={12} sm={12} xs={12}>
+                                            <FormField
+                                                fieldConfig={{
+                                                    name: 'select_agency',
+                                                    type: 'select',
+                                                    label: 'Select Test Agency',
+                                                    options: agencies.map((a) => ({
+                                                        value: a.id || a.agency_name,
+                                                        label: a.agency_name || a.name,
+                                                    })),
+                                                }}
+                                                formik={formik}
+                                                handleOptionChange={(e) => handleAgencySelect(e, formik)}
+                                            />
+                                        </Grid>
+                                        {Object.keys(testAgencyFormFields).map((field) => {
+                                            return (
+                                                <Grid key={field} item md={6} sm={12} xs={12}>
+                                                    <FormField
+                                                        fieldConfig={testAgencyFormFields[field]}
+                                                        formik={formik}
+                                                    />
+                                                </Grid>
+                                            );
+                                        })}
                                         <Grid item xs={12} style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
                                             <Button
                                                 type="submit"

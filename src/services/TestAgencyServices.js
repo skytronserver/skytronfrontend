@@ -32,12 +32,27 @@ const listTestAgency = () => {
     return http.post('/api/testAgency/list/', {});
 };
 
-/**
- * Get minimal list of active Test Agencies for dropdowns.
- */
 const getNameList = () => {
     const http = getAxiosInstance();
     return http.post('/api/testAgency/name_list/', {});
+};
+
+/**
+ * Create Test Agency details.
+ * @param {Object} data { name, address, pincode }
+ */
+const createAgencyDetails = (data) => {
+    const http = getAxiosInstance();
+    return http.post('/api/testAgency/details/create/', data);
+};
+
+/**
+ * Update Test Agency details.
+ * @param {Object} data { detail_id, address, pincode }
+ */
+const updateAgencyDetails = (data) => {
+    const http = getAxiosInstance();
+    return http.post('/api/testAgency/details/update/', data);
 };
 
 /**
@@ -55,6 +70,8 @@ const TestAgencyServices = {
     listTestAgency,
     getNameList,
     getAgencyDeviceModels,
+    createAgencyDetails,
+    updateAgencyDetails,
 };
 
 export default TestAgencyServices;

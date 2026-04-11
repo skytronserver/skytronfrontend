@@ -509,7 +509,7 @@ const TestAgencyList = () => {
                     title={
                         <Stack direction="row" alignItems="center" spacing={1.5}>
                             <BusinessIcon color="primary" />
-                            <Typography variant="h4" fontWeight={700}>Test Agency List</Typography>
+                            <Typography variant="h4" fontWeight={700}>Test agency user list</Typography>
                         </Stack>
                     }
                 >

@@ -44,7 +44,7 @@ import POIService from "../../services/POIService";
 import CustomModal from "../../ui-component/CustomModal";
 import "./emcall.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
-import { fetchSecureIncidentMedia, createMediaUrl } from "../../utils/incidentImageLoader";
+import { fetchSecureIncidentMedia, createMediaUrl, isVideoFile } from "../../utils/incidentImageLoader";
 import { getRole } from "../../helper";
 
 const emCallAudio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
@@ -180,6 +180,87 @@ const DriverCard = ({ driver }) => {
         <Typography variant="caption" color="text.secondary" display="block" gutterBottom>License Number</Typography>
         <Typography variant="body1" fontWeight={600} sx={{ letterSpacing: 1 }}>
           {driver?.license_no || "N/A"}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const IncidentThumbnail = ({ filePath, onClick, registeredAt }) => {
+  const [url, setUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadThumbnail = async () => {
+      try {
+        const token = sessionStorage.getItem('oAuthToken') || localStorage.getItem('oAuthToken');
+        if (!token || !filePath) return;
+        
+        const blob = await fetchSecureIncidentMedia(filePath, token);
+        if (cancelled) return;
+        const blobUrl = createMediaUrl(blob);
+        setUrl(blobUrl);
+      } catch (e) {
+        console.error("Error loading thumbnail:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadThumbnail();
+    return () => { cancelled = true; };
+  }, [filePath]);
+
+  return (
+    <Box 
+      onClick={onClick}
+      sx={{ 
+        position: 'relative',
+        width: '100%', 
+        paddingTop: '56.25%', // 16:9
+        borderRadius: 1, 
+        overflow: 'hidden',
+        bgcolor: 'grey.200',
+        cursor: 'pointer',
+        border: '1px solid #eee',
+        '&:hover img': { transform: 'scale(1.05)' }
+      }}
+    >
+      {loading ? (
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Loading...</Typography>
+        </Box>
+      ) : url ? (
+        <>
+          <Box
+            component="img"
+            src={url}
+            alt="Incident"
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 0.3s ease'
+            }}
+          />
+          {isVideoFile(filePath) && (
+            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.3)', borderRadius: '50%', p: 0.5, display: 'flex' }}>
+              <PhoneInTalkIcon sx={{ fontSize: '1rem' }} />
+            </Box>
+          )}
+        </>
+      ) : (
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'error.main' }}>Error</Typography>
+        </Box>
+      )}
+      <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 0.5, bgcolor: 'rgba(0,0,0,0.5)', color: 'white' }}>
+        <Typography variant="caption" sx={{ fontSize: '0.6rem', display: 'block', textAlign: 'center' }}>
+          {registeredAt ? new Date(registeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
         </Typography>
       </Box>
     </Box>
@@ -543,6 +624,13 @@ const EMCall = () => {
   // Tab State & Auto-play
   const [tabValue, setTabValue] = useState(0);
 
+  // Incident Data State
+  const [incidentData, setIncidentData] = useState([]);
+  const [incidentLoading, setIncidentLoading] = useState(false);
+  const [selectedIncidentMedia, setSelectedIncidentMedia] = useState(null);
+  const [selectedIncidentType, setSelectedIncidentType] = useState('image');
+  const [incidentViewerOpen, setIncidentViewerOpen] = useState(false);
+
   const handleTabChange = (event, newValue) => {
     if (newValue === 4) {
       setChatOpen(true);
@@ -606,6 +694,62 @@ const EMCall = () => {
       cancelled = true;
     };
   }, []);
+
+  // Fetch Incident Data
+  useEffect(() => {
+    const fetchIncidents = async () => {
+      const vehicleRegNo = call?.call?.device?.vehicle_reg_no;
+      if (!vehicleRegNo && !sosLocations.length) return;
+
+      setIncidentLoading(true);
+      try {
+        const params = {
+          vehicle_reg_no: vehicleRegNo || '',
+          page: 1,
+          page_size: 5
+        };
+
+        // If no registration number, try by location
+        if (!vehicleRegNo && sosLocations.length > 0) {
+          params.latitude = sosLocations[0].latitude;
+          params.longitude = sosLocations[0].longitude;
+          params.radius_km = 5;
+        }
+
+        const response = await HomePageService.getIncidentData(params);
+        if (response?.data?.status === "success" && Array.isArray(response.data.data)) {
+          setIncidentData(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching incidents for EMCall:", error);
+      } finally {
+        setIncidentLoading(false);
+      }
+    };
+
+    fetchIncidents();
+  }, [call?.call?.device?.vehicle_reg_no, sosLocations]);
+
+  const openIncidentMedia = async (filePath) => {
+    try {
+      const token = sessionStorage.getItem('oAuthToken') || localStorage.getItem('oAuthToken');
+      if (!token) return;
+
+      const blob = await fetchSecureIncidentMedia(filePath, token);
+      const url = createMediaUrl(blob);
+
+      setSelectedIncidentMedia(url);
+      setSelectedIncidentType(isVideoFile(filePath) ? 'video' : 'image');
+      setIncidentViewerOpen(true);
+    } catch (error) {
+      console.error("Failed to load incident media:", error);
+    }
+  };
+
+  const closeIncidentViewer = () => {
+    setIncidentViewerOpen(false);
+    setSelectedIncidentMedia(null);
+  };
 
   useEffect(() => {
     if (sosLocations.length > 0 && policePois.length > 0) {
@@ -1459,6 +1603,31 @@ const EMCall = () => {
                         <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.longitude?.toFixed(5) || "N/A"}</Typography>
                       </Box>
                     </Box>
+
+                    {/* Incident Media Section */}
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <NotificationsActiveIcon fontSize="small" /> INCIDENT MEDIA
+                      </Typography>
+                      
+                      {incidentLoading ? (
+                        <Typography variant="body2" color="text.secondary">Loading incident media...</Typography>
+                      ) : incidentData.length > 0 ? (
+                        <Grid container spacing={1}>
+                          {incidentData.map((incident, idx) => (
+                            <Grid item xs={6} key={incident.id || idx}>
+                              <IncidentThumbnail 
+                                filePath={incident.image_file}
+                                registeredAt={incident.registered_at}
+                                onClick={() => openIncidentMedia(incident.image_file)}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">No incident media found for this vehicle.</Typography>
+                      )}
+                    </Box>
                   </Box>
                 )}
 
@@ -1773,6 +1942,35 @@ const EMCall = () => {
         </Dialog>
 
       </Box>
+
+      {/* Incident Media Viewer Dialog */}
+      <Dialog 
+        open={incidentViewerOpen} 
+        onClose={closeIncidentViewer}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Incident Media
+          <Button onClick={closeIncidentViewer} size="small">Close</Button>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, bgcolor: 'black', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {selectedIncidentType === 'video' ? (
+            <video 
+              src={selectedIncidentMedia} 
+              controls 
+              autoPlay 
+              style={{ maxWidth: '100%', maxHeight: '80vh' }} 
+            />
+          ) : (
+            <img 
+              src={selectedIncidentMedia} 
+              alt="Incident Large" 
+              style={{ maxWidth: '100%', maxHeight: '80vh' }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
