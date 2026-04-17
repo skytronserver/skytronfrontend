@@ -37,6 +37,8 @@ import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import SendIcon from '@mui/icons-material/Send';
 import ChatIcon from '@mui/icons-material/Chat';
+import ClearIcon from '@mui/icons-material/Clear';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
 
 import HomePageService from "../../services/HomePage";
 import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
@@ -218,23 +220,31 @@ const IncidentThumbnail = ({ filePath, onClick, registeredAt }) => {
       sx={{ 
         position: 'relative',
         width: '100%', 
-        paddingTop: '56.25%', // 16:9
-        borderRadius: 1, 
+        paddingTop: '60%', 
+        borderRadius: 2, 
         overflow: 'hidden',
-        bgcolor: 'grey.200',
+        bgcolor: '#f0f0f0',
         cursor: 'pointer',
-        border: '1px solid #eee',
-        '&:hover img': { transform: 'scale(1.05)' }
+        border: '3px solid #fff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': { 
+          transform: 'translateY(-4px)',
+          boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+          '& .thumbnail-img': { transform: 'scale(1.1)' },
+          '& .overlay-btn': { opacity: 1 }
+        }
       }}
     >
       {loading ? (
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Loading...</Typography>
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', fontWeight: 600 }}>Loading...</Typography>
         </Box>
       ) : url ? (
         <>
           <Box
             component="img"
+            className="thumbnail-img"
             src={url}
             alt="Incident"
             sx={{
@@ -244,23 +254,43 @@ const IncidentThumbnail = ({ filePath, onClick, registeredAt }) => {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              transition: 'transform 0.3s ease'
+              transition: 'transform 0.6s ease'
             }}
           />
+          <Box className="overlay-btn" sx={{ 
+            position: 'absolute', 
+            inset: 0, 
+            bgcolor: 'rgba(0,0,0,0.2)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            opacity: 0,
+            transition: 'opacity 0.3s ease'
+          }}>
+            <FullscreenIcon sx={{ color: 'white', fontSize: '2.5rem' }} />
+          </Box>
           {isVideoFile(filePath) && (
-            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.3)', borderRadius: '50%', p: 0.5, display: 'flex' }}>
-              <PhoneInTalkIcon sx={{ fontSize: '1rem' }} />
+            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.4)', borderRadius: '50%', p: 1, display: 'flex' }}>
+              <PhoneInTalkIcon sx={{ fontSize: '1.5rem' }} />
             </Box>
           )}
         </>
       ) : (
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'error.main' }}>Error</Typography>
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'error.main', fontWeight: 600 }}>Error</Typography>
         </Box>
       )}
-      <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 0.5, bgcolor: 'rgba(0,0,0,0.5)', color: 'white' }}>
-        <Typography variant="caption" sx={{ fontSize: '0.6rem', display: 'block', textAlign: 'center' }}>
-          {registeredAt ? new Date(registeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+      <Box sx={{ 
+        position: 'absolute', 
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        p: 1.2, 
+        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', 
+        color: 'white' 
+      }}>
+        <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', textAlign: 'center', letterSpacing: 0.5 }}>
+          {registeredAt ? new Date(registeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
         </Typography>
       </Box>
     </Box>
@@ -1613,9 +1643,9 @@ const EMCall = () => {
                       {incidentLoading ? (
                         <Typography variant="body2" color="text.secondary">Loading incident media...</Typography>
                       ) : incidentData.length > 0 ? (
-                        <Grid container spacing={1}>
+                        <Grid container spacing={2}>
                           {incidentData.map((incident, idx) => (
-                            <Grid item xs={6} key={incident.id || idx}>
+                            <Grid item xs={12} key={incident.id || idx}>
                               <IncidentThumbnail 
                                 filePath={incident.image_file}
                                 registeredAt={incident.registered_at}
@@ -1947,26 +1977,46 @@ const EMCall = () => {
       <Dialog 
         open={incidentViewerOpen} 
         onClose={closeIncidentViewer}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: 'hidden',
+            bgcolor: '#000',
+            maxHeight: '95vh'
+          }
+        }}
+        sx={{ '& .MuiDialog-paper': { m: 2 } }}
       >
-        <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Incident Media
-          <Button onClick={closeIncidentViewer} size="small">Close</Button>
+        <DialogTitle sx={{ 
+          m: 0, 
+          p: 2, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          bgcolor: '#1a1a1a',
+          color: '#fff',
+          borderBottom: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <Typography variant="subtitle1" fontWeight={700}>Incident Media Preview</Typography>
+          <IconButton onClick={closeIncidentViewer} size="small" sx={{ color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}>
+            <ClearIcon />
+          </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 0, bgcolor: 'black', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <DialogContent sx={{ p: 0, bgcolor: 'black', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {selectedIncidentType === 'video' ? (
             <video 
               src={selectedIncidentMedia} 
               controls 
               autoPlay 
-              style={{ maxWidth: '100%', maxHeight: '80vh' }} 
+              style={{ maxWidth: '100%', maxHeight: '85vh', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }} 
             />
           ) : (
             <img 
               src={selectedIncidentMedia} 
               alt="Incident Large" 
-              style={{ maxWidth: '100%', maxHeight: '80vh' }} 
+              style={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }} 
             />
           )}
         </DialogContent>
