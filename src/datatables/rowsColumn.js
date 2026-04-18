@@ -414,7 +414,7 @@ export const serviceProviderCol = [
     }
   },
   {
-    name: "users", label: "Applicant Email Id", options: {
+    name: "users", label: "Applicant Email", options: {
       filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
         return (
           <p>{value[0].email}</p>
@@ -422,6 +422,7 @@ export const serviceProviderCol = [
       }, csvExportKey: "email", columnKey: 0
     }
   },
+
   {
     name: "users", label: "Applicant Mobile", options: {
       filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
@@ -453,6 +454,7 @@ export const serviceProviderCol = [
   },
 
   { name: "company_name", label: "Company Name", options: { filter: false, sort: false } },
+  { name: "company_email", label: "Company Email", options: { filter: false, sort: false } },
   { name: "company_address", label: "Company Address", options: { filter: false, sort: false } },
   { name: "company_pin", label: "Company PIN", options: { filter: false, sort: false } },
   { name: "gstnnumber", label: "GSTN No.", options: { filter: true, sort: false } },
