@@ -25,10 +25,8 @@ const DeviceModelForm = () => {
   const [message, setMessage] = useState('');
   const [open, setOpen] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
-  const [otpStep, setOtpStep] = useState(0); // 0=form, 1=model OTP, 2=cop OTP
   const [modelId, setModelId] = useState("");
-  const [copId, setCopId] = useState("");
-  const [deviceId, setDeviceId] = useState(""); // kept for non-cop flow
+  const [deviceId, setDeviceId] = useState("");
   const [alert, setAlert] = useState({
     error: false,
     message: "",
@@ -50,11 +48,7 @@ const DeviceModelForm = () => {
   const handleClose = () => {
     setOpen(false);
     if (!error) {
-      if (isCopFlow) {
-        setOtpStep(1); // Show model OTP first
-      } else {
-        setShowOTP(true);
-      }
+      setShowOTP(true);
     }
   };
 
@@ -127,27 +121,13 @@ const DeviceModelForm = () => {
   };
   const handleOTPSubmit = async () => {
     try {
-      if (isCopFlow && otpStep === 1) {
-        // Step 1: Verify model OTP
-        await OtpServices.deviceAddOtp({ otp, device_model_id: modelId });
-        setOtp("");
-        setOtpStep(2); // Move to COP OTP step
-      } else if (isCopFlow && otpStep === 2) {
-        // Step 2: Verify COP OTP
-        await OtpServices.sendCopOTP({ otp, device_model_id: copId });
-        setOtpStep(0);
-        setShowOTP(false);
-        setOpenAlert(true);
-        setAlertType("success");
-        setMessage(t('deviceModelForm.modelSentForApproval'));
-      } else {
-        // Normal (non-COP) flow
-        await OtpServices.deviceAddOtp({ otp, device_model_id: deviceId });
-        setShowOTP(false);
-        setOpenAlert(true);
-        setAlertType("success");
-        setMessage(t('deviceModelForm.modelSentForApproval'));
-      }
+      const idToVerify = isCopFlow ? modelId : deviceId;
+      await OtpServices.deviceAddOtp({ otp, device_model_id: idToVerify });
+      
+      setShowOTP(false);
+      setOpenAlert(true);
+      setAlertType("success");
+      setMessage(t('deviceModelForm.modelSentForApproval'));
     } catch (error) {
       console.error("Error while submitting OTP", error.message);
       setOpenAlert(true);
@@ -201,10 +181,10 @@ const DeviceModelForm = () => {
           copPayload.append("approval", "0");
           copPayload.append("approved_by", "");
           copPayload.append("created_by", userId || "");
+          copPayload.append("new_model_create", "1");
 
           const copResponse = await DeviceModelServices.copUpload(copPayload);
           setModelId(newModelId);
-          setCopId(copResponse?.data?.id || "");
         } else {
           setDeviceId(newModelId);
         }
@@ -283,7 +263,7 @@ const DeviceModelForm = () => {
           }}
         >
           <MainCard title={t('deviceModelForm.title')}>
-            {!showOTP && otpStep === 0 ? (
+            {!showOTP ? (
               isFormLoaded && (<Formik
                 initialValues={deviceModelInitials}
                 validationSchema={validationSchema}
@@ -324,40 +304,6 @@ const DeviceModelForm = () => {
                   </form>
                 )}
               </Formik>)
-            ) : otpStep === 1 ? (
-              /* OTP Page 1: Verify Device Model */
-              <Grid container spacing={2} justifyContent="center" alignItems="center">
-                <Grid item xs={12}>
-                  <p><strong>Step 1 of 2:</strong> Enter OTP to verify the <strong>Device Model</strong></p>
-                  <p>{t('deviceModelForm.otpValidation')}</p>
-                </Grid>
-                <Grid item xs={12} md="5">
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                  <br />
-                  <Typography align="center">
-                    <Button color="primary" size="large" variant="contained" onClick={handleOTPSubmit}>
-                      Verify &amp; Continue
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            ) : otpStep === 2 ? (
-              /* OTP Page 2: Verify COP */
-              <Grid container spacing={2} justifyContent="center" alignItems="center">
-                <Grid item xs={12}>
-                  <p><strong>Step 2 of 2:</strong> Enter OTP to verify the <strong>COP (TAC Extension)</strong></p>
-                  <p>{t('deviceModelForm.otpValidation')}</p>
-                </Grid>
-                <Grid item xs={12} md="5">
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                  <br />
-                  <Typography align="center">
-                    <Button color="primary" size="large" variant="contained" onClick={handleOTPSubmit}>
-                      {t('deviceModelForm.verifyOTP')}
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
             ) : (
               <Grid
                 container

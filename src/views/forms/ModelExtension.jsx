@@ -147,6 +147,7 @@ const ModelExtension = ({ formTitle }) => {
       approved_by: "",
       vendor_id: "32",
       created_by: "31",
+      new_model_create: "0",
     };
     try {
       const response = await DeviceModelServices.copUpload(updatedValues);
