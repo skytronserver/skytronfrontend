@@ -120,6 +120,7 @@ const VehicleOwner = () => {
       }));
 
       handleAlert(t("common.formSubmittedSuccessfully"));
+      resetForm();
       setShowResend(true);
     } catch (error) {
       console.error("Error creating user:", error.message);

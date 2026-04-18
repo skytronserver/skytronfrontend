@@ -106,6 +106,7 @@ const SystemAdmin = () => {
       await UserServices.createSystemAdmin(payload);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("System Admin created successfully");
+      resetForm();
       setShowResend(true);
     } catch (error) {
       setAlert((prevAlert) => ({

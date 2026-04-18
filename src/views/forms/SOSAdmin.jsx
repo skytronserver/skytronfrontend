@@ -95,6 +95,7 @@ const SOSAdmin = () => {
           errorList: [],
         }));
         handleAlert(t("sosAdmin.form.success"));
+        resetForm();
         setShowResend(true);
       }
     } catch (error) {

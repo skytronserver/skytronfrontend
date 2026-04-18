@@ -95,6 +95,7 @@ const StateAdmin = () => {
       await UserServices.createStateAdmin(valuesWithRole);
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t("common.formSubmittedSuccessfully"));
+      resetForm();
       setSubmitting(false);
       setShowResend(true);
     } catch (error) {

@@ -163,6 +163,7 @@ const Manufacturer = () => {
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("manufacturer.form.success");
+      resetForm();
       setSubmitting(false);
       setLoading(false);
       setShowResend(true);

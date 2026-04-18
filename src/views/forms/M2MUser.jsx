@@ -129,6 +129,7 @@ const M2MUser = () => {
     if (response.code === "200") {
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert("common.formSubmittedSuccessfully");
+      resetForm();
       setSubmitting(false);
       setLoading(false);
       setShowResend(true);

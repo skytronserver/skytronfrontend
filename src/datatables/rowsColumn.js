@@ -404,6 +404,8 @@ export const manufacturerColumns = [
 export const serviceProviderCol = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
   { name: "id", label: "Reference No", options: { filter: true, sort: false, customBodyRender: (value) => { return <p>M2M/{value}</p>; } } },
+  { name: "company_name", label: "Company Name", options: { filter: false, sort: false } },
+  { name: "company_email", label: "Company Email", options: { filter: false, sort: false } },
   {
     name: "users", label: "Applicant Name", options: {
       filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
@@ -453,8 +455,6 @@ export const serviceProviderCol = [
     }
   },
 
-  { name: "company_name", label: "Company Name", options: { filter: false, sort: false } },
-  { name: "company_email", label: "Company Email", options: { filter: false, sort: false } },
   { name: "company_address", label: "Company Address", options: { filter: false, sort: false } },
   { name: "company_pin", label: "Company PIN", options: { filter: false, sort: false } },
   { name: "gstnnumber", label: "GSTN No.", options: { filter: true, sort: false } },

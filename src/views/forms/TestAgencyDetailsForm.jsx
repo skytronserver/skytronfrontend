@@ -5,8 +5,9 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import FormField from '../../ui-component/CustomTextField';
 import DialogComponent from '../../ui-component/DialogComponent';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TestAgencyServices from '../../services/TestAgencyServices';
+import { retriveStateList } from '../../helper';
 
 const TestAgencyDetailsForm = () => {
     const [open, setOpen] = useState(false);
@@ -16,6 +17,15 @@ const TestAgencyDetailsForm = () => {
         errorList: [],
     });
     const [loading, setLoading] = useState(false);
+    const [states, setStates] = useState([]);
+
+    useEffect(() => {
+        const fetchStates = async () => {
+            const list = await retriveStateList();
+            setStates(list || []);
+        };
+        fetchStates();
+    }, []);
 
     const handleClose = () => {
         setOpen(false);
@@ -30,12 +40,14 @@ const TestAgencyDetailsForm = () => {
         name: '',
         address: '',
         pincode: '',
+        state: '',
     };
 
     const validationSchema = Yup.object({
         name: Yup.string().required('Agency name is required'),
         address: Yup.string().required('Address is required'),
         pincode: Yup.string().required('Pincode is required'),
+        state: Yup.string().required('State is required'),
     });
 
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -90,6 +102,17 @@ const TestAgencyDetailsForm = () => {
                                                     name: 'pincode',
                                                     type: 'text',
                                                     label: 'Pincode',
+                                                }}
+                                                formik={formik}
+                                            />
+                                        </Grid>
+                                        <Grid item md={6} xs={12}>
+                                            <FormField
+                                                fieldConfig={{
+                                                    name: 'state',
+                                                    type: 'select',
+                                                    label: 'State',
+                                                    options: states
                                                 }}
                                                 formik={formik}
                                             />

@@ -5,6 +5,7 @@ import { gridSpacing } from '../../store/constant';
 import TestAgencyServices from '../../services/TestAgencyServices';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { useTranslation } from 'react-i18next';
+import { openFile } from '../../helper';
 
 const AgencyDeviceModelList = () => {
     const { t } = useTranslation();
@@ -16,7 +17,10 @@ const AgencyDeviceModelList = () => {
         const fetchModels = async () => {
             try {
                 const response = await TestAgencyServices.getAgencyDeviceModels();
-                setModels(response.data || []);
+                const allModels = response.data || [];
+                // Filter: Test Agency should only see approved device models
+                const approvedModels = allModels.filter(m => m.status === 'StateAdminApproved');
+                setModels(approvedModels);
             } catch (error) {
                 console.error('Error fetching agency device models:', error);
             } finally {
@@ -29,7 +33,7 @@ const AgencyDeviceModelList = () => {
     const columns = [
         {
             name: 'model_name',
-            label: 'Model Name',
+            label: 'Device Model Name',
             options: {
                 filter: true,
                 sort: true,
@@ -49,11 +53,29 @@ const AgencyDeviceModelList = () => {
             options: {
                 filter: true,
                 sort: true,
+                customBodyRender: (value, tableMeta) => {
+                    const row = models[tableMeta.rowIndex];
+                    return (
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <Typography variant="body2">{value}</Typography>
+                            {row?.tac_doc_path && (
+                                <Button 
+                                    size="small" 
+                                    sx={{ minWidth: 'auto', p: '2px 8px', fontSize: '0.75rem' }} 
+                                    variant="outlined" 
+                                    onClick={(e) => openFile(e, row.tac_doc_path)}
+                                >
+                                    View
+                                </Button>
+                            )}
+                        </Box>
+                    );
+                }
             }
         },
         {
             name: 'tac_validity',
-            label: 'TAC Validity',
+            label: 'TAC Expiry',
             options: {
                 filter: true,
                 sort: true,
@@ -95,18 +117,30 @@ const AgencyDeviceModelList = () => {
         },
         {
             name: 'cop_info',
-            label: 'COP Info',
+            label: 'COP No & Validity',
             options: {
                 filter: false,
                 customBodyRender: (value) => {
                     if (!value) return '—';
                     return (
-                        <Box>
-                            <Typography variant="body2" fontWeight={600}>{value.cop_no}</Typography>
-                            {value.cop_validity && (
-                                <Typography variant="caption" color="text.secondary">
-                                    Exp: {value.cop_validity}
-                                </Typography>
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <Box flex={1}>
+                                <Typography variant="body2" fontWeight={600}>{value.cop_no}</Typography>
+                                {value.cop_validity && (
+                                    <Typography variant="caption" color="text.secondary">
+                                        Exp: {value.cop_validity}
+                                    </Typography>
+                                )}
+                            </Box>
+                            {value.cop_file && (
+                                <Button 
+                                    size="small" 
+                                    sx={{ minWidth: 'auto', p: '2px 8px', fontSize: '0.75rem' }} 
+                                    variant="outlined" 
+                                    onClick={(e) => openFile(e, value.cop_file)}
+                                >
+                                    View
+                                </Button>
                             )}
                         </Box>
                     );
@@ -126,7 +160,7 @@ const AgencyDeviceModelList = () => {
         },
         {
             name: 'manufacturer_info',
-            label: 'Manufacturers',
+            label: 'Manufacturer Name',
             options: {
                 filter: false,
                 customBodyRender: (value, tableMeta) => {

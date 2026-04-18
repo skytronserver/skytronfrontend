@@ -108,6 +108,7 @@ const SOSUser = () => {
 
       setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
       handleAlert(t("common.formSubmittedSuccessfully"));
+      resetForm();
       setShowResend(true);
     } catch (error) {
       console.error("Error creating user:", error?.message);

@@ -70,6 +70,7 @@ const TestAgencyCreate = () => {
             await TestAgencyServices.createTestAgency(fd);
             setAlert((prev) => ({ ...prev, error: false, errorList: [] }));
             handleAlert('Test Agency user created successfully');
+            resetForm();
             setShowResend(true);
         } catch (error) {
             const data = error?.response?.data;
@@ -111,6 +112,7 @@ const TestAgencyCreate = () => {
             formik.setFieldValue('agency_name', agency.agency_name || agency.name || '');
             formik.setFieldValue('company_address', agency.address || '');
             formik.setFieldValue('company_pin', agency.pincode || '');
+            formik.setFieldValue('company_state', agency.state_info?.state || agency.state || '');
         }
     };
 
