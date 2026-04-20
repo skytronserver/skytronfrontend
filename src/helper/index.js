@@ -103,16 +103,20 @@ export const retriveTechnicalOnboardedModelList = async () => {
       const modelStatus = String(r?.device_model?.status || "").trim().toLowerCase();
       
       // 2. Determine if this request is officially 'Ready'
+      // A model is only ready AFTER State Admin final approval.
       const isActiveManufacturer = 
-        manufacturerStatus === "technicalonboardingapproved" || 
-        manufacturerStatus === "allow to add dealer" ||
-        manufacturerStatus === "active";
+        manufacturerStatus === "stateadminapproved" ||
+        manufacturerStatus === "active" || 
+        manufacturerStatus === "allow to add dealer";
 
       const isApprovedRequest = 
-        requestStatus === "accepted" || 
-        requestStatus === "technicalonboardingapproved";
+        requestStatus === "stateadminapproved" ||
+        requestStatus === "active" || 
+        requestStatus === "technicalonboardingapproved" ||
+        requestStatus === "accepted"; // support legacy 'accepted' final status
 
-      const isReady = isActiveManufacturer && isApprovedRequest;
+      // Models must be fully approved by state admin to show in stock
+      const isReady = isActiveManufacturer || isApprovedRequest;
 
       if (isReady) {
         // 3. Extract the model details (prioritize the device_model object)

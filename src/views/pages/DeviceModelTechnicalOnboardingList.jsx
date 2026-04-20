@@ -73,10 +73,16 @@ const DocumentButton = ({ label, path }) => {
 
 const STATUS_CONFIG = {
     pending: { label: "Pending", color: "warning" },
-    approved: { label: "Approved", color: "success" },
+    submitted: { label: "Submitted", color: "info" },
+    ongoing_evaluation: { label: "Ongoing Evaluation", color: "secondary" },
+    technically_compatible: { label: "Technically Compatible", color: "success" },
+    technically_not_compatible: { label: "Technically Not Compatible", color: "error" },
+    stateadminapproved: { label: "State Admin Approved", color: "success" },
+    stateadminrejected: { label: "State Admin Rejected", color: "error" },
+    accepted: { label: "Accepted", color: "success" },
     rejected: { label: "Rejected", color: "error" },
+    approved: { label: "Approved", color: "success" },
     processing: { label: "Processing", color: "info" },
-    created: { label: "Created", color: "default" },
 };
 
 const StatusChip = ({ status }) => {
@@ -235,7 +241,6 @@ const RequestRow = ({ row, index }) => {
                                                     ["TAC Validity", row.device_model?.tac_validity],
                                                     ["Hardware Version", row.device_model?.hardware_version],
                                                     ["Test Agency", row.device_model?.test_agency],
-                                                    ["Status", row.device_model?.status],
                                                 ].map(([lbl, val]) =>
                                                     val ? (
                                                         <React.Fragment key={lbl}>

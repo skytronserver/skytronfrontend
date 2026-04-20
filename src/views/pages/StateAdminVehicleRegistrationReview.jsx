@@ -262,7 +262,7 @@ const StateAdminVehicleRegistrationReview = () => {
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" sx={{ fontWeight: "bold", color: "#800080" }}>
-                  Vehicle Manufacturer Final approval and rejection of the technical onboard
+                  Factory Fitted VLTD onboarding Approval
                 </Typography>
               </Box>
             </Stack>
@@ -285,7 +285,7 @@ const StateAdminVehicleRegistrationReview = () => {
               <Alert severity="info">No vehicle manufacturer requests found for technical onboarding.</Alert>
             ) : (
               <DynamicDatatables
-                tableTitle="Vehicle Manufacturer Final approval and rejection of the technical onboard"
+                tableTitle="Factory Fitted VLTD onboarding Approval"
                 rows={rows}
                 columns={manufacturerColumns.concat(actionColumn)}
                 options={tableOptions}

@@ -97,11 +97,14 @@ const STATUS_CONFIG = {
     pending: { label: "Pending", color: "warning" },
     submitted: { label: "Submitted", color: "info" },
     ongoing_evaluation: { label: "Ongoing Evaluation", color: "secondary" },
+    technically_compatible: { label: "Technically Compatible", color: "success" },
+    technically_not_compatible: { label: "Technically Not Compatible", color: "error" },
+    stateadminapproved: { label: "State Admin Approved", color: "success" },
+    stateadminrejected: { label: "State Admin Rejected", color: "error" },
     accepted: { label: "Accepted", color: "success" },
     rejected: { label: "Rejected", color: "error" },
     approved: { label: "Approved", color: "success" },
     processing: { label: "Processing", color: "info" },
-    created: { label: "Created", color: "default" },
 };
 
 const StatusChip = ({ status }) => {
@@ -231,7 +234,7 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
    FINALIZE DIALOG
 ═══════════════════════════════════════════════════ */
 const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
-    const [status, setStatus] = useState("accepted");
+    const [status, setStatus] = useState("technically_compatible");
     const [finalComment, setFinalComment] = useState("");
     const [reportPdf, setReportPdf] = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
@@ -242,7 +245,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     /* reset every time the dialog opens */
     useEffect(() => {
         if (open) {
-            setStatus("accepted");
+            setStatus("technically_compatible");
             setFinalComment("");
             setReportPdf(null);
             setFieldErrors({});
@@ -291,7 +294,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         ? (row.device_model?.model_name || row.device_model_name || `ID ${row.device_model_id ?? row.device_model ?? ""}`)
         : "";
 
-    const isAccepting = status === "accepted";
+    const isAccepting = status === "technically_compatible";
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -338,7 +341,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             onChange={(e) => setStatus(e.target.value)}
                         >
                             <FormControlLabel
-                                value="accepted"
+                                value="technically_compatible"
                                 control={<Radio color="success" />}
                                 label={
                                     <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -348,7 +351,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                 }
                             />
                             <FormControlLabel
-                                value="rejected"
+                                value="technically_not_compatible"
                                 control={<Radio color="error" />}
                                 label={
                                     <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -559,12 +562,12 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                 </TableCell>
 
                 {/* status */}
-                <TableCell sx={{ py: 1 }}><StatusChip status={row.status} /></TableCell>
+                {!isStateAdmin && <TableCell sx={{ py: 1 }}><StatusChip status={row.status} /></TableCell>}
 
                 {/* actions */}
                 <TableCell sx={{ py: 1 }} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
-                        {isSubmitted && (
+                        {isSubmitted && !isStateAdmin && (
                             <Tooltip title="Confirm Testing">
                                 <Button
                                     size="small" variant="contained" color="info"
@@ -588,7 +591,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                                 </Button>
                             </Tooltip>
                         )}
-                        {isStateAdmin && (statusKey === "accepted" || statusKey === "approved") && (
+                        {isStateAdmin && (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "allow to login") && (
                             <Tooltip title="State Admin Final Approval">
                                 <Button
                                     size="small"
@@ -601,6 +604,11 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                                     Approve Technical Onboarding
                                 </Button>
                             </Tooltip>
+                        )}
+                        {isStateAdmin && (statusKey === "technicalonboardingapproved" || statusKey === "stateadminapproved" || statusKey === "active" || statusKey === "allow to add dealer") && (
+                            <Typography variant="caption" sx={{ color: "green", fontWeight: "bold", px: 1 }}>
+                                Manufacturer Active
+                            </Typography>
                         )}
                         {row.compatibility_report_pdf ? (
                             <Tooltip title="View Compatibility Report">
@@ -644,6 +652,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                                                 ["Company", manufacturerName],
                                                 ["Email", mfrEmail],
                                                 ["Mobile", mfrMobile],
+                                                ["Type", row.manufacturer_type || row.type || row.manufacturer?.manufacturer_type || row.manufacturer_info?.manufacturer_type || row.manufacturer_info?.type || "—"],
                                                 ["Submitted", formatDateTime(row.request_datetime || row.created_at || row.created)],
                                                 ["Request ID", row.id],
                                             ].map(([lbl, val]) => val ? (
@@ -672,7 +681,6 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                                                     ["TAC Validity", row.device_model?.tac_validity],
                                                     ["Hardware Version", row.device_model?.hardware_version],
                                                     ["Test Agency", row.device_model?.test_agency],
-                                                    ["Model Status", row.device_model?.status],
                                                 ].map(([lbl, val]) => val ? (
                                                     <React.Fragment key={lbl}>
                                                         <Grid item xs={5}><Typography variant="caption" color="text.secondary">{lbl}</Typography></Grid>
@@ -796,7 +804,9 @@ const StatCard = ({ label, value, color }) => (
 /* ═══════════════════════════════════════════════════
    MAIN PAGE
 ═══════════════════════════════════════════════════ */
-const DeviceModelTechnicalOnboardingAdminList = () => {
+const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
+    const userRole = getRole();
+    const isStateAdmin = userRole === "stateadmin";
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -822,6 +832,8 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
         try {
             await ManufacturerServices.approveTechOnboarding({
                 manufacturer_id: mfrId,
+                model_id: row.model_id || row.device_model?.id || row.device_model_id,
+                techonboardingrequest_id: row.id || row.techonboardingrequest_id,
                 action: "approve"
             });
             setActionMsg({ type: "success", text: "Technical Onboarding approved successfully by State Admin!" });
@@ -836,12 +848,45 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
     const loadData = useCallback(async () => {
         setError(""); setLoading(true);
         try {
-            const res = await DeviceModelServices.listSuperadminTechnicalOnboardingRequests({});
-            const data = res?.data;
-            if (Array.isArray(data)) setRows(data);
-            else if (Array.isArray(data?.results)) setRows(data.results);
-            else if (Array.isArray(data?.data)) setRows(data.data);
-            else setRows([]);
+            const role = getRole();
+            if (role === "stateadmin") {
+                const res = await ManufacturerServices.filterTechOnboardManufacturers({});
+                const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.results) ? res.data.results : []);
+                const flattened = [];
+                data.forEach((item) => {
+                    const nestedModels = Array.isArray(item.tech_onboarded_models) ? item.tech_onboarded_models : [];
+                    if (nestedModels.length > 0) {
+                        nestedModels.forEach((model) => {
+                            flattened.push({
+                                ...item,
+                                ...model,
+                                manufacturer_info: item,
+                                device_model: model,
+                                manufacturer_id: item.id,
+                                model_id: model.id,
+                                id: model.id ?? item.id,
+                            });
+                        });
+                    } else {
+                        flattened.push({
+                            ...item,
+                            manufacturer_info: item.manufacturer || item.manufacturer_info || item,
+                            device_model: item.device_model || item,
+                            manufacturer_id: item.manufacturer?.id || item.manufacturer_id || item.id,
+                            model_id: item.device_model?.id || item.model_id || item.id,
+                            id: item.id,
+                        });
+                    }
+                });
+                setRows(flattened);
+            } else {
+                const res = await DeviceModelServices.listSuperadminTechnicalOnboardingRequests({});
+                const data = res?.data;
+                if (Array.isArray(data)) setRows(data);
+                else if (Array.isArray(data?.results)) setRows(data.results);
+                else if (Array.isArray(data?.data)) setRows(data.data);
+                else setRows([]);
+            }
         } catch (err) {
             setError(extractError(err) || "Failed to load technical onboarding requests.");
         } finally {
@@ -866,23 +911,30 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
         setFinalizeDialog({ open: false, row: null });
         loadData();
         setActionMsg({
-            type: decision === "accepted" ? "success" : "warning",
-            text: `Request #${id} has been ${decision === "accepted" ? "accepted ✓" : "rejected"}.`,
+            type: decision === "technically_compatible" ? "success" : "warning",
+            text: `Request #${id} has been ${decision === "technically_compatible" ? "marked as Compatible ✓" : "marked as Not Compatible"}.`,
         });
     }, [loadData]);
 
     /* ── search ── */
     const filteredRows = useMemo(() => {
-        if (!search.trim()) return rows;
+        let items = rows;
+        if (mfrType) {
+            items = items.filter((r) => {
+                const mfrObj = r.manufacturer || r.manufacturer_info || r.created_by_info || {};
+                return mfrObj.manufacturer_type === mfrType;
+            });
+        }
+        if (!search.trim()) return items;
         const q = search.trim().toLowerCase();
-        return rows.filter((r) => {
+        return items.filter((r) => {
             const mfr = resolveManufacturer(r).toLowerCase();
             const model = (r.device_model?.model_name || r.device_model_name || "").toLowerCase();
             const status = (r.status || "").toLowerCase();
             const tac = (r.device_model?.tac_no || "").toLowerCase();
             return mfr.includes(q) || model.includes(q) || status.includes(q) || tac.includes(q);
         });
-    }, [rows, search]);
+    }, [rows, search, mfrType]);
 
     /* ── stats ── */
     const stats = useMemo(() => {
@@ -891,8 +943,8 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
             total: rows.length,
             submitted: count("submitted"),
             ongoing: count("ongoing_evaluation"),
-            accepted: count("accepted") + count("approved"),
-            rejected: count("rejected"),
+            accepted: count("technically_compatible") + count("stateadminapproved") + count("accepted") + count("approved"),
+            rejected: count("technically_not_compatible") + count("stateadminrejected") + count("rejected"),
         };
     }, [rows]);
 
@@ -924,7 +976,7 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
                             <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
                                 <Stack direction="row" alignItems="center" spacing={1.5}>
                                     <DevicesIcon color="primary" />
-                                    <Typography variant="h4" fontWeight={700}>Technical Onboarding Requests</Typography>
+                                    <Typography variant="h4" fontWeight={700}>{title || "Technical Onboarding Requests"}</Typography>
                                     <Chip label={`${rows.length} total`} size="small" color="primary" variant="outlined" />
                                 </Stack>
                                 <Tooltip title="Refresh">
@@ -937,11 +989,13 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
                             </Stack>
                         }
                     >
-                        <Typography variant="body2" color="text.secondary" mb={3}>
-                            Admin view of all technical onboarding requests. Use <strong>Mark Ongoing</strong> on{" "}
-                            <em>Submitted</em> requests to start evaluation, then <strong>Finalize</strong> on{" "}
-                            <em>Ongoing Evaluation</em> requests to accept or reject.
-                        </Typography>
+                        {!isStateAdmin && (
+                            <Typography variant="body2" color="text.secondary" mb={3}>
+                                Admin view of all technical onboarding requests. Use <strong>Mark Ongoing</strong> on{" "}
+                                <em>Submitted</em> requests to start evaluation, then <strong>Finalize</strong> on{" "}
+                                <em>Ongoing Evaluation</em> requests to accept or reject.
+                            </Typography>
+                        )}
 
                         {/* ── Action feedback ── */}
                         {actionMsg.text && (
@@ -951,7 +1005,7 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
                         )}
 
                         {/* ── Stats ── */}
-                        {rows.length > 0 && (
+                        {rows.length > 0 && !isStateAdmin && (
                             <Stack direction="row" flexWrap="wrap" gap={2} mb={3}>
                                 <StatCard label="Total" value={stats.total} color="primary" />
                                 <StatCard label="Submitted" value={stats.submitted} color="info" />
@@ -1001,7 +1055,7 @@ const DeviceModelTechnicalOnboardingAdminList = () => {
                                                 <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
                                                 <TableCell sx={{ color: "white", fontWeight: 700 }}>Manufacturer</TableCell>
                                                 <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
-                                                <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>
+                                                {!isStateAdmin && <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>}
                                                 <TableCell sx={{ color: "white", fontWeight: 700 }}>Actions</TableCell>
                                             </TableRow>
                                         </TableHead>

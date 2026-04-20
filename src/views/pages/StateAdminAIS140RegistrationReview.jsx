@@ -262,7 +262,7 @@ const StateAdminAIS140RegistrationReview = () => {
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" sx={{ fontWeight: "bold", color: "#800080" }}>
-                  AIS-140 Device Manufacturer Final approval and rejection of the technical onboard
+                  Retro-fitted VLTD onboarding Approval
                 </Typography>
               </Box>
             </Stack>
@@ -285,7 +285,7 @@ const StateAdminAIS140RegistrationReview = () => {
               <Alert severity="info">No AIS-140 device manufacturer requests found for technical onboarding.</Alert>
             ) : (
               <DynamicDatatables
-                tableTitle="AIS-140 Device Manufacturer Final approval and rejection of the technical onboard"
+                tableTitle="Retro-fitted VLTD onboarding Approval"
                 rows={rows}
                 columns={manufacturerColumns.concat(actionColumn)}
                 options={tableOptions}

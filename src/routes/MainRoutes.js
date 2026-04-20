@@ -63,8 +63,6 @@ import M2MRegistrationAdminReview from "../views/pages/M2MRegistrationAdminRevie
 import VehicleManufacturerRegistrationAdminReview from "../views/pages/VehicleManufacturerRegistrationAdminReview";
 import AIS140DeviceManufacturerRegistrationAdminReview from "../views/pages/AIS140DeviceManufacturerRegistrationAdminReview";
 import DeviceModelTechnicalOnboardingAdminList from "../views/pages/DeviceModelTechnicalOnboardingAdminList";
-import StateAdminVehicleRegistrationReview from "../views/pages/StateAdminVehicleRegistrationReview";
-import StateAdminAIS140RegistrationReview from "../views/pages/StateAdminAIS140RegistrationReview";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -172,18 +170,23 @@ const MainRoutes = {
       roles: ["superadmin"],
     },
     {
+      path: "/stateadmin-dashboard/technical-onboarding-requests",
+      element: <DeviceModelTechnicalOnboardingAdminList title="Technical Onboarding Approval" />,
+      roles: ["stateadmin"],
+    },
+    {
       path: "/stateadmin-dashboard/vehicle-manufacturer-registration-requests",
-      element: <StateAdminVehicleRegistrationReview />,
+      element: <Navigate to="/stateadmin-dashboard/technical-onboarding-requests" replace />,
       roles: ["stateadmin"],
     },
     {
       path: "/stateadmin-dashboard/ais-140-device-manufacturer-registration-requests",
-      element: <StateAdminAIS140RegistrationReview />,
+      element: <Navigate to="/stateadmin-dashboard/technical-onboarding-requests" replace />,
       roles: ["stateadmin"],
     },
     {
       path: "/stateadmin-dashboard/manufacturer-registration-requests",
-      element: <Navigate to="/stateadmin-dashboard/vehicle-manufacturer-registration-requests" replace />,
+      element: <Navigate to="/stateadmin-dashboard/technical-onboarding-requests" replace />,
       roles: ["stateadmin"],
     },
     {
