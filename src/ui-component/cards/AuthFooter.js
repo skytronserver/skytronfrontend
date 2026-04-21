@@ -17,16 +17,17 @@ const AuthFooter = () => {
     <Box
       sx={{
         width: "100%",
+        height: "100%",
         background: "#1E293B",
         color: "#fff",
         px: { xs: 2, sm: 3 },
-        py: 1.5,
+        // py: 1.5,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
         flexWrap: "wrap",
         gap: 1,
-        flexShrink: 0, // 🔥 VERY IMPORTANT
+        // flexShrink: 0, 
       }}
     >
       <Typography

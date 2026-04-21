@@ -1,7 +1,16 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import React from "react";
-import { Grid, Card, CardContent, Typography, Box, Fab, Tabs, Tab, Button, Paper, Divider, TextField, MenuItem, IconButton, Tooltip as MuiTooltip, Chip } from "@mui/material";
+import { Grid, Card, CardContent, Typography, Box,Avatar,Stack, Fab, Tabs, Tab, Button, Paper, Divider, TextField, MenuItem, IconButton, Tooltip as MuiTooltip, Chip } from "@mui/material";
 import { Add as AddIcon, BarChart as ChartIcon, DeleteOutline as DeleteIcon, Visibility, VisibilityOff, ContentCopy, KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import DevicesIcon from '@mui/icons-material/Devices';
+import SpeedIcon from "@mui/icons-material/Speed";
+import CategoryIcon from '@mui/icons-material/Category';
+import CrisisAlertIcon from "@mui/icons-material/CrisisAlert";
 import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
 import { lazy } from "react";
@@ -34,6 +43,9 @@ import { decipherEncryption } from "../../../helper";
 import { dashboardInitialState } from "./dashboardInitialState";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useTranslation } from "react-i18next";
+import SimCardIcon from '@mui/icons-material/SimCard';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 const SOSDashboard = lazy(() => import("../../direct/SOSDashboard"))
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -353,9 +365,9 @@ const ActiveState = () => {
         const data = await response.data;
         setUserInfoForAdmin(prev => ({
           ...prev,
-          stateAdmin: data.state_admin || 0,
-          sosAdmin: data.SOS_admin || 0,
-          m2mServiceProvider: data.eSimProvider || 0,
+          // stateAdmin: data.state_admin || 0,
+          // sosAdmin: data.SOS_admin || 0,
+          // m2mServiceProvider: data.eSimProvider || 0,
           manufacturer: dashboardData.Manufacture || 0,
           dealer: dashboardData.Dealer || 0,
           vehicleOwner: dashboardData.VehicleOwner || 0
@@ -412,7 +424,7 @@ const ActiveState = () => {
         const data = await response.data;
         setUserInfo({
           dto: data.Total_DTO_available,
-          m2m: data.Total_M2M_Service_Provider_available || 0,
+          // m2m: data.Total_M2M_Service_Provider_available || 0,
           manufacturer: data.Total_Manufacture_available,
           dealer: data.Total_Dealer_available,
           owner: data.Total_Vehicle_Owner_available
@@ -1223,126 +1235,126 @@ const ActiveState = () => {
   const renderDashboardCharts = (role) => {
     const charts = [];
 
-    if (role === 'superadmin') {
-      // User Statistics Pie Chart
-      const userStatsData = [
-        { name: 'State Admin', value: userInfoForAdmin.stateAdmin || 0 },
-        { name: 'SOS Admin', value: userInfoForAdmin.sosAdmin || 0 },
-        { name: 'M2M Service Provider', value: userInfoForAdmin.m2mServiceProvider || 0 },
-        { name: 'Manufacturer', value: userInfoForAdmin.manufacturer || 0 },
-        { name: 'Dealer', value: userInfoForAdmin.dealer || 0 },
-        { name: 'Vehicle Owner', value: userInfoForAdmin.vehicleOwner || 0 }
-      ];
+    // if (role === 'superadmin') {
+    //   // User Statistics Pie Chart
+    //   const userStatsData = [
+    //     { name: 'State Admin', value: userInfoForAdmin.stateAdmin || 0 },
+    //     { name: 'SOS Admin', value: userInfoForAdmin.sosAdmin || 0 },
+    //     { name: 'M2M Service Provider', value: userInfoForAdmin.m2mServiceProvider || 0 },
+    //     { name: 'Manufacturer', value: userInfoForAdmin.manufacturer || 0 },
+    //     { name: 'Dealer', value: userInfoForAdmin.dealer || 0 },
+    //     { name: 'Vehicle Owner', value: userInfoForAdmin.vehicleOwner || 0 }
+    //   ];
 
-      charts.push(
-        <Grid item xs={12} md={6} key="user-stats">
-          <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>User Statistics</Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <PieChart>
-                <Pie
-                  data={userStatsData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                >
-                  {userStatsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
-      );
+    //   charts.push(
+    //     <Grid item xs={12} md={6} key="user-stats">
+    //       <Card sx={{ p: 2, height: 400 }}>
+    //         <Typography variant="h6" gutterBottom>User Statistics</Typography>
+    //         <ResponsiveContainer width="100%" height="90%">
+    //           <PieChart>
+    //             <Pie
+    //               data={userStatsData}
+    //               cx="50%"
+    //               cy="50%"
+    //               outerRadius={80}
+    //               dataKey="value"
+    //             >
+    //               {userStatsData.map((entry, index) => (
+    //                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+    //               ))}
+    //             </Pie>
+    //             <Tooltip />
+    //             <Legend />
+    //           </PieChart>
+    //         </ResponsiveContainer>
+    //       </Card>
+    //     </Grid>
+    //   );
 
-      // Device Status Bar Chart
-      const deviceStatusData = [
-        { name: 'Online', count: fitmentInfoForAdmin.onlineDevice || 0 },
-        { name: 'Offline', count: fitmentInfoForAdmin.offlineDevice || 0 },
-        { name: 'Devices Fitted', count: fitmentInfoForAdmin.devicesFitted || 0 }
-      ];
+    //   // Device Status Bar Chart
+    //   const deviceStatusData = [
+    //     { name: 'Online', count: fitmentInfoForAdmin.onlineDevice || 0 },
+    //     { name: 'Offline', count: fitmentInfoForAdmin.offlineDevice || 0 },
+    //     { name: 'Devices Fitted', count: fitmentInfoForAdmin.devicesFitted || 0 }
+    //   ];
 
-      charts.push(
-        <Grid item xs={12} md={6} key="device-status">
-          <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>Device Status</Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <BarChart data={deviceStatusData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
-      );
+    //   charts.push(
+    //     <Grid item xs={12} md={6} key="device-status">
+    //       <Card sx={{ p: 2, height: 400 }}>
+    //         <Typography variant="h6" gutterBottom>Device Status</Typography>
+    //         <ResponsiveContainer width="100%" height="90%">
+    //           <BarChart data={deviceStatusData}>
+    //             <CartesianGrid strokeDasharray="3 3" />
+    //             <XAxis dataKey="name" />
+    //             <YAxis />
+    //             <Tooltip />
+    //             <Legend />
+    //             <Bar dataKey="count" fill="#8884d8" />
+    //           </BarChart>
+    //         </ResponsiveContainer>
+    //       </Card>
+    //     </Grid>
+    //   );
 
-      // Super Admin Alert Overview
-      const alertOverviewData = [
-        { name: 'Overspeeding', total: overSpeedInfo.totalAlert || 0, monthly: overSpeedInfo.thisMonthAlert || 0, today: overSpeedInfo.todayAlert || 0 },
-        { name: 'Emergency', total: emergencyInfo.totalAlert || 0, monthly: emergencyInfo.thisMonthAlert || 0, today: emergencyInfo.todayAlert || 0 },
-        { name: 'Harsh Brake', total: harshBreakInfo.totalAlert || 0, monthly: harshBreakInfo.thisMonthAlert || 0, today: harshBreakInfo.todayAlert || 0 }
-      ];
+    //   // Super Admin Alert Overview
+    //   const alertOverviewData = [
+    //     { name: 'Overspeeding', total: overSpeedInfo.totalAlert || 0, monthly: overSpeedInfo.thisMonthAlert || 0, today: overSpeedInfo.todayAlert || 0 },
+    //     { name: 'Emergency', total: emergencyInfo.totalAlert || 0, monthly: emergencyInfo.thisMonthAlert || 0, today: emergencyInfo.todayAlert || 0 },
+    //     { name: 'Harsh Brake', total: harshBreakInfo.totalAlert || 0, monthly: harshBreakInfo.thisMonthAlert || 0, today: harshBreakInfo.todayAlert || 0 }
+    //   ];
 
-      charts.push(
-        <Grid item xs={12} md={6} key="alert-overview">
-          <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>Alert Overview</Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <BarChart data={alertOverviewData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="total" fill="#8884d8" />
-                <Bar dataKey="monthly" fill="#82ca9d" />
-                <Bar dataKey="today" fill="#ff003c" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
-      );
+    //   charts.push(
+    //     <Grid item xs={12} md={6} key="alert-overview">
+    //       <Card sx={{ p: 2, height: 400 }}>
+    //         <Typography variant="h6" gutterBottom>Alert Overview</Typography>
+    //         <ResponsiveContainer width="100%" height="90%">
+    //           <BarChart data={alertOverviewData}>
+    //             <CartesianGrid strokeDasharray="3 3" />
+    //             <XAxis dataKey="name" />
+    //             <YAxis />
+    //             <Tooltip />
+    //             <Legend />
+    //             <Bar dataKey="total" fill="#8884d8" />
+    //             <Bar dataKey="monthly" fill="#82ca9d" />
+    //             <Bar dataKey="today" fill="#ff003c" />
+    //           </BarChart>
+    //         </ResponsiveContainer>
+    //       </Card>
+    //     </Grid>
+    //   );
 
-      // Super Admin State Information
-      const stateInfoData = [
-        { name: 'Total States', value: stateInfo.total || 0 },
-        { name: 'Active States', value: stateInfo.active || 0 },
-        { name: 'Inactive States', value: stateInfo.inactive || 0 }
-      ];
+    //   // Super Admin State Information
+    //   const stateInfoData = [
+    //     { name: 'Total States', value: stateInfo.total || 0 },
+    //     { name: 'Active States', value: stateInfo.active || 0 },
+    //     { name: 'Inactive States', value: stateInfo.inactive || 0 }
+    //   ];
 
-      charts.push(
-        <Grid item xs={12} md={6} key="state-info">
-          <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>State Information</Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <PieChart>
-                <Pie
-                  data={stateInfoData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                >
-                  {stateInfoData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
-      );
-    }
+    //   charts.push(
+    //     <Grid item xs={12} md={6} key="state-info">
+    //       <Card sx={{ p: 2, height: 400 }}>
+    //         <Typography variant="h6" gutterBottom>State Information</Typography>
+    //         <ResponsiveContainer width="100%" height="90%">
+    //           <PieChart>
+    //             <Pie
+    //               data={stateInfoData}
+    //               cx="50%"
+    //               cy="50%"
+    //               outerRadius={80}
+    //               dataKey="value"
+    //             >
+    //               {stateInfoData.map((entry, index) => (
+    //                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+    //               ))}
+    //             </Pie>
+    //             <Tooltip />
+    //             <Legend />
+    //           </PieChart>
+    //         </ResponsiveContainer>
+    //       </Card>
+    //     </Grid>
+    //   );
+    // }
 
     if (role === 'stateadmin') {
       // User Distribution Pie Chart
@@ -2471,13 +2483,13 @@ const ActiveState = () => {
     return (
       <Box>
         {/* Tab Navigation */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        {/* <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
             <Tab label="Dashboard Overview" />
             <Tab label="Analytics & Charts" />
             {isSuperAdmin && <Tab label="Custom Reports Builder" />}
           </Tabs>
-        </Box>
+        </Box> */}
 
         {/* Dashboard Overview Tab */}
         <TabPanel value={activeTab} index={0}>
@@ -2513,7 +2525,7 @@ const ActiveState = () => {
           </Grid>
         </TabPanel>
 
-        {isSuperAdmin && (
+        {/* {isSuperAdmin && (
           <TabPanel value={activeTab} index={2}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
@@ -2959,7 +2971,7 @@ const ActiveState = () => {
               </Grid>
             </Grid>
           </TabPanel>
-        )}
+        )} */}
       </Box>
     );
   };
@@ -2967,328 +2979,1110 @@ const ActiveState = () => {
   const renderDashboardContent = (role) => {
     switch (role) {
       case "superadmin":
-        return (
-          <div>
-            <Grid container spacing={2} marginBottom={mar}>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                  //cardColor="linear-gradient(135deg, #ff0080, #7928ca)"
-                  cardColor="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                  label={t('dashboard.widgets.total_state_admin,sos_admin,m2m_service_provider,manufacturer,dealer,vehicle_owner')}
-                  cardValue={userInfoForAdmin}
-                  iconImage={User}
-                  heading={t('dashboard.headings.userStatistics')}
-                />
-              </Grid>
+return (
+  <Box
+    sx={{
+      minHeight: "100vh",
+      px: { xs: 2, sm: 3, md: 4 },
+      py: 3,
+      background: `
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(16,185,129,.08), transparent 30%),
+        linear-gradient(135deg,#f4f8ff 0%,#f8fbff 45%,#eef7f3 100%)
+      `
+    }}
+  >
 
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                  cardColor="linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)"
-                  label={t('dashboard.widgets.devices_fitted,online_device,offline_device')}
-                  cardValue={fitmentInfoForAdmin}
-                  iconImage={Fitment}
-                  heading={t('dashboard.headings.fitmentStatistics')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  //cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
-                  cardColor="linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%)"
-                  label={t('dashboard.widgets.total_alerts,alerts_this_month,alerts_today')}
-                  cardValue={totalAlertInfo}
-                  iconImage={Alert}
-                  heading={t('dashboard.headings.totalAlert')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                  cardColor="linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%)"
-                  label={t('dashboard.widgets.total_alerts,alerts_this_month,alerts_today')}
-                  cardValue={overSpeedInfo}
-                  iconImage={Overspeed}
-                  heading={t('dashboard.headings.overSpeeding')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                  cardColor="linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)"
-                  label={t('dashboard.widgets.total_alerts,alerts_this_month,alerts_today')}
-                  cardValue={emergencyInfo}
-                  iconImage={Bell}
-                  heading={t('dashboard.headings.emergencyAlert')}
-                />
-              </Grid>
+    {/* KPI SECTION */}
+    <Grid container spacing={3} mb={3}>
+      {[
+        {
+          title: "Users",
+          value:
+            Number(userInfoForAdmin.manufacturer || 0) +
+            Number(userInfoForAdmin.dealer || 0) +
+            Number(userInfoForAdmin.vehicleOwner || 0),
+          icon: <PeopleAltIcon />,
+          color: "#2563eb",
+          bg: "#e0ecff"
+        },
+        {
+          title: "Devices",
+          value: fitmentInfoForAdmin.devicesFitted,
+          icon: <DirectionsCarIcon />,
+          color: "#059669",
+          bg: "#dcfce7"
+        },
+        {
+          title: "Alerts",
+          value: totalAlertInfo.totalAlert,
+          icon: <NotificationsActiveIcon />,
+          color: "#dc2626",
+          bg: "#fee2e2"
+        },
+        {
+          title: "Stock",
+          value: stockInfo.total,
+          icon: <Inventory2Icon />,
+          color: "#7c3aed",
+          bg: "#ede9fe"
+        }
+      ].map((item, i) => (
+        <Grid item xs={12} sm={6} md={3} key={i}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.2,
+              borderRadius: "24px",
+              background: "#fff",
+              border: "1px solid #edf2f7",
+              transition: ".3s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 18px 40px rgba(15,23,42,.08)"
+              }
+            }}
+          >
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar
+                sx={{
+                  width: 58,
+                  height: 58,
+                  bgcolor: item.bg,
+                  color: item.color
+                }}
+              >
+                {item.icon}
+              </Avatar>
 
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                  cardColor="linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)"
-                  label={t('dashboard.widgets.total_temper,temper_this_month,temper_today')}
-                  cardValue={temperAlertInfo}
-                  iconImage={Alert}
-                  heading={t('dashboard.headings.temperAlert')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={4}>
-                <Widget
-                  //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                  cardColor="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
-                  label="Total Stock, Tagged Device, Unassigned"
-                  cardValue={stockInfo}
-                  iconImage={Stock}
-                  heading="Device Stock Information"
-                />
-              </Grid>
-            </Grid>
-          </div>
-        );
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "13px",
+                    color: "#64748b",
+                    fontWeight: 700
+                  }}
+                >
+                  {item.title}
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "32px",
+                    fontWeight: 900,
+                    color: "#0f172a"
+                  }}
+                >
+                  {item.value}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+
+    {/* MODERN DETAIL CARDS - NO CHARTS */}
+    <Grid container spacing={3}>
+      {[
+        {
+          title: "User Network",
+          color: "#2563eb",
+          rows: [
+            ["Manufacturer", userInfoForAdmin.manufacturer],
+            ["Dealer", userInfoForAdmin.dealer],
+            ["Owner", userInfoForAdmin.vehicleOwner]
+          ]
+        },
+        {
+          title: "Fleet Health",
+          color: "#059669",
+          rows: [
+            ["Fitted", fitmentInfoForAdmin.devicesFitted],
+            ["Online", fitmentInfoForAdmin.onlineDevice],
+            ["Offline", fitmentInfoForAdmin.offlineDevice]
+          ]
+        },
+        {
+          title: "Alert Control",
+          color: "#dc2626",
+          rows: [
+            ["Total", totalAlertInfo.totalAlert],
+            ["Month", totalAlertInfo.thisMonthAlert],
+            ["Today", totalAlertInfo.todayAlert]
+          ]
+        },
+        {
+          title: "Overspeed",
+          color: "#ea580c",
+          rows: [
+            ["Total", overSpeedInfo.totalAlert],
+            ["Month", overSpeedInfo.thisMonthAlert],
+            ["Today", overSpeedInfo.todayAlert]
+          ]
+        },
+        {
+          title: "Emergency",
+          color: "#db2777",
+          rows: [
+            ["Total", emergencyInfo.totalAlert],
+            ["Month", emergencyInfo.thisMonthAlert],
+            ["Today", emergencyInfo.todayAlert]
+          ]
+        },
+        {
+          title: "Inventory",
+          color: "#7c3aed",
+          rows: [
+            ["Stock", stockInfo.total],
+            ["Tagged", stockInfo.taggedDevice],
+            ["Free", stockInfo.unassigned]
+          ]
+        }
+      ].map((card, index) => (
+        <Grid item xs={12} md={6} lg={4} key={index}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: "26px",
+              background: "#ffffff",
+              border: "1px solid #edf2f7",
+              transition: ".35s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 22px 50px rgba(0,0,0,.07)"
+              }
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography
+                sx={{
+                  fontSize: "22px",
+                  fontWeight: 900,
+                  color: "#0f172a"
+                }}
+              >
+                {card.title}
+              </Typography>
+
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "16px",
+                  bgcolor: `${card.color}15`
+                }}
+              />
+            </Box>
+
+            {card.rows.map((row, i) => (
+              <Box key={i} sx={{ mb: 1.5 }}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  mb={0.6}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      color: "#64748b",
+                      fontWeight: 700
+                    }}
+                  >
+                    {row[0]}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: "15px",
+                      color: "#111827",
+                      fontWeight: 900
+                    }}
+                  >
+                    {row[1]}
+                  </Typography>
+                </Stack>
+
+                <Box
+                  sx={{
+                    height: 10,
+                    borderRadius: "999px",
+                    bgcolor: "#eef2f7",
+                    overflow: "hidden"
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: `${Math.min(Number(row[1]) || 0, 100)}%`,
+                      height: "100%",
+                      borderRadius: "999px",
+                      background: `linear-gradient(90deg, ${card.color}, ${card.color}99)`
+                    }}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  </Box>
+);
       case "stateadmin":
-        return (
-          <Grid container spacing={2} marginBottom={mar}>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #00c6ff, #0072ff)"
-                label="DTO, M2M Service Provider, Manufacturer, Dealer, Vehicle Owner"
-                cardValue={userInfo}
-                iconImage={User}
-                heading={t('dashboard.headings.userInfo')}
-              />
-            </Grid>
+        // return (
+        //   <Grid container spacing={2} marginBottom={mar}>
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+        //         cardColor="linear-gradient(135deg, #00c6ff, #0072ff)"
+        //         label="DTO, M2M Service Provider, Manufacturer, Dealer, Vehicle Owner"
+        //         cardValue={userInfo}
+        //         iconImage={User}
+        //         heading={t('dashboard.headings.userInfo')}
+        //       />
+        //     </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                cardColor="linear-gradient(135deg, #43e97b, #38f9d7)"
-                label="Devices Fitted, Online Device, Offline Device"
-                cardValue={fitmentInfo}
-                iconImage={Fitment}
-                heading={t('dashboard.headings.fitmentStatistics')}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
-                label={t('dashboard.labels.healthStatistics')}
-                cardValue={deviceHealthInfo}
-                iconImage={Car}
-                heading={t('dashboard.headings.healthStatistics')}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
-                label={t('dashboard.labels.overSpeeding')}
-                cardValue={overSpeedInfo}
-                iconImage={Overspeed}
-                heading={t('dashboard.headings.overSpeeding')}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                cardColor="linear-gradient(135deg, #ff512f, #dd2476)"
-                label={t('dashboard.labels.emergencyAlert')}
-                cardValue={emergencyInfo}
-                iconImage={Bell}
-                heading={t('dashboard.headings.emergencyAlert')}
-              />
-            </Grid>
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+        //         cardColor="linear-gradient(135deg, #43e97b, #38f9d7)"
+        //         label="Devices Fitted, Online Device, Offline Device"
+        //         cardValue={fitmentInfo}
+        //         iconImage={Fitment}
+        //         heading={t('dashboard.headings.fitmentStatistics')}
+        //       />
+        //     </Grid>
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+        //         cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
+        //         label={t('dashboard.labels.healthStatistics')}
+        //         cardValue={deviceHealthInfo}
+        //         iconImage={Car}
+        //         heading={t('dashboard.headings.healthStatistics')}
+        //       />
+        //     </Grid>
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
+        //         cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
+        //         label={t('dashboard.labels.overSpeeding')}
+        //         cardValue={overSpeedInfo}
+        //         iconImage={Overspeed}
+        //         heading={t('dashboard.headings.overSpeeding')}
+        //       />
+        //     </Grid>
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
+        //         cardColor="linear-gradient(135deg, #ff512f, #dd2476)"
+        //         label={t('dashboard.labels.emergencyAlert')}
+        //         cardValue={emergencyInfo}
+        //         iconImage={Bell}
+        //         heading={t('dashboard.headings.emergencyAlert')}
+        //       />
+        //     </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #7f00ff, #e100ff)"
-                label={t('dashboard.labels.harshBreakAlert')}
-                cardValue={harshBreakInfo}
-                iconImage={Brake}
-                heading={t('dashboard.headings.harshBreakAlert')}
-              />
-            </Grid>
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
+        //         cardColor="linear-gradient(135deg, #7f00ff, #e100ff)"
+        //         label={t('dashboard.labels.harshBreakAlert')}
+        //         cardValue={harshBreakInfo}
+        //         iconImage={Brake}
+        //         heading={t('dashboard.headings.harshBreakAlert')}
+        //       />
+        //     </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                cardColor="linear-gradient(135deg, #7f00ff, #e100ff)"
-                label={t('dashboard.labels.suddenTurnAlert')}
-                cardValue={suddenBreakInfo}
-                iconImage={Suddenturn}
-                heading={t('dashboard.headings.suddenTurnAlert')}
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+        //         cardColor="linear-gradient(135deg, #7f00ff, #e100ff)"
+        //         label={t('dashboard.labels.suddenTurnAlert')}
+        //         cardValue={suddenBreakInfo}
+        //         iconImage={Suddenturn}
+        //         heading={t('dashboard.headings.suddenTurnAlert')}
+        //       />
+        //     </Grid>
+        //     <Grid item xs={12} sm={12} md={6} lg={4}>
+        //       <Widget
+        //         //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
+        //         cardColor="linear-gradient(135deg, #4facfe, #00f2fe)"
+        //         label="District, Active"
+        //         cardValue={districtInfo}
+        //         iconImage={state}
+        //         heading="District Information"
+        //       />
+        //     </Grid>
+        //   </Grid>
+        // );
+return (
+  <Box
+    sx={{
+      minHeight: "100vh",
+      px: { xs: 2, sm: 3, md: 4 },
+      py: 3,
+      background: `
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(16,185,129,.08), transparent 30%),
+        linear-gradient(135deg,#f4f8ff 0%,#f8fbff 45%,#eef7f3 100%)
+      `
+    }}
+  >
+
+    {/* KPI SECTION */}
+    <Grid container spacing={3} mb={3}>
+      {[
+        {
+          title: "Users",
+          value:
+            Number(userInfo.dto || 0) +
+            Number(userInfo.manufacturer || 0) +
+            Number(userInfo.dealer || 0) +
+            Number(userInfo.owner || 0),
+          icon: <PeopleAltIcon />,
+          color: "#2563eb",
+          bg: "#e0ecff"
+        },
+        {
+          title: "Devices",
+          value: fitmentInfo.fitted || 0,
+          icon: <DirectionsCarIcon />,
+          color: "#059669",
+          bg: "#dcfce7"
+        },
+        {
+          title: "Emergency Alerts",
+          value: emergencyInfo.totalAlert || 0,
+          icon: <NotificationsActiveIcon />,
+          color: "#dc2626",
+          bg: "#fee2e2"
+        },
+        {
+          title: "Stock",
+          value: stockInfo.total || 0,
+          icon: <Inventory2Icon />,
+          color: "#7c3aed",
+          bg: "#ede9fe"
+        }
+      ].map((item, i) => (
+        <Grid item xs={12} sm={6} md={3} key={i}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.2,
+              borderRadius: "24px",
+              background: "#fff",
+              border: "1px solid #edf2f7",
+              transition: ".3s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 18px 40px rgba(15,23,42,.08)"
+              }
+            }}
+          >
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar
+             sx={{
+    width: 48,
+    height: 48,
+    borderRadius: "16px",
+    bgcolor: `${item.color}15`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: item.color
+  }}
+              >
+                {item.icon}
+              </Avatar>
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "13px",
+                    color: "#64748b",
+                    fontWeight: 700
+                  }}
+                >
+                  {item.title}
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "32px",
+                    fontWeight: 900,
+                    color: "#0f172a"
+                  }}
+                >
+                  {item.value}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+
+    {/* MODERN DETAIL CARDS */}
+    <Grid container spacing={3}>
+      {[
+        {
+          title: "User Statistics",
+          color: "#2563eb",
+          rows: [
+            ["DTO", userInfo.dto],
+            ["M2M", userInfo.m2m],
+            ["Manufacturer", userInfo.manufacturer],
+            ["Dealer", userInfo.dealer],
+            ["Owner", userInfo.owner]
+          ]
+        },
+        {
+          title: "Fitment Statistics",
+          color: "#059669",
+          rows: [
+            ["Fitted", fitmentInfo.fitted],
+            ["Online", fitmentInfo.onlineDevice],
+            ["Offline", fitmentInfo.offlineDevice]
+          ]
+        },
+        {
+          title: "Health Statistics",
+          color: "#eab308",
+          rows: [
+            ["Activated", deviceHealthInfo.totalActivatedDevice],
+            ["Today", deviceHealthInfo.todayActive],
+            ["7 Days", deviceHealthInfo.inActiveFor7Days],
+            ["30 Days", deviceHealthInfo.inActiveFor30Days]
+          ]
+        },
+        {
+          title: "Over Speeding",
+          color: "#ea580c",
+          rows: [
+            ["Total", overSpeedInfo.totalAlert],
+            ["Month", overSpeedInfo.thisMonthAlert],
+            ["Today", overSpeedInfo.todayAlert]
+          ]
+        },
+        {
+          title: "Emergency Alert",
+          color: "#dc2626",
+          rows: [
+            ["Total", emergencyInfo.totalAlert],
+            ["Month", emergencyInfo.thisMonthAlert],
+            ["Today", emergencyInfo.todayAlert]
+          ]
+        },
+        {
+          title: "Harsh Break Alert",
+          color: "#9333ea",
+          rows: [
+            ["Total", harshBreakInfo.totalAlert],
+            ["Month", harshBreakInfo.thisMonthAlert],
+            ["Today", harshBreakInfo.todayAlert]
+          ]
+        },
+        {
+          title: "Sudden Turn Alert",
+          color: "#c026d3",
+          rows: [
+            ["Total", suddenBreakInfo.totalAlert],
+            ["Month", suddenBreakInfo.thisMonthAlert],
+            ["Today", suddenBreakInfo.todayAlert]
+          ]
+        },
+        {
+          title: "District Information",
+          color: "#0891b2",
+          rows: [
+            ["District", districtInfo.district],
+            ["Active", districtInfo.active]
+          ]
+        }
+      ].map((card, index) => (
+        <Grid item xs={12} md={6} lg={4} key={index}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: "26px",
+              background: "#ffffff",
+              border: "1px solid #edf2f7",
+              transition: ".35s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 22px 50px rgba(0,0,0,.07)"
+              }
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography
+                sx={{
+                  fontSize: "22px",
+                  fontWeight: 900,
+                  color: "#0f172a"
+                }}
+              >
+                {card.title}
+              </Typography>
+
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "16px",
+                  bgcolor: `${card.color}15`
+                }}
               />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                cardColor="linear-gradient(135deg, #4facfe, #00f2fe)"
-                label="District, Active"
-                cardValue={districtInfo}
-                iconImage={state}
-                heading="District Information"
-              />
-            </Grid>
-          </Grid>
-        );
+            </Box>
+
+            {card.rows.map((row, i) => (
+              <Box key={i} sx={{ mb: 1.5 }}>
+                <Stack direction="row" justifyContent="space-between" mb={0.6}>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      color: "#64748b",
+                      fontWeight: 700
+                    }}
+                  >
+                    {row[0]}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: "15px",
+                      color: "#111827",
+                      fontWeight: 900
+                    }}
+                  >
+                    {row[1] || 0}
+                  </Typography>
+                </Stack>
+
+                <Box
+                  sx={{
+                    height: 10,
+                    borderRadius: "999px",
+                    bgcolor: "#eef2f7",
+                    overflow: "hidden"
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: `${Math.min(Number(row[1]) || 0, 100)}%`,
+                      height: "100%",
+                      borderRadius: "999px",
+                      background: `linear-gradient(90deg, ${card.color}, ${card.color}99)`
+                    }}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  </Box>
+);
       case "dealer":
         return (
-          <Grid container spacing={2} marginBottom={mar}>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #ff0080, #7928ca)"
-                label="Assigned, Returned, Stocked, Faulty, Available free device"
-                cardValue={dealerDeviceInfo}
-                iconImage={Stock}
-                heading={t('dashboard.headings.stockStatistics')}
-              />
-            </Grid>
+  <Box
+    sx={{
+      minHeight: "100vh",
+      px: { xs: 2, sm: 3, md: 4 },
+      py: 3,
+      background: `
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(16,185,129,.08), transparent 30%),
+        linear-gradient(135deg,#f4f8ff 0%,#f8fbff 45%,#eef7f3 100%)
+      `
+    }}
+  >
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                cardColor="linear-gradient(135deg, #0f2027, #2c5364)"
-                label="Total Fitment, Tagged Device, Online Device, Offline Device"
-                cardValue={dealerFitmentInfo}
-                iconImage={Fitment}
-                heading={t('dashboard.headings.fitmentStatistics')}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                cardColor="linear-gradient(135deg, #1d4350, #a43931)"
-                label={t('dashboard.labels.deviceStatistics')}
-                cardValue={{
-                  stocked: dealerDeviceInfo.stocked,
-                  tagged: dealerFitmentInfo.taggedDevice,
-                  onlineToday: deviceStatusInfo.onlineToday,
-                  sevenDaysOffline: deviceStatusInfo.sevenDaysOffline,
-                  thirtyDaysOffline: deviceStatusInfo.thirtyDaysOffline
+    {/* KPI SECTION */}
+    <Grid container spacing={3} mb={3}>
+      {[
+         {
+          title: "Stock",
+          value: dealerDeviceInfo.stocked || 0,
+          icon: <Inventory2Icon />,
+          color: "#7c3aed",
+          bg: "#ede9fe"
+        },
+        {
+          title: "Devices",
+          value: dealerDeviceInfo.stocked || 0,
+          icon: <DirectionsCarIcon />,
+          color: "#059669",
+          bg: "#dcfce7"
+        },
+        {
+          title: "Vehicle",
+          value: dealerVehicleOwnerInfo.total || 0,
+          icon: <DirectionsCarIcon  />,
+          color: "#dc2626",
+          bg: "#fee2e2"
+        },
+       
+      ].map((item, i) => (
+        <Grid item xs={12} sm={6} md={3} key={i}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.2,
+              borderRadius: "24px",
+              background: "#fff",
+              border: "1px solid #edf2f7",
+              transition: ".3s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 18px 40px rgba(15,23,42,.08)"
+              }
+            }}
+          >
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar
+             sx={{
+    width: 48,
+    height: 48,
+    borderRadius: "16px",
+    bgcolor: `${item.color}15`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: item.color
+  }}
+              >
+                {item.icon}
+              </Avatar>
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "13px",
+                    color: "#64748b",
+                    fontWeight: 700
+                  }}
+                >
+                  {item.title}
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "32px",
+                    fontWeight: 900,
+                    color: "#0f172a"
+                  }}
+                >
+                  {item.value}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+
+    {/* MODERN DETAIL CARDS */}
+    <Grid container spacing={3}>
+      {[
+        {
+          title: "Stock Statistics",
+          color: "#2563eb",
+          rows: [
+            ["Assigned", dealerDeviceInfo.assigned],
+            ["Returned", dealerDeviceInfo.returned],
+            ["Stocked", dealerDeviceInfo.stocked],
+            ["Faulty", dealerDeviceInfo.faulty],
+            ["Available free device", dealerDeviceInfo.freeDevice]
+          ]
+        },
+        {
+          title: "Fitment Statistics",
+          color: "#059669",
+          rows: [
+            ["Total Fitment", dealerFitmentInfo.total],
+            ["Tagged Device", dealerFitmentInfo.taggedDevice],
+            ["Online Device", dealerFitmentInfo.onlineDevice],
+            ["Offline Device", dealerFitmentInfo.offlineDevice],
+          ]
+        },
+        {
+          title: "Device Statistics",
+          color: "#eab308",
+          rows: [
+            ["Stocked", dealerDeviceInfo.stocked],
+            ["Tagged", dealerFitmentInfo.taggedDevice],
+            ["OnlineToday", deviceStatusInfo.onlineToday],
+            ["SevenDaysOffline", deviceStatusInfo.sevenDaysOffline],
+            ["ThirtyDaysOffline", deviceStatusInfo.thirtyDaysOffline]
+          ]
+        },
+        {
+          title: "eSim Statistics",
+          color: "#ea580c",
+          rows: [
+            ["TotalActivation", dealerESIMInfo.totalActivation],
+            ["Activated", dealerESIMInfo.activated],
+            ["OneYear", dealerESIMInfo.oneYearRenewal],
+            ["TwoYear", dealerESIMInfo.twoYearRenewal],
+            ["Expired", dealerESIMInfo.expired],
+          ]
+        },
+        {
+          title: "Vehicle Owner",
+          color: "#dc2626",
+          rows: [
+            ["Total", dealerVehicleOwnerInfo.total],
+            ["This Month", dealerVehicleOwnerInfo.month],
+            ["Today", dealerVehicleOwnerInfo.today]
+          ]
+        }
+      ].map((card, index) => (
+        <Grid item xs={12} md={6} lg={4} key={index}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: "26px",
+              background: "#ffffff",
+              border: "1px solid #edf2f7",
+              transition: ".35s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 22px 50px rgba(0,0,0,.07)"
+              }
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography
+                sx={{
+                  fontSize: "22px",
+                  fontWeight: 900,
+                  color: "#0f172a"
                 }}
-                iconImage={Car}
-                heading={t('dashboard.headings.deviceStatistics')}
-              />
-            </Grid>
+              >
+                {card.title}
+              </Typography>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                cardColor="linear-gradient(135deg, #134e5e, #71b280)"
-                label={t('dashboard.labels.eSIMStatistics')}
-                cardValue={{
-                  totalActivation: dealerESIMInfo.totalActivation,
-                  activated: dealerESIMInfo.activated,
-                  oneYear: dealerESIMInfo.oneYearRenewal,
-                  twoYear: dealerESIMInfo.twoYearRenewal,
-                  expired: dealerESIMInfo.expired
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "16px",
+                  bgcolor: `${card.color}15`
                 }}
-                iconImage={Sim}
-                heading={t('dashboard.headings.eSIMStatistics')}
               />
-            </Grid>
+            </Box>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b)"
-                label={t('dashboard.labels.vehicleOwner')}
-                cardValue={dealerVehicleOwnerInfo}
-                iconImage={User}
-                heading={t('dashboard.headings.vehicleOwner')}
-              />
-            </Grid>
-          </Grid>
-        );
+            {card.rows.map((row, i) => (
+              <Box key={i} sx={{ mb: 1.5 }}>
+                <Stack direction="row" justifyContent="space-between" mb={0.6}>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      color: "#64748b",
+                      fontWeight: 700
+                    }}
+                  >
+                    {row[0]}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: "15px",
+                      color: "#111827",
+                      fontWeight: 900
+                    }}
+                  >
+                    {row[1] || 0}
+                  </Typography>
+                </Stack>
+
+                <Box
+                  sx={{
+                    height: 10,
+                    borderRadius: "999px",
+                    bgcolor: "#eef2f7",
+                    overflow: "hidden"
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: `${Math.min(Number(row[1]) || 0, 100)}%`,
+                      height: "100%",
+                      borderRadius: "999px",
+                      background: `linear-gradient(90deg, ${card.color}, ${card.color}99)`
+                    }}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  </Box>
+);
       case "owner":
-        return (
-          <Grid container spacing={2} marginBottom={mar}>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                index={0}
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #ff416c, #ff4b2b)"
-                label={t('dashboard.labels.alertStatistics')}
-                cardValue={{
-                  alert: ownerDashboardInfo.alert,
-                  monthlyAlert: ownerDashboardInfo.monthlyAlert,
-                  dailyAlert: ownerDashboardInfo.dailyAlert
-                }}
-                iconImage={Alert}
-                heading={t('dashboard.headings.alertStatistics')}
-              />
-            </Grid>
+              return (
+  <Box
+    sx={{
+      minHeight: "100vh",
+      px: { xs: 2, sm: 3, md: 4 },
+      py: 3,
+      background: `
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(16,185,129,.08), transparent 30%),
+        linear-gradient(135deg,#f4f8ff 0%,#f8fbff 45%,#eef7f3 100%)
+      `
+    }}
+  >
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                index={0}
-                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                cardColor="linear-gradient(135deg, #36d1dc, #5b86e5)"
-                label={t('dashboard.labels.ownerVehicleStatus')}
-                cardValue={{
-                  total: ownerDashboardInfo.vehicles,
-                  ignitionOn: ownerDashboardInfo.movingVehicles + ownerDashboardInfo.idleVehicles,
-                  ignitionOff: ownerDashboardInfo.stoppedVehicles
-                }}
-                iconImage={Vehicle}
-                heading={t('dashboard.headings.ownerVehicleStatus')}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                index={0}
-                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                cardColor="linear-gradient(135deg, #11998e, #38ef7d)"
-                label={t('dashboard.labels.ownerHealthStatistics')}
-                cardValue={{
-                  vehicles: ownerDashboardInfo.vehicles,
-                  onlineDevice: ownerDashboardInfo.onlineDevice,
-                  offlineDevice: ownerDashboardInfo.offlineDevice,
-                  sevenDaysOffline: ownerDashboardInfo.sevenDaysOffline,
-                  thirtyDaysOffline: ownerDashboardInfo.thirtyDaysOffline,
-                }}
-                iconImage={Car}
-                heading={t('dashboard.headings.ownerHealthStatistics')}
-              />
-            </Grid>
+    {/* KPI SECTION */}
+    <Grid container spacing={3} mb={3}>
+      {[
+         {
+          title: "Alert",
+          value: ownerDashboardInfo.alert || 0,
+          icon: <NotificationsActiveIcon  />,
+          color: "#f59e0b",
+          bg: "#ede9fe"
+        },
+        {
+          title: "Emergency",
+          value: ownerDashboardInfo.sosCalls || 0,
+          icon: <WarningAmberIcon />,
+          color: "#ea580c",
+          bg: "#dcfce7"
+        },
+        {
+          title: "Over Speed",
+          value: ownerDashboardInfo.overSpeeding || 0,
+          icon: <SpeedIcon  />,
+          color: "#dc2626",
+          bg: "#fee2e2"
+        },
+       
+      ].map((item, i) => (
+        <Grid item xs={12} sm={6} md={3} key={i}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.2,
+              borderRadius: "24px",
+              background: "#fff",
+              border: "1px solid #edf2f7",
+              transition: ".3s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 18px 40px rgba(15,23,42,.08)"
+              }
+            }}
+          >
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar
+             sx={{
+    width: 48,
+    height: 48,
+    borderRadius: "16px",
+    bgcolor: `${item.color}15`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: item.color
+  }}
+              >
+                {item.icon}
+              </Avatar>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                index={0}
-                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                cardColor="linear-gradient(135deg, #ff9966, #ff5e62)"
-                label={t('dashboard.labels.ownerSOSStatistics')}
-                cardValue={{
-                  sosCalls: ownerDashboardInfo.sosCalls,
-                  genuineCalls: ownerDashboardInfo.genuineCalls,
-                  fakeCalls: ownerDashboardInfo.fakeCalls
-                }}
-                iconImage={Bell}
-                heading={t('dashboard.headings.ownerSOSStatistics')}
-              />
-            </Grid>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "13px",
+                    color: "#64748b",
+                    fontWeight: 700
+                  }}
+                >
+                  {item.title}
+                </Typography>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                index={0}
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #654ea3, #eaafc8)"
-                label={t('dashboard.labels.ownerDriverBehaviour')}
-                cardValue={{
-                  harshBreaking: ownerDashboardInfo.harshBreaking,
-                  suddenTurn: ownerDashboardInfo.suddenTurn,
-                  overSpeeding: ownerDashboardInfo.overSpeeding
+                <Typography
+                  sx={{
+                    fontSize: "32px",
+                    fontWeight: 900,
+                    color: "#0f172a"
+                  }}
+                >
+                  {item.value}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+
+    {/* MODERN DETAIL CARDS */}
+    <Grid container spacing={3}>
+      {[
+        {
+          title: "Alert Statistics",
+          color: "#2563eb",
+          rows: [
+            ["Total Alert", ownerDashboardInfo.alert],
+            ["Alert this Month", ownerDashboardInfo.monthlyAlert],
+            ["Alert Today", ownerDashboardInfo.dailyAlert]
+          ]
+        },
+        {
+          title: "Vehicle Statistics",
+          color: "#059669",
+          rows: [
+            ["Total", ownerDashboardInfo.vehicles],
+            ["Ignition On", ownerDashboardInfo.movingVehicles + ownerDashboardInfo.idleVehicles],
+            ["Ignition Off", ownerDashboardInfo.stoppedVehicles]
+          ]
+        },
+        {
+          title: "Health Statistics",
+          color: "#eab308",
+          rows: [
+            ["Total Vehicles", ownerDashboardInfo.vehicles],
+            ["Online", ownerDashboardInfo.onlineDevice],
+            ["Offline Today", ownerDashboardInfo.offlineDevice],
+            ["Offline for 7 days", ownerDashboardInfo.sevenDaysOffline],
+            ["Offline for 30 days", ownerDashboardInfo.thirtyDaysOffline]
+          ]
+        },
+        {
+          title: "Emergency Alert",
+          color: "#ea580c",
+          rows: [
+            ["Total SOS Calls", ownerDashboardInfo.sosCalls],
+            ["Genuine Calls", ownerDashboardInfo.genuineCalls],
+            ["Fake Calls", ownerDashboardInfo.fakeCalls]
+          ]
+        },
+        {
+          title: "Driver Behaviour",
+          color: "#dc2626",
+          rows: [
+            ["Total Harsh Breaking", ownerDashboardInfo.harshBreaking],
+            ["Total Sudden Turn Alert", ownerDashboardInfo.suddenTurn],
+            ["Total Over Speeding Alert", ownerDashboardInfo.overSpeeding]
+          ]
+        }
+      ].map((card, index) => (
+        <Grid item xs={12} md={6} lg={4} key={index}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: "26px",
+              background: "#ffffff",
+              border: "1px solid #edf2f7",
+              transition: ".35s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 22px 50px rgba(0,0,0,.07)"
+              }
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography
+                sx={{
+                  fontSize: "22px",
+                  fontWeight: 900,
+                  color: "#0f172a"
                 }}
-                iconImage={Driver}
-                heading={t('dashboard.headings.ownerDriverBehaviour')}
+              >
+                {card.title}
+              </Typography>
+
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "16px",
+                  bgcolor: `${card.color}15`
+                }}
               />
-            </Grid>
-          </Grid>
-        );
+            </Box>
+
+            {card.rows.map((row, i) => (
+              <Box key={i} sx={{ mb: 1.5 }}>
+                <Stack direction="row" justifyContent="space-between" mb={0.6}>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      color: "#64748b",
+                      fontWeight: 700
+                    }}
+                  >
+                    {row[0]}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: "15px",
+                      color: "#111827",
+                      fontWeight: 900
+                    }}
+                  >
+                    {row[1] || 0}
+                  </Typography>
+                </Stack>
+
+                <Box
+                  sx={{
+                    height: 10,
+                    borderRadius: "999px",
+                    bgcolor: "#eef2f7",
+                    overflow: "hidden"
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: `${Math.min(Number(row[1]) || 0, 100)}%`,
+                      height: "100%",
+                      borderRadius: "999px",
+                      background: `linear-gradient(90deg, ${card.color}, ${card.color}99)`
+                    }}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  </Box>
+);
       case "dtorto":
         return (
           <Grid container spacing={2} marginBottom={mar}>
@@ -3330,203 +4124,489 @@ const ActiveState = () => {
         );
       case "devicemanufacture":
         return (
-          <Grid container spacing={2} marginBottom={mar}>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #232526, #414345)"
-                label={t('dashboard.labels.manufacturerStockStatistics')}
-                cardValue={{
-                  created: manufacturerDashboardInfo.Total_Stock_Created,
-                  allocated: manufacturerDashboardInfo.Total_Stock_Allocated,
-                  returned: manufacturerDashboardInfo.Total_Return,
-                  faulty: manufacturerDashboardInfo.Total_Faulty
-                }}
-                iconImage={Stock}
-                heading={t('dashboard.headings.stockStatistics')}
-              />
-            </Grid>
+  <Box
+    sx={{
+      minHeight: "100vh",
+      px: { xs: 2, sm: 3, md: 4 },
+      py: 3,
+      background: `
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(16,185,129,.08), transparent 30%),
+        linear-gradient(135deg,#f4f8ff 0%,#f8fbff 45%,#eef7f3 100%)
+      `
+    }}
+  >
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                cardColor="linear-gradient(135deg, #2b5876, #4e4376)"
-                label={t('dashboard.labels.manufacturerModelStatistics')}
-                cardValue={{
-                  model: manufacturerDashboardInfo.Total_Model,
-                  esimLinked: manufacturerDashboardInfo.Total_esim_linked
-                }}
-                iconImage={Model}
-                heading={t('dashboard.headings.modelStatistics')}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
-                cardColor="linear-gradient(135deg, #0f2027, #203a43, #2c5364)"
-                label={t('dashboard.labels.manufacturerDeviceStatistics')}
-                cardValue={{
-                  totalStock: manufacturerDashboardInfo.Total_Stock_Created,
-                  assignedToDealers: manufacturerDashboardInfo.Total_Stock_Allocated,
-                  tagged: manufacturerDashboardInfo.Total_Activation,
-                  onlineToday: manufacturerDashboardInfo.Total_Online_Device,
-                  offline7day: manufacturerDashboardInfo.Total_Offline_Device_7day,
-                  offline30day: manufacturerDashboardInfo.Total_Offline_Device_30day
-                }}
-                iconImage={Car}
-                heading={t('dashboard.headings.deviceStatistics')}
-              />
-            </Grid>
+    {/* KPI SECTION */}
+    <Grid container spacing={3} mb={3}>
+      {[
+         {
+          title: "Stocks",
+          value: manufacturerDashboardInfo.Total_Stock_Created || 0,
+          icon: <Inventory2Icon />,
+          color: "#7c3aed",
+          bg: "#ede9fe"
+        },
+        {
+          title: "Devices",
+          value: manufacturerDashboardInfo.Total_Stock_Created || 0,
+          icon: <DevicesIcon />,
+          color: "#059669",
+          bg: "#dcfce7"
+        },
+        {
+          title: "Total Models",
+          value: manufacturerDashboardInfo.Total_Model || 0,
+          icon: <CategoryIcon />,
+          color: "#2563eb",
+          bg: "#fee2e2"
+        },
+       
+      ].map((item, i) => (
+        <Grid item xs={12} sm={6} md={3} key={i}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.2,
+              borderRadius: "24px",
+              background: "#fff",
+              border: "1px solid #edf2f7",
+              transition: ".3s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 18px 40px rgba(15,23,42,.08)"
+              }
+            }}
+          >
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar
+             sx={{
+    width: 48,
+    height: 48,
+    borderRadius: "16px",
+    bgcolor: `${item.color}15`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: item.color
+  }}
+              >
+                {item.icon}
+              </Avatar>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                cardColor="linear-gradient(135deg, #1f1c2c, #928dab)"
-                label={t('dashboard.labels.manufacturereSIMStatistics')}
-                cardValue={{
-                  m2mServiceProvider: manufacturerDashboardInfo.Total_esim_linked,
-                  eSimActivationRequest: manufacturerDashboardInfo.Total_esim_activation_request,
-                  eSimActivated: manufacturerDashboardInfo.ESim_Activated,
-                  oneYearRenewal: manufacturerDashboardInfo.Total_1year_renewal_request,
-                  twoYearRenewal: manufacturerDashboardInfo.Total_2year_renewal_request,
-                  expired: manufacturerDashboardInfo.Total_expired_device
-                }}
-                iconImage={Sim}
-                heading={t('dashboard.headings.eSIMStatistics')}
-              />
-            </Grid>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "13px",
+                    color: "#64748b",
+                    fontWeight: 700
+                  }}
+                >
+                  {item.title}
+                </Typography>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #66ccff 0%, #3399ff 100%)"
-                cardColor="linear-gradient(135deg, #134e5e, #71b280)"
-                label={t('dashboard.labels.manufacturerUserStatistics')}
-                cardValue={{
-                  totalDealers: manufacturerDashboardInfo.Total_Dealer,
-                  inactiveDealers: manufacturerDashboardInfo.Total_Inactive_Dealer,
-                  totalVehicleOwners: manufacturerDashboardInfo.Total_Vehicle_Owner,
-                  expiredVehicleOwners: manufacturerDashboardInfo.Total_Expired_Vehicle_Owner
+                <Typography
+                  sx={{
+                    fontSize: "32px",
+                    fontWeight: 900,
+                    color: "#0f172a"
+                  }}
+                >
+                  {item.value}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+
+    {/* MODERN DETAIL CARDS */}
+    <Grid container spacing={3}>
+      {[
+        {
+          title: "Stock Statistics",
+          color: "#2563eb",
+          rows: [
+            ["created", manufacturerDashboardInfo.Total_Stock_Created],
+            ["allocated", manufacturerDashboardInfo.Total_Stock_Allocated],
+            ["returned", manufacturerDashboardInfo.Total_Return],
+            ["faulty", manufacturerDashboardInfo.Total_Faulty]
+          ]
+        },
+        {
+          title: "Model Statistics",
+          color: "#059669",
+          rows: [
+            ["Total model", manufacturerDashboardInfo.Total_Model],
+            ["esimLinked", manufacturerDashboardInfo.Total_esim_linked],
+          ]
+        },
+        {
+          title: "Device Statistics",
+          color: "#eab308",
+          rows: [
+            ["totalStock", manufacturerDashboardInfo.Total_Stock_Created],
+            ["assignedToDealers", manufacturerDashboardInfo.Total_Stock_Allocated],
+            ["tagged", manufacturerDashboardInfo.Total_Activation],
+            ["onlineToday", manufacturerDashboardInfo.Total_Online_Device],
+            ["offline7day", manufacturerDashboardInfo.Total_Offline_Device_7day],
+            ["offline30day", manufacturerDashboardInfo.Total_Offline_Device_30day]
+          ]
+        },
+        {
+          title: "eSim Statistics",
+          color: "#ea580c",
+          rows: [
+            ["m2mServiceProvider", manufacturerDashboardInfo.Total_esim_linked],
+            ["eSimActivationRequest", manufacturerDashboardInfo.Total_esim_activation_request],
+            ["eSimActivated", manufacturerDashboardInfo.ESim_Activated],
+            ["oneYearRenewal", manufacturerDashboardInfo.Total_1year_renewal_request],
+            ["twoYearRenewal", manufacturerDashboardInfo.Total_2year_renewal_request],
+            ["expired", manufacturerDashboardInfo.Total_expired_device],
+          ]
+        },
+        {
+          title: "User Statistics",
+          color: "#dc2626",
+          rows: [
+            ["totalDealers", manufacturerDashboardInfo.Total_Dealer],
+            ["inactiveDealers", manufacturerDashboardInfo.Total_Inactive_Dealer],
+            ["totalVehicleOwners", manufacturerDashboardInfo.Total_Vehicle_Owner],
+            ["expiredVehicleOwners", manufacturerDashboardInfo.Total_Expired_Vehicle_Owner],
+          ]
+        }
+      ].map((card, index) => (
+        <Grid item xs={12} md={6} lg={4} key={index}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: "26px",
+              background: "#ffffff",
+              border: "1px solid #edf2f7",
+              transition: ".35s",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 22px 50px rgba(0,0,0,.07)"
+              }
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography
+                sx={{
+                  fontSize: "22px",
+                  fontWeight: 900,
+                  color: "#0f172a"
                 }}
-                iconImage={User}
-                heading={t('dashboard.headings.userInfo')}
+              >
+                {card.title}
+              </Typography>
+
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "16px",
+                  bgcolor: `${card.color}15`
+                }}
               />
-            </Grid>
-          </Grid>
-        );
+            </Box>
+
+            {card.rows.map((row, i) => (
+              <Box key={i} sx={{ mb: 1.5 }}>
+                <Stack direction="row" justifyContent="space-between" mb={0.6}>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      color: "#64748b",
+                      fontWeight: 700
+                    }}
+                  >
+                    {row[0]}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: "15px",
+                      color: "#111827",
+                      fontWeight: 900
+                    }}
+                  >
+                    {row[1] || 0}
+                  </Typography>
+                </Stack>
+
+                <Box
+                  sx={{
+                    height: 10,
+                    borderRadius: "999px",
+                    bgcolor: "#eef2f7",
+                    overflow: "hidden"
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: `${Math.min(Number(row[1]) || 0, 100)}%`,
+                      height: "100%",
+                      borderRadius: "999px",
+                      background: `linear-gradient(90deg, ${card.color}, ${card.color}99)`
+                    }}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  </Box>
+);
       case 'esimprovider':
         return (
-          <Grid container spacing={2} marginBottom={mar}>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                cardColor="linear-gradient(135deg, #ff416c, #ff4b2b)"
-                label={`${t('dashboard.labels.esimDevices.totalDevices')},${t('dashboard.labels.esimDevices.validated')},${t('dashboard.labels.esimDevices.active')},${t('dashboard.labels.esimDevices.expired')}`}
-                cardValue={{
-                  total: eSIMInfo.totalDevicesWithESim || 0,
-                  validated: eSIMInfo.validated || 0,
-                  active: eSIMInfo.active || 0,
-                  expired: eSIMInfo.expired || 0
-                }}
-                iconImage={Sim}
-                heading={t('dashboard.headings.esimDeviceStatus')}
-              />
-            </Grid>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        px: { xs: 2, sm: 3, md: 4 },
+        py: 3,
+        background: `
+          radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 28%),
+          radial-gradient(circle at bottom left, rgba(16,185,129,.08), transparent 30%),
+          linear-gradient(135deg,#f4f8ff 0%,#f8fbff 45%,#eef7f3 100%)
+        `
+      }}
+    >
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
-                cardColor="linear-gradient(135deg, #00c9ff, #1fd1f9)"
-                label={`${t('dashboard.labels.activationStatus.requestsSent')},${t('dashboard.labels.activationStatus.confirmed')},${t('dashboard.labels.activationStatus.rejected')},${t('dashboard.labels.activationStatus.expiringSoon')}`}
-                cardValue={{
-                  sent: eSIMActivationInfo.activationRequestSent || 0,
-                  confirmed: eSIMActivationInfo.activationConfirmed || 0,
-                  rejected: eSIMActivationInfo.activationRejected || 0,
-                  expiring: eSIMActivationInfo.expiringSoon || 0
-                }}
-                iconImage={Bell}
-                heading={t('dashboard.headings.activationStatus')}
-              />
-            </Grid>
+      {/* KPI SECTION */}
+      <Grid container spacing={3} mb={3}>
+        {[
+          {
+            title: "Total Devices",
+            value: eSIMInfo.totalDevicesWithESim || 0,
+            icon: <SimCardIcon />,
+            color: "#2563eb"
+          },
+          {
+            title: "Validated",
+            value: eSIMInfo.validated || 0,
+            icon: <VerifiedIcon />,
+            color: "#059669"
+          },
+          {
+            title: "Active",
+            value: eSIMInfo.active || 0,
+            icon: <CheckCircleIcon />,
+            color: "#7c3aed"
+          },
+          {
+            title: "Expired",
+            value: eSIMInfo.expired || 0,
+            icon: <WarningAmberIcon />,
+            color: "#dc2626"
+          }
+        ].map((item, i) => (
+          <Grid item xs={12} sm={6} md={3} key={i}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.2,
+                borderRadius: "24px",
+                background: "#fff",
+                border: "1px solid #edf2f7",
+                transition: ".3s",
+                "&:hover": {
+                  transform: "translateY(-8px)",
+                  boxShadow: "0 18px 40px rgba(15,23,42,.08)"
+                }
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Avatar
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "16px",
+                    bgcolor: `${item.color}15`,
+                    color: item.color
+                  }}
+                >
+                  {item.icon}
+                </Avatar>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
-                cardColor="linear-gradient(135deg, #f7971e, #ffd200)"
-                label="Pending,Invalid,Total Devices"
-                cardValue={{
-                  pending: eSIMInfo.pending || 0,
-                  invalid: eSIMInfo.invalid || 0,
-                  total: eSIMInfo.totalDevicesWithESim || 0
-                }}
-                iconImage={Sim}
-                heading="eSIM Status Overview"
-              />
-            </Grid>
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      color: "#64748b",
+                      fontWeight: 700
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #00C49F 0%, #82ca9d 100%)"
-                cardColor="linear-gradient(135deg, #43e97b, #38f9d7)"
-                label="Today,This Week,This Month"
-                cardValue={{
-                  today: eSIMActivationInfo.todayRequests || 0,
-                  week: eSIMActivationInfo.weeklyRequests || 0,
-                  month: eSIMActivationInfo.monthlyRequests || 0
-                }}
-                iconImage={Activation}
-                heading="Activation Requests Timeline"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to right, #8884d8 0%, #82ca9d 100%)"
-                cardColor="linear-gradient(135deg, #667eea, #764ba2)"
-                label="Company,State,Status"
-                cardValue={{
-                  company: providerInfo.company || '-',
-                  state: providerInfo.state || '-',
-                  status: providerInfo.status || '-'
-                }}
-                iconImage={User}
-                heading="Provider Information"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff7300 0%, #ffcc66 100%)"
-                cardColor="linear-gradient(135deg, #ff9a9e, #fecfef)"
-                label="Created Date,Expiry Date"
-                cardValue={{
-                  created: providerInfo.createdDate || '-',
-                  expiry: providerInfo.expiryDate || '-'
-                }}
-                iconImage={Alert}
-                heading="Provider Dates"
-              />
-            </Grid>
-
-            {/* Added eSIM statistics widget */}
-            <Grid item xs={12} sm={12} md={6} lg={4}>
-              <Widget
-                //cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
-                cardColor="linear-gradient(135deg, #6a11cb, #2575fc)"
-                label={t('dashboard.labels.esimproviderStatistics')}
-                cardValue={{
-                  manufactures: eSIMInfo.manufactures || 0,
-                  activationReceived: eSIMInfo.activationReceived || 0,
-                  activated: eSIMInfo.activated || 0,
-                  oneYear: eSIMInfo.oneYearActivation || 0,
-                  twoYears: eSIMInfo.twoYearsActivation || 0,
-                  expired: eSIMInfo.expiredEsim || 0
-                }}
-                iconImage={Sim}
-                heading={t('dashboard.headings.eSIMStatistics')}
-              />
-            </Grid>
+                  <Typography
+                    sx={{
+                      fontSize: "32px",
+                      fontWeight: 900,
+                      color: "#0f172a"
+                    }}
+                  >
+                    {item.value}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Paper>
           </Grid>
-        );
+        ))}
+      </Grid>
+
+      {/* DETAIL CARDS */}
+      <Grid container spacing={3}>
+        {[
+          {
+            title: "Activation Statistics",
+            color: "#2563eb",
+            rows: [
+              ["Request Sent", eSIMActivationInfo.activationRequestSent],
+              ["Confirmed", eSIMActivationInfo.activationConfirmed],
+              ["Rejected", eSIMActivationInfo.activationRejected],
+              ["Expiring Soon", eSIMActivationInfo.expiringSoon]
+            ]
+          },
+          {
+            title: "Request Timeline",
+            color: "#059669",
+            rows: [
+              ["Today", eSIMActivationInfo.todayRequests],
+              ["This Week", eSIMActivationInfo.weeklyRequests],
+              ["This Month", eSIMActivationInfo.monthlyRequests]
+            ]
+          },
+          {
+            title: "Provider Information",
+            color: "#7c3aed",
+            rows: [
+              ["Company", providerInfo.company],
+              ["State", providerInfo.state],
+              ["Status", providerInfo.status]
+            ]
+          },
+          {
+            title: "Provider Dates",
+            color: "#ea580c",
+            rows: [
+              ["Created", providerInfo.createdDate],
+              ["Expiry", providerInfo.expiryDate]
+            ]
+          },
+          {
+            title: "eSIM Statistics",
+            color: "#dc2626",
+            rows: [
+              ["Manufactures", eSIMInfo.manufactures],
+              ["Activation Received", eSIMInfo.activationReceived],
+              ["Activated", eSIMInfo.activated],
+              ["1 Year", eSIMInfo.oneYearActivation],
+              ["2 Years", eSIMInfo.twoYearsActivation],
+              ["Expired", eSIMInfo.expiredEsim]
+            ]
+          }
+        ].map((card, index) => (
+          <Grid item xs={12} md={6} lg={4} key={index}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                borderRadius: "26px",
+                background: "#ffffff",
+                border: "1px solid #edf2f7",
+                transition: ".35s",
+                "&:hover": {
+                  transform: "translateY(-8px)",
+                  boxShadow: "0 22px 50px rgba(0,0,0,.07)"
+                }
+              }}
+            >
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "22px",
+                    fontWeight: 900,
+                    color: "#0f172a"
+                  }}
+                >
+                  {card.title}
+                </Typography>
+
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "16px",
+                    bgcolor: `${card.color}15`
+                  }}
+                />
+              </Box>
+
+              {card.rows.map((row, i) => (
+                <Box key={i} sx={{ mb: 1.5 }}>
+                  <Stack direction="row" justifyContent="space-between" mb={0.6}>
+                    <Typography
+                      sx={{
+                        fontSize: "13px",
+                        color: "#64748b",
+                        fontWeight: 700
+                      }}
+                    >
+                      {row[0]}
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        fontSize: "15px",
+                        color: "#111827",
+                        fontWeight: 900
+                      }}
+                    >
+                      {row[1] || 0}
+                    </Typography>
+                  </Stack>
+
+                  <Box
+                    sx={{
+                      height: 10,
+                      borderRadius: "999px",
+                      bgcolor: "#eef2f7",
+                      overflow: "hidden"
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: `${Math.min(Number(row[1]) || 0, 100)}%`,
+                        height: "100%",
+                        borderRadius: "999px",
+                        background: `linear-gradient(90deg, ${card.color}, ${card.color}99)`
+                      }}
+                    />
+                  </Box>
+                </Box>
+              ))}
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
       case "sosadmin":
         return (
           <Grid container spacing={2} marginBottom={mar}>

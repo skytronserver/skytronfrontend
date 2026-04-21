@@ -41,15 +41,15 @@ const dashboard = {
 
 
 
-    {
-      id: 'morth-dashboard',
-      title: 'MoRTH Dashboard',
-      type: 'item',
-      url: '/morth-dashboard',
-      icon: icons.IconDashboard,
-      breadcrumbs: false,
-      roles: ['superadmin']
-    },
+    // {
+    //   id: 'morth-dashboard',
+    //   title: 'MoRTH Dashboard',
+    //   type: 'item',
+    //   url: '/morth-dashboard',
+    //   icon: icons.IconDashboard,
+    //   breadcrumbs: false,
+    //   roles: ['superadmin']
+    // },
     // {
     //   id: 'owner-dashboard',
     //   title: 'Vehicle Owner Dashboard',

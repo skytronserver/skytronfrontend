@@ -102,16 +102,16 @@ const DeviceRoutes = {
       element: <ModelExtension formTitle="Model Extension" />,
       roles: ["devicemanufacture"],
     },
-    {
-      path: "/device/list",
-      element: <DeviceModelList />,
-      roles: ["superadmin", "stateadmin"],
-    },
-    {
-      path: "/deviceCOP/list",
-      element: <UnapproveCopList />,
-      roles: ["superadmin", "stateadmin"],
-    },
+    // {
+    //   path: "/device/list",
+    //   element: <DeviceModelList />,
+    //   roles: ["superadmin", "stateadmin"],
+    // },
+    // {
+    //   path: "/deviceCOP/list",
+    //   element: <UnapproveCopList />,
+    //   roles: ["superadmin", "stateadmin"],
+    // },
     {
       path: "/deviceModel/view/:deviceId",
       element: <StateAdminDeviceModelView />,
@@ -167,16 +167,16 @@ const DeviceRoutes = {
       element: <AllTaggedDevice />,
       roles: ['superadmin', 'devicemanufacture', 'stateadmin'],
     },
-    {
-      path: "/device/approved-models",
-      element: <ApprovedModelsList />,
-      roles: ["superadmin", "stateadmin"],
-    },
-    {
-      path: "/device/approved-cops",
-      element: <ApprovedCOPsList />,
-      roles: ["superadmin", "stateadmin"],
-    },
+    // {
+    //   path: "/device/approved-models",
+    //   element: <ApprovedModelsList />,
+    //   roles: ["superadmin", "stateadmin"],
+    // },
+    // {
+    //   path: "/device/approved-cops",
+    //   element: <ApprovedCOPsList />,
+    //   roles: ["superadmin", "stateadmin"],
+    // },
     {
       path: "/device/esim-status",
       element: <EsimStatusReport />,

@@ -9,7 +9,8 @@ const userData = sessionStorage.getItem('cookiesData');
 const data = userData && userData.split("-").map(item => myDecipher(item))
 const userRoles = userData && data.length > 2 && data[1];
 const menuItems = {
-  items: [dashboard, schoolbus, user, other],
+  //items: [dashboard, schoolbus, user, other],
+  items: [dashboard,  user, other],
   role: userRoles
 };
 

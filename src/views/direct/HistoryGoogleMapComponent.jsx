@@ -11,7 +11,7 @@ const containerStyle = {
   height: "600px"
 };
 
-const GoogleMapComponent = ({
+const HistoryGoogleMapComponent = ({
   gpsData = [],
   onMarkerClick,
   autoFit = true,
@@ -82,4 +82,4 @@ const GoogleMapComponent = ({
   );
 };
 
-export default React.memo(GoogleMapComponent);
+export default React.memo(HistoryGoogleMapComponent);

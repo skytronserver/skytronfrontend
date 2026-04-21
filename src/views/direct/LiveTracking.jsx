@@ -37,6 +37,7 @@ import HomePageService from "../../services/HomePage";
 import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
 //import MapComponent from "./LiveMap";
 import GoogleMapComponent from "./GoogleMapComponent";
+import OpenStreetMapComponent from "./OpenStreetMapComponent";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -95,6 +96,8 @@ const LiveTracking = () => {
   const debounceRef = useRef();
   const [manualSearch, setManualSearch] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+
+  const [mapType, setMapType] = useState("google"); // default to google, can be switched to "osm"
 
   // FETCH VEHICLE LIST (Debounced)
   const fetchVehicleDropdown = async (value) => {
@@ -500,6 +503,8 @@ const LiveTracking = () => {
         { ...data },
         { cancelToken: activeCancel.token }
       );
+
+      console.log("API RESPONSE:", retriveData_table.data.data);
 
       if (Array.isArray(retriveData_table.data.data)) {
         const rawData = retriveData_table.data.data;
@@ -1078,8 +1083,16 @@ const LiveTracking = () => {
   };
 
   return (
-    <MainCard>
-      <Typography variant="h4">{t('liveTracking.title')}</Typography>
+    <MainCard sx={{
+      background: "#eef1f5",
+      borderRadius: "18px",
+      p: 2
+    }}>
+      <Typography variant="h4" sx={{
+        fontWeight: 700,
+        mb: 2,
+        color: "#17345f"
+      }}>{t('liveTracking.title')}</Typography>
 
       {/* Scrollable Table (First Table) */}
       <div className="container">
@@ -1355,7 +1368,7 @@ const LiveTracking = () => {
 
         {/* HTML Content (iframe) */}
         <div className="live-tracking-map-panel" style={{ width: "80%" }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <FormControl size="small" sx={{ minWidth: 220 }}>
               <InputLabel id="marker-label-mode-label">Marker Label</InputLabel>
               <Select
@@ -1369,15 +1382,91 @@ const LiveTracking = () => {
                 <MenuItem value="route">Route Information</MenuItem>
               </Select>
             </FormControl>
+          </Box> */}
+          <Box sx={{
+            px: 3,
+            py: 1.8,
+            borderRadius: "14px 14px 0 0",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 2,
+            background: "#17345f",
+            color: "#fff",
+          }}>
+            <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
+              <Typography fontWeight={700}>
+                {focusedEntry?.vehicle_registration_number ||
+                  vehicleNo ||
+                  "No Vehicle Selected"}
+              </Typography>
+
+              <Typography sx={{ color: "#ff5252", fontWeight: 700 }}>
+                ⚡ {focusedEntry?.speed || 0} km/h
+              </Typography>
+
+              <Typography sx={{ color: "#ffffff" }}>
+                ⏱ {filteredData.length} Vehicle
+              </Typography>
+            </Box>
+
+
+            <Box sx={{ display: "flex", gap: 2 }}>
+              {/* MAP TYPE DROPDOWN */}
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <Select
+                  value={mapType}
+                  label="Map Type"
+                  onChange={(e) => setMapType(e.target.value)}
+                >
+                  <MenuItem value="google">Google Map</MenuItem>
+                  <MenuItem value="osm">OpenStreetMap</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* EXISTING DROPDOWN */}
+              <FormControl size="small" sx={{ minWidth: 220 }}>
+                <Select
+                  labelId="marker-label-mode-label"
+                  value={markerLabelMode}
+                  label="Marker Label"
+                  onChange={(event) => setMarkerLabelMode(event.target.value)}
+                >
+                  <MenuItem value="vehicle">Vehicle ID / Registration</MenuItem>
+                  <MenuItem value="block">Block / Area</MenuItem>
+                  <MenuItem value="route">Route Information</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
-          <GoogleMapComponent
+          {/* <GoogleMapComponent
             gpsData={filteredData}
             policeData={policeLocations}
             onVehicleClick={handleVehicleMarkerClick}
             height={selectedId ? "400px" : "600px"}
             focusEntry={focusedEntry}
             nmrArea={nmrArea}
-          />
+          /> */}
+          {mapType === "google" ? (
+            <GoogleMapComponent
+              gpsData={filteredData}
+              policeData={policeLocations}
+              onVehicleClick={handleVehicleMarkerClick}
+              height={selectedId ? "400px" : "500px"}
+              focusEntry={focusedEntry}
+              nmrArea={nmrArea}
+            />
+          ) : (
+            <OpenStreetMapComponent
+              gpsData={filteredData}
+              policeData={policeLocations}
+              onVehicleClick={handleVehicleMarkerClick}
+              height={selectedId ? "400px" : "500px"}
+              focusEntry={focusedEntry}
+              nmrArea={nmrArea}
+            />
+          )}
         </div>
       </div>
       <Dialog

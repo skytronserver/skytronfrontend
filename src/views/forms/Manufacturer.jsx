@@ -1,4 +1,4 @@
-import { Grid, Button, CircularProgress } from "@mui/material";
+import { Grid, Button, CircularProgress, Box } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
@@ -89,6 +89,10 @@ const Manufacturer = () => {
     const fieldName = event.target.name;
     const errors = {};
     if (selectedFile) {
+      console.log("Field Name:", fieldName);
+      console.log("File Name:", selectedFile.name);
+      console.log("File Type:", selectedFile.type);
+      console.log("File Size:", selectedFile.size);
       if (selectedFile.size > FILE_SIZE) {
         errors[fieldName] = "File too large. Max size is 512KB";
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
@@ -115,6 +119,9 @@ const Manufacturer = () => {
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error creating user:", error.message);
+      console.log("Status:", error?.response?.status);
+      console.log("Backend Error:", error?.response?.data);
+      console.log("Full Error:", error);
       return {
         code: "400",
         message: error.message,
@@ -248,14 +255,39 @@ const Manufacturer = () => {
                       </Grid>
                     ))}
                     <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
-                      <Button
+                      <Box
+                        sx={{
+                          mt: 3,
+                          display:
+                            "flex",
+                          gap: 2,
+                          flexWrap:
+                            "wrap"
+                        }}
+                      > <Button
                         type="submit"
                         variant="contained"
-                        color="primary"
                         disabled={loading}
+                        sx={{
+                          height:
+                            "56px",
+                          px: 5,
+                          borderRadius:
+                            "16px",
+                          fontWeight: 800,
+                          fontSize:
+                            "16px",
+                          textTransform:
+                            "none",
+                          background:
+                            "linear-gradient(90deg,#14b8a6,#0ea5e9)",
+                          boxShadow:
+                            "0 14px 30px rgba(14,165,233,.25)"
+                        }}
                       >
-                        {t('manufacturer.form.submit')}
-                      </Button>
+                          {t('manufacturer.form.submit')}
+                        </Button></Box>
+
                       {showResend && (
                         <Button
                           type="button"

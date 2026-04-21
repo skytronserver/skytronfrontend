@@ -109,11 +109,9 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
         anchor="top"
         open={drawerOpen}
         onClose={() => drawerToggle(false)}
-        onMouseEnter={() => drawerToggle(true)}
-        onMouseLeave={() => drawerToggle(false)}
         sx={{
           '& .MuiDrawer-paper': {
-            height: '50vh',
+            height: '70vh',
             width: '350px',
             display: 'flex',
             flexDirection: 'column',

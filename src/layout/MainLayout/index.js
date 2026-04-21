@@ -264,7 +264,7 @@ const MainLayout = () => {
     <Box sx={{
       display: "flex",
       flexDirection: "column",
-      height: "100vh",
+      minHeight: "100vh",
       width: "100%",
       overflow: "hidden",
     }}>
@@ -281,6 +281,7 @@ const MainLayout = () => {
           transition: leftDrawerOpened
             ? theme.transitions.create("width")
             : "none",
+          zIndex: theme.zIndex.drawer + 1,
         }}
       >
         <Toolbar
@@ -327,9 +328,8 @@ const MainLayout = () => {
           display: "flex",
           flexDirection: "column",
           flex: 1,
-          minHeight: 0,
-          marginTop: "64px",
           overflow: "hidden",
+          width:"100%"
         }}
       >
         {/* SCROLLABLE CONTENT */}
@@ -337,11 +337,13 @@ const MainLayout = () => {
           sx={{
             flex: 1,
             overflowY: "auto",
-            width: "100vw",
-            position: "relative",
-            left: "50%",
-            transform: "translateX(-50%)",
+            overflowX: "hidden",
+            width: "100%",
+            // position: "relative",
+            // left: "50%",
+            // transform: "translateX(-50%)",
             padding: "16px",
+            // paddingBottom: "70px",
           }}
         >
           <Breadcrumbs
@@ -358,14 +360,14 @@ const MainLayout = () => {
         {/* FIXED FOOTER */}
         <Box
           sx={{
-            height: "50px",
-            flexShrink: 0,
-            width: "100vw",
-            position: "relative",
-            left: "50%",
-            transform: "translateX(-50%)",
-            borderTop: "1px solid #e0e0e0",
-            backgroundColor: "#1E293B",
+            position: "fixed",
+    bottom: 0,
+    left: 0,
+    width: "100%",
+    height: "50px",
+    zIndex: 1200,
+    borderTop: "1px solid #e0e0e0",
+    backgroundColor: "#1E293B",
           }}
         >
           <AuthFooter />

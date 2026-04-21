@@ -145,36 +145,36 @@ const MainRoutes = {
       element: <PublicSafetyDashboard />,
       roles: ["superadmin"],
     },
-    {
-      path: "/superadmin-dashboard/m2m-registration-requests",
-      element: <M2MRegistrationAdminReview />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/superadmin-dashboard/manufacturer-registration-requests",
-      element: <Navigate to="/superadmin-dashboard/vehicle-manufacturer-registration-requests" replace />,
-      roles: ["superadmin", "stateadmin"],
-    },
-    {
-      path: "/superadmin-dashboard/vehicle-manufacturer-registration-requests",
-      element: <VehicleManufacturerRegistrationAdminReview />,
-      roles: ["superadmin", "stateadmin"],
-    },
+    // {
+    //   path: "/superadmin-dashboard/m2m-registration-requests",
+    //   element: <M2MRegistrationAdminReview />,
+    //   roles: ["superadmin"],
+    // },
+    // {
+    //   path: "/superadmin-dashboard/manufacturer-registration-requests",
+    //   element: <Navigate to="/superadmin-dashboard/vehicle-manufacturer-registration-requests" replace />,
+    //   roles: ["superadmin", "stateadmin"],
+    // },
+    // {
+    //   path: "/superadmin-dashboard/vehicle-manufacturer-registration-requests",
+    //   element: <VehicleManufacturerRegistrationAdminReview />,
+    //   roles: ["superadmin", "stateadmin"],
+    // },
     {
       path: "/superadmin-dashboard/ais-140-device-manufacturer-registration-requests",
       element: <AIS140DeviceManufacturerRegistrationAdminReview />,
       roles: ["superadmin", "stateadmin"],
     },
-    {
-      path: "/superadmin-dashboard/technical-onboarding-requests",
-      element: <DeviceModelTechnicalOnboardingAdminList />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/morth-dashboard",
-      element: <MorthDashboard />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/superadmin-dashboard/technical-onboarding-requests",
+    //   element: <DeviceModelTechnicalOnboardingAdminList />,
+    //   roles: ["superadmin"],
+    // },
+    // {
+    //   path: "/morth-dashboard",
+    //   element: <MorthDashboard />,
+    //   roles: ["superadmin"],
+    // },
     {
       path: "/live-tracking",
       element: <LiveTracking />,
@@ -304,11 +304,11 @@ const MainRoutes = {
       element: <UserStatisticsReport />,
       roles: ['superadmin']
     },
-    {
-      path: '/reports/incident-report',
-      element: <IncidentReport />,
-      roles: ['superadmin']
-    },
+    // {
+    //   path: '/reports/incident-report',
+    //   element: <IncidentReport />,
+    //   roles: ['superadmin']
+    // },
     {
       path: '/reports/health-packet-log',
       element: <HealthPacketLog />,
@@ -329,58 +329,58 @@ const MainRoutes = {
       element: <MapPolicy />
     },
     // School Bus Management System Routes
-    {
-      path: '/schoolbus',
-      element: <SchoolBusDashboard />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    },
-    {
-      path: '/schoolbus/parent-tracking',
-      element: <ParentTracking />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
-    },
-    {
-      path: '/schoolbus/bus-tagging',
-      element: <SchoolBusTagging />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    },
-    {
-      path: '/schoolbus/route-management',
-      element: <RouteManagement />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    },
-    {
-      path: '/schoolbus/bus-assignment',
-      element: <BusAssignment />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    },
-    {
-      path: '/schoolbus/profile-management',
-      element: <ProfileManagement />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    },
-    {
-      path: '/schoolbus/holidays',
-      element: <SchoolHolidays />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    },
-    {
-      path: '/schoolbus/alerts',
-      element: <AlertsCenter />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    },
-    {
-      path: '/schoolbus/reports',
-      element: <SchoolReports />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
-    }
+    // {
+    //   path: '/schoolbus',
+    //   element: <SchoolBusDashboard />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // },
+    // {
+    //   path: '/schoolbus/parent-tracking',
+    //   element: <ParentTracking />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
+    // },
+    // {
+    //   path: '/schoolbus/bus-tagging',
+    //   element: <SchoolBusTagging />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // },
+    // {
+    //   path: '/schoolbus/route-management',
+    //   element: <RouteManagement />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // },
+    // {
+    //   path: '/schoolbus/bus-assignment',
+    //   element: <BusAssignment />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // },
+    // {
+    //   path: '/schoolbus/profile-management',
+    //   element: <ProfileManagement />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // },
+    // {
+    //   path: '/schoolbus/holidays',
+    //   element: <SchoolHolidays />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // },
+    // {
+    //   path: '/schoolbus/alerts',
+    //   element: <AlertsCenter />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // },
+    // {
+    //   path: '/schoolbus/reports',
+    //   element: <SchoolReports />,
+    //   roles: ['superadmin', 'stateadmin', 'schooladmin']
+    // }
 
-    ,
-    {
-      path: '/schoolbus/onboarding',
-      element: <SchoolOnboarding />,
-      roles: ['superadmin', 'stateadmin']
-    }
+    // ,
+    // {
+    //   path: '/schoolbus/onboarding',
+    //   element: <SchoolOnboarding />,
+    //   roles: ['superadmin', 'stateadmin']
+    // }
 
   ].map((route) => applyPrivateRoute(route)),
 };

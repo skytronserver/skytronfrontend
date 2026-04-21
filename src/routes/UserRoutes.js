@@ -81,11 +81,11 @@ const UserRoutes = {
   path: "/",
   element: <MainLayout />,
   children: [
-    {
-      path: "/user/newStateAdmin/*",
-      element: <StateAdmin />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/user/newStateAdmin/*",
+    //   element: <StateAdmin />,
+    //   roles: ["superadmin"],
+    // },
 
     {
       path: "/user/list",
@@ -107,11 +107,11 @@ const UserRoutes = {
       element: <Dynamic />,
       roles: ["superadmin"],
     },
-    {
-      path: "/user/newEsimUser",
-      element: <EsimUser />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/user/newEsimUser",
+    //   element: <EsimUser />,
+    //   roles: ["superadmin"],
+    // },
     {
       path: "/user/newManufacturer",
       element: <Manufacturer />,
@@ -135,7 +135,7 @@ const UserRoutes = {
     {
       path: "/user/newDealerAccount",
       element: <DealerAccount />,
-      roles: ["stateadmin"],
+      roles: ["stateadmin","superadmin"],
     },
     {
       path: "/new/vehicleOwner/*",
@@ -164,11 +164,11 @@ const UserRoutes = {
       element: <SystemAdmin />,
       roles: ["superadmin"],
     },
-    {
-      path: "/new/sos-admin",
-      element: <SOSAdmin />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/new/sos-admin",
+    //   element: <SOSAdmin />,
+    //   roles: ["superadmin"],
+    // },
     {
       path: "/new/sos-user",
       element: <SOSUser />,
@@ -205,36 +205,36 @@ const UserRoutes = {
       element: <FileUploadTest />,
       roles: ["superadmin"],
     },
-    {
-      path: "/user/sos-user-list",
-      element: <SOSUserList />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/user/sos-user-list",
+    //   element: <SOSUserList />,
+    //   roles: ["superadmin"],
+    // },
     {
       path: "/user/sos-other-list",
       element: <SOSOtherList />,
       roles: ["sosadmin"],
     },
-    {
-      path: "/sos-report",
-      element: <SOSReport />,
-      roles: ["superadmin", "sosadmin"],
-    },
+    // {
+    //   path: "/sos-report",
+    //   element: <SOSReport />,
+    //   roles: ["superadmin", "sosadmin"],
+    // },
     {
       path: "/notice/all-notice-list",
       element: <NoticeList />,
       roles: ["superadmin"],
     },
-    {
-      path: "/user/esim-provider-list",
-      element: <EsimProviderList />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/user/state-admin-list",
-      element: <StateAdminList />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/user/esim-provider-list",
+    //   element: <EsimProviderList />,
+    //   roles: ["superadmin"],
+    // },
+    // {
+    //   path: "/user/state-admin-list",
+    //   element: <StateAdminList />,
+    //   roles: ["superadmin"],
+    // },
     {
       path: "/new/em-team/*",
       element: <CreateEMTeam />,

@@ -55,9 +55,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
         >
           <LogoSection />
 
-          <ButtonBase onMouseEnter={() => handleLeftDrawerToggle(true)}
-            onMouseLeave={() => handleLeftDrawerToggle(false)} 
-            onClick={() => handleLeftDrawerToggle(true)}>
+          <ButtonBase onClick={() => handleLeftDrawerToggle()}>
             <Avatar
               variant="rounded"
               sx={{
