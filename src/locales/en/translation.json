@@ -868,7 +868,7 @@
     "verifyOTP": "Verify OTP",
     "otpSent": "An OTP has been sent to your registered mobile number. Please click below to continue to enter the OTP",
     "formNotSubmitted": "Form Not Submitted",
-    "modelSentForApproval": "Model has been sent successfully for approval to state admin",
+    "modelSentForApproval": "Model has been sent successfully for approval",
     "internalServerError": "Internal Server Error",
     "wrongOtp": "WRONG OTP",
     "unableToFetchData": "Unable to fetch data. An error occurred while retrieving data from the server. Please contact the server administrator.",

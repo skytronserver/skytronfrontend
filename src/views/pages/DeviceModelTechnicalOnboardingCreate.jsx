@@ -422,7 +422,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
         return (
           <SectionBlock
             label="Required Documents"
-            description="Upload both PDFs. Max file size: 10 MB each."
+            description="Upload both PDFs. Max file size: 2 MB each."
           >
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
@@ -432,7 +432,13 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   file={userManualPdf}
                   error={fieldErrors.userManualPdf}
                   onChange={(e) => {
-                    setUserManualPdf(e.target.files?.[0] || null);
+                    const file = e.target.files?.[0] || null;
+                    if (file && file.size > 2 * 1024 * 1024) {
+                      setFieldErrors((p) => ({ ...p, userManualPdf: "File size exceeds 2MB limit" }));
+                      setUserManualPdf(null);
+                      return;
+                    }
+                    setUserManualPdf(file);
                     setFieldErrors((p) => {
                       const c = { ...p };
                       delete c.userManualPdf;
@@ -448,7 +454,13 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   file={otCommandListPdf}
                   error={fieldErrors.otCommandListPdf}
                   onChange={(e) => {
-                    setOtCommandListPdf(e.target.files?.[0] || null);
+                    const file = e.target.files?.[0] || null;
+                    if (file && file.size > 2 * 1024 * 1024) {
+                      setFieldErrors((p) => ({ ...p, otCommandListPdf: "File size exceeds 2MB limit" }));
+                      setOtCommandListPdf(null);
+                      return;
+                    }
+                    setOtCommandListPdf(file);
                     setFieldErrors((p) => {
                       const c = { ...p };
                       delete c.otCommandListPdf;

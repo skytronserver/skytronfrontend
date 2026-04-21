@@ -139,15 +139,18 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
     }, [open]);
 
     const handleConfirm = async () => {
-        setError(""); setSubmitting(true);
+        setError(""); 
+        if (!evalDatetime) {
+            setError("Evaluation date and time is mandatory.");
+            return;
+        }
+        setSubmitting(true);
         try {
-            if (evalDatetime) {
-                const minVal = toDatetimeLocalValue(row?.request_datetime || row?.created_at || row?.created);
-                if (evalDatetime < minVal) {
-                    setError("Testing date cannot be earlier than the request date.");
-                    setSubmitting(false);
-                    return;
-                }
+            const minVal = toDatetimeLocalValue(row?.request_datetime || row?.created_at || row?.created);
+            if (evalDatetime < minVal) {
+                setError("Testing date cannot be earlier than the request date.");
+                setSubmitting(false);
+                return;
             }
             const payload = { onboarding_request_id: row.id };
             const isoVal = toISOString(evalDatetime);
@@ -195,22 +198,22 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
                     <Box>
                         <Stack direction="row" alignItems="center" spacing={1} mb={1}>
                             <EventIcon fontSize="small" color="action" />
-                            <Typography variant="subtitle2" fontWeight={600}>Evaluation Date &amp; Time</Typography>
-                            <Chip label="optional" size="small" variant="outlined" sx={{ fontSize: "0.68rem" }} />
+                            <Typography variant="subtitle2" fontWeight={600}>Evaluation Date &amp; Time *</Typography>
                         </Stack>
                         <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-                            Schedule when the evaluation will start. Clear the field to let the backend set the current time automatically.
+                            Schedule when the evaluation will start. This field is mandatory.
                         </Typography>
                         <TextField
                             fullWidth size="small" type="datetime-local" label="Evaluation Date & Time"
                             value={evalDatetime}
                             onChange={(e) => setEvalDatetime(e.target.value)}
                             InputLabelProps={{ shrink: true }}
+                            error={!evalDatetime && !!error}
                             inputProps={{
                                 min: toDatetimeLocalValue(row?.request_datetime || row?.created_at || row?.created)
                             }}
                             helperText={
-                                evalDatetime ? "Select a date on or after the request date." : "Leave blank to use server time."
+                                evalDatetime ? "Select a date on or after the request date." : "Required field."
                             }
                         />
                     </Box>
@@ -382,7 +385,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         multiline
                         minRows={3}
                         maxRows={6}
-                        label="Final Comment *"
+                        label="Final Compatibility Test Findings *"
                         placeholder="Describe the evaluation outcome, findings, or reason for rejection…"
                         value={finalComment}
                         onChange={(e) => {
@@ -624,7 +627,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                                 </IconButton>
                             </Tooltip>
                         ) : hasReport ? (
-                            <Tooltip title="Has evaluation comment">
+                            <Tooltip title="Has compatibility test findings">
                                 <CommentIcon fontSize="small" color="primary" />
                             </Tooltip>
                         ) : null}
@@ -766,13 +769,13 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                                     </Grid>
                                 )}
 
-                                {/* Report / Comment */}
+                                {/* Compatibility Test Findings */}
                                 {hasReport && (
                                     <Grid item xs={12} md={6}>
                                         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: "primary.light", bgcolor: "primary.50" }}>
                                             <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
                                                 <CommentIcon color="primary" fontSize="small" />
-                                                <Typography variant="subtitle2" fontWeight={700}>Report / Comment</Typography>
+                                                <Typography variant="subtitle2" fontWeight={700}>Compatibility Test Findings</Typography>
                                             </Stack>
                                             <Divider sx={{ mb: 1.5 }} />
                                             <Typography variant="body2" color="text.primary" sx={{ whiteSpace: "pre-wrap" }}>

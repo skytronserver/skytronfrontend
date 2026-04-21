@@ -164,7 +164,7 @@ const RequestRow = ({ row, index }) => {
                     </Stack>
                 </TableCell>
 
-                {/* report/comment indicator */}
+                {/* Compatibility test findings indicator */}
                 <TableCell sx={{ py: 1 }}>
                     <Stack direction="row" justifyContent="center">
                         {/* row.compatibility_report_pdf ? (
@@ -322,7 +322,7 @@ const RequestRow = ({ row, index }) => {
                                     </Grid>
                                 )}
 
-                                {/* Report / Comment (finalization note) */}
+                                {/* Compatibility Test Findings (finalization note) */}
                                 {hasReport && (
                                     <Grid item xs={12} md={6}>
                                         <Paper
@@ -337,7 +337,7 @@ const RequestRow = ({ row, index }) => {
                                             <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
                                                 <CommentIcon color="primary" fontSize="small" />
                                                 <Typography variant="subtitle2" fontWeight={700}>
-                                                    Report / Comment
+                                                    Compatibility Test Findings
                                                 </Typography>
                                             </Stack>
                                             <Divider sx={{ mb: 1.5 }} />
@@ -429,7 +429,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                     }
                 >
                     <Typography variant="body2" color="text.secondary" mb={3}>
-                        View the status of all technical onboarding requests you have submitted. Click a row to see full details, documents, and any reports or comments.
+                        View the status of all technical onboarding requests you have submitted. Click a row to see full details, documents, and any compatibility test findings.
                     </Typography>
 
                     {error && (
