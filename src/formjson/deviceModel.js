@@ -99,15 +99,17 @@ export const deviceModelFormField = {
     name: "cop_validity",
     type: "date",
     label: "modelExtensionForm.fields.copValidity",
-    validation: Yup.date().when('tac_validity', {
-      is: (val) => {
-        if (!val) return false;
-        const todayStr = new Date().toISOString().split('T')[0];
-        return val < todayStr;
-      },
-      then: Yup.date().required("modelExtensionForm.validation.copValidityRequired"),
-      otherwise: Yup.date().nullable()
-    }),
+    validation: Yup.date()
+      .min(new Date(new Date().setHours(0, 0, 0, 0)), "COP validity is required")
+      .when('tac_validity', {
+        is: (val) => {
+          if (!val) return false;
+          const todayStr = new Date().toISOString().split('T')[0];
+          return val < todayStr;
+        },
+        then: Yup.date().required("modelExtensionForm.validation.copValidityRequired"),
+        otherwise: Yup.date().nullable()
+      }),
   },
   cop_file: {
     name: "cop_file",

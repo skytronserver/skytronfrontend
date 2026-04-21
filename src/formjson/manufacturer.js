@@ -240,12 +240,14 @@ export const manufacturerFormField = {
     name: "cop_validity",
     type: "date",
     label: "COP Validity",
-    validation: Yup.date().nullable().when("tac_validity", {
-      is: (v) => isTacExpired(v),
-      then: (schema) => schema.required("COP Validity is required"),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    minDate: today,
+    validation: Yup.date()
+      .min(new Date(new Date().setHours(0, 0, 0, 0)), "COP validity is required")
+      .nullable()
+      .when("tac_validity", {
+        is: (v) => isTacExpired(v),
+        then: (schema) => schema.required("COP Validity is required"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
   },
 
   file_selfCertifiedIdProofAuthorisedSignatory: {

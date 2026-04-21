@@ -118,12 +118,23 @@ export const retriveTechnicalOnboardedModelList = async () => {
       // Models must be fully approved by state admin to show in stock
       const isReady = isActiveManufacturer || isApprovedRequest;
 
-      if (isReady) {
-        // 3. Extract the model details (prioritize the device_model object)
-        const modelObj = r.device_model || r;
+      // 3. Extract the model details (prioritize the device_model object)
+      const modelObj = r.device_model || r;
+
+      // Check validity (Point C: Do not allow expired TAC/COP)
+      const todayStr = new Date().toISOString().split('T')[0];
+      const tacValidity = modelObj.tac_validity || "";
+      const copValidity = modelObj.cop_validity || "";
+
+      // A model is valid if EITHER TAC is valid OR COP is valid
+      const isTacValid = tacValidity && tacValidity >= todayStr;
+      const isCopValid = copValidity && copValidity >= todayStr;
+      const isCertValid = isTacValid || isCopValid;
+
+      if (isReady && isCertValid) {
         if (modelObj.model_name) {
           eligibleModels.push({
-            value: String(modelObj.id), // Using the Model ID (44), not the Request ID (26)
+            value: String(modelObj.id), 
             label: modelObj.model_name,
           });
         }
@@ -131,10 +142,14 @@ export const retriveTechnicalOnboardedModelList = async () => {
         // Handle legacy nested structure just in case
         if (Array.isArray(r.tech_onboarded_models)) {
           r.tech_onboarded_models.forEach((m) => {
-            eligibleModels.push({
-              value: String(m.id),
-              label: m.model_name || m.device_model?.model_name || String(m.id),
-            });
+             const mTacValid = (m.tac_validity || m.device_model?.tac_validity) >= todayStr;
+             const mCopValid = (m.cop_validity || m.device_model?.cop_validity) >= todayStr;
+             if (mTacValid || mCopValid) {
+                eligibleModels.push({
+                  value: String(m.id),
+                  label: m.model_name || m.device_model?.model_name || String(m.id),
+                });
+             }
           });
         }
       }

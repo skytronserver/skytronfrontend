@@ -64,7 +64,7 @@ const DeviceModelForm = () => {
         setAgencies(agencyData);
 
         const agencyOptions = agencyData.map(item => ({ 
-              value: item.id || item.agency_name || item.name, 
+              value: item.agency_name || item.name || item.id, 
               label: item.agency_name || item.name 
             }));
 
