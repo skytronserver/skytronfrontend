@@ -1106,7 +1106,6 @@ function TagDeviceToVehicle() {
                           : '0 10px 20px rgba(244,67,54,0.4)',
                       }
                     }}
-                    onClick={() => setActiveStep((prev) => prev + 1)}
                   >
                     SOS
                   </Button>
@@ -1157,7 +1156,6 @@ function TagDeviceToVehicle() {
                           : '0 10px 20px rgba(244,67,54,0.4)',
                       }
                     }}
-                    onClick={() => setActiveStep((prev) => prev + 1)}
                   >
                     SOS
                   </Button>
