@@ -29,6 +29,7 @@ import SystemAdmin from "../views/forms/SystemAdmin";
 import TestAgencyDetailsForm from "../views/forms/TestAgencyDetailsForm";
 import TestAgencyCreate from "../views/forms/TestAgencyCreate";
 import TestAgencyList from "../views/pages/TestAgencyList";
+import TestAgencyDetailsList from "../views/pages/TestAgencyDetailsList";
 import { decipherEncryption } from "../helper";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import Details from "../views/pages/Details";
@@ -180,6 +181,11 @@ const UserRoutes = {
     {
       path: "/test-agency/list",
       element: <TestAgencyList />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/test-agency/details-list",
+      element: <TestAgencyDetailsList />,
       roles: ["superadmin"],
     },
     {

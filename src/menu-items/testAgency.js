@@ -32,6 +32,15 @@ const testAgency = {
                     roles: ['superadmin'],
                 },
                 {
+                    id: 'test-agency-details-list-menu',
+                    title: 'Test Agency Details List',
+                    type: 'item',
+                    url: '/test-agency/details-list',
+                    icon: icons.IconList,
+                    breadcrumbs: false,
+                    roles: ['superadmin'],
+                },
+                {
                     id: 'test-agency-create-menu',
                     title: 'Create Agency User',
                     type: 'item',

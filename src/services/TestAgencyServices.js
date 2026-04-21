@@ -55,6 +55,11 @@ const updateAgencyDetails = (data) => {
     return http.post('/api/testAgency/details/update/', data);
 };
 
+const listAgencyDetails = () => {
+    const http = getAxiosInstance();
+    return http.get('/api/testAgency/details/list/');
+};
+
 /**
  * Get all Device Models assigned to the calling Test Agency.
  * Accessible by 'testagency' role only.
@@ -72,6 +77,7 @@ const TestAgencyServices = {
     getAgencyDeviceModels,
     createAgencyDetails,
     updateAgencyDetails,
+    listAgencyDetails,
 };
 
 export default TestAgencyServices;

@@ -145,6 +145,11 @@ const Manufacturer = () => {
     fd.append("device_model_details", values?.device_model_details || "");
     fd.append("lat", values?.lat || "");
     fd.append("lon", values?.lon || "");
+    fd.append("assam_office_address", values?.assam_office_address || "");
+    fd.append("assam_office_pin", values?.assam_office_pin || "");
+    fd.append("assam_office_phone", values?.assam_office_phone || "");
+    fd.append("assam_office_lat", values?.assam_office_lat || "");
+    fd.append("assam_office_lon", values?.assam_office_lon || "");
 
     (values?.esimProvider || []).forEach((id) => {
       if (id !== undefined && id !== null && String(id).trim() !== "") {

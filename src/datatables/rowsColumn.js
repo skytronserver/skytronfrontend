@@ -381,6 +381,11 @@ export const manufacturerColumns = [
   { name: "gstnnumber", label: "GSTN No.", options: { filter: true, sort: false } },
   { name: "panno", label: "PAN No.", options: { filter: false, sort: false } },
   { name: "company_registration_no", label: "Company Registration No", options: { filter: false, sort: false } },
+  { name: "assam_office_address", label: "Assam Office Address", options: { filter: false, sort: false, display: true } },
+  { name: "assam_office_pin", label: "Assam Office PIN", options: { filter: false, sort: false, display: true } },
+  { name: "assam_office_phone", label: "Assam Office Phone", options: { filter: false, sort: false, display: true } },
+  { name: "assam_office_lat", label: "Assam Office Lat", options: { filter: false, sort: false, display: true } },
+  { name: "assam_office_lon", label: "Assam Office Lon", options: { filter: false, sort: false, display: true } },
 
   {
     name: "esim_provider", label: "M2M Provider", options: {

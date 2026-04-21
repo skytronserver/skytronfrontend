@@ -41,6 +41,12 @@ export const manufacturerInitialValues = {
   panno: "",
   company_registration_no: "",
 
+  assam_office_address: "",
+  assam_office_pin: "",
+  assam_office_phone: "",
+  assam_office_lat: "",
+  assam_office_lon: "",
+
   device_model_details: "",
   esimProvider: [],
   tac_no: "",
@@ -177,6 +183,40 @@ export const manufacturerFormField = {
     validation: Yup.string()
       .matches(/^-?\d+\.\d+$/, "Longitude must be in decimal format (e.g., 79.0011)")
       .required("Longitude is required"),
+  },
+  assam_office_address: {
+    name: "assam_office_address",
+    type: "text",
+    label: "Assam Office Address",
+    validation: Yup.string().required("Assam Office Address is required"),
+  },
+  assam_office_pin: {
+    name: "assam_office_pin",
+    type: "text",
+    label: "Assam Office PIN",
+    validation: Yup.string().matches(/^\d{6}$/, "Please enter a valid 6-digit PIN").required("Assam Office PIN is required"),
+  },
+  assam_office_phone: {
+    name: "assam_office_phone",
+    type: "tel",
+    label: "Assam Office Phone No",
+    validation: Yup.string().matches(/^\d{10}$/, "Please enter a valid 10-digit phone number").required("Assam Office Phone No is required"),
+  },
+  assam_office_lat: {
+    name: "assam_office_lat",
+    type: "number",
+    label: "Assam Office Lat",
+    validation: Yup.string()
+      .matches(/^-?\d+\.\d+$/, "Latitude must be in decimal format")
+      .required("Assam Office Latitude is required"),
+  },
+  assam_office_lon: {
+    name: "assam_office_lon",
+    type: "number",
+    label: "Assam Office Lon",
+    validation: Yup.string()
+      .matches(/^-?\d+\.\d+$/, "Longitude must be in decimal format")
+      .required("Assam Office Longitude is required"),
   },
   gstnnumber: {
     name: "gstnnumber",
