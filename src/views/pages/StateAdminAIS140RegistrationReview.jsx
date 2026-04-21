@@ -61,6 +61,9 @@ const StateAdminAIS140RegistrationReview = () => {
               ...firstModel,
               manufacturer_id: manufacturer.id,
               model_id: firstModel.id,
+              tac_no: firstModel.tac_no || manufacturer.tac_no || manufacturer.tac || "",
+              model_name: firstModel.model_name || manufacturer.model_name || manufacturer.device_model_details || "",
+              esim_provider: manufacturer.esim_provider || manufacturer.eSimProviders || manufacturer.esimProvider || [],
               status: overrideStatus || manufacturer.status,
               users: manufacturer.users,
               id: manufacturer.id // Use manufacturer ID as the unique row ID

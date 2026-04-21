@@ -43,6 +43,20 @@ export const deviceModelFormField = {
     validation: Yup.string().required("deviceModelForm.validation.testAgencyRequired"),
     options: []
   },
+  agency_address: {
+    name: "agency_address",
+    type: "text",
+    label: "Agency Address",
+    disabled: true,
+    validation: Yup.string(),
+  },
+  agency_pincode: {
+    name: "agency_pincode",
+    type: "text",
+    label: "Agency Pincode",
+    disabled: true,
+    validation: Yup.string(),
+  },
   tac_validity: {
     name: "tac_validity",
     type: "date",
@@ -108,19 +122,5 @@ export const deviceModelFormField = {
       then: Yup.mixed().required("modelExtensionForm.validation.copRequired"),
       otherwise: Yup.mixed().nullable()
     }),
-  },
-  agency_address: {
-    name: "agency_address",
-    type: "text",
-    label: "Agency Address",
-    disabled: true,
-    validation: Yup.string(),
-  },
-  agency_pincode: {
-    name: "agency_pincode",
-    type: "text",
-    label: "Agency Pincode",
-    disabled: true,
-    validation: Yup.string(),
   },
 };

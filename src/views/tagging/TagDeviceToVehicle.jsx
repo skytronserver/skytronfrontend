@@ -116,7 +116,8 @@ function TagDeviceToVehicle() {
         ...prevConfig,
         district: {
           ...prevConfig.district,
-          options: mappedDistricts
+          options: mappedDistricts,
+          disabled: true
         },
         district_code: {
           ...prevConfig.district_code,
@@ -233,6 +234,20 @@ function TagDeviceToVehicle() {
     const stateMatch = value.match(/^[A-Za-z]+/);
     const stateCode = stateMatch ? stateMatch[0] : "";
     formik.setFieldValue("state_code", stateCode);
+
+    // Auto-fill district based on district_code
+    const dealerDistrictsJson = localStorage.getItem('dealerDistricts');
+    if (dealerDistrictsJson) {
+      try {
+        const districts = JSON.parse(dealerDistrictsJson);
+        const districtObj = districts.find(d => (d.district_code === value));
+        if (districtObj) {
+          formik.setFieldValue("district", districtObj.id);
+        }
+      } catch (e) {
+        console.error("Error parsing dealerDistricts from localStorage", e);
+      }
+    }
   };
 
   useEffect(() => {

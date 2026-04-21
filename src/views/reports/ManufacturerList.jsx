@@ -20,7 +20,13 @@ const ManufacturerList = () => {
       try {
         const response = await ManufacturerServices.findManufacturer();
         const apiData = response && response.data ? response.data : [];
-        setManufacturer(Array.isArray(apiData) ? apiData : []);
+        const mappedData = (Array.isArray(apiData) ? apiData : []).map(row => ({
+          ...row,
+          tac_no: row.tac_no || row.tac || "",
+          model_name: row.model_name || row.device_model_details || "",
+          esim_provider: row.esim_provider || row.eSimProviders || row.esimProvider || []
+        }));
+        setManufacturer(mappedData);
         setLoad(true);
       } catch (error) {
         console.log("Error fetching manufacturers:", error);

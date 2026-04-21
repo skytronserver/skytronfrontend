@@ -48,14 +48,23 @@ const VehicleManufacturerRegistrationAdminReview = () => {
       const merged = data.map((row) => {
         const overrides = overridesArg ?? statusOverrides;
         const overrideStatus = overrides?.[row?.id];
-        if (!overrideStatus) return row;
+        
+        // Ensure tac and model name are mapped correctly for the datatable
+        const correctedRow = {
+          ...row,
+          tac_no: row.tac_no || row.tac || "",
+          model_name: row.model_name || row.device_model_details || "",
+          esim_provider: row.esim_provider || row.eSimProviders || row.esimProvider || []
+        };
+
+        if (!overrideStatus) return correctedRow;
 
         const users = Array.isArray(row?.users) ? [...row.users] : row?.users;
         if (Array.isArray(users) && users[0]) {
           users[0] = { ...users[0], status: overrideStatus };
         }
 
-        return { ...row, status: overrideStatus, users };
+        return { ...correctedRow, status: overrideStatus, users };
       });
       setRows(merged);
     } catch (e) {
