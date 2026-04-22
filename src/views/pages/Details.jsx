@@ -317,35 +317,6 @@ const Details = () => {
     }
   };
 
-  const handleManufacturerAllowAddDealer = async () => {
-    setErrorMessage("");
-    setInfoMessage("");
-    setLoadingAction(true);
-    try {
-      await ManufacturerServices.updateManufacturer({
-        manufacturer_id: userId,
-        status: "Allow to add dealer",
-      });
-
-      const retrieveData = await ManufacturerServices.findManufacturer({ manufacturer_id: userId });
-      const row = retrieveData?.data?.[0];
-      const userRowId = row?.users?.[0]?.id;
-      if (userRowId) {
-        await UserServices.resendUserCreationOtp({ user_id: userRowId });
-      }
-
-      setStatusOverride("Allow to add dealer");
-      setInfoMessage("Allow to add dealer successful.");
-    } catch (e) {
-      setErrorMessage(
-        e?.response?.data?.message ||
-        e?.message ||
-        "Failed to allow add dealer."
-      );
-    } finally {
-      setLoadingAction(false);
-    }
-  };
 
   const handleManufacturerReject = async () => {
     setErrorMessage("");
@@ -581,25 +552,7 @@ const Details = () => {
                           </>
                         ) : null
                       ) : (
-                        lastApprovedId === userId || effectiveStatusLower === 'allow to login' || isApplicantActive ? (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            disabled={loadingAction}
-                            onClick={handleManufacturerAllowAddDealer}
-                            sx={{
-                              borderColor: "#800080",
-                              color: "#800080",
-                              whiteSpace: "nowrap",
-                              "&:hover": {
-                                borderColor: "#660066",
-                                color: "#660066",
-                              },
-                            }}
-                          >
-                            Allow to add dealer
-                          </Button>
-                        ) : isRequestPending ? (
+                        isRequestPending ? (
                           <>
                             <Button
                               size="small"

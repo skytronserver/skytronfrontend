@@ -250,11 +250,7 @@ const BhuvanMapComponent = ({
 
     // Bhuvan WMS Configuration
     const resolveBhuvanWmsUrl = () => {
-        const envUrl = process.env.REACT_APP_BHUVAN_URL;
-        if (!envUrl) {
-            return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
-        }
-
+        const envUrl = process.env.REACT_APP_BHUVAN_URL || "https://bhuvan-vec1.nrsc.gov.in";
         const normalizedUrl = envUrl.replace(/\/$/, "");
         if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
             return normalizedUrl;
@@ -1111,7 +1107,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
         const roadsLayer = new TileLayer({
             source: new XYZ({
-                url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
                 attributions: '&copy; OpenStreetMap contributors',
                 maxZoom: 20,
                 projection: "EPSG:3857"
@@ -1241,7 +1237,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         if (mapType !== "soi" || !soiMapContainerRef.current) return;
 
         try {
-            const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
+            const geoserverURL = `${process.env.REACT_APP_GEOSERVER_URL || 'https://map.gromed.in/geoserver'}/skytron/wms`;
 
             const bhuvanIndia3Layer = new TileLayer({
                 source: (() => {
@@ -1263,7 +1259,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
             const bhuvanRoadsLayer = new TileLayer({
                 source: new XYZ({
-                    url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                    url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
                     attributions: '&copy; OpenStreetMap contributors',
                     maxZoom: 20,
                     projection: "EPSG:3857"
@@ -2098,7 +2094,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             const osmLayer = new TileLayer({
                 title: "OSM Satellite",
                 source: new XYZ({
-                    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                    url: process.env.REACT_APP_SATELLITE_TILE_URL || "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
                     attributions: " Esri",
                     maxZoom: 18,
                 }),

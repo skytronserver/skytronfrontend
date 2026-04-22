@@ -263,7 +263,7 @@ const TripPlanning = () => {
           // Roads layer
           new TileLayer({
             source: new XYZ({
-              url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+              url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
               attributions: '© OpenStreetMap contributors',
               maxZoom: 20,
               projection: "EPSG:3857"

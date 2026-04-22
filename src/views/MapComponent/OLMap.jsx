@@ -19,7 +19,7 @@ const OLMap = () => {
       title: 'Bhuvan Assam (assam_carto1s)',
       opacity: 0.9,
       source: new XYZ({
-        url: 'https://bhuvan-ras2.nrsc.gov.in/tilecache/tilecache.py/1.0.0/assam_carto1s/{z}/{x}/{y}.png',
+        url: `${process.env.REACT_APP_BHUVAN_RAS_URL || 'https://bhuvan-ras2.nrsc.gov.in'}/tilecache/tilecache.py/1.0.0/assam_carto1s/{z}/{x}/{y}.png`,
         attributions: '&copy; <a href="https://bhuvan.nrsc.gov.in/">NRSC Bhuvan</a>',
         tileSize: 256,
         maxZoom: 18,

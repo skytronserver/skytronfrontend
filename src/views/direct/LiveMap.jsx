@@ -834,11 +834,7 @@ const ensureHdZoomLevel = (mapInstance, targetZoom = 12) => {
 };
 
 const resolveBhuvanWmsUrl = () => {
-    const envUrl = process.env.REACT_APP_BHUVAN_URL;
-    if (!envUrl) {
-        return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
-    }
-
+    const envUrl = process.env.REACT_APP_BHUVAN_URL || "https://bhuvan-vec1.nrsc.gov.in";
     const normalizedUrl = envUrl.replace(/\/$/, "");
     if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
         return normalizedUrl;
@@ -1516,7 +1512,7 @@ const MapComponent = ({
 
         const roadsLayer = new TileLayer({
             source: new XYZ({
-                url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
                 attributions: '&copy; OpenStreetMap contributors',
                 maxZoom: 20,
                 projection: "EPSG:3857"
@@ -1641,7 +1637,7 @@ const MapComponent = ({
             const osmLayer = new TileLayer({
                 title: "OSM Satellite",
                 source: new XYZ({
-                    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                    url: process.env.REACT_APP_SATELLITE_TILE_URL || "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
                     attributions: " Esri",
                     maxZoom: 18,
                 }),
@@ -1759,13 +1755,13 @@ const MapComponent = ({
         if (mapType !== "soi" || !soiMapContainerRef.current) return;
 
         try {
-            const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
-            const assamGeoserverURL = "https://map.gromed.in/geoserver/assam/wms";
-            const bhuvanAmrutWmsUrl = "https://bhuvan-vec3.nrsc.gov.in/bhuvan/wms";
+            const geoserverURL = `${process.env.REACT_APP_GEOSERVER_URL || 'https://map.gromed.in/geoserver'}/skytron/wms`;
+            const assamGeoserverURL = `${process.env.REACT_APP_GEOSERVER_URL || 'https://map.gromed.in/geoserver'}/assam/wms`;
+            const bhuvanAmrutWmsUrl = `${process.env.REACT_APP_BHUVAN_V3_URL || 'https://bhuvan-vec3.nrsc.gov.in'}/bhuvan/wms`;
             const bhuvanNuisWmsUrl = `${process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in'}/bhuvan/nuis/ows`;
-            const bhuvanSikkimWmsUrl = "https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms";
-            const bhuvanSisdpv2WmsUrl = "https://bhuvan-vec2.nrsc.gov.in/bhuvan/sisdpv2/wms";
-            const bhuvanHazardWmsUrl = "https://bhuvan-ras2.nrsc.gov.in/cgi-bin/hazard.exe";
+            const bhuvanSikkimWmsUrl = `${process.env.REACT_APP_BHUVAN_V2_URL || 'https://bhuvan-vec2.nrsc.gov.in'}/bhuvan/wms`;
+            const bhuvanSisdpv2WmsUrl = `${process.env.REACT_APP_BHUVAN_V2_URL || 'https://bhuvan-vec2.nrsc.gov.in'}/bhuvan/sisdpv2/wms`;
+            const bhuvanHazardWmsUrl = `${process.env.REACT_APP_BHUVAN_RAS_URL || 'https://bhuvan-ras2.nrsc.gov.in'}/cgi-bin/hazard.exe`;
 
             // Bhuvan base map (same as normal map)
             const bhuvanIndia3Layer = new TileLayer({
@@ -1780,7 +1776,7 @@ const MapComponent = ({
 
             const bhuvanRoadsLayer = new TileLayer({
                 source: new XYZ({
-                    url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                    url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
                     attributions: '&copy; OpenStreetMap contributors',
                     maxZoom: 20,
                     projection: "EPSG:3857"

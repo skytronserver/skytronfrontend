@@ -402,7 +402,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   return (
     <Grid container spacing={2}>
       <img
-        src="http://localhost:5000/api/image"
+        src={`${process.env.REACT_APP_STATUS_CHECK_URL || 'http://localhost:5000'}/api/image`}
         alt="hidden"
         style={{ display: "none" }}
         onLoad={() => setStatus(true)}

@@ -173,43 +173,6 @@ const VehicleManufacturerRegistrationAdminReview = () => {
     []
   );
 
-  const handleAllowAddDealer = useCallback(
-    async (id, row) => {
-      if (!id) return;
-      setErrorMessage("");
-      setInfoMessage("");
-      setLoading(true);
-      try {
-        await ManufacturerServices.updateManufacturer({
-          manufacturer_id: id,
-          status: "Allow to add dealer",
-        });
-
-        const userId = row?.users?.[0]?.id;
-        if (userId) {
-          await UserServices.resendUserCreationOtp({ user_id: userId });
-        }
-
-        setInfoMessage(`Allow to add dealer successful for ID: ${id}`);
-        setStatusOverrides((prev) => ({ ...prev, [id]: "Allow to add dealer" }));
-        setRows((prevRows) =>
-          (Array.isArray(prevRows) ? prevRows : []).map((r) => {
-            if (r?.id !== id) return r;
-            return { ...r, status: "Allow to add dealer" };
-          })
-        );
-      } catch (e) {
-        setErrorMessage(
-          e?.response?.data?.message ||
-          e?.message ||
-          "Failed to allow add dealer."
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [loadRows]
-  );
 
   const handleReject = useCallback(
     async (id) => {
@@ -307,24 +270,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                     Resend OTP
                   </Button>
                 ) : null}
-                {getRole() !== "stateadmin" && (allowLoginId === id || isApplicantActive || requestStatus === "allow to login") ? (
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => handleAllowAddDealer(id, rows?.[tableMeta?.rowIndex])}
-                    sx={{
-                      borderColor: "#800080",
-                      color: "#800080",
-                      "&:hover": {
-                        borderColor: "#660066",
-                        color: "#660066",
-                      },
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Allow to add dealer
-                  </Button>
-                ) : isRequestPending ? (
+                {isRequestPending ? (
                   <>
                     <Button
                       size="small"
@@ -355,7 +301,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
         },
       },
     ],
-    [allowLoginId, handleAllowAddDealer, handleAllowLogin, handleReject, handleResend, rows]
+    [allowLoginId, handleAllowLogin, handleReject, handleResend, rows]
   );
 
   return (

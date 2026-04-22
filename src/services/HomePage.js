@@ -43,7 +43,7 @@ const getGeocode = (query, limit = 5) => {
     });
   }
 
-  return http.get('https://map-geocoding.gromed.in/search', {
+  return http.get(`${process.env.REACT_APP_GEOCODING_URL || 'https://map-geocoding.gromed.in'}/search`, {
     params: {
       format: 'jsonv2',
       q,
@@ -343,7 +343,7 @@ const getReverseGeocode = (lat, lon) => {
     });
   }
 
-  return http.get('https://map-geocoding.gromed.in/reverse', {
+  return http.get(`${process.env.REACT_APP_GEOCODING_URL || 'https://map-geocoding.gromed.in'}/reverse`, {
     params: {
       format: 'jsonv2',
       lat: safeLat,

@@ -30,11 +30,7 @@ import { useTranslation } from "react-i18next";
 import busMarkerIcon from "../../assets/images/grey/bus.png";
 
 const resolveBhuvanWmsUrl = () => {
-  const envUrl = process.env.REACT_APP_BHUVAN_URL;
-  if (!envUrl) {
-    return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
-  }
-
+  const envUrl = process.env.REACT_APP_BHUVAN_URL || "https://bhuvan-vec1.nrsc.gov.in";
   const normalizedUrl = envUrl.replace(/\/$/, "");
   if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
     return normalizedUrl;
@@ -230,7 +226,7 @@ const RouteFixing = () => {
 
       const roadsLayer = new TileLayer({
         source: new XYZ({
-          url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+          url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
           attributions: ' OpenStreetMap contributors',
           maxZoom: 20,
           projection: "EPSG:3857"
@@ -243,7 +239,7 @@ const RouteFixing = () => {
       // Create Satellite Layer
       const satelliteLayer = new TileLayer({
         source: new XYZ({
-          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          url: process.env.REACT_APP_SATELLITE_TILE_URL || "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
           attributions: " Esri",
           maxZoom: 18,
         }),
