@@ -71,6 +71,25 @@ const schoolbus = {
                     icon: icons.IconMapPin,
                     breadcrumbs: false,
                     roles: ['superadmin', 'schooladmin', 'parent']
+                },
+                
+                 {
+                    id: 'Create-School',
+                    title: 'Create School',
+                    type: 'item',
+                    url: '/schoolbus/Create-School',
+                    icon: icons.IconMapPin,
+                    breadcrumbs: false,
+                    roles: ['superadmin']
+                },
+                 {
+                    id: 'Approve-School',
+                    title: 'Approve School',
+                    type: 'item',
+                    url: '/schoolbus/Approve-School',
+                    icon: icons.IconMapPin,
+                    breadcrumbs: false,
+                    roles: ['superadmin']
                 }
             ]
         }

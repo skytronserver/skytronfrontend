@@ -6,6 +6,33 @@ const shouldUseMock = () => {
   return String(flag).toLowerCase() === 'true';
 };
 
+// api.js
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+// ---------------added by ruteek----------------
+ const apiRequest = async ({
+  url,
+  method = "GET",
+  body = null,
+  token =sessionStorage.getItem("oAuthToken"),
+}) => {
+  try {
+    const res = await fetch(`${BASE_URL}${url}`, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: body ? JSON.stringify(body) : null,
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("API Error:", error);
+    return { success: false, data: [] };
+  }
+};
+
 const mockDelay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const normalizeRegNo = (value) => String(value || '').trim().replace(/\s+/g, ' ').toUpperCase();
@@ -269,10 +296,24 @@ const mock = {
     await mockDelay();
     return { data: [...mockDb.alertsFeed] };
   },
-  async getTaggedVehicles() {
-    await mockDelay();
-    return { data: [...mockDb.taggedVehicles] };
-  },
+ async getTaggedVehicles() {
+  debugger
+  const res = await apiRequest({
+    url: "school/api/admin/buses/tag/history/",
+  });
+  debugger
+  return {
+    data:
+  
+      res?.data?.map((item) => ({
+        id: item.id,
+        regNo: item.vehicle_reg_no,
+        school: item.school_name,
+        status: item.status,
+        date: item.requested_at || "N/A",
+      })) || [],
+  };
+},
   async requestTagVehicle(payload) {
     await mockDelay();
     const regNo = normalizeRegNo(payload?.vehicleRegNo);
@@ -549,11 +590,12 @@ const api = {
   },
   getSchoolApplications() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/schools/applications');
+    return http.get('/school/api/state-admin/schools/');
   },
   submitSchoolApplication(formData) {
+    debugger
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/schools/applications', formData, {
+    return http.post('/school/api/schools/apply/', formData, {
       headers: {
         'Content-type': 'multipart/form-data'
       }
@@ -597,15 +639,19 @@ const api = {
   },
   getTaggedVehicles() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/tagged-vehicles');
+    return http.get('school/api/admin/buses/tag/history/');
   },
   requestTagVehicle(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/tag/request', data);
+    return http.post('school/api/admin/buses/tag/initiate/', data);
   },
   validateTagOtp(data) {
+     const tagId = data?.requestId; // this is your tag_id
+  const payload = {
+    otp: data?.otp
+  };
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/tag/validate-otp', data);
+    return http.post('school/api/admin/buses/tag/${tagId}/verify-otp/', payload);
   },
   uploadTagDocuments(formData) {
     const http = getAxiosInstance();
@@ -649,7 +695,7 @@ const api = {
   },
   getBuses() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/buses');
+    return http.get('school/api/admin/buses/available/');
   },
   getRouteOptions() {
     const http = getAxiosInstance();
@@ -710,6 +756,12 @@ const api = {
   getParentAlerts(parentId) {
     const http = getAxiosInstance();
     return http.get(`/api/schoolbus/alerts/${parentId}`);
+  },
+   approveSchool(applicationId) {
+    const http = getAxiosInstance();
+    return http.post(`/school/api/state-admin/schools/${applicationId}/decision/`, {
+            decision: "APPROVE"
+        });
   }
 };
 
@@ -730,7 +782,7 @@ const SchoolBusService = {
   getAlertsFeed: (...args) => (shouldUseMock() ? mock.getAlertsFeed(...args) : api.getAlertsFeed(...args)),
 
   getTaggedVehicles: (...args) => (shouldUseMock() ? mock.getTaggedVehicles(...args) : api.getTaggedVehicles(...args)),
-  requestTagVehicle: (...args) => (shouldUseMock() ? mock.requestTagVehicle(...args) : api.requestTagVehicle(...args)),
+   requestTagVehicle: (...args) => (shouldUseMock() ? mock.requestTagVehicle(...args) : api.requestTagVehicle(...args)),
   validateTagOtp: (...args) => (shouldUseMock() ? mock.validateTagOtp(...args) : api.validateTagOtp(...args)),
   uploadTagDocuments: (...args) => (shouldUseMock() ? mock.uploadTagDocuments(...args) : api.uploadTagDocuments(...args)),
 
@@ -762,7 +814,12 @@ const SchoolBusService = {
   deleteStudent: (...args) => (shouldUseMock() ? mock.deleteStudent(...args) : api.deleteStudent(...args)),
 
   getParentTracking: (...args) => (shouldUseMock() ? mock.getParentTracking(...args) : api.getParentTracking(...args)),
-  getParentAlerts: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.getParentAlerts(...args))
+  getParentAlerts: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.getParentAlerts(...args)),
+
+  approveSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.approveSchool(...args))
+
+
+
 };
 
 export default SchoolBusService;

@@ -59,6 +59,10 @@ import SchoolReports from "../views/schoolbus/SchoolReports";
 import AlertsCenter from "../views/schoolbus/AlertsCenter";
 import SchoolOnboarding from "../views/schoolbus/SchoolOnboarding";
 
+
+import CreateSchool from "views/schoolbus/CreateSchool";
+import ApproveSchool from "views/schoolbus/ApproveSchool";
+
 import M2MRegistrationAdminReview from "../views/pages/M2MRegistrationAdminReview";
 import VehicleManufacturerRegistrationAdminReview from "../views/pages/VehicleManufacturerRegistrationAdminReview";
 import AIS140DeviceManufacturerRegistrationAdminReview from "../views/pages/AIS140DeviceManufacturerRegistrationAdminReview";
@@ -394,7 +398,19 @@ const MainRoutes = {
       path: '/schoolbus/reports',
       element: <SchoolReports />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    
+     {
+      path: '/schoolbus/Create-School',
+      element: <CreateSchool />,
+      roles: ['superadmin']
+    },
+     {
+      path: '/schoolbus/Approve-School',
+      element: <ApproveSchool />,
+      roles: ['superadmin']
     }
+
 
     ,
     {
