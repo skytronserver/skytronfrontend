@@ -809,7 +809,10 @@ function TagDeviceToVehicle() {
                                 <Grid item xs={5}>
                                   {isNewVehicle ? (
                                     <FormField
-                                      fieldConfig={updatedFormFields["owner_id"]}
+                                      fieldConfig={{
+                                        ...updatedFormFields["owner_id"],
+                                        label: "Temporary ID",
+                                      }}
                                       formik={formik}
                                     />
                                   ) : (
@@ -833,7 +836,10 @@ function TagDeviceToVehicle() {
                         return (
                           <Grid key={field} item md={6} sm={12} xs={12}>
                             <FormField
-                              fieldConfig={updatedFormFields[field]}
+                              fieldConfig={{
+                                ...updatedFormFields[field],
+                                label: field === "rcFile" && isNewVehicle ? "Upload vehicle purchase document" : t(updatedFormFields[field].label)
+                              }}
                               formik={formik}
                               handleFileChange={handleFileChange}
                               onChange={
@@ -841,7 +847,8 @@ function TagDeviceToVehicle() {
                                   ? (e) => {
                                       const value = e?.target?.value ?? "";
                                       if (formik?.values?.vehicle_type === "new") {
-                                        formik.setFieldValue("owner_id", `TMP${value}`);
+                                        const lastThree = value.length >= 3 ? value.slice(-3) : value;
+                                        formik.setFieldValue("owner_id", `TMP${lastThree}`);
                                       }
                                     }
                                   : undefined
@@ -854,7 +861,8 @@ function TagDeviceToVehicle() {
                                       if (value === "new") {
                                         formik.setFieldValue("vehicle_number", "");
                                         const chassisValue = formik?.values?.chassis_no ?? "";
-                                        formik.setFieldValue("owner_id", `TMP${chassisValue}`);
+                                        const lastThree = chassisValue.length >= 3 ? chassisValue.slice(-3) : chassisValue;
+                                        formik.setFieldValue("owner_id", `TMP${lastThree}`);
                                       } else {
                                         formik.setFieldValue("owner_id", "");
                                       }

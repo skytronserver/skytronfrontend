@@ -48,6 +48,8 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
+          multiline={fieldConfig.multiline || false}
+          rows={fieldConfig.rows || 1}
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
@@ -61,36 +63,36 @@ const FormField = ({
             let value = e.target.value;
 
             // Remove potential XSS/script injection attempts
-            value = value.replace(/<[^>]*>/g, ''); // Remove HTML tags
-            value = value.replace(/javascript:/gi, ''); // Remove javascript: protocol
-            value = value.replace(/on\w+\s*=/gi, ''); // Remove event handlers
-            value = value.replace(/script/gi, ''); // Remove the word 'script'
+            value = value.replace(/<[^>]*>/g, ""); // Remove HTML tags
+            value = value.replace(/javascript:/gi, ""); // Remove javascript: protocol
+            value = value.replace(/on\w+\s*=/gi, ""); // Remove event handlers
+            value = value.replace(/script/gi, ""); // Remove the word 'script'
 
             // Special handling for vehicle_number: always uppercase
-            if (fieldConfig.name === 'vehicle_number') {
+            if (fieldConfig.name === "vehicle_number") {
               value = value.toUpperCase();
             }
 
             // Check if field is email type
-            if (fieldConfig.name.toLowerCase().includes('email')) {
+            if (fieldConfig.name.toLowerCase().includes("email")) {
               const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
               if (value && !emailRegex.test(value)) {
-                formik.setFieldError(fieldConfig.name, 'Please enter a valid email address');
+                formik.setFieldError(fieldConfig.name, "Please enter a valid email address");
               }
               formik.setFieldValue(fieldConfig.name, value);
             }
             // Check if field is one of the restricted fields
-            else if (['name', 'title', 'category'].includes(fieldConfig.name)) {
+            else if (["name", "title", "category"].includes(fieldConfig.name)) {
               // Only allow letters and single spaces, prevent consecutive spaces
-              const sanitizedValue = value.replace(/\s+/g, ' '); // Replace multiple spaces with single space
-              const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ''); // Remove non-letters
+              const sanitizedValue = value.replace(/\s+/g, " "); // Replace multiple spaces with single space
+              const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ""); // Remove non-letters
               formik.setFieldValue(fieldConfig.name, letterOnlyValue);
             }
             // Check if field is a company-related name field
-            else if (['company_name', 'companyName', 'org_name', 'organization_name'].includes(fieldConfig.name)) {
+            else if (["company_name", "companyName", "org_name", "organization_name"].includes(fieldConfig.name)) {
               // Allow letters, numbers, and single spaces
-              const sanitizedValue = value.replace(/\s+/g, ' ');
-              const alphanumericValue = sanitizedValue.replace(/[^A-Za-z0-9\s]/g, '');
+              const sanitizedValue = value.replace(/\s+/g, " ");
+              const alphanumericValue = sanitizedValue.replace(/[^A-Za-z0-9\s]/g, "");
               formik.setFieldValue(fieldConfig.name, alphanumericValue);
             } else {
               formik.setFieldValue(fieldConfig.name, value);

@@ -986,6 +986,7 @@
     "fields": {
       "dealer": "Dealer",
       "device": "Device",
+      "deviceText": "Device",
       "shippingRemark": "Shipping Remarks"
     },
     "validation": {

@@ -6,6 +6,7 @@ let dealerList = [];
 export const assignDeviceInitials = {
   dealer: "",
   device: [],
+  device_text: "",
   shipping_remark: "",
 };
 
@@ -22,6 +23,11 @@ export const assignDeviceFormFields = {
     type: "multiselect",
     label: "assignDeviceForm.fields.device",
     options: modelList,
+  },
+  device_text: {
+    name: "device_text",
+    type: "text",
+    label: "assignDeviceForm.fields.deviceText",
   },
   shipping_remark: {
     name: "shipping_remark",

@@ -81,17 +81,46 @@ const AssignDevice = () => {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     setLoading(true);
+
+    const manualImeis = values.device_text
+      ? values.device_text.split(/[,\s\n]+/).map((i) => i.trim()).filter((i) => i !== "")
+      : [];
+
+    const availableOptions = updatedFormFields.device.options || [];
+    const matchedIds = [];
+    let matchCount = 0;
+
+    manualImeis.forEach((imei) => {
+      const match = availableOptions.find((opt) => opt.label === imei);
+      if (match) {
+        matchedIds.push(match.value);
+        matchCount++;
+      }
+    });
+
+    const combinedDeviceIds = Array.from(new Set([...values.device, ...matchedIds]));
+
+    const submissionData = {
+      ...values,
+      device: combinedDeviceIds,
+    };
+
     try {
-      const response = await DealerServices.assignDeviceToDealer(values);
+      const response = await DealerServices.assignDeviceToDealer(submissionData);
       setDeviceId(response.data.id);
+
+      let successMessage = t("common.formSubmittedSuccessfully");
+      if (manualImeis.length > 0) {
+        successMessage = `${matchCount} out of ${manualImeis.length} manual IMEI assigned. Total ${combinedDeviceIds.length} devices assigned.`;
+      }
+
       setAlert({
         error: false,
-        message: t("common.formSubmittedSuccessfully"),
+        message: successMessage,
         errorList: [],
       });
       setOpen(true);
       resetForm(assignDeviceInitials);
-      // Wait for a short moment then refresh lists
       await fetchInitialData();
     } catch (error) {
       if (error.message === "Network Error") {
@@ -109,6 +138,28 @@ const AssignDevice = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeviceChange = (event, formik) => {
+    const selectedIds = event.target.value;
+    const availableOptions = updatedFormFields.device.options || [];
+    const selectedLabels = availableOptions
+      .filter((opt) => selectedIds.includes(opt.value))
+      .map((opt) => opt.label);
+    formik.setFieldValue("device_text", selectedLabels.join(","));
+  };
+
+  const handleDeviceTextChange = (event) => {
+    const text = event.target.value;
+    const inputImeis = text.split(",").map((i) => i.trim()).filter((i) => i !== "");
+    const availableOptions = updatedFormFields.device.options || [];
+    const matchedIds = availableOptions
+      .filter((opt) => inputImeis.includes(opt.label))
+      .map((opt) => opt.value);
+    // Note: We use setTimeout or setFieldValue directly. 
+    // But since this is called from FormField's internal onChange which already sets device_text,
+    // we only need to sync the device select field.
+    return matchedIds;
   };
 
   return (
@@ -146,6 +197,11 @@ const AssignDevice = () => {
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
+                            handleOptionChange={field === "device" ? (e) => handleDeviceChange(e, formik) : undefined}
+                            onChange={field === "device_text" ? (e) => {
+                              const matched = handleDeviceTextChange(e);
+                              formik.setFieldValue("device", matched);
+                            } : undefined}
                           />
                         </Grid>
                       ))}

@@ -7,8 +7,7 @@ import * as Yup from "yup";
 import FormField from "../../ui-component/CustomTextField";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogComponent from "../../ui-component/DialogComponent";
-import { convertErrorObjectToArray } from "../../helper";
-import {retriveModelList} from "../../helper";
+import { convertErrorObjectToArray, retriveModelList, retriveTechnicalOnboardedModelList, decipherEncryption } from "../../helper";
 import {
   hpFrequencyFields,
   otaFields,
@@ -34,6 +33,11 @@ import { useTranslation } from 'react-i18next';
 
 function FrequencyFirmware() {
   const { t } = useTranslation();
+  const myDecipher = decipherEncryption('skytrack');
+  const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
+  const data = userData && userData.split("-").map(item => myDecipher(item));
+  const userRole = data && data.length > 2 && data[1];
+  const isManufacturer = userRole === 'devicemanufacture';
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState(false);
   const [alert, setAlert] = useState({
@@ -46,9 +50,11 @@ function FrequencyFirmware() {
   const [frequencyForm,setFrequencyForm]=useState(hpFrequencyFields);
   const [otaForm,setOtaForm]=useState(otaFields);
   const [isFormLoaded,setIsFormLoaded]=useState(false);
+  const [eligibleModels, setEligibleModels] = useState([]);
   useEffect(()=>{
     (async()=>{
-    const modelList=await retriveModelList();
+    const modelList = isManufacturer ? await retriveTechnicalOnboardedModelList() : await retriveModelList();
+    setEligibleModels(modelList);
     setFirmwareFormFields(prevConfig =>({
       ...prevConfig,
       devicemodel: {
@@ -299,52 +305,53 @@ function FrequencyFirmware() {
             />
           </div>
         )}
-        <Grid
-          item
-          xs={6}
-          style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
-          <MainCard title={t('ota.title')}>
-            {isFormLoaded && <Formik
-              initialValues={otaInitials}
-              validationSchema={validationOtaSchema}
-              onSubmit={handleOtaSubmit}
-              enableReinitialize
-            >
-              {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(otaForm).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={otaForm[field]}
-                          formik={formik}
-                        />
+        {!isManufacturer && (
+          <Grid
+            item
+            xs={6}
+            style={{
+              opacity: loading ? 0.5 : 1,
+              transition: "opacity 0.3s ease-in-out",
+            }}
+          >
+            <MainCard title={t('ota.title')}>
+              {isFormLoaded && <Formik
+                initialValues={otaInitials}
+                validationSchema={validationOtaSchema}
+                onSubmit={handleOtaSubmit}
+                enableReinitialize
+              >
+                {(formik) => (
+                  <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={2} className="form-controller">
+                      {Object.keys(otaForm).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={otaForm[field]}
+                            formik={formik}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} style={{ marginTop: "20px" }}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={loading}
+                        >
+                          {t('common.submit')}
+                        </Button>
                       </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px" }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={loading}
-                      >
-                        {t('common.submit')}
-                      </Button>
                     </Grid>
-                  </Grid>
-                </form>
-              )}
-            </Formik>
-}
-          </MainCard>
-        </Grid>
+                  </form>
+                )}
+              </Formik>}
+            </MainCard>
+          </Grid>
+        )}
         <Grid
           item
-          xs={6}
+          xs={isManufacturer ? 12 : 6}
           style={{
             opacity: loading ? 0.5 : 1,
             transition: "opacity 0.3s ease-in-out",
@@ -388,27 +395,35 @@ function FrequencyFirmware() {
       </Grid>
       <br />
       <Grid container spacing={gridSpacing}>
+        {!isManufacturer && (
+          <Grid
+            item
+            xs={6}
+            style={{
+              opacity: loading ? 0.5 : 1,
+              transition: "opacity 0.3s ease-in-out",
+            }}
+          >
+            <MainCard title={t('ota.listTitle')}>
+              {load && (
+                <DynamicDatatables
+                   tableTitle={t('ota.listTitle')}
+                  rows={isManufacturer 
+                    ? otaList.filter(item => {
+                        const modelId = item.devicemodel || item.devicemodel_info?.id;
+                        return modelId && eligibleModels.some(m => String(m.value) === String(modelId));
+                      })
+                    : otaList
+                  }
+                  columns={otaColumns}
+                />
+              )}
+            </MainCard>
+          </Grid>
+        )}
         <Grid
           item
-          xs={6}
-          style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
-          <MainCard title={t('ota.listTitle')}>
-            {load && (
-              <DynamicDatatables
-                tableTitle={t('ota.listTitle')}
-                rows={otaList}
-                columns={otaColumns}
-              />
-            )}
-          </MainCard>
-        </Grid>
-        <Grid
-          item
-          xs={6}
+          xs={isManufacturer ? 12 : 6}
           style={{
             opacity: loading ? 0.5 : 1,
             transition: "opacity 0.3s ease-in-out",
@@ -418,7 +433,13 @@ function FrequencyFirmware() {
             {load && (
               <DynamicDatatables
                 tableTitle={t('firmware.listTitle')}
-                rows={firmwareList}
+                rows={isManufacturer 
+                  ? firmwareList.filter(item => {
+                      const modelId = item.devicemodel || item.devicemodel_info?.id;
+                      return modelId && eligibleModels.some(m => String(m.value) === String(modelId));
+                    })
+                  : firmwareList
+                }
                 columns={firmwareColumns}
               />
             )}
