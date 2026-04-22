@@ -1,4 +1,4 @@
-import { Grid, Button } from "@mui/material";
+import { Grid, Button,Box,Paper,Typography } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import { gridSpacing } from "../../store/constant";
@@ -100,64 +100,290 @@ const AssignDevice = () => {
     }
   };
 
-  return (
-    <>
-      <DialogComponent
-        open={open}
-        handleClose={handleClose}
-        message={alert.message}
-        errorList={alert.errorList}
-      />
+  // return (
+  //   <>
+  //     <DialogComponent
+  //       open={open}
+  //       handleClose={handleClose}
+  //       message={alert.message}
+  //       errorList={alert.errorList}
+  //     />
 
-      <Grid container spacing={gridSpacing}>
-        {loading && <CustomLoader />}
-        {apiError && (
-          <Alert severity="error" style={{ marginBottom: "16px" }}>
-            <AlertTitle>{t('common.internalServerError')}</AlertTitle>
-            {t('common.serverErrorContactAdmin')}
-          </Alert>
-        )}
-        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title={t('assignDeviceForm.title')}>
+  //     <Grid container spacing={gridSpacing}>
+  //       {loading && <CustomLoader />}
+  //       {apiError && (
+  //         <Alert severity="error" style={{ marginBottom: "16px" }}>
+  //           <AlertTitle>{t('common.internalServerError')}</AlertTitle>
+  //           {t('common.serverErrorContactAdmin')}
+  //         </Alert>
+  //       )}
+  //       <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
+  //         <MainCard title={t('assignDeviceForm.title')}>
+  //           {isFormLoaded && (
+  //             <Formik
+  //               initialValues={assignDeviceInitials}
+  //               validationSchema={validationSchema}
+  //               onSubmit={handleSubmit}
+  //               enableReinitialize
+  //             >
+  //               {(formik) => (
+  //                 <form onSubmit={formik.handleSubmit}>
+  //                   <Grid container spacing={2} className="form-controller">
+  //                     {Object.keys(updatedFormFields).map((field) => (
+  //                       <Grid key={field} item md={6} sm={12} xs={12}>
+  //                         <FormField
+  //                           fieldConfig={updatedFormFields[field]}
+  //                           formik={formik}
+  //                           handleFileChange={handleFileChange}
+  //                         />
+  //                       </Grid>
+  //                     ))}
+  //                     <Grid item xs={12} style={{ marginTop: "20px" }}>
+  //                       <Button
+  //                         type="submit"
+  //                         variant="contained"
+  //                         color="primary"
+  //                         disabled={loading}
+  //                       >
+  //                         {t('common.submit')}
+  //                       </Button>
+  //                     </Grid>
+  //                   </Grid>
+  //                 </form>
+  //               )}
+  //             </Formik>
+  //           )}
+  //         </MainCard>
+  //       </Grid>
+  //     </Grid>
+  //   </>
+  // );
+
+return (
+  <>
+    <DialogComponent
+      open={open}
+      handleClose={handleClose}
+      message={alert.message}
+      errorList={alert.errorList}
+    />
+
+    <Grid container spacing={gridSpacing}>
+      {loading && <CustomLoader />}
+
+      {apiError && (
+        <Alert
+          severity="error"
+          sx={{
+            mb: 2,
+            borderRadius: "14px",
+            width: "100%"
+          }}
+        >
+          <AlertTitle>
+            {t("common.internalServerError")}
+          </AlertTitle>
+
+          {t(
+            "common.serverErrorContactAdmin"
+          )}
+        </Alert>
+      )}
+
+      <Grid item xs={12}>
+        <MainCard>
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: "24px",
+              background:
+                "linear-gradient(180deg,#ffffff,#f8fafc)",
+              border:
+                "1px solid #e2e8f0"
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                mb: 4,
+                fontWeight: 800,
+                color: "#0f172a"
+              }}
+            >
+              {t(
+                "assignDeviceForm.title"
+              )}
+            </Typography>
+
             {isFormLoaded && (
               <Formik
-                initialValues={assignDeviceInitials}
-                validationSchema={validationSchema}
-                onSubmit={handleSubmit}
+                initialValues={
+                  assignDeviceInitials
+                }
+                validationSchema={
+                  validationSchema
+                }
+                onSubmit={
+                  handleSubmit
+                }
                 enableReinitialize
               >
                 {(formik) => (
-                  <form onSubmit={formik.handleSubmit}>
-                    <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field) => (
-                        <Grid key={field} item md={6} sm={12} xs={12}>
-                          <FormField
-                            fieldConfig={updatedFormFields[field]}
-                            formik={formik}
-                            handleFileChange={handleFileChange}
-                          />
-                        </Grid>
-                      ))}
-                      <Grid item xs={12} style={{ marginTop: "20px" }}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          disabled={loading}
+                  <form
+                    onSubmit={
+                      formik.handleSubmit
+                    }
+                  >
+                    <Grid
+                      container
+                      columnSpacing={3}
+                      rowSpacing={0}
+                    >
+                      {Object.keys(
+                        updatedFormFields
+                      ).map((field) => {
+                        const fieldData =
+                          updatedFormFields[
+                            field
+                          ];
+
+                        return (
+                          <Grid
+                            key={
+                              field
+                            }
+                            item
+                            xs={12}
+                            sm={6}
+                            md={4}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize:
+                                  "14px",
+                                fontWeight: 700,
+                                color:
+                                  "#334155",
+                                minHeight:
+                                  "42px",
+                                display:
+                                  "flex",
+                                alignItems:
+                                  "flex-end",
+                                wordBreak:
+                                  "break-word"
+                              }}
+                            >
+                              {t(
+                                fieldData.label
+                              )}
+                            </Typography>
+
+                            <Box
+                              sx={{
+                                "& .MuiInputLabel-root":
+                                  {
+                                    display:
+                                      "none"
+                                  },
+
+                                "& .MuiOutlinedInput-root":
+                                  {
+                                    borderRadius:
+                                      "14px",
+                                    background:
+                                      "#fff",
+                                    minHeight:
+                                      "54px"
+                                  },
+
+                                "& input":
+                                  {
+                                    padding:
+                                      "14px"
+                                  },
+
+                                "& .MuiButton-root":
+                                  {
+                                    borderRadius:
+                                      "14px"
+                                  },
+
+                                "& a, & span":
+                                  {
+                                    color:
+                                      "#334155 !important"
+                                  }
+                              }}
+                            >
+                              <FormField
+                                fieldConfig={{
+                                  ...fieldData,
+                                  label:
+                                    ""
+                                }}
+                                formik={
+                                  formik
+                                }
+                                handleFileChange={
+                                  handleFileChange
+                                }
+                              />
+                            </Box>
+                          </Grid>
+                        );
+                      })}
+
+                      {/* KEEP SUBMIT BUTTON SAME AS PREVIOUS */}
+                      <Grid
+                        item
+                        xs={12}
+                      >
+                        <Box
+                          sx={{
+                            mt: 2
+                          }}
                         >
-                          {t('common.submit')}
-                        </Button>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={
+                              loading
+                            }
+                            sx={{
+                              height:
+                                "56px",
+                              px: 5,
+                              borderRadius:
+                                "16px",
+                              fontWeight: 800,
+                              fontSize:
+                                "16px",
+                              textTransform:
+                                "none",
+                              background:
+                                "linear-gradient(90deg,#14b8a6,#0ea5e9)",
+                              boxShadow:
+                                "0 14px 30px rgba(14,165,233,.25)"
+                            }}
+                          >
+                            {t(
+                              "common.submit"
+                            )}
+                          </Button>
+                        </Box>
                       </Grid>
                     </Grid>
                   </form>
                 )}
               </Formik>
             )}
-          </MainCard>
-        </Grid>
+          </Box>
+        </MainCard>
       </Grid>
-    </>
-  );
+    </Grid>
+  </>
+);
 };
 
 export default AssignDevice;

@@ -1,4 +1,5 @@
 import Grid from "@mui/material/Grid";
+import { Box, Paper, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import MainCard from "../../ui-component/cards/MainCard";
@@ -177,73 +178,298 @@ const DtoRto = () => {
   };
 
   return (
-    <>
-      <DialogComponent
-        open={open}
-        handleClose={handleClose}
-        message={alert.message}
-        errorList={alert.errorList}
-      />
+  <>
+    <DialogComponent
+      open={open}
+      handleClose={handleClose}
+      message={alert.message}
+      errorList={alert.errorList}
+    />
 
-      <Grid container spacing={gridSpacing}>
-        {loading && (
-          <div className="spinner-div">
-            <CircularProgress className="circular-progress" size={50} />
-          </div>
-        )}
-        <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
-          <MainCard title={t("dtoForm.title")}>
+    <Grid container spacing={gridSpacing}>
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(255,255,255,.72)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          <CircularProgress size={50} />
+        </div>
+      )}
+
+      <Grid item xs={12}>
+        <MainCard>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: "24px",
+              background:
+                "linear-gradient(180deg,#ffffff,#f8fafc)",
+              border: "1px solid #e2e8f0"
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                mb: 4,
+                fontWeight: 800,
+                color: "#0f172a"
+              }}
+            >
+              {t("dtoForm.title")}
+            </Typography>
+
             {isFormLoaded && (
               <Formik
-                initialValues={dtoInitialsValues}
-                validationSchema={validationSchema}
-                onSubmit={handleSubmit}
+                initialValues={
+                  dtoInitialsValues
+                }
+                validationSchema={
+                  validationSchema
+                }
+                onSubmit={
+                  handleSubmit
+                }
                 enableReinitialize
               >
                 {(formik) => (
-                  <form onSubmit={formik.handleSubmit}>
-                    <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field) => (
-                        <Grid key={field} item md={6} sm={12} xs={12}>
-                          <FormField
-                            fieldConfig={updatedFormFields[field]}
-                            formik={formik}
-                            handleFileChange={handleFileChange}
-                          // handleOptionChange={handleStateChange}
-                          />
-                        </Grid>
-                      ))}
-                      <Grid item xs={12} className="grid-item-button-div" style={{ display: "flex", gap: "10px" }}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          disabled={loading}
-                        >
-                          {t("common.submit")}
-                        </Button>
-                        {showResend && (
-                          <Button
-                            type="button"
-                            variant="outlined"
-                            color="secondary"
-                            onClick={() => handleResend(formik.resetForm)}
-                            disabled={loading}
+                  <form
+                    onSubmit={
+                      formik.handleSubmit
+                    }
+                  >
+                    <Grid
+                      container
+                      columnSpacing={3}
+                      rowSpacing={0}
+                    >
+                      {Object.keys(
+                        updatedFormFields
+                      ).map((field) => {
+                        const fieldData =
+                          updatedFormFields[
+                            field
+                          ];
+
+                        /* SAME MANUFACTURER */
+                        const isLatField =
+                          field ===
+                          "lat";
+
+                        const isLonField =
+                          field ===
+                          "lon";
+
+                        if (
+                          isLonField ||
+                          fieldData.gridHidden
+                        ) {
+                          return null;
+                        }
+
+                        return (
+                          <Grid
+                            key={
+                              field
+                            }
+                            item
+                            xs={12}
+                            sm={6}
+                            md={4}
                           >
-                            {t("auth.resend")}
+                            {!isLatField && (
+                              <Typography
+                                sx={{
+                                  fontSize:
+                                    "14px",
+                                  fontWeight: 700,
+                                  color:
+                                    "#334155",
+                                  lineHeight: 1.4,
+                                  minHeight:
+                                    "42px",
+                                  display:
+                                    "flex",
+                                  alignItems:
+                                    "flex-end",
+                                  wordBreak:
+                                    "break-word"
+                                }}
+                              >
+                                {t(
+                                  fieldData.label
+                                )}
+                              </Typography>
+                            )}
+
+                            <Box
+                              sx={{
+                                "& .MuiInputLabel-root":
+                                  {
+                                    display:
+                                      "none"
+                                  },
+
+                                "& .MuiOutlinedInput-root":
+                                  {
+                                    borderRadius:
+                                      "14px",
+                                    background:
+                                      "#fff",
+                                    minHeight:
+                                      "54px"
+                                  },
+
+                                "& input":
+                                  {
+                                    padding:
+                                      "14px"
+                                  },
+
+                                "& textarea":
+                                  {
+                                    padding:
+                                      "14px"
+                                  },
+
+                                "& .MuiButton-root":
+                                  {
+                                    borderRadius:
+                                      "14px"
+                                  },
+
+                                "& a, & span":
+                                  {
+                                    color:
+                                      "#334155 !important"
+                                  }
+                              }}
+                            >
+                              <FormField
+                                fieldConfig={{
+                                  ...fieldData,
+                                  label:
+                                    "",
+                                  helperText:
+                                    fieldData.helperText
+                                      ? t(
+                                          fieldData.helperText
+                                        )
+                                      : undefined
+                                }}
+                                formik={
+                                  formik
+                                }
+                                handleFileChange={
+                                  handleFileChange
+                                }
+                              />
+                            </Box>
+                          </Grid>
+                        );
+                      })}
+
+                      <Grid
+                        item
+                        xs={12}
+                      >
+                        <Box
+                          sx={{
+                            mt: 1,
+                            display:
+                              "flex",
+                            gap: 2,
+                            flexWrap:
+                              "wrap"
+                          }}
+                        >
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={
+                              loading
+                            }
+                            sx={{
+                              px: 5,
+                              py: 1.5,
+                              height:
+                                "56px",
+                              borderRadius:
+                                "16px",
+                              fontSize:
+                                "16px",
+                              fontWeight: 800,
+                              textTransform:
+                                "none",
+                              background:
+                                "linear-gradient(90deg,#14b8a6,#0ea5e9)",
+                              boxShadow:
+                                "0 14px 30px rgba(14,165,233,.25)"
+                            }}
+                          >
+                            {loading ? (
+                              <CircularProgress
+                                size={
+                                  22
+                                }
+                                color="inherit"
+                              />
+                            ) : (
+                              t(
+                                "common.submit"
+                              )
+                            )}
                           </Button>
-                        )}
+
+                          {showResend && (
+                            <Button
+                              type="button"
+                              variant="outlined"
+                              disabled={
+                                loading
+                              }
+                              onClick={() =>
+                                handleResend(
+                                  formik.resetForm
+                                )
+                              }
+                              sx={{
+                                height:
+                                  "56px",
+                                px: 4,
+                                borderRadius:
+                                  "16px",
+                                color:
+                                  "#334155",
+                                textTransform:
+                                  "none"
+                              }}
+                            >
+                              {t(
+                                "auth.resend"
+                              )}
+                            </Button>
+                          )}
+                        </Box>
                       </Grid>
                     </Grid>
                   </form>
                 )}
               </Formik>
             )}
-          </MainCard>
-        </Grid>
+          </Paper>
+        </MainCard>
       </Grid>
-    </>
-  );
+    </Grid>
+  </>
+);
 };
 
 export default DtoRto;

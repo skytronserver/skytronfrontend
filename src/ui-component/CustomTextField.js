@@ -102,6 +102,8 @@ const FormField = ({
         return null;
       }
 
+
+
       const handleUseMyLocation = () => {
         if (!navigator.geolocation) {
           return;
@@ -115,6 +117,8 @@ const FormField = ({
           () => { }
         );
       };
+
+
 
       const numberField = (
         <TextField
@@ -170,9 +174,15 @@ const FormField = ({
         <div
           style={{
             display: "flex",
-            alignItems: "center",
+            // alignItems: "center",
             gap: "8px",
-            marginTop: "16px",
+            marginTop: window.innerWidth <= 600
+              ? "8px"
+              : "65px",
+            flexWrap:
+              window.innerWidth <= 600
+                ? "wrap"
+                : "nowrap",
           }}
         >
           {/* Latitude */}
@@ -515,14 +525,14 @@ const FormField = ({
             <Tooltip
               title={
                 isVehicleTypeApprovalTacAnnexureCopy
-                    ? vehicleTypeApprovalTacAnnexureCopyTooltipTitle
-                    : isFactoryFitmentDeclaration
-                      ? factoryFitmentDeclarationTooltipTitle
-                      : isAffidavitCumUndertakingBackendAccess
-                        ? affidavitCumUndertakingBackendAccessTooltipTitle
-                        : isSelfCertifiedIdProofAuthorisedSignatory
-                          ? selfCertifiedIdProofAuthorisedSignatoryTooltipTitle
-                          : ""
+                  ? vehicleTypeApprovalTacAnnexureCopyTooltipTitle
+                  : isFactoryFitmentDeclaration
+                    ? factoryFitmentDeclarationTooltipTitle
+                    : isAffidavitCumUndertakingBackendAccess
+                      ? affidavitCumUndertakingBackendAccessTooltipTitle
+                      : isSelfCertifiedIdProofAuthorisedSignatory
+                        ? selfCertifiedIdProofAuthorisedSignatoryTooltipTitle
+                        : ""
               }
               arrow
               placement="top"

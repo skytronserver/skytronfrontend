@@ -1,4 +1,4 @@
-import { Grid, Button, CircularProgress, Typography } from "@mui/material";
+import { Grid, Button, CircularProgress, Typography,Box,Paper } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
@@ -199,127 +199,301 @@ const DeviceModelForm = () => {
 
 
   return (
-    <>
-      <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType} />
-      <DialogComponent
-        open={open}
-        handleClose={handleClose}
-        message={alert.message}
-        errorList={alert.errorList}
-      />
-      {apiError && (
-        <Alert severity="error">
-          <AlertTitle>{t('deviceModelForm.internalServerError')}</AlertTitle>
-          {t('deviceModelForm.unableToFetchData')}
-        </Alert>
-      )}
-      <Grid container spacing={gridSpacing}>
+  <>
+    <AutoHideAlert
+      open={openAlert}
+      onClose={handleCloseAlert}
+      message={message}
+      type={alertType}
+    />
 
-        {loading && (
-          <div
-            style={{
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 9999,
-              background: "rgba(255, 255, 255, 0.8)",
-            }}
-          >
-            <CircularProgress
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-              size={50}
-            />
-          </div>
+    <DialogComponent
+      open={open}
+      handleClose={handleClose}
+      message={alert.message}
+      errorList={alert.errorList}
+    />
+
+    {apiError && (
+      <Alert severity="error">
+        <AlertTitle>
+          {t(
+            "deviceModelForm.internalServerError"
+          )}
+        </AlertTitle>
+        {t(
+          "deviceModelForm.unableToFetchData"
         )}
-        <Grid
-          item
-          xs={12}
+      </Alert>
+    )}
+
+    <Grid container spacing={gridSpacing}>
+      {loading && (
+        <div
           style={{
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 0.3s ease-in-out",
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background:
+              "rgba(255,255,255,.72)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "center"
           }}
         >
-          <MainCard title={t('deviceModelForm.title')}>
-            {!showOTP && otpStep === 0 ? (
-              isFormLoaded && (<Formik
-                initialValues={deviceModelInitials}
-                validationSchema={validationSchema}
-                onSubmit={handleSubmit}
-                enableReinitialize
-              >
-                {(formik) => (
-                  <form onSubmit={formik.handleSubmit}>
-                    <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field) => {
-                        const tacVal = formik.values.tac_validity;
-                        const isExpired = tacVal && tacVal < new Date().toISOString().split('T')[0];
-                        if (['cop_no', 'cop_validity', 'cop_file'].includes(field) && !isExpired) {
-                          return null;
+          <CircularProgress
+            size={50}
+          />
+        </div>
+      )}
+
+      <Grid item xs={12}>
+        <MainCard>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius:
+                "24px",
+              background:
+                "linear-gradient(180deg,#ffffff,#f8fafc)",
+              border:
+                "1px solid #e2e8f0"
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                mb: 4,
+                fontWeight: 800,
+                color:
+                  "#0f172a"
+              }}
+            >
+              {t(
+                "deviceModelForm.title"
+              )}
+            </Typography>
+
+            {!showOTP &&
+            otpStep === 0 ? (
+              isFormLoaded && (
+                <Formik
+                  initialValues={
+                    deviceModelInitials
+                  }
+                  validationSchema={
+                    validationSchema
+                  }
+                  onSubmit={
+                    handleSubmit
+                  }
+                  enableReinitialize
+                >
+                  {(formik) => (
+                    <form
+                      onSubmit={
+                        formik.handleSubmit
+                      }
+                    >
+                      <Grid
+                        container
+                        columnSpacing={
+                          3
                         }
-                        return (
-                          <Grid key={field} item md={6} sm={12} xs={12}>
-                            <FormField
-                              fieldConfig={updatedFormFields[field]}
-                              formik={formik}
-                              handleFileChange={handleFileChange}
-                            />
-                          </Grid>
-                        )
-                      })}
-                      <Grid item xs={12} style={{ marginTop: "20px" }}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          disabled={loading}
+                        rowSpacing={
+                          0
+                        }
+                      >
+                        {Object.keys(
+                          updatedFormFields
+                        ).map(
+                          (
+                            field
+                          ) => {
+                            const tacVal =
+                              formik
+                                .values
+                                .tac_validity;
+
+                            const isExpired =
+                              tacVal &&
+                              tacVal <
+                                new Date()
+                                  .toISOString()
+                                  .split(
+                                    "T"
+                                  )[0];
+
+                            if (
+                              [
+                                "cop_no",
+                                "cop_validity",
+                                "cop_file"
+                              ].includes(
+                                field
+                              ) &&
+                              !isExpired
+                            ) {
+                              return null;
+                            }
+
+                            const fieldData =
+                              updatedFormFields[
+                                field
+                              ];
+
+                            return (
+                              <Grid
+                                key={
+                                  field
+                                }
+                                item
+                                xs={
+                                  12
+                                }
+                                sm={
+                                  6
+                                }
+                                md={
+                                  4
+                                }
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize:
+                                      "14px",
+                                    fontWeight: 700,
+                                    color:
+                                      "#334155",
+                                    lineHeight: 1.4,
+                                    minHeight:
+                                      "42px",
+                                    display:
+                                      "flex",
+                                    alignItems:
+                                      "flex-end",
+                                    wordBreak:
+                                      "break-word"
+                                  }}
+                                >
+                                  {t(
+                                    fieldData.label
+                                  )}
+                                </Typography>
+
+                                <Box
+                                  sx={{
+                                    "& .MuiInputLabel-root":
+                                      {
+                                        display:
+                                          "none"
+                                      },
+
+                                    "& .MuiOutlinedInput-root":
+                                      {
+                                        borderRadius:
+                                          "14px",
+                                        background:
+                                          "#fff",
+                                        minHeight:
+                                          "54px"
+                                      },
+
+                                    "& input":
+                                      {
+                                        padding:
+                                          "14px"
+                                      },
+
+                                    "& textarea":
+                                      {
+                                        padding:
+                                          "14px"
+                                      },
+
+                                    "& .MuiButton-root":
+                                      {
+                                        borderRadius:
+                                          "14px"
+                                      },
+
+                                    "& a, & span":
+                                      {
+                                        color:
+                                          "#334155 !important"
+                                      }
+                                  }}
+                                >
+                                  <FormField
+                                    fieldConfig={{
+                                      ...fieldData,
+                                      label:
+                                        ""
+                                    }}
+                                    formik={
+                                      formik
+                                    }
+                                    handleFileChange={
+                                      handleFileChange
+                                    }
+                                  />
+                                </Box>
+                              </Grid>
+                            );
+                          }
+                        )}
+
+                        <Grid
+                          item
+                          xs={12}
                         >
-                          {t('deviceModelForm.submitForApproval')}
-                        </Button>
+                          <Box
+                            sx={{
+                              mt: 1,
+                              display:
+                                "flex",
+                              gap: 2,
+                              flexWrap:
+                                "wrap"
+                            }}
+                          >
+                            <Button
+                              type="submit"
+                              variant="contained"
+                              disabled={
+                                loading
+                              }
+                              sx={{
+                                px: 5,
+                                py: 1.5,
+                                height:
+                                  "56px",
+                                borderRadius:
+                                  "16px",
+                                fontSize:
+                                  "16px",
+                                fontWeight: 800,
+                                textTransform:
+                                  "none",
+                                background:
+                                  "linear-gradient(90deg,#14b8a6,#0ea5e9)",
+                                boxShadow:
+                                  "0 14px 30px rgba(14,165,233,.25)"
+                              }}
+                            >
+                              {t(
+                                "deviceModelForm.submitForApproval"
+                              )}
+                            </Button>
+                          </Box>
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </form>
-                )}
-              </Formik>)
-            ) : otpStep === 1 ? (
-              /* OTP Page 1: Verify Device Model */
-              <Grid container spacing={2} justifyContent="center" alignItems="center">
-                <Grid item xs={12}>
-                  <p><strong>Step 1 of 2:</strong> Enter OTP to verify the <strong>Device Model</strong></p>
-                  <p>{t('deviceModelForm.otpValidation')}</p>
-                </Grid>
-                <Grid item xs={12} md="5">
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                  <br />
-                  <Typography align="center">
-                    <Button color="primary" size="large" variant="contained" onClick={handleOTPSubmit}>
-                      Verify &amp; Continue
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            ) : otpStep === 2 ? (
-              /* OTP Page 2: Verify COP */
-              <Grid container spacing={2} justifyContent="center" alignItems="center">
-                <Grid item xs={12}>
-                  <p><strong>Step 2 of 2:</strong> Enter OTP to verify the <strong>COP (TAC Extension)</strong></p>
-                  <p>{t('deviceModelForm.otpValidation')}</p>
-                </Grid>
-                <Grid item xs={12} md="5">
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                  <br />
-                  <Typography align="center">
-                    <Button color="primary" size="large" variant="contained" onClick={handleOTPSubmit}>
-                      {t('deviceModelForm.verifyOTP')}
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
+                    </form>
+                  )}
+                </Formik>
+              )
             ) : (
               <Grid
                 container
@@ -328,30 +502,103 @@ const DeviceModelForm = () => {
                 alignItems="center"
               >
                 <Grid item xs={12}>
-                  <p>{t('deviceModelForm.otpValidation')}</p>
-                </Grid>
-                <Grid item xs={12} md="5">
-                  <MuiOtpInput value={otp} onChange={handleChange} length={6} />
-                  <br />
-                  <Typography align="center">
-                    <Button
-                      color="primary"
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      onClick={handleOTPSubmit}
-                    >
-                      {t('deviceModelForm.verifyOTP')}
-                    </Button>
+                  <Typography
+                    align="center"
+                    sx={{
+                      mb: 2,
+                      fontWeight: 700,
+                      color:
+                        "#0f172a"
+                    }}
+                  >
+                    {otpStep ===
+                    1 ? (
+                      <>
+                        Step
+                        1 of
+                        2:
+                        Verify
+                        Device
+                        Model
+                      </>
+                    ) : otpStep ===
+                      2 ? (
+                      <>
+                        Step
+                        2 of
+                        2:
+                        Verify
+                        COP
+                      </>
+                    ) : (
+                      t(
+                        "deviceModelForm.otpValidation"
+                      )
+                    )}
                   </Typography>
+                </Grid>
+
+                <Grid
+                  item
+                  xs={12}
+                  md={5}
+                >
+                  <MuiOtpInput
+                    value={
+                      otp
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    length={
+                      6
+                    }
+                  />
+
+                  <Box
+                    sx={{
+                      mt: 3,
+                      textAlign:
+                        "center"
+                    }}
+                  >
+                    <Button
+                      variant="contained"
+                      onClick={
+                        handleOTPSubmit
+                      }
+                      sx={{
+                        px: 5,
+                        py: 1.5,
+                        height:
+                          "56px",
+                        borderRadius:
+                          "16px",
+                        fontWeight: 800,
+                        textTransform:
+                          "none",
+                        background:
+                          "linear-gradient(90deg,#14b8a6,#0ea5e9)"
+                      }}
+                    >
+                      {otpStep ===
+                        1 &&
+                      isCopFlow
+                        ? "Verify & Continue"
+                        : t(
+                            "deviceModelForm.verifyOTP"
+                          )}
+                    </Button>
+                  </Box>
                 </Grid>
               </Grid>
             )}
-          </MainCard>
-        </Grid>
+          </Paper>
+        </MainCard>
       </Grid>
-    </>
-  );
+    </Grid>
+  </>
+);
 };
 
 export default DeviceModelForm;

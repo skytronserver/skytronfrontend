@@ -1,4 +1,4 @@
-import { Grid, Button, CircularProgress } from "@mui/material";
+import { Grid, Button, CircularProgress,Box,Paper,Typography } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { useTranslation } from "react-i18next";
 import { gridSpacing, FILE_SIZE, SUPPORTED_FORMATS } from "../../store/constant";
@@ -144,61 +144,369 @@ const VehicleOwner = () => {
   };
 
 
-  return (
-    <>
-      <DialogComponent open={open} handleClose={handleClose} message={alert.message} errorList={alert.errorList} />
+  // return (
+  //   <>
+  //     <DialogComponent open={open} handleClose={handleClose} message={alert.message} errorList={alert.errorList} />
 
-      <Grid container spacing={gridSpacing} >
-        {loading && (
-          <div style={{ top: 0, left: 0, width: "100%", height: "100%", zIndex: 9999, background: "rgba(255, 255, 255, 0.8)" }}>
-            <CircularProgress style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} size={50} />
-          </div>
-        )}
-        <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out" }}>
-          <MainCard title={t("vehicleOwnerForm.title")}>
+  //     <Grid container spacing={gridSpacing} >
+  //       {loading && (
+  //         <div style={{ top: 0, left: 0, width: "100%", height: "100%", zIndex: 9999, background: "rgba(255, 255, 255, 0.8)" }}>
+  //           <CircularProgress style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} size={50} />
+  //         </div>
+  //       )}
+  //       <Grid item xs={12} style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out" }}>
+  //         <MainCard title={t("vehicleOwnerForm.title")}>
+  //           <Formik
+  //             initialValues={vehicleOwnerInitialValues}
+  //             validationSchema={validationSchema}
+  //             onSubmit={handleSubmit}
+  //             enableReinitialize
+  //           >
+  //             {(formik) => (
+  //               <form onSubmit={formik.handleSubmit} >
+  //                 <Grid container spacing={2} className="form-controller">
+  //                   {Object.keys(vehicleOwnerField).map((field) => (
+  //                     <Grid key={field} item md={6} sm={12} xs={12}>
+  //                       <FormField
+  //                         fieldConfig={vehicleOwnerField[field]}
+  //                         formik={formik}
+  //                         handleFileChange={handleFileChange}
+  //                       />
+  //                     </Grid>
+  //                   ))}
+  //                   <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+  //                     <Button type="submit" variant="contained" color="primary" disabled={loading}>
+  //                       {t("common.submit")}
+  //                     </Button>
+  //                     {showResend && (
+  //                       <Button
+  //                         type="button"
+  //                         variant="outlined"
+  //                         color="secondary"
+  //                         onClick={() => handleResend(formik.resetForm)}
+  //                         disabled={loading}
+  //                       >
+  //                         {t("auth.resend")}
+  //                       </Button>
+  //                     )}
+  //                   </Grid>
+  //                 </Grid>
+  //               </form>
+  //             )}
+  //           </Formik>
+  //         </MainCard>
+  //       </Grid>
+  //     </Grid>
+  //   </>
+  // );
+
+return (
+  <>
+    <DialogComponent
+      open={open}
+      handleClose={handleClose}
+      message={alert.message}
+      errorList={alert.errorList}
+    />
+
+    <Grid container spacing={gridSpacing}>
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background:
+              "rgba(255,255,255,.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "center"
+          }}
+        >
+          <CircularProgress
+            size={50}
+          />
+        </div>
+      )}
+
+      <Grid
+        item
+        xs={12}
+        sx={{
+          opacity: loading
+            ? 0.5
+            : 1,
+          transition:
+            "opacity .3s ease"
+        }}
+      >
+        <MainCard>
+          <Box
+            sx={{
+              p: 4,
+              borderRadius:
+                "24px",
+              background:
+                "linear-gradient(180deg,#ffffff,#f8fafc)",
+              border:
+                "1px solid #e2e8f0"
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                mb: 4,
+                fontWeight: 800,
+                color:
+                  "#0f172a"
+              }}
+            >
+              {t(
+                "vehicleOwnerForm.title"
+              )}
+            </Typography>
+
             <Formik
-              initialValues={vehicleOwnerInitialValues}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
+              initialValues={
+                vehicleOwnerInitialValues
+              }
+              validationSchema={
+                validationSchema
+              }
+              onSubmit={
+                handleSubmit
+              }
               enableReinitialize
             >
               {(formik) => (
-                <form onSubmit={formik.handleSubmit} >
-                  <Grid container spacing={2} className="form-controller">
-                    {Object.keys(vehicleOwnerField).map((field) => (
-                      <Grid key={field} item md={6} sm={12} xs={12}>
-                        <FormField
-                          fieldConfig={vehicleOwnerField[field]}
-                          formik={formik}
-                          handleFileChange={handleFileChange}
-                        />
-                      </Grid>
-                    ))}
-                    <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
-                      <Button type="submit" variant="contained" color="primary" disabled={loading}>
-                        {t("common.submit")}
-                      </Button>
-                      {showResend && (
+                <form
+                  onSubmit={
+                    formik.handleSubmit
+                  }
+                >
+                  <Grid
+                    container
+                    columnSpacing={
+                      3
+                    }
+                    rowSpacing={
+                      0
+                    }
+                  >
+                    {Object.keys(
+                      vehicleOwnerField
+                    ).map(
+                      (
+                        field
+                      ) => {
+                        const fieldData =
+                          vehicleOwnerField[
+                            field
+                          ];
+
+                        /* FIX LAT/LON */
+                        const isLatField =
+                          field ===
+                          "lat";
+
+                        const isLonField =
+                          field ===
+                          "lon";
+
+                        if (
+                          isLonField
+                        ) {
+                          return null;
+                        }
+
+                        return (
+                          <Grid
+                            key={
+                              field
+                            }
+                            item
+                            xs={
+                              12
+                            }
+                            sm={
+                              6
+                            }
+                            md={
+                              4
+                            }
+                          >
+                            {!isLatField && (
+                              <Typography
+                                sx={{
+                                  fontSize:
+                                    "14px",
+                                  fontWeight: 700,
+                                  color:
+                                    "#334155",
+                                  lineHeight: 1.4,
+                                  minHeight:
+                                    "42px",
+                                  display:
+                                    "flex",
+                                  alignItems:
+                                    "flex-end",
+                                  wordBreak:
+                                    "break-word"
+                                }}
+                              >
+                                {t(
+                                  fieldData.label
+                                )}
+                              </Typography>
+                            )}
+
+                            <Box
+                              sx={{
+                                "& .MuiInputLabel-root":
+                                  {
+                                    display:
+                                      "none"
+                                  },
+
+                                "& .MuiOutlinedInput-root":
+                                  {
+                                    borderRadius:
+                                      "14px",
+                                    background:
+                                      "#fff",
+                                    minHeight:
+                                      "54px"
+                                  },
+
+                                "& input":
+                                  {
+                                    padding:
+                                      "14px"
+                                  },
+
+                                "& textarea":
+                                  {
+                                    padding:
+                                      "14px"
+                                  },
+
+                                "& .MuiButton-root":
+                                  {
+                                    borderRadius:
+                                      "14px"
+                                  },
+
+                                "& a, & span":
+                                  {
+                                    color:
+                                      "#334155 !important"
+                                  }
+                              }}
+                            >
+                              <FormField
+                                fieldConfig={{
+                                  ...fieldData,
+                                  label:
+                                    ""
+                                }}
+                                formik={
+                                  formik
+                                }
+                                handleFileChange={
+                                  handleFileChange
+                                }
+                              />
+                            </Box>
+                          </Grid>
+                        );
+                      }
+                    )}
+
+                    {/* SUBMIT + RESEND */}
+                    <Grid
+                      item
+                      xs={12}
+                    >
+                      <Box
+                        sx={{
+                          mt: 3,
+                          display:
+                            "flex",
+                          gap: 2,
+                          flexWrap:
+                            "wrap"
+                        }}
+                      >
                         <Button
-                          type="button"
-                          variant="outlined"
-                          color="secondary"
-                          onClick={() => handleResend(formik.resetForm)}
-                          disabled={loading}
+                          type="submit"
+                          variant="contained"
+                          disabled={
+                            loading
+                          }
+                          sx={{
+                            height:
+                              "56px",
+                            px: 5,
+                            borderRadius:
+                              "16px",
+                            fontWeight: 800,
+                            fontSize:
+                              "16px",
+                            textTransform:
+                              "none",
+                            background:
+                              "linear-gradient(90deg,#14b8a6,#0ea5e9)",
+                            boxShadow:
+                              "0 14px 30px rgba(14,165,233,.25)"
+                          }}
                         >
-                          {t("auth.resend")}
+                          {t(
+                            "common.submit"
+                          )}
                         </Button>
-                      )}
+
+                        {showResend && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            color="secondary"
+                            onClick={() =>
+                              handleResend(
+                                formik.resetForm
+                              )
+                            }
+                            disabled={
+                              loading
+                            }
+                            sx={{
+                              height:
+                                "56px",
+                              px: 4,
+                              borderRadius:
+                                "16px",
+                              fontWeight: 700,
+                              textTransform:
+                                "none"
+                            }}
+                          >
+                            {t(
+                              "auth.resend"
+                            )}
+                          </Button>
+                        )}
+                      </Box>
                     </Grid>
                   </Grid>
                 </form>
               )}
             </Formik>
-          </MainCard>
-        </Grid>
+          </Box>
+        </MainCard>
       </Grid>
-    </>
-  );
+    </Grid>
+  </>
+);
 };
 
 export default VehicleOwner;

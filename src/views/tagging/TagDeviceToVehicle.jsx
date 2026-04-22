@@ -598,7 +598,7 @@ function TagDeviceToVehicle() {
                         // Custom rendering for state_code + district_code + vehicle_number as one row
                         if (field === "district_code") {
                           return (
-                            <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
+                            <Grid key="vehicle_reg_group" item lg={4} md={4} sm={6} xs={12}>
                               <Grid container spacing={1} alignItems="flex-end">
                                 <Grid item xs={3}>
                                   <FormField
@@ -640,8 +640,27 @@ function TagDeviceToVehicle() {
                         if (field === "owner_id") return null;
 
                         return (
-                          <Grid key={field} item md={6} sm={12} xs={12}>
-                            <FormField
+                          <Grid key={field} item lg={4} md={4} sm={6} xs={12}>
+                            <div style={{ width: "100%" }}>
+  
+  <Typography
+    sx={{
+      mb: 1,
+      fontSize: "15px",
+      fontWeight: 700,
+      color: "#16325c"
+    }}
+  >
+    {updatedFormFields[field]?.label}
+  </Typography>
+
+  <div
+    style={{
+      background: "#f8fafc",
+      borderRadius: "14px",
+      padding: "2px"
+    }}
+  > <FormField
                               fieldConfig={updatedFormFields[field]}
                               formik={formik}
                               handleFileChange={handleFileChange}
@@ -670,7 +689,8 @@ function TagDeviceToVehicle() {
                                     }
                                   : undefined
                               }
-                            />
+                            /> </div></div>
+                           
                           </Grid>
                         );
                       })}
