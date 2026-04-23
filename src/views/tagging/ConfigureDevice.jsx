@@ -5,6 +5,7 @@ import MainCard from "../../ui-component/cards/MainCard";
 import { useEffect, useState } from "react";
 import StockServices from "../../services/StockServices";
 import DialogComponent from "../../ui-component/DialogComponent";
+import { isCertValid } from "../../helper";
 // ==============================|| Configure Page ||============================== //
 import { MenuItem, Button, Grid, TextField, Alert, Stack,CircularProgress } from "@mui/material";
 
@@ -45,9 +46,11 @@ const ConfigureDevice = ({ status }) => {
     };
     const fetchAvailableDevice = async () => {
       const retriveData = await StockServices.getAvailableDeviceList(filter);
+      const devices = retriveData.data.data || [];
+      const validDevices = devices.filter(device => isCertValid(device.model));
       const arrUniq = [
         ...new Map(
-          retriveData.data.data.map((item) => [item.id, item])
+          validDevices.map((item) => [item.id, item])
         ).values(),
       ];
       setDeviceList(arrUniq);

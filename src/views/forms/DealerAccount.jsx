@@ -19,7 +19,7 @@ import {
   convertErrorObjectToArray,
   retriveStateList,
   retriveDistrictList,
-  retriveManufacturerList,
+  retriveTechnicalOnboardedManufacturerList,
 } from "../../helper";
 import "./form.css";
 import {
@@ -46,7 +46,7 @@ function DealerAccount() {
   useEffect(() => {
     (async () => {
       try {
-        const manufacturerList = await retriveManufacturerList();
+        const manufacturerList = await retriveTechnicalOnboardedManufacturerList();
         const stateList = await retriveStateList();
 
         setUpdatedFormField((prevConfig) => ({

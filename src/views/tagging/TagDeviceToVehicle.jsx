@@ -36,19 +36,21 @@ const steps = [
   { label: "tagDeviceForm.steps.tagDevice", name: "Step 2" },
   { label: "tagDeviceForm.steps.readyForActivation", name: "Step 3" },
   { label: "tagDeviceForm.steps.dealerVerification", name: "Step 4" },
-  { label: "tagDeviceForm.steps.sendOwnerOtp", name: "Step 5" },
-  { label: "tagDeviceForm.steps.ownerVerification", name: "Step 6" },
-  { label: "tagDeviceForm.steps.sosButtonPress", name: "Step 7" },
-  { label: "tagDeviceForm.steps.activateSosInApp", name: "Step 8" },
-  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 9" },
-  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 10" },
+  { label: "tagDeviceForm.steps.sosButtonPress", name: "Step 5" },
+  { label: "tagDeviceForm.steps.activateSosInApp", name: "Step 6" },
+  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 7" },
+  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 8" },
 ];
 
 const rawOtCommands = [
-  "1. IP: 103.195.217.127",
+  "1. IP 103.195.217.127",
   "2. Port: 8883",
-  "3. Emergency Fallback no: 9999999999",
-  "4. Registration No: As provided by DTO.",
+  "3. Emergency Fallback number: (will advise tomorrow- it has to be actual)",
+  "4: Registration No in case of already registered vehicle.",
+  "5: In case of new un-registered vehicle, please set Reg number in devices in following format-",
+  "   ASXXTEMPYYY",
+  "   XX= DTO code, example: 01",
+  "   YYY= Last 3 digits of the vehicle chassis number"
 ];
 
 const formattedOtCommands = rawOtCommands;
@@ -300,19 +302,17 @@ function TagDeviceToVehicle() {
         handleResendOtp("dealer");
       }
       setResendTimer(180);
-    } else if (activeStep === 5 || activeStep === 9) {
+    } else if (activeStep === 7) {
       setResendTimer(180);
-    } else if (activeStep === 4) {
-      sendOwnerOtp("owner");
     }
   }, [activeStep]);
 
   useEffect(() => {
-    if (activeStep === 6) {
+    if (activeStep === 4) {
       if (!deviceSosEnteredAtRef.current) deviceSosEnteredAtRef.current = new Date();
-    } else if (activeStep === 7) {
+    } else if (activeStep === 5) {
       if (!appSosEnteredAtRef.current) appSosEnteredAtRef.current = new Date();
-    } else if (activeStep === 8) {
+    } else if (activeStep === 6) {
       if (!mapStepEnteredAtRef.current) mapStepEnteredAtRef.current = new Date();
       setStep9EnteredAt(new Date());
       retriveMapData();
@@ -325,10 +325,10 @@ function TagDeviceToVehicle() {
   }, [activeStep]);
 
   useEffect(() => {
-    if (activeStep !== 6 && activeStep !== 7) return;
+    if (activeStep !== 4 && activeStep !== 5) return;
 
-    const enteredAt = (activeStep === 6 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current) || new Date();
-    const alreadyReceived = activeStep === 6 ? deviceSosAlertReceived : appSosAlertReceived;
+    const enteredAt = (activeStep === 4 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current) || new Date();
+    const alreadyReceived = activeStep === 4 ? deviceSosAlertReceived : appSosAlertReceived;
     if (alreadyReceived) return;
 
     const baseUrl = (process.env.REACT_APP_BASE_URL || "").replace(/\/+$/, "");
@@ -363,8 +363,8 @@ function TagDeviceToVehicle() {
         const hasNew = logTime >= entryTime && logTime >= fiveMinutesAgo;
 
         if (hasNew) {
-          if (activeStep === 6) setDeviceSosAlertReceived(true);
-          else if (activeStep === 7) setAppSosAlertReceived(true);
+          if (activeStep === 4) setDeviceSosAlertReceived(true);
+          else if (activeStep === 5) setAppSosAlertReceived(true);
         }
       } catch (error) {
         console.error("SOS Polling error:", error);
@@ -811,7 +811,7 @@ function TagDeviceToVehicle() {
                                     <FormField
                                       fieldConfig={{
                                         ...updatedFormFields["owner_id"],
-                                        label: "Temporary ID",
+                                        label: "Temporary ID (autofill)",
                                       }}
                                       formik={formik}
                                     />
@@ -911,7 +911,7 @@ function TagDeviceToVehicle() {
                     >
                       <DisplayTable
                         values={ownerDetails}
-                        title="Details as in Skytron"
+                        title="Details as in Skytron VLTD Backend"
                       />
                     </Grid>
                     <Grid
@@ -1013,78 +1013,8 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 5: Send Owner OTP (Original Step 3) */}
+            {/* Step 5: SOS Button Press (Original Step 9) */}
             {activeStep === 4 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>{t("tagDeviceForm.messages.requestOwnerOtp")}</Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={() => sendOwnerOtp("owner")}
-                    >
-                      {t("common.Request")}
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-
-            {/* Step 6: Owner Verification (Original Step 4) */}
-            {activeStep === 5 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>
-                    An OTP has been sent to the vehicle owner’s mobile no to verify the owner's consent for vehicle tagging.
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <MuiOtpInput
-                    value={otp.owner}
-                    onChange={handleOwnerOtp}
-                    length={6}
-                  />
-                  <br />
-                  <Typography>
-                    <Grid container spacing={1} alignItems="center">
-                      <Grid item>
-                        <Button
-                          color="primary"
-                          type="submit"
-                          variant="contained"
-                          onClick={() => handleOtpSubmit("owner")}
-                        >
-                          Continue to confirm SOS
-                        </Button>
-                      </Grid>
-                      <Grid item>
-                        {resendTimer > 0 ? (
-                          <Typography variant="body2" sx={{ ml: 1 }}>
-                            {t("auth.resendOtpIn", { seconds: resendTimer })}
-                          </Typography>
-                        ) : (
-                          <Button
-                            size="small"
-                            onClick={() => handleResendOtp("owner")}
-                            disabled={loading.loader}
-                            sx={{ textTransform: "none", ml: 1 }}
-                          >
-                            {t("auth.resend")}
-                          </Button>
-                        )}
-                      </Grid>
-                    </Grid>
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-
-            {/* Step 7: SOS Button Press (Original Step 9) */}
-            {activeStep === 6 && (
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
@@ -1114,6 +1044,7 @@ function TagDeviceToVehicle() {
                           : '0 10px 20px rgba(244,67,54,0.4)',
                       }
                     }}
+                    onClick={() => setActiveStep((prev) => prev + 1)}
                   >
                     SOS
                   </Button>
@@ -1133,8 +1064,8 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 8: Activate SOS in App (Original Step 10) */}
-            {activeStep === 7 && (
+            {/* Step 6: Activate SOS in App (Original Step 10) */}
+            {activeStep === 5 && (
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
@@ -1164,6 +1095,7 @@ function TagDeviceToVehicle() {
                           : '0 10px 20px rgba(244,67,54,0.4)',
                       }
                     }}
+                    onClick={() => setActiveStep((prev) => prev + 1)}
                   >
                     SOS
                   </Button>
@@ -1183,8 +1115,8 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 9: Confirm Location / Map (Original Step 8) */}
-            {activeStep === 8 && (
+            {/* Step 7: Confirm Location / Map (Original Step 8) */}
+            {activeStep === 6 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>Confirm the vehicle location on the map and request OTP for final verification.</Typography>
@@ -1213,8 +1145,8 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 10: Final Owner OTP (Original Step 11) */}
-            {activeStep === 9 && (
+            {/* Step 8: Final Owner OTP (Original Step 11) */}
+            {activeStep === 7 && (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography>

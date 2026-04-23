@@ -7,6 +7,21 @@ import DealerServices from "../services/DealerServices";
 import TaggingService from "../services/TaggingService";
 import axios from "axios";
 
+export const isCertValid = (modelObj) => {
+  if (!modelObj) return true; 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tacValidity = modelObj.tac_validity || modelObj.device_model?.tac_validity || "";
+  const copValidity = modelObj.cop_validity || modelObj.device_model?.cop_validity || "";
+
+  // If both are missing, we don't have enough info to block, so we allow it (fallback)
+  if (!tacValidity && !copValidity) return true;
+
+  // A model is valid if EITHER TAC is valid OR COP is valid
+  const isTacValid = tacValidity && tacValidity >= todayStr;
+  const isCopValid = copValidity && copValidity >= todayStr;
+  return isTacValid || isCopValid;
+};
+
 export const retriveAwaitingList = async () => {
   try {
     const response = await TaggingService.tagApprovedOwnerApproval();
@@ -30,7 +45,12 @@ export const retriveAwaitingList = async () => {
 export const retriveDeviceModelList = async (data) => {
   try {
     const response = await DeviceModelServices.getDeviceList(data);
-    const list = response.data.data.map(device => ({
+    const devices = response.data.data || [];
+    
+    // Filter out devices with expired TAC/COP
+    const validDevices = devices.filter(device => isCertValid(device.model || device.device_model || device));
+
+    const list = validDevices.map(device => ({
       value: device.id,
       label: device.imei,
     }));
@@ -122,16 +142,9 @@ export const retriveTechnicalOnboardedModelList = async () => {
       const modelObj = r.device_model || r;
 
       // Check validity (Point C: Do not allow expired TAC/COP)
-      const todayStr = new Date().toISOString().split('T')[0];
-      const tacValidity = modelObj.tac_validity || "";
-      const copValidity = modelObj.cop_validity || "";
+      const isCertValidStatus = isCertValid(modelObj);
 
-      // A model is valid if EITHER TAC is valid OR COP is valid
-      const isTacValid = tacValidity && tacValidity >= todayStr;
-      const isCopValid = copValidity && copValidity >= todayStr;
-      const isCertValid = isTacValid || isCopValid;
-
-      if (isReady && isCertValid) {
+      if (isReady && isCertValidStatus) {
         if (modelObj.model_name) {
           eligibleModels.push({
             value: String(modelObj.id), 
@@ -142,9 +155,8 @@ export const retriveTechnicalOnboardedModelList = async () => {
         // Handle legacy nested structure just in case
         if (Array.isArray(r.tech_onboarded_models)) {
           r.tech_onboarded_models.forEach((m) => {
-             const mTacValid = (m.tac_validity || m.device_model?.tac_validity) >= todayStr;
-             const mCopValid = (m.cop_validity || m.device_model?.cop_validity) >= todayStr;
-             if (mTacValid || mCopValid) {
+             const nestedModel = m.device_model || m;
+             if (isCertValid(nestedModel)) {
                 eligibleModels.push({
                   value: String(m.id),
                   label: m.model_name || m.device_model?.model_name || String(m.id),
@@ -301,13 +313,52 @@ export const retriveManufacturerList = async () => {
     }
   }
 };
+
+export const retriveTechnicalOnboardedManufacturerList = async () => {
+  try {
+    const response = await ManufacturerServices.findManufacturer();
+    const data = response.data || [];
+    
+    const list = data.filter(m => {
+        const userStatus = String(m?.users?.[0]?.status || "").trim().toLowerCase();
+        const requestStatus = String(m?.status || "").trim().toLowerCase();
+        
+        // As per user definition: Onboarded users are those who have set their password and can login.
+        // This corresponds to 'active' or 'allow to add dealer' statuses.
+        return userStatus === "active" || 
+               userStatus === "allow to add dealer" || 
+               requestStatus === "active" || 
+               requestStatus === "allow to add dealer" ||
+               requestStatus === "stateadminapproved" ||
+               requestStatus === "approved" ||
+               requestStatus === "technicalonboardingapproved";
+    }).map(manufacturer => ({
+      value: manufacturer.id,
+      label: manufacturer.company_name,
+    }));
+    
+    // Deduplicate manufacturers by value (ID)
+    const uniqueList = [...new Map(list.map((item) => [item.value, item])).values()];
+    
+    // Sort alphabetically for better UX
+    uniqueList.sort((a, b) => a.label.localeCompare(b.label));
+    
+    return uniqueList;
+  } catch (error) {
+    console.error("retriveTechnicalOnboardedManufacturerList error:", error);
+    return [];
+  }
+};
 export const fetchDeviceListForSale = async () => {
   try {
     const filter = {
       esim_status: "ESIM_Active_Confirmed"
     };
     const response = await StockServices.stockFilter(filter);
-    const list = response.data.data.map((device) => ({
+    const devices = response.data.data || [];
+    const validDevices = devices.filter(device => isCertValid(device.model || device.device_model || device));
+
+    const list = validDevices.map((device) => ({
       value: device.id,
       label: device.imei,
     }));
@@ -330,7 +381,10 @@ export const fetchDeviceListForTagging = async () => {
       stock_status: "Available_for_fitting"
     };
     const response = await StockServices.stockFilter(filter);
-    const list = response.data.data.map((device) => ({
+    const devices = response.data.data || [];
+    const validDevices = devices.filter(device => isCertValid(device.model || device.device_model || device));
+
+    const list = validDevices.map((device) => ({
       value: device.id,
       label: device.imei,
     }));
@@ -466,7 +520,10 @@ export const fetchTaggedList = async (data) => {
       is_tagged: false,
     };
     const response = await DeviceModelServices.getDeviceList(filter);
-    const list = response.data.data.map((device) => ({
+    const devices = response.data.data || [];
+    const validDevices = devices.filter(device => isCertValid(device.model || device.device_model || device));
+
+    const list = validDevices.map((device) => ({
       value: device.id,
       label: device.imei,
     }));

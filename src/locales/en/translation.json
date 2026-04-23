@@ -1041,7 +1041,7 @@
   "tagDeviceForm": {
     "title": "Tag Device to Vehicle",
     "steps": {
-      "otCommandConfiguration": "Device Configuration",
+      "otCommandConfiguration": "VLT Device Configuration",
       "tagDevice": "Tag Device to Vehicle",
       "dealerVerification": "Dealer Verification",
       "sendOwnerOtp": "Send Owner OTP",
@@ -1060,7 +1060,7 @@
       "engineNo": "Engine No",
       "chassisNo": "Chassis No.",
       "districtCode": "District Code",
-      "district": "District",
+      "district": "District (autofill)",
       "vehicleNumber": "Vehicle Number",
       "vehicleMake": "Vehicle Make",
       "vehicleModel": "Vehicle Model",
@@ -1090,8 +1090,8 @@
       "ownerOtpSent": "An OTP has been sent to vehicle owner mobile number. Please enter the OTP below to continue.",
       "getVahanDetails": "Click below to get details from Vahan",
       "getLocation": "Click below to get location of Vehicle",
-      "sosButtonInstruction": "Instruction: Please trigger the SOS by pressing the panic button connected to your device.",
-      "sosActivateInstruction": "Instruction: Please trigger the SOS using Skytron app.",
+      "sosButtonInstruction": "Instruction: Press the panic button attached to the device and wait till the SOS symbol turns green.",
+      "sosActivateInstruction": "Instruction: Press panic tab on skytron app. Select the concerned vehicle and wait until till the SOS symbol turns green.",
       "sosAlertReceived": "SOS alert received",
       "sosButtonPressed": "SOS button pressed successfully",
       "sosButtonProceed": "SOS button pressed! Proceeding to next step...",

@@ -15,6 +15,7 @@ import { getDeviceListAvailable } from '../../../actions/stockActions';
 import DynamicDatatables from '../../../datatables/DynamicDatatables';
 import { availableForSalesColumnForFitment } from '../../../datatables/deviceColumns';
 import { useTranslation } from 'react-i18next';
+import { isCertValid } from '../../../helper';
 import AutoHideAlert from '../../../ui-component/AutoHideAlert';
 import CustomLoader from '../../../ui-component/CustomLoader';
 
@@ -64,7 +65,9 @@ const SimActivation = () => {
         "esim_status": "NotAssigned"
       };
       const retriveData = await DeviceModelServices.getDeviceList(filter);
-      dispatch(getDeviceListAvailable(retriveData.data.data));
+      const devices = retriveData.data.data || [];
+      const validDevices = devices.filter(device => isCertValid(device.model));
+      dispatch(getDeviceListAvailable(validDevices));
       setLoad(true);
     } catch (error) {
       console.error('Error fetching device list:', error);

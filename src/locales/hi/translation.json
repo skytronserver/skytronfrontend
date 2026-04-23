@@ -1062,6 +1062,7 @@
   "tagDeviceForm": {
     "title": "वाहन से डिवाइस टैग करें",
     "steps": {
+      "otCommandConfiguration": "VLT डिवाइस कॉन्फ़िगरेशन",
       "tagDevice": "वाहन से डिवाइस टैग करें",
       "dealerVerification": "डीलर सत्यापन",
       "sendOwnerOtp": "मालिक को ओटीपी भेजें",
@@ -1080,7 +1081,7 @@
       "engineNo": "इंजन नंबर",
       "chassisNo": "चेसिस नंबर",
       "districtCode": "जिला कोड",
-      "district": "जिला",
+      "district": "जिला (ऑटोफिल)",
       "vehicleNumber": "वाहन नंबर",
       "vehicleMake": "वाहन निर्माता",
       "vehicleModel": "वाहन मॉडल",
@@ -1110,8 +1111,8 @@
       "ownerOtpSent": "वाहन मालिक के मोबाइल नंबर पर एक ओटीपी भेजा गया है। कृपया जारी रखने के लिए नीचे ओटीपी दर्ज करें।",
       "getVahanDetails": "वाहन से विवरण प्राप्त करने के लिए नीचे क्लिक करें",
       "getLocation": "वाहन का स्थान प्राप्त करने के लिए नीचे क्लिक करें",
-      "sosButtonInstruction": "कृपया अपने डिवाइस पर एसओएस बटन दबाएं",
-      "sosActivateInstruction": "कृपया Skytron ऐप में SOS सक्रिय करें",
+      "sosButtonInstruction": "निर्देश: डिवाइस से जुड़े पैनिक बटन को दबाएं और तब तक प्रतीक्षा करें जब तक कि एसओएस प्रतीक हरा न हो जाए।",
+      "sosActivateInstruction": "निर्देश: Skytron ऐप पर पैनिक टैब दबाएं। संबंधित वाहन का चयन करें और तब तक प्रतीक्षा करें जब तक कि एसओएस प्रतीक हरा न हो जाए।",
       "sosAlertReceived": "एसओएस अलर्ट प्राप्त हुआ",
       "sosButtonPressed": "एसओएस बटन सफलतापूर्वक दबाया गया",
       "sosButtonProceed": "एसओएस बटन दबाया गया! अगले चरण पर जा रहे हैं...",

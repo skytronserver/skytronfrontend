@@ -111,7 +111,11 @@ const AssignDevice = () => {
 
       let successMessage = t("common.formSubmittedSuccessfully");
       if (manualImeis.length > 0) {
-        successMessage = `${matchCount} out of ${manualImeis.length} manual IMEI assigned. Total ${combinedDeviceIds.length} devices assigned.`;
+        if (matchCount < manualImeis.length) {
+          successMessage = `${matchCount} out of ${manualImeis.length} manual IMEI assigned. Some IMEIs were not found or have expired TAC/COP validity. Total ${combinedDeviceIds.length} devices assigned.`;
+        } else {
+          successMessage = `${matchCount} manual IMEI assigned. Total ${combinedDeviceIds.length} devices assigned.`;
+        }
       }
 
       setAlert({
