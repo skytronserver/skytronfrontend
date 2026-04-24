@@ -23,7 +23,7 @@ import HomePageService from "../../services/HomePage";
 
 /**
  * Reusable Bhuvan Map Component with OpenLayers
- * Supports Normal (Bhuvan) and Satellite (OSM) base layers
+ * Supports Normal (Bhuvan) and Satellite (OSM) base layerss
  * 
  * @param {Object} props
  * @param {Array} props.gpsData - Array of GPS data points to display as markers
@@ -2353,11 +2353,11 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         const source = vectorLayer.getSource();
 
 
-    // Merge all vehicle sources
-    const allVehicles = [
-        ...(gpsData || []).map(v => ({ ...v, markerCategory: "vehicle" })),
-        ...(policeData || []).map(v => ({ ...v, markerCategory: "police" })),
-    ];
+        // Merge all vehicle sources
+        const allVehicles = [
+            ...(gpsData || []).map(v => ({ ...v, markerCategory: "vehicle" })),
+            ...(policeData || []).map(v => ({ ...v, markerCategory: "police" })),
+        ];
 
         allVehicles.forEach((data) => {
             const imei =
@@ -2370,7 +2370,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
             if (!imei) return;
 
-            
+
             const newCoord = [data.longitude, data.latitude];
             // ✅ CHECK INDIA BOUNDARY
             const isValidIndia = isInsideIndia(newCoord[0], newCoord[1]);
