@@ -48,9 +48,19 @@ const rawOtCommands = [
   "3. Emergency Fallback number: (will advise tomorrow- it has to be actual)",
   "4: Registration No in case of already registered vehicle.",
   "5: In case of new un-registered vehicle, please set Reg number in devices in following format-",
-  "   ASXXTEMPYYY",
-  "   XX= DTO code, example: 01",
-  "   YYY= Last 3 digits of the vehicle chassis number"
+  "",
+  "ASXXTEMPYYY",
+  "",
+  "Where,",
+  "",
+  "AS= Static for all",
+  "XX= DTO code, example: 01",
+  "TEMP= Static for all",
+  "YYY= Last 3 digits of the vehicle chassis number",
+  "",
+  "Example:",
+  "",
+  "AS25TEMPC1Z"
 ];
 
 const formattedOtCommands = rawOtCommands;
@@ -751,13 +761,22 @@ function TagDeviceToVehicle() {
                     )}
                   </Typography>
                   <ul style={{ listStyle: "none", paddingLeft: 0 }}>
-                    {formattedOtCommands.map((command) => (
-                      <li key={command}>
-                        <Typography variant="body1">
-                          {command}
-                        </Typography>
-                      </li>
-                    ))}
+                    {formattedOtCommands.map((command, index) => {
+                      const isBold = ["ASXXTEMPYYY", "Example:"].includes(command);
+                      return (
+                        <li key={index}>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              minHeight: command === "" ? "1em" : "auto",
+                              fontWeight: isBold ? "bold" : "normal"
+                            }}
+                          >
+                            {command}
+                          </Typography>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </Grid>
                 <Grid item xs={12} md={5}>
