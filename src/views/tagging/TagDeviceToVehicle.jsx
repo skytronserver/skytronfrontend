@@ -349,7 +349,7 @@ function TagDeviceToVehicle() {
     const poll = async () => {
       try {
         const registrationNo = ownerDetails?.vehicle_reg_no || getMap?.regno || "";
-        const searchValue = (activeStep === 7 && registrationNo) ? `SOS_PUB_${registrationNo}` : (ownerDetails?.IMEI || getMap?.imei || "");
+        const searchValue = (activeStep === 5 && registrationNo) ? `SOS_PUB_${registrationNo}` : (ownerDetails?.IMEI || getMap?.imei || "");
 
         const res = await axios.get(emergencyLogUrl, { params: { search: searchValue } });
         const dataString = res?.data?.data;
