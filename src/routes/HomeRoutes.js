@@ -1,16 +1,20 @@
-import PrivacyPolicy from "views/pages/PrivacyPolicy";
+import { lazy } from "react";
+import Loadable from "../ui-component/Loadable";
 import HomepageLayout from "../layout/HomepageLayout";
-import Home from "../views/homepage/Home";
-import CameraFeedsView from "pages/CameraFeedsView";
-import UserRegistrationRequest from "../views/homepage/UserRegistrationRequest";
-import DeviceStats from "../views/public/DeviceStats";
-import RegistrationStatusTracker from "../views/homepage/RegistrationStatusTracker";
-import RegistrationAdminReview from "../views/homepage/RegistrationAdminReview";
-import UserRegistrationForm from "../views/homepage/UserRegistrationForm";
-import PublicTransportVehicleMonitoringDashboard from "../views/dashboard/super admin dashboard/PublicTransportVehicleMonitoringDashboard";
-import ERSSVehiclesDashboard from "../views/dashboard/super admin dashboard/ERSSVehiclesDashboard";
-import SOSMonitoringDashboard from "../views/dashboard/super admin dashboard/SOSMonitoringDashboard";
-import SOSAnalyticsDashboard from "../views/dashboard/super admin dashboard/SOSAnalyticsDashboard";
+
+// Lazy-loaded components
+const PrivacyPolicy = Loadable(lazy(() => import("views/pages/PrivacyPolicy")));
+const Home = Loadable(lazy(() => import("../views/homepage/Home")));
+const CameraFeedsView = Loadable(lazy(() => import("pages/CameraFeedsView")));
+const UserRegistrationRequest = Loadable(lazy(() => import("../views/homepage/UserRegistrationRequest")));
+const DeviceStats = Loadable(lazy(() => import("../views/public/DeviceStats")));
+const RegistrationStatusTracker = Loadable(lazy(() => import("../views/homepage/RegistrationStatusTracker")));
+const RegistrationAdminReview = Loadable(lazy(() => import("../views/homepage/RegistrationAdminReview")));
+const UserRegistrationForm = Loadable(lazy(() => import("../views/homepage/UserRegistrationForm")));
+const PublicTransportVehicleMonitoringDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/PublicTransportVehicleMonitoringDashboard")));
+const ERSSVehiclesDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/ERSSVehiclesDashboard")));
+const SOSMonitoringDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSMonitoringDashboard")));
+const SOSAnalyticsDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSAnalyticsDashboard")));
 
 
 const HomeRoutes = {

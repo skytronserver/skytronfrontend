@@ -1,12 +1,17 @@
+import { lazy } from "react";
 import { Navigate } from "react-router-dom";
+// project imports
+import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
-import TagDeviceToVehicle from "../views/tagging/TagDeviceToVehicle";
-import UnApprovedTag from "../views/tagging/UnApprovedTag";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
-import NotAuthorized from "../views/pages/NotAuthorized";
-import UploadReceipt from "../views/tagging/UploadReceipt";
-import VahanVerification from "../views/tagging/VahanVerification";
+
+// Lazy-loaded components
+const TagDeviceToVehicle = Loadable(lazy(() => import("../views/tagging/TagDeviceToVehicle")));
+const UnApprovedTag = Loadable(lazy(() => import("../views/tagging/UnApprovedTag")));
+const NotAuthorized = Loadable(lazy(() => import("../views/pages/NotAuthorized")));
+const UploadReceipt = Loadable(lazy(() => import("../views/tagging/UploadReceipt")));
+const VahanVerification = Loadable(lazy(() => import("../views/tagging/VahanVerification")));
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');

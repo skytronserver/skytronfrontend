@@ -1,34 +1,38 @@
+import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 // project imports
 
+// project imports
+import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
-import DeviceForm from "../views/forms/DeviceForm";
-import DeviceModelForm from "../views/forms/DeviceModelForm";
-import ModelExtension from "../views/forms/ModelExtension";
-import DeviceModelList from "../views/reports/DeviceModelList";
-import StateAdminDeviceModelView from "../views/detailsview/StateAdminDeviceModelView";
-import { useSelector } from "react-redux";
-import UnapproveCopList from "../views/reports/UnapproveCopList";
-import StateAdminCOPModelView from "../views/detailsview/StateAdminCOPModelView";
-import BulkUpload from "../views/forms/BulkUpload";
-import AssignDevice from "../views/forms/AssignDevice";
-import BulkDeviceAssign from "../views/forms/BulkDeviceAssign";
-import ShowDevice from "../views/showDevice/ShowDevice";
-import AvailableForSale from "../views/showDevice/AvailableForSale";
-import ConfigureDevice from "../views/tagging/ConfigureDevice";
 import { decipherEncryption } from "../helper";
-import NotAuthorized from "../views/pages/NotAuthorized";
-import TaggedList from "../views/reports/TaggedList";
-import SimActivation from "../views/pages/device/SimActivation";
-import ListSimActivation from "../views/pages/device/ListSimActivation";
-import CombinedStockReport from "../views/showDevice/CombinedStockReport";
-import AllTaggedDevice from "../views/showDevice/AllTaggedDevice";
-import ApprovedModelsList from "../views/reports/ApprovedModelsList";
-import ApprovedCOPsList from "../views/reports/ApprovedCOPsList";
-import M2MStatusReport from "../views/reports/M2MStatusReport";
-import ManufacturerOnboarding from "../views/pages/ManufacturerOnboarding";
-import DeviceModelTechnicalOnboardingCreate from "../views/pages/DeviceModelTechnicalOnboardingCreate";
-import DeviceModelTechnicalOnboardingList from "../views/pages/DeviceModelTechnicalOnboardingList";
+
+// Lazy-loaded components
+const DeviceForm = Loadable(lazy(() => import("../views/forms/DeviceForm")));
+const DeviceModelForm = Loadable(lazy(() => import("../views/forms/DeviceModelForm")));
+const ModelExtension = Loadable(lazy(() => import("../views/forms/ModelExtension")));
+const DeviceModelList = Loadable(lazy(() => import("../views/reports/DeviceModelList")));
+const StateAdminDeviceModelView = Loadable(lazy(() => import("../views/detailsview/StateAdminDeviceModelView")));
+const UnapproveCopList = Loadable(lazy(() => import("../views/reports/UnapproveCopList")));
+const StateAdminCOPModelView = Loadable(lazy(() => import("../views/detailsview/StateAdminCOPModelView")));
+const BulkUpload = Loadable(lazy(() => import("../views/forms/BulkUpload")));
+const AssignDevice = Loadable(lazy(() => import("../views/forms/AssignDevice")));
+const BulkDeviceAssign = Loadable(lazy(() => import("../views/forms/BulkDeviceAssign")));
+const ShowDevice = Loadable(lazy(() => import("../views/showDevice/ShowDevice")));
+const AvailableForSale = Loadable(lazy(() => import("../views/showDevice/AvailableForSale")));
+const ConfigureDevice = Loadable(lazy(() => import("../views/tagging/ConfigureDevice")));
+const NotAuthorized = Loadable(lazy(() => import("../views/pages/NotAuthorized")));
+const TaggedList = Loadable(lazy(() => import("../views/reports/TaggedList")));
+const SimActivation = Loadable(lazy(() => import("../views/pages/device/SimActivation")));
+const ListSimActivation = Loadable(lazy(() => import("../views/pages/device/ListSimActivation")));
+const CombinedStockReport = Loadable(lazy(() => import("../views/showDevice/CombinedStockReport")));
+const AllTaggedDevice = Loadable(lazy(() => import("../views/showDevice/AllTaggedDevice")));
+const ApprovedModelsList = Loadable(lazy(() => import("../views/reports/ApprovedModelsList")));
+const ApprovedCOPsList = Loadable(lazy(() => import("../views/reports/ApprovedCOPsList")));
+const M2MStatusReport = Loadable(lazy(() => import("../views/reports/M2MStatusReport")));
+const ManufacturerOnboarding = Loadable(lazy(() => import("../views/pages/ManufacturerOnboarding")));
+const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingCreate")));
+const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
