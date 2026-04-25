@@ -18,7 +18,7 @@ sudo docker-compose build \
   --no-cache app
 
 # Remove old container first to avoid docker-compose 1.29.2 ContainerConfig bug
-sudo docker-compose rm -f app
+sudo docker-compose rm -f -s app
 
 sudo docker-compose up -d app
  
