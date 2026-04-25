@@ -227,7 +227,7 @@ const UploadReceipt = () => {
     @media print {
       @page { margin: 20px; }
       body { 
-        font-family: Arial, sans-serif; 
+        font-family: "Times New Roman", Times, serif; 
         padding: 20px; 
         background-image: url('${logoUrl}');
         background-repeat: no-repeat;
@@ -236,7 +236,7 @@ const UploadReceipt = () => {
       }
     }
     body { 
-      font-family: Arial, sans-serif; 
+      font-family: "Times New Roman", Times, serif; 
       padding: 40px; 
       background-image: url('${logoUrl}');
       background-repeat: no-repeat;

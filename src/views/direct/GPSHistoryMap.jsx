@@ -121,6 +121,28 @@ const GoogleHistoryMap = ({
   const isPlayingRef = useRef(false);
   const speedRef = useRef(1);
   const mapDataRef = useRef([]);
+  const isValidPoint = (p) => {
+    const lat = parseFloat(p?.lat);
+    const lon = parseFloat(p?.lon);
+
+    return (
+      !isNaN(lat) &&
+      !isNaN(lon) &&
+      lat !== 0 &&
+      lon !== 0
+    );
+  };
+
+  const getTimeGapSec = (a, b) => {
+    if (!a?.et || !b?.et) return 0;
+
+    return Math.abs(
+      (new Date(b.et).getTime() -
+        new Date(a.et).getTime()) /
+        1000
+    );
+  };
+
 
   /* ───────── VEHICLE COLOR ───────── */
   const getVehicleColor = (p) => {
@@ -133,42 +155,41 @@ const GoogleHistoryMap = ({
     return "#ef4444";
   };
 
-  const fillMissingWithGoogleRoute = async (data) => {
-    if (!window.google || !data?.length) return data;
+  const fillMissingWithGoogleRoute = async (rawData) => {
+    if (!window.google || !rawData?.length) return rawData;
 
-    const directionsService = new window.google.maps.DirectionsService();
-
-    const isValidPoint = (p) => {
-      const lat = parseFloat(p?.lat);
-      const lon = parseFloat(p?.lon);
-      return !isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0;
-    };
+    const directionsService =
+      new window.google.maps.DirectionsService();
 
     let final = [];
-    let i = 0;
 
-    while (i < data.length) {
-      const curr = data[i];
+    for (let i = 0; i < rawData.length; i++) {
+      const curr = rawData[i];
 
-      /* normal valid point */
-      if (isValidPoint(curr)) {
-        final.push(curr);
-        i++;
+      if (i === 0) {
+        if (isValidPoint(curr)) final.push(curr);
         continue;
       }
 
-      /* missing point found */
-      let prev = final.length ? final[final.length - 1] : null;
+      const prevRaw = rawData[i - 1];
 
-      let j = i + 1;
-      while (j < data.length && !isValidPoint(data[j])) {
-        j++;
-      }
+      const prev = final[final.length - 1];
 
-      const next = j < data.length ? data[j] : null;
+      const currValid = isValidPoint(curr);
+      const prevValid = isValidPoint(prevRaw);
 
-      /* if both sides available => fill using route */
-      if (prev && next) {
+      const timeGap = getTimeGapSec(prevRaw, curr);
+
+      const needRouteFill =
+        (!currValid && prev) ||
+        (!prevValid && currValid && prev) ||
+        (prev && currValid && timeGap > 15);
+
+      /* ===============================================
+         CASE:
+         Need route API fill
+      =============================================== */
+      if (needRouteFill && prev && currValid) {
         try {
           const res = await directionsService.route({
             origin: {
@@ -176,37 +197,44 @@ const GoogleHistoryMap = ({
               lng: parseFloat(prev.lon)
             },
             destination: {
-              lat: parseFloat(next.lat),
-              lng: parseFloat(next.lon)
+              lat: parseFloat(curr.lat),
+              lng: parseFloat(curr.lon)
             },
-            travelMode: window.google.maps.TravelMode.DRIVING
+            travelMode:
+              window.google.maps.TravelMode.DRIVING
           });
 
-          const routePoints =
+          const route =
             res.routes?.[0]?.overview_path || [];
 
-          if (routePoints.length) {
-            routePoints.forEach((p, idx) => {
+          if (route.length) {
+            route.forEach((p, idx) => {
+              if (idx === 0) return;
+
               final.push({
                 ...curr,
                 lat: p.lat(),
                 lon: p.lng(),
-                s: curr.s || prev.s || 0,
-                et: curr.et || prev.et,
                 isFilled: true
               });
             });
+          } else {
+            final.push(curr);
           }
         } catch (err) {
-          console.error("Route API Error:", err);
+          console.error("Route Fill Error:", err);
+          final.push(curr);
+        }
+      } else {
+        if (currValid) {
+          final.push(curr);
         }
       }
-
-      i = j;
     }
 
     return final;
   };
+
 
   /* ─── fetch ─── */
   const fetchData = async () => {
@@ -426,20 +454,116 @@ const GoogleHistoryMap = ({
         </div>
       </div>
 
+      
+
+      {/* ── MAP ── */}
+
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        onLoad={(m) => (mapRef.current = m)}
+        center={currentPos}
+        zoom={14}
+      >
+        {/* Route polylines */}
+        {mapData.map((p, i) => {
+          if (i === 0) return null;
+          const prev = mapData[i - 1];
+          const spd = +p.s || 0;
+          return (
+            <Polyline
+              key={i}
+              path={[
+                { lat: +prev.lat, lng: +prev.lon },
+                { lat: +p.lat, lng: +p.lon }
+              ]}
+              options={{
+                strokeColor: spd > 0 ? "#16a34a" : "#ef4444",
+                strokeWeight: 4,
+                strokeOpacity: 0.85
+              }}
+            />
+          );
+        })}
+
+        {/* Vehicle marker */}
+        {currentPos && (
+          <OverlayView
+            position={currentPos}
+            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+          >
+            <div
+              style={{
+                width: 50,
+                height: 50,
+                position: "absolute",
+                left: "-25px",
+                top: "-25px",
+                transform: `rotate(${getAngle(
+                  mapData[currentIndex],
+                  mapData[currentIndex + 1]
+                )}deg)`,
+                transformOrigin: "center center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <svg viewBox="0 0 64 64" width="44" height="44">
+                <ellipse cx="32" cy="57" rx="13" ry="4" fill="rgba(0,0,0,0.22)" />
+                {/* glow ring */}
+                <circle cx="32" cy="30" r="22" fill="rgba(37,99,235,0.15)" />
+                {/* body */}
+
+                <rect x="18" y="8" width="28" height="48" rx="8" fill={vehicleColor} />                  {/* windows */}
+                <rect x="21" y="12" width="22" height="14" rx="4" fill="rgba(147,197,253,0.7)" />
+                {/* wheels */}
+                <circle cx="16" cy="20" r="3.5" fill="#0f172a" />
+                <circle cx="48" cy="20" r="3.5" fill="#0f172a" />
+                <circle cx="16" cy="46" r="3.5" fill="#0f172a" />
+                <circle cx="48" cy="46" r="3.5" fill="#0f172a" />
+                {/* headlights */}
+                <rect x="21" y="8" width="8" height="3" rx="1.5" fill="#fde68a" />
+                <rect x="35" y="8" width="8" height="3" rx="1.5" fill="#fde68a" />
+              </svg>
+            </div>
+          </OverlayView>
+        )}
+      </GoogleMap>
+
+
+      {/* ── TIMELINE SLIDER ── */}
       <div style={{
-        position: "absolute",
-        top: 16,
-        right: 20,
-        zIndex: 20,
+        background: T.accent,
+        padding: "14px 20px 12px",
         display: "flex",
         alignItems: "center",
-        gap: 8,
-        background: "rgba(30,58,95,0.95)",
-        padding: "6px 10px",
-        borderRadius: 12
+        gap: 14
       }}>
 
-        {/* PLAY / PAUSE */}
+        {/* start label */}
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap", minWidth: 55 }}>
+          {mapData[0]?.et
+            ? new Date(mapData[0].et).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : "Start"}
+        </span>
+        <div
+    style={{
+      flex: 1,
+      position: "relative",
+      paddingTop: 26   // space for buttons above bar
+    }}
+  >
+
+        {/* slider */}
+        <div style={{position: "absolute",
+        top: -8,
+        left: "50%",
+        transform: "translateX(-50%)",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        zIndex: 10 }}>
+                    {/* PLAY / PAUSE */}
         <button
           onClick={isPlaying ? handlePause : handlePlay}
           style={{
@@ -485,117 +609,9 @@ const GoogleHistoryMap = ({
             <path d="M7 2v2a3 3 0 1 1-3 3H2a5 5 0 1 0 5-5z" />
           </svg>
         </button>
-
-
-
-      </div>
-
-      {/* ── MAP ── */}
-
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        onLoad={(m) => (mapRef.current = m)}
-        center={currentPos}
-        zoom={14}
-      >
-        {/* Route polylines */}
-        {mapData.map((p, i) => {
-          if (i === 0) return null;
-          const prev = mapData[i - 1];
-          const spd = +p.s || 0;
-          return (
-            <Polyline
-              key={i}
-              path={[
-                { lat: +prev.lat, lng: +prev.lon },
-                { lat: +p.lat, lng: +p.lon }
-              ]}
-              options={{
-                strokeColor: spd > 0 ? "#16a34a" : "#ef4444",
-                strokeWeight: 4,
-                strokeOpacity: 0.85
-              }}
-            />
-          );
-        })}
-
-        {/* Vehicle marker */}
-        {currentPos && (
-          <OverlayView
-            position={currentPos}
-            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-          >
-            <div style={{
-              transform: `rotate(${getAngle(mapData[currentIndex], mapData[currentIndex + 1])}deg)`,
-              transformOrigin: "center",
-              width: 50, height: 50
-            }}>
-              <svg viewBox="0 0 64 64" width="44" height="44">
-                <ellipse cx="32" cy="57" rx="13" ry="4" fill="rgba(0,0,0,0.22)" />
-                {/* glow ring */}
-                <circle cx="32" cy="30" r="22" fill="rgba(37,99,235,0.15)" />
-                {/* body */}
-
-                <rect x="18" y="8" width="28" height="48" rx="8" fill={vehicleColor} />                  {/* windows */}
-                <rect x="21" y="12" width="22" height="14" rx="4" fill="rgba(147,197,253,0.7)" />
-                {/* wheels */}
-                <circle cx="16" cy="20" r="3.5" fill="#0f172a" />
-                <circle cx="48" cy="20" r="3.5" fill="#0f172a" />
-                <circle cx="16" cy="46" r="3.5" fill="#0f172a" />
-                <circle cx="48" cy="46" r="3.5" fill="#0f172a" />
-                {/* headlights */}
-                <rect x="21" y="8" width="8" height="3" rx="1.5" fill="#fde68a" />
-                <rect x="35" y="8" width="8" height="3" rx="1.5" fill="#fde68a" />
-              </svg>
-            </div>
-          </OverlayView>
-        )}
-      </GoogleMap>
-
-      {/* ── Floating info card ── */}
-      {/* <div style={{
-          position: "absolute",
-          top: 14, left: 14,
-          background: "rgba(255,255,255,0.96)",
-          padding: "12px 16px",
-          borderRadius: 12,
-          boxShadow: "0 4px 24px rgba(30,58,95,0.18)",
-          backdropFilter: "blur(8px)",
-          border: "1px solid rgba(226,229,235,0.8)",
-          minWidth: 160
-        }}>
-          <div style={{ fontWeight: 800, fontSize: 14, color: T.text, marginBottom: 5 }}>
-            {vehicleRegistrationNumber}
-          </div>
-          <SpeedBadge speed={currentData.s} />
-          <div style={{ marginTop: 6, fontSize: 13, fontWeight: 700, color: T.text }}>
-            {(+currentData.s || 0)} <span style={{ fontSize: 11, color: T.muted, fontWeight: 500 }}>km/h</span>
-          </div>
-          <div style={{ fontSize: 11, color: T.muted, marginTop: 3 }}>
-            {currentData.et
-              ? new Date(currentData.et).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-              : "—"}
-          </div>
-        </div> */}
-
-      {/* ── TIMELINE SLIDER ── */}
-      <div style={{
-        background: T.accent,
-        padding: "12px 20px",
-        display: "flex",
-        alignItems: "center",
-        gap: 14
-      }}>
-        {/* start label */}
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap", minWidth: 34 }}>
-          {mapData[0]?.et
-            ? new Date(mapData[0].et).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : "Start"}
-        </span>
-
-        {/* slider */}
-        <div style={{ flex: 1, position: "relative" }}>
+        </div>
           {/* progress fill bar */}
+           <div style={{ position: "relative" }}>
           <div style={{
             position: "absolute",
             left: 0, top: "50%",
@@ -623,6 +639,7 @@ const GoogleHistoryMap = ({
               zIndex: 2
             }}
           />
+        </div>
         </div>
 
         {/* end label */}

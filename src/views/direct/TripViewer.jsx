@@ -1143,7 +1143,7 @@ const TripViewer = () => {
                     zIndex: 1000,
                     bgcolor: mapType === "normal" ? 'white' : '#333',
                     color: mapType === "normal" ? 'black' : 'white',
-                    fontFamily: '"Roboto", sans-serif',
+                    fontFamily: '"Times New Roman", Times, serif',
                     textTransform: 'none',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
                     '&:hover': {

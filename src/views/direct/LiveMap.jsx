@@ -573,7 +573,7 @@ box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 border: 1px solid rgba(0, 0, 0, 0.08);
 min-width: 170px;
 max-width: 200px;
-font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-family: "Times New Roman", Times, serif;
 font-size: 11px;
 color: #1f2933;
 }
@@ -1239,7 +1239,7 @@ const MapComponent = ({
         const textStyle = labelText
             ? new Text({
                 text: labelText,
-                font: '11px "Roboto", sans-serif',
+                font: '11px "Times New Roman", Times, serif',
                 fill: new Fill({ color: "#0D47A1" }),
                 stroke: new Stroke({ color: "#ffffff", width: 3 }),
                 backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
@@ -1410,7 +1410,7 @@ const MapComponent = ({
         const createText = (overrides = {}) =>
             new Text({
                 text: displayText,
-                font: '12px "Roboto", sans-serif',
+                font: '12px "Times New Roman", Times, serif',
                 fill: new Fill({ color: "#0D47A1" }),
                 stroke: new Stroke({ color: "#ffffff", width: 3 }),
                 backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
@@ -1520,7 +1520,7 @@ const MapComponent = ({
             text: new Text({
                 text: size.toString(),
                 fill: new Fill({ color: '#fff' }),
-                font: 'bold 12px "Roboto", sans-serif',
+                font: 'bold 12px "Times New Roman", Times, serif',
             }),
         });
     };
@@ -3307,7 +3307,7 @@ display: none !important;
                     const hdMediaContainerId = `incident-media-hd-${incident.id}-${Date.now()}`;
 
                     const popupContent = `
-<div style="padding: 12px; min-width: 250px; font-family: 'Roboto', sans-serif;">
+<div style="padding: 12px; min-width: 250px; font-family: "Times New Roman", Times, serif;">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
 <h4 style="margin: 0; color: #d32f2f; font-size: 16px;">Incident #${incident.id}</h4>
 <span style="background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; border: 1px solid #ffcdd2;">ALERT</span>
@@ -3998,7 +3998,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 // --- Helper Functions Definitions ---
                 function renderListView(items) {
                     let listHtml = `
-<div class="overlay-card" style="min-width: 280px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
+<div class="overlay-card" style="min-width: 280px; max-height: 320px; overflow-y: auto; font-family: "Times New Roman", Times, serif;">
 <div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
 <div class="overlay-title">${items.length} Items Here</div>
 </div>
@@ -4041,7 +4041,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                         const incident = item.data;
                         const imageContainerId = `incident-media-${incident.id}-${Date.now()}`;
                         document.getElementById("overlay-content").innerHTML = `
-<div class="overlay-card" style="min-width: 250px; font-family: 'Roboto', sans-serif;">
+<div class="overlay-card" style="min-width: 250px; font-family: "Times New Roman", Times, serif;">
 <div class="overlay-header">
 <div class="overlay-title">Incident #${incident.id}</div>
 <div class="overlay-pill overlay-pill--alert">ALERT</div>
@@ -4307,7 +4307,7 @@ ${policeInfoRows || policeDetailsRows
                     if (currentZoom >= 16 || isSameLocation) {
                         // Show list of vehicles
                         let listHtml = `
-<div class="overlay-card" style="min-width: 260px; max-height: 320px; overflow-y: auto; font-family: 'Roboto', sans-serif;">
+<div class="overlay-card" style="min-width: 260px; max-height: 320px; overflow-y: auto; font-family: "Times New Roman", Times, serif;">
 <div class="overlay-header" style="position: sticky; top: 0; background: white; z-index: 1; border-bottom: 1px solid #eee; margin-bottom: 0;">
 <div class="overlay-title">${features.length} Vehicles Here</div>
 </div>
@@ -5192,7 +5192,7 @@ useEffect(() => {
                             width: 30,
                             height: 40,
                             popupHtml: `
-<div style="padding: 10px; width: 250px; font-family: 'Roboto', sans-serif;">
+<div style="padding: 10px; width: 250px; font-family: "Times New Roman", Times, serif;">
 <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #333; line-height: 1.3; overflow-wrap: break-word;">
 ${result.poi || result.placeName || result.locality || result.name || 'Location'}
 </h3>
@@ -6186,7 +6186,7 @@ box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 border: 1px solid rgba(0, 0, 0, 0.08);
 min-width: 160px;
 max-width: 320px;
-font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-family: "Times New Roman", Times, serif;
 font-size: 11px;
 color: #1f2933;
 }

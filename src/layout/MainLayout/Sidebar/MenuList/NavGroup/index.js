@@ -11,7 +11,7 @@ import NavCollapse from '../NavCollapse';
 
 // ==============================|| SIDEBAR MENU LIST GROUP ||============================== //
 
-const NavGroup = ({ item, role }) => {
+const NavGroup = ({ item, role,onMenuClick  }) => {
   const theme = useTheme();
   const { t } = useTranslation();
 
@@ -42,11 +42,11 @@ const NavGroup = ({ item, role }) => {
     switch (menu.type) {
       case 'collapse':
         
-        const collapse = menu.roles ? (menu.roles.includes(role) ? <NavCollapse key={menu.id} menu={menu} level={1} role={role}/> : '') : <NavCollapse key={menu.id} menu={menu} level={1} role={role}/>;
+        const collapse = menu.roles ? (menu.roles.includes(role) ? <NavCollapse key={menu.id} menu={menu} level={1} role={role} onMenuClick={onMenuClick}/> : '') : <NavCollapse key={menu.id} menu={menu} level={1} role={role} onMenuClick={onMenuClick}/>;
         return collapse;
       case 'item':
        
-        const navItem = menu.roles ? (menu.roles.includes(role) ? <NavItem key={menu.id} item={menu} level={1} /> : '') : <NavItem key={menu.id} item={menu} level={1} />;
+        const navItem = menu.roles ? (menu.roles.includes(role) ? <NavItem key={menu.id} item={menu} level={1} onMenuClick={onMenuClick}/> : '') : <NavItem key={menu.id} item={menu} level={1} onMenuClick={onMenuClick}/>;
         return navItem;
       default:
         return (

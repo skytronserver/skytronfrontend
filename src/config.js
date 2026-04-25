@@ -4,7 +4,7 @@ const config = {
   basename: '',
   defaultPath: '/home-page',
   dashboard:'/dashboard',
-  fontFamily: `'Roboto', sans-serif`,
+  fontFamily: `'Times New Roman',  Times, serif`,
   borderRadius: 12
 };
 

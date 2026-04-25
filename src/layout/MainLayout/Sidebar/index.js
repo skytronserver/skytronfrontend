@@ -84,7 +84,10 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             paddingRight: '16px'
           }}
         >
-          <MenuList onMenuClick={() => drawerToggle(false)}/>
+          <MenuList  onMenuClick={() => {
+      if (!matchUpMd) drawerToggle(false);   // mobile only
+      else drawerToggle(false);             // desktop also close
+   }} />
         </PerfectScrollbar>
       </BrowserView>
       <MobileView>
@@ -98,8 +101,8 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
   const container = window !== undefined ? () => window.document.body : undefined;
 
   const handleMenuClick = () => {
-  drawerToggle(false);
-};
+    drawerToggle(false);
+  };
 
   return (
     <Box component="nav" sx={{ flexShrink: { md: 0 }, width: matchUpMd ? drawerWidth : 'auto' }} aria-label="mailbox folders">
@@ -121,8 +124,8 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             overflow: 'hidden',
             color: "#ffffff",
             '& *': {
-      color: "#ffffff !important",
-    },
+              color: "#ffffff !important",
+            },
             zIndex: 1300,
             transform: drawerOpen ? 'translateY(0)' : 'translateY(-100%)',
             opacity: drawerOpen ? 1 : 0.95,
@@ -131,7 +134,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
 
             boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
             borderRight: '1px solid rgba(255,255,255,0.05)',
-            
+
 
             [theme.breakpoints.up('md')]: {
               top: '65px',

@@ -1086,7 +1086,6 @@ const LiveTracking = () => {
     <MainCard sx={{
       background: "#eef1f5",
       borderRadius: "18px",
-      p: 2
     }}>
       <Typography variant="h4" sx={{
         fontWeight: 700,

@@ -459,113 +459,311 @@ const DeviceModelTechnicalOnboardingCreate = () => {
           </SectionBlock>
         );
 
-      /* ── Step 3: Demo Devices ── */
+        /* ── Step 3: Demo Devices ── */
+        // case 3:
+        //   return (
+        //     <SectionBlock
+        //       label="VLTD Devices"
+        //       description="5 VLTD device is required. All fields are mandatory."
+        //       action={
+        //         <Button
+        //           startIcon={<AddIcon />}
+        //           onClick={handleAddTestDevice}
+        //           variant="contained"
+        //           size="small"
+        //         >
+        //           Add Device
+        //         </Button>
+        //       }
+        //     >
+        //       <Stack spacing={2}>
+        //         {testDevices.map((d, index) => (
+        //           <Paper
+        //             key={index}
+        //             variant="outlined"
+        //             sx={{
+        //               borderRadius: 2,
+        //               overflow: "hidden",
+        //               borderColor: "divider",
+        //             }}
+        //           >
+        //             {/* card header */}
+        //             <Box
+        //               sx={{
+        //                 px: 2,
+        //                 py: 1.5,
+        //                 bgcolor: "primary.main",
+        //                 display: "flex",
+        //                 alignItems: "center",
+        //                 justifyContent: "space-between",
+        //               }}
+        //             >
+        //               <Stack direction="row" alignItems="center" spacing={1}>
+        //                 <SimCardIcon sx={{ color: "white", fontSize: 20 }} />
+        //                 <Typography variant="subtitle1" fontWeight={700} color="white">
+        //                   VLTD Device {index + 1}
+        //                 </Typography>
+        //                 {testDevices.length > 5 && (
+        //                   <Chip
+        //                     label={`#${index + 1}`}
+        //                     size="small"
+        //                     sx={{
+        //                       bgcolor: "rgba(255,255,255,0.2)",
+        //                       color: "white",
+        //                       fontSize: "0.7rem",
+        //                     }}
+        //                   />
+        //                 )}
+        //               </Stack>
+        //               <Tooltip
+        //                 title={
+        //                   canRemoveTestDevice
+        //                     ? "Remove device"
+        //                     : "At least 5 devices required"
+        //                 }
+        //               >
+        //                 <span>
+        //                   <IconButton
+        //                     onClick={() => handleRemoveTestDevice(index)}
+        //                     disabled={!canRemoveTestDevice}
+        //                     size="small"
+        //                     sx={{
+        //                       color: "white",
+        //                       "&.Mui-disabled": { color: "rgba(255,255,255,0.4)" },
+        //                     }}
+        //                   >
+        //                     <CloseIcon fontSize="small" />
+        //                   </IconButton>
+        //                 </span>
+        //               </Tooltip>
+        //             </Box>
+
+        //             {/* card body */}
+        //             <Box sx={{ p: 2 }}>
+        //               <Grid container spacing={2}>
+        //                 {TEST_DEVICE_FIELDS.map(({ key, label, placeholder }) => (
+        //                   <Grid item xs={12} md={6} key={key}>
+        //                     <TextField
+        //                       fullWidth
+        //                       id={`device_${index}_${key}`}
+        //                       label={label}
+        //                       placeholder={placeholder}
+        //                       value={d[key]}
+        //                       onChange={(e) =>
+        //                         handleTestDeviceChange(index, key, e.target.value)
+        //                       }
+        //                       error={!!fieldErrors[`device_${index}_${key}`]}
+        //                       helperText={fieldErrors[`device_${index}_${key}`]}
+        //                       size="small"
+        //                     />
+        //                   </Grid>
+        //                 ))}
+        //               </Grid>
+        //             </Box>
+        //           </Paper>
+        //         ))}
+        //       </Stack>
+        //     </SectionBlock>
+        //   );
+        {/* STEP 3 : VLTD DEVICES */ }
       case 3:
         return (
           <SectionBlock
             label="VLTD Devices"
-            description="5 VLTD device is required. All fields are mandatory."
+            description="5 VLTD devices are required. All fields are mandatory."
             action={
               <Button
                 startIcon={<AddIcon />}
                 onClick={handleAddTestDevice}
                 variant="contained"
-                size="small"
+                sx={{
+                  height: "46px",
+                  px: 3,
+                  borderRadius: "14px",
+                  fontWeight: 700,
+                  textTransform: "none",
+                  background:
+                    "linear-gradient(90deg,#14b8a6,#0ea5e9)"
+                }}
               >
                 Add Device
               </Button>
             }
           >
-            <Stack spacing={2}>
-              {testDevices.map((d, index) => (
-                <Paper
-                  key={index}
-                  variant="outlined"
-                  sx={{
-                    borderRadius: 2,
-                    overflow: "hidden",
-                    borderColor: "divider",
-                  }}
-                >
-                  {/* card header */}
-                  <Box
+            <Stack spacing={3}>
+              {testDevices
+                .slice(0, 5)
+                .map((d, index) => (
+                  <Paper
+                    key={index}
+                    elevation={0}
                     sx={{
-                      px: 2,
-                      py: 1.5,
-                      bgcolor: "primary.main",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
+                      p: 3,
+                      borderRadius:
+                        "22px",
+                      background:
+                        "linear-gradient(180deg,#f8fafc,#eef2f7)",
+                      border:
+                        "1px solid #e2e8f0"
                     }}
                   >
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <SimCardIcon sx={{ color: "white", fontSize: 20 }} />
-                      <Typography variant="subtitle1" fontWeight={700} color="white">
-                        VLTD Device {index + 1}
-                      </Typography>
-                      {testDevices.length > 5 && (
-                        <Chip
-                          label={`#${index + 1}`}
-                          size="small"
+                    {/* header */}
+                    <Box
+                      sx={{
+                        mb: 3,
+                        display:
+                          "flex",
+                        alignItems:
+                          "center",
+                        justifyContent:
+                          "space-between",
+                        flexWrap:
+                          "wrap",
+                        gap: 1,
+                        background:
+                          "linear-gradient(90deg,#e2e8f0,#f1f5f9)",
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1.2}
+                        alignItems="center"
+                      >
+                        <SimCardIcon
                           sx={{
-                            bgcolor: "rgba(255,255,255,0.2)",
-                            color: "white",
-                            fontSize: "0.7rem",
+                            color:
+                              "#0ea5e9"
                           }}
                         />
-                      )}
-                    </Stack>
-                    <Tooltip
-                      title={
-                        canRemoveTestDevice
-                          ? "Remove device"
-                          : "At least 5 devices required"
+
+                        <Typography
+                          variant="h6"
+                          fontWeight={800}
+                          color="#0f172a"
+                        >
+                          VLTD Device{" "}
+                          {index + 1}
+                        </Typography>
+                      </Stack>
+
+                      {testDevices.length >
+                        5 && (
+                          <IconButton
+                            onClick={() =>
+                              handleRemoveTestDevice(
+                                index
+                              )
+                            }
+                            disabled={
+                              !canRemoveTestDevice
+                            }
+                            sx={{
+                              border:
+                                "1px solid #e2e8f0"
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        )}
+                    </Box>
+
+                    {/* fields */}
+                    <Grid
+                      container
+                      columnSpacing={
+                        3
+                      }
+                      rowSpacing={
+                        0
                       }
                     >
-                      <span>
-                        <IconButton
-                          onClick={() => handleRemoveTestDevice(index)}
-                          disabled={!canRemoveTestDevice}
-                          size="small"
-                          sx={{
-                            color: "white",
-                            "&.Mui-disabled": { color: "rgba(255,255,255,0.4)" },
-                          }}
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  </Box>
+                      {TEST_DEVICE_FIELDS.map(
+                        ({
+                          key,
+                          label,
+                          placeholder
+                        }) => (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            md={4}
+                            key={key}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize:
+                                  "14px",
+                                fontWeight: 700,
+                                color:
+                                  "#334155",
+                                minHeight:
+                                  "42px",
+                                display:
+                                  "flex",
+                                alignItems:
+                                  "flex-end"
+                              }}
+                            >
+                              {label}
+                            </Typography>
 
-                  {/* card body */}
-                  <Box sx={{ p: 2 }}>
-                    <Grid container spacing={2}>
-                      {TEST_DEVICE_FIELDS.map(({ key, label, placeholder }) => (
-                        <Grid item xs={12} md={6} key={key}>
-                          <TextField
-                            fullWidth
-                            id={`device_${index}_${key}`}
-                            label={label}
-                            placeholder={placeholder}
-                            value={d[key]}
-                            onChange={(e) =>
-                              handleTestDeviceChange(index, key, e.target.value)
-                            }
-                            error={!!fieldErrors[`device_${index}_${key}`]}
-                            helperText={fieldErrors[`device_${index}_${key}`]}
-                            size="small"
-                          />
-                        </Grid>
-                      ))}
+                            <TextField
+                              fullWidth
+                              placeholder={
+                                placeholder
+                              }
+                              value={
+                                d[key]
+                              }
+                              onChange={(
+                                e
+                              ) =>
+                                handleTestDeviceChange(
+                                  index,
+                                  key,
+                                  e
+                                    .target
+                                    .value
+                                )
+                              }
+                              error={
+                                !!fieldErrors[
+                                `device_${index}_${key}`
+                                ]
+                              }
+                              helperText={
+                                fieldErrors[
+                                `device_${index}_${key}`
+                                ]
+                              }
+                              sx={{
+                                "& .MuiOutlinedInput-root":
+                                {
+                                  borderRadius:
+                                    "14px",
+                                  background:
+                                    "#fff",
+                                  minHeight:
+                                    "54px"
+                                },
+
+                                "& input":
+                                {
+                                  padding:
+                                    "14px"
+                                }
+                              }}
+                            />
+                          </Grid>
+                        )
+                      )}
                     </Grid>
-                  </Box>
-                </Paper>
-              ))}
+                  </Paper>
+                ))}
             </Stack>
           </SectionBlock>
         );
-
       default:
         return null;
     }
@@ -628,7 +826,27 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                 variant="outlined"
                 onClick={resetForm}
                 disabled={submitting}
-                sx={{ minWidth: 100 }}
+                sx={{
+                  minWidth: 100,
+                  px: 4,
+                  py: 1.4,
+                  height: "54px",
+                  borderRadius: "14px",
+                  fontWeight: 700,
+                  textTransform: "none",
+
+                  background:
+                    "linear-gradient(180deg,#ecfeff,#cffafe)",
+
+                  color: "#0f766e",
+                  border: "1px solid #67e8f9",
+
+                  "&:hover": {
+                    background:
+                      "linear-gradient(180deg,#cffafe,#a5f3fc)",
+                    borderColor: "#22d3ee"
+                  }
+                }}
               >
                 Reset
               </Button>
@@ -642,7 +860,27 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   startIcon={<ArrowBackIcon />}
                   onClick={handleBack}
                   disabled={submitting}
-                  sx={{ minWidth: 110 }}
+                  sx={{
+                    minWidth: 110,
+                    px: 4,
+                    py: 1.4,
+                    height: "54px",
+                    borderRadius: "14px",
+                    fontWeight: 700,
+                    textTransform: "none",
+
+                    background:
+                      "linear-gradient(180deg,#fff7ed,#ffedd5)",
+
+                    color: "#c2410c",
+                    border: "1px solid #fdba74",
+
+                    "&:hover": {
+                      background:
+                        "linear-gradient(180deg,#ffedd5,#fed7aa)",
+                      borderColor: "#fb923c"
+                    }
+                  }}
                 >
                   Back
                 </Button>
@@ -662,7 +900,19 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   variant="contained"
                   onClick={handleSubmit}
                   disabled={submitting}
-                  sx={{ minWidth: 160 }}
+                  sx={{
+                    minWidth: 160, px: 5,
+                    py: 1.5,
+                    height:
+                      "56px",
+                    borderRadius:
+                      "16px",
+                    fontWeight: 800,
+                    textTransform:
+                      "none",
+                    background:
+                      "linear-gradient(90deg,#14b8a6,#0ea5e9)"
+                  }}
                   startIcon={
                     submitting ? (
                       <CircularProgress size={16} color="inherit" />

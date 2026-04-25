@@ -416,7 +416,7 @@ const BhuvanMapComponent = ({
         const createText = (overrides = {}) =>
             new Text({
                 text: labelText,
-                font: '12px "Roboto", sans-serif',
+                font: '12px "Times New Roman", Times, serif',
                 fill: new Fill({ color: "#0D47A1" }),
                 stroke: new Stroke({ color: "#ffffff", width: 2 }),
                 backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.72)" }),
@@ -552,7 +552,7 @@ const BhuvanMapComponent = ({
             text: labelText
                 ? new Text({
                     text: labelText,
-                    font: '11px "Roboto", sans-serif',
+                    font: '11px "Times New Roman", Times, serif',
                     fill: new Fill({ color: "#0D47A1" }),
                     stroke: new Stroke({ color: "#ffffff", width: 3 }),
                     backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
@@ -2899,7 +2899,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
           max-height: 260px;
           display: flex;
           flex-direction: column;
-          font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-family: "Times New Roman", Times, serif;
           font-size: 10px;
           color: #1f2933;
         }

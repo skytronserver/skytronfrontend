@@ -16,7 +16,7 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 // ==============================|| SIDEBAR MENU LIST ITEMS ||============================== //
 
-const NavItem = ({ item, level }) => {
+const NavItem = ({ item, level,onMenuClick }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -144,7 +144,9 @@ const NavItem = ({ item, level }) => {
   }
       }}
       selected={customization.isOpen.findIndex((id) => id === item.id) > -1}
-      onClick={() => itemHandler(item.id)}
+      onClick={() => {itemHandler(item.id);
+        onMenuClick?.();
+      }}
     >
       <ListItemIcon sx={{ my: 'auto', minWidth: !item?.icon ? 18 : 36 }}>{itemIcon}</ListItemIcon>
       <ListItemText

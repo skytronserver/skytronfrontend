@@ -684,7 +684,7 @@ const POIViewer = () => {
     const createText = (overrides = {}) =>
       new Text({
         text: labelText,
-        font: 'bold 12px "Roboto", sans-serif',
+        font: 'bold 12px "Times New Roman", Times, serif',
         fill: new Fill({ color: baseColor }),
         stroke: new Stroke({ color: '#ffffff', width: 2 }),
         padding: [1, 3, 1, 3],
@@ -1385,7 +1385,7 @@ const POIViewer = () => {
               text: label
                 ? new Text({
                   text: label,
-                  font: '12px "Roboto", sans-serif',
+                  font: '12px "Times New Roman", Times, serif',
                   fill: new Fill({ color: '#0D47A1' }),
                   stroke: new Stroke({ color: '#ffffff', width: 3 }),
                   backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.92)' }),
