@@ -651,15 +651,16 @@ const api = {
     otp: data?.otp
   };
     const http = getAxiosInstance();
-    return http.post('school/api/admin/buses/tag/${tagId}/verify-otp/', payload);
+    return http.post(`school/api/admin/buses/tag/${tagId}/verify-otp/`, payload);
   },
-  uploadTagDocuments(formData) {
+  uploadTagDocuments(tagId, formData) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/tag/upload-documents', formData, {
-      headers: {
-        'Content-type': 'multipart/form-data'
-      }
-    });
+    return http.post( `/school/api/admin/buses/tag/${tagId}/documents/`,
+    formData, {
+          headers: {
+              'Content-type': 'multipart/form-data'
+         }
+       });
   },
   getRoutes() {
     const http = getAxiosInstance();
@@ -762,6 +763,13 @@ const api = {
     return http.post(`/school/api/state-admin/schools/${applicationId}/decision/`, {
             decision: "APPROVE"
         });
+  },  
+   rejectSchool(applicationId) {
+    const http = getAxiosInstance();
+    return http.post(`/school/api/state-admin/schools/${applicationId}/decision/`, {
+             decision: "REJECT",
+    remarks: "Documents Not Valid"
+        });
   }
 };
 
@@ -816,8 +824,9 @@ const SchoolBusService = {
   getParentTracking: (...args) => (shouldUseMock() ? mock.getParentTracking(...args) : api.getParentTracking(...args)),
   getParentAlerts: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.getParentAlerts(...args)),
 
-  approveSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.approveSchool(...args))
+  approveSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.approveSchool(...args)),
 
+ rejectSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.rejectSchool(...args))
 
 
 };

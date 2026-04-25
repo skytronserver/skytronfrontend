@@ -27,7 +27,24 @@ function CreateSchool() {
   name: Yup.string().required(),
   email: Yup.string().email().required(),
   mobile: Yup.string().required(),
-  dob: Yup.string().required(),
+  dob: Yup.string()
+  .required('Date of Birth is required')
+  .test('age-check', 'You must be at least 18 years old', function (value) {
+    if (!value) return false;
+
+    const today = new Date();
+    const dob = new Date(value);
+
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+
+    // adjust if birthday not reached this year
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+
+    return age >= 18;
+  }),
   address: Yup.string().required(),
   pin: Yup.string().required(),
 
@@ -159,6 +176,7 @@ const formatDOB = (date) => {
   const [year, month, day] = date.split("-");
   return `${day}-${month}-${year}`;
 };
+
 
 // school
 formData.append("school_name", values.school_name);

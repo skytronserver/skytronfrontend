@@ -3,6 +3,7 @@ import { Box, Button } from '@mui/material';
 import MainCard from '../../ui-component/cards/MainCard';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import SchoolBusService from '../../services/SchoolBusService';
+import { Chip } from '@mui/material';
 
 const ApproveSchool = () => {
 
@@ -64,9 +65,24 @@ const ApproveSchool = () => {
     }
 };
 
-    const handleReject = (row) => {
-        console.log('Reject clicked:', row);
-    };
+    const handleReject = async (row) => {
+    try {
+        const res = await SchoolBusService.rejectSchool(row.id);
+
+        console.log(res.data);
+
+        setTaggedVehicles(prev =>
+            prev.map(item =>
+                item.id === row.id
+                    ? { ...item, status: 'REJECTED' }
+                    : item
+            )
+        );
+
+    } catch (e) {
+        console.error('Reject failed:', e);
+    }
+};
 
     const columns = [
         { name: 'id', label: 'ID' },
@@ -80,7 +96,22 @@ const ApproveSchool = () => {
         { name: 'applicant_name', label: 'Applicant Name' },
         { name: 'applicant_email', label: 'Applicant Email' },
         { name: 'applicant_mobile', label: 'Applicant Mobile' },
-        { name: 'status', label: 'Status' },
+       {
+    name: 'status',
+    label: 'Status',
+    options: {
+        customBodyRender: (value) => {
+
+            let color = 'default';
+
+            if (value === 'APPROVED') color = 'success';
+            else if (value === 'REJECTED') color = 'error';
+            else if (value === 'SUBMITTED') color = 'warning';
+
+            return <Chip label={value} color={color} size="small" />;
+        }
+    }
+},
         { name: 'remarks', label: 'Remarks' },
         { name: 'application_date', label: 'Application Date' },
         { name: 'decision_date', label: 'Approval/Rejection Date' },
@@ -129,7 +160,7 @@ const ApproveSchool = () => {
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
             <MainCard title="Display And Approve School">
                 <DynamicDatatables
-                    tableTitle="School Logs"
+                    // tableTitle="School Logs"
                     rows={taggedVehicles}
                     columns={columns}
                     options={{

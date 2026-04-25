@@ -1,8 +1,10 @@
 // assets
-import { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard } from '@tabler/icons';
+import { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
+  IconCircleCheck } from '@tabler/icons';
 
 // constant
-const icons = { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard };
+const icons = { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
+  IconCircleCheck };
 
 // ==============================|| SCHOOL BUS MENU ITEMS ||============================== //
 
@@ -78,7 +80,7 @@ const schoolbus = {
                     title: 'Create School',
                     type: 'item',
                     url: '/schoolbus/Create-School',
-                    icon: icons.IconMapPin,
+                    icon: icons.IconSchool,
                     breadcrumbs: false,
                     roles: ['superadmin']
                 },
@@ -87,7 +89,7 @@ const schoolbus = {
                     title: 'Approve School',
                     type: 'item',
                     url: '/schoolbus/Approve-School',
-                    icon: icons.IconMapPin,
+                    icon: icons.IconCircleCheck,
                     breadcrumbs: false,
                     roles: ['superadmin']
                 }

@@ -184,18 +184,29 @@ const SchoolBusTagging = () => {
                                     } else if (activeStep === 2) {
                                         setLoading(true);
                                         const formData = new FormData();
-                                        formData.append('requestId', tagContext.requestId || '');
-                                        formData.append('vehicleRegNo', tagContext.vehicleRegNo || values.vehicleRegNo || '');
-                                        formData.append('schoolBusPermit', values.schoolBusPermit);
-                                        formData.append('requestLetter', values.requestLetter);
-                                        formData.append('rcCertificate', values.rcCertificate);
-                                        formData.append('authLetter', values.authLetter);
-                                        formData.append('fitmentReceipt', values.fitmentReceipt);
-                                        await SchoolBusService.uploadTagDocuments(formData);
+                                        // formData.append('requestId', tagContext.requestId || '');
+                                        // formData.append('vehicleRegNo', tagContext.vehicleRegNo || values.vehicleRegNo || '');
+                                        // formData.append('schoolBusPermit', values.schoolBusPermit);
+                                        // formData.append('requestLetter', values.requestLetter);
+                                        // formData.append('rcCertificate', values.rcCertificate);
+                                        // formData.append('authLetter', values.authLetter);
+                                        // formData.append('fitmentReceipt', values.fitmentReceipt);
+
+
+                                        // ✅ ONLY these keys (match curl exactly)
+                                        debugger
+                                        formData.append("RC", values.rcCertificate);
+                                        formData.append("PERMIT", values.schoolBusPermit);
+                                        formData.append("REQUEST_LETTER", values.requestLetter);
+                                        formData.append("AUTH_LETTER", values.authLetter);
+                                        formData.append("VLTD_RECEIPT", values.fitmentReceipt);
+
+
+                                        await SchoolBusService.uploadTagDocuments( tagContext.requestId,formData);
                                         handleNext();
 
                                         const list = await SchoolBusService.getTaggedVehicles();
-                                        setTaggedVehicles(Array.isArray(list?.data) ? list.data : []);
+                                        setTaggedVehicles(Array.isArray(list?.data?.data) ? list.data?.data : []);
                                     }
                                 };
 
