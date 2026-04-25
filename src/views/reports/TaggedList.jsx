@@ -44,7 +44,7 @@ const TaggedList = () => {
         setTagged(response.data.data) 
         const initialState = {};
         response.data.data.forEach((item) => {
-          initialState[item.id] = 'tagged';
+          initialState[item.id] = item.stock_status === 'Device_Untagged' ? 'untagged' : 'tagged';
         });
         setRowTagState(initialState);
         setLoad(true)
@@ -66,10 +66,7 @@ const TaggedList = () => {
      console.log(id);
      try {
       await TaggingService.untagDevice({device_id:id});
-      setRowTagState(prev=>({
-        ...prev,
-        [id]:'untagged'
-      }))
+      setReload(prev=>!prev);
      } catch (error) {
       console.log(error)
      }
@@ -96,10 +93,7 @@ const TaggedList = () => {
     if (confirmed) {
      try {
       await TaggingService.retagDevice({device_id:id});
-      setRowTagState(prev=>({
-        ...prev,
-        [id]:'tagged'
-      }))
+      setReload(prev=>!prev);
      } catch (error) {
       console.log(error)
      }

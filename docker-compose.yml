@@ -8,8 +8,16 @@ services:
       - "5003:80"
     environment:
       - NODE_ENV=development
-      - REACT_APP_BASE_URL=https://api.gromed.in/
+      - REACT_APP_BASE_URL=https://api.skytron.in/
       - REACT_APP_BHUVAN_URL=https://bhuvan-vec1.nrsc.gov.in
+      - REACT_APP_BHUVAN_V2_URL=https://bhuvan-vec2.nrsc.gov.in
+      - REACT_APP_BHUVAN_V3_URL=https://bhuvan-vec3.nrsc.gov.in
+      - REACT_APP_BHUVAN_RAS_URL=https://bhuvan-ras2.nrsc.gov.in
+      - REACT_APP_BHUVAN_ENABLE_CORS=false
+      - REACT_APP_GEOCODING_URL=https://map-geocoding.gromed.in
+      - REACT_APP_GEOSERVER_URL=https://map.gromed.in/geoserver
+      - REACT_APP_TILE_SERVER_URL=https://map2.gromed.in/tile/{z}/{x}/{y}.png
+      - REACT_APP_SATELLITE_TILE_URL=https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
       # System environment: dev | prod | sos
       - REACT_APP_SYSTEM_ENV=dev
     volumes:
