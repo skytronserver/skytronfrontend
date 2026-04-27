@@ -61,6 +61,10 @@ const SchoolReports = Loadable(lazy(() => import("../views/schoolbus/SchoolRepor
 const AlertsCenter = Loadable(lazy(() => import("../views/schoolbus/AlertsCenter")));
 const SchoolOnboarding = Loadable(lazy(() => import("../views/schoolbus/SchoolOnboarding")));
 
+
+import CreateSchool from "views/schoolbus/CreateSchool";
+import ApproveSchool from "views/schoolbus/ApproveSchool";
+
 const M2MRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/M2MRegistrationAdminReview")));
 const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/VehicleManufacturerRegistrationAdminReview")));
 const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/AIS140DeviceManufacturerRegistrationAdminReview")));
@@ -399,7 +403,19 @@ const MainRoutes = {
       path: '/schoolbus/reports',
       element: <SchoolReports />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+
+    {
+      path: '/schoolbus/Create-School',
+      element: <CreateSchool />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/schoolbus/Approve-School',
+      element: <ApproveSchool />,
+      roles: ['superadmin']
     }
+
 
     ,
     {

@@ -1,4 +1,10 @@
-import React from 'react';
+import React,{useEffect,useState} from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from "@mui/material";
 import {
     Grid,
     Box,
@@ -38,30 +44,143 @@ import RouteIcon from '@mui/icons-material/Route';
 import CircleIcon from '@mui/icons-material/Circle';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
+
+
+export const apiRequest = async ({
+  url,
+  method = "GET",
+  body = null,
+  token = sessionStorage.getItem("oAuthToken"),
+}) => {
+  try {
+    const options = {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(
+      `${process.env.REACT_APP_BASE_URL}${url}`,
+      options
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "API Error");
+    }
+
+    return data;
+
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
+
+
 const SchoolBusDashboard = () => {
     const theme = useTheme();
 
+const [dashboardData, setDashboardData] = useState(null);
+const [schoolDistribution, setSchoolDistribution] = useState([]);
+const [activeTrips, setActiveTrips] = useState([]);
+const [busOperationalStatus,setBusOperationalStatus]=useState(null);
+const [liveAlertsFeed,setLiveAlertsFeed]=useState(null);
+
+const [open, setOpen] = useState(false);
+
+const handleOpen = () => setOpen(true);
+const handleClose = () => setOpen(false);
+
+useEffect(() => {
+  const fetchData = async () => {
+    debugger
+    try {
+      const [dashboard, schools, trips,busOperational,liveAltFeed] = await Promise.all([
+        apiRequest({ url: "school/api/dashboard/" }),
+        apiRequest({ url: "school/api/school-distribution/" }),
+        apiRequest({ url: "school/api/active-trips/" }),
+        apiRequest({ url: "school/api/bus-operational-status/" }),
+        apiRequest({ url: "school/api/live-alerts/" }),
+
+
+      ]);
+debugger
+      setDashboardData(dashboard.data);
+      console.log(dashboard.data);
+
+    //   setSchoolDistribution(schools.data);
+    setSchoolDistribution(formatSchoolData(schools.data));
+      console.log(schools.data);
+
+      setActiveTrips(trips.data);
+      console.log(trips.data);
+
+      setBusOperationalStatus(busOperational.data);
+      console.log(busOperational.data);
+
+       setLiveAlertsFeed(liveAltFeed.data);
+      console.log(liveAltFeed.data);
+
+
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchData();
+}, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Dummy Real Data for Schools Module
     const stats = [
-        { title: 'Total Schools', count: '42', icon: <SchoolIcon />, color: theme.palette.primary.main },
-        { title: 'Registered Buses', count: '128', icon: <DirectionsBusIcon />, color: theme.palette.success.main },
-        { title: 'Active Students', count: '3,450', icon: <GroupIcon />, color: theme.palette.secondary.main },
-        { title: 'Total Routes', count: '86', icon: <RouteIcon />, color: theme.palette.warning.main },
+        { title: 'Total Schools', count: dashboardData?.total_schools, icon: <SchoolIcon />, color: theme.palette.primary.main },
+        { title: 'Registered Buses', count: dashboardData?.registered_buses, icon: <DirectionsBusIcon />, color: theme.palette.success.main },
+        { title: 'Active Students', count: dashboardData?.active_students, icon: <GroupIcon />, color: theme.palette.secondary.main },
+        { title: 'Total Routes', count: dashboardData?.total_routes, icon: <RouteIcon />, color: theme.palette.warning.main },
     ];
 
     const busStatusData = [
-        { name: 'On-Trip', value: 45, color: theme.palette.success.main },
-        { name: 'Idle', value: 24, color: theme.palette.warning.main },
-        { name: 'Maintenance', value: 8, color: theme.palette.error.main },
-        { name: 'Off-Duty', value: 51, color: theme.palette.grey[500] }
+        { name: 'On-Trip', value: busOperationalStatus?.on_trip, color: theme.palette.success.main },
+        { name: 'Idle', value: busOperationalStatus?.idle, color: theme.palette.warning.main },
+        { name: 'Maintenance', value: busOperationalStatus?.maintenance, color: theme.palette.error.main },
+        { name: 'Off-Duty', value: busOperationalStatus?.off_duty, color: theme.palette.grey[500] }
     ];
 
-    const studentGrowthData = [
-        { name: 'DPS North', students: 850, buses: 24 },
-        { name: 'Ryan Intl', students: 1200, buses: 32 },
-        { name: 'Modern School', students: 600, buses: 18 },
-        { name: 'St. Marys', students: 800, buses: 22 }
-    ];
+    // const studentGrowthData = [
+    //     { name: 'DPS North', students: 850, buses: 24 },
+    //     { name: 'Ryan Intl', students: 1200, buses: 32 },
+    //     { name: 'Modern School', students: 600, buses: 18 },
+    //     { name: 'St. Marys', students: 800, buses: 22 }
+    // ];
+
+
+    const formatSchoolData = (data) =>
+  data.map((item) => ({
+    name: item.school_name ?? "Unknown",
+    students: item.students ?? 0,
+    buses: item.buses ?? 0
+  }));
 
     const recentAlerts = [
         { id: 1, type: 'Geofence Entry', message: 'Bus DL 1PC 1234 entered Sector 5', time: '10:15 AM', status: 'Notice' },
@@ -158,7 +277,7 @@ const SchoolBusDashboard = () => {
                     <MainCard title="School-wise Student & Bus Distribution">
                         <Box sx={{ height: 300 }}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={studentGrowthData}>
+                                <BarChart data={schoolDistribution}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="name" />
                                     <YAxis />
@@ -173,7 +292,7 @@ const SchoolBusDashboard = () => {
                 </Grid>
 
                 {/* Recent Alerts & Activity */}
-                <Grid item xs={12} md={4}>
+                {/* <Grid item xs={12} md={4}>
                     <MainCard title="Live Alerts Feed" secondary={<NotificationsActiveIcon color="error" />}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             {recentAlerts.map((alert) => (
@@ -188,7 +307,117 @@ const SchoolBusDashboard = () => {
                             <Button variant="text" fullWidth color="primary" sx={{ mt: 1 }}>View All Notifications</Button>
                         </Box>
                     </MainCard>
-                </Grid>
+                </Grid> */}
+
+<Grid item xs={12} md={4}>
+  <MainCard
+    title="Live Alerts Feed"
+    secondary={<NotificationsActiveIcon color="error" />}
+  >
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+     
+   {liveAlertsFeed?.slice(0, 3).map((alert) => {
+        const isEmergency = alert.type === "EMERGENCY";
+
+debugger
+        return (
+          <Box
+            key={alert.id}
+            sx={{
+              p: 2,
+              bgcolor: alpha(
+                isEmergency
+                  ? theme.palette.error.main
+                  : theme.palette.primary.main,
+                0.05
+              ),
+              borderRadius: 2,
+              borderLeft: `4px solid ${
+                isEmergency
+                  ? theme.palette.error.main
+                  : theme.palette.primary.main
+              }`,
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {alert.type}
+              </Typography>
+
+              <Typography variant="caption" color="text.secondary">
+                {alert.time}
+              </Typography>
+            </Box>
+
+            <Typography variant="body2">
+              {alert.message || "-"}
+            </Typography>
+          </Box>
+        );
+      })}
+
+      <Button 
+ 
+  onClick={handleOpen}
+   variant="text" fullWidth color="primary" sx={{ mt: 1 }}>
+        View All Notifications
+      </Button>
+    </Box>
+  </MainCard>
+</Grid>
+
+<Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+  <DialogTitle>All Notifications</DialogTitle>
+
+  <DialogContent dividers>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {liveAlertsFeed?.map((alert) => {
+        const isEmergency = alert.type === "EMERGENCY";
+
+        return (
+          <Box
+            key={alert.id}
+            sx={{
+              p: 2,
+              bgcolor: alpha(
+                isEmergency
+                  ? theme.palette.error.main
+                  : theme.palette.primary.main,
+                0.05
+              ),
+              borderRadius: 2,
+              borderLeft: `4px solid ${
+                isEmergency
+                  ? theme.palette.error.main
+                  : theme.palette.primary.main
+              }`,
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {alert.type}
+              </Typography>
+
+              <Typography variant="caption" color="text.secondary">
+                {alert.time}
+              </Typography>
+            </Box>
+
+            <Typography variant="body2">
+              {alert.message || "-"}
+            </Typography>
+          </Box>
+        );
+      })}
+    </Box>
+  </DialogContent>
+
+  <DialogActions>
+    <Button onClick={handleClose}>Close</Button>
+  </DialogActions>
+</Dialog>
+
+
 
                 {/* Active Trips Monitor Table */}
                 <Grid item xs={12} md={8}>

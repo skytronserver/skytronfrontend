@@ -26,6 +26,22 @@ import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import SchoolBusService from '../../services/SchoolBusService';
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const SchoolBusTagging = () => {
     const theme = useTheme();
     const [activeStep, setActiveStep] = useState(0);
@@ -36,15 +52,19 @@ const SchoolBusTagging = () => {
     const [activatedVehicles, setActivatedVehicles] = useState([]);
     const [tagContext, setTagContext] = useState({ requestId: null, vehicleRegNo: '' });
 
+
     useEffect(() => {
         let mounted = true;
         setError('');
         setLoading(true);
+                 debugger
+       
         Promise.all([SchoolBusService.getTaggedVehicles(), SchoolBusService.getBuses()])
             .then(([tagRes, busRes]) => {
+                debugger
                 if (!mounted) return;
-                setTaggedVehicles(Array.isArray(tagRes?.data) ? tagRes.data : []);
-                setActivatedVehicles(Array.isArray(busRes?.data) ? busRes.data : []);
+                setTaggedVehicles(Array.isArray(tagRes?.data?.data) ? tagRes.data.data : []);
+                setActivatedVehicles(Array.isArray(busRes?.data?.data) ? busRes.data.data : []);
             })
             .catch((e) => {
                 if (!mounted) return;
@@ -61,17 +81,17 @@ const SchoolBusTagging = () => {
     }, []);
 
     const columns = [
-        { name: 'regNo', label: 'Vehicle Reg No', options: { filter: true, sort: true } },
-        { name: 'school', label: 'School Name', options: { filter: true, sort: true } },
-        { name: 'status', label: 'Status', options: { filter: true, sort: true } },
-        { name: 'date', label: 'Requested Date', options: { filter: true, sort: true } },
+        { name: 'vehicle_reg_no', label: 'Vehicle Reg No', options: { filter: true, sort: true } },
+        { name: 'school_name', label: 'School Name', options: { filter: true, sort: true } },
+        { name: 'status_display', label: 'Status', options: { filter: true, sort: true } },
+        { name: 'requested_at', label: 'Requested Date', options: { filter: true, sort: true } },
     ];
 
     const t = (key) => key; // Mock translation function
     const fieldConfig = busTaggingFields(t);
     const activatedVehicleOptions = activatedVehicles.map((b) => ({
-        label: b?.regNo || '',
-        value: b?.regNo || ''
+        label: b?.vehicle_reg_no || '',
+        value: b?.vehicle_reg_no || ''
     }));
     fieldConfig.vehicleRegNo = {
         ...fieldConfig.vehicleRegNo,
@@ -145,35 +165,54 @@ const SchoolBusTagging = () => {
 
                                 const run = async () => {
                                     if (activeStep === 0) {
+                                        debugger
+                                        const selectedVehicle = activatedVehicles.find(
+                                            (v) => v.vehicle_reg_no === values.vehicleRegNo
+                                            );
+
+                                            const vehicleId = selectedVehicle?.id;
                                         setLoading(true);
-                                        const res = await SchoolBusService.requestTagVehicle({ vehicleRegNo: values.vehicleRegNo });
-                                        setTagContext({ requestId: res?.data?.requestId || null, vehicleRegNo: values.vehicleRegNo });
+                                        debugger
+                                        const res = await SchoolBusService.requestTagVehicle({  id: vehicleId, vehicle_reg_no: values.vehicleRegNo });
+                                        setTagContext({ requestId: res?.data?.data?.tag_id  || null, vehicleRegNo: values.vehicleRegNo });
                                         handleNext();
                                     } else if (activeStep === 1) {
                                         setLoading(true);
+                                        debugger
                                         await SchoolBusService.validateTagOtp({ requestId: tagContext.requestId, otp: values.otp });
                                         handleNext();
                                     } else if (activeStep === 2) {
                                         setLoading(true);
                                         const formData = new FormData();
-                                        formData.append('requestId', tagContext.requestId || '');
-                                        formData.append('vehicleRegNo', tagContext.vehicleRegNo || values.vehicleRegNo || '');
-                                        formData.append('schoolBusPermit', values.schoolBusPermit);
-                                        formData.append('requestLetter', values.requestLetter);
-                                        formData.append('rcCertificate', values.rcCertificate);
-                                        formData.append('authLetter', values.authLetter);
-                                        formData.append('fitmentReceipt', values.fitmentReceipt);
-                                        await SchoolBusService.uploadTagDocuments(formData);
+                                        // formData.append('requestId', tagContext.requestId || '');
+                                        // formData.append('vehicleRegNo', tagContext.vehicleRegNo || values.vehicleRegNo || '');
+                                        // formData.append('schoolBusPermit', values.schoolBusPermit);
+                                        // formData.append('requestLetter', values.requestLetter);
+                                        // formData.append('rcCertificate', values.rcCertificate);
+                                        // formData.append('authLetter', values.authLetter);
+                                        // formData.append('fitmentReceipt', values.fitmentReceipt);
+
+
+                                        // ✅ ONLY these keys (match curl exactly)
+                                        debugger
+                                        formData.append("RC", values.rcCertificate);
+                                        formData.append("PERMIT", values.schoolBusPermit);
+                                        formData.append("REQUEST_LETTER", values.requestLetter);
+                                        formData.append("AUTH_LETTER", values.authLetter);
+                                        formData.append("VLTD_RECEIPT", values.fitmentReceipt);
+
+
+                                        await SchoolBusService.uploadTagDocuments( tagContext.requestId,formData);
                                         handleNext();
 
                                         const list = await SchoolBusService.getTaggedVehicles();
-                                        setTaggedVehicles(Array.isArray(list?.data) ? list.data : []);
+                                        setTaggedVehicles(Array.isArray(list?.data?.data) ? list.data?.data : []);
                                     }
                                 };
 
                                 run()
                                     .catch((e) => {
-                                        setError(e?.message || 'Request failed');
+                                        setError(e?.response?.data?.message || 'Request failed');
                                     })
                                     .finally(() => {
                                         setLoading(false);
