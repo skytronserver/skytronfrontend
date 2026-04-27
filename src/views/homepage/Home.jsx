@@ -14,7 +14,8 @@ import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { loginUser } from "../../actions/loginActions";
+import { loginUser, loginUserSos } from "../../actions/loginActions";
+import { SYSTEM_ENV } from "../../store/constant";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
 import stqclogo from "../../assets/images/icons/stqc_logo.png";
 import { Navigate } from "react-router-dom";
@@ -52,6 +53,8 @@ function Home() {
     sessionStorage.removeItem("cookiesData");
   }, []);
 
+  const isSosEnv = SYSTEM_ENV === 'sos';
+
   const validationSchema = Yup.object({
     mobile: Yup.string()
       .matches(/^\d{10}$/, t('validation.mobileNumberFormat'))
@@ -61,14 +64,18 @@ function Home() {
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
-    dispatch(
-      loginUser(
-        values.mobile,
-        values.password,
-        captcha.captcha_key,
-        values.captcha_reply
-      )
-    );
+    if (isSosEnv) {
+      dispatch(loginUserSos(values.mobile, values.password, captcha.captcha_key, values.captcha_reply));
+    } else {
+      dispatch(
+        loginUser(
+          values.mobile,
+          values.password,
+          captcha.captcha_key,
+          values.captcha_reply
+        )
+      );
+    }
     setSubmitting(false);
     setError(false);
   };

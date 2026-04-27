@@ -154,6 +154,88 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
     dispatch(setLoading(false));
   }
 };
+
+export const loginUserSos = (username, password, captcha_key, captcha_reply) => async (dispatch) => {
+  try {
+    dispatch(setLoading(true));
+
+    // Encrypt the password before sending to API
+    const encryptedPassword = encryptWithPublicKey(password);
+
+    const response = await axios.post(`${BASE_URL}api/user_login_sosexecutive_direct/`, {
+      username,
+      password: encryptedPassword,
+      captcha_key,
+      captcha_reply,
+    });
+
+    if (response?.data?.token) {
+      const userRole = (response.data?.user?.role || '').toLowerCase().trim();
+      const userType = (response.data?.info?.user_type || '').toLowerCase().trim();
+
+      const restrictedTypes = ['teamlead', 'team_lead', 'team lead', 'sos_teamlead', 'desk_ex', 'desk_executive', 'desk executive', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'];
+      const isRestricted = userRole === 'sosexecutive' || restrictedTypes.includes(userRole) || restrictedTypes.includes(userType);
+
+      console.log(`[ACL] SOS Login - Env: ${SYSTEM_ENV} | Role: ${userRole} | Type: ${userType} | Restricted: ${isRestricted}`);
+
+      if (!isRestricted) {
+        const err = new Error('Access Denied: This environment is restricted to SOS Team Leads and Desk Executives.');
+        err.role = userRole;
+        throw err;
+      }
+
+      const myCipher = cipherEncryption('skytrack');
+      const effectiveRole = (userRole === 'sosexecutive' && userType) ? userType : userRole;
+      const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(effectiveRole)}-${myCipher(response.data?.user?.mobile)}`;
+      const skytrack_cookiesData = `${myCipher(response.data?.user?.email)}-${myCipher(effectiveRole)}-${myCipher(response.data?.user?.date_joined)}-${myCipher(response.data?.user?.mobile)}`;
+
+      sessionStorage.setItem('isAuthenticated', true);
+      sessionStorage.setItem('sessionID', Date.now());
+      sessionStorage.setItem('oAuthToken', response.data.token);
+      sessionStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
+      localStorage.setItem('isAuthenticated', true);
+      localStorage.setItem('sessionID', Date.now());
+      localStorage.setItem('oAuthToken', response.data.token);
+      localStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
+      localStorage.setItem('skytrackCookiesData', skytrack_cookiesData);
+
+      if (response.data?.info?.districts && Array.isArray(response.data.info.districts)) {
+        localStorage.setItem('dealerDistricts', JSON.stringify(response.data.info.districts));
+      }
+
+      const responseData = {
+        isAuthenticated: true,
+        token: response.data.token,
+        email: username,
+        otpToken: null,
+      };
+
+      dispatch(setLoginInfo(cookiesData));
+      dispatch(setUser(responseData));
+      dispatch(setError({ message: null, status: null }));
+    } else {
+      throw new Error(response?.data?.error);
+    }
+  } catch (error) {
+    console.log(error, 'error');
+    let message = '';
+    if (error?.code === 'ERR_BAD_REQUEST') {
+      message = error?.response?.data?.error || 'Internal Server Error';
+    } else {
+      console.error(`[ACL] SOS Access Denied. Role: ${error.role || 'Unknown'}`);
+      message = error.message;
+    }
+    if (message === 'text is undefined') {
+      message = "Whoops! Looks like the math wasn't quite right. Add the numbers in the CAPTCHA and try again.";
+    }
+    if (/sosexecutive\s+and\s+teamleader/i.test(message)) {
+      message = 'This login is allowed only for DeskExecutive and Teamleader accounts.';
+    }
+    dispatch(setError({ message, status: null }));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
 export const verifyOtp = (token, otp, username) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
