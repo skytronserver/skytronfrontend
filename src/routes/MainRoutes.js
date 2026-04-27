@@ -2,6 +2,8 @@ import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { SYSTEM_ENV } from "../store/constant";
+import CreateSchool from "views/schoolbus/CreateSchool";
+import ApproveSchool from "views/schoolbus/ApproveSchool";
 
 // project imports
 import MainLayout from "../layout/MainLayout";
@@ -61,9 +63,6 @@ const SchoolReports = Loadable(lazy(() => import("../views/schoolbus/SchoolRepor
 const AlertsCenter = Loadable(lazy(() => import("../views/schoolbus/AlertsCenter")));
 const SchoolOnboarding = Loadable(lazy(() => import("../views/schoolbus/SchoolOnboarding")));
 
-
-import CreateSchool from "views/schoolbus/CreateSchool";
-import ApproveSchool from "views/schoolbus/ApproveSchool";
 
 const M2MRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/M2MRegistrationAdminReview")));
 const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/VehicleManufacturerRegistrationAdminReview")));
