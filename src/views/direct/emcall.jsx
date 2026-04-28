@@ -1620,7 +1620,7 @@ const EMCall = () => {
                     <Box>
                       <Typography variant="caption" color="text.secondary">Alert Type</Typography>
                       <Typography variant="body1" fontWeight={500} color="error.main">
-                        {call?.call?.packet_type || "SOS"}
+                        {call?.em_type || call?.call?.em_type || call?.call?.packet_type || "SOS"}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 2, mt: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
