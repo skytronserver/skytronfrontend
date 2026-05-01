@@ -76,7 +76,7 @@ const RouteManagement = () => {
         SchoolBusService.getRoutes()
             .then((res) => {
                 if (!mounted) return;
-                const list = Array.isArray(res?.data) ? res.data : [];
+                const list = Array.isArray(res?.data?.data) ? res.data?.data : [];
                 setRoutes(list);
                 if (!selectedRoute && list.length > 0) {
                     setSelectedRoute(list[0]?.id);
@@ -102,19 +102,19 @@ const RouteManagement = () => {
     }, [selectedRoute]);
 
     const routeColumns = [
-        { name: 'routeName', label: 'Route Name' },
+        { name: 'name', label: 'Route Name' },
         { name: 'description', label: 'Description' },
         {
             name: 'status',
             label: 'Status',
             options: {
                 customBodyRender: (value) => (
-                    <Chip label={value} color={value === 'Active' ? 'success' : 'default'} size="small" />
+                    <Chip label={value} color={value === 'active' ? 'success' : 'default'} size="small" />
                 )
             }
         },
         {
-            name: 'stopsCount',
+            name: 'stop_count',
             label: 'No. of Stops',
             options: {
                 setCellHeaderProps: () => ({ style: { whiteSpace: 'nowrap', textAlign: 'center' } }),
@@ -305,7 +305,7 @@ const RouteManagement = () => {
                         title={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                 <Typography variant="h5">Bus Stops Inventory</Typography>
-                                {selectedRouteObj?.routeName && <Chip size="small" color="primary" label={selectedRouteObj.routeName} />}
+                                {selectedRouteObj?.name && <Chip size="small" color="primary" label={selectedRouteObj.name} />}
                             </Box>
                         }
                         secondary={
@@ -333,15 +333,17 @@ const RouteManagement = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ routeName: '', description: '', status: 'Active' }}
+                        initialValues={{ name: '', description: '', status: 'active' }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(routeFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting, resetForm }) => {
+                               debugger
                             setError('');
                             setLoading(true);
                             SchoolBusService.createRoute(values)
                                 .then(() => SchoolBusService.getRoutes())
                                 .then((res) => {
-                                    const list = Array.isArray(res?.data) ? res.data : [];
+                                    debugger
+                                    const list = Array.isArray(res?.data?.data) ? res.data?.data : [];
                                     setRoutes(list);
                                     if (list.length > 0) setSelectedRoute(list[0]?.id);
                                     resetForm();
@@ -358,7 +360,7 @@ const RouteManagement = () => {
                     >
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
-                                <FormField fieldConfig={routeFields(t).routeName} formik={formik} />
+                                <FormField fieldConfig={routeFields(t).name} formik={formik} />
                                 <FormField fieldConfig={routeFields(t).description} formik={formik} />
                                 <FormField fieldConfig={routeFields(t).status} formik={formik} />
                                 <Box sx={{ mt: 2 }}>
@@ -382,19 +384,22 @@ const RouteManagement = () => {
                     <Formik
                         enableReinitialize
                         initialValues={{
-                            routeName: editingRoute?.routeName || '',
+                            name: editingRoute?.name || '',
                             description: editingRoute?.description || '',
-                            status: editingRoute?.status || 'Active'
+                            status: editingRoute?.status || 'active'
                         }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(routeFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting }) => {
+                          
                             if (!editingRoute?.id) {
                                 setSubmitting(false);
                                 return;
                             }
                             setError('');
                             setLoading(true);
+                         
                             SchoolBusService.updateRoute(editingRoute.id, values)
+                            
                                 .then(() => SchoolBusService.getRoutes())
                                 .then((res) => {
                                     setRoutes(Array.isArray(res?.data) ? res.data : []);
@@ -412,7 +417,7 @@ const RouteManagement = () => {
                     >
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
-                                <FormField fieldConfig={routeFields(t).routeName} formik={formik} />
+                                <FormField fieldConfig={routeFields(t).name} formik={formik} />
                                 <FormField fieldConfig={routeFields(t).description} formik={formik} />
                                 <FormField fieldConfig={routeFields(t).status} formik={formik} />
                                 <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>

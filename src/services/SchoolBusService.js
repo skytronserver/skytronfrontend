@@ -664,11 +664,12 @@ const api = {
   },
   getRoutes() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/routes');
+    return http.get('school/api/admin/routes/');
   },
   createRoute(data) {
+       debugger
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/routes', data);
+    return http.post('school/api/admin/routes/', data);
   },
   updateRoute(id, data) {
     const http = getAxiosInstance();

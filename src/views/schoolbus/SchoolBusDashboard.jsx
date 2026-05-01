@@ -50,14 +50,19 @@ export const apiRequest = async ({
   url,
   method = "GET",
   body = null,
-  token = sessionStorage.getItem("oAuthToken"),
+  token,
 }) => {
   try {
+
+     const authToken =
+      token ||
+      sessionStorage.getItem("oAuthToken") ||
+      localStorage.getItem("oAuthToken");
     const options = {
       method,
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(authToken && { Authorization: `Bearer ${authToken}` }),
       },
     };
 

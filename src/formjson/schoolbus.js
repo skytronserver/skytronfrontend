@@ -48,8 +48,8 @@ export const busTaggingFields = (t) => ({
 });
 
 export const routeFields = (t) => ({
-    routeName: {
-        name: "routeName",
+    name: {
+        name: "name",
         type: "text",
         label: "Route Name",
         placeholder: "e.g., Route A - North Zone",
@@ -67,8 +67,8 @@ export const routeFields = (t) => ({
         type: "select",
         label: "Status",
         options: [
-            { label: "Active", value: "Active" },
-            { label: "Inactive", value: "Inactive" },
+            { label: "Active", value: "active" },
+            { label: "Inactive", value: "inactive" },
         ],
         validation: Yup.string().required("Status is required"),
     },
