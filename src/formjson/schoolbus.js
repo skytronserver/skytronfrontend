@@ -72,11 +72,26 @@ export const routeFields = (t) => ({
         ],
         validation: Yup.string().required("Status is required"),
     },
+        // ✅ ADD THIS
+    route_points: {
+        name: "route_points",
+        type: "map",
+        label: "Route Coordinates",
+        validation: Yup.array()
+            .of(
+                Yup.object().shape({
+                    lat: Yup.number().required(),
+                    lng: Yup.number().required(),
+                })
+            )
+            .min(1, "Select at least 1 points for the route")
+            .required("Route path is required"),
+    },
 });
 
 export const busStopFields = (t) => ({
-    stopName: {
-        name: "stopName",
+    name: {
+        name: "name",
         type: "text",
         label: "Stop Name",
         placeholder: "e.g., Main Street Stop",
@@ -101,6 +116,13 @@ export const busStopFields = (t) => ({
         type: "time",
         label: "Timing",
         validation: Yup.string().required("Timing is required"),
+    },
+     order: {
+        name: "order",
+        type: "number",
+        label: "Order",
+        placeholder: "1",
+        validation: Yup.number().required("Order is required"),
     },
 });
 

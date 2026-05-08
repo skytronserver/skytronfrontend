@@ -29,6 +29,7 @@ import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import { routeFields, busStopFields } from '../../formjson/schoolbus';
 import SchoolBusService from '../../services/SchoolBusService';
+import OpenLayersMap from "../../../src/components/Map/OpenLayersMap";
 
 const RouteManagement = () => {
     const theme = useTheme();
@@ -52,6 +53,7 @@ const RouteManagement = () => {
     const selectedRouteObj = routes.find((r) => String(r.id) === String(selectedRoute));
 
     const loadStops = async (routeId) => {
+        debugger
         if (!routeId) {
             setStops([]);
             return;
@@ -61,7 +63,7 @@ const RouteManagement = () => {
         setLoading(true);
         try {
             const res = await SchoolBusService.getStops(routeId);
-            setStops(Array.isArray(res?.data) ? res.data : []);
+            setStops(Array.isArray(res?.data?.data[0].stops) ? res.data?.data[0].stops : []);
         } catch (e) {
             setError(e?.message || 'Failed to load stops');
         } finally {
@@ -100,7 +102,10 @@ const RouteManagement = () => {
     useEffect(() => {
         loadStops(selectedRoute);
     }, [selectedRoute]);
-
+const nextOrder =
+  stops && stops.length > 0
+    ? Math.max(...stops.map(s => s.order || 0)) + 1
+    : 1;
     const routeColumns = [
         { name: 'name', label: 'Route Name' },
         { name: 'description', label: 'Description' },
@@ -156,9 +161,10 @@ const RouteManagement = () => {
                                                 setOpenConfirm(false);
                                                 setError('');
                                                 setLoading(true);
+                                                debugger
                                                 await SchoolBusService.deleteRoute(value);
                                                 const res = await SchoolBusService.getRoutes();
-                                                const list = Array.isArray(res?.data) ? res.data : [];
+                                                const list = Array.isArray(res?.data?.data) ? res.data?.data : [];
                                                 setRoutes(list);
                                                 if (String(selectedRoute) === String(value)) {
                                                     setSelectedRoute(list?.[0]?.id || null);
@@ -179,7 +185,7 @@ const RouteManagement = () => {
     ];
 
     const stopColumns = [
-        { name: 'stopName', label: 'Stop Name' },
+        { name: 'name', label: 'Stop Name' },
         { name: 'latitude', label: 'Lat' },
         { name: 'longitude', label: 'Lon' },
         { name: 'timing', label: 'Timing' },
@@ -218,10 +224,11 @@ const RouteManagement = () => {
                                                 setOpenConfirm(false);
                                                 setError('');
                                                 setLoading(true);
-                                                await SchoolBusService.deleteStop(value);
+                                                debugger
+                                                await SchoolBusService.deleteStop(value,selectedRoute);
                                                 await loadStops(selectedRoute);
                                                 const rr = await SchoolBusService.getRoutes();
-                                                setRoutes(Array.isArray(rr?.data) ? rr.data : []);
+                                                setRoutes(Array.isArray(rr?.data?.data) ? rr.data?.data : []);
                                             }
                                         });
                                         setOpenConfirm(true);
@@ -320,7 +327,7 @@ const RouteManagement = () => {
                             columns={stopColumns}
                             options={{ selectableRows: 'none', filter: false, search: true, pagination: false }}
                         />
-                        
+
                     </MainCard>
                 </Grid>
             </Grid>
@@ -333,10 +340,10 @@ const RouteManagement = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ name: '', description: '', status: 'active' }}
+                        initialValues={{ name: '', description: '', status: 'active', route_points: [] }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(routeFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting, resetForm }) => {
-                               debugger
+                            debugger
                             setError('');
                             setLoading(true);
                             SchoolBusService.createRoute(values)
@@ -362,6 +369,82 @@ const RouteManagement = () => {
                             <form onSubmit={formik.handleSubmit}>
                                 <FormField fieldConfig={routeFields(t).name} formik={formik} />
                                 <FormField fieldConfig={routeFields(t).description} formik={formik} />
+                                {/* ✅ OPENLAYERS MAP (MANUAL FIELD) */}
+                                {/* MAP */}
+                                <Box sx={{ mt: 2, mb: 2 }}>
+                                    <Typography variant="subtitle1">
+                                        Select Route Points
+                                    </Typography>
+
+                                    <OpenLayersMap
+                                        value={formik.values.route_points}
+                                        onChange={(coords) => {
+                                            formik.setFieldValue("route_points", coords);
+                                            formik.setFieldTouched("route_points", true); // ✅ ADD THIS
+                                        }}
+                                    />
+
+                                    {formik.touched.route_points && formik.errors.route_points && (
+                                        <Typography color="error" variant="caption">
+                                            {formik.errors.route_points}
+                                        </Typography>
+                                    )}
+
+                                    {/* UI LIST */}
+                                    {formik.values.route_points?.length > 0 && (
+                                        <Box sx={{ mt: 2 }}>
+
+                                            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                                                Selected Route Points
+                                            </Typography>
+
+                                            <Box
+                                                sx={{
+                                                    maxHeight: 200,
+                                                    overflowY: "auto",
+                                                    border: "1px solid #e0e0e0",
+                                                    borderRadius: 2,
+                                                    p: 1,
+                                                    backgroundColor: "#fafafa",
+                                                }}
+                                            >
+                                                {formik.values.route_points.map((c, i) => (
+                                                    <Box
+                                                        key={i}
+                                                        sx={{
+                                                            display: "flex",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            p: 1,
+                                                            mb: 1,
+                                                            borderRadius: 1,
+                                                            backgroundColor: "white",
+                                                            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                                                        }}
+                                                    >
+                                                        {/* Index */}
+                                                        <Box sx={{ fontWeight: 600, color: "#1976d2" }}>
+                                                            Stop {i + 1}
+                                                        </Box>
+
+                                                        {/* Lat/Lng */}
+                                                        <Box sx={{ textAlign: "right" }}>
+                                                            <Box sx={{ fontSize: 13 }}>
+                                                                <b>Lat:</b> {c.lat.toFixed(6)}
+                                                            </Box>
+                                                            <Box sx={{ fontSize: 13 }}>
+                                                                <b>Lng:</b> {c.lng.toFixed(6)}
+                                                            </Box>
+                                                        </Box>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+
+                                        </Box>
+                                    )}
+                                </Box>
+
+
                                 <FormField fieldConfig={routeFields(t).status} formik={formik} />
                                 <Box sx={{ mt: 2 }}>
                                     <AnimateButton>
@@ -386,23 +469,24 @@ const RouteManagement = () => {
                         initialValues={{
                             name: editingRoute?.name || '',
                             description: editingRoute?.description || '',
-                            status: editingRoute?.status || 'active'
+                            status: editingRoute?.status || 'active',
+                            route_points: editingRoute?.route_points || []   // ✅ IMPORTANT
                         }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(routeFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting }) => {
-                          
+
                             if (!editingRoute?.id) {
                                 setSubmitting(false);
                                 return;
                             }
                             setError('');
                             setLoading(true);
-                         
+debugger
                             SchoolBusService.updateRoute(editingRoute.id, values)
-                            
+
                                 .then(() => SchoolBusService.getRoutes())
                                 .then((res) => {
-                                    setRoutes(Array.isArray(res?.data) ? res.data : []);
+                                    setRoutes(Array.isArray(res?.data?.data) ? res.data?.data : []);
                                     setOpenEditRoute(false);
                                     setEditingRoute(null);
                                 })
@@ -419,6 +503,95 @@ const RouteManagement = () => {
                             <form onSubmit={formik.handleSubmit}>
                                 <FormField fieldConfig={routeFields(t).name} formik={formik} />
                                 <FormField fieldConfig={routeFields(t).description} formik={formik} />
+                                <Box sx={{ mt: 2, mb: 2 }}>
+                                    <Typography variant="subtitle1">
+                                        Update Route Points
+                                    </Typography>
+
+                                    <OpenLayersMap
+                                        value={formik.values.route_points}
+                                        onChange={(coords) => {
+                                            formik.setFieldValue("route_points", coords);
+                                            formik.setFieldTouched("route_points", true);
+                                        }}
+                                    />
+
+                                    {/* validation */}
+                                    {formik.touched.route_points && formik.errors.route_points && (
+                                        <Typography color="error" variant="caption">
+                                            {formik.errors.route_points}
+                                        </Typography>
+                                    )}
+
+                                    {/* UI LIST */}
+                                    {/* UI LIST */}
+                                    {formik.values.route_points?.length > 0 && (
+                                        <Box sx={{ mt: 2 }}>
+
+                                            <Box sx={{ mt: 2, mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                                    Selected Route Points
+                                                </Typography>
+
+                                                {/* RESET BUTTON */}
+                                                <Button
+                                                    size="small"
+                                                    variant="outlined"
+                                                    color="error"
+                                                    onClick={() => {
+                                                        formik.setFieldValue("route_points", []);
+                                                    }}
+                                                >
+                                                    Reset
+                                                </Button>
+
+                                            </Box>
+                                            <Box
+                                                sx={{
+                                                    maxHeight: 200,
+                                                    overflowY: "auto",
+                                                    border: "1px solid #e0e0e0",
+                                                    borderRadius: 2,
+                                                    p: 1,
+                                                    backgroundColor: "#fafafa",
+                                                }}
+                                            >
+                                                {formik.values.route_points.map((c, i) => (
+                                                    <Box
+                                                        key={i}
+                                                        sx={{
+                                                            display: "flex",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            p: 1,
+                                                            mb: 1,
+                                                            borderRadius: 1,
+                                                            backgroundColor: "white",
+                                                            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                                                        }}
+                                                    >
+                                                        {/* Index */}
+                                                        <Box sx={{ fontWeight: 600, color: "#1976d2" }}>
+                                                            Stop {i + 1}
+                                                        </Box>
+
+                                                        {/* Lat/Lng */}
+                                                        <Box sx={{ textAlign: "right" }}>
+                                                            <Box sx={{ fontSize: 13 }}>
+                                                                <b>Lat:</b> {c.lat.toFixed(6)}
+                                                            </Box>
+                                                            <Box sx={{ fontSize: 13 }}>
+                                                                <b>Lng:</b> {c.lng.toFixed(6)}
+                                                            </Box>
+                                                        </Box>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+
+                                        </Box>
+                                    )}
+                                </Box>
                                 <FormField fieldConfig={routeFields(t).status} formik={formik} />
                                 <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                                     <Button fullWidth variant="outlined" onClick={() => { setOpenEditRoute(false); setEditingRoute(null); }} disabled={loading || formik.isSubmitting}>Cancel</Button>
@@ -440,7 +613,8 @@ const RouteManagement = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ stopName: '', latitude: '', longitude: '', timing: '' }}
+                    
+                        initialValues={{ name: '', latitude: '', longitude: '', timing: '',order:nextOrder }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(busStopFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting, resetForm }) => {
                             if (!selectedRoute) {
@@ -448,13 +622,14 @@ const RouteManagement = () => {
                                 setSubmitting(false);
                                 return;
                             }
+                            debugger
 
                             setError('');
                             setLoading(true);
                             SchoolBusService.addStop(selectedRoute, values)
                                 .then(() => SchoolBusService.getStops(selectedRoute))
                                 .then((res) => {
-                                    setStops(Array.isArray(res?.data) ? res.data : []);
+                                    setStops(Array.isArray(res?.data?.data[0].stops) ? res?.data?.data[0].stops : []);
                                     resetForm();
                                     setOpenStop(false);
                                 })
@@ -469,7 +644,7 @@ const RouteManagement = () => {
                     >
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
-                                <FormField fieldConfig={busStopFields(t).stopName} formik={formik} />
+                                <FormField fieldConfig={busStopFields(t).name} formik={formik} />
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={6}>
                                         <FormField fieldConfig={busStopFields(t).latitude} formik={formik} />
@@ -479,6 +654,8 @@ const RouteManagement = () => {
                                     </Grid>
                                 </Grid>
                                 <FormField fieldConfig={busStopFields(t).timing} formik={formik} />
+                                <FormField fieldConfig={busStopFields(t).order} formik={formik} />
+
                                 <Box sx={{ mt: 2 }}>
                                     <AnimateButton>
                                         <Button fullWidth variant="contained" color="primary" type="submit" startIcon={<LocationOnIcon />}>Fix Geofence Stop</Button>
@@ -500,10 +677,13 @@ const RouteManagement = () => {
                     <Formik
                         enableReinitialize
                         initialValues={{
-                            stopName: editingStop?.stopName || '',
+                            name: editingStop?.name || '',
                             latitude: editingStop?.latitude || '',
                             longitude: editingStop?.longitude || '',
-                            timing: editingStop?.timing || ''
+                            timing: editingStop?.timing || '',
+                            order: editingStop?.order || '',
+                            route_id: editingStop?.route_id || selectedRoute || ''
+
                         }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(busStopFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting }) => {
@@ -513,14 +693,15 @@ const RouteManagement = () => {
                             }
                             setError('');
                             setLoading(true);
+                            debugger
                             SchoolBusService.updateStop(editingStop.id, values)
                                 .then(() => SchoolBusService.getStops(selectedRoute))
                                 .then((res) => {
-                                    setStops(Array.isArray(res?.data) ? res.data : []);
+                                    setStops(Array.isArray(res?.data?.data[0].stops) ? res.data?.data[0].stops : []);
                                     return SchoolBusService.getRoutes();
                                 })
                                 .then((rr) => {
-                                    setRoutes(Array.isArray(rr?.data) ? rr.data : []);
+                                    setRoutes(Array.isArray(rr?.data?.data) ? rr.data?.data : []);
                                     setOpenEditStop(false);
                                     setEditingStop(null);
                                 })
@@ -535,7 +716,7 @@ const RouteManagement = () => {
                     >
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
-                                <FormField fieldConfig={busStopFields(t).stopName} formik={formik} />
+                                <FormField fieldConfig={busStopFields(t).name} formik={formik} />
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={6}>
                                         <FormField fieldConfig={busStopFields(t).latitude} formik={formik} />
@@ -545,6 +726,8 @@ const RouteManagement = () => {
                                     </Grid>
                                 </Grid>
                                 <FormField fieldConfig={busStopFields(t).timing} formik={formik} />
+                                <FormField fieldConfig={busStopFields(t).order} formik={formik} />
+
                                 <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                                     <Button fullWidth variant="outlined" onClick={() => { setOpenEditStop(false); setEditingStop(null); }} disabled={loading || formik.isSubmitting}>Cancel</Button>
                                     <AnimateButton>
