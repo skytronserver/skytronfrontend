@@ -893,6 +893,7 @@ const MapComponent = ({
     markerLabelMode = "vehicle",
     nmrArea = null,
     allMode = false,
+    onZoomChange = () => { },
 }) => {
     const overlayElement = useRef();
     const lastClickedVehicleRef = useRef(null);
@@ -905,6 +906,11 @@ const MapComponent = ({
     // Inside MapComponent, add this ref
     const activeFeaturesRef = useRef({}); // Format: { [imei]: FeatureObject }
     const hasAutoFittedRef = useRef(false); 
+    const onZoomChangeRef = useRef(onZoomChange);
+
+    useEffect(() => {
+        onZoomChangeRef.current = onZoomChange;
+    }, [onZoomChange]);
 
     const [map, setMap] = useState(null);
     const [vectorLayer, setVectorLayer] = useState(null);
@@ -1035,11 +1041,16 @@ const MapComponent = ({
     * Logic to calculate averaged location
     */
     const getAveragedLocation = (entry) => {
-        const imei = entry.imei || entry.imei_no || "unknown";
+        const imei = entry.id || entry.imei || entry.imei_no || "unknown";
         const rawLat = Number(entry.latitude);
         const rawLng = Number(entry.longitude);
 
         if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
+            return { lat: rawLat, lng: rawLng };
+        }
+
+        // Snap aggregate markers (clusters/grids) to exact coordinates without smoothing
+        if (entry.isCluster || entry.isGrid) {
             return { lat: rawLat, lng: rawLng };
         }
 
@@ -1474,21 +1485,66 @@ const MapComponent = ({
 
     const clusterStyleFunction = (feature) => {
         const features = feature.get('features');
+        if (!features) return null;
         const size = features.length;
 
         if (size === 1) {
-            // Return the style of the original feature
-            return features[0].getStyle();
+            const originalFeature = features[0];
+            const data = originalFeature.get('entryData') || originalFeature.get('data');
+            
+            // If it's a server-side cluster/grid cell, show its total
+            if (data?.isCluster || data?.isGrid) {
+                return new Style({
+                    image: new CircleStyle({
+                        radius: 15 + Math.min(Math.log10(data.total || 1) * 5, 10),
+                        stroke: new Stroke({ color: '#fff', width: 2 }),
+                        fill: new Fill({ color: data.isGrid ? '#f57c00' : '#1976d2' }),
+                    }),
+                    text: new Text({
+                        text: (data.total || 1).toString(),
+                        fill: new Fill({ color: '#fff' }),
+                        font: 'bold 12px "Roboto", sans-serif',
+                        textAlign: 'center',
+                        textBaseline: 'middle',
+                    }),
+                });
+            }
+            // Return the style of the original feature (vehicle/incident)
+            return originalFeature.getStyle();
         }
+
+        // Multiple features clustered together by OpenLayers
+        let totalVehicles = 0;
+        let hasGrid = false;
+        let hasCluster = false;
+
+        features.forEach(f => {
+            const data = f.get('entryData') || f.get('data');
+            // ONLY count vehicles or total fields from clusters/grids
+            // Skip police and incidents in the aggregate count
+            if (data?.packet_type === 'POLICE' || data?.packet_type === 'INCIDENT') {
+                return;
+            }
+
+            if (data?.isCluster || data?.isGrid) {
+                totalVehicles += (data.total || 0);
+                if (data.isGrid) hasGrid = true;
+                if (data.isCluster) hasCluster = true;
+            } else {
+                totalVehicles += 1;
+            }
+        });
+
+        if (totalVehicles === 0) return null; // Don't show a bubble if it only contains skipped markers
 
         return new Style({
             image: new CircleStyle({
-                radius: 12 + Math.min(size * 0.5, 8),
+                radius: 12 + Math.min(Math.log10(totalVehicles || 1) * 7, 15),
                 stroke: new Stroke({ color: '#fff', width: 2 }),
-                fill: new Fill({ color: '#1976d2' }),
+                fill: new Fill({ color: hasGrid ? '#f57c00' : '#1976d2' }),
             }),
             text: new Text({
-                text: size.toString(),
+                text: totalVehicles.toString(),
                 fill: new Fill({ color: '#fff' }),
                 font: 'bold 12px "Roboto", sans-serif',
             }),
@@ -1540,6 +1596,11 @@ const MapComponent = ({
             ],
 
             pixelRatio: 1,
+        });
+
+        initialMap.on('moveend', () => {
+            const zoom = initialMap.getView().getZoom();
+            onZoomChange(Math.round(zoom));
         });
 
         // Initialize vector layer for markers
@@ -2661,9 +2722,23 @@ const MapComponent = ({
                     center: [91.7362, 26.1445],
                     zoom: 13,
                     maxZoom: 19,
-                    constrainResolution: true,
                 }),
                 pixelRatio: 1,
+            });
+
+            // Notify parent of zoom changes using a stable ref
+            soiMap.getView().on('change:resolution', () => {
+                const zoom = soiMap.getView().getZoom();
+                if (onZoomChangeRef.current) onZoomChangeRef.current(zoom);
+                
+                // Dynamically adjust clustering distance
+                // At high zoom (12+), set distance to 0 to show individual vehicles
+                if (initialVectorLayer) {
+                    const clusterSource = initialVectorLayer.getSource();
+                    if (clusterSource && typeof clusterSource.setDistance === 'function') {
+                        clusterSource.setDistance(zoom >= 12 ? 0 : 40);
+                    }
+                }
             });
 
             // Initialize vector layer for markers
@@ -2889,6 +2964,12 @@ const MapComponent = ({
                 });
 
                 console.log('HD map created, instance:', hdMap);
+
+                // Add zoom listener for HD Map
+                hdMap.addListener('zoom', () => {
+                    const zoom = hdMap.getZoom();
+                    if (onZoomChangeRef.current) onZoomChangeRef.current(zoom);
+                });
 
                 // Mappls ignores center in properties, set it explicitly
                 const guwahatiCenter = { lng: 91.7362, lat: 26.1445 };
@@ -4741,82 +4822,107 @@ ${policeInfoRows || policeDetailsRows
     // }, [gpsData, policeData, map, vectorLayer, mapType, markerLabelMode, allMode  ]);
 
 
-useEffect(() => {
-    if (!map || !vectorLayer || mapType === 'hd') return;
+    useEffect(() => {
+        if (!map || !vectorLayer || mapType === 'hd') return;
 
-    const vectorSource = vectorLayer.getSource().getSource();
-    const allMarkers = [...gpsData, ...policeData];
-    const currentImeis = new Set();
-    
-    // Duration should be slightly less than your polling interval (e.g., if you poll every 5s, use 4500)
-    const animationDuration = 2500; 
-
-    allMarkers.forEach((entry) => {
-        const imei = entry.imei || entry.vehicle_registration_number;
-        if (!imei) return;
-        currentImeis.add(imei);
-
-        const targetPos = getAveragedLocation(entry);
-        const targetCoords = [targetPos.lng, targetPos.lat];
-        const vehicleType = entry?.device_tag_info?.category_info?.category || "bus";
-
-        let feature = activeFeaturesRef.current[imei];
-
-        if (!feature) {
-            // First time seeing this vehicle: Create it
-            feature = new Feature({
-                geometry: new Point(targetCoords),
-                entryData: entry,
+        const vectorSource = vectorLayer.getSource().getSource();
+        
+        // CRITICAL: Clear the source before adding cluster/grid markers 
+        // to prevent duplicate bubbles during polling/mode switches.
+        const isAggregateMode = gpsData.some(d => d.isCluster || d.isGrid);
+        if (isAggregateMode) {
+            vectorSource.clear();
+            // Also clear our ref tracking to start fresh
+            Object.keys(activeFeaturesRef.current).forEach(key => {
+                delete activeFeaturesRef.current[key];
             });
-            feature.set("currentRotation", 0);
-            feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
-            activeFeaturesRef.current[imei] = feature;
-            vectorSource.addFeature(feature);
-        } else {
-            // Existing vehicle: Animate movement
-            const startCoords = feature.getGeometry().getCoordinates();
-            const startTime = performance.now();
-
-            // Cancel any previous animation frame for this specific car
-            if (feature.get("animFrameId")) {
-                cancelAnimationFrame(feature.get("animFrameId"));
-            }
-
-            const frame = (now) => {
-                const elapsed = now - startTime;
-                const progress = Math.min(elapsed / animationDuration, 1);
-
-                // 1. Smoothly slide coordinates
-                const currLng = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
-                const currLat = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
-                const currentPos = [currLng, currLat];
-                feature.getGeometry().setCoordinates(currentPos);
-
-                // 2. Rotation is fixed to 0
-                feature.set("currentRotation", 0);
-
-                // 3. Update Style
-                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
-
-                // 4. MAP FOLLOWING (Move camera with car if focused)
-                if (focusEntry && (focusEntry.imei === imei || focusEntry.vehicle_registration_number === imei)) {
-                    map.getView().setCenter(currentPos);
-                }
-
-                if (progress < 1) {
-                    feature.set("animFrameId", requestAnimationFrame(frame));
-                }
-            };
-
-            // Only start animation if the car has actually moved a bit
-            if (Math.abs(startCoords[0] - targetCoords[0]) > 0.000001 || Math.abs(startCoords[1] - targetCoords[1]) > 0.000001) {
-                feature.set("animFrameId", requestAnimationFrame(frame));
-            } else {
-                // Car is stationary, just update metadata/style
-                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
-            }
         }
-    });
+
+        // In aggregate mode, we only render the GPS aggregate data
+        // to prevent mixing individual markers (Police/Incidents) into the clusters
+        const allMarkers = isAggregateMode ? [...gpsData] : [...gpsData, ...policeData];
+        const currentImeis = new Set();
+        
+        // Duration should be slightly less than your polling interval (e.g., if you poll every 5s, use 4500)
+        const animationDuration = 2500; 
+
+        allMarkers.forEach((entry) => {
+            const imei = entry.id || entry.imei || entry.vehicle_registration_number;
+            if (!imei) return;
+            currentImeis.add(imei);
+
+            const targetPos = getAveragedLocation(entry);
+            const targetCoords = [targetPos.lng, targetPos.lat];
+            const vehicleType = entry?.device_tag_info?.category_info?.category || "bus";
+
+            // Special handling for Cluster/Grid markers: No animation, just direct placement
+            if (entry.isCluster || entry.isGrid) {
+                const clusterFeature = new Feature({
+                    geometry: new Point(targetCoords),
+                    entryData: entry,
+                });
+                clusterFeature.setStyle(clusterStyleFunction(new Feature({ features: [clusterFeature] })));
+                vectorSource.addFeature(clusterFeature);
+                return;
+            }
+
+            let feature = activeFeaturesRef.current[imei];
+
+            if (!feature) {
+                // First time seeing this vehicle: Create it
+                feature = new Feature({
+                    geometry: new Point(targetCoords),
+                    entryData: entry,
+                });
+                feature.set("currentRotation", 0);
+                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
+                activeFeaturesRef.current[imei] = feature;
+                vectorSource.addFeature(feature);
+            } else {
+                // Existing vehicle: Animate movement
+                const startCoords = feature.getGeometry().getCoordinates();
+                const startTime = performance.now();
+
+                // Cancel any previous animation frame for this specific car
+                if (feature.get("animFrameId")) {
+                    cancelAnimationFrame(feature.get("animFrameId"));
+                }
+
+                const frame = (now) => {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+
+                    // 1. Smoothly slide coordinates
+                    const currLng = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
+                    const currLat = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
+                    const currentPos = [currLng, currLat];
+                    feature.getGeometry().setCoordinates(currentPos);
+
+                    // 2. Rotation is fixed to 0
+                    feature.set("currentRotation", 0);
+
+                    // 3. Update Style
+                    feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
+
+                    // 4. MAP FOLLOWING (Move camera with car if focused)
+                    if (focusEntry && (focusEntry.imei === imei || focusEntry.vehicle_registration_number === imei)) {
+                        map.getView().setCenter(currentPos);
+                    }
+
+                    if (progress < 1) {
+                        feature.set("animFrameId", requestAnimationFrame(frame));
+                    }
+                };
+
+                // Only start animation if the car has actually moved a bit
+                if (Math.abs(startCoords[0] - targetCoords[0]) > 0.000001 || Math.abs(startCoords[1] - targetCoords[1]) > 0.000001) {
+                    feature.set("animFrameId", requestAnimationFrame(frame));
+                } else {
+                    // Car is stationary, just update metadata/style
+                    feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
+                }
+            }
+        });
 
     // Clean up features for cars that are no longer in the list
     Object.keys(activeFeaturesRef.current).forEach(imei => {

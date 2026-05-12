@@ -58,6 +58,8 @@ const LiveTracking = () => {
   const [roads, setRoads] = useState("");
   const [polygon, setPolygon] = useState("");
   const [category, setCategory] = useState("");
+  const [clusterLevel, setClusterLevel] = useState("none"); // "none", "district", "state", "city", "road", "grid"
+  const [mapZoom, setMapZoom] = useState(13); // Start in sync with the map's default zoom
   const [categoryMaxSpeed, setCategoryMaxSpeed] = useState("");
   const [categorySpeedMap, setCategorySpeedMap] = useState({});
   const [make, setMake] = useState("");
@@ -83,6 +85,57 @@ const LiveTracking = () => {
   const fullRawRef = useRef([]);  // raw items from API (unprocessed)
   const listContainerRef = useRef(null);
   const [visibleCount, setVisibleCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const [pageLength, setPageLength] = useState(100);
+  const [pagination, setPagination] = useState({ total: 0, page: 0, page_length: 100, total_pages: 0 });
+  const zoomDebounceRef = useRef(null);
+  const isRequestingRef = useRef(false);
+  const activeCancelRef = useRef(null);
+  const pollingTimeoutRef = useRef(null);
+
+  const handleZoomChangeDebounced = useCallback((zoom) => {
+    if (zoomDebounceRef.current) clearTimeout(zoomDebounceRef.current);
+    zoomDebounceRef.current = setTimeout(() => {
+      console.log("[LiveTracking] Zoom changed to:", zoom);
+      setMapZoom(zoom);
+    }, 300); // Shorter debounce for better feel
+  }, []);
+
+  const getGridSize = (zoomLevel) => {
+    if (zoomLevel <= 5) return 1000000;
+    if (zoomLevel <= 7) return 40000;
+    if (zoomLevel <= 9) return 2500;
+    if (zoomLevel <= 11) return 100;
+    if (zoomLevel <= 13) return 25;
+    return 1;
+  };
+
+  // Instant refresh when zoom crosses the threshold
+  useEffect(() => {
+    // Determine if we should be in individual or cluster mode
+    const isDeepZoom = mapZoom >= 12;
+    console.log("[LiveTracking] Mode Switch Check:", { zoom: mapZoom, isDeepZoom });
+
+    // Force a full refresh when crossing the zoom boundary
+    const params = {
+      imei: imeiNo,
+      regno: vehicleNo,
+      owner: owner,
+      poi: poi,
+      roads: roads,
+      polygon: polygon,
+      category: category,
+      make: make,
+      district: district,
+      speed_limit: speedLimit,
+      in_range: inRange,
+      poi_as_polygon: poiAsPolygon,
+      poi_t: poi,
+      page: 0,
+      page_length: pageLength
+    };
+    retriveMapData(params);
+  }, [mapZoom >= 12]); // Only trigger when the threshold boolean actually FLIPS
 
   // Handle input changes
   const handleInput = (event) => {
@@ -134,6 +187,10 @@ const LiveTracking = () => {
       processedItem?.route_name ||
       (routeId ? `Route: ${routeId}` : '');
 
+    // Normalize for lite API
+    const registration = processedItem.vehicle_registration_number || processedItem.vehicle_reg_no || '';
+    const id = processedItem.id || processedItem.device_tag_id;
+    const entryTime = processedItem.entry_time || processedItem.last_seen;
     // Precompute status/icon
     const entryTimeMs = resolveEntryTimestampMs(processedItem);
     const nowMs = Date.now();
@@ -143,11 +200,16 @@ const LiveTracking = () => {
     const speedValue = resolveSpeedValue(processedItem);
 
     let alartType;
+    const isEmergency = String(processedItem.emergency_status || "") === "1" ||
+                        String(processedItem.emergency_status || "") === "0001" ||
+                        String(processedItem.emergency_status || "") === "1111" ||
+                        processedItem.packet_type === 'EA';
+
     if (isStale) alartType = 'grey';
-    else if (processedItem.packet_type === 'EA') alartType = 'red';
-    else if (processedItem.packet_type !== 'NR') alartType = 'orange';
-    else if (speedValue > 0) alartType = 'green';
-    else if (ignitionOn && speedValue === 0) alartType = 'blue';
+    else if (isEmergency) alartType = 'red';
+    else if (processedItem.packet_type && processedItem.packet_type !== 'NR') alartType = 'orange';
+    else if (speedValue > 2) alartType = 'green';
+    else if (ignitionOn && speedValue <= 2) alartType = 'blue';
     else alartType = 'default';
 
     const vehicleType = processedItem?.device_tag_info?.category_info?.category;
@@ -157,6 +219,9 @@ const LiveTracking = () => {
 
     return {
       ...processedItem,
+      id,
+      vehicle_registration_number: registration,
+      entry_time: entryTime,
       block_name: blockName,
       route_name: routeName,
       __alartType: alartType,
@@ -166,22 +231,32 @@ const LiveTracking = () => {
 
   const handleListScroll = useCallback(() => {
     const el = listContainerRef.current;
-    if (!el || !fullRawRef.current) return;
+    if (!el || load) return; // Prevent multiple simultaneous loads
     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 80;
     if (!nearBottom) return;
 
-    const BATCH = 200;
-    const nextEnd = Math.min(visibleCount + BATCH, fullRawRef.current.length);
-    if (nextEnd <= visibleCount) return;
-
-    const nextSlice = fullRawRef.current.slice(visibleCount, nextEnd).map(computeRow);
-    fullDataRef.current = [...fullDataRef.current, ...nextSlice];
-    setTableDataTop((prev) => [...prev, ...nextSlice]);
-    if (typeFilter === 'default') {
-      setFilteredData((prev) => [...prev, ...nextSlice]);
+    if (pagination.page + 1 < pagination.total_pages) {
+      const nextPage = pagination.page + 1;
+      const params = {
+        imei: imeiNo,
+        regno: vehicleNo,
+        owner: owner,
+        poi: poi,
+        roads: roads,
+        polygon: polygon,
+        category: category,
+        make: make,
+        district: district,
+        speed_limit: speedLimit,
+        in_range: inRange,
+        poi_as_polygon: poiAsPolygon,
+        poi_t: poi,
+        page: nextPage,
+        page_length: pageLength
+      };
+      retriveMapData(params, true); // true means append
     }
-    setVisibleCount(nextEnd);
-  }, [visibleCount, typeFilter]);
+  }, [pagination, load, imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, speedLimit, inRange, poiAsPolygon, pageLength]);
 
   const handleVehicleMarkerClick = async (entry) => {
     if (!entry?.imei) return;
@@ -383,101 +458,139 @@ const LiveTracking = () => {
     }
   };
 
-  let activeCancel = null;
-  const retriveMapData = async (data) => {
+  const retriveMapData = async (data, append = false) => {
+    if (isRequestingRef.current && !append) {
+       // Avoid overlapping full refreshes
+       return;
+    }
     try {
-      if (activeCancel) {
-        activeCancel.cancel('replaced by a newer request');
+      isRequestingRef.current = true;
+      if (activeCancelRef.current) {
+        activeCancelRef.current.cancel('replaced by a newer request');
       }
-      activeCancel = axios.CancelToken.source();
+      activeCancelRef.current = axios.CancelToken.source();
 
-      const retriveData_table = await HomePageService.getLiveTracking_data(
-        { ...data },
-        { cancelToken: activeCancel.token }
-      );
+      let sidebarResponse;
+      let mapResponse;
 
-      if (Array.isArray(retriveData_table.data.data)) {
-        const rawData = retriveData_table.data.data;
-        fullRawRef.current = rawData;
-
-        const nextCategorySpeedMap = rawData.reduce((acc, item) => {
-          const catRaw =
-            item?.device_tag_info?.category_info?.category ??
-            item?.category_info?.category ??
-            item?.category;
-          const cat = normalizeCategoryKey(catRaw);
-          if (!cat) return acc;
-          const speedValue = item?.device_tag_info?.category_info?.maxSpeed ??
-            item?.device_tag_info?.category_info?.max_speed ??
-            item?.category_info?.maxSpeed ??
-            item?.category_info?.max_speed ??
-            '';
-          if (speedValue !== '' && speedValue !== null && speedValue !== undefined) {
-            acc[cat] = String(speedValue);
-          }
-          return acc;
-        }, {});
-        setCategorySpeedMap(nextCategorySpeedMap);
-
-        const maxSpeedValue = rawData?.[0]?.device_tag_info?.category_info?.maxSpeed ??
-          rawData?.[0]?.device_tag_info?.category_info?.max_speed ??
-          rawData?.[0]?.category_info?.maxSpeed ??
-          rawData?.[0]?.category_info?.max_speed ??
-          '';
-        setCategoryMaxSpeed(category && rawData.length > 0 ? String(maxSpeedValue || '') : '');
-
-        // Lazy rendering: keep full list in ref and render initial chunk only
-        const INITIAL_CHUNK = 50; // smaller initial paint for faster perceived load
-        const CHUNK_SIZE = 200;
-
-        const firstSlice = rawData.slice(0, INITIAL_CHUNK).map(computeRow);
-        fullDataRef.current = firstSlice;
-        setTableDataTop(firstSlice);
-        setFilteredData(firstSlice);
-        setVisibleCount(firstSlice.length);
-        setLoad(true);
-
-        // If there's exactly one vehicle, select it automatically
-        if (rawData.length === 1) {
-          setSelectedId(`vehicle-${rawData[0].imei}`);
-          setFocusedEntry(computeRow(rawData[0]));
+      // Logic: 
+      // 1. Sidebar always follows clusterLevel
+      // 2. Map follows clusterLevel if zoomed out (<12), but switches to Vehicles if zoomed in (>=12)
+      
+      if (clusterLevel === "none") {
+        sidebarResponse = await HomePageService.getLiveTracking_lite(
+          { ...data, page: data.page ?? 0, page_length: data.page_length ?? 100 },
+          { cancelToken: activeCancelRef.current.token }
+        );
+        mapResponse = sidebarResponse;
+      } else if (clusterLevel === "grid") {
+        sidebarResponse = await HomePageService.getLiveTracking_grid(
+          { ...data, grid: getGridSize(mapZoom) },
+          { cancelToken: activeCancelRef.current.token }
+        );
+        if (mapZoom >= 12) {
+           mapResponse = await HomePageService.getLiveTracking_lite(
+             { ...data, page: data.page ?? 0, page_length: data.page_length ?? 100 },
+             { cancelToken: activeCancelRef.current.token }
+           );
         } else {
-          setSelectedId(null);
-          setFocusedEntry(null);
+           mapResponse = sidebarResponse;
         }
-
-        // Defer auxiliary data fetches to avoid blocking first paint
-        setTimeout(() => {
-          const all = fullRawRef.current?.length ? fullRawRef.current : rawData;
-          fetchPoliceLocations(all);
-          fetchIncidents(all);
-        }, 0);
       } else {
-        setTableDataTop([]);
-        setFilteredData([]);
-        setSelectedId(null);
-        setFocusedEntry(null);
-        setCategoryMaxSpeed('');
-        setCategorySpeedMap({});
-        setUseNmrLocation(false);
-        setNmrArea(null);
-        fetchPoliceLocations();
-        fetchIncidents();
+        // clusterLevel is district, state, city, or road
+        sidebarResponse = await HomePageService.getLiveTracking_cluster(
+          { ...data, level: clusterLevel },
+          { cancelToken: activeCancelRef.current.token }
+        );
+        if (mapZoom >= 12) {
+           mapResponse = await HomePageService.getLiveTracking_lite(
+             { ...data, page: data.page ?? 0, page_length: data.page_length ?? 100 },
+             { cancelToken: activeCancelRef.current.token }
+           );
+        } else {
+           mapResponse = sidebarResponse;
+        }
       }
-      // load state now set earlier for faster perceived rendering
+
+      // Process Sidebar Data (Always based on sidebarResponse)
+      const rawSidebarData = sidebarResponse.data.data || [];
+      let processedSidebar;
+      if (clusterLevel === "none") {
+          processedSidebar = rawSidebarData.map(computeRow);
+      } else if (clusterLevel === "grid") {
+          processedSidebar = rawSidebarData.map((g, idx) => ({
+              ...g,
+              id: `grid-${idx}-${g.grid_lat}-${g.grid_lon}`,
+              vehicle_registration_number: `Grid Cell`,
+              latitude: g.grid_lat,
+              longitude: g.grid_lon,
+              isGrid: true,
+              markerLabel: `Total: ${g.total}`
+          }));
+      } else {
+          processedSidebar = rawSidebarData.map(c => ({
+              ...c,
+              id: `cluster-${c.cluster_name}`,
+              vehicle_registration_number: c.cluster_name,
+              latitude: c.avg_lat,
+              longitude: c.avg_lon,
+              isCluster: true,
+              markerLabel: `${c.cluster_name}: ${c.total}`
+          }));
+      }
+      setTableDataTop(processedSidebar);
+      setPagination(sidebarResponse.data.pagination || { total: processedSidebar.length, page: 0, page_length: processedSidebar.length, total_pages: 1 });
+
+      // Process Map Data (Based on mapResponse)
+      const rawMapData = mapResponse.data.data || [];
+      let processedMap;
+      
+      if (mapZoom >= 12 || clusterLevel === "none") {
+          processedMap = rawMapData.map(computeRow);
+      } else if (clusterLevel === "grid") {
+          processedMap = rawMapData.map((g, idx) => ({
+              ...g,
+              id: `grid-${idx}-${g.grid_lat}-${g.grid_lon}`,
+              vehicle_registration_number: `Grid Cell`,
+              latitude: g.grid_lat,
+              longitude: g.grid_lon,
+              isGrid: true,
+              markerLabel: `Total: ${g.total}`
+          }));
+      } else {
+          processedMap = rawMapData.map(c => ({
+              ...c,
+              id: `cluster-${c.cluster_name}`,
+              vehicle_registration_number: c.cluster_name,
+              latitude: c.avg_lat,
+              longitude: c.avg_lon,
+              isCluster: true,
+              markerLabel: `${c.cluster_name}: ${c.total}`
+          }));
+      }
+
+      // Update Map markers
+      if (!selectedId) {
+          setFilteredData(processedMap);
+      } else {
+          const updated = processedMap.find(p => p.id === selectedId);
+          if (updated) {
+              setFocusedEntry(updated);
+              setFilteredData([updated]);
+          } else {
+              setFilteredData(processedMap);
+          }
+      }
     } catch (error) {
-      setTableDataTop([]);
-      setFilteredData([]);
-      setSelectedId(null);
-      setFocusedEntry(null);
-      setCategoryMaxSpeed('');
-      setCategorySpeedMap({});
-      setUseNmrLocation(false);
-      setNmrArea(null);
-      fetchPoliceLocations();
-      fetchIncidents();
+      if (!axios.isCancel(error)) {
+        console.error("Error retrieving map data:", error);
+      }
+    } finally {
+      isRequestingRef.current = false;
     }
   };
+
+
 
   const getReverseGeocodeCacheKey = (lat, lon) => {
     const latNum = Number(lat);
@@ -591,28 +704,45 @@ const LiveTracking = () => {
 
   // Handle button click, update selectedId and filtered data
   const handleButtonClick = async (id) => {
-    let selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === id);
-    if (!selectedRow) {
-      selectedRow = (fullDataRef.current || []).find((row) => `vehicle-${row.imei}` === id);
+    if (!id) {
+      setSelectedId(null);
+      setFilteredData(tableDataTop);
+      setFocusedEntry(null);
+      setUseNmrLocation(false);
+      return;
     }
+
+    // Find the item in our current view
+    const selectedRow = tableDataTop.find((row) => row.id === id) || 
+                        (fullDataRef.current || []).find((row) => row.id === id);
 
     if (selectedRow) {
       setSelectedId(id);
-      setFilteredData([selectedRow]);
-      setFocusedEntry(selectedRow);
-      setUseNmrLocation(false);
-      setNmrArea(null);
-      if (isBadGnss(selectedRow)) {
-        const updated = await applyNmrLocation(selectedRow);
-        setFilteredData([updated]);
-        setFocusedEntry(updated);
+      
+      // If it's an individual vehicle, fetch detailed info (POIs, Routes, etc.)
+      if (!selectedRow.isCluster && !selectedRow.isGrid && selectedRow.imei) {
+        const detailed = await fetchDetailedInfo(selectedRow.imei);
+        const toFocus = detailed ? computeRow(detailed) : selectedRow;
+
+        setFilteredData([toFocus]);
+        setFocusedEntry(toFocus);
+        setUseNmrLocation(false);
+        setNmrArea(null);
+        if (isBadGnss(toFocus)) {
+          const updated = await applyNmrLocation(toFocus);
+          setFilteredData([updated]);
+          setFocusedEntry(updated);
+        }
+      } else {
+        // For Cluster/Grid, just focus and show in table
+        setFilteredData([selectedRow]);
+        setFocusedEntry(selectedRow);
+        setUseNmrLocation(false);
       }
     } else {
       setSelectedId(null);
       setFilteredData(tableDataTop);
       setFocusedEntry(null);
-      setUseNmrLocation(false);
-      setNmrArea(null);
     }
   };
 
@@ -643,7 +773,7 @@ const LiveTracking = () => {
     setUseNmrLocation(false);
     setNmrArea(null);
 
-    retriveMapData(params);
+    retriveMapData({ ...params, page: 0, page_length: pageLength });
   };
 
   useEffect(() => {
@@ -667,8 +797,9 @@ const LiveTracking = () => {
     };
 
     // Single fetch when filters/inputs change, no repeating interval
-    retriveMapData(params);
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon]);
+    // Single fetch when filters/inputs change, no repeating interval
+    retriveMapData({ ...params, page: 0, page_length: pageLength });
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, pageLength, clusterLevel, mapZoom]);
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -696,7 +827,12 @@ const LiveTracking = () => {
     };
 
     try {
-      const response = await HomePageService.getLiveTracking_data(params);
+      // Use the Data API for the selected vehicle to get POI proximity and detailed status
+      const response = await HomePageService.getLiveTracking_data({
+        imei: selectedRow.imei,
+        page: 0,
+        page_length: 1
+      });
       if (Array.isArray(response?.data?.data) && response.data.data.length > 0) {
         let updated = response.data.data[0];
 
@@ -713,6 +849,45 @@ const LiveTracking = () => {
       // Ignore refresh errors for selected vehicle
     }
   };
+
+  const fetchDetailedInfo = async (imei) => {
+    try {
+      const response = await HomePageService.getLiveTracking_data({ imei, page: 0, page_length: 1 });
+      if (Array.isArray(response?.data?.data) && response.data.data.length > 0) {
+        return response.data.data[0];
+      }
+    } catch (error) {
+      console.error("Error fetching detailed info:", error);
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    // Background polling for the map markers using recursive setTimeout
+    // This ensures we only schedule the next fetch AFTER the current one finishes.
+    const poll = async () => {
+      const params = {
+        imei: imeiNo,
+        regno: vehicleNo,
+        district_id: '',
+        district: district,
+        state: '',
+        page: 0,
+        page_length: visibleCount || 100,
+        count: false
+      };
+      
+      await retriveMapData(params, false);
+      
+      pollingTimeoutRef.current = setTimeout(poll, 10000);
+    };
+
+    poll();
+
+    return () => {
+      if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
+    };
+  }, [imeiNo, vehicleNo, district, clusterLevel]); // Added clusterLevel to dependencies
 
   useEffect(() => {
     if (!selectedId) return;
@@ -733,7 +908,7 @@ const LiveTracking = () => {
   const resolveEntryTimestampMs = (data) => {
     if (!data) return NaN;
 
-    const raw = data.entry_time ?? data.timestamp ?? null;
+    const raw = data.entry_time ?? data.timestamp ?? data.last_seen ?? null;
 
     const normalizeEpoch = (value) => {
       const num = typeof value === "number" ? value : Number(value);
@@ -858,19 +1033,24 @@ const LiveTracking = () => {
     const ignitionOn = resolveIgnitionOn(data);
     const speedValue = resolveSpeedValue(data);
 
+    const isEmergency = String(data.emergency_status || "") === "1" ||
+                        String(data.emergency_status || "") === "0001" ||
+                        String(data.emergency_status || "") === "1111" ||
+                        data.packet_type === "EA";
+
     let color;
-    if (isStale) {
-      color = 'grey'; // Offline device (no packets from device for 15+ minutes) - Grey Icon
-    } else if (data.packet_type === "EA") {
-      color = 'red'; // EA Packet - Red Icon
-    } else if (data.packet_type !== "NR") {
+    if (timeDifference > 10) {
+      color = 'grey'; // Offline device (10+ minutes) - Grey Icon
+    } else if (isEmergency) {
+      color = 'red'; // Emergency active - Red Icon
+    } else if (data.packet_type && data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
     } else if (speedValue > 0) {
       color = 'green'; // Moving - Green Icon
     } else if (ignitionOn && speedValue === 0) {
       color = 'blue'; // Ignition ON but stationary - Blue Icon
     } else {
-      color = 'default'; // Default icon for all other conditions
+      color = 'default'; // Default icon
     }
 
     return createIconPath(color, vehicleType);
@@ -887,18 +1067,23 @@ const LiveTracking = () => {
     const ignitionOn = resolveIgnitionOn(data);
     const speedValue = resolveSpeedValue(data);
 
-    if (isStale) {
-      return "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
-    } else if (data.packet_type === "EA") {
-      return "red"; // EA Packet - Red Icon
-    } else if (data.packet_type !== "NR") {
-      return "orange"; // Any Alert Packet except EA - Orange Icon
+    const isEmergency = String(data.emergency_status || "") === "1" ||
+                        String(data.emergency_status || "") === "0001" ||
+                        String(data.emergency_status || "") === "1111" ||
+                        data.packet_type === "EA";
+
+    if (timeDifference > 10) {
+      return "grey"; // Offline
+    } else if (isEmergency) {
+      return "red"; // Emergency
+    } else if (data.packet_type && data.packet_type !== "NR") {
+      return "orange"; // Alert
     } else if (speedValue > 0) {
-      return "green"; // Moving - Green Icon
+      return "green"; // Moving
     } else if (ignitionOn && speedValue === 0) {
-      return "blue"; // Ignition ON but stationary - Blue Icon
+      return "blue"; // Engine ON
     } else {
-      return "default"; // Default icon for all other conditions
+      return "default";
     }
   };
 
@@ -914,7 +1099,7 @@ const LiveTracking = () => {
       setFilteredData(filteredRows);
 
       if (filteredRows.length === 1) {
-        setSelectedId(`vehicle-${filteredRows[0].imei}`);
+        setSelectedId(filteredRows[0].id);
         setFocusedEntry(filteredRows[0]);
       } else {
         setSelectedId(null);
@@ -926,7 +1111,7 @@ const LiveTracking = () => {
 
       // If there's exactly one result after filtering, select it automatically
       if (filteredRows.length === 1) {
-        setSelectedId(`vehicle-${filteredRows[0].imei}`);
+        setSelectedId(filteredRows[0].id);
         setFocusedEntry(filteredRows[0]);
       } else {
         setSelectedId(null);
@@ -934,6 +1119,7 @@ const LiveTracking = () => {
       }
     }
   };
+
 
   const checkType = (type, data) => {
     const alartType = data?.__alartType ?? getAlartType(data);
@@ -944,6 +1130,11 @@ const LiveTracking = () => {
 
   const getDisplayCellValue = (row, key) => {
     if (!row) return "";
+
+    // Special handling for Cluster/Grid modes
+    if (row.isCluster || row.isGrid) {
+        return row[key] ?? "";
+    }
 
     if (key === "packet_type" || key === "packet_status") {
       const entryTimeMs = resolveEntryTimestampMs(row);
@@ -968,6 +1159,24 @@ const LiveTracking = () => {
       rawValue ||
       ""
     );
+  };
+
+  const getEffectiveKeyMapping = () => {
+    // Show individual columns at zoom 12+
+    if (mapZoom >= 12) return keyMapping;
+
+    if (clusterLevel !== 'none') {
+        return {
+            vehicle_registration_number: clusterLevel === 'grid' ? "Grid Cell" : "Cluster Name",
+            total: "Total Vehicles",
+            online: "Online",
+            offline: "Offline",
+            emergency: "Emergency",
+            moving: "Moving",
+            stationary: "Stationary"
+        };
+    }
+    return keyMapping;
   };
 
   return (
@@ -1226,21 +1435,24 @@ const LiveTracking = () => {
                         >
                           <TableCell
                             colSpan={6}
-                            onClick={() => handleButtonClick(`vehicle-${row.imei}`)}
-                            className={`table-cell ${selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
+                            onClick={() => handleButtonClick(row.id)}
+                            className={`table-cell ${selectedId === row.id ? "table-cell-selected" : ""
                               }`}
                           >
                             <Box display="flex" alignItems="center" gap={1}>
                               <img
                                 src={
-                                  typeFilter === "default"
-                                    ? createIconPath("default", row?.device_tag_info?.category_info?.category)
-                                    : getIconStyle(row)
+                                  clusterLevel !== "none"
+                                    ? createIconPath("default", "bus")
+                                    : (typeFilter === "default"
+                                        ? createIconPath("default", row?.device_tag_info?.category_info?.category)
+                                        : getIconStyle(row))
                                 }
                                 alt="status icon"
                                 style={{ width: '24px', height: '24px' }}
                               />
                               <Typography>{row.vehicle_registration_number}</Typography>
+                              {clusterLevel !== "none" && <Typography variant="caption" sx={{ ml: 'auto', fontWeight: 'bold' }}>{row.total}</Typography>}
                             </Box>
                           </TableCell>
                         </TableRow>
@@ -1255,13 +1467,36 @@ const LiveTracking = () => {
                 )}
               </TableBody>
             </Table>
+            {pagination && pagination.total > 0 && (
+              <Box sx={{ p: 1, textAlign: 'center', borderTop: '1px solid #eee', bgcolor: '#fafafa' }}>
+                <Typography variant="caption" color="textSecondary">
+                  Page {pagination.page + 1} of {pagination.total_pages} (Total: {pagination.total})
+                </Typography>
+              </Box>
+            )}
           </TableContainer>
         </div>
 
         {/* HTML Content (iframe) */}
         <div className="live-tracking-map-panel" style={{ width: "80%" }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-            <FormControl size="small" sx={{ minWidth: 220 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, gap: 1, flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel id="cluster-level-label">View Mode</InputLabel>
+              <Select
+                labelId="cluster-level-label"
+                value={clusterLevel}
+                label="View Mode"
+                onChange={(event) => setClusterLevel(event.target.value)}
+              >
+                <MenuItem value="none">Individual Vehicles</MenuItem>
+                <MenuItem value="district">By District</MenuItem>
+                <MenuItem value="state">By State</MenuItem>
+                <MenuItem value="city">By City</MenuItem>
+                <MenuItem value="road">By Road</MenuItem>
+                <MenuItem value="grid">Grid View (Auto Cluster)</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
               <InputLabel id="marker-label-mode-label">Marker Label</InputLabel>
               <Select
                 labelId="marker-label-mode-label"
@@ -1372,8 +1607,10 @@ const LiveTracking = () => {
             onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
             focusEntry={focusedEntry}
             markerLabelMode={markerLabelMode}
+            onZoomChange={handleZoomChangeDebounced}
             nmrArea={nmrArea}
             allMode={typeFilter === "default"}
+            autoFit={clusterLevel !== "none"}
           />
         </div>
       </div>
@@ -1383,13 +1620,13 @@ const LiveTracking = () => {
           <Table stickyHeader className="skytron-table">
             <TableHead>
               <TableRow>
-                {Object.keys(keyMapping).map((key) => (
+                {Object.keys(getEffectiveKeyMapping()).map((key) => (
                   <TableCell
                     key={key}
                     className="skytron-table-header-cell"
                     sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
                   >
-                    {keyMapping[key]}
+                    {getEffectiveKeyMapping()[key]}
                   </TableCell>
                 ))}
               </TableRow>
@@ -1402,7 +1639,7 @@ const LiveTracking = () => {
                     className="skytron-table-row"
                     sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                   >
-                    {Object.keys(keyMapping).map((key, cellIndex) => (
+                    {Object.keys(getEffectiveKeyMapping()).map((key, cellIndex) => (
                       <TableCell
                         key={`cell-${key}-${cellIndex}`}
                         className="skytron-table-cell"

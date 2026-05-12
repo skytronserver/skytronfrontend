@@ -121,8 +121,10 @@ const getLiveTracking = (data) => {
 };
 const getLiveTracking_data = (data, config = {}) => {
   const http = getAxiosInstance();
-  return http.get("/api/gps_track_data_api", {
+  return http.get("/api/gps_track_data_api/", {
     params: {
+      page: data.page,
+      page_length: data.page_length,
       imei: data.imei,
       regno: data.regno,
       owner: data.owner,
@@ -142,6 +144,53 @@ const getLiveTracking_data = (data, config = {}) => {
       in_range: data.in_range,
       poi_as_polygon: data.poi_as_polygon,
       poi_t: data.poi_t,
+    },
+    ...config,
+  });
+};
+
+const getLiveTracking_lite = (data, config = {}) => {
+  const http = getAxiosInstance();
+  return http.get("/api/gps_track_lite/", {
+    params: {
+      page: data.page,
+      page_length: data.page_length,
+      count: data.count,
+      imei: data.imei,
+      regno: data.regno,
+      district_id: data.district_id,
+      district: data.district,
+      state: data.state,
+    },
+    ...config,
+  });
+};
+
+const getLiveTracking_cluster = (data, config = {}) => {
+  const http = getAxiosInstance();
+  return http.get("/api/gps_cluster/", {
+    params: {
+      level: data.level || 'district',
+      imei: data.imei,
+      regno: data.regno,
+      district_id: data.district_id,
+      district: data.district,
+      state: data.state,
+    },
+    ...config,
+  });
+};
+
+const getLiveTracking_grid = (data, config = {}) => {
+  const http = getAxiosInstance();
+  return http.get("/api/gps_grid_cluster/", {
+    params: {
+      grid: data.grid || 100,
+      imei: data.imei,
+      regno: data.regno,
+      district_id: data.district_id,
+      district: data.district,
+      state: data.state,
     },
     ...config,
   });
@@ -391,6 +440,9 @@ const getReverseGeocode = (lat, lon) => {
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
+  getLiveTracking_lite,
+  getLiveTracking_cluster,
+  getLiveTracking_grid,
   getSOSDataAdmin,
   getHistoryPlayback,
   getSOSDataTeamLead,

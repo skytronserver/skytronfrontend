@@ -4,7 +4,6 @@ import { BASE_URL } from '../store/constant';
 let axiosInstance = null;
 
 export const createAxiosInstance = (token) => {
-debugger
   axiosInstance = axios.create({
     baseURL: BASE_URL,
     headers: {
@@ -16,7 +15,6 @@ debugger
   // Add an interceptor to handle FormData for file uploads
   axiosInstance.interceptors.request.use((config) => {
     if (config.headers['Content-type'] === 'multipart/form-data') {
-      debugger
       const formData = new FormData();
       for (const key in config.data) {
         if (config.data.hasOwnProperty(key)) {
@@ -32,7 +30,6 @@ debugger
   // Add an interceptor to handle responses and errors globally
   axiosInstance.interceptors.response.use(
     (response) => {
-      debugger
       // If the status code is in the 200 range, resolve the promise
       if (response.status >= 200 && response.status < 300) {
         return response;
@@ -42,7 +39,6 @@ debugger
       return Promise.reject(new Error(`Unexpected status code: ${response.status}`));
     },
     (error) => {
-      debugger
       // Handle specific error statuses
       if (error.response) {
         if (error.response.status === 404) {
