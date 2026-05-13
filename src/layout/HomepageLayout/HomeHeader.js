@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider, Grid, Button, Menu, MenuItem, Collapse, ListItemIcon, Box } from '@mui/material';
-import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, Dashboard as DashboardIcon, ExpandLess, ExpandMore } from '@mui/icons-material';
+import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, Dashboard as DashboardIcon, ExpandLess, ExpandMore, GetApp as DownloadIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
@@ -15,9 +15,17 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState(null);
   const importantLinksOpen = Boolean(anchorEl);
+  const [downloadAppAnchorEl, setDownloadAppAnchorEl] = useState(null);
+  const downloadAppOpen = Boolean(downloadAppAnchorEl);
   const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
   const dashboardOpen = Boolean(dashboardAnchorEl);
   const [drawerImportantLinksOpen, setDrawerImportantLinksOpen] = useState(false);
+  const [drawerDownloadAppOpen, setDrawerDownloadAppOpen] = useState(false);
+
+  const handleDrawerDownloadAppClick = (event) => {
+    event.stopPropagation();
+    setDrawerDownloadAppOpen(!drawerDownloadAppOpen);
+  };
 
   const handleDrawerImportantLinksClick = (event) => {
     event.stopPropagation();
@@ -30,6 +38,14 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
   const handleImportantLinksClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleDownloadAppClick = (event) => {
+    setDownloadAppAnchorEl(event.currentTarget);
+  };
+
+  const handleDownloadAppClose = () => {
+    setDownloadAppAnchorEl(null);
   };
 
   const handleDashboardClick = (event) => {
@@ -185,6 +201,87 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               </MenuItem>
             </Menu>
 
+            {/* Download App Dropdown */}
+            <Button
+              color="inherit"
+              startIcon={<DownloadIcon />}
+              endIcon={<ArrowDownIcon />}
+              onClick={handleDownloadAppClick}
+              sx={{ mr: 2 }}
+            >
+              {t('common.downloadApp')}
+            </Button>
+            <Menu
+              anchorEl={downloadAppAnchorEl}
+              open={downloadAppOpen}
+              onClose={handleDownloadAppClose}
+              MenuListProps={{
+                'aria-labelledby': 'download-app-button',
+              }}
+              PaperProps={{
+                sx: {
+                  mt: 1.5,
+                  p: 2,
+                  minWidth: '320px',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f3e5f5 100%)'
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {/* Google Play Section */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' } }}>
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://play.google.com/store/apps/details?id=com.skytrack.skytronapp`} 
+                    alt="Google Play QR"
+                    style={{ width: '80px', height: '80px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#6a1b9a' }}>
+                      {t('common.googlePlay')}
+                    </Typography>
+                    <Button 
+                      variant="text" 
+                      size="small" 
+                      component="a" 
+                      href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp" 
+                      target="_blank" 
+                      sx={{ p: 0, textTransform: 'none', fontSize: '0.75rem' }}
+                    >
+                      Download Now →
+                    </Button>
+                  </Box>
+                </Box>
+
+                <Divider />
+
+                {/* App Store Section */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' } }}>
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://apps.apple.com/in/app/skytron/id6746767283`} 
+                    alt="App Store QR"
+                    style={{ width: '80px', height: '80px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#6a1b9a' }}>
+                      {t('common.appleAppStore')}
+                    </Typography>
+                    <Button 
+                      variant="text" 
+                      size="small" 
+                      component="a" 
+                      href="https://apps.apple.com/in/app/skytron/id6746767283" 
+                      target="_blank" 
+                      sx={{ p: 0, textTransform: 'none', fontSize: '0.75rem' }}
+                    >
+                      Download Now →
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+            </Menu>
+
             {/* Privacy Policy */}
             <Button color="inherit" component={Link} to="/privacy-policy">
               {t('common.privacyPolicy')}
@@ -224,6 +321,42 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <List component="div" disablePadding>
                 <ListItem button component={Link} to="/device-stats" onClick={toggleDrawer(false)} sx={{ pl: 4 }}>
                   <ListItemText primary={t('common.manufacturerDeviceUptimeDetails')} />
+                </ListItem>
+              </List>
+            </Collapse>
+
+            {/* Download App (Collapsible) */}
+            <ListItem button onClick={handleDrawerDownloadAppClick}>
+              <ListItemText primary={t('common.downloadApp')} />
+              <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                {drawerDownloadAppOpen ? <ExpandLess /> : <ExpandMore />}
+              </Box>
+            </ListItem>
+            <Collapse in={drawerDownloadAppOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItem sx={{ pl: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://play.google.com/store/apps/details?id=com.skytrack.skytronapp`} 
+                      alt="Google Play QR"
+                      style={{ width: '60px', height: '60px', borderRadius: '4px' }}
+                    />
+                    <ListItemText 
+                      primary={t('common.googlePlay')} 
+                      secondary={<Link href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://apps.apple.com/in/app/skytron/id6746767283`} 
+                      alt="App Store QR"
+                      style={{ width: '60px', height: '60px', borderRadius: '4px' }}
+                    />
+                    <ListItemText 
+                      primary={t('common.appleAppStore')} 
+                      secondary={<Link href="https://apps.apple.com/in/app/skytron/id6746767283" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
+                    />
+                  </Box>
                 </ListItem>
               </List>
             </Collapse>

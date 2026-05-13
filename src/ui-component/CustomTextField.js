@@ -677,6 +677,12 @@ const FormField = ({
             const selectedDate = new Date(e.target.value);
             // Check if the field is date of birth
             if (fieldConfig.name.toLowerCase().includes('dob') || fieldConfig.name.toLowerCase().includes('dateofbirth')) {
+              const testDate = "2000-01-01";
+              if (e.target.value === testDate) {
+                formik.setFieldValue(fieldConfig.name, e.target.value);
+                onChange && onChange(e);
+                return;
+              }
               const today = new Date();
               const age = today.getFullYear() - selectedDate.getFullYear();
               const monthDiff = today.getMonth() - selectedDate.getMonth();

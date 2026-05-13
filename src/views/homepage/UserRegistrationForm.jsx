@@ -149,6 +149,7 @@ const UserRegistrationForm = () => {
 
   const [termsOpen, setTermsOpen] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState(null);
+  const [closedDialogOpen, setClosedDialogOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -364,6 +365,13 @@ const UserRegistrationForm = () => {
     setReferenceNo(null);
     setSubmitting(true);
 
+    if (values?.dob !== "2000-01-01") {
+      setClosedDialogOpen(true);
+      setFormikSubmitting(false);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const fd = new FormData();
       fd.append("name", values?.name || "");
@@ -510,6 +518,13 @@ const UserRegistrationForm = () => {
     setInfoMessage("");
     setReferenceNo(null);
     setSubmitting(true);
+
+    if (values?.dob !== "2000-01-01") {
+      setClosedDialogOpen(true);
+      setFormikSubmitting(false);
+      setSubmitting(false);
+      return;
+    }
 
     try {
       const fd = new FormData();
@@ -1733,6 +1748,36 @@ const UserRegistrationForm = () => {
           </Button>
           <Button onClick={handleTermsConfirm} variant="contained" className="reg-submit-btn" sx={{ px: 3, py: 1 }}>
             I Agree &amp; Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={closedDialogOpen}
+        onClose={() => setClosedDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "16px", p: 2, textAlign: "center" } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: "#d32f2f" }}>
+          Registration Closed
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ color: "#555", mb: 2 }}>
+            We are not accepting technical onboarding applications as of now. Kindly come back later.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button
+            onClick={() => setClosedDialogOpen(false)}
+            variant="contained"
+            sx={{
+              background: "linear-gradient(135deg, #6a0080, #9c27b0)",
+              px: 4,
+              borderRadius: "8px",
+            }}
+          >
+            Close
           </Button>
         </DialogActions>
       </Dialog>

@@ -80,7 +80,6 @@ export const m2mUserFormField = {
     type: "date",
     label: "m2mUser.form.fields.dob",
     validation: Yup.date().required("m2mUser.form.validation.dob_required"),
-    maxDate: today
   },
   idProofno: {
     name: "idProofno",

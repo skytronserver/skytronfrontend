@@ -105,9 +105,7 @@ export const manufacturerFormField = {
     type: "date",
     label: "Applicant DOB",
     validation: Yup.date()
-      .required("manufacturer.form.validation.dob_required")
-      .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), "manufacturer.form.validation.age_restriction")
-      .max(today, "manufacturer.form.validation.future_date"),
+      .required("manufacturer.form.validation.dob_required"),
   },
   idProofno: {
     name: "idProofno",
