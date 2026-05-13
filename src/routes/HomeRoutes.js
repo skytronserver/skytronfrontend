@@ -8,6 +8,7 @@ const Home = Loadable(lazy(() => import("../views/homepage/Home")));
 const CameraFeedsView = Loadable(lazy(() => import("pages/CameraFeedsView")));
 const UserRegistrationRequest = Loadable(lazy(() => import("../views/homepage/UserRegistrationRequest")));
 const DeviceStats = Loadable(lazy(() => import("../views/public/DeviceStats")));
+const InaugurationPhotos = Loadable(lazy(() => import("../views/public/InaugurationPhotos")));
 const RegistrationStatusTracker = Loadable(lazy(() => import("../views/homepage/RegistrationStatusTracker")));
 const RegistrationAdminReview = Loadable(lazy(() => import("../views/homepage/RegistrationAdminReview")));
 const UserRegistrationForm = Loadable(lazy(() => import("../views/homepage/UserRegistrationForm")));
@@ -52,6 +53,10 @@ const HomeRoutes = {
     {
       path: "/device-stats",
       element: <DeviceStats />,
+    },
+    {
+      path: "/inauguration-photos",
+      element: <InaugurationPhotos />,
     },
     {
       path: "/superadmin-dashboard/vehicle-monitoring",

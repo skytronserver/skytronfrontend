@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
 import logo from "../../assets/images/skytron-logo3.png";
+import playstoreQR from "../../assets/images/QR/playstore.JPG";
+import appstoreQR from "../../assets/images/QR/appstore.JPG";
 import WebFont from "webfontloader";
 WebFont.load({
   google: {
@@ -199,6 +201,9 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
                 {t('common.manufacturerDeviceUptimeDetails')}
               </MenuItem>
+              <MenuItem onClick={handleImportantLinksClose} component={Link} to="/inauguration-photos">
+                {t('common.inaugurationPhotos')}
+              </MenuItem>
             </Menu>
 
             {/* Download App Dropdown */}
@@ -233,7 +238,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                 {/* Google Play Section */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' } }}>
                   <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://play.google.com/store/apps/details?id=com.skytrack.skytronapp`} 
+                    src={playstoreQR} 
                     alt="Google Play QR"
                     style={{ width: '80px', height: '80px', borderRadius: '4px', border: '1px solid #ddd' }}
                   />
@@ -259,7 +264,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                 {/* App Store Section */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' } }}>
                   <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://apps.apple.com/in/app/skytron/id6746767283`} 
+                    src={appstoreQR} 
                     alt="App Store QR"
                     style={{ width: '80px', height: '80px', borderRadius: '4px', border: '1px solid #ddd' }}
                   />
@@ -322,6 +327,9 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                 <ListItem button component={Link} to="/device-stats" onClick={toggleDrawer(false)} sx={{ pl: 4 }}>
                   <ListItemText primary={t('common.manufacturerDeviceUptimeDetails')} />
                 </ListItem>
+                <ListItem button component={Link} to="/inauguration-photos" onClick={toggleDrawer(false)} sx={{ pl: 4 }}>
+                  <ListItemText primary={t('common.inaugurationPhotos')} />
+                </ListItem>
               </List>
             </Collapse>
 
@@ -337,7 +345,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                 <ListItem sx={{ pl: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://play.google.com/store/apps/details?id=com.skytrack.skytronapp`} 
+                      src={playstoreQR} 
                       alt="Google Play QR"
                       style={{ width: '60px', height: '60px', borderRadius: '4px' }}
                     />
@@ -348,7 +356,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://apps.apple.com/in/app/skytron/id6746767283`} 
+                      src={appstoreQR} 
                       alt="App Store QR"
                       style={{ width: '60px', height: '60px', borderRadius: '4px' }}
                     />
