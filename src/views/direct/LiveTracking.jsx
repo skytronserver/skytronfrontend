@@ -58,12 +58,12 @@ const LiveTracking = () => {
   const [roads, setRoads] = useState("");
   const [polygon, setPolygon] = useState("");
   const [category, setCategory] = useState("");
-  const [clusterLevel, setClusterLevel] = useState("none"); // "none", "district", "state", "city", "road", "grid"
-  const [mapZoom, setMapZoom] = useState(13); // Start in sync with the map's default zoom
   const [categoryMaxSpeed, setCategoryMaxSpeed] = useState("");
   const [categorySpeedMap, setCategorySpeedMap] = useState({});
   const [make, setMake] = useState("");
   const [district, setDistrict] = useState("");
+  const [stateName, setStateName] = useState("");
+  const [cityName, setCityName] = useState("");
   const [speedLimit, setSpeedLimit] = useState("");
   const [inRange, setInRange] = useState(false);
   const [poiAsPolygon, setPoiAsPolygon] = useState(false);
@@ -88,54 +88,23 @@ const LiveTracking = () => {
   const [page, setPage] = useState(0);
   const [pageLength, setPageLength] = useState(100);
   const [pagination, setPagination] = useState({ total: 0, page: 0, page_length: 100, total_pages: 0 });
-  const zoomDebounceRef = useRef(null);
-  const isRequestingRef = useRef(false);
-  const activeCancelRef = useRef(null);
-  const pollingTimeoutRef = useRef(null);
+  const [trackingMode, setTrackingMode] = useState("individual");
+  const trackingModeRef = useRef("individual"); // mirror for use inside callbacks without re-creating them
+  const [clusterData, setClusterData] = useState([]);
+  // drilldownActive: user clicked a cluster → show gps_track_lite vehicles for that area
+  // but keep the dropdown showing the original mode (e.g. "District Clusters")
+  const [drilldownActive, setDrilldownActive] = useState(false);
+  const [mapZoomLevel, setMapZoomLevel] = useState(10); // default
 
-  const handleZoomChangeDebounced = useCallback((zoom) => {
-    if (zoomDebounceRef.current) clearTimeout(zoomDebounceRef.current);
-    zoomDebounceRef.current = setTimeout(() => {
-      console.log("[LiveTracking] Zoom changed to:", zoom);
-      setMapZoom(zoom);
-    }, 300); // Shorter debounce for better feel
-  }, []);
-
-  const getGridSize = (zoomLevel) => {
-    if (zoomLevel <= 5) return 1000000;
-    if (zoomLevel <= 7) return 40000;
-    if (zoomLevel <= 9) return 2500;
-    if (zoomLevel <= 11) return 100;
-    if (zoomLevel <= 13) return 25;
+  // Helper for grid
+  const getGridSize = useCallback((zoom) => {
+    if (zoom <= 5) return 1000000;
+    if (zoom <= 7) return 40000;
+    if (zoom <= 9) return 2500;
+    if (zoom <= 11) return 100;
+    if (zoom <= 13) return 25;
     return 1;
-  };
-
-  // Instant refresh when zoom crosses the threshold
-  useEffect(() => {
-    // Determine if we should be in individual or cluster mode
-    const isDeepZoom = mapZoom >= 12;
-    console.log("[LiveTracking] Mode Switch Check:", { zoom: mapZoom, isDeepZoom });
-
-    // Force a full refresh when crossing the zoom boundary
-    const params = {
-      imei: imeiNo,
-      regno: vehicleNo,
-      owner: owner,
-      poi: poi,
-      roads: roads,
-      polygon: polygon,
-      category: category,
-      make: make,
-      district: district,
-      speed_limit: speedLimit,
-      in_range: inRange,
-      poi_as_polygon: poiAsPolygon,
-      poi_t: poi,
-      page: 0,
-      page_length: pageLength
-    };
-    retriveMapData(params);
-  }, [mapZoom >= 12]); // Only trigger when the threshold boolean actually FLIPS
+  }, []);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -159,12 +128,16 @@ const LiveTracking = () => {
       setMake(value);
     } else if (name === "district") {
       setDistrict(value);
+    } else if (name === "stateName") {
+      setStateName(value);
+    } else if (name === "cityName") {
+      setCityName(value);
     } else if (name === "speedLimit") {
       setSpeedLimit(value);
     }
   };
 
-  const computeRow = (processedItem) => {
+  const computeRow = useCallback((processedItem) => {
     // Extract block_name and route_name
     const blockName = processedItem?.device_tag_info?.block?.name ||
       processedItem?.device_tag_info?.block_name ||
@@ -191,6 +164,7 @@ const LiveTracking = () => {
     const registration = processedItem.vehicle_registration_number || processedItem.vehicle_reg_no || '';
     const id = processedItem.id || processedItem.device_tag_id;
     const entryTime = processedItem.entry_time || processedItem.last_seen;
+
     // Precompute status/icon
     const entryTimeMs = resolveEntryTimestampMs(processedItem);
     const nowMs = Date.now();
@@ -227,13 +201,16 @@ const LiveTracking = () => {
       __alartType: alartType,
       __iconSrc: preIcon,
     };
-  };
+  }, []);
+
 
   const handleListScroll = useCallback(() => {
     const el = listContainerRef.current;
     if (!el || load) return; // Prevent multiple simultaneous loads
     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 80;
     if (!nearBottom) return;
+
+    if (trackingMode !== "individual") return; // No pagination for clusters
 
     if (pagination.page + 1 < pagination.total_pages) {
       const nextPage = pagination.page + 1;
@@ -247,16 +224,19 @@ const LiveTracking = () => {
         category: category,
         make: make,
         district: district,
+        stateName: stateName,
+        cityName: cityName,
         speed_limit: speedLimit,
         in_range: inRange,
         poi_as_polygon: poiAsPolygon,
         poi_t: poi,
         page: nextPage,
-        page_length: pageLength
+        page_length: pageLength,
+        level: "individual"
       };
-      retriveMapData(params, true); // true means append
+      retrieveMapData(params, true); // true means append
     }
-  }, [pagination, load, imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, speedLimit, inRange, poiAsPolygon, pageLength]);
+  }, [pagination, load, imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, stateName, cityName, speedLimit, inRange, poiAsPolygon, pageLength, trackingMode]);
 
   const handleVehicleMarkerClick = async (entry) => {
     if (!entry?.imei) return;
@@ -458,139 +438,147 @@ const LiveTracking = () => {
     }
   };
 
-  const retriveMapData = async (data, append = false) => {
-    if (isRequestingRef.current && !append) {
-       // Avoid overlapping full refreshes
-       return;
-    }
+  const activeCancelRef = useRef(null);
+  const pollingTimeoutRef = useRef(null);
+
+  const retrieveMapData = useCallback(async (data, append = false) => {
     try {
-      isRequestingRef.current = true;
       if (activeCancelRef.current) {
         activeCancelRef.current.cancel('replaced by a newer request');
       }
       activeCancelRef.current = axios.CancelToken.source();
 
-      let sidebarResponse;
-      let mapResponse;
+      // STRICT ROUTING: Use data.level, then trackingModeRef (no stale closure)
+      const requestLevel = data.level || trackingModeRef.current || "individual";
 
-      // Logic: 
-      // 1. Sidebar always follows clusterLevel
-      // 2. Map follows clusterLevel if zoomed out (<12), but switches to Vehicles if zoomed in (>=12)
-      
-      if (clusterLevel === "none") {
-        sidebarResponse = await HomePageService.getLiveTracking_lite(
+      if (requestLevel === "individual") {
+        const response = await HomePageService.getLiveTracking_lite(
           { ...data, page: data.page ?? 0, page_length: data.page_length ?? 100 },
           { cancelToken: activeCancelRef.current.token }
         );
-        mapResponse = sidebarResponse;
-      } else if (clusterLevel === "grid") {
-        sidebarResponse = await HomePageService.getLiveTracking_grid(
-          { ...data, grid: getGridSize(mapZoom) },
-          { cancelToken: activeCancelRef.current.token }
-        );
-        if (mapZoom >= 12) {
-           mapResponse = await HomePageService.getLiveTracking_lite(
-             { ...data, page: data.page ?? 0, page_length: data.page_length ?? 100 },
-             { cancelToken: activeCancelRef.current.token }
-           );
-        } else {
-           mapResponse = sidebarResponse;
-        }
-      } else {
-        // clusterLevel is district, state, city, or road
-        sidebarResponse = await HomePageService.getLiveTracking_cluster(
-          { ...data, level: clusterLevel },
-          { cancelToken: activeCancelRef.current.token }
-        );
-        if (mapZoom >= 12) {
-           mapResponse = await HomePageService.getLiveTracking_lite(
-             { ...data, page: data.page ?? 0, page_length: data.page_length ?? 100 },
-             { cancelToken: activeCancelRef.current.token }
-           );
-        } else {
-           mapResponse = sidebarResponse;
-        }
-      }
 
-      // Process Sidebar Data (Always based on sidebarResponse)
-      const rawSidebarData = sidebarResponse.data.data || [];
-      let processedSidebar;
-      if (clusterLevel === "none") {
-          processedSidebar = rawSidebarData.map(computeRow);
-      } else if (clusterLevel === "grid") {
-          processedSidebar = rawSidebarData.map((g, idx) => ({
-              ...g,
-              id: `grid-${idx}-${g.grid_lat}-${g.grid_lon}`,
-              vehicle_registration_number: `Grid Cell`,
-              latitude: g.grid_lat,
-              longitude: g.grid_lon,
-              isGrid: true,
-              markerLabel: `Total: ${g.total}`
-          }));
-      } else {
-          processedSidebar = rawSidebarData.map(c => ({
-              ...c,
-              id: `cluster-${c.cluster_name}`,
-              vehicle_registration_number: c.cluster_name,
-              latitude: c.avg_lat,
-              longitude: c.avg_lon,
-              isCluster: true,
-              markerLabel: `${c.cluster_name}: ${c.total}`
-          }));
-      }
-      setTableDataTop(processedSidebar);
-      setPagination(sidebarResponse.data.pagination || { total: processedSidebar.length, page: 0, page_length: processedSidebar.length, total_pages: 1 });
+        if (Array.isArray(response.data.data)) {
+          const rawData = response.data.data;
+          const paginationData = response.data.pagination;
 
-      // Process Map Data (Based on mapResponse)
-      const rawMapData = mapResponse.data.data || [];
-      let processedMap;
-      
-      if (mapZoom >= 12 || clusterLevel === "none") {
-          processedMap = rawMapData.map(computeRow);
-      } else if (clusterLevel === "grid") {
-          processedMap = rawMapData.map((g, idx) => ({
-              ...g,
-              id: `grid-${idx}-${g.grid_lat}-${g.grid_lon}`,
-              vehicle_registration_number: `Grid Cell`,
-              latitude: g.grid_lat,
-              longitude: g.grid_lon,
-              isGrid: true,
-              markerLabel: `Total: ${g.total}`
-          }));
-      } else {
-          processedMap = rawMapData.map(c => ({
-              ...c,
-              id: `cluster-${c.cluster_name}`,
-              vehicle_registration_number: c.cluster_name,
-              latitude: c.avg_lat,
-              longitude: c.avg_lon,
-              isCluster: true,
-              markerLabel: `${c.cluster_name}: ${c.total}`
-          }));
-      }
-
-      // Update Map markers
-      if (!selectedId) {
-          setFilteredData(processedMap);
-      } else {
-          const updated = processedMap.find(p => p.id === selectedId);
-          if (updated) {
-              setFocusedEntry(updated);
-              setFilteredData([updated]);
-          } else {
-              setFilteredData(processedMap);
+          if (paginationData) {
+            setPagination(paginationData);
           }
+
+          const processedSlice = rawData.map(computeRow);
+
+          if (append) {
+            fullRawRef.current = [...fullRawRef.current, ...rawData];
+            fullDataRef.current = [...fullDataRef.current, ...processedSlice];
+            setTableDataTop((prev) => [...prev, ...processedSlice]);
+            if (typeFilter === 'default') {
+              setFilteredData((prev) => [...prev, ...processedSlice]);
+            }
+          } else {
+            fullRawRef.current = rawData;
+            fullDataRef.current = processedSlice;
+            setTableDataTop(processedSlice);
+            setFilteredData(processedSlice);
+            
+            if (rawData.length === 1) {
+              setSelectedId(`vehicle-${rawData[0].imei}`);
+              setFocusedEntry(computeRow(rawData[0]));
+            } else {
+              setSelectedId(null);
+              setFocusedEntry(null);
+            }
+          }
+
+          setVisibleCount(fullDataRef.current.length);
+          setLoad(true);
+
+          setTimeout(() => {
+            fetchPoliceLocations(fullRawRef.current);
+            fetchIncidents(fullRawRef.current);
+          }, 0);
+        } else {
+          if (!append) {
+            setTableDataTop([]);
+            setFilteredData([]);
+            setSelectedId(null);
+            setFocusedEntry(null);
+            setPagination({ total: 0, page: 0, page_length: 100, total_pages: 0 });
+          }
+        }
+      } else if (requestLevel === "grid") {
+        // Grid Cluster Mode
+        const response = await HomePageService.getLiveTracking_grid_cluster(
+          { ...data, grid: data.grid },
+          { cancelToken: activeCancelRef.current.token }
+        );
+        
+        if (Array.isArray(response.data.data)) {
+          setClusterData(response.data.data);
+          setLoad(true);
+        } else {
+          setClusterData([]);
+        }
+      } else {
+        // Geographic Cluster Mode (State, District, City, Road)
+        const response = await HomePageService.getLiveTracking_cluster(
+          { ...data, level: requestLevel },
+          { cancelToken: activeCancelRef.current.token }
+        );
+        
+        if (Array.isArray(response.data.data)) {
+          setClusterData(response.data.data);
+          setLoad(true);
+        } else {
+          setClusterData([]);
+        }
       }
     } catch (error) {
       if (!axios.isCancel(error)) {
         console.error("Error retrieving map data:", error);
+        if (!append) {
+          setTableDataTop([]);
+          setFilteredData([]);
+          setClusterData([]);
+        }
       }
-    } finally {
-      isRequestingRef.current = false;
     }
+  }, [computeRow, fetchPoliceLocations, fetchIncidents, typeFilter]);
+  // NOTE: trackingMode intentionally NOT in deps — we use trackingModeRef instead
+
+  const handleTrackingModeChange = (mode) => {
+    // Reset drilldown whenever user manually changes mode
+    setDrilldownActive(false);
+    setDistrict("");
+    setStateName("");
+    setCityName("");
+    trackingModeRef.current = mode;
+    setTrackingMode(mode);
+    setClusterData([]);
+    setTableDataTop([]);
+    setFilteredData([]);
+    setSelectedId(null);
+    setFocusedEntry(null);
+    setPage(0);
   };
 
+  const handleClusterClick = (cluster) => {
+    // Set geographic filter for the clicked cluster area
+    if (trackingMode === "district") setDistrict(cluster.cluster_name);
+    else if (trackingMode === "state") setStateName(cluster.cluster_name);
+    else if (trackingMode === "city") setCityName(cluster.cluster_name);
+    else if (trackingMode === "road") setRoads(cluster.cluster_name);
 
+    // Clear stale cluster circles and vehicle list
+    setClusterData([]);
+    setTableDataTop([]);
+    setFilteredData([]);
+    setSelectedId(null);
+    setFocusedEntry(null);
+
+    // Activate drill-down: polling will now call gps_track_lite with the filter above
+    // The mode dropdown stays unchanged (e.g. still shows "District Clusters")
+    setDrilldownActive(true);
+  };
 
   const getReverseGeocodeCacheKey = (lat, lon) => {
     const latNum = Number(lat);
@@ -704,45 +692,33 @@ const LiveTracking = () => {
 
   // Handle button click, update selectedId and filtered data
   const handleButtonClick = async (id) => {
-    if (!id) {
-      setSelectedId(null);
-      setFilteredData(tableDataTop);
-      setFocusedEntry(null);
-      setUseNmrLocation(false);
-      return;
+    let selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === id);
+    if (!selectedRow) {
+      selectedRow = (fullDataRef.current || []).find((row) => `vehicle-${row.imei}` === id);
     }
-
-    // Find the item in our current view
-    const selectedRow = tableDataTop.find((row) => row.id === id) || 
-                        (fullDataRef.current || []).find((row) => row.id === id);
 
     if (selectedRow) {
       setSelectedId(id);
       
-      // If it's an individual vehicle, fetch detailed info (POIs, Routes, etc.)
-      if (!selectedRow.isCluster && !selectedRow.isGrid && selectedRow.imei) {
-        const detailed = await fetchDetailedInfo(selectedRow.imei);
-        const toFocus = detailed ? computeRow(detailed) : selectedRow;
+      // Fetch detailed data (with POIs/Routes) when a vehicle is selected
+      const detailed = await fetchDetailedInfo(selectedRow.imei);
+      const toFocus = detailed ? computeRow(detailed) : selectedRow;
 
-        setFilteredData([toFocus]);
-        setFocusedEntry(toFocus);
-        setUseNmrLocation(false);
-        setNmrArea(null);
-        if (isBadGnss(toFocus)) {
-          const updated = await applyNmrLocation(toFocus);
-          setFilteredData([updated]);
-          setFocusedEntry(updated);
-        }
-      } else {
-        // For Cluster/Grid, just focus and show in table
-        setFilteredData([selectedRow]);
-        setFocusedEntry(selectedRow);
-        setUseNmrLocation(false);
+      setFilteredData([toFocus]);
+      setFocusedEntry(toFocus);
+      setUseNmrLocation(false);
+      setNmrArea(null);
+      if (isBadGnss(toFocus)) {
+        const updated = await applyNmrLocation(toFocus);
+        setFilteredData([updated]);
+        setFocusedEntry(updated);
       }
     } else {
       setSelectedId(null);
       setFilteredData(tableDataTop);
       setFocusedEntry(null);
+      setUseNmrLocation(false);
+      setNmrArea(null);
     }
   };
 
@@ -773,33 +749,10 @@ const LiveTracking = () => {
     setUseNmrLocation(false);
     setNmrArea(null);
 
-    retriveMapData({ ...params, page: 0, page_length: pageLength });
+    retrieveMapData({ ...params, page: 0, page_length: pageLength, level: trackingMode });
   };
 
-  useEffect(() => {
-    const params = {
-      imei: imeiNo,
-      regno: vehicleNo,
-      owner: owner,
-      poi: poi,
-      roads: roads,
-      route_id: '',
-      polygon: polygon,
-      category: category,
-      make: make,
-      district: district,
-      district_id: '',
-      manufacturer_id: '',
-      speed_limit: speedLimit,
-      in_range: inRange,
-      poi_as_polygon: poiAsPolygon,
-      poi_t: poi,
-    };
-
-    // Single fetch when filters/inputs change, no repeating interval
-    // Single fetch when filters/inputs change, no repeating interval
-    retriveMapData({ ...params, page: 0, page_length: pageLength });
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, pageLength, clusterLevel, mapZoom]);
+  // Single fetch/polling merged effect
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -863,31 +816,54 @@ const LiveTracking = () => {
   };
 
   useEffect(() => {
-    // Background polling for the map markers using recursive setTimeout
-    // This ensures we only schedule the next fetch AFTER the current one finishes.
+    let cancelled = false; // Flag to stop the old loop after cleanup
+
     const poll = async () => {
+      if (cancelled) return; // Guard: don't run if this effect instance is stale
+
       const params = {
         imei: imeiNo,
         regno: vehicleNo,
-        district_id: '',
+        owner: owner,
+        poi: poi,
+        roads: roads,
+        polygon: polygon,
+        category: category,
+        make: make,
         district: district,
-        state: '',
+        state: stateName,
+        city: cityName,
         page: 0,
-        page_length: visibleCount || 100,
-        count: false
+        page_length: pageLength || 100,
+        count: false,
+        level: drilldownActive ? "individual" : trackingMode,
+        grid: getGridSize(mapZoomLevel)
       };
-      
-      await retriveMapData(params, false);
-      
-      pollingTimeoutRef.current = setTimeout(poll, 10000);
+
+      await retrieveMapData(params, false);
+
+      // Only schedule next tick if this effect instance is still active
+      if (!cancelled) {
+        pollingTimeoutRef.current = setTimeout(poll, 10000);
+      }
     };
+
+    // Clear any lingering timeout from a previous effect instance
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
+    }
 
     poll();
 
     return () => {
-      if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
+      cancelled = true; // Mark this effect instance as stale
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
+      }
     };
-  }, [imeiNo, vehicleNo, district, clusterLevel]); // Added clusterLevel to dependencies
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, stateName, cityName, trackingMode, drilldownActive, mapZoomLevel, retrieveMapData, getGridSize]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -1033,24 +1009,19 @@ const LiveTracking = () => {
     const ignitionOn = resolveIgnitionOn(data);
     const speedValue = resolveSpeedValue(data);
 
-    const isEmergency = String(data.emergency_status || "") === "1" ||
-                        String(data.emergency_status || "") === "0001" ||
-                        String(data.emergency_status || "") === "1111" ||
-                        data.packet_type === "EA";
-
     let color;
-    if (timeDifference > 10) {
-      color = 'grey'; // Offline device (10+ minutes) - Grey Icon
-    } else if (isEmergency) {
-      color = 'red'; // Emergency active - Red Icon
-    } else if (data.packet_type && data.packet_type !== "NR") {
+    if (isStale) {
+      color = 'grey'; // Offline device (no packets from device for 15+ minutes) - Grey Icon
+    } else if (data.packet_type === "EA") {
+      color = 'red'; // EA Packet - Red Icon
+    } else if (data.packet_type !== "NR") {
       color = 'orange'; // Any Alert Packet except EA - Orange Icon
     } else if (speedValue > 0) {
       color = 'green'; // Moving - Green Icon
     } else if (ignitionOn && speedValue === 0) {
       color = 'blue'; // Ignition ON but stationary - Blue Icon
     } else {
-      color = 'default'; // Default icon
+      color = 'default'; // Default icon for all other conditions
     }
 
     return createIconPath(color, vehicleType);
@@ -1067,23 +1038,18 @@ const LiveTracking = () => {
     const ignitionOn = resolveIgnitionOn(data);
     const speedValue = resolveSpeedValue(data);
 
-    const isEmergency = String(data.emergency_status || "") === "1" ||
-                        String(data.emergency_status || "") === "0001" ||
-                        String(data.emergency_status || "") === "1111" ||
-                        data.packet_type === "EA";
-
-    if (timeDifference > 10) {
-      return "grey"; // Offline
-    } else if (isEmergency) {
-      return "red"; // Emergency
-    } else if (data.packet_type && data.packet_type !== "NR") {
-      return "orange"; // Alert
+    if (isStale) {
+      return "grey"; // Offline device (no packets from device for 15+ minutes) - Grey Icon
+    } else if (data.packet_type === "EA") {
+      return "red"; // EA Packet - Red Icon
+    } else if (data.packet_type !== "NR") {
+      return "orange"; // Any Alert Packet except EA - Orange Icon
     } else if (speedValue > 0) {
-      return "green"; // Moving
+      return "green"; // Moving - Green Icon
     } else if (ignitionOn && speedValue === 0) {
-      return "blue"; // Engine ON
+      return "blue"; // Ignition ON but stationary - Blue Icon
     } else {
-      return "default";
+      return "default"; // Default icon for all other conditions
     }
   };
 
@@ -1099,7 +1065,7 @@ const LiveTracking = () => {
       setFilteredData(filteredRows);
 
       if (filteredRows.length === 1) {
-        setSelectedId(filteredRows[0].id);
+        setSelectedId(`vehicle-${filteredRows[0].imei}`);
         setFocusedEntry(filteredRows[0]);
       } else {
         setSelectedId(null);
@@ -1111,7 +1077,7 @@ const LiveTracking = () => {
 
       // If there's exactly one result after filtering, select it automatically
       if (filteredRows.length === 1) {
-        setSelectedId(filteredRows[0].id);
+        setSelectedId(`vehicle-${filteredRows[0].imei}`);
         setFocusedEntry(filteredRows[0]);
       } else {
         setSelectedId(null);
@@ -1119,7 +1085,6 @@ const LiveTracking = () => {
       }
     }
   };
-
 
   const checkType = (type, data) => {
     const alartType = data?.__alartType ?? getAlartType(data);
@@ -1130,11 +1095,6 @@ const LiveTracking = () => {
 
   const getDisplayCellValue = (row, key) => {
     if (!row) return "";
-
-    // Special handling for Cluster/Grid modes
-    if (row.isCluster || row.isGrid) {
-        return row[key] ?? "";
-    }
 
     if (key === "packet_type" || key === "packet_status") {
       const entryTimeMs = resolveEntryTimestampMs(row);
@@ -1159,24 +1119,6 @@ const LiveTracking = () => {
       rawValue ||
       ""
     );
-  };
-
-  const getEffectiveKeyMapping = () => {
-    // Show individual columns at zoom 12+
-    if (mapZoom >= 12) return keyMapping;
-
-    if (clusterLevel !== 'none') {
-        return {
-            vehicle_registration_number: clusterLevel === 'grid' ? "Grid Cell" : "Cluster Name",
-            total: "Total Vehicles",
-            online: "Online",
-            offline: "Offline",
-            emergency: "Emergency",
-            moving: "Moving",
-            stationary: "Stationary"
-        };
-    }
-    return keyMapping;
   };
 
   return (
@@ -1435,24 +1377,21 @@ const LiveTracking = () => {
                         >
                           <TableCell
                             colSpan={6}
-                            onClick={() => handleButtonClick(row.id)}
-                            className={`table-cell ${selectedId === row.id ? "table-cell-selected" : ""
+                            onClick={() => handleButtonClick(`vehicle-${row.imei}`)}
+                            className={`table-cell ${selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
                               }`}
                           >
                             <Box display="flex" alignItems="center" gap={1}>
                               <img
                                 src={
-                                  clusterLevel !== "none"
-                                    ? createIconPath("default", "bus")
-                                    : (typeFilter === "default"
-                                        ? createIconPath("default", row?.device_tag_info?.category_info?.category)
-                                        : getIconStyle(row))
+                                  typeFilter === "default"
+                                    ? createIconPath("default", row?.device_tag_info?.category_info?.category)
+                                    : getIconStyle(row)
                                 }
                                 alt="status icon"
                                 style={{ width: '24px', height: '24px' }}
                               />
                               <Typography>{row.vehicle_registration_number}</Typography>
-                              {clusterLevel !== "none" && <Typography variant="caption" sx={{ ml: 'auto', fontWeight: 'bold' }}>{row.total}</Typography>}
                             </Box>
                           </TableCell>
                         </TableRow>
@@ -1479,24 +1418,24 @@ const LiveTracking = () => {
 
         {/* HTML Content (iframe) */}
         <div className="live-tracking-map-panel" style={{ width: "80%" }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, gap: 1, flexWrap: 'wrap' }}>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel id="cluster-level-label">View Mode</InputLabel>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+            <FormControl size="small" sx={{ minWidth: 160, mr: 1 }}>
+              <InputLabel id="tracking-mode-label">View Mode</InputLabel>
               <Select
-                labelId="cluster-level-label"
-                value={clusterLevel}
+                labelId="tracking-mode-label"
+                value={trackingMode}
                 label="View Mode"
-                onChange={(event) => setClusterLevel(event.target.value)}
+                onChange={(e) => handleTrackingModeChange(e.target.value)}
               >
-                <MenuItem value="none">Individual Vehicles</MenuItem>
-                <MenuItem value="district">By District</MenuItem>
-                <MenuItem value="state">By State</MenuItem>
-                <MenuItem value="city">By City</MenuItem>
-                <MenuItem value="road">By Road</MenuItem>
-                <MenuItem value="grid">Grid View (Auto Cluster)</MenuItem>
+                <MenuItem value="individual">Individual</MenuItem>
+                <MenuItem value="grid">Grid Clusters</MenuItem>
+                <MenuItem value="state">State Clusters</MenuItem>
+                <MenuItem value="district">District Clusters</MenuItem>
+                <MenuItem value="city">City Clusters</MenuItem>
+                <MenuItem value="road">Road Clusters</MenuItem>
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 200 }}>
+            <FormControl size="small" sx={{ minWidth: 220 }}>
               <InputLabel id="marker-label-mode-label">Marker Label</InputLabel>
               <Select
                 labelId="marker-label-mode-label"
@@ -1607,10 +1546,12 @@ const LiveTracking = () => {
             onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
             focusEntry={focusedEntry}
             markerLabelMode={markerLabelMode}
-            onZoomChange={handleZoomChangeDebounced}
             nmrArea={nmrArea}
             allMode={typeFilter === "default"}
-            autoFit={clusterLevel !== "none"}
+            trackingMode={drilldownActive ? "individual" : trackingMode}
+            clusterData={drilldownActive ? [] : clusterData}
+            onClusterClick={handleClusterClick}
+            onZoomChange={setMapZoomLevel}
           />
         </div>
       </div>
@@ -1620,13 +1561,13 @@ const LiveTracking = () => {
           <Table stickyHeader className="skytron-table">
             <TableHead>
               <TableRow>
-                {Object.keys(getEffectiveKeyMapping()).map((key) => (
+                {Object.keys(keyMapping).map((key) => (
                   <TableCell
                     key={key}
                     className="skytron-table-header-cell"
                     sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
                   >
-                    {getEffectiveKeyMapping()[key]}
+                    {keyMapping[key]}
                   </TableCell>
                 ))}
               </TableRow>
@@ -1639,7 +1580,7 @@ const LiveTracking = () => {
                     className="skytron-table-row"
                     sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                   >
-                    {Object.keys(getEffectiveKeyMapping()).map((key, cellIndex) => (
+                    {Object.keys(keyMapping).map((key, cellIndex) => (
                       <TableCell
                         key={`cell-${key}-${cellIndex}`}
                         className="skytron-table-cell"

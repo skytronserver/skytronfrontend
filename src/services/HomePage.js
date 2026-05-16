@@ -149,10 +149,21 @@ const getLiveTracking_data = (data, config = {}) => {
   });
 };
 
+// Helper to clean empty string params
+const cleanParams = (params) => {
+  const cleaned = {};
+  Object.keys(params).forEach(key => {
+    if (params[key] !== "" && params[key] !== null && params[key] !== undefined) {
+      cleaned[key] = params[key];
+    }
+  });
+  return cleaned;
+};
+
 const getLiveTracking_lite = (data, config = {}) => {
   const http = getAxiosInstance();
   return http.get("/api/gps_track_lite/", {
-    params: {
+    params: cleanParams({
       page: data.page,
       page_length: data.page_length,
       count: data.count,
@@ -161,7 +172,9 @@ const getLiveTracking_lite = (data, config = {}) => {
       district_id: data.district_id,
       district: data.district,
       state: data.state,
-    },
+      city: data.city,
+      road: data.roads,
+    }),
     ...config,
   });
 };
@@ -169,29 +182,31 @@ const getLiveTracking_lite = (data, config = {}) => {
 const getLiveTracking_cluster = (data, config = {}) => {
   const http = getAxiosInstance();
   return http.get("/api/gps_cluster/", {
-    params: {
-      level: data.level || 'district',
+    params: cleanParams({
+      level: data.level || "district",
       imei: data.imei,
       regno: data.regno,
       district_id: data.district_id,
       district: data.district,
       state: data.state,
-    },
+      city: data.city,
+      road: data.roads,
+    }),
     ...config,
   });
 };
 
-const getLiveTracking_grid = (data, config = {}) => {
+const getLiveTracking_grid_cluster = (data, config = {}) => {
   const http = getAxiosInstance();
   return http.get("/api/gps_grid_cluster/", {
-    params: {
-      grid: data.grid || 100,
+    params: cleanParams({
+      grid: data.grid,
       imei: data.imei,
       regno: data.regno,
       district_id: data.district_id,
       district: data.district,
       state: data.state,
-    },
+    }),
     ...config,
   });
 };
@@ -442,7 +457,6 @@ const HomePageService = {
   getLiveTracking_data,
   getLiveTracking_lite,
   getLiveTracking_cluster,
-  getLiveTracking_grid,
   getSOSDataAdmin,
   getHistoryPlayback,
   getSOSDataTeamLead,
