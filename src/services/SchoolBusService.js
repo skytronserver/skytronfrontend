@@ -664,35 +664,36 @@ const api = {
   },
   getRoutes() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/routes');
+    return http.get('school/api/admin/routes/');
   },
   createRoute(data) {
+       debugger
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/routes', data);
+    return http.post('school/api/admin/routes/', data);
   },
   updateRoute(id, data) {
     const http = getAxiosInstance();
-    return http.put(`/api/schoolbus/routes/${id}`, data);
+    return http.post(`school/api/admin/routes/${id}/update/`, data);
   },
   deleteRoute(id) {
     const http = getAxiosInstance();
-    return http.delete(`/api/schoolbus/routes/${id}`);
+    return http.post(`school/api/admin/routes/${id}/delete/`);
   },
   getStops(routeId) {
     const http = getAxiosInstance();
-    return http.get(`/api/schoolbus/routes/${routeId}/stops`);
+    return http.get(`school/api/admin/routes/?route_id=${routeId}`);
   },
   addStop(routeId, data) {
     const http = getAxiosInstance();
-    return http.post(`/api/schoolbus/routes/${routeId}/stops`, data);
+    return http.post(`school/api/admin/routes//${routeId}/stops/add/`, data);
   },
   updateStop(stopId, data) {
     const http = getAxiosInstance();
-    return http.put(`/api/schoolbus/stops/${stopId}`, data);
+    return http.post(`school/api/admin/bus-stops/${stopId}/update/`, data);
   },
-  deleteStop(stopId) {
+  deleteStop(stopId,selectedRoute) {
     const http = getAxiosInstance();
-    return http.delete(`/api/schoolbus/stops/${stopId}`);
+    return http.post(`school/api/admin/routes/${selectedRoute}/stops/${stopId}/remove/`);
   },
   getBuses() {
     const http = getAxiosInstance();
