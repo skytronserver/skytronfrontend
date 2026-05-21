@@ -95,6 +95,18 @@ const LiveTracking = () => {
   // but keep the dropdown showing the original mode (e.g. "District Clusters")
   const [drilldownActive, setDrilldownActive] = useState(false);
   const [mapZoomLevel, setMapZoomLevel] = useState(10); // default
+  const [mapCenter, setMapCenter] = useState(null);
+  const [autoSelectedCluster, setAutoSelectedCluster] = useState(null);
+
+  const mapZoomLevelRef = useRef(mapZoomLevel);
+  useEffect(() => {
+    mapZoomLevelRef.current = mapZoomLevel;
+  }, [mapZoomLevel]);
+
+  const drilldownActiveRef = useRef(drilldownActive);
+  useEffect(() => {
+    drilldownActiveRef.current = drilldownActive;
+  }, [drilldownActive]);
 
   // Helper for grid
   const getGridSize = useCallback((zoom) => {
@@ -104,6 +116,13 @@ const LiveTracking = () => {
     if (zoom <= 11) return 100;
     if (zoom <= 13) return 25;
     return 1;
+  }, []);
+
+  const handleZoomChange = useCallback((zoom, center) => {
+    setMapZoomLevel(zoom);
+    if (center) {
+      setMapCenter(center);
+    }
   }, []);
 
   // Handle input changes
@@ -458,6 +477,19 @@ const LiveTracking = () => {
         );
 
         if (Array.isArray(response.data.data)) {
+          // GUARD: If a late-resolving individual vehicle poll returns but we are currently
+          // in a zoomed-out cluster overview mode, immediately discard individual vehicle list populating
+          // to prevent race conditions from leaking vehicles into the sidebar and map.
+          if (!drilldownActiveRef.current && trackingModeRef.current !== "individual") {
+            if (!append) {
+              setTableDataTop([]);
+              setFilteredData([]);
+              setSelectedId(null);
+              setFocusedEntry(null);
+            }
+            return;
+          }
+
           const rawData = response.data.data;
           const paginationData = response.data.pagination;
 
@@ -518,6 +550,11 @@ const LiveTracking = () => {
         } else {
           setClusterData([]);
         }
+        
+        setTableDataTop([]);
+        setFilteredData([]);
+        setSelectedId(null);
+        setFocusedEntry(null);
       } else {
         // Geographic Cluster Mode (State, District, City, Road)
         const response = await HomePageService.getLiveTracking_cluster(
@@ -531,6 +568,11 @@ const LiveTracking = () => {
         } else {
           setClusterData([]);
         }
+        
+        setTableDataTop([]);
+        setFilteredData([]);
+        setSelectedId(null);
+        setFocusedEntry(null);
       }
     } catch (error) {
       if (!axios.isCancel(error)) {
@@ -548,6 +590,8 @@ const LiveTracking = () => {
   const handleTrackingModeChange = (mode) => {
     // Reset drilldown whenever user manually changes mode
     setDrilldownActive(false);
+    setAutoSelectedCluster(null);
+    setMapCenter(null);
     setDistrict("");
     setStateName("");
     setCityName("");
@@ -568,16 +612,15 @@ const LiveTracking = () => {
     else if (trackingMode === "city") setCityName(cluster.cluster_name);
     else if (trackingMode === "road") setRoads(cluster.cluster_name);
 
-    // Clear stale cluster circles and vehicle list
-    setClusterData([]);
+    // Direct transition: Immediately activate drilldown to load individual vehicles
+    setAutoSelectedCluster({ mode: trackingMode, name: cluster.cluster_name });
+    setDrilldownActive(true);
+
+    // Clear active vehicle lists to prepare for new data load
     setTableDataTop([]);
     setFilteredData([]);
     setSelectedId(null);
     setFocusedEntry(null);
-
-    // Activate drill-down: polling will now call gps_track_lite with the filter above
-    // The mode dropdown stays unchanged (e.g. still shows "District Clusters")
-    setDrilldownActive(true);
   };
 
   const getReverseGeocodeCacheKey = (lat, lon) => {
@@ -795,6 +838,10 @@ const LiveTracking = () => {
           updated = await applyNmrLocation(updated);
         }
 
+        if (!selectedId || (!drilldownActiveRef.current && trackingModeRef.current !== "individual")) {
+          return;
+        }
+
         setFilteredData([updated]);
         setFocusedEntry(updated);
       }
@@ -814,6 +861,77 @@ const LiveTracking = () => {
     }
     return null;
   };
+  useEffect(() => {
+    // 1. Zoom in scenario: auto drill down
+    if (
+      trackingMode !== "individual" &&
+      trackingMode !== "grid" &&
+      !drilldownActive &&
+      mapZoomLevel >= 10
+    ) {
+      // If a geographic filter is already set (e.g. from manual cluster click)
+      const currentGeographicFilter = (
+        (trackingMode === "district" && district) ||
+        (trackingMode === "state" && stateName) ||
+        (trackingMode === "city" && cityName) ||
+        (trackingMode === "road" && roads)
+      );
+
+      if (currentGeographicFilter) {
+        setAutoSelectedCluster({ mode: trackingMode, name: currentGeographicFilter });
+        setDrilldownActive(true);
+      } else if (clusterData.length > 0 && mapCenter) {
+        // Find closest cluster (auto drill down on manual map zooming)
+        let minDistance = Number.MAX_VALUE;
+        let closest = null;
+
+        clusterData.forEach((item) => {
+          const lat = item.avg_lat ?? item.grid_lat;
+          const lon = item.avg_lon ?? item.grid_lon;
+          if (lat && lon) {
+            const distance = Math.pow(Number(lon) - mapCenter[0], 2) + Math.pow(Number(lat) - mapCenter[1], 2);
+            if (distance < minDistance) {
+              minDistance = distance;
+              closest = item;
+            }
+          }
+        });
+
+        if (closest && closest.cluster_name) {
+          if (trackingMode === "district") setDistrict(closest.cluster_name);
+          else if (trackingMode === "state") setStateName(closest.cluster_name);
+          else if (trackingMode === "city") setCityName(closest.cluster_name);
+          else if (trackingMode === "road") setRoads(closest.cluster_name);
+
+          setAutoSelectedCluster({ mode: trackingMode, name: closest.cluster_name });
+          setDrilldownActive(true);
+        }
+      }
+    }
+
+    // 2. Zoom out scenario: restore clusters
+    // Whenever zoom level is below 8, restore geographic clusters and clear filters
+    if (
+      drilldownActive &&
+      mapZoomLevel < 8
+    ) {
+      if (autoSelectedCluster) {
+        if (autoSelectedCluster.mode === "district") setDistrict("");
+        else if (autoSelectedCluster.mode === "state") setStateName("");
+        else if (autoSelectedCluster.mode === "city") setCityName("");
+        else if (autoSelectedCluster.mode === "road") setRoads("");
+      }
+
+      setAutoSelectedCluster(null);
+      setDrilldownActive(false);
+
+      // Clear individual vehicle lists and selection to restore clean cluster view
+      setTableDataTop([]);
+      setFilteredData([]);
+      setSelectedId(null);
+      setFocusedEntry(null);
+    }
+  }, [trackingMode, drilldownActive, mapZoomLevel, clusterData, mapCenter, autoSelectedCluster, setDistrict, setStateName, setCityName, setRoads, setTableDataTop, setFilteredData, setSelectedId, setFocusedEntry]);
 
   useEffect(() => {
     let cancelled = false; // Flag to stop the old loop after cleanup
@@ -837,7 +955,7 @@ const LiveTracking = () => {
         page_length: pageLength || 100,
         count: false,
         level: drilldownActive ? "individual" : trackingMode,
-        grid: getGridSize(mapZoomLevel)
+        grid: getGridSize(mapZoomLevelRef.current)
       };
 
       await retrieveMapData(params, false);
@@ -863,7 +981,7 @@ const LiveTracking = () => {
         pollingTimeoutRef.current = null;
       }
     };
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, stateName, cityName, trackingMode, drilldownActive, mapZoomLevel, retrieveMapData, getGridSize]);
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, stateName, cityName, trackingMode, drilldownActive, retrieveMapData, getGridSize]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -1537,7 +1655,7 @@ const LiveTracking = () => {
           </Box>
 
           <MapComponent
-            gpsData={filteredData}
+            gpsData={fullDataRef.current || []}
             policeData={policeLocations}
             incidentData={incidentData}
             onVehicleClick={handleVehicleMarkerClick}
@@ -1551,7 +1669,7 @@ const LiveTracking = () => {
             trackingMode={drilldownActive ? "individual" : trackingMode}
             clusterData={drilldownActive ? [] : clusterData}
             onClusterClick={handleClusterClick}
-            onZoomChange={setMapZoomLevel}
+            onZoomChange={handleZoomChange}
           />
         </div>
       </div>

@@ -2760,17 +2760,6 @@ const MapComponent = ({
             });
             soiMap.addLayer(initialClusterLayer);
 
-            // Add click interaction for clusters
-            soiMap.on('click', (evt) => {
-                const feature = soiMap.forEachFeatureAtPixel(evt.pixel, (f) => f);
-                if (feature) {
-                    const data = feature.get('data');
-                    if (data && data.cluster_name && onClusterClick) {
-                        onClusterClick(data);
-                    }
-                }
-            });
-
             setMap(soiMap);
             setVectorLayer(initialVectorLayer);
             setClusterLayer(initialClusterLayer);
@@ -3175,88 +3164,86 @@ display: none !important;
 
             return null;
         };
-
         clearVehicleMarkers();
         clearPoiMarkers();
         clearIncidentMarkers();
 
-        let allMarkers = [];
-
         try {
-            // Add vehicle markers
-            allMarkers = [...(Array.isArray(gpsData) ? gpsData : []), ...(Array.isArray(policeData) ? policeData : [])];
-            if (allMarkers.length > 0) {
-                allMarkers.forEach((entry) => {
-                    const averagedPos = getAveragedLocation(entry);
-                    const longitude = Number(averagedPos.lng);
-                    const latitude = Number(averagedPos.lat);
+            if (trackingMode === "individual") {
+                let allMarkers = [...(Array.isArray(gpsData) ? gpsData : []), ...(Array.isArray(policeData) ? policeData : [])];
+                if (allMarkers.length > 0) {
+                    allMarkers.forEach((entry) => {
+                        const averagedPos = getAveragedLocation(entry);
+                        const longitude = Number(averagedPos.lng);
+                        const latitude = Number(averagedPos.lat);
 
-                    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-                        return;
-                    }
+                        if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+                            return;
+                        }
 
-                    const entryTimeMs = resolveEntryTimestampMs(entry);
-                    const currentTimeMs = new Date().getTime();
-                    const timeDifference = Number.isFinite(entryTimeMs)
-                        ? calculateTimeDifference(entryTimeMs, currentTimeMs)
-                        : Number.POSITIVE_INFINITY;
-                    const isStale = timeDifference > 15;
-                    const isPoliceMarker = entry.markerCategory === "police";
+                        const entryTimeMs = resolveEntryTimestampMs(entry);
+                        const currentTimeMs = new Date().getTime();
+                        const timeDifference = Number.isFinite(entryTimeMs)
+                            ? calculateTimeDifference(entryTimeMs, currentTimeMs)
+                            : Number.POSITIVE_INFINITY;
+                        const isStale = timeDifference > 15;
+                        const isPoliceMarker = entry.markerCategory === "police";
 
-                    let markerColor = "blue";
-                    if (isPoliceMarker) {
-                        markerColor = "blue";
-                        if (isEntryStale15Min(entry)) {
-                            markerColor = "grey";
-                        } else if (entry.packet_type === "EA") {
-                            markerColor = "red";
-                        } else if (entry.packet_type !== "NR") {
-                            markerColor = "orange";
-                        } else if (resolveEntrySpeedValue(entry) > 0) {
-                            markerColor = "green";
-                        } else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) === 0) {
+                        let markerColor = "blue";
+                        if (isPoliceMarker) {
                             markerColor = "blue";
+                            if (isEntryStale15Min(entry)) {
+                                markerColor = "grey";
+                            } else if (entry.packet_type === "EA") {
+                                markerColor = "red";
+                            } else if (entry.packet_type !== "NR") {
+                                markerColor = "orange";
+                            } else if (resolveEntrySpeedValue(entry) > 0) {
+                                markerColor = "green";
+                            } else if (String(entry.ignition_status) === "1" && resolveEntrySpeedValue(entry) === 0) {
+                                markerColor = "blue";
+                            }
                         }
-                    }
 
-                    const vehicleType = entry?.device_tag_info?.category_info?.category;
-                    const iconUrl = getVehicleMarkerIconUrl(markerColor, vehicleType);
+                        const vehicleType = entry?.device_tag_info?.category_info?.category;
+                        const iconUrl = getVehicleMarkerIconUrl(markerColor, vehicleType);
 
-                    // Build the styled popup HTML matching normal map
-                    ensureHdPopupStyles();
-                    const popupContent = buildHdPopupHtml(entry, markerLabelMode);
-                    const labelText = getMarkerLabelText(entry, markerLabelMode) || undefined;
+                        // Build the styled popup HTML matching normal map
+                        ensureHdPopupStyles();
+                        const popupContent = buildHdPopupHtml(entry, markerLabelMode);
+                        const labelText = getMarkerLabelText(entry, markerLabelMode) || undefined;
 
-                    const markerOptions = iconUrl
-                        ? {
-                            map: hdMap,
-                            position: { lat: latitude, lng: longitude },
-                            icon: iconUrl,
-                            label: labelText,
-                            title: labelText,
-                            width: 60,
-                            height: 60,
-                            popupHtml: popupContent,
-                            popupOptions: {
-                                openPopup: false,
-                            },
+                        const markerOptions = iconUrl
+                            ? {
+                                map: hdMap,
+                                position: { lat: latitude, lng: longitude },
+                                icon: iconUrl,
+                                label: labelText,
+                                title: labelText,
+                                width: 60,
+                                height: 60,
+                                popupHtml: popupContent,
+                                popupOptions: {
+                                    openPopup: false,
+                                },
+                            }
+                            : {
+                                map: hdMap,
+                                position: { lat: latitude, lng: longitude },
+                                label: labelText,
+                                title: labelText,
+                                popupHtml: popupContent,
+                                popupOptions: {
+                                    openPopup: false,
+                                },
+                            };
+
+                        const markerInstance = createMarker(markerOptions);
+                        if (markerInstance) {
+                            hdVehicleMarkersRef.current.push(markerInstance);
                         }
-                        : {
-                            map: hdMap,
-                            position: { lat: latitude, lng: longitude },
-                            label: labelText,
-                            title: labelText,
-                            popupHtml: popupContent,
-                            popupOptions: {
-                                openPopup: false,
-                            },
-                        };
-
-                    const markerInstance = createMarker(markerOptions);
-                    if (markerInstance) {
-                        hdVehicleMarkersRef.current.push(markerInstance);
-                    }
-                });
+                    });
+                }
             }
 
             // Add POI markers
@@ -3457,25 +3444,30 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
     }, [map, clusterLayer, vectorLayer, clusterData, trackingMode]);
 
+    // Adjust OL vehicle marker clustering distance based on tracking mode
+    // In individual/drilldown mode, disable marker grouping so each vehicle shows separately
+    useEffect(() => {
+        if (!vectorLayer) return;
+        const clusterSource = vectorLayer.getSource();
+        if (clusterSource && typeof clusterSource.setDistance === 'function') {
+            clusterSource.setDistance(30); // Always use clustering to prevent overlapping icons
+        }
+    }, [vectorLayer, trackingMode]);
+
     // Expose Map Zoom Level for Grid Clustering
     useEffect(() => {
         if (!map || !onZoomChange) return;
         const view = map.getView();
         
-        let timeout;
         const handleZoom = () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                onZoomChange(view.getZoom());
-            }, 300); // debounce zoom events
+            onZoomChange(view.getZoom(), view.getCenter());
         };
         
-        view.on('change:resolution', handleZoom);
+        map.on('moveend', handleZoom);
         handleZoom(); // Initial call
         
         return () => {
-            clearTimeout(timeout);
-            view.un('change:resolution', handleZoom);
+            map.un('moveend', handleZoom);
         };
     }, [map, onZoomChange]);
 
@@ -3487,6 +3479,15 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
             map.forEachFeatureAtPixel(evt.pixel, (feature) => {
                 const item = feature.get('clusterItem');
                 if (item && item.cluster_name) {
+                    const lat = item.avg_lat ?? item.grid_lat;
+                    const lon = item.avg_lon ?? item.grid_lon;
+                    if (lat && lon) {
+                        map.getView().animate({
+                            center: [Number(lon), Number(lat)],
+                            zoom: 10,
+                            duration: 500
+                        });
+                    }
                     onClusterClick(item);
                     return true; // stop iteration
                 }
@@ -4887,6 +4888,13 @@ useEffect(() => {
     if (!map || !vectorLayer || mapType === 'hd') return;
 
     const vectorSource = vectorLayer.getSource().getSource();
+
+    if (trackingMode !== "individual") {
+        vectorSource.clear();
+        activeFeaturesRef.current = {};
+        return;
+    }
+
     const allMarkers = [...gpsData, ...policeData];
     const currentImeis = new Set();
     
@@ -4980,7 +4988,7 @@ useEffect(() => {
         hasAutoFittedRef.current = false;
     }
 
-}, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit]);
+}, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit, trackingMode]);
 
     useEffect(() => {
         if (!focusEntry) return;
@@ -5307,9 +5315,9 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
     // Handle Layer Visibility Toggles (OpenLayers)
     useEffect(() => {
         if (vectorLayer) {
-            vectorLayer.setVisible(showVehicles);
+            vectorLayer.setVisible(trackingMode === "individual" && showVehicles);
         }
-    }, [showVehicles, vectorLayer]);
+    }, [showVehicles, vectorLayer, trackingMode]);
 
     useEffect(() => {
         if (poiVectorLayer) {
