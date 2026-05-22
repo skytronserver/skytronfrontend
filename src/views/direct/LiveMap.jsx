@@ -1778,6 +1778,8 @@ const MapComponent = ({
     // Initialize Survey of India Map
     useEffect(() => {
         if (mapType !== "soi" || !soiMapContainerRef.current) return;
+        
+        let localMapInstance = null;
 
         try {
             const geoserverURL = `${process.env.REACT_APP_GEOSERVER_URL || 'https://map.gromed.in/geoserver'}/skytron/wms`;
@@ -2690,6 +2692,7 @@ const MapComponent = ({
                 }),
                 pixelRatio: 1,
             });
+            localMapInstance = soiMap;
 
             // Initialize vector layer for markers
             // Initialize vector layer for markers (with Clustering)
@@ -2760,7 +2763,7 @@ const MapComponent = ({
             });
             soiMap.addLayer(initialClusterLayer);
 
-            setMap(soiMap);
+            setMap(localMapInstance);
             setVectorLayer(initialVectorLayer);
             setClusterLayer(initialClusterLayer);
             setDynamicOverlay(initialOverlay);
@@ -2771,8 +2774,12 @@ const MapComponent = ({
         }
 
         return () => {
-            // Cleanup logic if needed, but usually strictly setting target null is enough for OL
-            // React strict mode might cause double init so we just let it be replaced
+            if (localMapInstance) {
+                localMapInstance.setTarget(null);
+            }
+            if (soiMapContainerRef.current) {
+                soiMapContainerRef.current.innerHTML = '';
+            }
         };
     }, [mapType]);
 
@@ -3410,8 +3417,8 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
         clusterLayer.setVisible(true);
 
         clusterData.forEach((item) => {
-            const lat = item.avg_lat ?? item.grid_lat;
-            const lon = item.avg_lon ?? item.grid_lon;
+            const lat = item.latitude ?? item.lat ?? item.avg_lat ?? item.grid_lat;
+            const lon = item.longitude ?? item.lon ?? item.avg_lon ?? item.grid_lon;
 
             if (lat && lon) {
                 const feature = new Feature({
@@ -3419,24 +3426,38 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 });
                 feature.set('clusterItem', item);
 
-                const labelText = trackingMode === "grid" 
-                    ? `${item.total}\nVehicles` 
-                    : `${item.cluster_name}\n${item.total}`;
+                const countText = `${item.total}`;
+                const nameText = trackingMode === "grid" ? `Vehicles` : (item.cluster_name || '');
 
-                feature.setStyle(new Style({
-                    image: new CircleStyle({
-                        radius: 28,
-                        fill: new Fill({ color: 'rgba(25, 118, 210, 0.85)' }),
-                        stroke: new Stroke({ color: '#fff', width: 3 }),
+                feature.setStyle([
+                    // Circle with count
+                    new Style({
+                        image: new CircleStyle({
+                            radius: 26,
+                            fill: new Fill({ color: 'rgba(25, 118, 210, 0.9)' }),
+                            stroke: new Stroke({ color: '#fff', width: 3 }),
+                        }),
+                        text: new Text({
+                            text: countText,
+                            font: 'bold 14px sans-serif',
+                            fill: new Fill({ color: '#fff' }),
+                            textAlign: 'center',
+                            textBaseline: 'middle',
+                        })
                     }),
-                    text: new Text({
-                        text: labelText,
-                        font: 'bold 12px sans-serif',
-                        fill: new Fill({ color: '#fff' }),
-                        textAlign: 'center',
-                        textBaseline: 'middle',
-                    })
-                }));
+                    // Name label above circle
+                    new Style({
+                        text: new Text({
+                            text: nameText,
+                            font: 'bold 11px sans-serif',
+                            fill: new Fill({ color: '#1565c0' }),
+                            stroke: new Stroke({ color: '#fff', width: 3 }),
+                            textAlign: 'center',
+                            textBaseline: 'bottom',
+                            offsetY: -30,
+                        })
+                    }),
+                ]);
 
                 source.addFeature(feature);
             }
@@ -3444,15 +3465,32 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
     }, [map, clusterLayer, vectorLayer, clusterData, trackingMode]);
 
-    // Adjust OL vehicle marker clustering distance based on tracking mode
-    // In individual/drilldown mode, disable marker grouping so each vehicle shows separately
+    // Dynamically adjust OL vehicle marker clustering based on zoom level
     useEffect(() => {
-        if (!vectorLayer) return;
+        if (!map || !vectorLayer) return;
         const clusterSource = vectorLayer.getSource();
-        if (clusterSource && typeof clusterSource.setDistance === 'function') {
-            clusterSource.setDistance(30); // Always use clustering to prevent overlapping icons
-        }
-    }, [vectorLayer, trackingMode]);
+        if (!clusterSource || typeof clusterSource.setDistance !== 'function') return;
+
+        const updateClusterDistance = () => {
+            const zoom = map.getView().getZoom();
+            // Before city level zoom (< 15), show OL number grouping. 
+            // At city/street level (>= 15), disable grouping so actual vehicle names are shown.
+            if (zoom >= 15) {
+                clusterSource.setDistance(0);
+            } else {
+                clusterSource.setDistance(30);
+            }
+        };
+
+        // Listen for zoom changes
+        const view = map.getView();
+        view.on('change:resolution', updateClusterDistance);
+        updateClusterDistance(); // Initial application
+
+        return () => {
+            view.un('change:resolution', updateClusterDistance);
+        };
+    }, [map, vectorLayer, trackingMode]);
 
     // Expose Map Zoom Level for Grid Clustering
     useEffect(() => {

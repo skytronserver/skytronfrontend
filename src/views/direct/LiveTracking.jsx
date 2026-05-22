@@ -81,8 +81,9 @@ const LiveTracking = () => {
   const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
   const [nmrArea, setNmrArea] = useState(null);
   const [reverseGeocodeCache, setReverseGeocodeCache] = useState({});
-  const fullDataRef = useRef([]); // processed items we've appended so far
-  const fullRawRef = useRef([]);  // raw items from API (unprocessed)
+  const fullRawRef = useRef([]); // Full raw API response array
+  const fullDataRef = useRef([]); // Full processed vehicle list
+  const lastClusterClickTimeRef = useRef(0); // Track cluster click time to prevent immediate zoom-out revert during animation
   const listContainerRef = useRef(null);
   const [visibleCount, setVisibleCount] = useState(0);
   const [page, setPage] = useState(0);
@@ -480,7 +481,11 @@ const LiveTracking = () => {
           // GUARD: If a late-resolving individual vehicle poll returns but we are currently
           // in a zoomed-out cluster overview mode, immediately discard individual vehicle list populating
           // to prevent race conditions from leaking vehicles into the sidebar and map.
-          if (!drilldownActiveRef.current && trackingModeRef.current !== "individual") {
+          
+          // Added check to ignore revert for 1.5s after a cluster click to allow animation
+          const isRecentlyClicked = (Date.now() - lastClusterClickTimeRef.current) < 1500;
+          
+          if (!drilldownActiveRef.current && trackingModeRef.current !== "individual" && !isRecentlyClicked) {
             if (!append) {
               setTableDataTop([]);
               setFilteredData([]);
@@ -600,12 +605,16 @@ const LiveTracking = () => {
     setClusterData([]);
     setTableDataTop([]);
     setFilteredData([]);
+    fullDataRef.current = []; // Clear full data to hide old vehicles on mode switch
     setSelectedId(null);
     setFocusedEntry(null);
     setPage(0);
   };
 
   const handleClusterClick = (cluster) => {
+    if (!cluster || !cluster.cluster_name) return;
+    
+    lastClusterClickTimeRef.current = Date.now();
     // Set geographic filter for the clicked cluster area
     if (trackingMode === "district") setDistrict(cluster.cluster_name);
     else if (trackingMode === "state") setStateName(cluster.cluster_name);
@@ -619,6 +628,7 @@ const LiveTracking = () => {
     // Clear active vehicle lists to prepare for new data load
     setTableDataTop([]);
     setFilteredData([]);
+    fullDataRef.current = []; // Clear previous vehicles
     setSelectedId(null);
     setFocusedEntry(null);
   };
@@ -867,7 +877,7 @@ const LiveTracking = () => {
       trackingMode !== "individual" &&
       trackingMode !== "grid" &&
       !drilldownActive &&
-      mapZoomLevel >= 10
+      mapZoomLevel >= 14
     ) {
       // If a geographic filter is already set (e.g. from manual cluster click)
       const currentGeographicFilter = (
@@ -886,8 +896,8 @@ const LiveTracking = () => {
         let closest = null;
 
         clusterData.forEach((item) => {
-          const lat = item.avg_lat ?? item.grid_lat;
-          const lon = item.avg_lon ?? item.grid_lon;
+          const lat = item.latitude ?? item.lat ?? item.avg_lat ?? item.grid_lat;
+          const lon = item.longitude ?? item.lon ?? item.avg_lon ?? item.grid_lon;
           if (lat && lon) {
             const distance = Math.pow(Number(lon) - mapCenter[0], 2) + Math.pow(Number(lat) - mapCenter[1], 2);
             if (distance < minDistance) {
@@ -910,10 +920,12 @@ const LiveTracking = () => {
     }
 
     // 2. Zoom out scenario: restore clusters
-    // Whenever zoom level is below 8, restore geographic clusters and clear filters
+    // Whenever zoom level is below 13, restore geographic clusters and clear filters
+    // Add a 1.5s grace period after manual cluster click to allow map zoom animation to finish
     if (
       drilldownActive &&
-      mapZoomLevel < 8
+      mapZoomLevel < 13 &&
+      (Date.now() - lastClusterClickTimeRef.current > 1500)
     ) {
       if (autoSelectedCluster) {
         if (autoSelectedCluster.mode === "district") setDistrict("");
@@ -928,6 +940,7 @@ const LiveTracking = () => {
       // Clear individual vehicle lists and selection to restore clean cluster view
       setTableDataTop([]);
       setFilteredData([]);
+      fullDataRef.current = []; // Clear previous vehicles
       setSelectedId(null);
       setFocusedEntry(null);
     }
@@ -1484,47 +1497,86 @@ const LiveTracking = () => {
               </TableHead>
               }
               <TableBody>
-                {tableDataTop.length > 0 ? (
-                  tableDataTop.map(
-                    (row, index) =>
-                      checkType(typeFilter, row) && (
-                        <TableRow
-                          key={`${row.id || ''}-${index}`}
-                          className="table-row"
-                          sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
-                        >
-                          <TableCell
-                            colSpan={6}
-                            onClick={() => handleButtonClick(`vehicle-${row.imei}`)}
-                            className={`table-cell ${selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
-                              }`}
+                {(trackingMode === "individual" || drilldownActive) ? (
+                  tableDataTop.length > 0 ? (
+                    tableDataTop.map(
+                      (row, index) =>
+                        checkType(typeFilter, row) && (
+                          <TableRow
+                            key={`${row.id || ''}-${index}`}
+                            className="table-row"
+                            sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                           >
-                            <Box display="flex" alignItems="center" gap={1}>
-                              <img
-                                src={
-                                  typeFilter === "default"
-                                    ? createIconPath("default", row?.device_tag_info?.category_info?.category)
-                                    : getIconStyle(row)
-                                }
-                                alt="status icon"
-                                style={{ width: '24px', height: '24px' }}
-                              />
-                              <Typography>{row.vehicle_registration_number}</Typography>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      )
+                            <TableCell
+                              colSpan={6}
+                              onClick={() => handleButtonClick(`vehicle-${row.imei}`)}
+                              className={`table-cell ${selectedId === `vehicle-${row.imei}` ? "table-cell-selected" : ""
+                                }`}
+                            >
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <img
+                                  src={
+                                    typeFilter === "default"
+                                      ? createIconPath("default", row?.device_tag_info?.category_info?.category)
+                                      : getIconStyle(row)
+                                  }
+                                  alt="status icon"
+                                  style={{ width: '24px', height: '24px' }}
+                                />
+                                <Typography>{row.vehicle_registration_number}</Typography>
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        )
+                    )
+                  ) : (
+                    <TableRow key="no-data">
+                      <TableCell colSpan={6} style={{ textAlign: 'center' }}>
+                        <CircularProgress size="30px" title={t('liveTracking.noData')} />
+                      </TableCell>
+                    </TableRow>
                   )
                 ) : (
-                  <TableRow key="no-data">
-                    <TableCell colSpan={6} style={{ textAlign: 'center' }}>
-                      <CircularProgress size="30px" title={t('liveTracking.noData')} />
-                    </TableCell>
-                  </TableRow>
+                  clusterData && clusterData.length > 0 ? (
+                    clusterData.map((cluster, index) => (
+                      <TableRow
+                        key={`cluster-${index}`}
+                        className="table-row"
+                        sx={{ '&:hover': { backgroundColor: '#e3f2fd', cursor: 'pointer' } }}
+                      >
+                        <TableCell
+                          colSpan={6}
+                          onClick={() => handleClusterClick(cluster)}
+                          className="table-cell"
+                        >
+                          <Box display="flex" alignItems="center" justifyContent="space-between" px={1} py={0.5}>
+                            <Typography variant="body1" fontWeight="500">{cluster.cluster_name}</Typography>
+                            <Box sx={{ 
+                              bgcolor: '#1976d2', 
+                              color: 'white', 
+                              px: 1.5, 
+                              py: 0.5, 
+                              borderRadius: 4,
+                              fontWeight: 'bold',
+                              fontSize: '0.85rem'
+                            }}>
+                              {cluster.total}
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow key="no-cluster-data">
+                      <TableCell colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
+                        <CircularProgress size="30px" title="Loading Clusters..." />
+                      </TableCell>
+                    </TableRow>
+                  )
                 )}
               </TableBody>
             </Table>
-            {pagination && pagination.total > 0 && (
+            {(trackingMode === "individual" || drilldownActive) && pagination && pagination.total > 0 && (
               <Box sx={{ p: 1, textAlign: 'center', borderTop: '1px solid #eee', bgcolor: '#fafafa' }}>
                 <Typography variant="caption" color="textSecondary">
                   Page {pagination.page + 1} of {pagination.total_pages} (Total: {pagination.total})
@@ -1546,7 +1598,6 @@ const LiveTracking = () => {
                 onChange={(e) => handleTrackingModeChange(e.target.value)}
               >
                 <MenuItem value="individual">Individual</MenuItem>
-                <MenuItem value="grid">Grid Clusters</MenuItem>
                 <MenuItem value="state">State Clusters</MenuItem>
                 <MenuItem value="district">District Clusters</MenuItem>
                 <MenuItem value="city">City Clusters</MenuItem>
