@@ -12,6 +12,7 @@ import { decipherEncryption } from "../helper";
 
 // Lazy-loaded components
 const LiveTracking = Loadable(lazy(() => import("../views/direct/LiveTracking")));
+const SchoolBusTracking = Loadable(lazy(() => import("../views/direct/SchoolBusTracking")));
 const SOSAlert = Loadable(lazy(() => import("../views/direct/SOSAlert")));
 const HistoryPlayback = Loadable(lazy(() => import("../views/direct/HistoryPlayback")));
 const SOSUserExp = Loadable(lazy(() => import("../views/direct/SOSUserExp")));
@@ -371,6 +372,11 @@ const MainRoutes = {
     {
       path: '/schoolbus/bus-tagging',
       element: <SchoolBusTagging />,
+      roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/bus-tracking',
+      element: <SchoolBusTracking />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
     },
     {

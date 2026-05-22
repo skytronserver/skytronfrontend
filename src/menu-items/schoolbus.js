@@ -1,10 +1,10 @@
 // assets
 import { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
-  IconCircleCheck } from '@tabler/icons';
+  IconCircleCheck,IconCurrentLocation } from '@tabler/icons';
 
 // constant
 const icons = { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
-  IconCircleCheck };
+  IconCircleCheck,IconCurrentLocation };
 
 // ==============================|| SCHOOL BUS MENU ITEMS ||============================== //
 
@@ -35,6 +35,15 @@ const schoolbus = {
                     type: 'item',
                     url: '/schoolbus/bus-tagging',
                     icon: icons.IconLockAccess,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'schooladmin']
+                },
+                {
+                    id: 'schoolbus-tagging',
+                    title: 'School Bus Tracking',
+                    type: 'item',
+                    url: '/schoolbus/bus-tracking',
+                    icon: icons.IconCurrentLocation,
                     breadcrumbs: false,
                     roles: ['superadmin', 'schooladmin']
                 },

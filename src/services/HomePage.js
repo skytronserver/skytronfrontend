@@ -388,6 +388,14 @@ const getReverseGeocode = (lat, lon) => {
   });
 };
 
+const getSchoolBusOverview = () => {
+  const http = getAxiosInstance();
+
+  return http.get(
+    `${process.env.REACT_APP_BASE_URL}school/api/admin/school/overview/`
+  );
+};
+
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -423,6 +431,7 @@ const HomePageService = {
   getCellLocation,
   getGeocode,
   getReverseGeocode,
+  getSchoolBusOverview,
 };
 
 export default HomePageService;
