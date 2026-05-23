@@ -87,7 +87,7 @@ const AlertReport = () => {
     { value: 'Tilt', label: 'Tilt' },
     { value: 'HarshBreak', label: 'HarshBreak' },
     { value: 'HarshTurn', label: 'HarshTurn' },
-    { value: 'HarshAccileration', label: 'HarshAccileration' }
+    { value: 'HarshAcceleration', label: 'HarshAcceleration' }
   ];
 
   // Alert status options

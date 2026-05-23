@@ -19,7 +19,7 @@ import {
   convertErrorObjectToArray,
   retriveStateList,
   retriveDistrictList,
-  retriveTechnicalOnboardedManufacturerList,
+  decipherEncryption,
 } from "../../helper";
 import "./form.css";
 import {
@@ -46,15 +46,17 @@ function DealerAccount() {
   useEffect(() => {
     (async () => {
       try {
-        const manufacturerList = await retriveTechnicalOnboardedManufacturerList();
+        const myDecipher = decipherEncryption("skytrack");
+        const userData = sessionStorage.getItem("cookiesData");
+        const data = userData && userData.split("-");
+        const userName = data && data[0] ? myDecipher(data[0]) : "";
+
+        dealerAccountInitialValues.manufacturer = userName;
+
         const stateList = await retriveStateList();
 
         setUpdatedFormField((prevConfig) => ({
           ...prevConfig,
-          manufacturer: {
-            ...prevConfig.manufacturer,
-            options: manufacturerList || [],
-          },
           address_State: {
             ...prevConfig.address_State,
             value: stateList?.[0]?.label || '',
@@ -167,6 +169,7 @@ function DealerAccount() {
       districts: formattedDistricts,
       role: "devicemanufacturer",
       createdby: userId,
+      manufacturer: userId,
       address_State: updatedFormFields.address_State?.id
     };
 

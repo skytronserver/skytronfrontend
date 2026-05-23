@@ -141,7 +141,7 @@ const UserRoutes = {
     {
       path: "/user/newDealerAccount",
       element: <DealerAccount />,
-      roles: ["superadmin"],
+      roles: ["devicemanufacture"],
     },
     {
       path: "/new/vehicleOwner/*",
