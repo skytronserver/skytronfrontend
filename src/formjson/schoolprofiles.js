@@ -43,9 +43,15 @@ export const parentProfileFields = (t) => ({
         placeholder: "77.2090",
         validation: Yup.number().required("Longitude is required"),
     },
+    dob: {
+        name: "dob",
+        type: "date",
+        label: "Date of Birth",
+        validation: Yup.date().required("Date of Birth is required")
+    },
 });
 
-export const studentProfileFields = (t, parents = [], routes = [], stops = []) => ({
+export const studentProfileFields = (t, parents = [], routes = [], stops = [], buses = []) => ({
     name: {
         name: "name",
         type: "text",
@@ -81,6 +87,7 @@ export const studentProfileFields = (t, parents = [], routes = [], stops = []) =
         options: parents.map(p => ({ label: `${p.name} - ${p.mobile}`, value: p.id })),
         validation: Yup.string().required("Parent linking is required"),
     },
+
     routeId: {
         name: "routeId",
         type: "select",
@@ -88,18 +95,43 @@ export const studentProfileFields = (t, parents = [], routes = [], stops = []) =
         options: routes.map(r => ({ label: r.routeName || r.name, value: r.id })),
         validation: Yup.string().required("Route allocation is required"),
     },
+    bus: {
+        name: "bus",
+        type: "select",
+        label: "Assign Bus",
+
+        options: buses.map(b => ({
+            label: `${b.bus_number} - ${b.bus || ""}`,
+            value: b.bus,
+        })),
+
+        validation: Yup.string()
+            .required("Bus selection is required"),
+    },
     pickupStopId: {
         name: "pickupStopId",
         type: "select",
         label: "Pickup Stop",
-        options: stops.map(s => ({ label: `${s.stopName} (${s.timing || ''})`, value: s.id })),
+        options: stops.map(s => ({ label: `${s.name} (${s.timing || ''})`, value: s.id })),
         validation: Yup.string().required("Pickup stop is required"),
     },
     dropStopId: {
         name: "dropStopId",
         type: "select",
         label: "Drop Stop",
-        options: stops.map(s => ({ label: `${s.stopName} (${s.timing || ''})`, value: s.id })),
-        validation: Yup.string().required("Drop stop is required"),
+        options: stops.map(s => ({ label: `${s.name} (${s.timing || ''})`, value: s.id })),
+        validation: Yup.string()
+            .required("Drop stop is required")
+            .notOneOf(
+                [Yup.ref("pickupStopId")],
+                "Pickup and Drop stop cannot be same"
+            ),
+    },
+    start_date: {
+        name: "start_date",
+        type: "date",
+        label: "Start Date",
+        validation: Yup.date()
+            .required("Pickup date is required"),
     },
 });

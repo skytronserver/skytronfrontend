@@ -721,11 +721,11 @@ const api = {
   },
   getParents() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/parents');
+    return http.get('school/api/admin/parents/');
   },
   createParent(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/parents', data);
+    return http.post('school/api/admin/parents/', data);
   },
   updateParent(parentId, data) {
     const http = getAxiosInstance();
@@ -735,9 +735,14 @@ const api = {
     const http = getAxiosInstance();
     return http.delete(`/api/schoolbus/parents/${parentId}`);
   },
+    getBuses_P_Manage(routeId) {
+      debugger
+    const http = getAxiosInstance();
+    return http.get(`school/api/admin/routes/${routeId}/buses/`);
+  },
   getStudents() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/students');
+    return http.get('school/api/admin/students/');
   },
   createStudent(data) {
     const http = getAxiosInstance();
@@ -800,6 +805,8 @@ const SchoolBusService = {
   updateRoute: (...args) => (shouldUseMock() ? mock.updateRoute(...args) : api.updateRoute(...args)),
   deleteRoute: (...args) => (shouldUseMock() ? mock.deleteRoute(...args) : api.deleteRoute(...args)),
 
+  
+
   getStops: (...args) => (shouldUseMock() ? mock.getStops(...args) : api.getStops(...args)),
   addStop: (...args) => (shouldUseMock() ? mock.addStop(...args) : api.addStop(...args)),
   updateStop: (...args) => (shouldUseMock() ? mock.updateStop(...args) : api.updateStop(...args)),
@@ -816,6 +823,8 @@ const SchoolBusService = {
   createParent: (...args) => (shouldUseMock() ? mock.createParent(...args) : api.createParent(...args)),
   updateParent: (...args) => (shouldUseMock() ? mock.updateParent(...args) : api.updateParent(...args)),
   deleteParent: (...args) => (shouldUseMock() ? mock.deleteParent(...args) : api.deleteParent(...args)),
+
+  getBuses_P_Manage: (...args) => (shouldUseMock() ? mock.getBuses_P_Manage(...args) : api.getBuses_P_Manage(...args)),
 
   getStudents: (...args) => (shouldUseMock() ? mock.getStudents(...args) : api.getStudents(...args)),
   createStudent: (...args) => (shouldUseMock() ? mock.createStudent(...args) : api.createStudent(...args)),

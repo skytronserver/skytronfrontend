@@ -56,7 +56,7 @@ const BusAssignment = () => {
         Promise.all([SchoolBusService.getBuses(), SchoolBusService.getRouteOptions(), SchoolBusService.getAssignments()])
             .then(([bRes, rRes, aRes]) => {
                 if (!mounted) return;
-                setBuses(Array.isArray(bRes?.data) ? bRes.data : []);
+                setBuses(Array.isArray(bRes?.data?.data) ? bRes.data?.data : []);
                 setRoutes(Array.isArray(rRes?.data) ? rRes.data : []);
                 setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
             })
