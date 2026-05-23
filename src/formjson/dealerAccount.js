@@ -29,10 +29,10 @@ export const dealerAccountInitialValues = {
 export const dealerAccountFormField = {
   manufacturer: {
     name: "manufacturer",
-    type: "select",
+    type: "text",
     label: "dealerAccountForm.fields.manufacturer",
     validation: Yup.string().required("dealerAccountForm.validation.manufacturerRequired"),
-    options: [],
+    disabled: true,
   },
   name: {
     name: "name",

@@ -52,7 +52,7 @@ const POIReport = () => {
     const useTypes = [
         'School', 'Hospital', 'PoliceStation', 'BusStop', 'RailwayStation',
         'Airport', 'FuelStation', 'TollGate', 'Other', 'Personal',
-        'dealer', 'Unauthorised Stop', 'no_entry', 'parking', 'no_parking',
+        'dealer', 'Unauthorised Stop', 'Prohibited_Area', 'no_entry', 'parking', 'NoParking',
         'StateBoundary', 'DistrictBoundary', 'CityBoundary', 'VillageBoundary', 'PermitRoute'
     ];
 

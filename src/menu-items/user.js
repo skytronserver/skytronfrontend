@@ -49,7 +49,7 @@ const user = {
       title: "Create New",
       type: "collapse",
       icon: icons.IconUser,
-      roles: ["superadmin", "stateadmin", "dealer", "sosadmin"],
+      roles: ["superadmin", "stateadmin", "dealer", "sosadmin", "devicemanufacture"],
       children: [
         {
           id: "state-admin",
@@ -89,7 +89,7 @@ const user = {
           type: "item",
           url: "/user/newDealerAccount",
           breadcrumbs: false,
-          roles: ["superadmin"],
+          roles: ["devicemanufacture"],
         },
         {
           id: "vehicle-owner",
