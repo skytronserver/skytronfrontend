@@ -20,6 +20,7 @@ import {
   retriveStateList,
   retriveDistrictList,
   decipherEncryption,
+  retriveTechnicalOnboardedModelList,
 } from "../../helper";
 import "./form.css";
 import {
@@ -42,10 +43,18 @@ function DealerAccount() {
   );
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [showResend, setShowResend] = useState(false);
+  const [hasOnboardedModel, setHasOnboardedModel] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
+        const modelOptions = await retriveTechnicalOnboardedModelList();
+        if (modelOptions.length === 0) {
+          setHasOnboardedModel(false);
+          setIsFormLoaded(true);
+          return;
+        }
+
         const myDecipher = decipherEncryption("skytrack");
         const userData = sessionStorage.getItem("cookiesData");
         const data = userData && userData.split("-");
@@ -218,7 +227,11 @@ function DealerAccount() {
         )}
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
           <MainCard title={t("dealerAccountForm.title")}>
-            {isFormLoaded && (
+            {!hasOnboardedModel ? (
+               <div style={{ textAlign: 'center', padding: '40px' }}>
+                 <h3>You must complete Technical Onboarding for at least one device model before you can create a dealer.</h3>
+               </div>
+            ) : isFormLoaded && (
               <Formik
                 initialValues={dealerAccountInitialValues}
                 validationSchema={validationSchema}
