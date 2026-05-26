@@ -297,11 +297,11 @@ const mock = {
     return { data: [...mockDb.alertsFeed] };
   },
  async getTaggedVehicles() {
-  debugger
+  // debugger
   const res = await apiRequest({
     url: "school/api/admin/buses/tag/history/",
   });
-  debugger
+  // debugger
   return {
     data:
   
@@ -593,7 +593,7 @@ const api = {
     return http.get('/school/api/state-admin/schools/');
   },
   submitSchoolApplication(formData) {
-    debugger
+    // debugger
     const http = getAxiosInstance();
     return http.post('/school/api/schools/apply/', formData, {
       headers: {
@@ -667,7 +667,7 @@ const api = {
     return http.get('school/api/admin/routes/');
   },
   createRoute(data) {
-       debugger
+      //  debugger
     const http = getAxiosInstance();
     return http.post('school/api/admin/routes/', data);
   },
@@ -736,7 +736,7 @@ const api = {
     return http.delete(`/api/schoolbus/parents/${parentId}`);
   },
     getBuses_P_Manage(routeId) {
-      debugger
+      // debugger
     const http = getAxiosInstance();
     return http.get(`school/api/admin/routes/${routeId}/buses/`);
   },
@@ -776,7 +776,17 @@ const api = {
              decision: "REJECT",
     remarks: "Documents Not Valid"
         });
-  }
+  },
+
+  getStates() {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/filter_settings_State/", {});
+},
+
+getDistricts() {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/filter_settings_District/", {});
+},
 };
 
 const SchoolBusService = {
@@ -836,8 +846,12 @@ const SchoolBusService = {
 
   approveSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.approveSchool(...args)),
 
- rejectSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.rejectSchool(...args))
+ rejectSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.rejectSchool(...args)),
+getStates: (...args) =>
+  api.getStates(...args),
 
+getDistricts: (...args) =>
+  api.getDistricts(...args),
 
 };
 

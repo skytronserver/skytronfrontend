@@ -1,15 +1,41 @@
-import React, { useMemo, useState } from 'react';
-import { Box, Button, Container, Grid, Alert, Typography, Paper, Divider, Stack } from '@mui/material';
+import React, { useMemo, useState,useEffect  } from 'react';
+import { Box, Button, Container, Grid, Alert, Typography, Paper, Divider, Stack, TextField,MenuItem } from '@mui/material';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import FormField from '../../ui-component/CustomTextField';
 import SchoolBusService from '../../services/SchoolBusService';
 import skytronlogo from '../../assets/images/skytron-logo2.png';
 
+
 function CreateSchool() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [states, setStates] = useState([]);
+const [districts, setDistricts] = useState([]);
+
+useEffect(() => {
+  loadStates();
+  loadDistricts();
+}, []);
+
+const loadStates = async () => {
+  try {
+    const res = await SchoolBusService.getStates();
+    setStates(res.data || []);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const loadDistricts = async () => {
+  try {
+    const res = await SchoolBusService.getDistricts();
+    setDistricts(res.data || []);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   const validationSchema = useMemo(
     () =>
@@ -168,7 +194,7 @@ setFieldValue('school_lon', String(pos.coords.longitude.toFixed(6)));
               setError('');
               setInfo('');
               setLoading(true);
-debugger
+// debugger
              const formData = new FormData();
 
 // format DOB
@@ -207,7 +233,7 @@ for (let pair of formData.entries()) {
               SchoolBusService.submitSchoolApplication(formData)
               
                 .then((response) => {
-                  debugger
+                  // debugger
                    console.log("SUCCESS RESPONSE:", response);
     console.log("DATA:", response.data);
 
@@ -259,11 +285,43 @@ setError(message);
                         <FormField fieldConfig={{ name: 'school_phone', type: 'tel', label: 'School Phone' }} formik={formik} />
                       </Grid>
                        <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'state', type: 'number', label: 'State' }} formik={formik} />
-                      </Grid>
+<TextField
+  select
+  fullWidth
+  label="State"
+  name="state"
+  value={formik.values.state}
+  onChange={formik.handleChange}
+>
+  {states.map((item) => (
+    <MenuItem key={item.id} value={item.id}>
+      {item.state}
+    </MenuItem>
+  ))}
+</TextField>                      </Grid>
                       <Grid item xs={12} md={6}>
-                        <FormField fieldConfig={{ name: 'district_code', type: 'text', label: 'District Code' }} formik={formik} />
-                      </Grid>
+<TextField
+  select
+  fullWidth
+  label="District"
+  name="district_code"
+  value={formik.values.district_code}
+  onChange={formik.handleChange}
+>
+  {districts
+    .filter(
+      (d) =>
+        String(d.state?.id) === String(formik.values.state)
+    )
+    .map((item) => (
+      <MenuItem
+        key={item.id}
+        value={item.district_code}
+      >
+        {item.district}
+      </MenuItem>
+    ))}
+</TextField>                      </Grid>
                     </Grid>
                   </Box>
 
