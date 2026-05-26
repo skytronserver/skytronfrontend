@@ -42,27 +42,55 @@ const ProfileManagement = () => {
     const [students, setStudents] = useState([]);
     const [routes, setRoutes] = useState([]);
     const [routeStops, setRouteStops] = useState([]);
+    const [buses, setbuses] = useState([]);
+
 
     const loadStops = async (routeId) => {
         if (!routeId) {
             setRouteStops([]);
+                    setbuses([]);
+
             return;
         }
+         try {
+        debugger;
+
+        const busRes = await SchoolBusService.getBuses_P_Manage(routeId);
+    //  console.log(busRes);
+        setbuses(
+            Array.isArray(busRes?.data?.data)
+                ? busRes.data.data
+                : []
+        );
+
         const res = await SchoolBusService.getStops(routeId);
-        setRouteStops(Array.isArray(res?.data) ? res.data : []);
+
+        setRouteStops(
+            Array.isArray(res?.data?.data?.[0]?.stops)
+                ? res.data.data[0].stops
+                : []
+        );
+    } catch (error) {
+        console.error("Error loading stops/buses:", error);
+        setbuses([]);
+        setRouteStops([]);
+    }
     };
 
     useEffect(() => {
         let mounted = true;
         setError('');
         setLoading(true);
-
+        debugger
         Promise.all([SchoolBusService.getParents(), SchoolBusService.getStudents(), SchoolBusService.getRoutes()])
             .then(([pRes, sRes, rRes]) => {
                 if (!mounted) return;
-                setParents(Array.isArray(pRes?.data) ? pRes.data : []);
-                setStudents(Array.isArray(sRes?.data) ? sRes.data : []);
-                setRoutes(Array.isArray(rRes?.data) ? rRes.data : []);
+                debugger
+                setParents(Array.isArray(pRes?.data?.data) ? pRes.data?.data : []);
+                setStudents(Array.isArray(sRes?.data?.data) ? sRes.data?.data : []);
+                setRoutes(Array.isArray(rRes?.data?.data) ? rRes.data?.data : []);
+
+
             })
             .catch((e) => {
                 if (!mounted) return;
@@ -83,8 +111,8 @@ const ProfileManagement = () => {
         { name: 'email', label: 'Email' },
         { name: 'mobile', label: 'Mobile' },
         { name: 'address', label: 'Address' },
-        { name: 'lat', label: 'Lat' },
-        { name: 'lon', label: 'Lon' },
+        { name: 'latitude', label: 'Lat' },
+        { name: 'longitude', label: 'Lon' },
     ];
 
     const studentColumns = [
@@ -190,15 +218,23 @@ const ProfileManagement = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ name: '', email: '', mobile: '', address: '', lat: '', lon: '' }}
+                        initialValues={{ name: '', email: '', mobile: '', address: '', lat: '', lon: '', dob: '' }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(parentProfileFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting, resetForm }) => {
                             setError('');
                             setLoading(true);
-                            SchoolBusService.createParent(values)
+                            const apiPayload = {
+
+                                name: values.name, email: values.email, mobile: values.mobile, address: values.address, dob: values.dob,
+                                latitude: values.lat,
+                                longitude: values.lon
+                            };
+
+
+                            SchoolBusService.createParent(apiPayload)
                                 .then(() => SchoolBusService.getParents())
                                 .then((pRes) => {
-                                    setParents(Array.isArray(pRes?.data) ? pRes.data : []);
+                                    setParents(Array.isArray(pRes?.data?.data) ? pRes.data?.data : []);
                                     resetForm();
                                     setOpenParent(false);
                                 })
@@ -239,8 +275,8 @@ const ProfileManagement = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ name: '', class: '', section: '', rollNo: '', parentId: '', routeId: '', pickupStopId: '', dropStopId: '' }}
-                        validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(studentProfileFields(t, parents, routes, routeStops)).map(([k, v]) => [k, v.validation])))}
+                        initialValues={{ name: '', class: '', section: '', rollNo: '', parentId: '', bus: '', routeId: '', pickupStopId: '', dropStopId: '', start_date: '' }}
+                        validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(studentProfileFields(t, parents, routes, routeStops, buses)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting, resetForm }) => {
                             setError('');
                             setLoading(true);
@@ -264,7 +300,7 @@ const ProfileManagement = () => {
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
                                 <Grid container spacing={1}>
-                                    {Object.values(studentProfileFields(t, parents, routes, routeStops)).map((field) => (
+                                    {Object.values(studentProfileFields(t, parents, routes, routeStops,buses)).map((field) => (
                                         <Grid item xs={12} key={field.name}>
                                             <FormField
                                                 fieldConfig={field}
@@ -274,6 +310,8 @@ const ProfileManagement = () => {
                                                     const routeId = event?.target?.value;
                                                     formik.setFieldValue('pickupStopId', '');
                                                     formik.setFieldValue('dropStopId', '');
+                                                    formik.setFieldValue('bus', '');
+
                                                     try {
                                                         await loadStops(routeId);
                                                     } catch (e) {
