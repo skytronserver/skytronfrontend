@@ -45,7 +45,7 @@ const steps = [
 const rawOtCommands = [
   "1. IP 103.195.217.127",
   "2. Port: 8883",
-  "3. Emergency Fallback number: (will advise tomorrow- it has to be actual)",
+  "3. Emergency fallback No: 9435496378",
   "4: Registration No in case of already registered vehicle.",
   "5: In case of new un-registered vehicle, please set Reg number in devices in following format-",
   "",

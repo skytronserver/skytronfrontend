@@ -60,7 +60,7 @@ const AlertReport = () => {
     { value: 'Overtime', label: 'Overtime' },
     { value: 'UnauthorizedStop', label: 'Unauthorised Stop' },
     { value: 'UnauthorizedParking', label: 'Unauthorized Parking' },
-    { value: 'Prohibited Area', label: 'Prohibited Area' },
+    { value: 'Prohibited_Area', label: 'Prohibited Area' },
     { value: 'UnauthorizedSkip', label: 'UnauthorizedSkip' },
     { value: 'NetworkLoss', label: 'NetworkLoss' },
     { value: 'GPSLoss', label: 'GPSLoss' },
@@ -164,6 +164,8 @@ const AlertReport = () => {
         let displayValue = params.value;
         if (displayValue === 'UnauthorizedStop') {
           displayValue = 'Unauthorised Stop';
+        } else if (displayValue === 'Prohibited_Area') {
+          displayValue = 'Prohibited Area';
         }
         return (
           <Chip
