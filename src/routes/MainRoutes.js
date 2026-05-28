@@ -367,7 +367,7 @@ const MainRoutes = {
     {
       path: '/schoolbus/parent-tracking',
       element: <ParentTracking />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
+      roles: [ 'parentuser']
     },
     {
       path: '/schoolbus/bus-tagging',

@@ -53,7 +53,7 @@ const ProfileManagement = () => {
             return;
         }
          try {
-        debugger;
+        // debugger;
 
         const busRes = await SchoolBusService.getBuses_P_Manage(routeId);
     //  console.log(busRes);
@@ -81,11 +81,11 @@ const ProfileManagement = () => {
         let mounted = true;
         setError('');
         setLoading(true);
-        debugger
+        // debugger
         Promise.all([SchoolBusService.getParents(), SchoolBusService.getStudents(), SchoolBusService.getRoutes()])
             .then(([pRes, sRes, rRes]) => {
                 if (!mounted) return;
-                debugger
+                // debugger
                 setParents(Array.isArray(pRes?.data?.data) ? pRes.data?.data : []);
                 setStudents(Array.isArray(sRes?.data?.data) ? sRes.data?.data : []);
                 setRoutes(Array.isArray(rRes?.data?.data) ? rRes.data?.data : []);
@@ -232,19 +232,41 @@ const ProfileManagement = () => {
 
 
                             SchoolBusService.createParent(apiPayload)
-                                .then(() => SchoolBusService.getParents())
-                                .then((pRes) => {
-                                    setParents(Array.isArray(pRes?.data?.data) ? pRes.data?.data : []);
-                                    resetForm();
-                                    setOpenParent(false);
-                                })
-                                .catch((e) => {
-                                    setError(e?.message || 'Failed to create parent profile');
-                                })
-                                .finally(() => {
-                                    setLoading(false);
-                                    setSubmitting(false);
-                                });
+    .then(async (createRes) => {
+
+        // Parent created response
+        const parentData = createRes?.data?.data;
+
+        // Call OTP API using created parent id
+        if (parentData?.id) {
+            await SchoolBusService.resendParentCreationOtp({
+                user_id: parentData.id
+            });
+        }
+
+        // Reload parents list
+        return SchoolBusService.getParents();
+    })
+    .then((pRes) => {
+
+        setParents(
+            Array.isArray(pRes?.data?.data)
+                ? pRes.data?.data
+                : []
+        );
+
+        resetForm();
+        setOpenParent(false);
+
+    })
+    .catch((e) => {
+        console.error(e);
+        setError(e?.message || 'Failed to create parent profile');
+    })
+    .finally(() => {
+        setLoading(false);
+        setSubmitting(false);
+    });
                         }}
                     >
                         {(formik) => (

@@ -12,7 +12,7 @@ const schoolbus = {
     id: 'schoolbus-management',
     title: 'School Bus',
     type: 'group',
-    roles: ['superadmin', 'schooladmin', 'parent'],
+    roles: ['superadmin', 'schooladmin', 'parentuser'],
     children: [
         {
             id: 'schoolbus-main',
@@ -81,7 +81,7 @@ const schoolbus = {
                     url: '/schoolbus/parent-tracking',
                     icon: icons.IconMapPin,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'schooladmin', 'parent']
+                    roles: [ 'parentuser']
                 },
                 
                  {

@@ -756,10 +756,16 @@ const api = {
     const http = getAxiosInstance();
     return http.delete(`/api/schoolbus/students/${studentId}`);
   },
-  getParentTracking(studentId) {
-    const http = getAxiosInstance();
-    return http.get(`/api/schoolbus/tracking/${studentId}`);
-  },
+  // getParentTracking(studentId) {
+  //   const http = getAxiosInstance();
+  //   return http.get(`/api/schoolbus/tracking/${studentId}`);
+  // },
+  async getParentTracking() {
+   return await apiRequest({
+      url: "school/api/parents/students/live-location/",
+      method: "GET",
+   });
+},
   getParentAlerts(parentId) {
     const http = getAxiosInstance();
     return http.get(`/api/schoolbus/alerts/${parentId}`);
@@ -787,6 +793,30 @@ getDistricts() {
   const http = getAxiosInstance();
   return http.post("/api/Settings/filter_settings_District/", {});
 },
+ resendUserCreationOtp(data) {
+    const http = getAxiosInstance();
+    return http.post(
+      "/api/resend_usercreation_otp/",
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+ resendParentCreationOtp(data) {
+    const http = getAxiosInstance();
+    return http.post(
+      "/api/resend_parent_activation_otp/",
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
 };
 
 const SchoolBusService = {
@@ -852,6 +882,10 @@ getStates: (...args) =>
 
 getDistricts: (...args) =>
   api.getDistricts(...args),
+resendUserCreationOtp: (...args) =>
+  api.resendUserCreationOtp(...args),
+resendParentCreationOtp: (...args) =>
+  api.resendParentCreationOtp(...args),
 
 };
 

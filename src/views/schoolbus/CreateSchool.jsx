@@ -1,5 +1,5 @@
-import React, { useMemo, useState,useEffect  } from 'react';
-import { Box, Button, Container, Grid, Alert, Typography, Paper, Divider, Stack, TextField,MenuItem } from '@mui/material';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Box, Button, Container, Grid, Alert, Typography, Paper, Divider, Stack, TextField, MenuItem } from '@mui/material';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import FormField from '../../ui-component/CustomTextField';
@@ -12,71 +12,71 @@ function CreateSchool() {
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [states, setStates] = useState([]);
-const [districts, setDistricts] = useState([]);
+  const [districts, setDistricts] = useState([]);
 
-useEffect(() => {
-  loadStates();
-  loadDistricts();
-}, []);
+  useEffect(() => {
+    loadStates();
+    loadDistricts();
+  }, []);
 
-const loadStates = async () => {
-  try {
-    const res = await SchoolBusService.getStates();
-    setStates(res.data || []);
-  } catch (err) {
-    console.log(err);
-  }
-};
+  const loadStates = async () => {
+    try {
+      const res = await SchoolBusService.getStates();
+      setStates(res.data || []);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-const loadDistricts = async () => {
-  try {
-    const res = await SchoolBusService.getDistricts();
-    setDistricts(res.data || []);
-  } catch (err) {
-    console.log(err);
-  }
-};
+  const loadDistricts = async () => {
+    try {
+      const res = await SchoolBusService.getDistricts();
+      setDistricts(res.data || []);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const validationSchema = useMemo(
     () =>
-    Yup.object().shape({
-  school_name: Yup.string().required(),
-  school_address: Yup.string().required(),
-  school_pin: Yup.string().required(),
-  school_email: Yup.string().email().required(),
-  school_phone: Yup.string().required(),
-  school_lat: Yup.string().required(),
-  school_lon: Yup.string().required(),
-  state: Yup.string().required(),
-  district_code: Yup.string().required(),
+      Yup.object().shape({
+        school_name: Yup.string().required(),
+        school_address: Yup.string().required(),
+        school_pin: Yup.string().required(),
+        school_email: Yup.string().email().required(),
+        school_phone: Yup.string().required(),
+        school_lat: Yup.string().required(),
+        school_lon: Yup.string().required(),
+        state: Yup.string().required(),
+        district_code: Yup.string().required(),
 
-  name: Yup.string().required(),
-  email: Yup.string().email().required(),
-  mobile: Yup.string().required(),
-  dob: Yup.string()
-  .required('Date of Birth is required')
-  .test('age-check', 'You must be at least 18 years old', function (value) {
-    if (!value) return false;
+        name: Yup.string().required(),
+        email: Yup.string().email().required(),
+        mobile: Yup.string().required(),
+        dob: Yup.string()
+          .required('Date of Birth is required')
+          .test('age-check', 'You must be at least 18 years old', function (value) {
+            if (!value) return false;
 
-    const today = new Date();
-    const dob = new Date(value);
+            const today = new Date();
+            const dob = new Date(value);
 
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDiff = today.getMonth() - dob.getMonth();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
 
-    // adjust if birthday not reached this year
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
+            // adjust if birthday not reached this year
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+              age--;
+            }
 
-    return age >= 18;
-  }),
-  address: Yup.string().required(),
-  pin: Yup.string().required(),
+            return age >= 18;
+          }),
+        address: Yup.string().required(),
+        pin: Yup.string().required(),
 
-  file_idProof: Yup.mixed().required(),
-  file_authorisation_letter: Yup.mixed().required()
-}),
+        file_idProof: Yup.mixed().required(),
+        file_authorisation_letter: Yup.mixed().required()
+      }),
     []
   );
 
@@ -91,8 +91,8 @@ const loadDistricts = async () => {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-       setFieldValue('school_lat', String(pos.coords.latitude.toFixed(6)));
-setFieldValue('school_lon', String(pos.coords.longitude.toFixed(6)));
+        setFieldValue('school_lat', String(pos.coords.latitude.toFixed(6)));
+        setFieldValue('school_lon', String(pos.coords.longitude.toFixed(6)));
         setInfo('Location captured');
       },
       (error) => {
@@ -170,89 +170,112 @@ setFieldValue('school_lon', String(pos.coords.longitude.toFixed(6)));
           )}
 
           <Formik
-           initialValues={{
-  school_name: '',
-  school_address: '',
-  school_pin: '',
-  school_email: '',
-  school_phone: '',
-  school_lat: '',
-  school_lon: '',
-  state: '',
-  district_code: '',
-  name: '',
-  email: '',
-  mobile: '',
-  dob: '',
-  address: '',
-  pin: '',
-  file_idProof: null,
-  file_authorisation_letter: null
-}}
+            initialValues={{
+              school_name: '',
+              school_address: '',
+              school_pin: '',
+              school_email: '',
+              school_phone: '',
+              school_lat: '',
+              school_lon: '',
+              state: '',
+              district_code: '',
+              name: '',
+              email: '',
+              mobile: '',
+              dob: '',
+              address: '',
+              pin: '',
+              file_idProof: null,
+              file_authorisation_letter: null
+            }}
             validationSchema={validationSchema}
             onSubmit={(values, { setSubmitting, resetForm }) => {
               setError('');
               setInfo('');
               setLoading(true);
-// debugger
-             const formData = new FormData();
+              // debugger
+              const formData = new FormData();
 
-// format DOB
-const formatDOB = (date) => {
-  const [year, month, day] = date.split("-");
-  return `${day}-${month}-${year}`;
-};
+              // format DOB
+              const formatDOB = (date) => {
+                const [year, month, day] = date.split("-");
+                return `${day}-${month}-${year}`;
+              };
 
 
-// school
-formData.append("school_name", values.school_name);
+              // school
+              formData.append("school_name", values.school_name);
 
-formData.append("school_address", values.school_address);
-formData.append("school_pin", values.school_pin);
-formData.append("school_email", values.school_email);
-formData.append("school_phone", values.school_phone);
-formData.append("school_lat", values.school_lat);
-formData.append("school_lon", values.school_lon);
+              formData.append("school_address", values.school_address);
+              formData.append("school_pin", values.school_pin);
+              formData.append("school_email", values.school_email);
+              formData.append("school_phone", values.school_phone);
+              formData.append("school_lat", values.school_lat);
+              formData.append("school_lon", values.school_lon);
 
-// personal
-formData.append("state", values.state);
-formData.append("district_code", values.district_code);
-formData.append("name", values.name);
-formData.append("email", values.email);
-formData.append("mobile", values.mobile);
-formData.append("dob", formatDOB(values.dob)); // ✅ fixed
-formData.append("address", values.address);
-formData.append("pin", values.pin);
+              // personal
+              formData.append("state", values.state);
+              formData.append("district_code", values.district_code);
+              formData.append("name", values.name);
+              formData.append("email", values.email);
+              formData.append("mobile", values.mobile);
+              formData.append("dob", formatDOB(values.dob)); // ✅ fixed
+              formData.append("address", values.address);
+              formData.append("pin", values.pin);
 
-// files
-formData.append("file_idProof", values.file_idProof);
-formData.append("file_authorisation_letter", values.file_authorisation_letter);
-for (let pair of formData.entries()) {
-  console.log(pair[0], pair[1]);
-}
+              // files
+              formData.append("file_idProof", values.file_idProof);
+              formData.append("file_authorisation_letter", values.file_authorisation_letter);
+              for (let pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+              }
               SchoolBusService.submitSchoolApplication(formData)
-              
-                .then((response) => {
-                  // debugger
-                   console.log("SUCCESS RESPONSE:", response);
-    console.log("DATA:", response.data);
 
-    setInfo(response?.data || 'Application submitted');
-                  setInfo('Application submitted');
-                  resetForm();
-                 
-                })
+               .then(async (response) => {
+  console.log("SUCCESS RESPONSE:", response);
+  console.log("DATA:", response.data);
+
+  // school creation response
+    const createdUserId =
+    response?.data?.data?.applicant?.id;
+
+  console.log("CREATED USER ID:", createdUserId);
+
+  try {
+    // call resend otp api
+    if (createdUserId) {
+      await SchoolBusService.resendUserCreationOtp({
+        user_id: createdUserId,
+      });
+
+      setInfo(
+        "School created successfully. Password setup link has been sent to School Admin."
+      );
+    } else {
+      setInfo("School created successfully.");
+    }
+  } catch (otpError) {
+    console.error("OTP API Error:", otpError);
+
+    setInfo(
+      "School created successfully, but password setup link could not be sent."
+    );
+  }
+
+  resetForm();
+})
                 .catch((e) => {
                   const err = e?.response?.data;
 
-const message =
-  err && typeof err === "object"
-    ? Object.entries(err)
-        .map(([k, v]) => `${k}: ${v.join(", ")}`)
-        .join("\n")
-    : "Failed to submit application";
+                  const message =
+                    err && typeof err === "object"
+                      ? Object.entries(err)
+                        .map(([k, v]) => `${k}: ${v.join(", ")}`)
+                        .join("\n")
+                      : "Failed to submit application";
 
-setError(message);
+                  setError(message);
                 })
                 .finally(() => {
                   setLoading(false);
@@ -270,13 +293,13 @@ setError(message);
                     <Divider sx={{ mb: 2 }} />
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'school_name', type: 'text', label: 'School Name' }} formik={formik} />
+                        <FormField fieldConfig={{ name: 'school_name', type: 'text', label: 'School Name' }} formik={formik} />
                       </Grid>
                       <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'school_address', type: 'text', label: 'School Address' }} formik={formik} />
+                        <FormField fieldConfig={{ name: 'school_address', type: 'text', label: 'School Address' }} formik={formik} />
                       </Grid>
                       <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'school_pin', type: 'text', label: 'School PIN' }} formik={formik} />
+                        <FormField fieldConfig={{ name: 'school_pin', type: 'text', label: 'School PIN' }} formik={formik} />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <FormField fieldConfig={{ name: 'school_email', type: 'text', label: 'School Email' }} formik={formik} />
@@ -284,44 +307,44 @@ setError(message);
                       <Grid item xs={12}>
                         <FormField fieldConfig={{ name: 'school_phone', type: 'tel', label: 'School Phone' }} formik={formik} />
                       </Grid>
-                       <Grid item xs={12} md={6}>
-<TextField
-  select
-  fullWidth
-  label="State"
-  name="state"
-  value={formik.values.state}
-  onChange={formik.handleChange}
->
-  {states.map((item) => (
-    <MenuItem key={item.id} value={item.id}>
-      {item.state}
-    </MenuItem>
-  ))}
-</TextField>                      </Grid>
                       <Grid item xs={12} md={6}>
-<TextField
-  select
-  fullWidth
-  label="District"
-  name="district_code"
-  value={formik.values.district_code}
-  onChange={formik.handleChange}
->
-  {districts
-    .filter(
-      (d) =>
-        String(d.state?.id) === String(formik.values.state)
-    )
-    .map((item) => (
-      <MenuItem
-        key={item.id}
-        value={item.district_code}
-      >
-        {item.district}
-      </MenuItem>
-    ))}
-</TextField>                      </Grid>
+                        <TextField
+                          select
+                          fullWidth
+                          label="State"
+                          name="state"
+                          value={formik.values.state}
+                          onChange={formik.handleChange}
+                        >
+                          {states.map((item) => (
+                            <MenuItem key={item.id} value={item.id}>
+                              {item.state}
+                            </MenuItem>
+                          ))}
+                        </TextField>                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          select
+                          fullWidth
+                          label="District"
+                          name="district_code"
+                          value={formik.values.district_code}
+                          onChange={formik.handleChange}
+                        >
+                          {districts
+                            .filter(
+                              (d) =>
+                                String(d.state?.id) === String(formik.values.state)
+                            )
+                            .map((item) => (
+                              <MenuItem
+                                key={item.id}
+                                value={item.district_code}
+                              >
+                                {item.district}
+                              </MenuItem>
+                            ))}
+                        </TextField>                      </Grid>
                     </Grid>
                   </Box>
 
@@ -386,20 +409,20 @@ setError(message);
                       </Grid>
                     </Grid>
                   </Box> */}
-                   <Box>
+                  <Box>
                     <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
                       Applicant Info
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'name', type: 'text', label: 'Name' }} formik={formik} />
+                        <FormField fieldConfig={{ name: 'name', type: 'text', label: 'Name' }} formik={formik} />
                       </Grid>
                       <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'email', type: 'text', label: 'Email' }} formik={formik} />
+                        <FormField fieldConfig={{ name: 'email', type: 'text', label: 'Email' }} formik={formik} />
                       </Grid>
                       <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'mobile', type: 'tel', label: 'Mobile' }} formik={formik} />
+                        <FormField fieldConfig={{ name: 'mobile', type: 'tel', label: 'Mobile' }} formik={formik} />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <FormField fieldConfig={{ name: 'dob', type: 'date', label: 'DOB' }} formik={formik} />
@@ -407,11 +430,11 @@ setError(message);
                       <Grid item xs={12} md={6}>
                         <FormField fieldConfig={{ name: 'address', type: 'text', label: 'Address' }} formik={formik} />
                       </Grid>
-                       <Grid item xs={12} md={6}>
-                       <FormField fieldConfig={{ name: 'pin', type: 'text', label: 'PIN' }} formik={formik} />
+                      <Grid item xs={12} md={6}>
+                        <FormField fieldConfig={{ name: 'pin', type: 'text', label: 'PIN' }} formik={formik} />
                       </Grid>
-                       <Grid item xs={12} md={6}>
-                       <FormField
+                      <Grid item xs={12} md={6}>
+                        <FormField
                           fieldConfig={{
                             name: 'file_idProof',
                             type: 'file',
@@ -422,7 +445,7 @@ setError(message);
                       </Grid>
 
                       <Grid item xs={12} md={6}>
-                       <FormField
+                        <FormField
                           fieldConfig={{
                             name: 'file_authorisation_letter',
                             type: 'file',
@@ -431,7 +454,7 @@ setError(message);
                           formik={formik}
                         />
                       </Grid>
-                     
+
                     </Grid>
                   </Box>
 
