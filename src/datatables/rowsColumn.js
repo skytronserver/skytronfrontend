@@ -278,11 +278,27 @@ export const columns = [
 
 export const registeredUserColumns = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
-  { name: "role", label: "Role", options: { filter: true, sort: false, customBodyRender: (value) => {
-    if (value === 'superadmin') return <p>System Admin</p>;
-    if (value === 'esimprovider') return <p>M2M Provider</p>;
-    return <p>{value}</p>;
-  } } },
+  { name: "role", label: "Role", options: { filter: true, sort: false, 
+    filterOptions: {
+      renderValue: (val) => {
+        if (val === 'superadmin') return 'System Admin';
+        if (val === 'esimprovider') return 'M2M Provider';
+        return val;
+      }
+    },
+    customFilterListOptions: {
+      render: (v) => {
+        if (v === 'superadmin') return 'System Admin';
+        if (v === 'esimprovider') return 'M2M Provider';
+        return v;
+      }
+    },
+    customBodyRender: (value) => {
+      if (value === 'superadmin') return <p>System Admin</p>;
+      if (value === 'esimprovider') return <p>M2M Provider</p>;
+      return <p>{value}</p>;
+    } 
+  } },
   { name: "name", label: "User Name", options: { filter: false, sort: false } },
   { name: "email", label: "User Email", options: { filter: false, sort: false } },
   { name: "mobile", label: "User Mobile Number", options: { filter: false, sort: false } },
