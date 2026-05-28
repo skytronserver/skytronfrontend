@@ -52,7 +52,7 @@ const POIReport = () => {
     const useTypes = [
         'School', 'Hospital', 'PoliceStation', 'BusStop', 'RailwayStation',
         'Airport', 'FuelStation', 'TollGate', 'Other', 'Personal',
-        'dealer', 'Unauthorised Stop', 'Prohibited_Area', 'no_entry', 'parking', 'NoParking',
+        'dealer', 'Unauthorized Stop', 'Prohibited_Area', 'no_entry', 'parking', 'NoParking',
         'StateBoundary', 'DistrictBoundary', 'CityBoundary', 'VillageBoundary', 'PermitRoute'
     ];
 
@@ -154,7 +154,7 @@ const POIReport = () => {
         }
 
         if (filters.use_type) {
-            const searchType = filters.use_type === 'Unauthorised Stop' ? 'prohibited_area' : filters.use_type;
+            const searchType = filters.use_type === 'Unauthorized Stop' ? 'prohibited_area' : filters.use_type;
             result = result.filter(poi => poi.use_type === searchType || poi.use_type === filters.use_type);
         }
 
@@ -213,7 +213,7 @@ const POIReport = () => {
             renderCell: (params) => {
                 let displayValue = params.value;
                 if (displayValue === 'prohibited_area') {
-                    displayValue = 'Unauthorised Stop';
+                    displayValue = 'Unauthorized Stop';
                 }
                 return (
                     <Chip

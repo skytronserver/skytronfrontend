@@ -58,7 +58,7 @@ const AlertReport = () => {
     { value: 'Idling', label: 'Idling' },
     { value: 'OfflineDevice', label: 'OfflineDevice' },
     { value: 'Overtime', label: 'Overtime' },
-    { value: 'UnauthorizedStop', label: 'Unauthorised Stop' },
+    { value: 'UnauthorizedStop', label: 'Unauthorized Stop' },
     { value: 'UnauthorizedParking', label: 'Unauthorized Parking' },
     { value: 'Prohibited_Area', label: 'Prohibited Area' },
     { value: 'UnauthorizedSkip', label: 'UnauthorizedSkip' },
@@ -163,7 +163,7 @@ const AlertReport = () => {
       renderCell: (params) => {
         let displayValue = params.value;
         if (displayValue === 'UnauthorizedStop') {
-          displayValue = 'Unauthorised Stop';
+          displayValue = 'Unauthorized Stop';
         } else if (displayValue === 'Prohibited_Area') {
           displayValue = 'Prohibited Area';
         }

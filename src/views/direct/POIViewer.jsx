@@ -2515,11 +2515,11 @@ const POIViewer = () => {
                 <MenuItem value="Other">Other</MenuItem>
                 <MenuItem value="Personal">Personal</MenuItem>
                 <MenuItem value="dealer">Dealer</MenuItem>
-                <MenuItem value="prohibited_area">Unauthorised Stop</MenuItem>
+                <MenuItem value="prohibited_area">Unauthorized Stop</MenuItem>
                 <MenuItem value="Prohibited_Area">Prohibited Area</MenuItem>
                 <MenuItem value="no_entry">No Entry</MenuItem>
                 <MenuItem value="parking">Parking</MenuItem>
-                <MenuItem value="NoParking">No Parking</MenuItem>
+                <MenuItem value="NoParking">Unauthorized Parking</MenuItem>
               </Select>
             </FormControl>
 
