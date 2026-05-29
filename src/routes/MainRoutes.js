@@ -377,7 +377,7 @@ const MainRoutes = {
     {
       path: '/schoolbus/bus-tracking',
       element: <SchoolBusTracking />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
+      roles: [ 'schooladmin']
     },
     {
       path: '/schoolbus/route-management',

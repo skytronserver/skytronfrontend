@@ -45,7 +45,7 @@ const schoolbus = {
                     url: '/schoolbus/bus-tracking',
                     icon: icons.IconCurrentLocation,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'schooladmin']
+                    roles: [ 'schooladmin']
                 },
                 {
                     id: 'route-management',

@@ -746,7 +746,7 @@ const api = {
   },
   createStudent(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/students', data);
+    return http.post('/school/api/admin/students/', data);
   },
   updateStudent(studentId, data) {
     const http = getAxiosInstance();

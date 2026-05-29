@@ -34,44 +34,79 @@ const ParentTracking = () => {
 
     const [students, setStudents] = useState([]);
 
-    useEffect(() => {
-        let mounted = true;
-        setError('');
-        setLoading(true);
+//     useEffect(() => {
+//         let mounted = true;
+//         setError('');
+//         setLoading(true);
 
-        // For now we use a fixed studentId; once auth/profile wiring exists, pass actual studentId.
-        // SchoolBusService.getParentTracking('1')
-        //     .then((res) => {
-        //         if (!mounted) return;
-        //         const data = res?.data?.tracking || res?.data || {};
-        //         setTracking({
-        //             live: data?.live || null,
-        //             alerts: Array.isArray(data?.alerts) ? data.alerts : [],
-        //             tripHistory: Array.isArray(data?.tripHistory) ? data.tripHistory : []
-        //         });
-        //     })
-        SchoolBusService.getParentTracking()
-    .then((res) => {
-        if (!mounted) return;
+//         // For now we use a fixed studentId; once auth/profile wiring exists, pass actual studentId.
+//         // SchoolBusService.getParentTracking('1')
+//         //     .then((res) => {
+//         //         if (!mounted) return;
+//         //         const data = res?.data?.tracking || res?.data || {};
+//         //         setTracking({
+//         //             live: data?.live || null,
+//         //             alerts: Array.isArray(data?.alerts) ? data.alerts : [],
+//         //             tripHistory: Array.isArray(data?.tripHistory) ? data.tripHistory : []
+//         //         });
+//         //     })
+//         SchoolBusService.getParentTracking()
+//     .then((res) => {
+//         if (!mounted) return;
 
-const responseData = Array.isArray(res?.data)
-    ? res.data
-    : [];
-        setStudents(responseData);
-    })
-            .catch((e) => {
-                if (!mounted) return;
-                setError(e?.message || 'Failed to load tracking data');
-            })
-            .finally(() => {
-                if (!mounted) return;
-                setLoading(false);
-            });
+// const responseData = Array.isArray(res?.data)
+//     ? res.data
+//     : [];
+//         setStudents(responseData);
+//     })
+//             .catch((e) => {
+//                 if (!mounted) return;
+//                 setError(e?.message || 'Failed to load tracking data');
+//             })
+//             .finally(() => {
+//                 if (!mounted) return;
+//                 setLoading(false);
+//             });
 
-        return () => {
-            mounted = false;
-        };
-    }, []);
+//         return () => {
+//             mounted = false;
+//         };
+//     }, []);
+useEffect(() => {
+    let mounted = true;
+
+    const loadTracking = async () => {
+        try {
+            setError('');
+
+            const res = await SchoolBusService.getParentTracking();
+
+            if (!mounted) return;
+
+            const responseData = Array.isArray(res?.data)
+                ? res.data
+                : [];
+
+            setStudents(responseData);
+        } catch (e) {
+            if (!mounted) return;
+            setError(e?.message || 'Failed to load tracking data');
+        }
+    };
+
+    // Initial load
+    loadTracking();
+
+    // Auto refresh every 30 seconds
+    const interval = setInterval(() => {
+        loadTracking();
+    }, 30000);
+
+    return () => {
+        mounted = false;
+        clearInterval(interval);
+    };
+}, []);
 
     const live = students?.length > 0 ? students[0] : null;
     const liveStudents = students || [];
