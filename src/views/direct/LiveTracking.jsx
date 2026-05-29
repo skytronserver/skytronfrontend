@@ -1721,6 +1721,7 @@ const LiveTracking = () => {
             clusterData={drilldownActive ? [] : clusterData}
             onClusterClick={handleClusterClick}
             onZoomChange={handleZoomChange}
+            autoFit={true}
           />
         </div>
       </div>

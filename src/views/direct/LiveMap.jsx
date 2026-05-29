@@ -3520,15 +3520,6 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
             map.forEachFeatureAtPixel(evt.pixel, (feature) => {
                 const item = feature.get('clusterItem');
                 if (item && item.cluster_name) {
-                    const lat = item.avg_lat ?? item.grid_lat;
-                    const lon = item.avg_lon ?? item.grid_lon;
-                    if (lat && lon) {
-                        map.getView().animate({
-                            center: [Number(lon), Number(lat)],
-                            zoom: 10,
-                            duration: 500
-                        });
-                    }
                     onClusterClick(item);
                     return true; // stop iteration
                 }
