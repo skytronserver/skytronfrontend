@@ -73,6 +73,8 @@ function TagDeviceToVehicle() {
   const [activeStep, setActiveStep] = useState(0);
   const [deviceSosAlertReceived, setDeviceSosAlertReceived] = useState(false);
   const [appSosAlertReceived, setAppSosAlertReceived] = useState(false);
+  const [deviceSosAlertStopped, setDeviceSosAlertStopped] = useState(false);
+  const [appSosAlertStopped, setAppSosAlertStopped] = useState(false);
   const [htmlContent, setHtmlContent] = useState({ data: [] });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [step9EnteredAt, setStep9EnteredAt] = useState(null);
@@ -338,8 +340,8 @@ function TagDeviceToVehicle() {
     if (activeStep !== 4 && activeStep !== 5) return;
 
     const enteredAt = (activeStep === 4 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current) || new Date();
-    const alreadyReceived = activeStep === 4 ? deviceSosAlertReceived : appSosAlertReceived;
-    if (alreadyReceived) return;
+    const alreadyStopped = activeStep === 4 ? deviceSosAlertStopped : appSosAlertStopped;
+    if (alreadyStopped) return;
 
     const baseUrl = (process.env.REACT_APP_BASE_URL || "").replace(/\/+$/, "");
     const emergencyLogUrl = baseUrl
@@ -375,6 +377,12 @@ function TagDeviceToVehicle() {
         if (hasNew) {
           if (activeStep === 4) setDeviceSosAlertReceived(true);
           else if (activeStep === 5) setAppSosAlertReceived(true);
+
+          const fifteenSecondsAgo = now - 15 * 1000;
+          if (logTime < fifteenSecondsAgo) {
+            if (activeStep === 4) setDeviceSosAlertStopped(true);
+            else if (activeStep === 5) setAppSosAlertStopped(true);
+          }
         }
       } catch (error) {
         console.error("SOS Polling error:", error);
@@ -392,7 +400,7 @@ function TagDeviceToVehicle() {
         clearInterval(intervalId);
         clearTimeout(timeoutId);
     };
-  }, [activeStep, deviceSosAlertReceived, appSosAlertReceived, ownerDetails?.IMEI, getMap?.imei, ownerDetails?.vehicle_reg_no, getMap?.regno]);
+  }, [activeStep, deviceSosAlertStopped, appSosAlertStopped, ownerDetails?.IMEI, getMap?.imei, ownerDetails?.vehicle_reg_no, getMap?.regno]);
 
   const handleDealerOtp = (otp) => {
     setOtp((prev) => ({ ...prev, dealer: otp }));
@@ -1037,9 +1045,11 @@ function TagDeviceToVehicle() {
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
-                    {deviceSosAlertReceived
-                      ? t("tagDeviceForm.messages.sosAlertReceived")
-                      : t("tagDeviceForm.messages.sosButtonInstruction")}
+                    {deviceSosAlertStopped
+                      ? "SOS Alert confirmed."
+                      : deviceSosAlertReceived
+                        ? "SOS Alert received."
+                        : t("tagDeviceForm.messages.sosButtonInstruction")}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -1052,13 +1062,21 @@ function TagDeviceToVehicle() {
                       fontSize: '1.2rem',
                       fontWeight: 'bold',
                       color: 'white',
-                      backgroundColor: deviceSosAlertReceived ? '#4caf50' : '#f44336',
-                      boxShadow: deviceSosAlertReceived
+                      backgroundColor: deviceSosAlertStopped 
+                        ? '#4caf50' 
+                        : deviceSosAlertReceived 
+                          ? '#81c784' 
+                          : '#f44336',
+                      boxShadow: deviceSosAlertStopped || deviceSosAlertReceived
                         ? '0 8px 16px rgba(76,175,80,0.3)'
                         : '0 8px 16px rgba(244,67,54,0.3)',
                       '&:hover': {
-                        backgroundColor: deviceSosAlertReceived ? '#388e3c' : '#d32f2f',
-                        boxShadow: deviceSosAlertReceived
+                        backgroundColor: deviceSosAlertStopped 
+                          ? '#388e3c'
+                          : deviceSosAlertReceived
+                            ? '#66bb6a'
+                            : '#d32f2f',
+                        boxShadow: deviceSosAlertStopped || deviceSosAlertReceived
                           ? '0 10px 20px rgba(76,175,80,0.4)'
                           : '0 10px 20px rgba(244,67,54,0.4)',
                       }
@@ -1067,10 +1085,18 @@ function TagDeviceToVehicle() {
                     SOS
                   </Button>
                 </Grid>
+                {deviceSosAlertReceived && !deviceSosAlertStopped && (
+                  <Grid item xs={12} sx={{ mt: 1 }}>
+                    <Typography variant="body2" align="center" color="textSecondary">
+                      Waiting for confirmation...
+                    </Typography>
+                  </Grid>
+                )}
                 {deviceSosAlertReceived && (
-                  <Grid item xs={12} sx={{ mt: 3 }} style={{ display: 'flex', justifyContent: 'center' }}>
+                  <Grid item xs={12} sx={{ mt: 2 }} style={{ display: 'flex', justifyContent: 'center' }}>
                     <Button
-                      color="primary"
+                      color={deviceSosAlertStopped ? "primary" : "inherit"}
+                      disabled={!deviceSosAlertStopped}
                       type="button"
                       variant="contained"
                       onClick={() => setActiveStep((prev) => prev + 1)}
@@ -1087,9 +1113,11 @@ function TagDeviceToVehicle() {
               <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
                 <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
                   <Typography variant="body1" align="center" color="textSecondary">
-                    {appSosAlertReceived
-                      ? t("tagDeviceForm.messages.sosAlertReceived")
-                      : t("tagDeviceForm.messages.sosActivateInstruction")}
+                    {appSosAlertStopped
+                      ? "SOS Alert confirmed."
+                      : appSosAlertReceived
+                        ? "SOS Alert received."
+                        : t("tagDeviceForm.messages.sosActivateInstruction")}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -1102,13 +1130,21 @@ function TagDeviceToVehicle() {
                       fontSize: '1.2rem',
                       fontWeight: 'bold',
                       color: 'white',
-                      backgroundColor: appSosAlertReceived ? '#4caf50' : '#f44336',
-                      boxShadow: appSosAlertReceived
+                      backgroundColor: appSosAlertStopped 
+                        ? '#4caf50' 
+                        : appSosAlertReceived 
+                          ? '#81c784' 
+                          : '#f44336',
+                      boxShadow: appSosAlertStopped || appSosAlertReceived
                         ? '0 8px 16px rgba(76,175,80,0.3)'
                         : '0 8px 16px rgba(244,67,54,0.3)',
                       '&:hover': {
-                        backgroundColor: appSosAlertReceived ? '#388e3c' : '#d32f2f',
-                        boxShadow: appSosAlertReceived
+                        backgroundColor: appSosAlertStopped 
+                          ? '#388e3c'
+                          : appSosAlertReceived
+                            ? '#66bb6a'
+                            : '#d32f2f',
+                        boxShadow: appSosAlertStopped || appSosAlertReceived
                           ? '0 10px 20px rgba(76,175,80,0.4)'
                           : '0 10px 20px rgba(244,67,54,0.4)',
                       }
@@ -1117,10 +1153,18 @@ function TagDeviceToVehicle() {
                     SOS
                   </Button>
                 </Grid>
+                {appSosAlertReceived && !appSosAlertStopped && (
+                  <Grid item xs={12} sx={{ mt: 1 }}>
+                    <Typography variant="body2" align="center" color="textSecondary">
+                      Waiting for confirmation...
+                    </Typography>
+                  </Grid>
+                )}
                 {appSosAlertReceived && (
-                  <Grid item xs={12} sx={{ mt: 3 }} style={{ display: 'flex', justifyContent: 'center' }}>
+                  <Grid item xs={12} sx={{ mt: 2 }} style={{ display: 'flex', justifyContent: 'center' }}>
                     <Button
-                      color="primary"
+                      color={appSosAlertStopped ? "primary" : "inherit"}
+                      disabled={!appSosAlertStopped}
                       type="button"
                       variant="contained"
                       onClick={() => setActiveStep((prev) => prev + 1)}

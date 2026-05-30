@@ -74,6 +74,9 @@ const LiveTracking = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [markerLabelMode, setMarkerLabelMode] = useState('vehicle');
   const [policeLocations, setPoliceLocations] = useState([]);
+  const [ambulanceLocations, setAmbulanceLocations] = useState([]);
+  const [showPolice, setShowPolice] = useState(false);
+  const [showAmbulance, setShowAmbulance] = useState(false);
   const [incidentData, setIncidentData] = useState([]);
   const [useNmrLocation, setUseNmrLocation] = useState(false);
   const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
@@ -312,6 +315,65 @@ const LiveTracking = () => {
     }
   }, [computeSearchCenter]);
 
+  const fetchAmbulanceLocations = useCallback(async (entries = []) => {
+    try {
+      const params = { user_type: 'ambulance_ex' };
+      if (entries && entries.length > 0) {
+        const center = computeSearchCenter(entries);
+        params.lat = center.latitude;
+        params.lon = center.longitude;
+        params.radius_km = 10000;
+      }
+      const response = await HomePageService.getEmergencyUserLocations(params);
+      const payload = response?.data ?? {};
+      let records = [];
+      if (payload?.results?.data && Array.isArray(payload.results.data)) {
+        records = payload.results.data;
+      } else if (Array.isArray(payload?.results)) {
+        records = payload.results;
+      } else if (Array.isArray(payload?.data)) {
+        records = payload.data;
+      } else if (Array.isArray(payload)) {
+        records = payload;
+      }
+      const normalized = records
+        .map((item, index) => {
+          const latitude = Number(item?.em_lat ?? item?.latitude ?? item?.lat);
+          const longitude = Number(item?.em_lon ?? item?.longitude ?? item?.lon);
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+          const fieldEx = item?.field_ex ?? {};
+          const users = fieldEx?.users ?? [];
+          const primaryUser = users[0] ?? {};
+          const lastUpdatedRaw = item?.time ?? fieldEx?.created ?? item?.timestamp;
+          const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw).toISOString() : new Date().toISOString();
+          const userName = primaryUser?.name || fieldEx?.idProofno || `Ambulance #${index + 1}`;
+          return {
+            id: item?.id || fieldEx?.id || `ambulance-${index}`,
+            vehicle_registration_number: userName,
+            block_name: fieldEx?.district_info?.district || fieldEx?.state_info?.state || '',
+            route_name: '',
+            markerLabel: userName,
+            markerCategory: 'ambulance',
+            packet_type: 'AMBULANCE',
+            ignition_status: 1,
+            speed: Number(item?.speed) || 0,
+            entry_time: lastUpdated,
+            date: lastUpdated.split('T')[0] ?? '',
+            time: lastUpdated.split('T')[1]?.split('Z')[0] ?? '',
+            internal_battery_voltage: '--',
+            main_input_voltage: '--',
+            latitude,
+            longitude,
+          };
+        })
+        .filter(Boolean);
+      setAmbulanceLocations(normalized);
+    } catch (error) {
+      console.error('Error fetching ambulance locations:', error);
+      setAmbulanceLocations([]);
+    }
+  }, [computeSearchCenter]);
+
   const fetchIncidents = useCallback(async (entries = []) => {
     try {
       const center = computeSearchCenter(entries);
@@ -450,6 +512,7 @@ const LiveTracking = () => {
         setTimeout(() => {
           const all = fullRawRef.current?.length ? fullRawRef.current : rawData;
           fetchPoliceLocations(all);
+          fetchAmbulanceLocations(all);
           fetchIncidents(all);
         }, 0);
       } else {
@@ -462,6 +525,7 @@ const LiveTracking = () => {
         setUseNmrLocation(false);
         setNmrArea(null);
         fetchPoliceLocations();
+        fetchAmbulanceLocations();
         fetchIncidents();
       }
       // load state now set earlier for faster perceived rendering
@@ -475,6 +539,7 @@ const LiveTracking = () => {
       setUseNmrLocation(false);
       setNmrArea(null);
       fetchPoliceLocations();
+      fetchAmbulanceLocations();
       fetchIncidents();
     }
   };
@@ -1279,6 +1344,28 @@ const LiveTracking = () => {
               control={
                 <Switch
                   color="primary"
+                  checked={showPolice}
+                  onChange={(event) => setShowPolice(event.target.checked)}
+                />
+              }
+              label="Police"
+            />
+            <FormControlLabel
+              sx={{ ml: 2 }}
+              control={
+                <Switch
+                  color="primary"
+                  checked={showAmbulance}
+                  onChange={(event) => setShowAmbulance(event.target.checked)}
+                />
+              }
+              label="Ambulance"
+            />
+            <FormControlLabel
+              sx={{ ml: 2 }}
+              control={
+                <Switch
+                  color="primary"
                   checked={useOldGeocodingApi}
                   onChange={(event) => {
                     const enabled = event.target.checked;
@@ -1364,7 +1451,7 @@ const LiveTracking = () => {
 
           <MapComponent
             gpsData={filteredData}
-            policeData={policeLocations}
+            policeData={[...(showPolice ? policeLocations : []), ...(showAmbulance ? ambulanceLocations : [])]}
             incidentData={incidentData}
             onVehicleClick={handleVehicleMarkerClick}
             width="100%"
