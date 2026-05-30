@@ -1,10 +1,10 @@
 // assets
 import { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
-  IconCircleCheck,IconCurrentLocation } from '@tabler/icons';
+  IconCircleCheck,IconCurrentLocation,IconClipboardCheck,IconReportAnalytics ,IconClockPlay  } from '@tabler/icons';
 
 // constant
 const icons = { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
-  IconCircleCheck,IconCurrentLocation };
+  IconCircleCheck,IconCurrentLocation,IconClipboardCheck,IconReportAnalytics ,IconClockPlay  };
 
 // ==============================|| SCHOOL BUS MENU ITEMS ||============================== //
 
@@ -74,6 +74,33 @@ const schoolbus = {
                     breadcrumbs: false,
                     roles: ['superadmin', 'schooladmin']
                 },
+                {
+    id: 'create-trip',
+    title: 'Create Trip',
+    type: 'item',
+    url: '/schoolbus/create-trip',
+    icon: icons.IconClockPlay,
+     breadcrumbs: false,
+     roles: [ 'schooladmin']
+},
+                {
+                    id: 'schoool-report',
+                    title: 'School Reports',
+                    type: 'item',
+                    url: '/schoolbus/reports',
+                    icon: icons.IconReportAnalytics ,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'schooladmin']
+                },
+                // {
+                //     id: 'attendance-management',
+                //     title: 'Attendance Management',
+                //     type: 'item',
+                //     url: '/schoolbus/attendance-management',
+                //     icon: icons.IconClipboardCheck ,
+                //     breadcrumbs: false,
+                //     roles: ['superadmin', 'schooladmin']
+                // },
                 {
                     id: 'parent-tracking',
                     title: 'Parent Tracking',

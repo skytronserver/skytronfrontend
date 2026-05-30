@@ -63,6 +63,7 @@ const SchoolHolidays = Loadable(lazy(() => import("../views/schoolbus/SchoolHoli
 const SchoolReports = Loadable(lazy(() => import("../views/schoolbus/SchoolReports")));
 const AlertsCenter = Loadable(lazy(() => import("../views/schoolbus/AlertsCenter")));
 const SchoolOnboarding = Loadable(lazy(() => import("../views/schoolbus/SchoolOnboarding")));
+const CreateTrip = Loadable(lazy(() => import("../views/schoolbus/CreateTrip")));
 
 
 const M2MRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/M2MRegistrationAdminReview")));
@@ -394,6 +395,12 @@ const MainRoutes = {
       element: <ProfileManagement />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
     },
+    {
+      path: '/schoolbus/create-trip',
+      element: <CreateTrip />,
+      roles: [ 'schooladmin']
+    },
+    
     {
       path: '/schoolbus/holidays',
       element: <SchoolHolidays />,
