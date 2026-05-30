@@ -295,6 +295,7 @@ const LiveTracking = () => {
             markerLabel: labelFallback,
             markerCategory: 'police',
             packet_type: 'POLICE',
+            device_tag_info: { category_info: { category: 'police' } },
             ignition_status: 1, // Assume active
             speed: Number(item?.speed) || 0,
             entry_time: lastUpdated,
@@ -355,6 +356,7 @@ const LiveTracking = () => {
             markerLabel: userName,
             markerCategory: 'ambulance',
             packet_type: 'AMBULANCE',
+            device_tag_info: { category_info: { category: 'ambulance' } },
             ignition_status: 1,
             speed: Number(item?.speed) || 0,
             entry_time: lastUpdated,
