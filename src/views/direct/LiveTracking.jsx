@@ -568,7 +568,27 @@ const LiveTracking = () => {
         );
         
         if (Array.isArray(response.data.data)) {
-          setClusterData(response.data.data);
+          let filteredClusterData = response.data.data.filter(
+            cluster => cluster?.cluster_name?.toLowerCase() !== 'dispur'
+          );
+          
+          if (requestLevel === 'road') {
+            const allowedRoads = [
+              "bhuban road",
+              "flyover",
+              "india",
+              "m c road",
+              "mg road",
+              "nh37",
+              "nh6",
+              "sh37;sh-022"
+            ];
+            filteredClusterData = filteredClusterData.filter(cluster => 
+              cluster?.cluster_name && allowedRoads.includes(cluster.cluster_name.toLowerCase())
+            );
+          }
+
+          setClusterData(filteredClusterData);
           setLoad(true);
         } else {
           setClusterData([]);
