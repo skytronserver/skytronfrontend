@@ -9,11 +9,11 @@ const shouldUseMock = () => {
 // api.js
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // ---------------added by ruteek----------------
- const apiRequest = async ({
+const apiRequest = async ({
   url,
   method = "GET",
   body = null,
-  token =sessionStorage.getItem("oAuthToken"),
+  token = sessionStorage.getItem("oAuthToken"),
 }) => {
   try {
     const res = await fetch(`${BASE_URL}${url}`, {
@@ -296,24 +296,24 @@ const mock = {
     await mockDelay();
     return { data: [...mockDb.alertsFeed] };
   },
- async getTaggedVehicles() {
-  debugger
-  const res = await apiRequest({
-    url: "school/api/admin/buses/tag/history/",
-  });
-  debugger
-  return {
-    data:
-  
-      res?.data?.map((item) => ({
-        id: item.id,
-        regNo: item.vehicle_reg_no,
-        school: item.school_name,
-        status: item.status,
-        date: item.requested_at || "N/A",
-      })) || [],
-  };
-},
+  async getTaggedVehicles() {
+    // debugger
+    const res = await apiRequest({
+      url: "school/api/admin/buses/tag/history/",
+    });
+    // debugger
+    return {
+      data:
+
+        res?.data?.map((item) => ({
+          id: item.id,
+          regNo: item.vehicle_reg_no,
+          school: item.school_name,
+          status: item.status,
+          date: item.requested_at || "N/A",
+        })) || [],
+    };
+  },
   async requestTagVehicle(payload) {
     await mockDelay();
     const regNo = normalizeRegNo(payload?.vehicleRegNo);
@@ -593,7 +593,7 @@ const api = {
     return http.get('/school/api/state-admin/schools/');
   },
   submitSchoolApplication(formData) {
-    debugger
+    // debugger
     const http = getAxiosInstance();
     return http.post('/school/api/schools/apply/', formData, {
       headers: {
@@ -621,13 +621,17 @@ const api = {
     const http = getAxiosInstance();
     return http.get('/api/schoolbus/reports/unplanned-usage');
   },
+  // getAttendanceReport() {
+  //   const http = getAxiosInstance();
+  //   return http.get('/api/schoolbus/reports/attendance');
+  // },
   getAttendanceReport() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/reports/attendance');
+    return http.get(`/school/api/admin/trips/attendance/raw/`);
   },
   getTripManagementReport() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/reports/trips');
+    return http.get('/school/api/admin/trips/');
   },
   getTrafficReport() {
     const http = getAxiosInstance();
@@ -646,53 +650,54 @@ const api = {
     return http.post('school/api/admin/buses/tag/initiate/', data);
   },
   validateTagOtp(data) {
-     const tagId = data?.requestId; // this is your tag_id
-  const payload = {
-    otp: data?.otp
-  };
+    const tagId = data?.requestId; // this is your tag_id
+    const payload = {
+      otp: data?.otp
+    };
     const http = getAxiosInstance();
     return http.post(`school/api/admin/buses/tag/${tagId}/verify-otp/`, payload);
   },
   uploadTagDocuments(tagId, formData) {
     const http = getAxiosInstance();
-    return http.post( `/school/api/admin/buses/tag/${tagId}/documents/`,
-    formData, {
-          headers: {
-              'Content-type': 'multipart/form-data'
-         }
-       });
+    return http.post(`/school/api/admin/buses/tag/${tagId}/documents/`,
+      formData, {
+      headers: {
+        'Content-type': 'multipart/form-data'
+      }
+    });
   },
   getRoutes() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/routes');
+    return http.get('school/api/admin/routes/');
   },
   createRoute(data) {
+    //  debugger
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/routes', data);
+    return http.post('school/api/admin/routes/', data);
   },
   updateRoute(id, data) {
     const http = getAxiosInstance();
-    return http.put(`/api/schoolbus/routes/${id}`, data);
+    return http.post(`school/api/admin/routes/${id}/update/`, data);
   },
   deleteRoute(id) {
     const http = getAxiosInstance();
-    return http.delete(`/api/schoolbus/routes/${id}`);
+    return http.post(`school/api/admin/routes/${id}/delete/`);
   },
   getStops(routeId) {
     const http = getAxiosInstance();
-    return http.get(`/api/schoolbus/routes/${routeId}/stops`);
+    return http.get(`school/api/admin/routes/?route_id=${routeId}`);
   },
   addStop(routeId, data) {
     const http = getAxiosInstance();
-    return http.post(`/api/schoolbus/routes/${routeId}/stops`, data);
+    return http.post(`school/api/admin/routes//${routeId}/stops/add/`, data);
   },
   updateStop(stopId, data) {
     const http = getAxiosInstance();
-    return http.put(`/api/schoolbus/stops/${stopId}`, data);
+    return http.post(`school/api/admin/bus-stops/${stopId}/update/`, data);
   },
-  deleteStop(stopId) {
+  deleteStop(stopId, selectedRoute) {
     const http = getAxiosInstance();
-    return http.delete(`/api/schoolbus/stops/${stopId}`);
+    return http.post(`school/api/admin/routes/${selectedRoute}/stops/${stopId}/remove/`);
   },
   getBuses() {
     const http = getAxiosInstance();
@@ -720,11 +725,11 @@ const api = {
   },
   getParents() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/parents');
+    return http.get('school/api/admin/parents/');
   },
   createParent(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/parents', data);
+    return http.post('school/api/admin/parents/', data);
   },
   updateParent(parentId, data) {
     const http = getAxiosInstance();
@@ -734,13 +739,18 @@ const api = {
     const http = getAxiosInstance();
     return http.delete(`/api/schoolbus/parents/${parentId}`);
   },
+  getBuses_P_Manage(routeId) {
+    // debugger
+    const http = getAxiosInstance();
+    return http.get(`school/api/admin/routes/${routeId}/buses/`);
+  },
   getStudents() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/students');
+    return http.get('school/api/admin/students/');
   },
   createStudent(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/students', data);
+    return http.post('/school/api/admin/students/', data);
   },
   updateStudent(studentId, data) {
     const http = getAxiosInstance();
@@ -750,27 +760,109 @@ const api = {
     const http = getAxiosInstance();
     return http.delete(`/api/schoolbus/students/${studentId}`);
   },
-  getParentTracking(studentId) {
-    const http = getAxiosInstance();
-    return http.get(`/api/schoolbus/tracking/${studentId}`);
+  // getParentTracking(studentId) {
+  //   const http = getAxiosInstance();
+  //   return http.get(`/api/schoolbus/tracking/${studentId}`);
+  // },
+  async getParentTracking() {
+    return await apiRequest({
+      url: "school/api/parents/students/live-location/",
+      method: "GET",
+    });
   },
   getParentAlerts(parentId) {
     const http = getAxiosInstance();
     return http.get(`/api/schoolbus/alerts/${parentId}`);
   },
-   approveSchool(applicationId) {
+  approveSchool(applicationId) {
     const http = getAxiosInstance();
     return http.post(`/school/api/state-admin/schools/${applicationId}/decision/`, {
-            decision: "APPROVE"
-        });
-  },  
-   rejectSchool(applicationId) {
+      decision: "APPROVE"
+    });
+  },
+  rejectSchool(applicationId) {
     const http = getAxiosInstance();
     return http.post(`/school/api/state-admin/schools/${applicationId}/decision/`, {
-             decision: "REJECT",
-    remarks: "Documents Not Valid"
-        });
-  }
+      decision: "REJECT",
+      remarks: "Documents Not Valid"
+    });
+  },
+
+  getStates() {
+    const http = getAxiosInstance();
+    return http.post("/api/Settings/filter_settings_State/", {});
+  },
+
+  getDistricts() {
+    const http = getAxiosInstance();
+    return http.post("/api/Settings/filter_settings_District/", {});
+  },
+  resendUserCreationOtp(data) {
+    const http = getAxiosInstance();
+    return http.post(
+      "/api/resend_usercreation_otp/",
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+  resendParentCreationOtp(data) {
+    const http = getAxiosInstance();
+    return http.post(
+      "/api/resend_parent_activation_otp/",
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+  createTrip(data) {
+    const http = getAxiosInstance();
+    return http.post('/school/api/admin/trips/', data);
+  },
+  getRouteAssignments() {
+    const http = getAxiosInstance();
+    return http.get('school/api/admin/routes/assignments/');
+  },
+  initializeAttendance(tripId) {
+    const http = getAxiosInstance();
+    return http.post(
+      `/school/api/admin/trips/${tripId}/attendance/init/`
+    );
+  },
+
+  validateHoliday() {
+    const http = getAxiosInstance();
+    return http.post(
+      '/school/api/admin/trips/validate-holidays/'
+    );
+  },
+  getRawAttendance(tripId) {
+  const http = getAxiosInstance();
+  return http.get(
+    `/school/api/admin/trips/${tripId}/attendance/raw/`
+  );
+  
+},
+markPickup(tripId, data) {
+  const http = getAxiosInstance();
+  return http.post(
+    `/school/api/admin/trips/${tripId}/attendance/pickup/`,
+    data
+  );
+},
+markDrop(tripId, data) {
+  const http = getAxiosInstance();
+  return http.post(
+    `/school/api/admin/trips/${tripId}/attendance/drop/`,
+    data
+  );
+},
 };
 
 const SchoolBusService = {
@@ -790,7 +882,7 @@ const SchoolBusService = {
   getAlertsFeed: (...args) => (shouldUseMock() ? mock.getAlertsFeed(...args) : api.getAlertsFeed(...args)),
 
   getTaggedVehicles: (...args) => (shouldUseMock() ? mock.getTaggedVehicles(...args) : api.getTaggedVehicles(...args)),
-   requestTagVehicle: (...args) => (shouldUseMock() ? mock.requestTagVehicle(...args) : api.requestTagVehicle(...args)),
+  requestTagVehicle: (...args) => (shouldUseMock() ? mock.requestTagVehicle(...args) : api.requestTagVehicle(...args)),
   validateTagOtp: (...args) => (shouldUseMock() ? mock.validateTagOtp(...args) : api.validateTagOtp(...args)),
   uploadTagDocuments: (...args) => (shouldUseMock() ? mock.uploadTagDocuments(...args) : api.uploadTagDocuments(...args)),
 
@@ -798,6 +890,8 @@ const SchoolBusService = {
   createRoute: (...args) => (shouldUseMock() ? mock.createRoute(...args) : api.createRoute(...args)),
   updateRoute: (...args) => (shouldUseMock() ? mock.updateRoute(...args) : api.updateRoute(...args)),
   deleteRoute: (...args) => (shouldUseMock() ? mock.deleteRoute(...args) : api.deleteRoute(...args)),
+
+
 
   getStops: (...args) => (shouldUseMock() ? mock.getStops(...args) : api.getStops(...args)),
   addStop: (...args) => (shouldUseMock() ? mock.addStop(...args) : api.addStop(...args)),
@@ -816,6 +910,8 @@ const SchoolBusService = {
   updateParent: (...args) => (shouldUseMock() ? mock.updateParent(...args) : api.updateParent(...args)),
   deleteParent: (...args) => (shouldUseMock() ? mock.deleteParent(...args) : api.deleteParent(...args)),
 
+  getBuses_P_Manage: (...args) => (shouldUseMock() ? mock.getBuses_P_Manage(...args) : api.getBuses_P_Manage(...args)),
+
   getStudents: (...args) => (shouldUseMock() ? mock.getStudents(...args) : api.getStudents(...args)),
   createStudent: (...args) => (shouldUseMock() ? mock.createStudent(...args) : api.createStudent(...args)),
   updateStudent: (...args) => (shouldUseMock() ? mock.updateStudent(...args) : api.updateStudent(...args)),
@@ -826,9 +922,33 @@ const SchoolBusService = {
 
   approveSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.approveSchool(...args)),
 
- rejectSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.rejectSchool(...args))
+  rejectSchool: (...args) => (shouldUseMock() ? Promise.resolve({ data: [] }) : api.rejectSchool(...args)),
+  getStates: (...args) =>
+    api.getStates(...args),
 
+  getDistricts: (...args) =>
+    api.getDistricts(...args),
+  resendUserCreationOtp: (...args) =>
+    api.resendUserCreationOtp(...args),
+  resendParentCreationOtp: (...args) =>
+    api.resendParentCreationOtp(...args),
+  createTrip: (...args) =>
+    api.createTrip(...args),
+  getRouteAssignments: (...args) =>
+    api.getRouteAssignments(...args),
+  initializeAttendance: (...args) =>
+    api.initializeAttendance(...args),
 
+  validateHoliday: (...args) =>
+    api.validateHoliday(...args),
+
+  getRawAttendance: (...args) =>
+  api.getRawAttendance(...args),
+  markPickup: (...args) =>
+  api.markPickup(...args),
+
+markDrop: (...args) =>
+  api.markDrop(...args),
 };
 
 export default SchoolBusService;

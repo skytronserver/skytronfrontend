@@ -19,7 +19,7 @@ import MainCard from '../../ui-component/cards/MainCard';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { gridSpacing } from '../../store/constant';
 import SchoolBusService from '../../services/SchoolBusService';
-import LiveMap from '../direct/LiveMap';
+import LiveMap from './ParentLiveMap';
 
 const ParentTracking = () => {
     const theme = useTheme();
@@ -32,37 +32,84 @@ const ParentTracking = () => {
         tripHistory: []
     });
 
-    useEffect(() => {
-        let mounted = true;
-        setError('');
-        setLoading(true);
+    const [students, setStudents] = useState([]);
 
-        // For now we use a fixed studentId; once auth/profile wiring exists, pass actual studentId.
-        SchoolBusService.getParentTracking('1')
-            .then((res) => {
-                if (!mounted) return;
-                const data = res?.data?.tracking || res?.data || {};
-                setTracking({
-                    live: data?.live || null,
-                    alerts: Array.isArray(data?.alerts) ? data.alerts : [],
-                    tripHistory: Array.isArray(data?.tripHistory) ? data.tripHistory : []
-                });
-            })
-            .catch((e) => {
-                if (!mounted) return;
-                setError(e?.message || 'Failed to load tracking data');
-            })
-            .finally(() => {
-                if (!mounted) return;
-                setLoading(false);
-            });
+//     useEffect(() => {
+//         let mounted = true;
+//         setError('');
+//         setLoading(true);
 
-        return () => {
-            mounted = false;
-        };
-    }, []);
+//         // For now we use a fixed studentId; once auth/profile wiring exists, pass actual studentId.
+//         // SchoolBusService.getParentTracking('1')
+//         //     .then((res) => {
+//         //         if (!mounted) return;
+//         //         const data = res?.data?.tracking || res?.data || {};
+//         //         setTracking({
+//         //             live: data?.live || null,
+//         //             alerts: Array.isArray(data?.alerts) ? data.alerts : [],
+//         //             tripHistory: Array.isArray(data?.tripHistory) ? data.tripHistory : []
+//         //         });
+//         //     })
+//         SchoolBusService.getParentTracking()
+//     .then((res) => {
+//         if (!mounted) return;
 
-    const live = tracking?.live;
+// const responseData = Array.isArray(res?.data)
+//     ? res.data
+//     : [];
+//         setStudents(responseData);
+//     })
+//             .catch((e) => {
+//                 if (!mounted) return;
+//                 setError(e?.message || 'Failed to load tracking data');
+//             })
+//             .finally(() => {
+//                 if (!mounted) return;
+//                 setLoading(false);
+//             });
+
+//         return () => {
+//             mounted = false;
+//         };
+//     }, []);
+useEffect(() => {
+    let mounted = true;
+
+    const loadTracking = async () => {
+        try {
+            setError('');
+
+            const res = await SchoolBusService.getParentTracking();
+
+            if (!mounted) return;
+
+            const responseData = Array.isArray(res?.data)
+                ? res.data
+                : [];
+
+            setStudents(responseData);
+        } catch (e) {
+            if (!mounted) return;
+            setError(e?.message || 'Failed to load tracking data');
+        }
+    };
+
+    // Initial load
+    loadTracking();
+
+    // Auto refresh every 30 seconds
+    const interval = setInterval(() => {
+        loadTracking();
+    }, 30000);
+
+    return () => {
+        mounted = false;
+        clearInterval(interval);
+    };
+}, []);
+
+    const live = students?.length > 0 ? students[0] : null;
+    const liveStudents = students || [];
     const alertLogs = tracking?.alerts || [];
     const tripHistory = tracking?.tripHistory || [];
 
@@ -136,78 +183,285 @@ const ParentTracking = () => {
                 )}
 
                 {/* Live Map & Status */}
-                <Grid item xs={12} lg={8}>
-                    <MainCard title="Live Journey Monitor">
-                        <Paper
-                            variant="outlined"
-                            sx={{
-                                height: 450,
-                                position: 'relative',
-                                bgcolor: '#f0f4f8',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
-                            {live ? (
-                                <>
-                                    <Box sx={{ position: 'absolute', inset: 0 }}>
-                                        <LiveMap gpsData={gpsData} autoFit={gpsData.length > 0} width="100%" height="100%" />
-                                    </Box>
-                                    <Alert severity="info" sx={{ position: 'absolute', top: 16, left: 16, right: 16, zIndex: 1 }}>
-                                        Bus <strong>{live?.vehicleRegNo || 'N/A'}</strong> is currently{' '}
-                                        <strong>{live?.distanceKm ?? 'N/A'} KM</strong> away from <strong>{live?.stopName || 'N/A'}</strong>. Expected Arrival in{' '}
-                                        <strong>{live?.etaMinutes ?? 'N/A'} mins</strong>.
-                                    </Alert>
-                                </>
-                            ) : (
-                                <Box sx={{ p: 3, textAlign: 'center' }}>
-                                    <Typography variant="h4" color="text.secondary" sx={{ mb: 1 }}>
-                                        No active trip right now
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Live tracking is available only during an active trip. When the bus is off-duty or not operational, it will not be visible.
-                                    </Typography>
-                                </Box>
-                            )}
-                        </Paper>
-                    </MainCard>
-                </Grid>
+                {liveStudents.map((live, index) => {
 
-                {/* Info Column */}
-                <Grid item xs={12} lg={4}>
-                    <Grid container spacing={gridSpacing}>
-                        <Grid item xs={12}>
-                            <MainCard title="Student Details">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                    <Paper sx={{ p: 1, bgcolor: theme.palette.primary.light }}>
-                                        <Typography variant="h2">A</Typography>
-                                    </Paper>
-                                    <Box>
-                                        <Typography variant="h4">{live?.studentName || '-'}</Typography>
-                                        <Typography variant="body2" color="text.secondary">Class {live?.studentClass || '-'} - Section {live?.studentSection || '-'}</Typography>
-                                    </Box>
+    const studentColors = [
+'#1976d2',
+'#d32f2f',
+'#388e3c',
+'#f57c00',
+'#7b1fa2'
+];
+
+const studentColor =
+studentColors[index % studentColors.length];
+
+const routePoints =
+live?.route?.route_points?.map((point) => ({
+type: 'route',
+latitude: Number(point.lat),
+longitude: Number(point.lng),
+color: studentColor,
+label: live?.route?.name || 'Route'
+})) || [];
+
+const stopPoints =
+live?.route?.stops?.map((stop) => ({
+type: 'stop',
+latitude: Number(stop.latitude),
+longitude: Number(stop.longitude),
+color: '#ff9800',
+label: stop.name
+})) || [];
+
+const pickupPoint =
+live?.pickup_stop?.latitude &&
+live?.pickup_stop?.longitude
+? [{
+type: 'pickup',
+latitude: Number(live.pickup_stop.latitude),
+longitude: Number(live.pickup_stop.longitude),
+color: '#4caf50',
+label: `Pickup - ${live.pickup_stop.name}`
+}]
+: [];
+
+const dropPoint =
+live?.drop_stop?.latitude &&
+live?.drop_stop?.longitude
+? [{
+type: 'drop',
+latitude: Number(live.drop_stop.latitude),
+longitude: Number(live.drop_stop.longitude),
+color: '#f44336',
+label: `Drop - ${live.drop_stop.name}`
+}]
+: [];
+
+const busPoint =
+live?.location?.latitude &&
+live?.location?.longitude
+? [{
+type: 'bus',
+latitude: Number(live.location.latitude),
+longitude: Number(live.location.longitude),
+color: '#000',
+label: live?.bus?.vehicle_reg_no || 'Bus'
+}]
+: [];
+
+const gpsData = [
+...routePoints,
+...stopPoints,
+...pickupPoint,
+...dropPoint,
+...busPoint
+];
+
+
+    return (
+        <React.Fragment key={live.student_id || index}>
+            {/* Live Map */}
+            <Grid item xs={12} lg={8}>
+                <MainCard title={`Live Journey Monitor - ${live?.student_name}`}>
+                    <Paper
+                        variant="outlined"
+                        sx={{
+                            height: 450,
+                            position: 'relative',
+                            bgcolor: '#f0f4f8',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        {gpsData.length > 0 ? (
+                            <>
+                                <Box sx={{ position: 'absolute', inset: 0 }}>
+                                    <LiveMap
+                                        gpsData={gpsData}
+                                        autoFit={gpsData.length > 0}
+                                        width="100%"
+                                        height="100%"
+                                    />
                                 </Box>
-                                <Divider sx={{ my: 1.5 }} />
-                                <Typography variant="subtitle2" color="text.secondary">Assigned Bus Stop</Typography>
-                                <Typography variant="h5">{live?.stopName || '-'}</Typography>
-                            </MainCard>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <MainCard title="Vehicle Information">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                                    <DirectionsBusIcon color="primary" />
-                                    <Typography variant="h4">{live?.vehicleRegNo || '-'}</Typography>
+
+                                <Alert
+                                    severity="info"
+                                    sx={{
+                                        position: 'absolute',
+                                        top: 16,
+                                        left: 16,
+                                        right: 16,
+                                        zIndex: 1
+                                    }}
+                                >
+                                    Bus{' '}
+                                    <strong>
+                                        {live?.bus?.vehicle_reg_no || 'N/A'}
+                                    </strong>{' '}
+                                    assigned to{' '}
+                                    <strong>{live?.student_name}</strong>
+                                </Alert>
+                            </>
+                        ) : (
+                            <Box sx={{ p: 3, textAlign: 'center' }}>
+                                <Typography
+                                    variant="h4"
+                                    color="text.secondary"
+                                    sx={{ mb: 1 }}
+                                >
+                                    No active trip right now
+                                </Typography>
+
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                >
+                                    {live?.message ||
+                                        'No live tracking available'}
+                                </Typography>
+                            </Box>
+                        )}
+                    </Paper>
+                </MainCard>
+            </Grid>
+
+            {/* Student Details */}
+            <Grid item xs={12} lg={4}>
+                <Grid container spacing={gridSpacing}>
+                    <Grid item xs={12}>
+                        <MainCard title="Student Details">
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                    mb: 2
+                                }}
+                            >
+                                <Paper
+                                    sx={{
+                                        p: 1,
+                                        bgcolor: theme.palette.primary.light
+                                    }}
+                                >
+                                    <Typography variant="h2">
+                                        {live?.student_name?.charAt(0) || 'S'}
+                                    </Typography>
+                                </Paper>
+
+                                <Box>
+                                    <Typography variant="h4">
+                                        {live?.student_name || '-'}
+                                    </Typography>
+
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                    >
+                                        Class {live?.class_name || '-'} -
+                                        Section {live?.section || '-'}
+                                    </Typography>
                                 </Box>
-                                <Typography variant="body2" color="text.secondary">Driver: <strong>{live?.driverName || '-'}</strong></Typography>
-                                <Typography variant="body2" color="text.secondary">Contact: <strong>{live?.driverMobile || '-'}</strong></Typography>
-                            </MainCard>
-                        </Grid>
+                            </Box>
+
+                            <Divider sx={{ my: 1.5 }} />
+
+                            <Typography
+                                variant="subtitle2"
+                                color="text.secondary"
+                            >
+                                Pickup Stop
+                            </Typography>
+
+                            <Typography variant="h5">
+                                {live?.pickup_stop?.name || '-'}
+                            </Typography>
+
+                            <Divider sx={{ my: 1.5 }} />
+
+                            <Typography
+                                variant="subtitle2"
+                                color="text.secondary"
+                            >
+                                Drop Stop
+                            </Typography>
+
+                            <Typography variant="h5">
+                                {live?.drop_stop?.name || '-'}
+                            </Typography>
+                        </MainCard>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <MainCard title="Vehicle Information">
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1.5,
+                                    mb: 1
+                                }}
+                            >
+                                <DirectionsBusIcon color="primary" />
+
+                                <Typography variant="h4">
+                                    {live?.bus?.vehicle_reg_no || '-'}
+                                </Typography>
+                            </Box>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Driver:{' '}
+                                <strong>
+                                    {live?.driver?.name || 'Not Assigned'}
+                                </strong>
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Contact:{' '}
+                                <strong>
+                                    {live?.driver?.phone_no || '-'}
+                                </strong>
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Route:{' '}
+                                <strong>
+                                    {live?.route?.name || '-'}
+                                </strong>
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Status:{' '}
+                                <strong>
+                                    {live?.status || '-'}
+                                </strong>
+                            </Typography>
+                        </MainCard>
                     </Grid>
                 </Grid>
+            </Grid>
+        </React.Fragment>
+    );
+})}
+
+               
 
                 {/* Logs & History */}
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                     <MainCard>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                             <Tabs value={tabValue} onChange={handleTabChange}>
@@ -234,7 +488,7 @@ const ParentTracking = () => {
                             />
                         )}
                     </MainCard>
-                </Grid>
+                </Grid> */}
 
                 {/* System Constraints */}
                 <Grid item xs={12}>

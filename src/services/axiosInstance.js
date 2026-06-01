@@ -52,7 +52,7 @@ export const createAxiosInstance = (token) => {
         // Handle network errors or errors without a response
         console.error("Error: No response received");
       }
-       console.log("❌ DATA:", error.response?.data); // 🔥 REAL BACKEND ERROR
+      console.log("❌ DATA:", error.response?.data); // 🔥 REAL BACKEND ERROR
       return Promise.reject(error);
     }
   );

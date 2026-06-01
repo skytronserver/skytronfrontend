@@ -12,6 +12,7 @@ import { decipherEncryption } from "../helper";
 
 // Lazy-loaded components
 const LiveTracking = Loadable(lazy(() => import("../views/direct/LiveTracking")));
+const SchoolBusTracking = Loadable(lazy(() => import("../views/direct/SchoolBusTracking")));
 const SOSAlert = Loadable(lazy(() => import("../views/direct/SOSAlert")));
 const HistoryPlayback = Loadable(lazy(() => import("../views/direct/HistoryPlayback")));
 const SOSUserExp = Loadable(lazy(() => import("../views/direct/SOSUserExp")));
@@ -62,6 +63,7 @@ const SchoolHolidays = Loadable(lazy(() => import("../views/schoolbus/SchoolHoli
 const SchoolReports = Loadable(lazy(() => import("../views/schoolbus/SchoolReports")));
 const AlertsCenter = Loadable(lazy(() => import("../views/schoolbus/AlertsCenter")));
 const SchoolOnboarding = Loadable(lazy(() => import("../views/schoolbus/SchoolOnboarding")));
+const CreateTrip = Loadable(lazy(() => import("../views/schoolbus/CreateTrip")));
 
 
 const M2MRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/M2MRegistrationAdminReview")));
@@ -366,12 +368,17 @@ const MainRoutes = {
     {
       path: '/schoolbus/parent-tracking',
       element: <ParentTracking />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin', 'parent']
+      roles: [ 'parentuser']
     },
     {
       path: '/schoolbus/bus-tagging',
       element: <SchoolBusTagging />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
+    },
+    {
+      path: '/schoolbus/bus-tracking',
+      element: <SchoolBusTracking />,
+      roles: [ 'schooladmin']
     },
     {
       path: '/schoolbus/route-management',
@@ -388,6 +395,12 @@ const MainRoutes = {
       element: <ProfileManagement />,
       roles: ['superadmin', 'stateadmin', 'schooladmin']
     },
+    {
+      path: '/schoolbus/create-trip',
+      element: <CreateTrip />,
+      roles: [ 'schooladmin']
+    },
+    
     {
       path: '/schoolbus/holidays',
       element: <SchoolHolidays />,

@@ -48,8 +48,8 @@ export const busTaggingFields = (t) => ({
 });
 
 export const routeFields = (t) => ({
-    routeName: {
-        name: "routeName",
+    name: {
+        name: "name",
         type: "text",
         label: "Route Name",
         placeholder: "e.g., Route A - North Zone",
@@ -67,16 +67,31 @@ export const routeFields = (t) => ({
         type: "select",
         label: "Status",
         options: [
-            { label: "Active", value: "Active" },
-            { label: "Inactive", value: "Inactive" },
+            { label: "Active", value: "active" },
+            { label: "Inactive", value: "inactive" },
         ],
         validation: Yup.string().required("Status is required"),
+    },
+        // ✅ ADD THIS
+    route_points: {
+        name: "route_points",
+        type: "map",
+        label: "Route Coordinates",
+        validation: Yup.array()
+            .of(
+                Yup.object().shape({
+                    lat: Yup.number().required(),
+                    lng: Yup.number().required(),
+                })
+            )
+            .min(1, "Select at least 1 points for the route")
+            .required("Route path is required"),
     },
 });
 
 export const busStopFields = (t) => ({
-    stopName: {
-        name: "stopName",
+    name: {
+        name: "name",
         type: "text",
         label: "Stop Name",
         placeholder: "e.g., Main Street Stop",
@@ -101,6 +116,13 @@ export const busStopFields = (t) => ({
         type: "time",
         label: "Timing",
         validation: Yup.string().required("Timing is required"),
+    },
+     order: {
+        name: "order",
+        type: "number",
+        label: "Order",
+        placeholder: "1",
+        validation: Yup.number().required("Order is required"),
     },
 });
 
