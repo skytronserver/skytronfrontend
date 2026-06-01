@@ -43,7 +43,6 @@ function Home() {
   const initialValues = {
     mobile: "",
     password: "",
-    captcha_reply: "",
   };
 
   useEffect(() => {
@@ -60,19 +59,16 @@ function Home() {
       .matches(/^\d{10}$/, t('validation.mobileNumberFormat'))
       .required(t('validation.mobileRequired')),
     password: Yup.string().required(t('validation.passwordRequired')),
-    captcha_reply: Yup.string().required(t('validation.required')),
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
     if (isSosEnv) {
-      dispatch(loginUserSos(values.mobile, values.password, captcha.captcha_key, values.captcha_reply));
+      dispatch(loginUserSos(values.mobile, values.password));
     } else {
       dispatch(
         loginUser(
           values.mobile,
-          values.password,
-          captcha.captcha_key,
-          values.captcha_reply
+          values.password
         )
       );
     }
@@ -209,50 +205,7 @@ function Home() {
                   }}
                 />
 
-                <section style={captchaStyle}>
-                  {captcha.isLoaded ? (
-                    <section>
-                      <img
-                        id="captcha-image"
-                        src={captcha.src}
-                        alt={t('login.captchaImage')}
-                        style={{ maxHeight: "60px" }}
-                      />
-                      <input
-                        type="hidden"
-                        id="captcha-key"
-                        value={captcha.captcha_key}
-                      />
-                    </section>
-                  ) : (
-                    <CircularProgress />
-                  )}
-                  <span
-                    style={replyStyle}
-                    disabled={!captcha.isLoaded}
-                    onClick={() => getCaptcha()}
-                  >
-                    <ReplayIcon style={iconStyle} />
-                  </span>
-                </section>
-                <TextField
-                  id="captcha_reply"
-                  label={t('login.enterCaptcha')}
-                  variant="outlined"
-                  type="text"
-                  fullWidth
-                  disabled={!captcha.isLoaded}
-                  name="captcha_reply"
-                  margin="normal"
-                  {...formik.getFieldProps("captcha_reply")}
-                  error={
-                    formik.touched.captcha_reply &&
-                    Boolean(formik.errors.captcha_reply)
-                  }
-                  helperText={
-                    formik.touched.captcha_reply && formik.errors.captcha_reply
-                  }
-                />
+                {/* CAPTCHA temporarily disabled */}
                 <Button
                   variant="contained"
                   color="primary"

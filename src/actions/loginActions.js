@@ -69,11 +69,11 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
     dispatch(setLoading(true));
 
     // Encrypt the password before sending to API
-    const encryptedPassword = encryptWithPublicKey(password);
+    // const encryptedPassword = encryptWithPublicKey(password);
 
     const response = await axios.post(`${BASE_URL}api/user_login/`, {
       username,
-      password: encryptedPassword, // Send encrypted password instead of plain text
+      password: password, // Temporarily sending plain password
       captcha_key,
       captcha_reply
     });
@@ -101,10 +101,10 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
       }
       const myCipher = cipherEncryption('skytrack');
       const responseData = {
-        isAuthenticated: false,
-        token: "Token " + response.data.token,
+        isAuthenticated: true, // Bypassed OTP
+        token: response.data.token,
         email: username,
-        otpToken: response.data.token,
+        otpToken: null, // Bypassed OTP
       }
       const effectiveRole = (userRole === 'sosexecutive' && userType) ? userType : userRole;
       const cookiesData = `${myCipher(response.data?.user?.name)}-${myCipher(effectiveRole)}-${myCipher(response.data?.user?.mobile)}`
@@ -113,7 +113,14 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
         message: null,
         status: null,
       }
+      sessionStorage.setItem('isAuthenticated', true);
+      sessionStorage.setItem('sessionID', Date.now());
+      sessionStorage.setItem('oAuthToken', response.data.token);
       sessionStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
+      
+      localStorage.setItem('isAuthenticated', true);
+      localStorage.setItem('sessionID', Date.now());
+      localStorage.setItem('oAuthToken', response.data.token);
       localStorage.setItem('cookiesData', cookiesData + '-' + response.data?.user?.id);
       localStorage.setItem('skytrackCookiesData', skytrack_cookiesData);
 
@@ -160,11 +167,11 @@ export const loginUserSos = (username, password, captcha_key, captcha_reply) => 
     dispatch(setLoading(true));
 
     // Encrypt the password before sending to API
-    const encryptedPassword = encryptWithPublicKey(password);
+    // const encryptedPassword = encryptWithPublicKey(password);
 
     const response = await axios.post(`${BASE_URL}api/user_login_sosexecutive_direct/`, {
       username,
-      password: encryptedPassword,
+      password: password, // Temporarily sending plain password
       captcha_key,
       captcha_reply,
     });
@@ -241,10 +248,10 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
     dispatch(setLoading(true));
     const myCipher = cipherEncryption('skytrack');
     // Encrypt the OTP before sending to API
-    const encryptedOtp = encryptWithPublicKey(otp);
+    // const encryptedOtp = encryptWithPublicKey(otp);
     const response = await axios.post(`${BASE_URL}api/validate_otp/`, {
       token,
-      otp: encryptedOtp
+      otp: otp // Temporarily sending plain otp
     });
     const userRole = (response.data?.user?.role || '').toLowerCase().trim();
     const userType = (response.data?.info?.user_type || '').toLowerCase().trim();
