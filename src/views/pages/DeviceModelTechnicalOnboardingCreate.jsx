@@ -413,6 +413,58 @@ const DeviceModelTechnicalOnboardingCreate = () => {
                   <Typography variant="body2">4) Functionality &amp; integration verified on platform</Typography>
                 </Alert>
               </Box>
+
+              {/* C) MQTT Secrets */}
+              <Box>
+                <Typography variant="h6" fontWeight={700} mb={1}>
+                  C) MQTT Secrets
+                </Typography>
+                <Alert severity="warning" icon={false}>
+                  <Typography variant="body2" sx={{ wordBreak: "break-all", mb: 2 }}>
+                    <strong>1) MQTT Password:</strong>{" "}
+                    {deviceModels.find((m) => String(m?.id) === String(deviceModelId))?.mqtt_pw || ""}
+                  </Typography>
+                  <Typography variant="body2" sx={{ wordBreak: "break-all", mb: 1 }}>
+                    <strong>2) CA Certificate:</strong>
+                  </Typography>
+                  <Box
+                    component="pre"
+                    sx={{
+                      p: 1.5,
+                      bgcolor: "rgba(0,0,0,0.05)",
+                      borderRadius: 1,
+                      overflowX: "auto",
+                      fontSize: "0.75rem",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-all",
+                      m: 0,
+                    }}
+                  >
+                    {`-----BEGIN CERTIFICATE-----
+MIIDrzCCApegAwIBAgIUXTpF43hyS9QoRuJeo7sHr8LASSYwDQYJKoZIhvcNAQEL
+BQAwZzELMAkGA1UEBhMCSU4xDjAMBgNVBAgMBVN0YXRlMQ0wCwYDVQQHDARDaXR5
+MRUwEwYDVQQKDAxPcmdhbml6YXRpb24xEDAOBgNVBAsMB09yZ1VuaXQxEDAOBgNV
+BAMMB01RVFQtQ0EwHhcNMjUxMDI1MTk0NDA3WhcNMzUxMDIzMTk0NDA3WjBnMQsw
+CQYDVQQGEwJJTjEOMAwGA1UECAwFU3RhdGUxDTALBgNVBAcMBENpdHkxFTATBgNV
+BAoMDE9yZ2FuaXphdGlvbjEQMA4GA1UECwwHT3JnVW5pdDEQMA4GA1UEAwwHTVFU
+VC1DQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALVaU/+UkIHHUkdW
+ra4yLCv8fE0Ll2swFcOKRgjZidnE1Zz7hrp72jwTB3UvpgKWnH9dA8RVSQxYemDV
+Q/ejTZ7KXwtebmWYIAz1DHeJsu8hnN0GTH+rfP6oRja7zSNzawFn5/yF9oAoNXSg
+r6rP3k+OihOKP/sG10BX76p2sKRwfZInsijXMZDM8nCqzD6/ls4GHVXfZg+CaZU/
+5LAKYa+MI/hIiCvYouUKa9UYTeJhh2MX7GAx57Jv8p3jVdtLy6uwwYiDwV7k6+YW
+fgyECbIRqtGld1jZLM9kyBB4lD829vdlsVGIzSwCZuq/jmdOSXNi0uWRAf9HtgnW
+DhbX2K8CAwEAAaNTMFEwHQYDVR0OBBYEFLRBemkUQZNenqXnIJ26/+ExIXftMB8G
+A1UdIwQYMBaAFLRBemkUQZNenqXnIJ26/+ExIXftMA8GA1UdEwEB/wQFMAMBAf8w
+DQYJKoZIhvcNAQELBQADggEBAC/TRc0N343DC9I6xD0sYsF3jxvcT4K/8JdoRhuK
+jlDde6liF7zI5gfhnsfGmvRLl3l6DJqNZpaqDS6bbCFU4vof8Eo6ZKdfN7bRQ9Jc
+vOtpK7Ml4MwSaSJLbRJ3xC4agmxftNL6K7xMVSbeg7YVc5aWdx9u7ojsxUpDO1b5
+5PuMUoXaehYST1HOVRy5wyBQpb5R2cJ8SvlHZPL5LpdLnFAutMOyYf4ig3v3BluK
+GBQcBR0OIaxrHdINGPW+cRNTQlemgKwGtCPKLTQ2RnQinmVZWrngZJtqNImguxXY
+oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
+-----END CERTIFICATE-----`}
+                  </Box>
+                </Alert>
+              </Box>
             </Stack>
           </SectionBlock>
         );
