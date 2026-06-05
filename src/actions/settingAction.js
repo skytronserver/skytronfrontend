@@ -5,6 +5,7 @@ export const FETCH_HP_FREQUENCY_LIST='FETCH_HP_FREQUENCY_LIST';
 export const FETCH_OTA_LIST='FETCH_OTA_LIST';
 export const FETCH_FIRMWARE_LIST='FETCH_FIRMWARE_LIST';
 export const FETCH_IP_SETTING_LIST='FETCH_IP_SETTING_LIST';
+export const FETCH_PERMIT_CONDITION_LIST='FETCH_PERMIT_CONDITION_LIST';
 export const fetchVehicleCategory=(data)=>({
     type:FETCH_VEHICLE_CATEGORY,
     payload:data,
@@ -32,4 +33,8 @@ export const fetchFirmwareList=(data)=>({
 export const fetchIPSettingList=(data)=>({
     type:FETCH_IP_SETTING_LIST,
     payload:data
+})
+export const fetchPermitConditionList=(data)=>({
+    type:FETCH_PERMIT_CONDITION_LIST,
+    payload:data,
 })

@@ -5,7 +5,8 @@ import {
     FETCH_FIRMWARE_LIST,
     FETCH_HP_FREQUENCY_LIST,
     FETCH_OTA_LIST,
-    FETCH_IP_SETTING_LIST
+    FETCH_IP_SETTING_LIST,
+    FETCH_PERMIT_CONDITION_LIST
   } from '../actions/settingAction';
 
   const initialState = {
@@ -15,7 +16,8 @@ import {
     firmwareList:[],
     frequencyList:[],
     otaList:[],
-    ipSettingList:[]
+    ipSettingList:[],
+    permitConditionList:[],
   };
   
   const settingReducer = (state = initialState, action) => {
@@ -54,6 +56,11 @@ import {
         return {
           ...state,
           ipSettingList:action.payload
+        }
+      case FETCH_PERMIT_CONDITION_LIST:
+        return {
+          ...state,
+          permitConditionList:action.payload,
         }
       default:
         return state;

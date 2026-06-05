@@ -38,6 +38,7 @@ const AlertReport = Loadable(lazy(() => import("../views/reports/AlertReport")))
 const DeviceHealthReport = Loadable(lazy(() => import("../views/reports/DeviceHealthReport")));
 const UserStatisticsReport = Loadable(lazy(() => import("../views/reports/UserStatisticsReport")));
 const IncidentReport = Loadable(lazy(() => import("../views/reports/IncidentReport")));
+const ViolationReport = Loadable(lazy(() => import("../views/reports/ViolationReport")));
 
 const PublicTransportDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/PublicTransportDashboard")));
 const PublicSafetyDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/PublicSafetyDashboard")));
@@ -339,6 +340,11 @@ const MainRoutes = {
       path: '/reports/incident-report',
       element: <IncidentReport />,
       roles: ['superadmin']
+    },
+    {
+      path: '/reports/violation-report',
+      element: <ViolationReport />,
+      roles: ['superadmin', 'stateadmin', 'dtorto']
     },
     {
       path: '/reports/health-packet-log',

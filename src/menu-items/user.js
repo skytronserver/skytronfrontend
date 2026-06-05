@@ -849,6 +849,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin']
         },
+        {
+          id: 'violation-report',
+          title: 'Violation Report',
+          type: 'item',
+          url: '/reports/violation-report',
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin', 'dtorto'],
+        },
         // {
         //   id: "all-holiday-list",
         //   title: "School Holidays",

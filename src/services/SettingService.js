@@ -117,6 +117,26 @@ const send_command = (data) => {
   return http.post(`${process.env.REACT_APP_BASE_URL}api/mqtt/send_command/`, data);
 };
 
+// Permit Conditions
+const create_permit_condition = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/enforcement/permit-condition/create/', data);
+};
+const filter_permit_conditions = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/enforcement/permit-condition/filter/', data);
+};
+const update_permit_condition_status = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/enforcement/permit-condition/update-status/', data);
+};
+
+// Violation Report
+const filter_violation_report = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/enforcement/violation-report/filter/', data);
+};
+
 const SettingService = {
   create_settings_hp_freq,
   filter_settings_hp_freq,
@@ -140,7 +160,11 @@ const SettingService = {
   restoreGpsArchive,
   updateNotificationPreferences,
   fetchNotificationPreferences,
-  send_command
+  send_command,
+  create_permit_condition,
+  filter_permit_conditions,
+  update_permit_condition_status,
+  filter_violation_report,
 };
 
 export default SettingService;

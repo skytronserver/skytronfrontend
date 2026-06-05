@@ -88,6 +88,14 @@ const other = {
           url: '/setting/login-settings',
           breadcrumbs: false,
           roles: ['superadmin']
+        },
+        {
+          id: 'permit-conditions',
+          title: 'Permit Conditions',
+          type: 'item',
+          url: '/setting/permit-conditions',
+          breadcrumbs: false,
+          roles: ['superadmin']
         }
       ],
     },

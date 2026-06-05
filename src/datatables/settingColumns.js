@@ -358,3 +358,120 @@ export const vehicleColumns = [
     },
   }
 ];
+
+// ---- Permit Condition Columns ----
+// onStatusChange(id, currentStatus) is injected by the page component
+export const getPermitConditionColumns = (onStatusChange) => [
+  {
+    name: "id",
+    label: "ID",
+    options: { filter: false, sort: false, display: false },
+  },
+  {
+    name: "permit_name",
+    label: "Permit Name",
+    options: { filter: true, sort: true },
+  },
+  {
+    name: "vehicle_category_name",
+    label: "Vehicle Category",
+    options: { filter: true, sort: false },
+  },
+  {
+    name: "violation_type",
+    label: "Violation Type",
+    options: { filter: true, sort: false },
+  },
+  {
+    name: "enforcement_rule_details",
+    label: "Enforcement Rule",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value) => (
+        <span title={value} style={{ maxWidth: 200, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {value || '-'}
+        </span>
+      ),
+    },
+  },
+  {
+    name: "penalty",
+    label: "Penalty",
+    options: { filter: true, sort: false },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => {
+        const colorMap = { created: '#1976d2', active: '#2e7d32', deactive: '#c62828' };
+        const bgMap   = { created: '#e3f2fd', active: '#e8f5e9', deactive: '#ffebee' };
+        return (
+          <span style={{
+            display: 'inline-block',
+            padding: '3px 10px',
+            borderRadius: 12,
+            fontWeight: 600,
+            fontSize: 12,
+            color: colorMap[value] || '#555',
+            background: bgMap[value] || '#f5f5f5',
+            textTransform: 'capitalize',
+            letterSpacing: 0.5,
+          }}>
+            {value || '-'}
+          </span>
+        );
+      },
+    },
+  },
+  {
+    name: "created_by_name",
+    label: "Created By",
+    options: { filter: false, sort: false },
+  },
+  {
+    name: "create_datetime",
+    label: "Created At",
+    options: {
+      filter: false,
+      sort: true,
+      customBodyRender: (value) => value ? new Date(value).toLocaleString('en-IN') : '-',
+    },
+  },
+  {
+    name: "activation_datetime",
+    label: "Activated At",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value) => value ? new Date(value).toLocaleString('en-IN') : '-',
+    },
+  },
+  {
+    name: "deactivation_datetime",
+    label: "Deactivated At",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value) => value ? new Date(value).toLocaleString('en-IN') : '-',
+    },
+  },
+  {
+    name: "actions",
+    label: "Action",
+    options: {
+      filter: false,
+      sort: false,
+      empty: true,
+      customBodyRenderLite: (dataIndex, rowIndex) => {
+        // This will be provided by the column builder — actual row data
+        // accessed via closure; we use a data-attribute approach
+        return null; // Placeholder — overridden per-row in the page component
+      },
+    },
+  },
+];
+
