@@ -15,14 +15,14 @@ function PrivacyPolicy() {
             variant="h5"
             component="h1"
             gutterBottom
-            sx={{ 
-              fontWeight: 700, 
+            sx={{
+              fontWeight: 700,
               color: '#1a202c',
               letterSpacing: '-0.2px',
               fontSize: { xs: '1.4rem', md: '1.6rem' }
             }}
           >
-            SkyTron<sup>®</sup> <span style={{ color: brandBlue }}>App - Terms & Conditions</span>
+            <span style={{ color: brandBlue }}>Privacy Policy</span>
           </Typography>
           <Typography variant="body2" sx={{ fontSize: '1rem', color: '#666' }}>
             Last Updated: 06.04.2026
@@ -30,10 +30,10 @@ function PrivacyPolicy() {
         </Box>
 
         {/* Welcome Section */}
-        <Box sx={{ 
-          p: { xs: 3, md: 4 }, 
-          mb: 5, 
-          borderRadius: 2, 
+        <Box sx={{
+          p: { xs: 3, md: 4 },
+          mb: 5,
+          borderRadius: 2,
           border: '1px solid #e2e8f0',
           borderLeft: `6px solid ${brandBlue}`,
           backgroundColor: '#ffffff',
@@ -43,25 +43,25 @@ function PrivacyPolicy() {
             Welcome to SkyTron<sup>®</sup>!
           </Typography>
           <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6, color: bodyTextColor, mb: 2 }}>
-            SkyTron<sup>®</sup> is an intelligent vehicle tracking and passenger safety / emergency assistance platform 
-            implemented by AMTRON ("Company," "we," "us," or "our"). It enables real-time monitoring, safety alerts, 
+            SkyTron<sup>®</sup> is an intelligent vehicle tracking and passenger safety / emergency assistance platform
+            implemented by AMTRON ("Company," "we," "us," or "our"). It enables real-time monitoring, safety alerts,
             and compliance for public transport and emergency services under the Nirbhaya framework.
           </Typography>
           <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6, color: bodyTextColor }}>
-            These Terms and Conditions ("Terms") govern your access to and use of the SkyTron<sup>®</sup> mobile application 
-            ("App"). By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not 
+            These Terms and Conditions ("Terms") govern your access to and use of the SkyTron<sup>®</sup> mobile application
+            ("App"). By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not
             agree, please do not use the App.
           </Typography>
         </Box>
 
         {/* Sections */}
-        <Box sx={{ 
-          '& .MuiAccordion-root': { 
-            mb: 1, 
-            borderRadius: '8px !important', 
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)', 
-            '&:before': { display: 'none' } 
-          } 
+        <Box sx={{
+          '& .MuiAccordion-root': {
+            mb: 1,
+            borderRadius: '8px !important',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            '&:before': { display: 'none' }
+          }
         }}>
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -69,8 +69,8 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
-                By accessing and using SkyTron<sup>®</sup>, you acknowledge that you have read, understood, and agree to comply 
-                with these Terms. These Terms apply to all users, including those who register an account or use the App 
+                By accessing and using SkyTron<sup>®</sup>, you acknowledge that you have read, understood, and agree to comply
+                with these Terms. These Terms apply to all users, including those who register an account or use the App
                 without an account.
               </Typography>
             </AccordionDetails>
@@ -82,7 +82,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
-                You must be at least 18 years old to use this App. By using SkyTron<sup>®</sup>, you represent that you have the legal 
+                You must be at least 18 years old to use this App. By using SkyTron<sup>®</sup>, you represent that you have the legal
                 capacity to enter into this agreement.
               </Typography>
             </AccordionDetails>
@@ -109,7 +109,7 @@ function PrivacyPolicy() {
               <Typography variant="body2" sx={{ mb: 2, color: bodyTextColor }}>
                 To provide the best experience, the App may request the following permissions:
               </Typography>
-              
+
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', margin: 0 }}>
                 <li style={{ marginBottom: '15px' }}>
                   <Typography variant="body2" sx={{ color: bodyTextColor }}>
@@ -265,7 +265,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
-                Our Privacy Policy governs how we collect, use, and protect your personal information. By using SkyTron<sup>®</sup>, 
+                Our Privacy Policy governs how we collect, use, and protect your personal information. By using SkyTron<sup>®</sup>,
                 you acknowledge and accept our Privacy Policy.
               </Typography>
             </AccordionDetails>
@@ -277,9 +277,9 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', lineHeight: 1.7, color: bodyTextColor }}>
-                - All content within the App, including text, graphics, trademarks, logos, and software, is owned or licensed 
+                - All content within the App, including text, graphics, trademarks, logos, and software, is owned or licensed
                 by us and protected under applicable copyright and trademark laws.<br />
-                - You may not copy, modify, distribute, or create derivative works from any content without our prior 
+                - You may not copy, modify, distribute, or create derivative works from any content without our prior
                 written consent.
               </Typography>
             </AccordionDetails>
@@ -291,7 +291,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
-                SkyTron<sup>®</sup> may integrate with third-party services, and we are not responsible for their terms, policies, or 
+                SkyTron<sup>®</sup> may integrate with third-party services, and we are not responsible for their terms, policies, or
                 actions. Your use of third-party services is at your own risk.
               </Typography>
             </AccordionDetails>
@@ -304,7 +304,7 @@ function PrivacyPolicy() {
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', lineHeight: 1.7, color: bodyTextColor }}>
                 - We provide the App on an "AS IS" and "AS AVAILABLE" basis, without warranties of any kind.<br />
-                - We are not responsible for any direct, indirect, incidental, or consequential damages arising from the use or 
+                - We are not responsible for any direct, indirect, incidental, or consequential damages arising from the use or
                 inability to use the App.<br />
                 - We do not guarantee uninterrupted, error-free operation of the App.
               </Typography>
@@ -317,7 +317,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
-                We reserve the right to suspend or terminate your access to the App at our discretion, without notice, if we 
+                We reserve the right to suspend or terminate your access to the App at our discretion, without notice, if we
                 determine that you have violated these Terms or engaged in unlawful activity.
               </Typography>
             </AccordionDetails>
@@ -329,7 +329,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
-                These Terms shall be governed by the laws of India. Any disputes shall be resolved in the courts of Guwahati, 
+                These Terms shall be governed by the laws of India. Any disputes shall be resolved in the courts of Guwahati,
                 Assam, India.
               </Typography>
             </AccordionDetails>
@@ -341,7 +341,7 @@ function PrivacyPolicy() {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <Typography variant="body2" sx={{ fontSize: '1rem', color: bodyTextColor }}>
-                We reserve the right to update these Terms at any time. Changes will be effective upon posting within the 
+                We reserve the right to update these Terms at any time. Changes will be effective upon posting within the
                 App. Continued use after modifications constitutes acceptance of the new Terms.
               </Typography>
             </AccordionDetails>
