@@ -25,7 +25,7 @@ function PrivacyPolicy() {
             <span style={{ color: brandBlue }}>Privacy Policy</span>
           </Typography>
           <Typography variant="body2" sx={{ fontSize: '1rem', color: '#666' }}>
-            Last Updated: 06.04.2026
+            Last Updated: June 2026
           </Typography>
         </Box>
 
@@ -39,9 +39,9 @@ function PrivacyPolicy() {
           backgroundColor: '#ffffff',
           boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
         }}>
-          <Typography variant="body1" sx={{ fontWeight: 700, color: '#1a202c', mb: 2 }}>
+          {/* <Typography variant="body1" sx={{ fontWeight: 700, color: '#1a202c', mb: 2 }}>
             Welcome to SkyTron<sup>®</sup>!
-          </Typography>
+          </Typography> */}
           <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6, color: bodyTextColor, mb: 2 }}>
             SkyTron<sup>®</sup> is an intelligent vehicle tracking and passenger safety / emergency assistance platform
             implemented by AMTRON ("Company," "we," "us," or "our"). It enables real-time monitoring, safety alerts,
