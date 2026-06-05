@@ -48,7 +48,7 @@ function PrivacyPolicy() {
             and compliance for public transport and emergency services under the Nirbhaya framework.
           </Typography>
           <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6, color: bodyTextColor }}>
-            These Terms and Conditions ("Terms") govern your access to and use of the SkyTron<sup>®</sup> mobile application
+            These Privacy Policy govern your access to and use of the SkyTron<sup>®</sup> mobile application
             ("App"). By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not
             agree, please do not use the App.
           </Typography>
