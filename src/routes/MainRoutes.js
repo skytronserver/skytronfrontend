@@ -66,6 +66,11 @@ const AlertsCenter = Loadable(lazy(() => import("../views/schoolbus/AlertsCenter
 const SchoolOnboarding = Loadable(lazy(() => import("../views/schoolbus/SchoolOnboarding")));
 const CreateTrip = Loadable(lazy(() => import("../views/schoolbus/CreateTrip")));
 
+// PIS Components
+const BusStopManagement = Loadable(lazy(() => import("../views/pis/BusStopManagement")));
+const BusRouteManagement = Loadable(lazy(() => import("../views/pis/BusRouteManagement")));
+const BusScheduleManagement = Loadable(lazy(() => import("../views/pis/BusScheduleManagement")));
+const PISReports = Loadable(lazy(() => import("../views/pis/PISReports")));
 
 const M2MRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/M2MRegistrationAdminReview")));
 const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/VehicleManufacturerRegistrationAdminReview")));
@@ -445,8 +450,28 @@ const MainRoutes = {
       path: '/test-agency/assigned-models',
       element: <AgencyDeviceModelList />,
       roles: ['testagency']
+    },
+    // PIS Routes
+    {
+      path: '/pis/bus-stops',
+      element: <BusStopManagement />,
+      roles: ['superadmin', 'stateadmin', 'dtorto']
+    },
+    {
+      path: '/pis/bus-routes',
+      element: <BusRouteManagement />,
+      roles: ['superadmin', 'stateadmin', 'dtorto']
+    },
+    {
+      path: '/pis/bus-schedules',
+      element: <BusScheduleManagement />,
+      roles: ['superadmin', 'stateadmin', 'dtorto']
+    },
+    {
+      path: '/pis/reports',
+      element: <PISReports />,
+      roles: ['superadmin', 'stateadmin', 'dtorto']
     }
-
   ].map((route) => applyPrivateRoute(route)),
 };
 
