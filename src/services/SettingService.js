@@ -120,21 +120,21 @@ const send_command = (data) => {
 // Permit Conditions
 const create_permit_condition = (data) => {
   const http = getAxiosInstance();
-  return http.post('/api/enforcement/permit-condition/create/', data);
+  return http.post('/school/api/enforcement/permit-conditions/', data);
 };
 const filter_permit_conditions = (data) => {
   const http = getAxiosInstance();
-  return http.post('/api/enforcement/permit-condition/filter/', data);
+  return http.get('/school/api/enforcement/permit-conditions/list/', { params: data });
 };
-const update_permit_condition_status = (data) => {
+const update_permit_condition_status = (id, data) => {
   const http = getAxiosInstance();
-  return http.post('/api/enforcement/permit-condition/update-status/', data);
+  return http.post(`/school/api/enforcement/permit-conditions/${id}/update/`, data);
 };
 
 // Violation Report
 const filter_violation_report = (data) => {
   const http = getAxiosInstance();
-  return http.post('/api/enforcement/violation-report/filter/', data);
+  return http.get('/school/api/enforcement/violations/', { params: data });
 };
 
 const SettingService = {

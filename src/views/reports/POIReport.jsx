@@ -53,7 +53,9 @@ const POIReport = () => {
         'School', 'Hospital', 'PoliceStation', 'BusStop', 'RailwayStation',
         'Airport', 'FuelStation', 'TollGate', 'Other', 'Personal',
         'dealer', 'Unauthorized Stop', 'Prohibited_Area', 'no_entry', 'parking', 'NoParking',
-        'StateBoundary', 'DistrictBoundary', 'CityBoundary', 'VillageBoundary', 'PermitRoute'
+        'StateBoundary', 'DistrictBoundary', 'CityBoundary', 'VillageBoundary', 'PermitRoute',
+        'Locality_Boundary', 'Locality_Centre', 'SubLocality_Centre', 'Village_Centre', 'Landuse', 'Turn_Table', 'House_Address', 'Road_Network',
+        'SubDistrict_Boundary', 'Railway_Track', 'Point_of_Interest'
     ];
 
     // POI status options

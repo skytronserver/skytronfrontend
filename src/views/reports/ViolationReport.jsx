@@ -56,45 +56,6 @@ const EMPTY_FILTERS = {
   imei: '',
 };
 
-// ─── Mock data (removed when backend is ready) ────────────────────────────────
-const MOCK_VIOLATIONS = [
-  {
-    id: 1,
-    violation_type: 'OverSpeed',
-    permit_condition_name: 'Speed Limit Enforcement',
-    vehicle_reg_no: 'MH12AB1234',
-    imei: '860123456789012',
-    vehicle_category: 'School Bus',
-    penalty: '₹2,000',
-    enforcement_rule: 'School buses must not exceed 40 km/h',
-    alert_timestamp: '2026-06-01T08:22:10Z',
-    status: 'in',
-  },
-  {
-    id: 2,
-    violation_type: 'Overtime',
-    permit_condition_name: 'Night Driving Restriction',
-    vehicle_reg_no: 'DL5SAS7890',
-    imei: '860987654321098',
-    vehicle_category: 'Heavy Commercial Vehicle',
-    penalty: '₹5,000',
-    enforcement_rule: 'Vehicles not permitted to operate between 11 PM and 5 AM',
-    alert_timestamp: '2026-06-02T23:45:00Z',
-    status: 'out',
-  },
-  {
-    id: 3,
-    violation_type: 'state_border_cross',
-    permit_condition_name: 'State Border Crossing',
-    vehicle_reg_no: 'KA09MN4567',
-    imei: '860111222333444',
-    vehicle_category: 'Passenger Vehicle',
-    penalty: '₹10,000',
-    enforcement_rule: 'Must carry valid inter-state permit',
-    alert_timestamp: '2026-06-03T14:10:00Z',
-    status: 'in',
-  },
-];
 
 const formatDT = (str) => {
   if (!str) return '—';
@@ -155,13 +116,14 @@ const ViolationReport = () => {
       payload.page_size = pageSize;
 
       const res = await SettingService.filter_violation_report(payload);
-      const data = Array.isArray(res.data?.data) ? res.data.data : [];
+      const rawData = res.data;
+      const data = Array.isArray(rawData) ? rawData : (rawData?.results || rawData?.data || []);
       setReportData(data.map((r, i) => ({ ...r, id: r.id || i + 1 })));
-      setTotalRows(res.data?.pagination?.total_records || data.length);
+      setTotalRows(rawData?.pagination?.total_records || rawData?.count || data.length);
     } catch (e) {
-      console.error('Violation report API not ready — showing mock data');
-      setReportData(MOCK_VIOLATIONS);
-      setTotalRows(MOCK_VIOLATIONS.length);
+      console.error('Failed to fetch violation reports', e);
+      setReportData([]);
+      setTotalRows(0);
     } finally {
       setLoading(false);
     }

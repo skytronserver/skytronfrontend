@@ -48,54 +48,15 @@ const VIOLATION_TYPE_OPTIONS = [
 
 const INITIAL_VALUES = {
   permit_name: '',
-  vehicle_category_fk: '',
+  vehicle_category: '',
   violation_type: '',
-  enforcement_rule_details: '',
+  rule_details: '',
   penalty: '',
+  challan_code: '',
+  activation_datetime: '',
+  deactivation_datetime: '',
 };
 
-// ─── Mock data (fallback until backend is ready) ──────────────────────────────
-const MOCK_DATA = [
-  {
-    id: 1,
-    permit_name: 'Night Driving Restriction',
-    vehicle_category_name: 'Heavy Commercial Vehicle',
-    violation_type: 'Overtime',
-    enforcement_rule_details: 'Vehicles not permitted to operate between 11 PM and 5 AM within city limits.',
-    penalty: '₹5,000',
-    status: 'active',
-    created_by_name: 'Admin User',
-    create_datetime: '2026-05-01T09:30:00Z',
-    activation_datetime: '2026-05-05T08:00:00Z',
-    deactivation_datetime: null,
-  },
-  {
-    id: 2,
-    permit_name: 'Speed Limit Enforcement',
-    vehicle_category_name: 'School Bus',
-    violation_type: 'OverSpeed',
-    enforcement_rule_details: 'School buses must not exceed 40 km/h in school zones between 7 AM and 9 AM.',
-    penalty: '₹2,000 + License Point Deduction',
-    status: 'created',
-    created_by_name: 'Admin User',
-    create_datetime: '2026-06-01T11:00:00Z',
-    activation_datetime: null,
-    deactivation_datetime: null,
-  },
-  {
-    id: 3,
-    permit_name: 'State Border Crossing',
-    vehicle_category_name: 'Passenger Vehicle',
-    violation_type: 'state_border_cross',
-    enforcement_rule_details: 'Vehicles must carry valid inter-state permit when crossing state borders.',
-    penalty: '₹10,000 + Vehicle Impound',
-    status: 'deactive',
-    created_by_name: 'Admin User',
-    create_datetime: '2026-04-01T08:00:00Z',
-    activation_datetime: '2026-04-10T00:00:00Z',
-    deactivation_datetime: '2026-05-31T23:59:00Z',
-  },
-];
 
 // ─── Status chip renderer ─────────────────────────────────────────────────────
 const StatusChip = ({ value }) => {
@@ -192,8 +153,8 @@ const PermitConditionManagement = () => {
       label: 'Permit Name',
       validation: Yup.string().required('Permit Name is required'),
     },
-    vehicle_category_fk: {
-      name: 'vehicle_category_fk',
+    vehicle_category: {
+      name: 'vehicle_category',
       type: 'select',
       label: 'Vehicle Category',
       options: vehicleCategoryOptions,
@@ -206,19 +167,37 @@ const PermitConditionManagement = () => {
       options: VIOLATION_TYPE_OPTIONS,
       validation: Yup.string().required('Violation Type is required'),
     },
-    penalty: {
-      name: 'penalty',
-      type: 'text',
-      label: 'Penalty',
-      validation: Yup.string().required('Penalty is required'),
-    },
-    enforcement_rule_details: {
-      name: 'enforcement_rule_details',
+    rule_details: {
+      name: 'rule_details',
       type: 'text',
       label: 'Enforcement Rule Details',
       multiline: true,
       rows: 3,
       validation: Yup.string().required('Enforcement Rule Details are required'),
+    },
+    penalty: {
+      name: 'penalty',
+      type: 'number',
+      label: 'Penalty Amount',
+      validation: Yup.number().required('Penalty Amount is required'),
+    },
+    challan_code: {
+      name: 'challan_code',
+      type: 'text',
+      label: 'Challan Code',
+      validation: Yup.string().required('Challan Code is required'),
+    },
+    activation_datetime: {
+      name: 'activation_datetime',
+      type: 'date',
+      label: 'Activation Date',
+      validation: Yup.date().nullable(),
+    },
+    deactivation_datetime: {
+      name: 'deactivation_datetime',
+      type: 'date',
+      label: 'Deactivation Date',
+      validation: Yup.date().nullable(),
     },
   };
 
@@ -242,11 +221,10 @@ const PermitConditionManagement = () => {
   const loadPermitConditions = useCallback(async () => {
     try {
       const res = await SettingService.filter_permit_conditions({});
-      const data = Array.isArray(res.data) ? res.data : res.data?.results || [];
-      dispatch(fetchPermitConditionList(data));
+      const fetchedData = Array.isArray(res.data) ? res.data : (res.data?.results || res.data?.data || []);
+      dispatch(fetchPermitConditionList(fetchedData));
     } catch (e) {
-      console.error('Permit condition API not ready — using mock data');
-      dispatch(fetchPermitConditionList(MOCK_DATA));
+      console.error('Failed to fetch permit conditions API', e);
     } finally {
       setListLoaded(true);
     }
@@ -268,7 +246,11 @@ const PermitConditionManagement = () => {
     setSubmitting(true);
     setLoading(true);
     try {
-      await SettingService.create_permit_condition({ ...values, status: 'created' });
+      const payload = { ...values, status: 'created' };
+      if (payload.activation_datetime) payload.activation_datetime += "T00:00:00Z";
+      if (payload.deactivation_datetime) payload.deactivation_datetime += "T23:59:59Z";
+
+      await SettingService.create_permit_condition(payload);
       setAlert({ error: false, message: 'Permit condition created successfully!', errorList: [] });
       setAlertOpen(true);
       setDialogOpen(false);
@@ -276,10 +258,14 @@ const PermitConditionManagement = () => {
       loadPermitConditions();
     } catch (e) {
       console.error(e);
+      const errData = e?.response?.data;
+      const isHtml = typeof errData === 'string' && errData.trim().startsWith('<');
       setAlert({
         error: true,
         message: 'Failed to create permit condition.',
-        errorList: convertErrorObjectToArray(e?.response?.data),
+        errorList: isHtml 
+          ? [`Server Error: ${e?.response?.status} ${e?.response?.statusText}. Please check if the endpoint is deployed.`] 
+          : convertErrorObjectToArray(errData),
       });
       setAlertOpen(true);
     } finally {
@@ -293,7 +279,7 @@ const PermitConditionManagement = () => {
     const nextStatus = currentStatus === 'created' ? 'active' : 'deactive';
     setBusyId(id);
     try {
-      await SettingService.update_permit_condition_status({ id, status: nextStatus });
+      await SettingService.update_permit_condition_status(id, { status: nextStatus });
       showAlert(`Status updated to "${nextStatus}" successfully!`);
       loadPermitConditions();
     } catch (e) {
@@ -311,7 +297,7 @@ const PermitConditionManagement = () => {
     { name: 'vehicle_category_name', label: 'Vehicle Category', options: { filter: true, sort: false } },
     { name: 'violation_type', label: 'Violation Type', options: { filter: true, sort: false } },
     {
-      name: 'enforcement_rule_details',
+      name: 'rule_details',
       label: 'Enforcement Rule',
       options: {
         filter: false, sort: false,
@@ -325,6 +311,7 @@ const PermitConditionManagement = () => {
       },
     },
     { name: 'penalty', label: 'Penalty', options: { filter: true, sort: false } },
+    { name: 'challan_code', label: 'Challan Code', options: { filter: true, sort: false } },
     {
       name: 'status',
       label: 'Status',
@@ -421,7 +408,7 @@ const PermitConditionManagement = () => {
                     <Grid
                       key={field}
                       item
-                      md={field === 'enforcement_rule_details' ? 12 : 6}
+                      md={field === 'rule_details' ? 12 : 6}
                       sm={12}
                       xs={12}
                     >

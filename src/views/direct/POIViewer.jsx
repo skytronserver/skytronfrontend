@@ -2503,6 +2503,7 @@ const POIViewer = () => {
                 <MenuItem value="DistrictBoundary">District Boundary</MenuItem>
                 <MenuItem value="CityBoundary">City Boundary</MenuItem>
                 <MenuItem value="VillageBoundary">Village Boundary</MenuItem>
+                <MenuItem value="Locality_Boundary">Locality Boundary</MenuItem>
                 <MenuItem value="PermitRoute">Permit Route</MenuItem>
                 <MenuItem value="School">School</MenuItem>
                 <MenuItem value="Hospital">Hospital</MenuItem>
@@ -2512,6 +2513,16 @@ const POIViewer = () => {
                 <MenuItem value="Airport">Airport</MenuItem>
                 <MenuItem value="FuelStation">Fuel Station</MenuItem>
                 <MenuItem value="TollGate">Toll Gate</MenuItem>
+                <MenuItem value="Locality_Centre">Locality Centre</MenuItem>
+                <MenuItem value="SubLocality_Centre">SubLocality Centre</MenuItem>
+                <MenuItem value="Village_Centre">Village Centre</MenuItem>
+                <MenuItem value="Landuse">Landuse</MenuItem>
+                <MenuItem value="Turn_Table">Turn Table</MenuItem>
+                <MenuItem value="House_Address">House Address</MenuItem>
+                <MenuItem value="Road_Network">Road Network</MenuItem>
+                <MenuItem value="SubDistrict_Boundary">SubDistrict Boundary</MenuItem>
+                <MenuItem value="Railway_Track">Railway Track</MenuItem>
+                <MenuItem value="Point_of_Interest">Point of Interest</MenuItem>
                 <MenuItem value="Other">Other</MenuItem>
                 <MenuItem value="Personal">Personal</MenuItem>
                 <MenuItem value="dealer">Dealer</MenuItem>
