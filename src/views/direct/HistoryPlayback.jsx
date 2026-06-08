@@ -40,6 +40,9 @@ const HistoryPlayback = () => {
   const [roads, setRoads] = useState("");
   const [polygon, setPolygon] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [poiOptions, setPoiOptions] = useState([]);
+const [selectedPoi, setSelectedPoi] = useState(null);
+const [poiLoading, setPoiLoading] = useState(false);
 
   // Fetch vehicle list on mount
   useEffect(() => {
@@ -66,6 +69,23 @@ const HistoryPlayback = () => {
       isMounted = false;
     };
   }, []);
+
+  const fetchPois = async (searchText) => {
+  try {
+    setPoiLoading(true);
+
+    const response = await HomePageService.getPoiList({
+      name: searchText,
+    });
+
+
+    setPoiOptions(response?.data?.data || []);
+  } catch (error) {
+    setPoiOptions([]);
+  } finally {
+    setPoiLoading(false);
+  }
+};
 
   // Fetch GPS data only when vehicle map is shown
   useEffect(() => {
@@ -283,7 +303,7 @@ const HistoryPlayback = () => {
                   />
                 </Grid>
                 <Grid item md={3} sm={6} xs={12}>
-                  <TextField
+                  {/* <TextField
                     fullWidth
                     label="POI"
                     value={poi}
@@ -291,7 +311,55 @@ const HistoryPlayback = () => {
                     variant="outlined"
                     size="small"
                     InputProps={{ sx: { bgcolor: 'white' } }}
-                  />
+                  /> */}
+    <Autocomplete
+  options={poiOptions}
+  loading={poiLoading}
+  value={selectedPoi}
+  isOptionEqualToValue={(option, value) =>
+    option?.id === value?.id
+  }
+  filterOptions={(x) => x}
+  getOptionLabel={(option) =>
+    option?.name || ""
+  }
+  onInputChange={(event, value, reason) => {
+  if (reason === "input") {
+    setPoi(value);
+
+    if (value.length >= 2) {
+      fetchPois(value);
+    }
+  }
+}}
+  onChange={(event, value) => {
+
+    setSelectedPoi(value);
+
+    if (value) {
+      setPoi(value.name);
+    }
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label="POI"
+      size="small"
+      fullWidth
+      InputProps={{
+        ...params.InputProps,
+        endAdornment: (
+          <>
+            {poiLoading ? (
+              <CircularProgress size={20} />
+            ) : null}
+            {params.InputProps.endAdornment}
+          </>
+        ),
+      }}
+    />
+  )}
+/>
                 </Grid>
                 <Grid item md={3} sm={6} xs={12}>
                   <TextField
@@ -384,6 +452,7 @@ const HistoryPlayback = () => {
             downloadStatus={downloadStatus}
             setDownloadStatus={setDownloadStatus}
             poi={poi}
+            selectedPoi={selectedPoi}
             owner={owner}
             roads={roads}
             polygon={polygon}

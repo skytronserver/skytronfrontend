@@ -29,6 +29,7 @@ const GPSHistoryMap = ({
   downloadStatus,
   setDownloadStatus,
   poi,
+  selectedPoi,
   owner,
   roads,
   polygon,
@@ -64,6 +65,58 @@ const GPSHistoryMap = ({
 
   const isPlayingRef = useRef(false);
   const animationSpeedRef = useRef(animationSpeed);
+  const poiMarkerRef = useRef(null);
+  const poiSourceRef = useRef(null);
+
+useEffect(() => {
+  if (!map || !selectedPoi || !markerRef.current) return;
+
+  const lat = parseFloat(selectedPoi.lat);
+  const lon = parseFloat(selectedPoi.lon);
+
+  if (!lat || !lon) return;
+
+  // remove previous POI marker
+  if (poiMarkerRef.current) {
+poiSourceRef.current.removeFeature(poiMarkerRef.current);
+  }
+
+  const poiFeature = new Feature({
+    geometry: new Point(
+      fromLonLat([lon, lat])
+    ),
+  });
+
+  poiFeature.setStyle(
+    new Style({
+      image: new CircleStyle({
+        radius: 10,
+        fill: new Fill({
+          color: "#ff0000",
+        }),
+        stroke: new Stroke({
+          color: "#ffffff",
+          width: 2,
+        }),
+      }),
+      text: new Text({
+        text: selectedPoi.name,
+        offsetY: -20,
+      }),
+    })
+  );
+
+poiSourceRef.current.addFeature(poiFeature);
+
+  poiMarkerRef.current = poiFeature;
+
+  map.getView().animate({
+    center: fromLonLat([lon, lat]),
+    zoom: 18,
+    duration: 1000,
+  });
+
+}, [selectedPoi, map]);
 
   function getStatusInfo(data) {
     if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
@@ -424,6 +477,16 @@ function playAnimation() {
       infoOverlayRef.current = infoOverlay;
 
       const markerSource = new VectorSource();
+      const poiSource = new VectorSource();
+
+const poiLayer = new VectorLayer({
+  source: poiSource,
+  zIndex: 9999,
+});
+
+initialMap.addLayer(poiLayer);
+
+poiSourceRef.current = poiSource;
       const markerLayer = new VectorLayer({
         source: markerSource,
         zIndex: 100, // Ensure markers are above tile layers

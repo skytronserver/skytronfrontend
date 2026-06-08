@@ -396,6 +396,14 @@ const getSchoolBusOverview = () => {
   );
 };
 
+const getPoiList = (params = {}) => {
+  const http = getAxiosInstance();
+
+  return http.get("/api/poi/list/", {
+    params,
+  });
+};
+
 const HomePageService = {
   getLiveTracking,
   getLiveTracking_data,
@@ -432,6 +440,7 @@ const HomePageService = {
   getGeocode,
   getReverseGeocode,
   getSchoolBusOverview,
+  getPoiList,
 };
 
 export default HomePageService;
