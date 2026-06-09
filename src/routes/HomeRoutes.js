@@ -17,7 +17,6 @@ const ERSSVehiclesDashboard = Loadable(lazy(() => import("../views/dashboard/sup
 const SOSMonitoringDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSMonitoringDashboard")));
 const SOSAnalyticsDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSAnalyticsDashboard")));
 
-
 const HomeRoutes = {
   path: "/",
   element: <HomepageLayout />,

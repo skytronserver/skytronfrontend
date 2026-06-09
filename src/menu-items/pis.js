@@ -1,8 +1,8 @@
 // assets
-import { IconBusStop, IconRoute, IconCalendarEvent, IconReportAnalytics, IconInfoSquareRounded } from '@tabler/icons';
+import { IconBusStop, IconRoute, IconCalendarEvent, IconReportAnalytics, IconInfoSquareRounded, IconSearch } from '@tabler/icons';
 
 // constant
-const icons = { IconBusStop, IconRoute, IconCalendarEvent, IconReportAnalytics, IconInfoSquareRounded };
+const icons = { IconBusStop, IconRoute, IconCalendarEvent, IconReportAnalytics, IconInfoSquareRounded, IconSearch };
 
 // ==============================|| PIS MENU ITEMS ||============================== //
 
@@ -10,7 +10,7 @@ const pis = {
   id: 'pis-management',
   title: 'Passenger Info System',
   type: 'group',
-  roles: ['superadmin', 'stateadmin', 'dtorto'],
+  roles: ['superadmin', 'stateadmin', 'dtorto', 'owner'],
   children: [
     {
       id: 'pis-main',
@@ -43,16 +43,7 @@ const pis = {
           url: '/pis/bus-schedules',
           icon: icons.IconCalendarEvent,
           breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin', 'dtorto']
-        },
-        {
-          id: 'pis-reports',
-          title: 'Trip Reports',
-          type: 'item',
-          url: '/pis/reports',
-          icon: icons.IconReportAnalytics,
-          breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin', 'dtorto']
+          roles: ['superadmin', 'stateadmin', 'dtorto', 'owner']
         }
       ]
     }

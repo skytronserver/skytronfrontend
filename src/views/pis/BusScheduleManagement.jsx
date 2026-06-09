@@ -4,8 +4,9 @@ import {
   DialogTitle, Grid, MenuItem, Select, TextField, Typography, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, FormControl, InputLabel
 } from '@mui/material';
-import { IconEdit } from '@tabler/icons';
+import { IconEdit, IconPlayerPlay, IconSquareRoundedX, IconCheck } from '@tabler/icons';
 import PISService from '../../services/PISServices';
+import { decipherEncryption } from '../../helper';
 
 const BusScheduleManagement = () => {
   const [schedules, setSchedules] = useState([]);
@@ -15,12 +16,17 @@ const BusScheduleManagement = () => {
   const [editingSchedule, setEditingSchedule] = useState(null);
 
   const [formData, setFormData] = useState({
-    serviceType: 'Ordinary',
-    startDatetime: '',
-    routeId: '',
-    busId: '',
-    status: 'created'
+    service_type: 'Express',
+    start_datetime: '',
+    route: '',
+    bus: ''
   });
+
+  const myDecipher = decipherEncryption("skytrack");
+  const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
+  const data = userData && userData.split("-").map((item) => myDecipher(item));
+  const userRole = data && data.length > 2 ? data[1].toLowerCase().trim() : '';
+  const isOwner = userRole === 'owner';
 
   const fetchData = async () => {
     try {
@@ -45,20 +51,18 @@ const BusScheduleManagement = () => {
     if (schedule) {
       setEditingSchedule(schedule);
       setFormData({
-        serviceType: schedule.serviceType || 'Ordinary',
-        startDatetime: schedule.startDatetime || '',
-        routeId: schedule.routeId || '',
-        busId: schedule.busId || '',
-        status: schedule.status || 'created'
+        service_type: schedule.service_type || schedule.serviceType || 'Express',
+        start_datetime: schedule.start_datetime || schedule.startDatetime || '',
+        route: schedule.route || schedule.routeId || '',
+        bus: schedule.bus || schedule.busId || ''
       });
     } else {
       setEditingSchedule(null);
       setFormData({
-        serviceType: 'Ordinary',
-        startDatetime: '',
-        routeId: '',
-        busId: '',
-        status: 'created'
+        service_type: 'Express',
+        start_datetime: '',
+        route: '',
+        bus: ''
       });
     }
     setOpen(true);
@@ -74,15 +78,27 @@ const BusScheduleManagement = () => {
 
   const handleSubmit = async () => {
     try {
-      if (editingSchedule) {
-        await PISService.updateBusSchedule(editingSchedule.id, formData);
-      } else {
-        await PISService.createBusSchedule(formData);
-      }
+      const payload = {
+        service_type: formData.service_type,
+        start_datetime: formData.start_datetime,
+        route: formData.route,
+        bus: formData.bus
+      };
+
+      await PISService.createBusSchedule(payload);
       fetchData();
       handleClose();
     } catch (error) {
       console.error("Failed to save bus schedule:", error);
+    }
+  };
+
+  const handleUpdateStatus = async (scheduleId, newStatus) => {
+    try {
+      await PISService.updateTripStatus(scheduleId, newStatus);
+      fetchData();
+    } catch (error) {
+      console.error("Failed to update status:", error);
     }
   };
 
@@ -93,7 +109,7 @@ const BusScheduleManagement = () => {
 
   const getBusName = (busId) => {
     const bus = buses.find(b => b.id === busId);
-    return bus ? bus.name : busId;
+    return bus ? (bus.vehicle_reg_no || bus.name) : busId;
   };
 
   return (
@@ -102,9 +118,11 @@ const BusScheduleManagement = () => {
         <CardHeader
           title="Bus Schedule Management"
           action={
-            <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-              Add Schedule
-            </Button>
+            !isOwner && (
+              <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+                Add Schedule
+              </Button>
+            )
           }
         />
         <CardContent>
@@ -117,31 +135,50 @@ const BusScheduleManagement = () => {
                   <TableCell>Route</TableCell>
                   <TableCell>Bus</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell>Actual Start</TableCell>
-                  <TableCell>Actual End</TableCell>
-                  <TableCell>Actions</TableCell>
+                  {isOwner && <TableCell>Actions</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {schedules.map((sched) => (
                   <TableRow key={sched.id}>
-                    <TableCell>{sched.serviceType}</TableCell>
-                    <TableCell>{new Date(sched.startDatetime).toLocaleString()}</TableCell>
-                    <TableCell>{getRouteName(sched.routeId)}</TableCell>
-                    <TableCell>{getBusName(sched.busId)}</TableCell>
-                    <TableCell>{sched.status}</TableCell>
-                    <TableCell>{sched.actualStartTime ? new Date(sched.actualStartTime).toLocaleString() : '-'}</TableCell>
-                    <TableCell>{sched.actualEndTime ? new Date(sched.actualEndTime).toLocaleString() : '-'}</TableCell>
+                    <TableCell>{sched.service_type || sched.serviceType}</TableCell>
+                    <TableCell>{sched.start_datetime ? new Date(sched.start_datetime).toLocaleString() : sched.startDatetime ? new Date(sched.startDatetime).toLocaleString() : '-'}</TableCell>
+                    <TableCell>{sched.route_name || getRouteName(sched.route || sched.routeId)}</TableCell>
+                    <TableCell>{sched.bus_name || getBusName(sched.bus || sched.busId)}</TableCell>
                     <TableCell>
-                      <IconButton color="primary" onClick={() => handleOpen(sched)}>
-                        <IconEdit />
-                      </IconButton>
+                      <span style={{
+                        padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, textTransform: 'capitalize',
+                        background: sched.status === 'started' ? '#e3f2fd' : sched.status === 'completed' ? '#e6f9ed' : sched.status === 'canceled' ? '#fdecea' : '#fff3e0',
+                        color: sched.status === 'started' ? '#1565c0' : sched.status === 'completed' ? '#1a7f3c' : sched.status === 'canceled' ? '#c62828' : '#e65100',
+                      }}>
+                        {sched.status}
+                      </span>
                     </TableCell>
+                    {isOwner && (
+                      <TableCell>
+                        {sched.status === 'created' && (
+                          <>
+                            <IconButton style={{ color: '#1a7f3c' }} onClick={() => handleUpdateStatus(sched.id, 'started')} title="Start Trip">
+                              <IconPlayerPlay size={20} />
+                            </IconButton>
+                            <IconButton style={{ color: '#c62828' }} onClick={() => handleUpdateStatus(sched.id, 'canceled')} title="Cancel Trip">
+                              <IconSquareRoundedX size={20} />
+                            </IconButton>
+                          </>
+                        )}
+
+                        {sched.status === 'started' && (
+                          <IconButton style={{ color: '#1565c0' }} onClick={() => handleUpdateStatus(sched.id, 'completed')} title="Complete Trip">
+                            <IconCheck size={20} />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
                 {schedules.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">No bus schedules found.</TableCell>
+                    <TableCell colSpan={isOwner ? 6 : 5} align="center">No bus schedules found.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -158,8 +195,8 @@ const BusScheduleManagement = () => {
               <FormControl fullWidth>
                 <InputLabel>Service Type</InputLabel>
                 <Select
-                  name="serviceType"
-                  value={formData.serviceType}
+                  name="service_type"
+                  value={formData.service_type}
                   label="Service Type"
                   onChange={handleChange}
                 >
@@ -173,9 +210,9 @@ const BusScheduleManagement = () => {
               <TextField
                 fullWidth
                 label="Start Datetime"
-                name="startDatetime"
+                name="start_datetime"
                 type="datetime-local"
-                value={formData.startDatetime}
+                value={formData.start_datetime}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
               />
@@ -184,8 +221,8 @@ const BusScheduleManagement = () => {
               <FormControl fullWidth>
                 <InputLabel>Route</InputLabel>
                 <Select
-                  name="routeId"
-                  value={formData.routeId}
+                  name="route"
+                  value={formData.route}
                   label="Route"
                   onChange={handleChange}
                 >
@@ -199,30 +236,14 @@ const BusScheduleManagement = () => {
               <FormControl fullWidth>
                 <InputLabel>Bus</InputLabel>
                 <Select
-                  name="busId"
-                  value={formData.busId}
+                  name="bus"
+                  value={formData.bus}
                   label="Bus"
                   onChange={handleChange}
                 >
                   {buses.map(bus => (
-                    <MenuItem key={bus.id} value={bus.id}>{bus.name}</MenuItem>
+                    <MenuItem key={bus.id} value={bus.id}>{bus.vehicle_reg_no || bus.name}</MenuItem>
                   ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  name="status"
-                  value={formData.status}
-                  label="Status"
-                  onChange={handleChange}
-                >
-                  <MenuItem value="created">Created</MenuItem>
-                  <MenuItem value="canceled">Canceled</MenuItem>
-                  <MenuItem value="started">Started</MenuItem>
-                  <MenuItem value="completed">Completed</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

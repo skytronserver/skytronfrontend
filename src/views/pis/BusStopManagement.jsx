@@ -13,7 +13,8 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography,
+  InputLabel,
+  FormControl,
   Table,
   TableBody,
   TableCell,
@@ -25,20 +26,45 @@ import {
 } from '@mui/material';
 import { IconEdit } from '@tabler/icons';
 import PISService from '../../services/PISServices';
+import { retriveStateList, retriveDistrictList } from '../../helper';
 
 const BusStopManagement = () => {
   const [busStops, setBusStops] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingStop, setEditingStop] = useState(null);
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
-    lat: '',
-    lon: '',
+    latitude: '',
+    longitude: '',
     address: '',
     state: '',
     district: '',
-    status: 'active'
   });
+
+  // Load states on mount
+  useEffect(() => {
+    const loadStates = async () => {
+      const list = await retriveStateList();
+      setStates(list || []);
+    };
+    loadStates();
+    fetchBusStops();
+  }, []);
+
+  // Load districts whenever state changes
+  useEffect(() => {
+    if (formData.state) {
+      const loadDistricts = async () => {
+        const list = await retriveDistrictList({ state: formData.state });
+        setDistricts(list || []);
+      };
+      loadDistricts();
+    } else {
+      setDistricts([]);
+    }
+  }, [formData.state]);
 
   const fetchBusStops = async () => {
     try {
@@ -51,33 +77,33 @@ const BusStopManagement = () => {
     }
   };
 
-  useEffect(() => {
-    fetchBusStops();
-  }, []);
-
-  const handleOpen = (stop = null) => {
+  const handleOpen = async (stop = null) => {
     if (stop) {
       setEditingStop(stop);
       setFormData({
         name: stop.name || '',
-        lat: stop.location?.lat || '',
-        lon: stop.location?.lon || '',
+        latitude: stop.latitude || '',
+        longitude: stop.longitude || '',
         address: stop.address || '',
         state: stop.state || '',
         district: stop.district || '',
-        status: stop.status || 'active'
       });
+      // Pre-load districts for the selected state
+      if (stop.state) {
+        const list = await retriveDistrictList({ state: stop.state });
+        setDistricts(list || []);
+      }
     } else {
       setEditingStop(null);
       setFormData({
         name: '',
-        lat: '',
-        lon: '',
+        latitude: '',
+        longitude: '',
         address: '',
         state: '',
         district: '',
-        status: 'active'
       });
+      setDistricts([]);
     }
     setOpen(true);
   };
@@ -87,17 +113,23 @@ const BusStopManagement = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Reset district when state changes
+    if (name === 'state') {
+      setFormData(prev => ({ ...prev, state: value, district: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async () => {
     const payload = {
       name: formData.name,
-      location: { lat: parseFloat(formData.lat), lon: parseFloat(formData.lon) },
+      latitude: formData.latitude,
+      longitude: formData.longitude,
       address: formData.address,
-      state: formData.state,
-      district: formData.district,
-      status: formData.status
+      state: formData.state,       // integer ID
+      district: formData.district, // integer ID
     };
 
     try {
@@ -110,6 +142,19 @@ const BusStopManagement = () => {
       handleClose();
     } catch (error) {
       console.error("Failed to save bus stop:", error);
+    }
+  };
+
+  // Helper to resolve label from id for display
+  const getStateLabel = (id) => states.find(s => s.value === id)?.label || id;
+  const getDistrictLabel = (id) => districts.find(d => d.value === id)?.label || id;
+
+  const handleToggle = async (stop) => {
+    try {
+      await PISService.toggleBusStop(stop.id);
+      fetchBusStops();
+    } catch (error) {
+      console.error("Failed to toggle bus stop status:", error);
     }
   };
 
@@ -130,7 +175,8 @@ const BusStopManagement = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>Name</TableCell>
-                  <TableCell>Location (Lat, Lon)</TableCell>
+                  <TableCell>Latitude</TableCell>
+                  <TableCell>Longitude</TableCell>
                   <TableCell>Address</TableCell>
                   <TableCell>State</TableCell>
                   <TableCell>District</TableCell>
@@ -142,15 +188,42 @@ const BusStopManagement = () => {
                 {busStops.map((stop) => (
                   <TableRow key={stop.id}>
                     <TableCell>{stop.name}</TableCell>
-                    <TableCell>{`${stop.location?.lat || ''}, ${stop.location?.lon || ''}`}</TableCell>
+                    <TableCell>{stop.latitude || ''}</TableCell>
+                    <TableCell>{stop.longitude || ''}</TableCell>
                     <TableCell>{stop.address}</TableCell>
-                    <TableCell>{stop.state}</TableCell>
-                    <TableCell>{stop.district}</TableCell>
-                    <TableCell>{stop.status}</TableCell>
+                    <TableCell>{stop.state_name || stop.state}</TableCell>
+                    <TableCell>{stop.district_name || stop.district}</TableCell>
                     <TableCell>
-                      <IconButton color="primary" onClick={() => handleOpen(stop)}>
+                      <span style={{
+                        padding: '2px 10px',
+                        borderRadius: 12,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        background: stop.status === 'active' ? '#e6f9ed' : '#fdecea',
+                        color: stop.status === 'active' ? '#1a7f3c' : '#c62828',
+                      }}>
+                        {stop.status === 'active' ? 'Active' : 'Inactive'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <IconButton color="primary" onClick={() => handleOpen(stop)} title="Edit">
                         <IconEdit />
                       </IconButton>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => handleToggle(stop)}
+                        style={{
+                          marginLeft: 6,
+                          borderColor: stop.status === 'active' ? '#c62828' : '#1a7f3c',
+                          color: stop.status === 'active' ? '#c62828' : '#1a7f3c',
+                          fontSize: 11,
+                          padding: '2px 10px',
+                          minWidth: 'unset'
+                        }}
+                      >
+                        {stop.status === 'active' ? 'Deactivate' : 'Activate'}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -182,9 +255,9 @@ const BusStopManagement = () => {
               <TextField
                 fullWidth
                 label="Latitude"
-                name="lat"
+                name="latitude"
                 type="number"
-                value={formData.lat}
+                value={formData.latitude}
                 onChange={handleChange}
               />
             </Grid>
@@ -192,9 +265,9 @@ const BusStopManagement = () => {
               <TextField
                 fullWidth
                 label="Longitude"
-                name="lon"
+                name="longitude"
                 type="number"
-                value={formData.lon}
+                value={formData.longitude}
                 onChange={handleChange}
               />
             </Grid>
@@ -210,33 +283,35 @@ const BusStopManagement = () => {
               />
             </Grid>
             <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="State"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-              />
+              <FormControl fullWidth>
+                <InputLabel>State</InputLabel>
+                <Select
+                  name="state"
+                  value={formData.state}
+                  label="State"
+                  onChange={handleChange}
+                >
+                  {states.map((s) => (
+                    <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="District"
-                name="district"
-                value={formData.district}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Select
-                fullWidth
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="deactivated">Deactivated</MenuItem>
-              </Select>
+              <FormControl fullWidth>
+                <InputLabel>District</InputLabel>
+                <Select
+                  name="district"
+                  value={formData.district}
+                  label="District"
+                  onChange={handleChange}
+                  disabled={!formData.state}
+                >
+                  {districts.map((d) => (
+                    <MenuItem key={d.value} value={d.value}>{d.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </DialogContent>
