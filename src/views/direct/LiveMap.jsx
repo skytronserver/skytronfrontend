@@ -922,6 +922,7 @@ const MapComponent = ({
     const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
     const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
     const [pois, setPois] = useState([]);
+    const [selectedPoiData, setSelectedPoiData] = useState(null);
     
 useEffect(() => {
     if (!map || !selectedPoi || !poiVectorLayer) return;
@@ -939,6 +940,7 @@ useEffect(() => {
 
     const feature = new Feature({
         geometry: new Point([lon, lat]),
+         poiData: selectedPoi,
     });
 
     feature.setStyle(
@@ -966,6 +968,7 @@ useEffect(() => {
         zoom: 17,
         duration: 1000,
     });
+    
 
 }, [selectedPoi, map, poiVectorLayer]);
 
@@ -1667,6 +1670,29 @@ useEffect(() => {
             element: overlayElement.current,
         });
         initialMap.addOverlay(initialOverlay);
+        initialMap.on("singleclick", (evt) => {
+    let poiFound = false;
+
+    initialMap.forEachFeatureAtPixel(evt.pixel, (feature) => {
+        const poiData = feature.get("poiData");
+
+        if (poiData) {
+            setSelectedPoiData(poiData);
+
+            initialOverlay.setPosition(
+                feature.getGeometry().getCoordinates()
+            );
+
+            poiFound = true;
+            return true;
+        }
+    });
+
+    if (!poiFound) {
+        setSelectedPoiData(null);
+        initialOverlay.setPosition(undefined);
+    }
+});
 
         setMap(initialMap);
         setVectorLayer(initialVectorLayer);
@@ -6073,9 +6099,56 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             </Box>
 
             {/* Overlay for displaying marker details */}
-            <div ref={overlayElement} className="dynamic-overlay">
+            {/* <div ref={overlayElement} className="dynamic-overlay">
                 <div id="overlay-content"></div>
-            </div>
+            </div> */}
+            <div
+    ref={overlayElement}
+    style={{
+        background: "#fff",
+        borderRadius: "10px",
+        border: "1px solid #ddd",
+        boxShadow: "0 4px 20px rgba(0,0,0,.25)",
+        minWidth: "300px",
+        maxWidth: "450px",
+        maxHeight: "350px",
+        overflowY: "auto",
+        display: selectedPoiData ? "block" : "none",
+    }}
+>
+    {selectedPoiData && (
+        <div style={{ padding: "10px" }}>
+            <h3>POI Details</h3>
+
+            <table style={{ width: "100%" }}>
+                <tbody>
+                    {Object.entries(selectedPoiData).map(
+                        ([key, value]) => (
+                            <tr key={key}>
+                                <td
+                                    style={{
+                                        fontWeight: "bold",
+                                        padding: "6px",
+                                    }}
+                                >
+                                    {key}
+                                </td>
+
+                                <td
+                                    style={{
+                                        padding: "6px",
+                                    }}
+                                >
+                                    {String(value ?? "-")}
+                                </td>
+                            </tr>
+                        )
+                    )}
+                </tbody>
+            </table>
+        </div>
+    )}
+</div>
 
             <style>{`
 .ol-attribution {
