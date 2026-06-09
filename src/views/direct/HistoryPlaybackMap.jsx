@@ -67,6 +67,79 @@ const GPSHistoryMap = ({
   const animationSpeedRef = useRef(animationSpeed);
   const poiMarkerRef = useRef(null);
   const poiSourceRef = useRef(null);
+  const poiPopupRef = useRef(null);
+const poiPopupOverlayRef = useRef(null);
+
+const showPoiPopup = (poiData) => {
+  if (!poiPopupRef.current || !poiPopupOverlayRef.current) return;
+
+  const html = `
+    <div style="
+      min-width:300px;
+      max-width:450px;
+      max-height:350px;
+      overflow:auto;
+      padding:10px;
+    ">
+      <h3 style="
+        margin:0 0 10px 0;
+        color:#1976d2;
+      ">
+        POI Details
+      </h3>
+
+      <table style="
+        width:100%;
+        border-collapse:collapse;
+      ">
+        ${Object.entries(poiData)
+          .map(
+            ([key, value]) => `
+            <tr>
+              <td style="
+                font-weight:bold;
+                padding:6px;
+                border-bottom:1px solid #eee;
+                width:40%;
+              ">
+                ${key}
+              </td>
+
+              <td style="
+                padding:6px;
+                border-bottom:1px solid #eee;
+              ">
+                ${value ?? "-"}
+              </td>
+            </tr>
+          `
+          )
+          .join("")}
+      </table>
+    </div>
+  `;
+
+  poiPopupRef.current.innerHTML = html;
+
+  poiPopupRef.current.style.display = "block";
+
+  poiPopupOverlayRef.current.setPosition(
+    fromLonLat([
+      parseFloat(poiData.lon),
+      parseFloat(poiData.lat),
+    ])
+  );
+};
+
+const closePoiPopup = () => {
+  if (!poiPopupRef.current) return;
+
+  poiPopupRef.current.style.display = "none";
+
+  if (poiPopupOverlayRef.current) {
+    poiPopupOverlayRef.current.setPosition(undefined);
+  }
+};
 
   useEffect(() => {
     if (!map || !selectedPoi || !markerRef.current) return;
@@ -86,6 +159,7 @@ const GPSHistoryMap = ({
         fromLonLat([lon, lat])
       ),
     });
+    poiFeature.set("poiData", selectedPoi);
 
     poiFeature.setStyle(
       new Style({
@@ -465,6 +539,21 @@ const GPSHistoryMap = ({
         },
       });
       initialMap.addOverlay(overlay);
+   const poiPopupOverlay = new Overlay({
+  element: poiPopupRef.current,
+  positioning: "bottom-center",
+  stopEvent: true,
+  autoPan: {
+    animation: {
+      duration: 250,
+    },
+  },
+  offset: [0, -15],
+});
+
+initialMap.addOverlay(poiPopupOverlay);
+
+poiPopupOverlayRef.current = poiPopupOverlay;
 
       // Create overlay for moving info box
       const infoOverlay = new Overlay({
@@ -495,6 +584,26 @@ const GPSHistoryMap = ({
       initialMap.addLayer(markerLayer);
 
       setMap(initialMap);
+      initialMap.on("singleclick", (evt) => {
+  let poiClicked = false;
+
+  initialMap.forEachFeatureAtPixel(
+    evt.pixel,
+    (feature) => {
+      const poiData = feature.get("poiData");
+
+      if (poiData) {
+        showPoiPopup(poiData);
+        poiClicked = true;
+        return true;
+      }
+    }
+  );
+
+  if (!poiClicked) {
+    closePoiPopup();
+  }
+});
       markerRef.current = markerSource;
       featureOverlayRef.current = overlay;
     }
@@ -1263,8 +1372,21 @@ const GPSHistoryMap = ({
 
 
       <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative' }}>
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
-
+        {/* <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} /> */}
+<div
+  ref={poiPopupRef}
+  style={{
+    display: "none",
+    background: "#fff",
+    borderRadius: "10px",
+    border: "1px solid #ddd",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+    zIndex: 99999,
+    position: "relative",
+    // overflowY: "auto",
+    maxHeight: "350px",
+  }}
+/>
         {/* Hidden Container for Overlay Content - React Renders Here, OL uses DOM element */}
         <div ref={infoBoxElementRef} style={{ position: 'absolute', minWidth: '150px', top: '-17px', left: '50%', transform: 'translateX(-50%)' }}>
           {currentData && (
