@@ -30,14 +30,19 @@ const BusScheduleManagement = () => {
 
   const fetchData = async () => {
     try {
-      const [schedRes, routeRes, busRes] = await Promise.all([
+      const results = await Promise.allSettled([
         PISService.getBusSchedules(),
         PISService.getActiveBusRoutes(),
         PISService.getAvailableBuses()
       ]);
-      if (schedRes.success) setSchedules(schedRes.data);
-      if (routeRes.success) setRoutes(routeRes.data);
-      if (busRes.success) setBuses(busRes.data);
+      
+      const schedRes = results[0];
+      const routeRes = results[1];
+      const busRes = results[2];
+
+      if (schedRes.status === 'fulfilled' && schedRes.value?.success) setSchedules(schedRes.value.data);
+      if (routeRes.status === 'fulfilled' && routeRes.value?.success) setRoutes(routeRes.value.data);
+      if (busRes.status === 'fulfilled' && busRes.value?.success) setBuses(busRes.value.data);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     }
@@ -99,6 +104,8 @@ const BusScheduleManagement = () => {
       fetchData();
     } catch (error) {
       console.error("Failed to update status:", error);
+      const msg = error.response?.data?.message || "Failed to update trip status";
+      alert(msg);
     }
   };
 

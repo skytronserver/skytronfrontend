@@ -22,9 +22,11 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton
+  IconButton,
+  InputAdornment,
+  Tooltip
 } from '@mui/material';
-import { IconEdit } from '@tabler/icons';
+import { IconEdit, IconMapPin } from '@tabler/icons';
 import PISService from '../../services/PISServices';
 import { retriveStateList, retriveDistrictList } from '../../helper';
 
@@ -74,6 +76,26 @@ const BusStopManagement = () => {
       }
     } catch (error) {
       console.error("Failed to fetch bus stops:", error);
+    }
+  };
+
+  const handleUseMyLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData((prev) => ({
+            ...prev,
+            latitude: position.coords.latitude.toFixed(6).toString(),
+            longitude: position.coords.longitude.toFixed(6).toString()
+          }));
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("Unable to retrieve your location. Please check your browser permissions.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
     }
   };
 
@@ -259,6 +281,17 @@ const BusStopManagement = () => {
                 type="number"
                 value={formData.latitude}
                 onChange={handleChange}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Tooltip title="Use My Location">
+                        <IconButton onClick={handleUseMyLocation} edge="end">
+                          <IconMapPin size={20} />
+                        </IconButton>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={6}>
@@ -269,6 +302,17 @@ const BusStopManagement = () => {
                 type="number"
                 value={formData.longitude}
                 onChange={handleChange}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Tooltip title="Use My Location">
+                        <IconButton onClick={handleUseMyLocation} edge="end">
+                          <IconMapPin size={20} />
+                        </IconButton>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12}>
