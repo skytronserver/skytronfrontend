@@ -2531,7 +2531,7 @@ const POIViewer = () => {
                 <MenuItem value="no_entry">No Entry</MenuItem>
                 <MenuItem value="parking">Parking</MenuItem>
                 <MenuItem value="NoParking">Unauthorized Parking</MenuItem>
-                <MenuItem value="Crematorium_BurialGround">Crematorium / Burial Ground</MenuItem>
+                <MenuItem value="Crematorium_BurialGround">Crematorium, Burial Ground</MenuItem>
                 <MenuItem value="Embassy_Consulate">Embassies &amp; Consulates</MenuItem>
                 <MenuItem value="FireStation">Fire Station</MenuItem>
                 <MenuItem value="CookingGasStation">Cooking Gas Stations &amp; Services</MenuItem>
@@ -2547,7 +2547,7 @@ const POIViewer = () => {
                 <MenuItem value="InsuranceFinancial">Insurance &amp; Financial</MenuItem>
                 <MenuItem value="AmbulanceService">Ambulance Service</MenuItem>
                 <MenuItem value="BloodBank">Blood Bank</MenuItem>
-                <MenuItem value="ClinicDispensaryHealthCentre">Clinic / Dispensary / Health Centre</MenuItem>
+                <MenuItem value="ClinicDispensaryHealthCentre">Clinic, Dspnsry, Health Centres</MenuItem>
                 <MenuItem value="PathologicalLab">Pathological Labs</MenuItem>
                 <MenuItem value="MedicalStore">Medical Store</MenuItem>
                 <MenuItem value="CNGStation">CNG Station</MenuItem>
@@ -2558,7 +2558,7 @@ const POIViewer = () => {
                 <MenuItem value="Mandi">Mandi (Sabzi / Fish etc.)</MenuItem>
                 <MenuItem value="EyeBank">Eye Bank</MenuItem>
                 <MenuItem value="RestArea">Rest Area</MenuItem>
-                <MenuItem value="Kindergarten_PlaySchool_DayCare">Kindergarten / Play School / Day Care</MenuItem>
+                <MenuItem value="Kindergarten_PlaySchool_DayCare">Kindergarten, Play School, Day care</MenuItem>
                 <MenuItem value="OpenParking">Open Parking Areas</MenuItem>
                 <MenuItem value="MotoringOrganizationOffice">Motoring Organization Office</MenuItem>
                 <MenuItem value="Customs">Customs</MenuItem>
