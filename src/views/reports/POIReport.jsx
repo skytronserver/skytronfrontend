@@ -48,14 +48,36 @@ const POIReport = () => {
         'Road'
     ];
 
-    // Use types (simplified list, add more if needed)
     const useTypes = [
         'School', 'Hospital', 'PoliceStation', 'BusStop', 'RailwayStation',
         'Airport', 'FuelStation', 'TollGate', 'Other', 'Personal',
         'dealer', 'Unauthorized Stop', 'Prohibited_Area', 'no_entry', 'parking', 'NoParking',
         'StateBoundary', 'DistrictBoundary', 'CityBoundary', 'VillageBoundary', 'PermitRoute',
         'Locality_Boundary', 'Locality_Centre', 'SubLocality_Centre', 'Village_Centre', 'Landuse', 'Turn_Table', 'House_Address', 'Road_Network',
-        'SubDistrict_Boundary', 'Railway_Track', 'Point_of_Interest'
+        'SubDistrict_Boundary', 'Railway_Track', 'Point_of_Interest',
+        // Community & Civic Services
+        'Crematorium_BurialGround', 'Embassy_Consulate', 'FireStation', 'CookingGasStation',
+        'Institution', 'LocalAdminOffice', 'Library', 'MilkBooth', 'OtherCommunityServices',
+        'OverheadTank', 'ParksAndGardens', 'PostTelegraphOffice',
+        // Financial
+        'BankMoneyExchanger', 'InsuranceFinancial',
+        // Medical & Health
+        'AmbulanceService', 'BloodBank', 'ClinicDispensaryHealthCentre', 'PathologicalLab',
+        'MedicalStore', 'DentalHospital', 'EyeHospital', 'HomeopathicHospital',
+        'HeartHospital', 'MentalHospital', 'Optometrist', 'OrthopedicHospital', 'VeterinaryHospital',
+        'EyeBank',
+        // Fuel & Energy
+        'CNGStation', 'PetrolPump',
+        // Tourism & Recreation
+        'TouristInfoCentre', 'RestArea', 'ParksAndGardens', 'SportsComplex', 'Marina',
+        // Transport & Infrastructure
+        'MetroStation', 'Apartment', 'Mandi', 'Kindergarten_PlaySchool_DayCare',
+        'OpenParking', 'MotoringOrganizationOffice', 'Customs', 'AirlineAccess',
+        'BusTruckParking', 'ParkingGarage', 'FerryTerminal', 'Helipad',
+        'RailwayBridge', 'RailwayTunnel', 'RoadBridge', 'RoadTunnel',
+        'BusTerminal', 'Airport_Commercial', 'Airport_NonCommercial', 'LocalRailwayStation',
+        // Police & Traffic
+        'PoliceOther', 'PoliceChowki', 'TrafficSignal', 'TrafficCheckPost',
     ];
 
     // POI status options

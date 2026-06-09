@@ -186,13 +186,21 @@ const getDTODashboardData = () => {
     const http = getAxiosInstance();
     return http.post('/api/homepageandstat/homepage_DTO/');
 }
-const getSOSAdminDashboard = () => {
+const getSOSAdminDashboard = (startDate, endDate) => {
     const http = getAxiosInstance();
-    return http.get("/api/SOS/SOS_Admin_report/");
+    const queryParams = new URLSearchParams();
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+    const queryString = queryParams.toString();
+    return http.get(`/api/SOS/SOS_Admin_report/${queryString ? `?${queryString}` : ''}`);
 }
-const getSOSLeadDashboard = () => {
+const getSOSLeadDashboard = (startDate, endDate) => {
     const http = getAxiosInstance();
-    return http.get("/api/SOS/SOS_TL_report/");
+    const queryParams = new URLSearchParams();
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+    const queryString = queryParams.toString();
+    return http.get(`/api/SOS/SOS_TL_report/${queryString ? `?${queryString}` : ''}`);
 }
 const getSOSExeDashboard = () => {
     const http = getAxiosInstance();

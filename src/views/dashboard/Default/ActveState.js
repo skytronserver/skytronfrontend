@@ -129,12 +129,124 @@ const ActiveState = () => {
 
   // Chart-related state
   const [activeTab, setActiveTab] = useState(0);
+  const [sosAdminStartDate, setSosAdminStartDate] = useState("");
+  const [sosAdminEndDate, setSosAdminEndDate] = useState("");
 
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   const isSuperAdmin = userRoles === 'superadmin';
+
+  const fetchSOSData = useCallback(async (startDate = "", endDate = "") => {
+    try {
+      if (userRoles === 'sosadmin') {
+        const response = await UserServices.getSOSAdminDashboard(startDate, endDate);
+        const data = await response.data;
+        setTeam((prev) => ({
+          ...prev,
+          Total_Teams: data.SOS_Team_Leads,
+          Total_DeskExecutives: data.SOS_Desk_Executives,
+          Live_Teams: data.SOS_Online_Team_Leads,
+          Live_DeskExecutives: data.SOS_Online_Desk_Executives,
+        }));
+        setIncomingCall((prev) => ({
+          ...prev,
+          Total_Incoming_Calls: data.Total_Incoming_Calls,
+          Total_Incoming_Calls_thismonth: data.Total_Incoming_Calls_thismonth,
+          Total_Incoming_Calls_thisweek: data.Total_Incoming_Calls_thisweek,
+          Total_Incoming_Calls_today: data.Total_Incoming_Calls_today,
+        }));
+        setCalls((prev) => ({
+          ...prev,
+          Total_Active_Calls: data.Total_Active_Calls,
+          Total_Closed_Calls: data.Total_Closed_Calls,
+          Total_Pending_Calls: data.Total_Pending_Calls,
+          Average_time_to_Accept: data.Average_time_to_Accept,
+        }));
+        setFakeCall((prev) => ({
+          ...prev,
+          Total_Fake_Calls: data.Total_Fake_Calls,
+          Total_Fake_Calls_thismonth: data.Total_Fake_Calls_thismonth,
+          Total_Fake_Calls_thisweek: data.Total_Fake_Calls_thisweek,
+          Total_Fake_Calls_today: data.Total_Fake_Calls_today,
+        }));
+        setCallRejection((prev) => ({
+          ...prev,
+          Total_Rejected_Assignemnt: data.Total_Rejected_Assignemnt,
+          Total_Rejected_Assignemnt_thismonth: data.Total_Rejected_Assignemnt_thismonth,
+          Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
+        }));
+        setSosUsers((prev) => ({
+          ...prev,
+          teamLeader: data.SOS_Team_Leads || 0,
+          onlineTeamLeader: data.SOS_Online_Team_Leads || 0,
+          deskExecutive: data.SOS_Desk_Executives || 0,
+          onlineDeskExecutive: data.SOS_Online_Desk_Executives || 0,
+          police: data.SOS_Police_Executives || 0,
+          onlinePolice: data.SOS_Online_Police_Executives || 0,
+          ambulance: data.SOS_Ambulance_Executives || 0,
+          onlineAmbulance: data.SOS_Online_Ambulance_Executives || 0,
+        }));
+
+        const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics();
+        const vehicleAlertData = await vehicleAlertResponse.data;
+
+        setVehicleAlertStats({
+          ...vehicleAlertData,
+          broadcasts: {
+            ...vehicleAlertData.broadcasts,
+            total: data.Broadcast_Total || 0,
+            total_closed: data.Broadcast_Total_Closed || 0,
+            broadcast_today: data.Broadcast_Total_Today || 0,
+            closed_today: data.Broadcast_Total_Closed_Today || 0,
+            pending_today: data.Broadcast_Currently_Pending || 0,
+          }
+        });
+      }
+
+      if (userRoles === 'teamlead') {
+        const response = await UserServices.getSOSLeadDashboard(startDate, endDate);
+        const data = await response.data;
+        setTeamForLead((prev) => ({
+          ...prev,
+          Total_DeskExecutives: data.Total_DeskExecutives,
+          Live_DeskExecutives: data.Live_DeskExecutives,
+        }));
+        setIncomingCall((prev) => ({
+          ...prev,
+          Total_Incoming_Calls: data.Total_Incoming_Calls,
+          Total_Incoming_Calls_thismonth: data.Total_Incoming_Calls_thismonth,
+          Total_Incoming_Calls_thisweek: data.Total_Incoming_Calls_thisweek,
+          Total_Incoming_Calls_today: data.Total_Incoming_Calls_today,
+        }));
+        setCalls((prev) => ({
+          ...prev,
+          Total_Active_Calls: data.Total_Active_Calls,
+          Total_Closed_Calls: data.Total_Closed_Calls,
+          Total_Pending_Calls: data.Total_Pending_Calls,
+          Average_time_to_Accept: data.Average_time_to_Accept,
+        }));
+        setFakeCall((prev) => ({
+          ...prev,
+          Total_Fake_Calls: data.Total_Fake_Calls,
+          Total_Fake_Calls_thismonth: data.Total_Fake_Calls_thismonth,
+          Total_Fake_Calls_thisweek: data.Total_Fake_Calls_thisweek,
+          Total_Fake_Calls_today: data.Total_Fake_Calls_today,
+        }));
+        setCallRejection((prev) => ({
+          ...prev,
+          Total_Rejected_Assignemnt: data.Total_Rejected_Assignemnt,
+          Total_Rejected_Assignemnt_thismonth: data.Total_Rejected_Assignemnt_thismonth,
+          Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
+          Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching SOS dashboard data:', error);
+    }
+  }, [userRoles]);
   useEffect(() => {
     //for owner
     if (userRoles == 'dtorto') {
@@ -477,119 +589,8 @@ const ActiveState = () => {
         }))
       })();
     }
-    if (userRoles === 'sosadmin') {
-      (async () => {
-        const response = await UserServices.getSOSAdminDashboard();
-        const data = await response.data;
-        setTeam((prev) => ({
-          ...prev,
-          Total_Teams: data.SOS_Team_Leads,
-          Total_DeskExecutives: data.SOS_Desk_Executives,
-          Live_Teams: data.SOS_Online_Team_Leads,
-          Live_DeskExecutives: data.SOS_Online_Desk_Executives,
-        }));
-        setIncomingCall((prev) => ({
-          ...prev,
-          Total_Incoming_Calls: data.Total_Incoming_Calls,
-          Total_Incoming_Calls_thismonth: data.Total_Incoming_Calls_thismonth,
-          Total_Incoming_Calls_thisweek: data.Total_Incoming_Calls_thisweek,
-          Total_Incoming_Calls_today: data.Total_Incoming_Calls_today,
-        }));
-        setCalls((prev) => ({
-          ...prev,
-          Total_Active_Calls: data.Total_Active_Calls,
-          Total_Closed_Calls: data.Total_Closed_Calls,
-          Total_Pending_Calls: data.Total_Pending_Calls,
-          Average_time_to_Accept: data.Average_time_to_Accept,
-        }));
-        setFakeCall((prev) => ({
-          ...prev,
-          Total_Fake_Calls: data.Total_Fake_Calls,
-          Total_Fake_Calls_thismonth: data.Total_Fake_Calls_thismonth,
-          Total_Fake_Calls_thisweek: data.Total_Fake_Calls_thisweek,
-          Total_Fake_Calls_today: data.Total_Fake_Calls_today,
-        }));
-        setCallRejection((prev) => ({
-          ...prev,
-          Total_Rejected_Assignemnt: data.Total_Rejected_Assignemnt,
-          Total_Rejected_Assignemnt_thismonth: data.Total_Rejected_Assignemnt_thismonth,
-          Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
-          Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
-        }));
-        setSosUsers((prev) => ({
-          ...prev,
-          teamLeader: data.SOS_Team_Leads || 0,
-          onlineTeamLeader: data.SOS_Online_Team_Leads || 0,
-          deskExecutive: data.SOS_Desk_Executives || 0,
-          onlineDeskExecutive: data.SOS_Online_Desk_Executives || 0,
-          police: data.SOS_Police_Executives || 0,
-          onlinePolice: data.SOS_Online_Police_Executives || 0,
-          ambulance: data.SOS_Ambulance_Executives || 0,
-          onlineAmbulance: data.SOS_Online_Ambulance_Executives || 0,
-        }));
-
-        // Fetch vehicle alert statistics
-        try {
-          const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics();
-          const vehicleAlertData = await vehicleAlertResponse.data;
-
-          // Merge broadcast statistics from the main SOS dashboard response
-          setVehicleAlertStats({
-            ...vehicleAlertData,
-            broadcasts: {
-              ...vehicleAlertData.broadcasts,
-              total: data.Broadcast_Total || 0,
-              total_closed: data.Broadcast_Total_Closed || 0,
-              broadcast_today: data.Broadcast_Total_Today || 0,
-              closed_today: data.Broadcast_Total_Closed_Today || 0,
-              pending_today: data.Broadcast_Currently_Pending || 0,
-            }
-          });
-        } catch (error) {
-          console.error('Error fetching vehicle alert statistics:', error);
-        }
-
-      })();
-    }
-    if (userRoles === 'teamlead') {
-      (async () => {
-        const response = await UserServices.getSOSLeadDashboard();
-        const data = await response.data;
-        setTeamForLead((prev) => ({
-          ...prev,
-          Total_DeskExecutives: data.Total_DeskExecutives,
-          Live_DeskExecutives: data.Live_DeskExecutives,
-        }));
-        setIncomingCall((prev) => ({
-          ...prev,
-          Total_Incoming_Calls: data.Total_Incoming_Calls,
-          Total_Incoming_Calls_thismonth: data.Total_Incoming_Calls_thismonth,
-          Total_Incoming_Calls_thisweek: data.Total_Incoming_Calls_thisweek,
-          Total_Incoming_Calls_today: data.Total_Incoming_Calls_today,
-        }));
-        setCalls((prev) => ({
-          ...prev,
-          Total_Active_Calls: data.Total_Active_Calls,
-          Total_Closed_Calls: data.Total_Closed_Calls,
-          Total_Pending_Calls: data.Total_Pending_Calls,
-          Average_time_to_Accept: data.Average_time_to_Accept,
-        }));
-        setFakeCall((prev) => ({
-          ...prev,
-          Total_Fake_Calls: data.Total_Fake_Calls,
-          Total_Fake_Calls_thismonth: data.Total_Fake_Calls_thismonth,
-          Total_Fake_Calls_thisweek: data.Total_Fake_Calls_thisweek,
-          Total_Fake_Calls_today: data.Total_Fake_Calls_today,
-        }));
-        setCallRejection((prev) => ({
-          ...prev,
-          Total_Rejected_Assignemnt: data.Total_Rejected_Assignemnt,
-          Total_Rejected_Assignemnt_thismonth: data.Total_Rejected_Assignemnt_thismonth,
-          Total_Rejected_Assignemnt_thisweek: data.Total_Rejected_Assignemnt_thisweek,
-          Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
-        }));
-
-      })()
+    if (userRoles === 'sosadmin' || userRoles === 'teamlead') {
+      fetchSOSData();
     }
     if (userRoles === 'desk_ex') {
       (async () => {
@@ -2477,11 +2478,42 @@ const ActiveState = () => {
 
         {/* Analytics & Charts Tab */}
         <TabPanel value={activeTab} index={1}>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h5" gutterBottom>Analytics & Charts</Typography>
-            <Typography variant="body1" color="textSecondary">
-              Visual representation of your dashboard data
-            </Typography>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+            <Box>
+              <Typography variant="h5" gutterBottom>Analytics & Charts</Typography>
+              <Typography variant="body1" color="textSecondary">
+                Visual representation of your dashboard data
+              </Typography>
+            </Box>
+            
+            {/* Date Filter for SOS Admin */}
+            {(role === 'sosadmin' || role === 'teamlead') && (
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', backgroundColor: 'background.paper', p: 2, borderRadius: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <TextField
+                  label="Start Date"
+                  type="date"
+                  value={sosAdminStartDate}
+                  onChange={(e) => setSosAdminStartDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
+                <TextField
+                  label="End Date"
+                  type="date"
+                  value={sosAdminEndDate}
+                  onChange={(e) => setSosAdminEndDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  onClick={() => fetchSOSData(sosAdminStartDate, sosAdminEndDate)}
+                >
+                  Generate Report
+                </Button>
+              </Box>
+            )}
           </Box>
 
           {/* Dashboard Charts Grid */}
