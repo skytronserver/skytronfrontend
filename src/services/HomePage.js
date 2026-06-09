@@ -396,6 +396,12 @@ const getSchoolBusOverview = () => {
   );
 };
 
+const getPoiTypes = () => {
+  const http = getAxiosInstance();
+
+  return http.get("/api/poi/types/");
+};
+
 const getPoiList = (params = {}) => {
   const http = getAxiosInstance();
 
@@ -441,6 +447,8 @@ const HomePageService = {
   getReverseGeocode,
   getSchoolBusOverview,
   getPoiList,
+  getPoiTypes,
+
 };
 
 export default HomePageService;

@@ -68,55 +68,55 @@ const GPSHistoryMap = ({
   const poiMarkerRef = useRef(null);
   const poiSourceRef = useRef(null);
 
-useEffect(() => {
-  if (!map || !selectedPoi || !markerRef.current) return;
+  useEffect(() => {
+    if (!map || !selectedPoi || !markerRef.current) return;
 
-  const lat = parseFloat(selectedPoi.lat);
-  const lon = parseFloat(selectedPoi.lon);
+    const lat = parseFloat(selectedPoi.lat);
+    const lon = parseFloat(selectedPoi.lon);
 
-  if (!lat || !lon) return;
+    if (!lat || !lon) return;
 
-  // remove previous POI marker
-  if (poiMarkerRef.current) {
-poiSourceRef.current.removeFeature(poiMarkerRef.current);
-  }
+    // remove previous POI marker
+    if (poiMarkerRef.current) {
+      poiSourceRef.current.removeFeature(poiMarkerRef.current);
+    }
 
-  const poiFeature = new Feature({
-    geometry: new Point(
-      fromLonLat([lon, lat])
-    ),
-  });
+    const poiFeature = new Feature({
+      geometry: new Point(
+        fromLonLat([lon, lat])
+      ),
+    });
 
-  poiFeature.setStyle(
-    new Style({
-      image: new CircleStyle({
-        radius: 10,
-        fill: new Fill({
-          color: "#ff0000",
+    poiFeature.setStyle(
+      new Style({
+        image: new CircleStyle({
+          radius: 10,
+          fill: new Fill({
+            color: "#ff0000",
+          }),
+          stroke: new Stroke({
+            color: "#ffffff",
+            width: 2,
+          }),
         }),
-        stroke: new Stroke({
-          color: "#ffffff",
-          width: 2,
+        text: new Text({
+          text: selectedPoi.name,
+          offsetY: -20,
         }),
-      }),
-      text: new Text({
-        text: selectedPoi.name,
-        offsetY: -20,
-      }),
-    })
-  );
+      })
+    );
 
-poiSourceRef.current.addFeature(poiFeature);
+    poiSourceRef.current.addFeature(poiFeature);
 
-  poiMarkerRef.current = poiFeature;
+    poiMarkerRef.current = poiFeature;
 
-  map.getView().animate({
-    center: fromLonLat([lon, lat]),
-    zoom: 18,
-    duration: 1000,
-  });
+    map.getView().animate({
+      center: fromLonLat([lon, lat]),
+      zoom: 18,
+      duration: 1000,
+    });
 
-}, [selectedPoi, map]);
+  }, [selectedPoi, map]);
 
   function getStatusInfo(data) {
     if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
@@ -139,129 +139,129 @@ poiSourceRef.current.addFeature(poiFeature);
   }
 
   const interpolate = (start, end, t) => {
-  return start + (end - start) * t;
-};
-
-  const getSmoothedCoordinate = (data, index) => {
-  let sumLat = 0;
-  let sumLon = 0;
-  let count = 0;
-
-  const usedPoints = [];
-
-  for (let i = index - 2; i <= index + 2; i++) {
-    if (data[i]) {
-      const lat = parseFloat(data[i].lat);
-      const lon = parseFloat(data[i].lon);
-
-      sumLat += lat;
-      sumLon += lon;
-      count++;
-
-      usedPoints.push({ lat, lon });
-    }
-  }
-
-  const avg = {
-    lat: sumLat / count,
-    lon: sumLon / count,
+    return start + (end - start) * t;
   };
 
-  console.log(" INDEX:", index);
-  console.log(" USED POINTS:", usedPoints);
-  console.log(" AVERAGE:", avg);
+  const getSmoothedCoordinate = (data, index) => {
+    let sumLat = 0;
+    let sumLon = 0;
+    let count = 0;
 
-  return avg;
-};
+    const usedPoints = [];
 
-function playAnimation() {
-  isPlayingRef.current = true;
-  setIsPlaying(true);
-  overlayRef.current.style.display = "none";
+    for (let i = index - 2; i <= index + 2; i++) {
+      if (data[i]) {
+        const lat = parseFloat(data[i].lat);
+        const lon = parseFloat(data[i].lon);
 
-  let lastTime = performance.now();
+        sumLat += lat;
+        sumLon += lon;
+        count++;
 
-  function animate(time) {
-    if (!isPlayingRef.current) return;
-
-    const delta = time - lastTime;
-    lastTime = time;
-
-    const speedFactor = Math.max(animationSpeedRef.current / 100, 0.2);
-    sliderValueRef.current += delta * 0.001 * speedFactor;
-
-    const baseIndex = Math.floor(sliderValueRef.current);
-    const nextIndex = baseIndex + 1;
-
-    //  HARD SAFETY CHECK (MOST IMPORTANT FIX)
-    if (
-      baseIndex >= mapData.length - 1 ||
-      nextIndex >= mapData.length ||
-      !mapData[baseIndex] ||
-      !mapData[nextIndex]
-    ) {
-      isPlayingRef.current = false;
-      setIsPlaying(false);
-      return;
+        usedPoints.push({ lat, lon });
+      }
     }
 
-    const currData = mapData[baseIndex];
-    const nextData = mapData[nextIndex];
+    const avg = {
+      lat: sumLat / count,
+      lon: sumLon / count,
+    };
 
-    const currTime = new Date(currData.et).getTime();
-    const nextTime = new Date(nextData.et).getTime();
+    console.log(" INDEX:", index);
+    console.log(" USED POINTS:", usedPoints);
+    console.log(" AVERAGE:", avg);
 
-    // EXTRA SAFETY (in case et missing)
-    if (!currData.et || !nextData.et) {
-      sliderValueRef.current = nextIndex;
-      setSliderValue(nextIndex);
+    return avg;
+  };
+
+  function playAnimation() {
+    isPlayingRef.current = true;
+    setIsPlaying(true);
+    overlayRef.current.style.display = "none";
+
+    let lastTime = performance.now();
+
+    function animate(time) {
+      if (!isPlayingRef.current) return;
+
+      const delta = time - lastTime;
+      lastTime = time;
+
+      const speedFactor = Math.max(animationSpeedRef.current / 100, 0.2);
+      sliderValueRef.current += delta * 0.001 * speedFactor;
+
+      const baseIndex = Math.floor(sliderValueRef.current);
+      const nextIndex = baseIndex + 1;
+
+      //  HARD SAFETY CHECK (MOST IMPORTANT FIX)
+      if (
+        baseIndex >= mapData.length - 1 ||
+        nextIndex >= mapData.length ||
+        !mapData[baseIndex] ||
+        !mapData[nextIndex]
+      ) {
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+        return;
+      }
+
+      const currData = mapData[baseIndex];
+      const nextData = mapData[nextIndex];
+
+      const currTime = new Date(currData.et).getTime();
+      const nextTime = new Date(nextData.et).getTime();
+
+      // EXTRA SAFETY (in case et missing)
+      if (!currData.et || !nextData.et) {
+        sliderValueRef.current = nextIndex;
+        setSliderValue(nextIndex);
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      const diffMinutes = (nextTime - currTime) / (1000 * 60);
+
+      // OFFLINE → DIRECT JUMP
+      if (diffMinutes > 5) {
+        sliderValueRef.current = nextIndex;
+        setSliderValue(nextIndex);
+
+        updateEmergencyPointer(nextData);
+
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      const t = sliderValueRef.current - baseIndex;
+
+      // STAY ON LINE
+      const current = {
+        lat: parseFloat(currData.lat),
+        lon: parseFloat(currData.lon),
+      };
+
+      const next = {
+        lat: parseFloat(nextData.lat),
+        lon: parseFloat(nextData.lon),
+      };
+
+      const lat = interpolate(current.lat, next.lat, t);
+      const lon = interpolate(current.lon, next.lon, t);
+
+      const fakeEntry = {
+        ...currData,
+        lat,
+        lon,
+      };
+
+      setSliderValue(baseIndex);
+      updateEmergencyPointer(fakeEntry);
+
       requestAnimationFrame(animate);
-      return;
     }
-
-    const diffMinutes = (nextTime - currTime) / (1000 * 60);
-
-    // OFFLINE → DIRECT JUMP
-    if (diffMinutes > 5) {
-      sliderValueRef.current = nextIndex;
-      setSliderValue(nextIndex);
-
-      updateEmergencyPointer(nextData);
-
-      requestAnimationFrame(animate);
-      return;
-    }
-
-    const t = sliderValueRef.current - baseIndex;
-
-    // STAY ON LINE
-    const current = {
-      lat: parseFloat(currData.lat),
-      lon: parseFloat(currData.lon),
-    };
-
-    const next = {
-      lat: parseFloat(nextData.lat),
-      lon: parseFloat(nextData.lon),
-    };
-
-    const lat = interpolate(current.lat, next.lat, t);
-    const lon = interpolate(current.lon, next.lon, t);
-
-    const fakeEntry = {
-      ...currData,
-      lat,
-      lon,
-    };
-
-    setSliderValue(baseIndex);
-    updateEmergencyPointer(fakeEntry);
 
     requestAnimationFrame(animate);
   }
-
-  requestAnimationFrame(animate);
-}
 
   const redM = new Style({
     image: new Icon({
@@ -479,14 +479,14 @@ function playAnimation() {
       const markerSource = new VectorSource();
       const poiSource = new VectorSource();
 
-const poiLayer = new VectorLayer({
-  source: poiSource,
-  zIndex: 9999,
-});
+      const poiLayer = new VectorLayer({
+        source: poiSource,
+        zIndex: 9999,
+      });
 
-initialMap.addLayer(poiLayer);
+      initialMap.addLayer(poiLayer);
 
-poiSourceRef.current = poiSource;
+      poiSourceRef.current = poiSource;
       const markerLayer = new VectorLayer({
         source: markerSource,
         zIndex: 100, // Ensure markers are above tile layers
@@ -514,143 +514,143 @@ poiSourceRef.current = poiSource;
 
   // Function to add markers and lines when data is loaded
   const loadMarkersAndLines = (data) => {
-  if (!data || data.length < 2) return;
+    if (!data || data.length < 2) return;
 
-  markerRef.current.clear();
-  allFeaturesRef.current = [];
+    markerRef.current.clear();
+    allFeaturesRef.current = [];
 
-  let isOfflineBreak = false; // TRACK BREAK
+    let isOfflineBreak = false; // TRACK BREAK
 
-  for (let i = 0; i < data.length - 1; i++) {
-    const curr = data[i];
-    const next = data[i + 1];
+    for (let i = 0; i < data.length - 1; i++) {
+      const curr = data[i];
+      const next = data[i + 1];
 
-    const currCoord = fromLonLat([
-      parseFloat(curr.lon),
-      parseFloat(curr.lat),
-    ]);
+      const currCoord = fromLonLat([
+        parseFloat(curr.lon),
+        parseFloat(curr.lat),
+      ]);
 
-    const nextCoord = fromLonLat([
-      parseFloat(next.lon),
-      parseFloat(next.lat),
-    ]);
+      const nextCoord = fromLonLat([
+        parseFloat(next.lon),
+        parseFloat(next.lat),
+      ]);
 
-    const currTime = new Date(curr.et).getTime();
-    const nextTime = new Date(next.et).getTime();
-    const diffMinutes = (nextTime - currTime) / (1000 * 60);
+      const currTime = new Date(curr.et).getTime();
+      const nextTime = new Date(next.et).getTime();
+      const diffMinutes = (nextTime - currTime) / (1000 * 60);
 
-    // OFFLINE DETECTED
-    if (diffMinutes > 5) {
-      isOfflineBreak = true;
+      // OFFLINE DETECTED
+      if (diffMinutes > 5) {
+        isOfflineBreak = true;
 
-      const offlineStyle = new Style({
-        image: new CircleStyle({
-          radius: 4,
-          fill: new Fill({ color: "#9e9e9e" }),
-        }),
+        const offlineStyle = new Style({
+          image: new CircleStyle({
+            radius: 4,
+            fill: new Fill({ color: "#9e9e9e" }),
+          }),
+        });
+
+        const startPoint = new Feature({
+          geometry: new Point(currCoord),
+        });
+        startPoint.setStyle(offlineStyle);
+
+        const endPoint = new Feature({
+          geometry: new Point(nextCoord),
+        });
+        endPoint.setStyle(offlineStyle);
+
+        markerRef.current.addFeature(startPoint);
+        markerRef.current.addFeature(endPoint);
+
+        allFeaturesRef.current.push(startPoint, endPoint);
+
+        continue; // STOP LINE
+      }
+
+      // IMPORTANT: SKIP FIRST LINE AFTER OFFLINE
+      if (isOfflineBreak) {
+        isOfflineBreak = false;
+        continue;
+      }
+
+      // NORMAL LINE
+      const statusInfo = getStatusInfo(curr);
+
+      const segment = new Feature({
+        geometry: new LineString([currCoord, nextCoord]),
       });
 
-      const startPoint = new Feature({
-        geometry: new Point(currCoord),
+      segment.setStyle(
+        new Style({
+          stroke: new Stroke({
+            color: statusInfo.colorHex,
+            width: 3,
+          }),
+        })
+      );
+
+      markerRef.current.addFeature(segment);
+      allFeaturesRef.current.push(segment);
+    }
+
+    // POINTS (no extra offline clutter)
+    data.forEach((entry, index) => {
+      const prev = data[index - 1];
+
+      if (prev) {
+        const diffMinutes =
+          (new Date(entry.et) - new Date(prev.et)) / (1000 * 60);
+
+        if (diffMinutes > 5) return;
+      }
+
+      const point = new Feature({
+        geometry: new Point(
+          fromLonLat([parseFloat(entry.lon), parseFloat(entry.lat)])
+        ),
+        data: entry,
       });
-      startPoint.setStyle(offlineStyle);
 
-      const endPoint = new Feature({
-        geometry: new Point(nextCoord),
+      const statusInfo = getStatusInfo(entry);
+
+      point.setStyle(
+        new Style({
+          image: new CircleStyle({
+            radius: 2,
+            fill: new Fill({ color: statusInfo.colorHex }),
+          }),
+        })
+      );
+
+      markerRef.current.addFeature(point);
+      allFeaturesRef.current.push(point);
+    });
+
+    attachClickToPoints();
+
+    setIsPlaying(false);
+    setDownloadStatus("Play");
+
+    if (data.length > 0) {
+      setSliderValue(0);
+      sliderValueRef.current = 0;
+      setCurrentData(data[0]);
+      updateEmergencyPointer(data[0]);
+
+      const first = data[0];
+      const center = fromLonLat([
+        parseFloat(first.lon),
+        parseFloat(first.lat),
+      ]);
+
+      map.getView().animate({
+        center,
+        zoom: 15,
+        duration: 1000,
       });
-      endPoint.setStyle(offlineStyle);
-
-      markerRef.current.addFeature(startPoint);
-      markerRef.current.addFeature(endPoint);
-
-      allFeaturesRef.current.push(startPoint, endPoint);
-
-      continue; // STOP LINE
     }
-
-    // IMPORTANT: SKIP FIRST LINE AFTER OFFLINE
-    if (isOfflineBreak) {
-      isOfflineBreak = false;
-      continue;
-    }
-
-    // NORMAL LINE
-    const statusInfo = getStatusInfo(curr);
-
-    const segment = new Feature({
-      geometry: new LineString([currCoord, nextCoord]),
-    });
-
-    segment.setStyle(
-      new Style({
-        stroke: new Stroke({
-          color: statusInfo.colorHex,
-          width: 3,
-        }),
-      })
-    );
-
-    markerRef.current.addFeature(segment);
-    allFeaturesRef.current.push(segment);
-  }
-
-  // POINTS (no extra offline clutter)
-  data.forEach((entry, index) => {
-    const prev = data[index - 1];
-
-    if (prev) {
-      const diffMinutes =
-        (new Date(entry.et) - new Date(prev.et)) / (1000 * 60);
-
-      if (diffMinutes > 5) return;
-    }
-
-    const point = new Feature({
-      geometry: new Point(
-        fromLonLat([parseFloat(entry.lon), parseFloat(entry.lat)])
-      ),
-      data: entry,
-    });
-
-    const statusInfo = getStatusInfo(entry);
-
-    point.setStyle(
-      new Style({
-        image: new CircleStyle({
-          radius: 2,
-          fill: new Fill({ color: statusInfo.colorHex }),
-        }),
-      })
-    );
-
-    markerRef.current.addFeature(point);
-    allFeaturesRef.current.push(point);
-  });
-
-  attachClickToPoints();
-
-  setIsPlaying(false);
-  setDownloadStatus("Play");
-
-  if (data.length > 0) {
-    setSliderValue(0);
-    sliderValueRef.current = 0;
-    setCurrentData(data[0]);
-    updateEmergencyPointer(data[0]);
-
-    const first = data[0];
-    const center = fromLonLat([
-      parseFloat(first.lon),
-      parseFloat(first.lat),
-    ]);
-
-    map.getView().animate({
-      center,
-      zoom: 15,
-      duration: 1000,
-    });
-  }
-};
+  };
 
   // Attach click event to each point feature
   const attachClickToPoints = () => {
@@ -687,109 +687,109 @@ poiSourceRef.current = poiSource;
     }
   };
 
- const updateEmergencyPointer = (entry) => {
-  if (!entry) return;
+  const updateEmergencyPointer = (entry) => {
+    if (!entry) return;
 
-  setCurrentData(entry);
+    setCurrentData(entry);
 
-  const currentCoordinates = fromLonLat([
-    parseFloat(entry.lon),
-    parseFloat(entry.lat),
-  ]);
+    const currentCoordinates = fromLonLat([
+      parseFloat(entry.lon),
+      parseFloat(entry.lat),
+    ]);
 
-  const statusInfo = getStatusInfo(entry);
+    const statusInfo = getStatusInfo(entry);
 
-  const categoryData = entry?.device_tag_info?.category_info?.category;
-  const categoryName =
-    typeof categoryData === "object"
-      ? categoryData?.category
-      : categoryData;
+    const categoryData = entry?.device_tag_info?.category_info?.category;
+    const categoryName =
+      typeof categoryData === "object"
+        ? categoryData?.category
+        : categoryData;
 
-  const normalizedType = categoryName
-    ? categoryName.toLowerCase().replace(/\s+/g, "_")
-    : "bus";
+    const normalizedType = categoryName
+      ? categoryName.toLowerCase().replace(/\s+/g, "_")
+      : "bus";
 
-  const availableTypes = [
-    "ambulance",
-    "bus",
-    "dumper",
-    "police",
-    "school_bus",
-    "tanker",
-    "taxi",
-    "truck",
-  ];
+    const availableTypes = [
+      "ambulance",
+      "bus",
+      "dumper",
+      "police",
+      "school_bus",
+      "tanker",
+      "taxi",
+      "truck",
+    ];
 
-  const iconType = availableTypes.includes(normalizedType)
-    ? normalizedType
-    : "bus";
+    const iconType = availableTypes.includes(normalizedType)
+      ? normalizedType
+      : "bus";
 
-  let iconSrc;
-  try {
-    iconSrc = require(`../../assets/images/${statusInfo.colorKey}/${iconType}.png`);
-  } catch {
-    iconSrc = require(`../../assets/images/${statusInfo.colorKey}/bus.png`);
-  }
+    let iconSrc;
+    try {
+      iconSrc = require(`../../assets/images/${statusInfo.colorKey}/${iconType}.png`);
+    } catch {
+      iconSrc = require(`../../assets/images/${statusInfo.colorKey}/bus.png`);
+    }
 
-  const iconStyle = new Style({
-    image: new Icon({
-      anchor: [0.5, 0.8],
-      src: iconSrc,
-      scale: 0.07,
-    }),
-  });
-
-  // MOVE MARKER
-  if (animationMarkerRef.current) {
-    animationMarkerRef.current.getGeometry().setCoordinates(currentCoordinates);
-    animationMarkerRef.current.setStyle(iconStyle);
-  } else {
-    const marker = new Feature({
-      geometry: new Point(currentCoordinates),
+    const iconStyle = new Style({
+      image: new Icon({
+        anchor: [0.5, 0.8],
+        src: iconSrc,
+        scale: 0.07,
+      }),
     });
-    marker.setStyle(iconStyle);
-    markerRef.current.addFeature(marker);
-    animationMarkerRef.current = marker;
-  }
 
-  // MOVE INFO BOX
-  if (infoOverlayRef.current) {
-    infoOverlayRef.current.setPosition(currentCoordinates);
-    infoOverlayRef.current.setOffset([0, -110]);
-  }
+    // MOVE MARKER
+    if (animationMarkerRef.current) {
+      animationMarkerRef.current.getGeometry().setCoordinates(currentCoordinates);
+      animationMarkerRef.current.setStyle(iconStyle);
+    } else {
+      const marker = new Feature({
+        geometry: new Point(currentCoordinates),
+      });
+      marker.setStyle(iconStyle);
+      markerRef.current.addFeature(marker);
+      animationMarkerRef.current = marker;
+    }
 
-  // FIX: PERFECT SYNC MAP MOVEMENT
-  if (map) {
-    map.getView().setCenter(currentCoordinates);
-  }
-};
+    // MOVE INFO BOX
+    if (infoOverlayRef.current) {
+      infoOverlayRef.current.setPosition(currentCoordinates);
+      infoOverlayRef.current.setOffset([0, -110]);
+    }
+
+    // FIX: PERFECT SYNC MAP MOVEMENT
+    if (map) {
+      map.getView().setCenter(currentCoordinates);
+    }
+  };
 
   const handleSliderChange = (event, value) => {
-  setSliderValue(value);
-  sliderValueRef.current = value;
+    setSliderValue(value);
+    sliderValueRef.current = value;
 
-  const curr = mapData[value];
-  const prev = mapData[value - 1];
+    const curr = mapData[value];
+    const prev = mapData[value - 1];
 
-  if (prev) {
-    const diffMinutes =
-      (new Date(curr.et) - new Date(prev.et)) / (1000 * 60);
+    if (prev) {
+      const diffMinutes =
+        (new Date(curr.et) - new Date(prev.et)) / (1000 * 60);
 
-    // OFFLINE → DIRECT POSITION
-    if (diffMinutes > 5) {
-      updateEmergencyPointer(curr);
-      return;
+      // OFFLINE → DIRECT POSITION
+      if (diffMinutes > 5) {
+        updateEmergencyPointer(curr);
+        return;
+      }
     }
-  }
 
-  // USE ORIGINAL COORDINATES (no smoothing drift)
-  updateEmergencyPointer(curr);
-};
+    // USE ORIGINAL COORDINATES (no smoothing drift)
+    updateEmergencyPointer(curr);
+  };
 
- const pauseAnimation = () => {
-  isPlayingRef.current = false; // IMPORTANT
-  setIsPlaying(false);
-};
+  const pauseAnimation = () => {
+    isPlayingRef.current = false; // IMPORTANT
+    setIsPlaying(false);
+  };
 
   const restartAnimation = () => {
     setSliderValue(0);
@@ -1181,8 +1181,8 @@ poiSourceRef.current = poiSource;
   // }, [animationSpeed]);
 
   useEffect(() => {
-  animationSpeedRef.current = animationSpeed;
-}, [animationSpeed]);
+    animationSpeedRef.current = animationSpeed;
+  }, [animationSpeed]);
 
   useEffect(() => {
     if (mapData.length > 0 && markerRef.current) {

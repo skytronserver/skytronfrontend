@@ -41,8 +41,11 @@ const HistoryPlayback = () => {
   const [polygon, setPolygon] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [poiOptions, setPoiOptions] = useState([]);
-const [selectedPoi, setSelectedPoi] = useState(null);
-const [poiLoading, setPoiLoading] = useState(false);
+  const [selectedPoi, setSelectedPoi] = useState(null);
+  const [poiLoading, setPoiLoading] = useState(false);
+  const [poiTypes, setPoiTypes] = useState([]);
+  const [selectedPoiType, setSelectedPoiType] = useState(null);
+  const [poiTypeLoading, setPoiTypeLoading] = useState(false);
 
   // Fetch vehicle list on mount
   useEffect(() => {
@@ -70,22 +73,66 @@ const [poiLoading, setPoiLoading] = useState(false);
     };
   }, []);
 
+  useEffect(() => {
+    const fetchPoiTypes = async () => {
+      try {
+        setPoiTypeLoading(true);
+
+        const response = await HomePageService.getPoiTypes();
+
+        setPoiTypes(response?.data?.data || []);
+      } catch (error) {
+        console.error("POI Types Error:", error);
+      } finally {
+        setPoiTypeLoading(false);
+      }
+    };
+
+    fetchPoiTypes();
+  }, []);
+
   const fetchPois = async (searchText) => {
-  try {
-    setPoiLoading(true);
+    try {
+      setPoiLoading(true);
 
-    const response = await HomePageService.getPoiList({
-      name: searchText,
-    });
+      const response = await HomePageService.getPoiList({
+        name: searchText,
+        use_type: selectedPoiType || "",
+      });
 
 
-    setPoiOptions(response?.data?.data || []);
-  } catch (error) {
+      setPoiOptions(response?.data?.data || []);
+    } catch (error) {
+      setPoiOptions([]);
+    } finally {
+      setPoiLoading(false);
+    }
+  };
+
+  const handlePoiTypeChange = async (event, value) => {
+    setSelectedPoiType(value);
+
+    setSelectedPoi(null);
+    setPoi("");
     setPoiOptions([]);
-  } finally {
-    setPoiLoading(false);
-  }
-};
+
+    if (!value) return;
+
+    try {
+      setPoiLoading(true);
+
+      const response = await HomePageService.getPoiList({
+        use_type: value,
+      });
+
+      setPoiOptions(response?.data?.data || []);
+    } catch (err) {
+      console.error(err);
+      setPoiOptions([]);
+    } finally {
+      setPoiLoading(false);
+    }
+  };
 
   // Fetch GPS data only when vehicle map is shown
   useEffect(() => {
@@ -303,6 +350,22 @@ const [poiLoading, setPoiLoading] = useState(false);
                   />
                 </Grid>
                 <Grid item md={3} sm={6} xs={12}>
+                  <Autocomplete
+                    options={poiTypes}
+                    loading={poiTypeLoading}
+                    value={selectedPoiType}
+                    onChange={handlePoiTypeChange}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="POI Type"
+                        size="small"
+                        fullWidth
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item md={3} sm={6} xs={12}>
                   {/* <TextField
                     fullWidth
                     label="POI"
@@ -312,56 +375,66 @@ const [poiLoading, setPoiLoading] = useState(false);
                     size="small"
                     InputProps={{ sx: { bgcolor: 'white' } }}
                   /> */}
-    <Autocomplete
-  options={poiOptions}
-  loading={poiLoading}
-  value={selectedPoi}
-  isOptionEqualToValue={(option, value) =>
-    option?.id === value?.id
-  }
-  filterOptions={(x) => x}
-  getOptionLabel={(option) =>
-    option?.name || ""
-  }
-  onInputChange={(event, value, reason) => {
-  if (reason === "input") {
-    setPoi(value);
+                  <Autocomplete
+                    options={poiOptions}
+                    loading={poiLoading}
+                    value={selectedPoi}
+                    disabled={!selectedPoiType}
+                    isOptionEqualToValue={(option, value) =>
+                      option?.id === value?.id
+                    }
+                    filterOptions={(x) => x}
+                    getOptionLabel={(option) =>
+                      option?.name || ""
+                    }
+                    onInputChange={(event, value, reason) => {
+                      if (reason !== "input") return;
 
-    if (value.length >= 2) {
-      fetchPois(value);
-    }
-  }
-}}
-  onChange={(event, value) => {
+                      if (!selectedPoiType) return;
 
-    setSelectedPoi(value);
+                      setPoi(value);
+                      fetchPois(value);
+                    }}
+                    onChange={(event, value) => {
+                      if (!selectedPoiType) return;
 
-    if (value) {
-      setPoi(value.name);
-    }
-  }}
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      label="POI"
-      size="small"
-      fullWidth
-      InputProps={{
-        ...params.InputProps,
-        endAdornment: (
-          <>
-            {poiLoading ? (
-              <CircularProgress size={20} />
-            ) : null}
-            {params.InputProps.endAdornment}
-          </>
-        ),
-      }}
-    />
-  )}
-/>
+                      setSelectedPoi(value);
+
+                      if (value) {
+                        setPoi(value.name);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={
+                          selectedPoiType
+                            ? `POI (${selectedPoiType})`
+                            : "Select POI Type First"
+                        }
+                        placeholder={
+                          selectedPoiType
+                            ? "Search POI..."
+                            : "Choose POI Type"
+                        }
+                        size="small"
+                        fullWidth
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <>
+                              {poiLoading ? (
+                                <CircularProgress size={20} />
+                              ) : null}
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
+                  />
                 </Grid>
-                <Grid item md={3} sm={6} xs={12}>
+                {/* <Grid item md={3} sm={6} xs={12}>
                   <TextField
                     fullWidth
                     label="Roads"
@@ -382,7 +455,7 @@ const [poiLoading, setPoiLoading] = useState(false);
                     size="small"
                     InputProps={{ sx: { bgcolor: 'white' } }}
                   />
-                </Grid>
+                </Grid> */}
               </Grid>
             </Collapse>
           </Grid>
