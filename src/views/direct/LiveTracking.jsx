@@ -26,6 +26,7 @@ import {
   Switch,
   FormControlLabel,
   Checkbox,
+  Autocomplete
 } from "@mui/material";
 
 import MainCard from "../../ui-component/cards/MainCard";
@@ -86,6 +87,13 @@ const LiveTracking = () => {
   const fullRawRef = useRef([]);  // raw items from API (unprocessed)
   const listContainerRef = useRef(null);
   const [visibleCount, setVisibleCount] = useState(0);
+  const [poiOptions, setPoiOptions] = useState([]);
+    const [selectedPoi, setSelectedPoi] = useState(null);
+    const [poiLoading, setPoiLoading] = useState(false);
+    const [poiTypes, setPoiTypes] = useState([]);
+    const [selectedPoiType, setSelectedPoiType] = useState(null);
+    const [poiTypeLoading, setPoiTypeLoading] = useState(false);
+  
 
   // Handle input changes
   const handleInput = (event) => {
@@ -113,6 +121,65 @@ const LiveTracking = () => {
       setSpeedLimit(value);
     }
   };
+
+  useEffect(() => {
+  const fetchPoiTypes = async () => {
+    try {
+      setPoiTypeLoading(true);
+
+      const response = await HomePageService.getPoiTypes();
+
+      setPoiTypes(response?.data?.data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPoiTypeLoading(false);
+    }
+  };
+
+  fetchPoiTypes();
+}, []);
+
+const fetchPois = async (searchText = "") => {
+  try {
+    setPoiLoading(true);
+
+    const response = await HomePageService.getPoiList({
+      name: searchText,
+      use_type: selectedPoiType || "",
+    });
+
+    setPoiOptions(response?.data?.data || []);
+  } catch (error) {
+    setPoiOptions([]);
+  } finally {
+    setPoiLoading(false);
+  }
+};
+
+const handlePoiTypeChange = async (event, value) => {
+  setSelectedPoiType(value);
+
+  setSelectedPoi(null);
+  setPoi("");
+  setPoiOptions([]);
+
+  if (!value) return;
+
+  try {
+    setPoiLoading(true);
+
+    const response = await HomePageService.getPoiList({
+      use_type: value,
+    });
+
+    setPoiOptions(response?.data?.data || []);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setPoiLoading(false);
+  }
+};
 
   const computeRow = (processedItem) => {
     // Extract block_name and route_name
@@ -1135,20 +1202,77 @@ const LiveTracking = () => {
                       </Grid>
                       <Grid item xs={12}>
                         <Box display="flex" flexDirection="column" gap={0.5}>
-                           <Box display="flex" gap={1}>
-                            <TextField
-                              fullWidth
-                              label="POI"
-                              type="text"
-                              value={poi}
-                              name="poi"
-                              onChange={handleInput}
-                              variant="outlined"
-                              size="small"
-                              InputProps={{ sx: { bgcolor: 'white' } }}
-                            />
-                          </Box>
-                          <Box display="flex" flexWrap="wrap" gap={2}>
+                           <Grid container spacing={1}>
+  <Grid item xs={6}>
+    <Autocomplete
+      options={poiTypes}
+      loading={poiTypeLoading}
+      value={selectedPoiType}
+      onChange={handlePoiTypeChange}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="POI Type"
+          size="small"
+        />
+      )}
+    />
+  </Grid>
+
+  <Grid item xs={6}>
+    <Autocomplete
+      options={poiOptions}
+      loading={poiLoading}
+      value={selectedPoi}
+      disabled={!selectedPoiType}
+      filterOptions={(x) => x}
+      getOptionLabel={(option) => option?.name || ""}
+      isOptionEqualToValue={(option, value) =>
+        option?.id === value?.id
+      }
+      onInputChange={(event, value, reason) => {
+        if (reason !== "input") return;
+
+        if (!selectedPoiType) return;
+
+        fetchPois(value);
+      }}
+      onChange={(event, value) => {
+        if (!selectedPoiType) return;
+
+        setSelectedPoi(value);
+        console.log("SELECTED POI", value);
+
+        if (value) {
+          setPoi(value.name);
+        } else {
+          setPoi("");
+        }
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label={
+            selectedPoiType
+              ? `POI (${selectedPoiType})`
+              : "Select POI Type First"
+          }
+          size="small"
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: (
+              <>
+                {poiLoading && <CircularProgress size={20} />}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
+        />
+      )}
+    />
+  </Grid>
+</Grid>
+                          {/* <Box display="flex" flexWrap="wrap" gap={2}>
                             <FormControlLabel
                               control={
                                 <Checkbox
@@ -1169,10 +1293,10 @@ const LiveTracking = () => {
                               }
                               label="POI as Polygon"
                             />
-                          </Box>
+                          </Box> */}
                         </Box>
                       </Grid>
-                      <Grid item xs={6}>
+                      {/* <Grid item xs={6}>
                         <TextField
                           fullWidth
                           label="Roads"
@@ -1197,7 +1321,7 @@ const LiveTracking = () => {
                           size="small"
                           InputProps={{ sx: { bgcolor: 'white' } }}
                         />
-                      </Grid>
+                      </Grid> */}
                       {userRole === "stateadmin" && (
                         <>
                           <Grid item xs={6}>
@@ -1463,6 +1587,7 @@ const LiveTracking = () => {
             markerLabelMode={markerLabelMode}
             nmrArea={nmrArea}
             allMode={typeFilter === "default"}
+            selectedPoi={selectedPoi}
           />
         </div>
       </div>

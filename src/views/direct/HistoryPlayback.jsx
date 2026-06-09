@@ -40,6 +40,12 @@ const HistoryPlayback = () => {
   const [roads, setRoads] = useState("");
   const [polygon, setPolygon] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [poiOptions, setPoiOptions] = useState([]);
+  const [selectedPoi, setSelectedPoi] = useState(null);
+  const [poiLoading, setPoiLoading] = useState(false);
+  const [poiTypes, setPoiTypes] = useState([]);
+  const [selectedPoiType, setSelectedPoiType] = useState(null);
+  const [poiTypeLoading, setPoiTypeLoading] = useState(false);
 
   // Fetch vehicle list on mount
   useEffect(() => {
@@ -66,6 +72,67 @@ const HistoryPlayback = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const fetchPoiTypes = async () => {
+      try {
+        setPoiTypeLoading(true);
+
+        const response = await HomePageService.getPoiTypes();
+
+        setPoiTypes(response?.data?.data || []);
+      } catch (error) {
+        console.error("POI Types Error:", error);
+      } finally {
+        setPoiTypeLoading(false);
+      }
+    };
+
+    fetchPoiTypes();
+  }, []);
+
+  const fetchPois = async (searchText) => {
+    try {
+      setPoiLoading(true);
+
+      const response = await HomePageService.getPoiList({
+        name: searchText,
+        use_type: selectedPoiType || "",
+      });
+
+
+      setPoiOptions(response?.data?.data || []);
+    } catch (error) {
+      setPoiOptions([]);
+    } finally {
+      setPoiLoading(false);
+    }
+  };
+
+  const handlePoiTypeChange = async (event, value) => {
+    setSelectedPoiType(value);
+
+    setSelectedPoi(null);
+    setPoi("");
+    setPoiOptions([]);
+
+    if (!value) return;
+
+    try {
+      setPoiLoading(true);
+
+      const response = await HomePageService.getPoiList({
+        use_type: value,
+      });
+
+      setPoiOptions(response?.data?.data || []);
+    } catch (err) {
+      console.error(err);
+      setPoiOptions([]);
+    } finally {
+      setPoiLoading(false);
+    }
+  };
 
   // Fetch GPS data only when vehicle map is shown
   useEffect(() => {
@@ -283,7 +350,23 @@ const HistoryPlayback = () => {
                   />
                 </Grid>
                 <Grid item md={3} sm={6} xs={12}>
-                  <TextField
+                  <Autocomplete
+                    options={poiTypes}
+                    loading={poiTypeLoading}
+                    value={selectedPoiType}
+                    onChange={handlePoiTypeChange}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="POI Type"
+                        size="small"
+                        fullWidth
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item md={3} sm={6} xs={12}>
+                  {/* <TextField
                     fullWidth
                     label="POI"
                     value={poi}
@@ -291,9 +374,67 @@ const HistoryPlayback = () => {
                     variant="outlined"
                     size="small"
                     InputProps={{ sx: { bgcolor: 'white' } }}
+                  /> */}
+                  <Autocomplete
+                    options={poiOptions}
+                    loading={poiLoading}
+                    value={selectedPoi}
+                    disabled={!selectedPoiType}
+                    isOptionEqualToValue={(option, value) =>
+                      option?.id === value?.id
+                    }
+                    filterOptions={(x) => x}
+                    getOptionLabel={(option) =>
+                      option?.name || ""
+                    }
+                    onInputChange={(event, value, reason) => {
+                      if (reason !== "input") return;
+
+                      if (!selectedPoiType) return;
+
+                      setPoi(value);
+                      fetchPois(value);
+                    }}
+                    onChange={(event, value) => {
+                      if (!selectedPoiType) return;
+
+                      setSelectedPoi(value);
+
+                      if (value) {
+                        setPoi(value.name);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={
+                          selectedPoiType
+                            ? `POI (${selectedPoiType})`
+                            : "Select POI Type First"
+                        }
+                        placeholder={
+                          selectedPoiType
+                            ? "Search POI..."
+                            : "Choose POI Type"
+                        }
+                        size="small"
+                        fullWidth
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <>
+                              {poiLoading ? (
+                                <CircularProgress size={20} />
+                              ) : null}
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
                   />
                 </Grid>
-                <Grid item md={3} sm={6} xs={12}>
+                {/* <Grid item md={3} sm={6} xs={12}>
                   <TextField
                     fullWidth
                     label="Roads"
@@ -314,7 +455,7 @@ const HistoryPlayback = () => {
                     size="small"
                     InputProps={{ sx: { bgcolor: 'white' } }}
                   />
-                </Grid>
+                </Grid> */}
               </Grid>
             </Collapse>
           </Grid>
@@ -384,6 +525,7 @@ const HistoryPlayback = () => {
             downloadStatus={downloadStatus}
             setDownloadStatus={setDownloadStatus}
             poi={poi}
+            selectedPoi={selectedPoi}
             owner={owner}
             roads={roads}
             polygon={polygon}
