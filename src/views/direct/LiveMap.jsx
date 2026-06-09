@@ -24,6 +24,18 @@ import {
     Switch,
     FormControlLabel
 } from "@mui/material";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import { Vector as VectorSource } from "ol/source";
+import { Vector as VectorLayer } from "ol/layer";
+import { fromLonLat } from "ol/proj";
+import {
+  Style,
+  Fill,
+  Stroke,
+  Circle as CircleStyle,
+  Text
+} from "ol/style";
 import {
     Search as SearchIcon,
     LocationOn as LocationOnIcon,
@@ -39,20 +51,14 @@ import {
     Terrain as TerrainIcon
 } from "@mui/icons-material";
 import { Map, View } from "ol";
-import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { Vector as VectorSource, TileWMS, XYZ, Cluster } from "ol/source";
+import { Tile as TileLayer,  } from "ol/layer";
+import { TileWMS, XYZ, Cluster } from "ol/source";
 import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
 import {
     Icon,
-    Style,
-    Fill,
-    Stroke,
-    Circle as CircleStyle,
-    Text,
+    Stroke as OlStroke,
 } from "ol/style";
 import { Draw } from "ol/interaction";
-import Feature from "ol/Feature";
-import Point from "ol/geom/Point";
 import Polygon from "ol/geom/Polygon";
 import Circle from "ol/geom/Circle";
 import LineString from "ol/geom/LineString";
@@ -886,6 +892,7 @@ const MapComponent = ({
     incidentData = [],
     width = "100%",
     height = "400px",
+      selectedPoi,
     onVehicleClick,
     onPolygonComplete,
     autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
@@ -915,7 +922,52 @@ const MapComponent = ({
     const [incidentVectorLayer, setIncidentVectorLayer] = useState(null);
     const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
     const [pois, setPois] = useState([]);
+    
+useEffect(() => {
+    if (!map || !selectedPoi || !poiVectorLayer) return;
 
+    poiVectorLayer.setVisible(true);
+
+    const lat = Number(selectedPoi.lat);
+    const lon = Number(selectedPoi.lon);
+
+    console.log("POI LAT/LON", lat, lon);
+
+    const source = poiVectorLayer.getSource();
+
+    source.clear();
+
+    const feature = new Feature({
+        geometry: new Point([lon, lat]),
+    });
+
+    feature.setStyle(
+        new Style({
+            image: new CircleStyle({
+                radius: 10,
+                fill: new Fill({ color: "red" }),
+                stroke: new Stroke({
+                    color: "#fff",
+                    width: 2,
+                }),
+            }),
+        })
+    );
+
+    source.addFeature(feature);
+
+    console.log(
+        "POI FEATURES COUNT",
+        source.getFeatures().length
+    );
+
+    map.getView().animate({
+        center: [lon, lat],
+        zoom: 17,
+        duration: 1000,
+    });
+
+}, [selectedPoi, map, poiVectorLayer]);
 
     const [soiLayerVisibility, setSoiLayerVisibility] = useState({
         states: false,
