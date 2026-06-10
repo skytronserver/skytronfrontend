@@ -19,15 +19,6 @@ const stateTransportAnalytics = {
       icon: icons.IconDeviceAnalytics,
       children: [
         {
-          id: 'summary-dashboard',
-          title: 'Summary Dashboard',
-          type: 'item',
-          url: '/analytics/summary',
-          icon: icons.IconDashboard,
-          breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin']
-        },
-        {
           id: 'trip-analysis',
           title: 'Trip Analysis',
           type: 'item',
@@ -51,15 +42,6 @@ const stateTransportAnalytics = {
           type: 'item',
           url: '/analytics/vehicle-alerts',
           icon: icons.IconAlertCircle,
-          breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin']
-        },
-        {
-          id: 'data-analytics',
-          title: 'Data Analytics',
-          type: 'item',
-          url: '/analytics/data-analytics',
-          icon: icons.IconChartBar,
           breadcrumbs: false,
           roles: ['superadmin', 'stateadmin']
         }

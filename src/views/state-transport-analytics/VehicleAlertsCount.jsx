@@ -1,105 +1,301 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button, Grid } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Box, TextField, Button, Grid, MenuItem, Typography, Card, CardContent } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import MainCard from 'ui-component/cards/MainCard';
 import { IconSearch } from '@tabler/icons';
+import AnalyticsService from '../../services/AnalyticsService';
 
 const VehicleAlertsCount = () => {
+  const defaultStartDate = new Date();
+  defaultStartDate.setDate(defaultStartDate.getDate() - 30);
+
   const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
+    start_datetime: defaultStartDate.toISOString().slice(0, 16),
+    end_datetime: new Date().toISOString().slice(0, 16),
+    vehicle_category_id: 'All',
+    vehicle_reg_no: '',
+    alert_type: 'All',
+    min_total_alerts: '',
   });
 
-  // Mock Data
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 20,
+    totalRecords: 0,
+  });
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 20,
+  });
+
+  const [sortModel, setSortModel] = useState([
+    { field: 'total_alerts', sort: 'desc' }
+  ]);
+
+  const [summaryData, setSummaryData] = useState({
+    fleet_total_vehicles: 0,
+    fleet_total_alerts: 0,
+    fleet_overspeed: 0,
+    fleet_harsh_braking: 0,
+    fleet_harsh_acceleration: 0,
+    fleet_harsh_turn: 0,
+  });
+
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const columns = [
-    { field: 'id', headerName: 'Vehicle ID', width: 100 },
-    { field: 'vehicleNo', headerName: 'Vehicle No.', width: 150 },
-    { field: 'fleetName', headerName: 'Fleet / Depot', width: 150 },
-    { field: 'driver', headerName: 'Primary Driver', width: 150 },
-    { field: 'harshBraking', headerName: 'Harsh Braking', width: 130, type: 'number' },
-    { field: 'harshAcceleration', headerName: 'Harsh Accel', width: 120, type: 'number' },
-    { field: 'overSpeeding', headerName: 'Over Speeding', width: 130, type: 'number' },
-    { field: 'sharpTurn', headerName: 'Sharp Turn', width: 120, type: 'number' },
-    { field: 'sosAlerts', headerName: 'SOS Alerts', width: 120, type: 'number' },
-    { 
-      field: 'totalAlerts', 
-      headerName: 'Total Alerts', 
-      width: 120, 
-      type: 'number',
-      valueGetter: (params) => 
-        (params.row.harshBraking || 0) + 
-        (params.row.harshAcceleration || 0) + 
-        (params.row.overSpeeding || 0) + 
-        (params.row.sharpTurn || 0) +
-        (params.row.sosAlerts || 0)
-    },
+    { field: 'vehicle_reg_no', headerName: 'Vehicle No.', width: 140 },
+    { field: 'vehicle_category', headerName: 'Category', width: 130 },
+    { field: 'state_name', headerName: 'State', width: 130 },
+    { field: 'district_name', headerName: 'District', width: 130 },
+    { field: 'total_alerts', headerName: 'Total Alerts', width: 110, type: 'number' },
+    { field: 'overspeed_count', headerName: 'Over Speeding', width: 130, type: 'number' },
+    { field: 'harsh_braking_count', headerName: 'Harsh Braking', width: 130, type: 'number' },
+    { field: 'harsh_acceleration_count', headerName: 'Harsh Accel', width: 120, type: 'number' },
+    { field: 'harsh_turn_count', headerName: 'Harsh Turn', width: 110, type: 'number' },
+    { field: 'idling_count', headerName: 'Idling', width: 90, type: 'number' },
+    { field: 'route_overspeed_count', headerName: 'Route Overspeed', width: 140, type: 'number' },
   ];
 
-  const rows = [
-    { id: 'V-001', vehicleNo: 'KA-01-AB-1234', fleetName: 'Central Depot', driver: 'Ramesh K.', harshBraking: 12, harshAcceleration: 4, overSpeeding: 2, sharpTurn: 5, sosAlerts: 0 },
-    { id: 'V-002', vehicleNo: 'KA-02-CD-5678', fleetName: 'North Depot', driver: 'Suresh M.', harshBraking: 3, harshAcceleration: 1, overSpeeding: 15, sharpTurn: 2, sosAlerts: 1 },
-    { id: 'V-003', vehicleNo: 'KA-03-EF-9012', fleetName: 'East Depot', driver: 'Mahesh P.', harshBraking: 8, harshAcceleration: 6, overSpeeding: 0, sharpTurn: 8, sosAlerts: 0 },
-    { id: 'V-004', vehicleNo: 'KA-04-GH-3456', fleetName: 'West Depot', driver: 'Rajesh S.', harshBraking: 1, harshAcceleration: 0, overSpeeding: 1, sharpTurn: 1, sosAlerts: 0 },
-    { id: 'V-005', vehicleNo: 'KA-05-IJ-7890', fleetName: 'South Depot', driver: 'Vikram A.', harshBraking: 20, harshAcceleration: 15, overSpeeding: 8, sharpTurn: 12, sosAlerts: 2 },
-  ];
+  const fetchSummary = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {
+        start_datetime: new Date(filters.start_datetime).toISOString(),
+        end_datetime: new Date(filters.end_datetime).toISOString(),
+        page: paginationModel.page + 1, // API is 1-indexed
+        page_size: paginationModel.pageSize,
+      };
+
+      if (sortModel.length > 0) {
+        params.sort_by = sortModel[0].field;
+        params.sort_order = sortModel[0].sort;
+      }
+
+      if (filters.vehicle_category_id && filters.vehicle_category_id !== 'All') {
+        params.vehicle_category_id = filters.vehicle_category_id;
+      }
+      if (filters.vehicle_reg_no) {
+        params.vehicle_reg_no = filters.vehicle_reg_no;
+      }
+      if (filters.alert_type && filters.alert_type !== 'All') {
+        params.alert_type = filters.alert_type;
+      }
+      if (filters.min_total_alerts) {
+        params.min_total_alerts = filters.min_total_alerts;
+      }
+
+      const response = await AnalyticsService.getVehicleAlertSummary(params);
+      
+      if (response && response.success) {
+        // Map device_tag_id or vehicle_reg_no to id so DataGrid has a unique id
+        const mappedRows = (response.data || []).map((row, index) => ({
+          ...row,
+          id: row.device_tag_id || `v-${index}`
+        }));
+        
+        setRows(mappedRows);
+        setSummaryData(response.summary || {
+          fleet_total_vehicles: 0, fleet_total_alerts: 0, fleet_overspeed: 0, 
+          fleet_harsh_braking: 0, fleet_harsh_acceleration: 0, fleet_harsh_turn: 0
+        });
+        setPagination({
+          page: response.pagination.page,
+          pageSize: response.pagination.page_size,
+          totalRecords: response.pagination.total_records,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching vehicle alert summary:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters.start_datetime, filters.end_datetime, filters.alert_type, filters.vehicle_reg_no, filters.vehicle_category_id, filters.min_total_alerts, paginationModel.page, paginationModel.pageSize, sortModel]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]); 
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleApplyFilters = () => {
+    if (paginationModel.page !== 0) {
+      setPaginationModel({ ...paginationModel, page: 0 }); 
+    } else {
+      fetchSummary(); 
+    }
+  };
+
   return (
     <MainCard title="Vehicle Alerts Aggregate Count">
+      {/* Filters Section */}
       <Box sx={{ mb: 4, p: 2, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
-              label="Start Date"
-              type="date"
-              name="startDate"
-              value={filters.startDate}
+              label="Start Date & Time"
+              type="datetime-local"
+              name="start_datetime"
+              value={filters.start_datetime}
               onChange={handleFilterChange}
               InputLabelProps={{ shrink: true }}
               size="small"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
-              label="End Date"
-              type="date"
-              name="endDate"
-              value={filters.endDate}
+              label="End Date & Time"
+              type="datetime-local"
+              name="end_datetime"
+              value={filters.end_datetime}
               onChange={handleFilterChange}
               InputLabelProps={{ shrink: true }}
               size="small"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <Button variant="contained" color="primary" startIcon={<IconSearch />} fullWidth sx={{ height: '40px' }}>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              label="Vehicle No."
+              name="vehicle_reg_no"
+              value={filters.vehicle_reg_no}
+              onChange={handleFilterChange}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              select
+              label="Vehicle Category"
+              name="vehicle_category_id"
+              value={filters.vehicle_category_id}
+              onChange={handleFilterChange}
+              size="small"
+            >
+              <MenuItem value="All">All Categories</MenuItem>
+              <MenuItem value="1">School Bus (1)</MenuItem>
+              <MenuItem value="2">Truck (2)</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              select
+              label="Required Alert Type"
+              name="alert_type"
+              value={filters.alert_type}
+              onChange={handleFilterChange}
+              size="small"
+            >
+              <MenuItem value="All">Any Alert</MenuItem>
+              <MenuItem value="HarshBreak">Harsh Braking</MenuItem>
+              <MenuItem value="OverSpeed">Over Speeding</MenuItem>
+              <MenuItem value="HarshAcceleration">Harsh Acceleration</MenuItem>
+              <MenuItem value="HarshTurn">Harsh Turn</MenuItem>
+              <MenuItem value="Idling">Idling</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              label="Min Total Alerts"
+              type="number"
+              name="min_total_alerts"
+              value={filters.min_total_alerts}
+              onChange={handleFilterChange}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <Button variant="contained" color="primary" startIcon={<IconSearch />} fullWidth sx={{ height: '40px' }} onClick={handleApplyFilters}>
               Aggregate Data
             </Button>
           </Grid>
         </Grid>
       </Box>
 
-      <Box sx={{ height: 500, width: '100%' }}>
+      {/* Fleet Summary Section */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={2}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary">Fleet Vehicles</Typography>
+              <Typography variant="h4">{summaryData.fleet_total_vehicles}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary">Total Alerts</Typography>
+              <Typography variant="h4">{summaryData.fleet_total_alerts}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary">Over Speeding</Typography>
+              <Typography variant="h4" color="error.main">{summaryData.fleet_overspeed}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary">Harsh Braking</Typography>
+              <Typography variant="h4" color="warning.main">{summaryData.fleet_harsh_braking}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary">Harsh Accel</Typography>
+              <Typography variant="h4" color="warning.main">{summaryData.fleet_harsh_acceleration}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary">Harsh Turn</Typography>
+              <Typography variant="h4" color="info.main">{summaryData.fleet_harsh_turn}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Data Grid Section */}
+      <Box sx={{ height: 600, width: '100%' }}>
         <DataGrid
           rows={rows}
           columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[10, 25, 50]}
+          loading={loading}
+          paginationMode="server"
+          rowCount={pagination.totalRecords}
+          page={paginationModel.page}
+          onPageChange={(newPage) => setPaginationModel({ ...paginationModel, page: newPage })}
+          pageSize={paginationModel.pageSize}
+          onPageSizeChange={(newPageSize) => setPaginationModel({ ...paginationModel, pageSize: newPageSize })}
+          rowsPerPageOptions={[10, 20, 50, 100]}
+          sortingMode="server"
+          sortModel={sortModel}
+          onSortModelChange={(newSortModel) => setSortModel(newSortModel)}
+          checkboxSelection
           disableSelectionOnClick
           components={{ Toolbar: GridToolbar }}
           componentsProps={{
             toolbar: {
               showQuickFilter: true,
-            },
-          }}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: 'totalAlerts', sort: 'desc' }],
             },
           }}
         />
