@@ -30,11 +30,11 @@ import { Vector as VectorSource } from "ol/source";
 import { Vector as VectorLayer } from "ol/layer";
 import { fromLonLat } from "ol/proj";
 import {
-  Style,
-  Fill,
-  Stroke,
-  Circle as CircleStyle,
-  Text
+    Style,
+    Fill,
+    Stroke,
+    Circle as CircleStyle,
+    Text
 } from "ol/style";
 import {
     Search as SearchIcon,
@@ -51,7 +51,7 @@ import {
     Terrain as TerrainIcon
 } from "@mui/icons-material";
 import { Map, View } from "ol";
-import { Tile as TileLayer,  } from "ol/layer";
+import { Tile as TileLayer, } from "ol/layer";
 import { TileWMS, XYZ, Cluster } from "ol/source";
 import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
 import {
@@ -892,7 +892,7 @@ const MapComponent = ({
     incidentData = [],
     width = "100%",
     height = "400px",
-      selectedPoi,
+    selectedPoi,
     onVehicleClick,
     onPolygonComplete,
     autoFit = false, // Set to true to auto-fit map to markers, false to keep Guwahati center
@@ -900,6 +900,12 @@ const MapComponent = ({
     markerLabelMode = "vehicle",
     nmrArea = null,
     allMode = false,
+     selectedTransitLayer = "",
+  schoolRoutes = [],
+  pisRoutes = [],
+  schoolBuses = [],
+  pisBuses = [],
+  pisStops = [],
 }) => {
     const overlayElement = useRef();
     const lastClickedVehicleRef = useRef(null);
@@ -911,7 +917,7 @@ const MapComponent = ({
     const positionHistoryRef = useRef({}); // Format: { [imei]: [{lat, lng}, ...] }
     // Inside MapComponent, add this ref
     const activeFeaturesRef = useRef({}); // Format: { [imei]: FeatureObject }
-    const hasAutoFittedRef = useRef(false); 
+    const hasAutoFittedRef = useRef(false);
 
     const [map, setMap] = useState(null);
     const [vectorLayer, setVectorLayer] = useState(null);
@@ -923,54 +929,426 @@ const MapComponent = ({
     const [nmrVectorLayer, setNmrVectorLayer] = useState(null);
     const [pois, setPois] = useState([]);
     const [selectedPoiData, setSelectedPoiData] = useState(null);
-    
+const [transitLayer, setTransitLayer] =
+  useState(null);
+  const transitLayerRef = useRef(null);
+const [selectedTransitData, setSelectedTransitData] = useState(null);
+const [popupType, setPopupType] = useState(null); // vehicle | poi | transit
+
+  useEffect(() => {
+  if (!map) return;
+
+  if (transitLayerRef.current) {
+    map.removeLayer(transitLayerRef.current);
+  }
+
+  const layer = new VectorLayer({
+    source: new VectorSource(),
+    zIndex: 99999,
+    visible: true,
+  });
+
+  map.addLayer(layer);
+
+  transitLayerRef.current = layer;
+
+  console.log(
+    "TRANSIT LAYER ADDED",
+    map.getLayers().getArray().includes(layer)
+  );
+
+  return () => {
+    if (map && layer) {
+      map.removeLayer(layer);
+    }
+  };
+}, [map]);
+
+  useEffect(() => {
+  if (!map || transitLayer) return;
+
+  const transitSource = new VectorSource();
+
+  const layer = new VectorLayer({
+    source: transitSource,
+    zIndex: 9999,
+  });
+
+  map.addLayer(layer);
+  setTransitLayer(layer);
+
+  return () => {
+    map.removeLayer(layer);
+  };
+}, [map, transitLayer]);
+
+console.log("selectedTransitLayer", selectedTransitLayer);
+console.log("schoolRoutes", schoolRoutes);
+console.log("pisRoutes", pisRoutes);
+console.log("schoolBuses", schoolBuses);
+console.log("pisBuses", pisBuses);
+console.log("pisStops", pisStops);
 useEffect(() => {
-    if (!map || !selectedPoi || !poiVectorLayer) return;
+ if (!map || !transitLayerRef.current) return;
 
-    poiVectorLayer.setVisible(true);
+const source =
+  transitLayerRef.current.getSource();
 
-    const lat = Number(selectedPoi.lat);
-    const lon = Number(selectedPoi.lon);
+  if (!source) return;
 
-    console.log("POI LAT/LON", lat, lon);
+  source.clear();
 
-    const source = poiVectorLayer.getSource();
+  console.log("selectedTransitLayer", selectedTransitLayer);
 
-    source.clear();
+  // ==========================
+  // SCHOOL ROUTES
+  // ==========================
+  if (selectedTransitLayer === "school_routes") {
+    schoolRoutes.forEach((route) => {
+      const routePoints = route?.route_points || [];
 
-    const feature = new Feature({
-        geometry: new Point([lon, lat]),
-         poiData: selectedPoi,
-    });
+      if (!Array.isArray(routePoints)) return;
+      if (routePoints.length < 2) return;
 
-    feature.setStyle(
+      const coordinates = routePoints
+        .filter(
+          (p) =>
+            Number.isFinite(Number(p?.lat)) &&
+            Number.isFinite(Number(p?.lng))
+        )
+        .map((p) => [
+          Number(p.lng),
+          Number(p.lat),
+        ]);
+
+      if (coordinates.length < 2) return;
+
+      console.log(
+        "DRAWING SCHOOL ROUTE",
+        route.name,
+        coordinates
+      );
+
+      const routeFeature = new Feature({
+        geometry: new LineString(coordinates),
+        transitData: route,
+  transitType: "school_route",
+      });
+
+
+      routeFeature.setStyle(
         new Style({
-            image: new CircleStyle({
-                radius: 10,
-                fill: new Fill({ color: "red" }),
-                stroke: new Stroke({
-                    color: "#fff",
-                    width: 2,
-                }),
-            }),
+          stroke: new Stroke({
+            color: "#1976d2",
+            width: 4,
+          }),
         })
-    );
+      );
 
-    source.addFeature(feature);
+      source.addFeature(routeFeature);
+      console.log(
+  "FEATURES NOW:",
+  source.getFeatures().length
+);
 
-    console.log(
-        "POI FEATURES COUNT",
-        source.getFeatures().length
-    );
+console.log(
+  "LAYER VISIBLE:",
+  transitLayer.getVisible()
+);
 
-    map.getView().animate({
-        center: [lon, lat],
-        zoom: 17,
-        duration: 1000,
+console.log(
+  "MAP HAS LAYER:",
+  map.getLayers().getArray().includes(transitLayer)
+);
     });
-    
+  }
 
-}, [selectedPoi, map, poiVectorLayer]);
+  // ==========================
+  // PIS ROUTES
+  // ==========================
+  if (selectedTransitLayer === "pis_routes") {
+    pisRoutes.forEach((route) => {
+      const routePoints = route?.route_points || [];
+
+      if (!Array.isArray(routePoints)) return;
+      if (routePoints.length < 2) return;
+
+      const coordinates = routePoints
+        .filter(
+          (p) =>
+            Number.isFinite(Number(p?.lat)) &&
+            Number.isFinite(Number(p?.lng))
+        )
+        .map((p) => [
+          Number(p.lng),
+          Number(p.lat),
+        ]);
+
+      if (coordinates.length < 2) return;
+
+      const routeFeature = new Feature({
+        geometry: new LineString(coordinates),
+        transitData: route,
+  transitType: "pis_route",
+      });
+
+      routeFeature.setStyle(
+        new Style({
+          stroke: new Stroke({
+            color: "green",
+            width: 4,
+          }),
+        })
+      );
+
+      source.addFeature(routeFeature);
+      console.log(
+  "FEATURES NOW:",
+  source.getFeatures().length
+);
+
+console.log(
+  "LAYER VISIBLE:",
+  transitLayer.getVisible()
+);
+
+console.log(
+  "MAP HAS LAYER:",
+  map.getLayers().getArray().includes(transitLayer)
+);
+    });
+  }
+
+  // ==========================
+  // SCHOOL BUSES
+  // ==========================
+  if (selectedTransitLayer === "school_buses") {
+    schoolBuses.forEach((bus) => {
+      const lat = Number(bus?.latitude ?? bus?.lat);
+      const lon = Number(
+        bus?.longitude ??
+        bus?.lng ??
+        bus?.lon
+      );
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lon)
+      )
+        return;
+
+      const feature = new Feature({
+        geometry: new Point([
+          lon,
+          lat,
+        ]),
+        transitData: bus,
+  transitType: "school_bus",
+      });
+
+      feature.setStyle(
+        new Style({
+          image: new CircleStyle({
+            radius: 8,
+            fill: new Fill({
+              color: "#1976d2",
+            }),
+            stroke: new Stroke({
+              color: "#fff",
+              width: 2,
+            }),
+          }),
+        })
+      );
+
+      source.addFeature(feature);
+      console.log(
+  "FEATURES NOW:",
+  source.getFeatures().length
+);
+
+console.log(
+  "LAYER VISIBLE:",
+  transitLayer.getVisible()
+);
+
+console.log(
+  "MAP HAS LAYER:",
+  map.getLayers().getArray().includes(transitLayer)
+);
+    });
+  }
+
+  // ==========================
+  // PIS BUSES
+  // ==========================
+  if (selectedTransitLayer === "pis_buses") {
+    pisBuses.forEach((bus) => {
+      const lat = Number(bus?.latitude ?? bus?.lat);
+      const lon = Number(
+        bus?.longitude ??
+        bus?.lng ??
+        bus?.lon
+      );
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lon)
+      )
+        return;
+
+      const feature = new Feature({
+        geometry: new Point([
+          lon,
+          lat,
+        ]),
+         transitData: bus,
+  transitType: "pis_bus",
+      });
+
+      feature.setStyle(
+        new Style({
+          image: new CircleStyle({
+            radius: 8,
+            fill: new Fill({
+              color: "green",
+            }),
+            stroke: new Stroke({
+              color: "#fff",
+              width: 2,
+            }),
+          }),
+        })
+      );
+
+      source.addFeature(feature);
+    });
+  }
+
+  // ==========================
+  // PIS STOPS
+  // ==========================
+  if (selectedTransitLayer === "pis_stops") {
+    pisStops.forEach((stop) => {
+      const lat = Number(stop?.latitude ?? stop?.lat);
+      const lon = Number(
+        stop?.longitude ??
+        stop?.lng ??
+        stop?.lon
+      );
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lon)
+      )
+        return;
+
+      const feature = new Feature({
+        geometry: new Point([
+          lon,
+          lat,
+        ]),
+         transitData: stop,
+  transitType: "pis_stop",
+      });
+
+      feature.setStyle(
+        new Style({
+          image: new CircleStyle({
+            radius: 7,
+            fill: new Fill({
+              color: "#ff9800",
+            }),
+            stroke: new Stroke({
+              color: "#fff",
+              width: 2,
+            }),
+          }),
+        })
+      );
+
+      source.addFeature(feature);
+    });
+  }
+
+  console.log(
+    "TOTAL FEATURES",
+    source.getFeatures().length
+  );
+
+  const extent = source.getExtent();
+
+  console.log("EXTENT", extent);
+
+  if (
+    extent &&
+    extent.every((v) =>
+      Number.isFinite(v)
+    )
+  ) {
+    map.getView().fit(extent, {
+      padding: [50, 50, 50, 50],
+      duration: 1000,
+      maxZoom: 17,
+    });
+  }
+}, [
+  map,
+  transitLayer,
+  selectedTransitLayer,
+  schoolRoutes,
+  pisRoutes,
+  schoolBuses,
+  pisBuses,
+  pisStops,
+]);
+    useEffect(() => {
+        if (!map || !selectedPoi || !poiVectorLayer) return;
+
+        poiVectorLayer.setVisible(true);
+
+        const lat = Number(selectedPoi.lat);
+        const lon = Number(selectedPoi.lon);
+
+        // console.log("POI LAT/LON", lat, lon);
+
+        const source = poiVectorLayer.getSource();
+
+        source.clear();
+
+        const feature = new Feature({
+            geometry: new Point([lon, lat]),
+            poiData: selectedPoi,
+        });
+
+        feature.setStyle(
+            new Style({
+                image: new CircleStyle({
+                    radius: 10,
+                    fill: new Fill({ color: "red" }),
+                    stroke: new Stroke({
+                        color: "#fff",
+                        width: 2,
+                    }),
+                }),
+            })
+        );
+
+        source.addFeature(feature);
+
+        // console.log(
+        //     "POI FEATURES COUNT",
+        //     source.getFeatures().length
+        // );
+
+        map.getView().animate({
+            center: [lon, lat],
+            zoom: 17,
+            duration: 1000,
+        });
+
+
+    }, [selectedPoi, map, poiVectorLayer]);
 
     const [soiLayerVisibility, setSoiLayerVisibility] = useState({
         states: false,
@@ -1117,12 +1495,12 @@ useEffect(() => {
         const avgLat = sum.lat / history.length;
         const avgLng = sum.lng / history.length;
 
-        console.log(`[Verify Average] Vehicle: ${entry.vehicle_registration_number || imei}`);
-        console.table({
-            Raw: { lat: rawLat, lng: rawLng },
-            Averaged: { lat: avgLat, lng: avgLng },
-            PointsUsed: history.length
-        });
+        // console.log(`[Verify Average] Vehicle: ${entry.vehicle_registration_number || imei}`);
+        // console.table({
+        //     Raw: { lat: rawLat, lng: rawLng },
+        //     Averaged: { lat: avgLat, lng: avgLng },
+        //     PointsUsed: history.length
+        // });
 
         return { lat: avgLat, lng: avgLng };
     };
@@ -1288,7 +1666,7 @@ useEffect(() => {
         const standardWidth = 45;
         const iconWidth = standardWidth;
         // Reduce gap to make it "stick" to top of the icon
-        const labelGap = color === "grey" ? 5 : 0; 
+        const labelGap = color === "grey" ? 5 : 0;
         const labelOffsetY = -(Math.round(iconWidth / 2) + labelGap);
 
         const textStyle = labelText
@@ -1670,28 +2048,86 @@ useEffect(() => {
             element: overlayElement.current,
         });
         initialMap.addOverlay(initialOverlay);
+        // initialMap.on("singleclick", (evt) => {
+        //     let poiFound = false;
+
+        //     initialMap.forEachFeatureAtPixel(evt.pixel, (feature) => {
+        //         const poiData = feature.get("poiData");
+
+        //         if (poiData) {
+        //             setSelectedPoiData(poiData);
+
+        //             initialOverlay.setPosition(
+        //                 feature.getGeometry().getCoordinates()
+        //             );
+
+        //             poiFound = true;
+        //             return true;
+        //         }
+        //     });
+
+        //     if (!poiFound) {
+        //         setSelectedPoiData(null);
+        //         initialOverlay.setPosition(undefined);
+        //     }
+        // });
         initialMap.on("singleclick", (evt) => {
-    let poiFound = false;
 
-    initialMap.forEachFeatureAtPixel(evt.pixel, (feature) => {
-        const poiData = feature.get("poiData");
+  let clickedPoi = false;
+  let clickedTransit = false;
 
-        if (poiData) {
-            setSelectedPoiData(poiData);
+  initialMap.forEachFeatureAtPixel(evt.pixel, (feature) => {
 
-            initialOverlay.setPosition(
-                feature.getGeometry().getCoordinates()
-            );
+    const poiData = feature.get("poiData");
+    const transitData = feature.get("transitData");
 
-            poiFound = true;
-            return true;
-        }
-    });
+    // POI Popup
+    if (poiData) {
 
-    if (!poiFound) {
-        setSelectedPoiData(null);
-        initialOverlay.setPosition(undefined);
+      setPopupType("poi");
+      setSelectedPoiData(poiData);
+      setSelectedTransitData(null);
+
+      initialOverlay.setPosition(
+        feature.getGeometry().getCoordinates()
+      );
+
+      clickedPoi = true;
+      return true;
     }
+
+    // Transit Popup
+    if (transitData) {
+
+      setPopupType("transit");
+      setSelectedTransitData(transitData);
+      setSelectedPoiData(null);
+
+      let coordinate;
+
+      if (
+        feature.getGeometry() &&
+        feature.getGeometry().getType() === "LineString"
+      ) {
+        coordinate =
+          feature.getGeometry().getCoordinateAt(0.5);
+      } else {
+        coordinate =
+          feature.getGeometry().getCoordinates();
+      }
+
+      initialOverlay.setPosition(coordinate);
+
+      clickedTransit = true;
+      return true;
+    }
+  });
+
+  if (!clickedPoi && !clickedTransit) {
+    setSelectedPoiData(null);
+    setSelectedTransitData(null);
+    initialOverlay.setPosition(undefined);
+  }
 });
 
         setMap(initialMap);
@@ -4822,104 +5258,104 @@ ${policeInfoRows || policeDetailsRows
     // }, [gpsData, policeData, map, vectorLayer, mapType, markerLabelMode, allMode  ]);
 
 
-useEffect(() => {
-    if (!map || !vectorLayer || mapType === 'hd') return;
+    useEffect(() => {
+        if (!map || !vectorLayer || mapType === 'hd') return;
 
-    const vectorSource = vectorLayer.getSource().getSource();
-    const allMarkers = [...gpsData, ...policeData];
-    const currentImeis = new Set();
-    
-    // Duration should be slightly less than your polling interval (e.g., if you poll every 5s, use 4500)
-    const animationDuration = 2500; 
+        const vectorSource = vectorLayer.getSource().getSource();
+        const allMarkers = [...gpsData, ...policeData];
+        const currentImeis = new Set();
 
-    allMarkers.forEach((entry) => {
-        const imei = entry.imei || entry.vehicle_registration_number;
-        if (!imei) return;
-        currentImeis.add(imei);
+        // Duration should be slightly less than your polling interval (e.g., if you poll every 5s, use 4500)
+        const animationDuration = 2500;
 
-        const targetPos = getAveragedLocation(entry);
-        const targetCoords = [targetPos.lng, targetPos.lat];
-        const vehicleType = entry?.device_tag_info?.category_info?.category || "bus";
+        allMarkers.forEach((entry) => {
+            const imei = entry.imei || entry.vehicle_registration_number;
+            if (!imei) return;
+            currentImeis.add(imei);
 
-        let feature = activeFeaturesRef.current[imei];
+            const targetPos = getAveragedLocation(entry);
+            const targetCoords = [targetPos.lng, targetPos.lat];
+            const vehicleType = entry?.device_tag_info?.category_info?.category || "bus";
 
-        if (!feature) {
-            // First time seeing this vehicle: Create it
-            feature = new Feature({
-                geometry: new Point(targetCoords),
-                entryData: entry,
-            });
-            feature.set("currentRotation", 0);
-            feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
-            activeFeaturesRef.current[imei] = feature;
-            vectorSource.addFeature(feature);
-        } else {
-            // Existing vehicle: Animate movement
-            const startCoords = feature.getGeometry().getCoordinates();
-            const startTime = performance.now();
+            let feature = activeFeaturesRef.current[imei];
 
-            // Cancel any previous animation frame for this specific car
-            if (feature.get("animFrameId")) {
-                cancelAnimationFrame(feature.get("animFrameId"));
-            }
-
-            const frame = (now) => {
-                const elapsed = now - startTime;
-                const progress = Math.min(elapsed / animationDuration, 1);
-
-                // 1. Smoothly slide coordinates
-                const currLng = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
-                const currLat = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
-                const currentPos = [currLng, currLat];
-                feature.getGeometry().setCoordinates(currentPos);
-
-                // 2. Rotation is fixed to 0
+            if (!feature) {
+                // First time seeing this vehicle: Create it
+                feature = new Feature({
+                    geometry: new Point(targetCoords),
+                    entryData: entry,
+                });
                 feature.set("currentRotation", 0);
-
-                // 3. Update Style
                 feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
-
-                // 4. MAP FOLLOWING (Move camera with car if focused)
-                if (focusEntry && (focusEntry.imei === imei || focusEntry.vehicle_registration_number === imei)) {
-                    map.getView().setCenter(currentPos);
-                }
-
-                if (progress < 1) {
-                    feature.set("animFrameId", requestAnimationFrame(frame));
-                }
-            };
-
-            // Only start animation if the car has actually moved a bit
-            if (Math.abs(startCoords[0] - targetCoords[0]) > 0.000001 || Math.abs(startCoords[1] - targetCoords[1]) > 0.000001) {
-                feature.set("animFrameId", requestAnimationFrame(frame));
+                activeFeaturesRef.current[imei] = feature;
+                vectorSource.addFeature(feature);
             } else {
-                // Car is stationary, just update metadata/style
-                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
+                // Existing vehicle: Animate movement
+                const startCoords = feature.getGeometry().getCoordinates();
+                const startTime = performance.now();
+
+                // Cancel any previous animation frame for this specific car
+                if (feature.get("animFrameId")) {
+                    cancelAnimationFrame(feature.get("animFrameId"));
+                }
+
+                const frame = (now) => {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+
+                    // 1. Smoothly slide coordinates
+                    const currLng = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
+                    const currLat = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
+                    const currentPos = [currLng, currLat];
+                    feature.getGeometry().setCoordinates(currentPos);
+
+                    // 2. Rotation is fixed to 0
+                    feature.set("currentRotation", 0);
+
+                    // 3. Update Style
+                    feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
+
+                    // 4. MAP FOLLOWING (Move camera with car if focused)
+                    if (focusEntry && (focusEntry.imei === imei || focusEntry.vehicle_registration_number === imei)) {
+                        map.getView().setCenter(currentPos);
+                    }
+
+                    if (progress < 1) {
+                        feature.set("animFrameId", requestAnimationFrame(frame));
+                    }
+                };
+
+                // Only start animation if the car has actually moved a bit
+                if (Math.abs(startCoords[0] - targetCoords[0]) > 0.000001 || Math.abs(startCoords[1] - targetCoords[1]) > 0.000001) {
+                    feature.set("animFrameId", requestAnimationFrame(frame));
+                } else {
+                    // Car is stationary, just update metadata/style
+                    feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
+                }
             }
-        }
-    });
+        });
 
-    // Clean up features for cars that are no longer in the list
-    Object.keys(activeFeaturesRef.current).forEach(imei => {
-        if (!currentImeis.has(imei)) {
-            vectorSource.removeFeature(activeFeaturesRef.current[imei]);
-            delete activeFeaturesRef.current[imei];
-        }
-    });
+        // Clean up features for cars that are no longer in the list
+        Object.keys(activeFeaturesRef.current).forEach(imei => {
+            if (!currentImeis.has(imei)) {
+                vectorSource.removeFeature(activeFeaturesRef.current[imei]);
+                delete activeFeaturesRef.current[imei];
+            }
+        });
 
-    if (autoFit && allMarkers.length > 0 && !hasAutoFittedRef.current) {
-        const extent = vectorSource.getExtent();
-        // Check if extent is valid (not infinite)
-        if (extent && extent[0] !== Infinity) {
-            map.getView().fit(extent, { padding: [100, 100, 100, 100], maxZoom: 16, duration: 800 });
-            hasAutoFittedRef.current = true;
+        if (autoFit && allMarkers.length > 0 && !hasAutoFittedRef.current) {
+            const extent = vectorSource.getExtent();
+            // Check if extent is valid (not infinite)
+            if (extent && extent[0] !== Infinity) {
+                map.getView().fit(extent, { padding: [100, 100, 100, 100], maxZoom: 16, duration: 800 });
+                hasAutoFittedRef.current = true;
+            }
+        } else if (allMarkers.length === 0) {
+            // Reset the auto-fitted ref if data is cleared so next time we fit again
+            hasAutoFittedRef.current = false;
         }
-    } else if (allMarkers.length === 0) {
-        // Reset the auto-fitted ref if data is cleared so next time we fit again
-        hasAutoFittedRef.current = false;
-    }
 
-}, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit]);
+    }, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit]);
 
     useEffect(() => {
         if (!focusEntry) return;
@@ -6103,52 +6539,173 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 <div id="overlay-content"></div>
             </div> */}
             <div
-    ref={overlayElement}
-    style={{
-        background: "#fff",
-        borderRadius: "10px",
-        border: "1px solid #ddd",
-        boxShadow: "0 4px 20px rgba(0,0,0,.25)",
-        minWidth: "300px",
-        maxWidth: "450px",
-        maxHeight: "350px",
-        overflowY: "auto",
-        display: selectedPoiData ? "block" : "none",
-    }}
->
-    {selectedPoiData && (
-        <div style={{ padding: "10px" }}>
-            <h3>POI Details</h3>
+                ref={overlayElement}
+                style={{
+                    background: "#fff",
+                    borderRadius: "10px",
+                    border: "1px solid #ddd",
+                    boxShadow: "0 4px 20px rgba(0,0,0,.25)",
+                    minWidth: "300px",
+                    maxWidth: "450px",
+                    maxHeight: "350px",
+                    overflowY: "auto",
+                    display: selectedPoiData || selectedTransitData ? "block" : "none",
+                }}
+            >
+                {/* POI Popup */}
+{popupType === "poi" && selectedPoiData && (
+ <div style={{ padding: "10px" }}>
+                        <h3>POI Details</h3>
 
-            <table style={{ width: "100%" }}>
-                <tbody>
-                    {Object.entries(selectedPoiData).map(
-                        ([key, value]) => (
-                            <tr key={key}>
-                                <td
-                                    style={{
-                                        fontWeight: "bold",
-                                        padding: "6px",
-                                    }}
-                                >
-                                    {key}
-                                </td>
+                        <table style={{ width: "100%" }}>
+                            <tbody>
+                                {Object.entries(selectedPoiData).map(
+                                    ([key, value]) => (
+                                        <tr key={key}>
+                                            <td
+                                                style={{
+                                                    fontWeight: "bold",
+                                                    padding: "6px",
+                                                }}
+                                            >
+                                                {key}
+                                            </td>
 
-                                <td
-                                    style={{
-                                        padding: "6px",
-                                    }}
-                                >
-                                    {String(value ?? "-")}
-                                </td>
-                            </tr>
-                        )
-                    )}
-                </tbody>
-            </table>
-        </div>
-    )}
-</div>
+                                            <td
+                                                style={{
+                                                    padding: "6px",
+                                                }}
+                                            >
+                                                {String(value ?? "-")}
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+)}
+
+{/* Transit Popup */}
+{popupType === "transit" && selectedTransitData && (
+  <div style={{ padding: "10px", minWidth: "320px" }}>
+    <h3 style={{ marginBottom: "10px" }}>
+      Transit Details
+    </h3>
+
+    <table style={{ width: "100%" }}>
+      <tbody>
+
+        <tr>
+          <td><b>Bus ID</b></td>
+          <td>{selectedTransitData.bus_id}</td>
+        </tr>
+
+        <tr>
+          <td><b>Vehicle No</b></td>
+          <td>{selectedTransitData.vehicle_reg_no}</td>
+        </tr>
+
+        <tr>
+          <td><b>Make</b></td>
+          <td>{selectedTransitData.vehicle_make}</td>
+        </tr>
+
+        <tr>
+          <td><b>Model</b></td>
+          <td>{selectedTransitData.vehicle_model}</td>
+        </tr>
+
+        <tr>
+          <td><b>School</b></td>
+          <td>{selectedTransitData.school_name}</td>
+        </tr>
+
+        <tr>
+          <td><b>Speed</b></td>
+          <td>{selectedTransitData.speed ?? "-"}</td>
+        </tr>
+
+        <tr>
+          <td><b>Heading</b></td>
+          <td>{selectedTransitData.heading ?? "-"}</td>
+        </tr>
+
+        <tr>
+          <td><b>Ignition</b></td>
+          <td>
+            {selectedTransitData.ignition_status === "1"
+              ? "ON"
+              : "OFF"}
+          </td>
+        </tr>
+
+        <tr>
+          <td><b>Latitude</b></td>
+          <td>{selectedTransitData.latitude ?? "-"}</td>
+        </tr>
+
+        <tr>
+          <td><b>Longitude</b></td>
+          <td>{selectedTransitData.longitude ?? "-"}</td>
+        </tr>
+
+        <tr>
+          <td><b>Last Updated</b></td>
+          <td>{selectedTransitData.last_updated ?? "-"}</td>
+        </tr>
+
+        <tr>
+          <td><b>Driver Name</b></td>
+          <td>
+            {selectedTransitData.driver?.name ?? "-"}
+          </td>
+        </tr>
+
+        <tr>
+          <td><b>Driver Phone</b></td>
+          <td>
+            {selectedTransitData.driver?.phone_no ?? "-"}
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+)}
+                {/* {selectedPoiData && (
+                    <div style={{ padding: "10px" }}>
+                        <h3>POI Details</h3>
+
+                        <table style={{ width: "100%" }}>
+                            <tbody>
+                                {Object.entries(selectedPoiData).map(
+                                    ([key, value]) => (
+                                        <tr key={key}>
+                                            <td
+                                                style={{
+                                                    fontWeight: "bold",
+                                                    padding: "6px",
+                                                }}
+                                            >
+                                                {key}
+                                            </td>
+
+                                            <td
+                                                style={{
+                                                    padding: "6px",
+                                                }}
+                                            >
+                                                {String(value ?? "-")}
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )} */}
+            </div>
 
             <style>{`
 .ol-attribution {

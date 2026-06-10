@@ -8,6 +8,8 @@ import logo from "../../assets/images/skytron-logo3.png";
 import playstoreQR from "../../assets/images/QR/playstore.JPG";
 import appstoreQR from "../../assets/images/QR/appstore.JPG";
 import WebFont from "webfontloader";
+import PolicyIcon from "@mui/icons-material/Policy";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 WebFont.load({
   google: {
     families: ["Pacifico", "sans-serif", "Lobster", "Caveat"],
@@ -237,8 +239,8 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {/* Google Play Section */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' } }}>
-                  <img 
-                    src={playstoreQR} 
+                  <img
+                    src={playstoreQR}
                     alt="Google Play QR"
                     style={{ width: '80px', height: '80px', borderRadius: '4px', border: '1px solid #ddd' }}
                   />
@@ -246,12 +248,12 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#6a1b9a' }}>
                       {t('common.googlePlay')}
                     </Typography>
-                    <Button 
-                      variant="text" 
-                      size="small" 
-                      component="a" 
-                      href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp" 
-                      target="_blank" 
+                    <Button
+                      variant="text"
+                      size="small"
+                      component="a"
+                      href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp"
+                      target="_blank"
                       sx={{ p: 0, textTransform: 'none', fontSize: '0.75rem' }}
                     >
                       Download Now →
@@ -263,8 +265,8 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
                 {/* App Store Section */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' } }}>
-                  <img 
-                    src={appstoreQR} 
+                  <img
+                    src={appstoreQR}
                     alt="App Store QR"
                     style={{ width: '80px', height: '80px', borderRadius: '4px', border: '1px solid #ddd' }}
                   />
@@ -272,12 +274,12 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#6a1b9a' }}>
                       {t('common.appleAppStore')}
                     </Typography>
-                    <Button 
-                      variant="text" 
-                      size="small" 
-                      component="a" 
-                      href="https://apps.apple.com/in/app/skytron/id6746767283" 
-                      target="_blank" 
+                    <Button
+                      variant="text"
+                      size="small"
+                      component="a"
+                      href="https://apps.apple.com/in/app/skytron/id6746767283"
+                      target="_blank"
                       sx={{ p: 0, textTransform: 'none', fontSize: '0.75rem' }}
                     >
                       Download Now →
@@ -288,8 +290,16 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
             </Menu>
 
             {/* Privacy Policy */}
-            <Button color="inherit" component={Link} to="/privacy-policy">
+            <Button color="inherit" component={Link} to="/privacy-policy" startIcon={<PolicyIcon />}>
               {t('common.privacyPolicy')}
+            </Button>
+            <Button
+              color="inherit"
+              component={Link}
+              to="/help-desk"
+              startIcon={<SupportAgentIcon />}
+            >
+              Help Desk
             </Button>
           </Grid>
 
@@ -300,10 +310,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
         anchor="left"
         open={isDrawerOpen}
         onClose={toggleDrawer(false)}
-        sx={{ 
-          '& .MuiDrawer-paper': { 
-            width: '280px', 
-          } 
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: '280px',
+          }
         }}
       >
         <Box
@@ -344,24 +354,24 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <List component="div" disablePadding>
                 <ListItem sx={{ pl: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <img 
-                      src={playstoreQR} 
+                    <img
+                      src={playstoreQR}
                       alt="Google Play QR"
                       style={{ width: '60px', height: '60px', borderRadius: '4px' }}
                     />
-                    <ListItemText 
-                      primary={t('common.googlePlay')} 
+                    <ListItemText
+                      primary={t('common.googlePlay')}
                       secondary={<Link href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
                     />
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <img 
-                      src={appstoreQR} 
+                    <img
+                      src={appstoreQR}
                       alt="App Store QR"
                       style={{ width: '60px', height: '60px', borderRadius: '4px' }}
                     />
-                    <ListItemText 
-                      primary={t('common.appleAppStore')} 
+                    <ListItemText
+                      primary={t('common.appleAppStore')}
                       secondary={<Link href="https://apps.apple.com/in/app/skytron/id6746767283" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
                     />
                   </Box>
@@ -371,6 +381,9 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
             <ListItem button component={Link} to="/privacy-policy" onClick={toggleDrawer(false)}>
               <ListItemText primary={t('common.privacyPolicy')} />
+            </ListItem>
+            <ListItem button component={Link} to="/help-desk" onClick={toggleDrawer(false)}>
+              <ListItemText primary="Help Desk" />
             </ListItem>
           </List>
         </Box>

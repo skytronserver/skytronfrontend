@@ -88,12 +88,18 @@ const LiveTracking = () => {
   const listContainerRef = useRef(null);
   const [visibleCount, setVisibleCount] = useState(0);
   const [poiOptions, setPoiOptions] = useState([]);
-    const [selectedPoi, setSelectedPoi] = useState(null);
-    const [poiLoading, setPoiLoading] = useState(false);
-    const [poiTypes, setPoiTypes] = useState([]);
-    const [selectedPoiType, setSelectedPoiType] = useState(null);
-    const [poiTypeLoading, setPoiTypeLoading] = useState(false);
-  
+  const [selectedPoi, setSelectedPoi] = useState(null);
+  const [poiLoading, setPoiLoading] = useState(false);
+  const [poiTypes, setPoiTypes] = useState([]);
+  const [selectedPoiType, setSelectedPoiType] = useState(null);
+  const [poiTypeLoading, setPoiTypeLoading] = useState(false);
+  const [selectedTransitLayer, setSelectedTransitLayer] = useState("");
+
+  const [schoolRoutes, setSchoolRoutes] = useState([]);
+  const [pisRoutes, setPisRoutes] = useState([]);
+  const [schoolBuses, setSchoolBuses] = useState([]);
+  const [pisBuses, setPisBuses] = useState([]);
+  const [pisStops, setPisStops] = useState([]);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -123,64 +129,119 @@ const LiveTracking = () => {
   };
 
   useEffect(() => {
-  const fetchPoiTypes = async () => {
+    const fetchPoiTypes = async () => {
+      try {
+        setPoiTypeLoading(true);
+
+        const response = await HomePageService.getPoiTypes();
+
+        setPoiTypes(response?.data?.data || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setPoiTypeLoading(false);
+      }
+    };
+
+    fetchPoiTypes();
+  }, []);
+
+  const fetchPois = async (searchText = "") => {
     try {
-      setPoiTypeLoading(true);
+      setPoiLoading(true);
 
-      const response = await HomePageService.getPoiTypes();
+      const response = await HomePageService.getPoiList({
+        name: searchText,
+        use_type: selectedPoiType || "",
+      });
 
-      setPoiTypes(response?.data?.data || []);
+      setPoiOptions(response?.data?.data || []);
     } catch (error) {
-      console.error(error);
+      setPoiOptions([]);
     } finally {
-      setPoiTypeLoading(false);
+      setPoiLoading(false);
     }
   };
 
-  fetchPoiTypes();
-}, []);
+  const handlePoiTypeChange = async (event, value) => {
+    setSelectedPoiType(value);
 
-const fetchPois = async (searchText = "") => {
-  try {
-    setPoiLoading(true);
-
-    const response = await HomePageService.getPoiList({
-      name: searchText,
-      use_type: selectedPoiType || "",
-    });
-
-    setPoiOptions(response?.data?.data || []);
-  } catch (error) {
+    setSelectedPoi(null);
+    setPoi("");
     setPoiOptions([]);
-  } finally {
-    setPoiLoading(false);
-  }
-};
 
-const handlePoiTypeChange = async (event, value) => {
-  setSelectedPoiType(value);
+    if (!value) return;
 
-  setSelectedPoi(null);
-  setPoi("");
-  setPoiOptions([]);
+    try {
+      setPoiLoading(true);
 
-  if (!value) return;
+      const response = await HomePageService.getPoiList({
+        use_type: value,
+      });
 
-  try {
-    setPoiLoading(true);
+      setPoiOptions(response?.data?.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPoiLoading(false);
+    }
+  };
 
-    const response = await HomePageService.getPoiList({
-      use_type: value,
-    });
+  const handleTransitLayerChange = async (event) => {
+    const value = event.target.value;
 
-    setPoiOptions(response?.data?.data || []);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setPoiLoading(false);
-  }
-};
+    setSelectedTransitLayer(value);
 
+    try {
+      switch (value) {
+        case "school_routes": {
+          const res =
+            await HomePageService.getSchoolBusRoutes();
+
+          setSchoolRoutes(res?.data?.data || res?.data || []);
+          console.log("schoolRoutes state", schoolRoutes);
+          break;
+        }
+
+        case "pis_routes": {
+          const res =
+            await HomePageService.getPisRoutes();
+
+          setPisRoutes(res?.data?.data || res?.data || []);
+          break;
+        }
+
+        case "school_buses": {
+          const res =
+            await HomePageService.getSchoolBusLocations();
+
+          setSchoolBuses(res?.data?.data || res?.data || []);
+          break;
+        }
+
+        case "pis_buses": {
+          const res =
+            await HomePageService.getPisBusLocations();
+
+          setPisBuses(res?.data?.data || res?.data || []);
+          break;
+        }
+
+        case "pis_stops": {
+          const res =
+            await HomePageService.getPisBusStops();
+
+          setPisStops(res?.data?.data || res?.data || []);
+          break;
+        }
+
+        default:
+          break;
+      }
+    } catch (err) {
+      console.error("Transit Layer Error", err);
+    }
+  };
   const computeRow = (processedItem) => {
     // Extract block_name and route_name
     const blockName = processedItem?.device_tag_info?.block?.name ||
@@ -1202,76 +1263,76 @@ const handlePoiTypeChange = async (event, value) => {
                       </Grid>
                       <Grid item xs={12}>
                         <Box display="flex" flexDirection="column" gap={0.5}>
-                           <Grid container spacing={1}>
-  <Grid item xs={6}>
-    <Autocomplete
-      options={poiTypes}
-      loading={poiTypeLoading}
-      value={selectedPoiType}
-      onChange={handlePoiTypeChange}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="POI Type"
-          size="small"
-        />
-      )}
-    />
-  </Grid>
+                          <Grid container spacing={1}>
+                            <Grid item xs={6}>
+                              <Autocomplete
+                                options={poiTypes}
+                                loading={poiTypeLoading}
+                                value={selectedPoiType}
+                                onChange={handlePoiTypeChange}
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    label="POI Type"
+                                    size="small"
+                                  />
+                                )}
+                              />
+                            </Grid>
 
-  <Grid item xs={6}>
-    <Autocomplete
-      options={poiOptions}
-      loading={poiLoading}
-      value={selectedPoi}
-      disabled={!selectedPoiType}
-      filterOptions={(x) => x}
-      getOptionLabel={(option) => option?.name || ""}
-      isOptionEqualToValue={(option, value) =>
-        option?.id === value?.id
-      }
-      onInputChange={(event, value, reason) => {
-        if (reason !== "input") return;
+                            <Grid item xs={6}>
+                              <Autocomplete
+                                options={poiOptions}
+                                loading={poiLoading}
+                                value={selectedPoi}
+                                disabled={!selectedPoiType}
+                                filterOptions={(x) => x}
+                                getOptionLabel={(option) => option?.name || ""}
+                                isOptionEqualToValue={(option, value) =>
+                                  option?.id === value?.id
+                                }
+                                onInputChange={(event, value, reason) => {
+                                  if (reason !== "input") return;
 
-        if (!selectedPoiType) return;
+                                  if (!selectedPoiType) return;
 
-        fetchPois(value);
-      }}
-      onChange={(event, value) => {
-        if (!selectedPoiType) return;
+                                  fetchPois(value);
+                                }}
+                                onChange={(event, value) => {
+                                  if (!selectedPoiType) return;
 
-        setSelectedPoi(value);
-        console.log("SELECTED POI", value);
+                                  setSelectedPoi(value);
+                                  console.log("SELECTED POI", value);
 
-        if (value) {
-          setPoi(value.name);
-        } else {
-          setPoi("");
-        }
-      }}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={
-            selectedPoiType
-              ? `POI (${selectedPoiType})`
-              : "Select POI Type First"
-          }
-          size="small"
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {poiLoading && <CircularProgress size={20} />}
-                {params.InputProps.endAdornment}
-              </>
-            ),
-          }}
-        />
-      )}
-    />
-  </Grid>
-</Grid>
+                                  if (value) {
+                                    setPoi(value.name);
+                                  } else {
+                                    setPoi("");
+                                  }
+                                }}
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    label={
+                                      selectedPoiType
+                                        ? `POI (${selectedPoiType})`
+                                        : "Select POI Type First"
+                                    }
+                                    size="small"
+                                    InputProps={{
+                                      ...params.InputProps,
+                                      endAdornment: (
+                                        <>
+                                          {poiLoading && <CircularProgress size={20} />}
+                                          {params.InputProps.endAdornment}
+                                        </>
+                                      ),
+                                    }}
+                                  />
+                                )}
+                              />
+                            </Grid>
+                          </Grid>
                           {/* <Box display="flex" flexWrap="wrap" gap={2}>
                             <FormControlLabel
                               control={
@@ -1573,7 +1634,46 @@ const handlePoiTypeChange = async (event, value) => {
               }
               label="Use NMR Location"
             />
+             
           </Box>
+          <FormControl
+  size="small"
+  sx={{ minWidth: 250 }}
+>
+  <InputLabel>
+    Transit Layer
+  </InputLabel>
+
+  <Select
+    value={selectedTransitLayer}
+    onChange={handleTransitLayerChange}
+    label="Transit Layer"
+  >
+    <MenuItem value="">
+      None
+    </MenuItem>
+
+    <MenuItem value="school_routes">
+      School Bus Routes
+    </MenuItem>
+
+    <MenuItem value="pis_routes">
+      Public Bus Routes
+    </MenuItem>
+
+    <MenuItem value="school_buses">
+      School Bus Live Location
+    </MenuItem>
+
+    <MenuItem value="pis_buses">
+      Public Bus Live Location
+    </MenuItem>
+
+    <MenuItem value="pis_stops">
+      Public Bus Stops
+    </MenuItem>
+  </Select>
+</FormControl>
 
           <MapComponent
             gpsData={filteredData}
@@ -1588,9 +1688,16 @@ const handlePoiTypeChange = async (event, value) => {
             nmrArea={nmrArea}
             allMode={typeFilter === "default"}
             selectedPoi={selectedPoi}
+            selectedTransitLayer={selectedTransitLayer}
+  schoolRoutes={schoolRoutes}
+  pisRoutes={pisRoutes}
+  schoolBuses={schoolBuses}
+  pisBuses={pisBuses}
+  pisStops={pisStops}
           />
         </div>
       </div>
+     
 
       {selectedId && (
         <TableContainer component={Paper} className="skytron-table-container" sx={{ mt: 2, maxHeight: '400px' }}>
