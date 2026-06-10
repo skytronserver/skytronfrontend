@@ -900,7 +900,7 @@ const MapComponent = ({
     markerLabelMode = "vehicle",
     nmrArea = null,
     allMode = false,
-     selectedTransitLayer = "",
+     selectedTransitLayer = [],
   schoolRoutes = [],
   pisRoutes = [],
   schoolBuses = [],
@@ -934,7 +934,620 @@ const [transitLayer, setTransitLayer] =
   const transitLayerRef = useRef(null);
 const [selectedTransitData, setSelectedTransitData] = useState(null);
 const [popupType, setPopupType] = useState(null); // vehicle | poi | transit
+const poiTransitOverlayElement = useRef();
+const [
+  poiTransitOverlay,
+  setPoiTransitOverlay,
+] = useState(null);
 
+const renderTransitPopup = () => {
+  if (!selectedTransitData) return null;
+
+  const {
+    type,
+    data,
+  } = selectedTransitData;
+
+  switch (type) {
+
+   case "school_route":
+  return (
+    <div
+      style={{
+        padding: "12px",
+        minWidth: "320px",
+        maxWidth: "450px",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          marginBottom: "10px",
+          color: "#1976d2",
+        }}
+      >
+        School Route
+      </h3>
+
+      <table
+        style={{
+          width: "100%",
+          fontSize: "13px",
+        }}
+      >
+        <tbody>
+          <tr>
+            <td><b>Route</b></td>
+            <td>{data?.name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Route ID</b></td>
+            <td>{data?.id || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Status</b></td>
+            <td>{data?.status || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>School</b></td>
+            <td>{data?.school_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>District</b></td>
+            <td>{data?.district_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>State</b></td>
+            <td>{data?.state_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Total Stops</b></td>
+            <td>{data?.stops?.length || 0}</td>
+          </tr>
+
+          <tr>
+            <td><b>Route Points</b></td>
+            <td>
+              {data?.route_points?.length || 0}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {data?.description && (
+        <div
+          style={{
+            marginTop: "10px",
+          }}
+        >
+          <b>Description:</b>
+          <div>{data.description}</div>
+        </div>
+      )}
+
+      {data?.stops?.length > 0 && (
+        <div
+          style={{
+            marginTop: "12px",
+          }}
+        >
+          <b>Stops</b>
+
+          <div
+            style={{
+              maxHeight: "150px",
+              overflowY: "auto",
+              marginTop: "5px",
+            }}
+          >
+            {data.stops.map(
+              (stop) => (
+                <div
+                  key={stop.id}
+                  style={{
+                    border:
+                      "1px solid #ddd",
+                    padding: "6px",
+                    marginBottom: "4px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <div>
+                    <b>
+                      {stop.order}.
+                    </b>{" "}
+                    {stop.name}
+                  </div>
+
+                  <div>
+                    Time:
+                    {" "}
+                    {stop.timing}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+    case "pis_route":
+  return (
+    <div
+      style={{
+        padding: "12px",
+        minWidth: "320px",
+        maxWidth: "450px",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          marginBottom: "10px",
+          color: "green",
+        }}
+      >
+        PIS Route
+      </h3>
+
+      <table
+        style={{
+          width: "100%",
+          fontSize: "13px",
+        }}
+      >
+        <tbody>
+          <tr>
+            <td><b>Route Name</b></td>
+            <td>{data?.name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Route No</b></td>
+            <td>{data?.route_number || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Route ID</b></td>
+            <td>{data?.id || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Status</b></td>
+            <td>{data?.status || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Source</b></td>
+            <td>{data?.source_stop_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Destination</b></td>
+            <td>{data?.destination_stop_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>District</b></td>
+            <td>{data?.district_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>State</b></td>
+            <td>{data?.state_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Total Stops</b></td>
+            <td>{data?.stops?.length || 0}</td>
+          </tr>
+
+          <tr>
+            <td><b>Path Points</b></td>
+            <td>{data?.route_path?.length || 0}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {data?.stops?.length > 0 && (
+        <div
+          style={{
+            marginTop: "12px",
+          }}
+        >
+          <b>Stops</b>
+
+          <div
+            style={{
+              maxHeight: "180px",
+              overflowY: "auto",
+              marginTop: "6px",
+            }}
+          >
+            {data.stops.map((stop) => (
+              <div
+                key={stop.id}
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "6px",
+                  marginBottom: "4px",
+                  borderRadius: "4px",
+                }}
+              >
+                <div>
+                  <b>{stop.order}.</b> {stop.name}
+                </div>
+
+                <div>
+                  Arrival:
+                  {" "}
+                  {stop.arrival_time_min} min
+                </div>
+
+                <div>
+                  Halt:
+                  {" "}
+                  {stop.halt_time_min} min
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+  case "school_bus":
+  return (
+    <div
+      style={{
+        padding: "12px",
+        minWidth: "340px",
+        maxWidth: "450px",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          marginBottom: "10px",
+          color: "#1976d2",
+        }}
+      >
+        School Bus Details
+      </h3>
+
+      <table
+        style={{
+          width: "100%",
+          fontSize: "13px",
+        }}
+      >
+        <tbody>
+          <tr>
+            <td><b>Vehicle No</b></td>
+            <td>{data?.vehicle_reg_no || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Vehicle Make</b></td>
+            <td>{data?.vehicle_make || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Vehicle Model</b></td>
+            <td>{data?.vehicle_model || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>School</b></td>
+            <td>{data?.school_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Bus ID</b></td>
+            <td>{data?.bus_id || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Speed</b></td>
+            <td>
+              {data?.speed !== null &&
+              data?.speed !== undefined
+                ? `${data.speed} km/h`
+                : "-"}
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Heading</b></td>
+            <td>
+              {data?.heading !== null &&
+              data?.heading !== undefined
+                ? `${data.heading}°`
+                : "-"}
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Ignition</b></td>
+            <td>
+              {data?.ignition_status === "1"
+                ? "ON"
+                : data?.ignition_status === "0"
+                ? "OFF"
+                : "-"}
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Latitude</b></td>
+            <td>{data?.latitude || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Longitude</b></td>
+            <td>{data?.longitude || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Last Updated</b></td>
+            <td>{data?.last_updated || "-"}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div
+        style={{
+          marginTop: "12px",
+          borderTop: "1px solid #ddd",
+          paddingTop: "10px",
+        }}
+      >
+        <h4
+          style={{
+            margin: 0,
+            marginBottom: "8px",
+          }}
+        >
+          Driver Details
+        </h4>
+
+        <table
+          style={{
+            width: "100%",
+            fontSize: "13px",
+          }}
+        >
+          <tbody>
+            <tr>
+              <td><b>Name</b></td>
+              <td>
+                {data?.driver?.name || "-"}
+              </td>
+            </tr>
+
+            <tr>
+              <td><b>Phone</b></td>
+              <td>
+                {data?.driver?.phone_no || "-"}
+              </td>
+            </tr>
+
+            <tr>
+              <td><b>Driver ID</b></td>
+              <td>
+                {data?.driver?.id || "-"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+   case "pis_bus":
+  return (
+    <div
+      style={{
+        padding: "12px",
+        minWidth: "340px",
+        maxWidth: "450px",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          marginBottom: "10px",
+          color: "green",
+        }}
+      >
+        Public Bus Details
+      </h3>
+
+      <table
+        style={{
+          width: "100%",
+          fontSize: "13px",
+        }}
+      >
+        <tbody>
+          <tr>
+            <td><b>Vehicle No</b></td>
+            <td>{data?.vehicle_reg_no || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Bus ID</b></td>
+            <td>{data?.bus_id || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Route No</b></td>
+            <td>{data?.route_number || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Route Name</b></td>
+            <td>{data?.route_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Service Type</b></td>
+            <td>{data?.service_type || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Schedule ID</b></td>
+            <td>{data?.schedule_id || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Schedule Status</b></td>
+            <td>
+              <span
+                style={{
+                  color:
+                    data?.schedule_status === "started"
+                      ? "green"
+                      : "red",
+                  fontWeight: 600,
+                }}
+              >
+                {data?.schedule_status || "-"}
+              </span>
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Speed</b></td>
+            <td>
+              {data?.speed !== null &&
+              data?.speed !== undefined
+                ? `${data.speed} km/h`
+                : "-"}
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Heading</b></td>
+            <td>
+              {data?.heading !== null &&
+              data?.heading !== undefined
+                ? `${data.heading}°`
+                : "-"}
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Ignition</b></td>
+            <td>
+              {data?.ignition_status === "1"
+                ? "ON"
+                : data?.ignition_status === "0"
+                ? "OFF"
+                : "-"}
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Latitude</b></td>
+            <td>{data?.latitude || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Longitude</b></td>
+            <td>{data?.longitude || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Last Updated</b></td>
+            <td>{data?.last_updated || "-"}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+   case "pis_stop":
+  return (
+    <div
+      style={{
+        padding: "12px",
+        minWidth: "320px",
+        maxWidth: "450px",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          marginBottom: "10px",
+          color: "#ff9800",
+        }}
+      >
+        Public Bus Stop
+      </h3>
+
+      <table
+        style={{
+          width: "100%",
+          fontSize: "13px",
+        }}
+      >
+        <tbody>
+          <tr>
+            <td><b>Stop ID</b></td>
+            <td>{data?.id || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Stop Name</b></td>
+            <td>{data?.name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Address</b></td>
+            <td>{data?.address || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>District</b></td>
+            <td>{data?.district_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>State</b></td>
+            <td>{data?.state_name || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Latitude</b></td>
+            <td>{data?.latitude || "-"}</td>
+          </tr>
+
+          <tr>
+            <td><b>Longitude</b></td>
+            <td>{data?.longitude || "-"}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+    default:
+      return (
+        <pre>
+          {JSON.stringify(
+            data,
+            null,
+            2
+          )}
+        </pre>
+      );
+  }
+};
   useEffect(() => {
   if (!map) return;
 
@@ -952,10 +1565,10 @@ const [popupType, setPopupType] = useState(null); // vehicle | poi | transit
 
   transitLayerRef.current = layer;
 
-  console.log(
-    "TRANSIT LAYER ADDED",
-    map.getLayers().getArray().includes(layer)
-  );
+//   console.log(
+//     "TRANSIT LAYER ADDED",
+//     map.getLayers().getArray().includes(layer)
+//   );
 
   return () => {
     if (map && layer) {
@@ -982,12 +1595,7 @@ const [popupType, setPopupType] = useState(null); // vehicle | poi | transit
   };
 }, [map, transitLayer]);
 
-console.log("selectedTransitLayer", selectedTransitLayer);
-console.log("schoolRoutes", schoolRoutes);
-console.log("pisRoutes", pisRoutes);
-console.log("schoolBuses", schoolBuses);
-console.log("pisBuses", pisBuses);
-console.log("pisStops", pisStops);
+
 useEffect(() => {
  if (!map || !transitLayerRef.current) return;
 
@@ -998,12 +1606,11 @@ const source =
 
   source.clear();
 
-  console.log("selectedTransitLayer", selectedTransitLayer);
 
   // ==========================
   // SCHOOL ROUTES
   // ==========================
-  if (selectedTransitLayer === "school_routes") {
+  if (selectedTransitLayer.includes("school_routes")) {
     schoolRoutes.forEach((route) => {
       const routePoints = route?.route_points || [];
 
@@ -1023,11 +1630,7 @@ const source =
 
       if (coordinates.length < 2) return;
 
-      console.log(
-        "DRAWING SCHOOL ROUTE",
-        route.name,
-        coordinates
-      );
+     
 
       const routeFeature = new Feature({
         geometry: new LineString(coordinates),
@@ -1046,29 +1649,17 @@ const source =
       );
 
       source.addFeature(routeFeature);
-      console.log(
-  "FEATURES NOW:",
-  source.getFeatures().length
-);
-
-console.log(
-  "LAYER VISIBLE:",
-  transitLayer.getVisible()
-);
-
-console.log(
-  "MAP HAS LAYER:",
-  map.getLayers().getArray().includes(transitLayer)
-);
+    
     });
   }
 
   // ==========================
   // PIS ROUTES
   // ==========================
-  if (selectedTransitLayer === "pis_routes") {
+  if (selectedTransitLayer.includes("pis_routes")) {
     pisRoutes.forEach((route) => {
-      const routePoints = route?.route_points || [];
+      const routePoints =
+  route?.route_path || [];
 
       if (!Array.isArray(routePoints)) return;
       if (routePoints.length < 2) return;
@@ -1102,27 +1693,14 @@ console.log(
       );
 
       source.addFeature(routeFeature);
-      console.log(
-  "FEATURES NOW:",
-  source.getFeatures().length
-);
-
-console.log(
-  "LAYER VISIBLE:",
-  transitLayer.getVisible()
-);
-
-console.log(
-  "MAP HAS LAYER:",
-  map.getLayers().getArray().includes(transitLayer)
-);
+   
     });
   }
 
   // ==========================
   // SCHOOL BUSES
   // ==========================
-  if (selectedTransitLayer === "school_buses") {
+  if (selectedTransitLayer.includes("school_buses")) {
     schoolBuses.forEach((bus) => {
       const lat = Number(bus?.latitude ?? bus?.lat);
       const lon = Number(
@@ -1162,27 +1740,14 @@ console.log(
       );
 
       source.addFeature(feature);
-      console.log(
-  "FEATURES NOW:",
-  source.getFeatures().length
-);
-
-console.log(
-  "LAYER VISIBLE:",
-  transitLayer.getVisible()
-);
-
-console.log(
-  "MAP HAS LAYER:",
-  map.getLayers().getArray().includes(transitLayer)
-);
+   
     });
   }
 
   // ==========================
   // PIS BUSES
   // ==========================
-  if (selectedTransitLayer === "pis_buses") {
+  if (selectedTransitLayer.includes("pis_buses")) {
     pisBuses.forEach((bus) => {
       const lat = Number(bus?.latitude ?? bus?.lat);
       const lon = Number(
@@ -1228,7 +1793,7 @@ console.log(
   // ==========================
   // PIS STOPS
   // ==========================
-  if (selectedTransitLayer === "pis_stops") {
+  if (selectedTransitLayer.includes("pis_stops")) {
     pisStops.forEach((stop) => {
       const lat = Number(stop?.latitude ?? stop?.lat);
       const lon = Number(
@@ -1271,14 +1836,9 @@ console.log(
     });
   }
 
-  console.log(
-    "TOTAL FEATURES",
-    source.getFeatures().length
-  );
 
   const extent = source.getExtent();
 
-  console.log("EXTENT", extent);
 
   if (
     extent &&
@@ -1310,7 +1870,6 @@ console.log(
         const lat = Number(selectedPoi.lat);
         const lon = Number(selectedPoi.lon);
 
-        // console.log("POI LAT/LON", lat, lon);
 
         const source = poiVectorLayer.getSource();
 
@@ -1336,10 +1895,7 @@ console.log(
 
         source.addFeature(feature);
 
-        // console.log(
-        //     "POI FEATURES COUNT",
-        //     source.getFeatures().length
-        // );
+  
 
         map.getView().animate({
             center: [lon, lat],
@@ -2071,7 +2627,23 @@ console.log(
         //         initialOverlay.setPosition(undefined);
         //     }
         // });
+
+        const poiTransitPopupOverlay =
+  new Overlay({
+    element:
+      poiTransitOverlayElement.current,
+    autoPan: true,
+  });
+
+initialMap.addOverlay(
+  poiTransitPopupOverlay
+);
+
+setPoiTransitOverlay(
+  poiTransitPopupOverlay
+);
         initialMap.on("singleclick", (evt) => {
+            
 
   let clickedPoi = false;
   let clickedTransit = false;
@@ -2088,7 +2660,7 @@ console.log(
       setSelectedPoiData(poiData);
       setSelectedTransitData(null);
 
-      initialOverlay.setPosition(
+      poiTransitPopupOverlay.setPosition(
         feature.getGeometry().getCoordinates()
       );
 
@@ -2097,30 +2669,40 @@ console.log(
     }
 
     // Transit Popup
-    if (transitData) {
+   if (transitData) {
 
-      setPopupType("transit");
-      setSelectedTransitData(transitData);
-      setSelectedPoiData(null);
+  const transitType =
+    feature.get("transitType");
 
-      let coordinate;
+  setPopupType("transit");
 
-      if (
-        feature.getGeometry() &&
-        feature.getGeometry().getType() === "LineString"
-      ) {
-        coordinate =
-          feature.getGeometry().getCoordinateAt(0.5);
-      } else {
-        coordinate =
-          feature.getGeometry().getCoordinates();
-      }
+  setSelectedTransitData({
+    type: transitType,
+    data: transitData,
+  });
 
-      initialOverlay.setPosition(coordinate);
+  setSelectedPoiData(null);
 
-      clickedTransit = true;
-      return true;
-    }
+  let coordinate;
+
+  if (
+    feature.getGeometry() &&
+    feature.getGeometry().getType() === "LineString"
+  ) {
+    coordinate =
+      feature.getGeometry().getCoordinateAt(0.5);
+  } else {
+    coordinate =
+      feature.getGeometry().getCoordinates();
+  }
+
+  poiTransitPopupOverlay.setPosition(
+    coordinate
+  );
+
+  clickedTransit = true;
+  return true;
+}
   });
 
   if (!clickedPoi && !clickedTransit) {
@@ -6535,26 +7117,19 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             </Box>
 
             {/* Overlay for displaying marker details */}
-            {/* <div ref={overlayElement} className="dynamic-overlay">
+            <div ref={overlayElement} className="dynamic-overlay">
                 <div id="overlay-content"></div>
-            </div> */}
+            </div>
             <div
-                ref={overlayElement}
-                style={{
-                    background: "#fff",
+  ref={poiTransitOverlayElement}
+  className="ol-popup"
+>
+  {popupType === "poi" &&
+    selectedPoiData && (
+      <div style={{ padding: "10px",background: "#fff",
                     borderRadius: "10px",
                     border: "1px solid #ddd",
-                    boxShadow: "0 4px 20px rgba(0,0,0,.25)",
-                    minWidth: "300px",
-                    maxWidth: "450px",
-                    maxHeight: "350px",
-                    overflowY: "auto",
-                    display: selectedPoiData || selectedTransitData ? "block" : "none",
-                }}
-            >
-                {/* POI Popup */}
-{popupType === "poi" && selectedPoiData && (
- <div style={{ padding: "10px" }}>
+                    boxShadow: "0 4px 20px rgba(0,0,0,.25)", }}>
                         <h3>POI Details</h3>
 
                         <table style={{ width: "100%" }}>
@@ -6584,128 +7159,19 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                             </tbody>
                         </table>
                     </div>
-)}
 
-{/* Transit Popup */}
-{popupType === "transit" && selectedTransitData && (
-  <div style={{ padding: "10px", minWidth: "320px" }}>
-    <h3 style={{ marginBottom: "10px" }}>
-      Transit Details
-    </h3>
+    )}
 
-    <table style={{ width: "100%" }}>
-      <tbody>
-
-        <tr>
-          <td><b>Bus ID</b></td>
-          <td>{selectedTransitData.bus_id}</td>
-        </tr>
-
-        <tr>
-          <td><b>Vehicle No</b></td>
-          <td>{selectedTransitData.vehicle_reg_no}</td>
-        </tr>
-
-        <tr>
-          <td><b>Make</b></td>
-          <td>{selectedTransitData.vehicle_make}</td>
-        </tr>
-
-        <tr>
-          <td><b>Model</b></td>
-          <td>{selectedTransitData.vehicle_model}</td>
-        </tr>
-
-        <tr>
-          <td><b>School</b></td>
-          <td>{selectedTransitData.school_name}</td>
-        </tr>
-
-        <tr>
-          <td><b>Speed</b></td>
-          <td>{selectedTransitData.speed ?? "-"}</td>
-        </tr>
-
-        <tr>
-          <td><b>Heading</b></td>
-          <td>{selectedTransitData.heading ?? "-"}</td>
-        </tr>
-
-        <tr>
-          <td><b>Ignition</b></td>
-          <td>
-            {selectedTransitData.ignition_status === "1"
-              ? "ON"
-              : "OFF"}
-          </td>
-        </tr>
-
-        <tr>
-          <td><b>Latitude</b></td>
-          <td>{selectedTransitData.latitude ?? "-"}</td>
-        </tr>
-
-        <tr>
-          <td><b>Longitude</b></td>
-          <td>{selectedTransitData.longitude ?? "-"}</td>
-        </tr>
-
-        <tr>
-          <td><b>Last Updated</b></td>
-          <td>{selectedTransitData.last_updated ?? "-"}</td>
-        </tr>
-
-        <tr>
-          <td><b>Driver Name</b></td>
-          <td>
-            {selectedTransitData.driver?.name ?? "-"}
-          </td>
-        </tr>
-
-        <tr>
-          <td><b>Driver Phone</b></td>
-          <td>
-            {selectedTransitData.driver?.phone_no ?? "-"}
-          </td>
-        </tr>
-
-      </tbody>
-    </table>
+  {popupType === "transit" &&
+    selectedTransitData && (
+        <div style={{ padding: "10px", minWidth: "320px",background: "#fff",
+                    borderRadius: "10px",
+                    border: "1px solid #ddd",
+                    boxShadow: "0 4px 20px rgba(0,0,0,.25)", }}>
+    {renderTransitPopup()}
   </div>
-)}
-                {/* {selectedPoiData && (
-                    <div style={{ padding: "10px" }}>
-                        <h3>POI Details</h3>
-
-                        <table style={{ width: "100%" }}>
-                            <tbody>
-                                {Object.entries(selectedPoiData).map(
-                                    ([key, value]) => (
-                                        <tr key={key}>
-                                            <td
-                                                style={{
-                                                    fontWeight: "bold",
-                                                    padding: "6px",
-                                                }}
-                                            >
-                                                {key}
-                                            </td>
-
-                                            <td
-                                                style={{
-                                                    padding: "6px",
-                                                }}
-                                            >
-                                                {String(value ?? "-")}
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )} */}
-            </div>
+    )}
+</div>
 
             <style>{`
 .ol-attribution {
