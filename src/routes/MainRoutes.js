@@ -78,6 +78,10 @@ const DrivingAlerts = Loadable(lazy(() => import("../views/state-transport-analy
 const VehicleAlertsCount = Loadable(lazy(() => import("../views/state-transport-analytics/VehicleAlertsCount")));
 const SummaryDashboard = Loadable(lazy(() => import("../views/state-transport-analytics/SummaryDashboard")));
 const DataAnalytics = Loadable(lazy(() => import("../views/state-transport-analytics/DataAnalytics")));
+const PISSummaryAnalytics = Loadable(lazy(() => import("../views/state-transport-analytics/PISSummaryAnalytics")));
+const ResourcePerformance = Loadable(lazy(() => import("../views/state-transport-analytics/ResourcePerformance")));
+const OperationalAnalytics = Loadable(lazy(() => import("../views/state-transport-analytics/OperationalAnalytics")));
+const ComparativeAnalysis = Loadable(lazy(() => import("../views/state-transport-analytics/ComparativeAnalysis")));
 
 const M2MRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/M2MRegistrationAdminReview")));
 const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/VehicleManufacturerRegistrationAdminReview")));
@@ -386,7 +390,7 @@ const MainRoutes = {
     {
       path: '/schoolbus/parent-tracking',
       element: <ParentTracking />,
-      roles: [ 'parentuser']
+      roles: ['parentuser']
     },
     {
       path: '/schoolbus/bus-tagging',
@@ -396,7 +400,7 @@ const MainRoutes = {
     {
       path: '/schoolbus/bus-tracking',
       element: <SchoolBusTracking />,
-      roles: [ 'schooladmin']
+      roles: ['schooladmin']
     },
     {
       path: '/schoolbus/route-management',
@@ -416,9 +420,9 @@ const MainRoutes = {
     {
       path: '/schoolbus/create-trip',
       element: <CreateTrip />,
-      roles: [ 'schooladmin']
+      roles: ['schooladmin']
     },
-    
+
     {
       path: '/schoolbus/holidays',
       element: <SchoolHolidays />,
@@ -503,6 +507,26 @@ const MainRoutes = {
     {
       path: '/analytics/data-analytics',
       element: <DataAnalytics />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/pis-summary',
+      element: <PISSummaryAnalytics />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/resource-performance',
+      element: <ResourcePerformance />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/operational',
+      element: <OperationalAnalytics />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/comparative-analysis',
+      element: <ComparativeAnalysis />,
       roles: ['superadmin', 'stateadmin']
     }
   ].map((route) => applyPrivateRoute(route)),

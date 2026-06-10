@@ -1,8 +1,7 @@
-// assets
-import { IconDeviceAnalytics, IconCarCrash, IconAlertCircle, IconDashboard, IconChartBar } from '@tabler/icons';
+import { IconDeviceAnalytics, IconCarCrash, IconAlertCircle, IconDashboard, IconChartBar, IconBus, IconTruck, IconReportAnalytics, IconScale } from '@tabler/icons';
 
 // constant
-const icons = { IconDeviceAnalytics, IconCarCrash, IconAlertCircle, IconDashboard, IconChartBar };
+const icons = { IconDeviceAnalytics, IconCarCrash, IconAlertCircle, IconDashboard, IconChartBar, IconBus, IconTruck, IconReportAnalytics, IconScale };
 
 // ==============================|| STATE TRANSPORT ANALYTICS MENU ITEMS ||============================== //
 
@@ -42,6 +41,42 @@ const stateTransportAnalytics = {
           type: 'item',
           url: '/analytics/vehicle-alerts',
           icon: icons.IconAlertCircle,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin']
+        },
+        {
+          id: 'pis-summary',
+          title: 'PIS Summary',
+          type: 'item',
+          url: '/analytics/pis-summary',
+          icon: icons.IconBus,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin']
+        },
+        {
+          id: 'operational-analytics',
+          title: 'Operational Analytics',
+          type: 'item',
+          url: '/analytics/operational',
+          icon: icons.IconReportAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin']
+        },
+        {
+          id: 'comparative-analysis',
+          title: 'Comparative Analysis',
+          type: 'item',
+          url: '/analytics/comparative-analysis',
+          icon: icons.IconScale,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin']
+        },
+        {
+          id: 'resource-performance',
+          title: 'Resource Performance',
+          type: 'item',
+          url: '/analytics/resource-performance',
+          icon: icons.IconTruck,
           breadcrumbs: false,
           roles: ['superadmin', 'stateadmin']
         }

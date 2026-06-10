@@ -110,7 +110,7 @@ const PISService = {
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
-      : Array.isArray(raw?.data) ? raw.data : [];
+        : Array.isArray(raw?.data) ? raw.data : [];
     return { success: true, data };
   },
 
@@ -120,7 +120,7 @@ const PISService = {
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
-      : Array.isArray(raw?.data) ? raw.data : [];
+        : Array.isArray(raw?.data) ? raw.data : [];
     return { success: true, data };
   },
 
@@ -145,7 +145,7 @@ const PISService = {
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
-      : Array.isArray(raw?.data) ? raw.data : [];
+        : Array.isArray(raw?.data) ? raw.data : [];
     return { success: true, data };
   },
 
@@ -156,7 +156,7 @@ const PISService = {
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
-      : Array.isArray(raw?.data) ? raw.data : [];
+        : Array.isArray(raw?.data) ? raw.data : [];
     return { success: true, data };
   },
 
@@ -182,6 +182,31 @@ const PISService = {
         etaDestination: new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hr from now
       }
     };
+  },
+
+  // ================= ANALYTICS =================
+  getPISSummary: async (params) => {
+    const http = getAxiosInstance();
+    const response = await http.get(`${BASE_URL}school/api/analytics/pis-summary/`, { params });
+    return response.data;
+  },
+
+  getResourcePerformance: async (params) => {
+    const http = getAxiosInstance();
+    const response = await http.get(`${BASE_URL}school/api/analytics/resource-performance/`, { params });
+    return response.data;
+  },
+
+  getOperationalAnalytics: async (params) => {
+    const http = getAxiosInstance();
+    const response = await http.get(`${BASE_URL}school/api/analytics/operational/`, { params });
+    return response.data;
+  },
+
+  getComparativeAnalysis: async (params) => {
+    const http = getAxiosInstance();
+    const response = await http.get(`${BASE_URL}school/api/analytics/comparative-analysis/`, { params });
+    return response.data;
   }
 };
 
