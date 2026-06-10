@@ -72,6 +72,13 @@ const BusRouteManagement = Loadable(lazy(() => import("../views/pis/BusRouteMana
 const BusScheduleManagement = Loadable(lazy(() => import("../views/pis/BusScheduleManagement")));
 const PISReports = Loadable(lazy(() => import("../views/pis/PISReports")));
 
+// State Transport Analytics Components
+const TripAnalysis = Loadable(lazy(() => import("../views/state-transport-analytics/TripAnalysis")));
+const DrivingAlerts = Loadable(lazy(() => import("../views/state-transport-analytics/DrivingAlerts")));
+const VehicleAlertsCount = Loadable(lazy(() => import("../views/state-transport-analytics/VehicleAlertsCount")));
+const SummaryDashboard = Loadable(lazy(() => import("../views/state-transport-analytics/SummaryDashboard")));
+const DataAnalytics = Loadable(lazy(() => import("../views/state-transport-analytics/DataAnalytics")));
+
 const M2MRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/M2MRegistrationAdminReview")));
 const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/VehicleManufacturerRegistrationAdminReview")));
 const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/AIS140DeviceManufacturerRegistrationAdminReview")));
@@ -471,6 +478,32 @@ const MainRoutes = {
       path: '/pis/reports',
       element: <PISReports />,
       roles: ['superadmin', 'stateadmin', 'dtorto']
+    },
+    // State Transport Analytics Routes
+    {
+      path: '/analytics/summary',
+      element: <SummaryDashboard />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/trip-analysis',
+      element: <TripAnalysis />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/driving-alerts',
+      element: <DrivingAlerts />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/vehicle-alerts',
+      element: <VehicleAlertsCount />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/analytics/data-analytics',
+      element: <DataAnalytics />,
+      roles: ['superadmin', 'stateadmin']
     }
   ].map((route) => applyPrivateRoute(route)),
 };

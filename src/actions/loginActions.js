@@ -26,6 +26,10 @@ export const setOtp = (user) => ({
   type: VERIFY_OTP,
   payload: user,
 })
+export const setPermissions = (permissions) => ({
+  type: 'SET_PERMISSIONS',
+  payload: permissions,
+})
 export const logoutUser = (user) => ({
   type: "LOGOUT_USER",
   payload: user,
@@ -203,6 +207,12 @@ export const loginUserSos = (username, password, captcha_key, captcha_reply) => 
         localStorage.setItem('dealerDistricts', JSON.stringify(response.data.info.districts));
       }
 
+      if (response.data?.permissions) {
+        sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+        localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+        dispatch(setPermissions(response.data.permissions));
+      }
+
       const responseData = {
         isAuthenticated: true,
         token: response.data.token,
@@ -295,6 +305,12 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
       localStorage.setItem('dealerDistricts', JSON.stringify(response.data.info.districts));
     }
 
+    if (response.data?.permissions) {
+      sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+      localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+      dispatch(setPermissions(response.data.permissions));
+    }
+
     const errorData = {
       message: null,
       status: null,
@@ -360,6 +376,7 @@ export const logout = () => async (dispatch) => {
     localStorage.clear();
     sessionStorage.clear();
     dispatch(setLoginInfo(""));
+    dispatch(setPermissions(null));
   } catch (error) {
     localStorage.clear();
     sessionStorage.clear();

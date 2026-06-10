@@ -25,6 +25,7 @@ const gpsDataColumns = [
         options: {
             filter: true,
             sort: false,
+            setCellProps: () => ({ style: { wordBreak: 'break-all', minWidth: '300px' } })
         },
     },
 ];

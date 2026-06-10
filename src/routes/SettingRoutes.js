@@ -25,6 +25,11 @@ import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
 
+// ─── RBAC Pages ────────────────────────────────────────────────────────────────
+import RoleManagement from "../views/settings/RoleManagement";
+import PermissionManagement from "../views/settings/PermissionManagement";
+import CustomUserManagement from "../views/user/CustomUserManagement";
+
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
@@ -153,6 +158,22 @@ const SettingRoutes = {
       element: (
         <PermitConditionManagement />
       ),
+      roles: ['superadmin']
+    },
+    // ─── RBAC Routes ─────────────────────────────────────────────────────────
+    {
+      path: "/setting/rbac/roles",
+      element: <RoleManagement />,
+      roles: ['superadmin']
+    },
+    {
+      path: "/setting/rbac/permissions",
+      element: <PermissionManagement />,
+      roles: ['superadmin']
+    },
+    {
+      path: "/setting/rbac/custom-users",
+      element: <CustomUserManagement />,
       roles: ['superadmin']
     },
   ].map((route) => applyPrivateRoute(route)),

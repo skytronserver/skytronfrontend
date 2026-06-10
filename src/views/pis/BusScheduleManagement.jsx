@@ -14,6 +14,7 @@ const BusScheduleManagement = () => {
   const [buses, setBuses] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('');
 
   const [formData, setFormData] = useState({
     service_type: 'Express',
@@ -30,8 +31,11 @@ const BusScheduleManagement = () => {
 
   const fetchData = async () => {
     try {
+      const filters = {};
+      if (statusFilter) filters.status = statusFilter;
+
       const results = await Promise.allSettled([
-        PISService.getBusSchedules(),
+        PISService.getBusSchedules(filters),
         PISService.getActiveBusRoutes(),
         PISService.getAvailableBuses()
       ]);
@@ -50,7 +54,7 @@ const BusScheduleManagement = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [statusFilter]);
 
   const handleOpen = (schedule = null) => {
     if (schedule) {
@@ -125,11 +129,27 @@ const BusScheduleManagement = () => {
         <CardHeader
           title="Bus Schedule Management"
           action={
-            !isOwner && (
-              <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-                Add Schedule
-              </Button>
-            )
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel>Filter by Status</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Filter by Status"
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="created">Created</MenuItem>
+                  <MenuItem value="started">Started</MenuItem>
+                  <MenuItem value="completed">Completed</MenuItem>
+                  <MenuItem value="canceled">Canceled</MenuItem>
+                </Select>
+              </FormControl>
+              {!isOwner && (
+                <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+                  Add Schedule
+                </Button>
+              )}
+            </Box>
           }
         />
         <CardContent>

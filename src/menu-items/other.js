@@ -1,8 +1,8 @@
 // assets
-import { IconBrandChrome, IconHelp, IconSettings } from '@tabler/icons';
+import { IconBrandChrome, IconHelp, IconSettings, IconShieldLock, IconShieldCheck, IconUsers } from '@tabler/icons';
 
 // constant
-const icons = { IconBrandChrome, IconHelp, IconSettings };
+const icons = { IconBrandChrome, IconHelp, IconSettings, IconShieldLock, IconShieldCheck, IconUsers };
 
 // ==============================|| SAMPLE PAGE & DOCUMENTATION MENU ITEMS ||============================== //
 
@@ -99,7 +99,46 @@ const other = {
         }
       ],
     },
+
+    // ─── Access Control (RBAC) — Superadmin only ─────────────────────────────
+    {
+      id: 'rbac-group',
+      title: 'Access Control',
+      type: 'collapse',
+      icon: icons.IconShieldLock,
+      roles: ['superadmin'],
+      children: [
+        {
+          id: 'rbac-role-management',
+          title: 'Custom Role Management',
+          type: 'item',
+          url: '/setting/rbac/roles',
+          icon: icons.IconShieldLock,
+          breadcrumbs: false,
+          roles: ['superadmin'],
+        },
+        {
+          id: 'rbac-permission-management',
+          title: 'Feature Permissions',
+          type: 'item',
+          url: '/setting/rbac/permissions',
+          icon: icons.IconShieldCheck,
+          breadcrumbs: false,
+          roles: ['superadmin'],
+        },
+        {
+          id: 'rbac-custom-users',
+          title: 'Custom User Management',
+          type: 'item',
+          url: '/setting/rbac/custom-users',
+          icon: icons.IconUsers,
+          breadcrumbs: false,
+          roles: ['superadmin'],
+        },
+      ],
+    },
   ]
 };
 
 export default other;
+
