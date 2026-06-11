@@ -1,4 +1,5 @@
 export const FETCH_VEHICLE_CATEGORY = 'FETCH_VEHICLE_CATEGORY';
+export const FETCH_VEHICLE_CATEGORY_CODE = 'FETCH_VEHICLE_CATEGORY_CODE';
 export const FETCH_STATE_LIST='FETCH_STATE_LIST';
 export const FETCH_DISTRICT_LIST='FETCH_DISTRICT_LIST';
 export const FETCH_HP_FREQUENCY_LIST='FETCH_HP_FREQUENCY_LIST';
@@ -8,6 +9,10 @@ export const FETCH_IP_SETTING_LIST='FETCH_IP_SETTING_LIST';
 export const FETCH_PERMIT_CONDITION_LIST='FETCH_PERMIT_CONDITION_LIST';
 export const fetchVehicleCategory=(data)=>({
     type:FETCH_VEHICLE_CATEGORY,
+    payload:data,
+})
+export const fetchVehicleCategoryCode=(data)=>({
+    type:FETCH_VEHICLE_CATEGORY_CODE,
     payload:data,
 })
 export const fetchStateList=(data)=>({

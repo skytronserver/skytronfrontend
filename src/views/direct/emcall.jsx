@@ -1610,7 +1610,7 @@ const EMCall = () => {
                       <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
+                      <Typography variant="caption" color="text.secondary">Vehicle Type</Typography>
                       <Typography variant="body1" fontWeight={500}>
                         {typeof call?.call?.device?.category === 'object'
                           ? (call.call.device.category?.category || "N/A")

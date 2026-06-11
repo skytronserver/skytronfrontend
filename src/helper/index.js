@@ -514,6 +514,23 @@ export const fetchVehicleCategory = async () => {
   }
 };
 
+export const fetchVehicleCategoryCode = async () => {
+  try {
+    const resp = await SettingService.pub_list_VehicleCategoryCode();
+    const list = resp.data.map((category) => ({
+      value: category.id,
+      label: category.category_code,
+    }));
+    return list;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("No Data Found");
+    } else {
+      console.log("No Data Found");
+    }
+  }
+};
+
 export const fetchTaggedList = async (data) => {
   try {
     const filter = data ? data : {

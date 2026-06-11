@@ -222,7 +222,7 @@ const SOSReport = () => {
       { name: 'sosEventDate', label: 'SOS Event Date', options: { filter: true, sort: true } },
       { name: 'sosEventTime', label: 'SOS Event Time', options: { filter: true, sort: true } },
       { name: 'vehicleRegistrationNumber', label: 'Vehicle Registration Number', options: { filter: true, sort: true } },
-      { name: 'vehicleCategory', label: 'Vehicle Category', options: { filter: true, sort: true } },
+      { name: 'vehicleCategory', label: 'Vehicle Type', options: { filter: true, sort: true } },
       { name: 'deviceImei', label: 'Device ID / IMEI', options: { filter: true, sort: true } },
       { name: 'deviceMake', label: 'Device Make', options: { filter: true, sort: true } },
       { name: 'sosTriggerTime', label: 'SOS Trigger Time (Device Timestamp)', options: { filter: true, sort: true } },

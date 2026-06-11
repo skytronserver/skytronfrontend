@@ -105,7 +105,8 @@ const UploadReceipt = () => {
           { label: "Engine Number", value: certificateData.engineNo },
           { label: "Chassis Number", value: certificateData.chassisNo },
           { label: "Vehicle Model", value: certificateData.vehicleModel },
-          { label: "Vehicle Category", value: certificateData.vehicleCategory },
+          { label: "Vehicle Type", value: certificateData.vehicleCategory },
+          { label: "Vehicle Category Code", value: certificateData.categoryCode },
           { label: "VLTD Make", value: certificateData.vltdMake },
           { label: "VLTD Model", value: certificateData.vltdModel },
           { label: "VLTD IMEI Number", value: certificateData.vltdImei },
@@ -177,6 +178,7 @@ const UploadReceipt = () => {
         chassisNo: vehicle?.chassis_no || vahanData?.chassisNo || "",
         vehicleModel: vehicle?.vehicle_model || vahanData?.modelName || "",
         vehicleCategory: vehicle?.category || vahanData?.vehClass || "",
+        categoryCode: vehicle?.category_code_info?.category_code || vehicle?.category_code?.category_code || "",
         vltdMake: vehicle?.vehicle_make || vahanData?.makerName || "",
         vltdModel: device?.model || vahanData?.deviceSerialno || "",
         vltdImei: device?.imei || vahanData?.imeiNo || "",
@@ -206,7 +208,8 @@ const UploadReceipt = () => {
       { label: "Engine Number", value: certificateData.engineNo },
       { label: "Chassis Number", value: certificateData.chassisNo },
       { label: "Vehicle Model", value: certificateData.vehicleModel },
-      { label: "Vehicle Category", value: certificateData.vehicleCategory },
+      { label: "Vehicle Type", value: certificateData.vehicleCategory },
+      { label: "Vehicle Category Code", value: certificateData.categoryCode },
       { label: "VLTD Make", value: certificateData.vltdMake },
       { label: "VLTD Model", value: certificateData.vltdModel },
       { label: "VLTD IMEI Number", value: certificateData.vltdImei },
@@ -477,11 +480,23 @@ const UploadReceipt = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <LocalShipping sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VEHICLE CATEGORY
+                            VEHICLE TYPE
                           </Typography>
                         </Box>
                         <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
                           {certificateData.vehicleCategory || "__________"}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <LocalShipping sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
+                            VEHICLE CATEGORY CODE
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
+                          {certificateData.categoryCode || "__________"}
                         </Typography>
                       </Box>
 

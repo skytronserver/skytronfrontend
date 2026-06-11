@@ -182,7 +182,7 @@ const OperationalAnalytics = () => {
                         </TextField>
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
-                        <TextField select fullWidth label="Vehicle Category" name="vehicle_category_id" value={filters.vehicle_category_id} onChange={handleFilterChange} size="small">
+                        <TextField select fullWidth label="Vehicle Type" name="vehicle_category_id" value={filters.vehicle_category_id} onChange={handleFilterChange} size="small">
                             <MenuItem value="">All Categories</MenuItem>
                             {vehicleCategories.map((vc) => (
                                 <MenuItem key={vc.id} value={vc.id}>{vc.category}</MenuItem>

@@ -18,6 +18,7 @@ import AlertTitle from "@mui/material/AlertTitle";
 import {
   fetchDeviceListForTagging,
   fetchVehicleCategory,
+  fetchVehicleCategoryCode,
 } from "../../helper";
 import {
   taggingFields,
@@ -269,10 +270,12 @@ function TagDeviceToVehicle() {
       try {
         const deviceList = await fetchDeviceListForTagging();
         const categoryList = await fetchVehicleCategory();
+        const categoryCodeList = await fetchVehicleCategoryCode();
 
-        // Ensure deviceList and categoryList are arrays before updating
+        // Ensure lists are arrays before updating
         const safeDeviceList = Array.isArray(deviceList) ? deviceList : [];
         const safeCategoryList = Array.isArray(categoryList) ? categoryList : [];
+        const safeCategoryCodeList = Array.isArray(categoryCodeList) ? categoryCodeList : [];
 
         setUpdatedFormField((prevConfig) => ({
           ...prevConfig,
@@ -283,6 +286,10 @@ function TagDeviceToVehicle() {
           category: {
             ...prevConfig.category,
             options: safeCategoryList,
+          },
+          category_code: {
+            ...prevConfig.category_code,
+            options: safeCategoryCodeList,
           },
         }));
         setLoading((prev) => ({ ...prev, form: true }));

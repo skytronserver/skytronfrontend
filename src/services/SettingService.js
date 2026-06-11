@@ -18,7 +18,7 @@ const filter_settings_ota = (data) => {
   return http.post("/api/ota/filter/", data);
 };
 
-//Vehicle Category
+//Vehicle Type
 const create_settings_VehicleCategory = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/Settings/create_settings_VehicleCategory/", data);
@@ -26,6 +26,24 @@ const create_settings_VehicleCategory = (data) => {
 const filter_settings_VehicleCategory = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/Settings/filter_settings_VehicleCategory/", data);
+};
+
+//Vehicle Category Code
+const create_settings_VehicleCategoryCode = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/vehicle_category_code/create/", data);
+};
+const edit_settings_VehicleCategoryCode = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/vehicle_category_code/edit/", data);
+};
+const list_settings_VehicleCategoryCode = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/vehicle_category_code/list/", data);
+};
+const pub_list_VehicleCategoryCode = () => {
+  const http = getAxiosInstance();
+  return http.get("/api/pub/Settings/vehicle_category_code/");
 };
 
 //State
@@ -144,6 +162,10 @@ const SettingService = {
   filter_settings_ota,
   create_settings_VehicleCategory,
   filter_settings_VehicleCategory,
+  create_settings_VehicleCategoryCode,
+  edit_settings_VehicleCategoryCode,
+  list_settings_VehicleCategoryCode,
+  pub_list_VehicleCategoryCode,
   create_settings_State,
   filter_settings_State,
   create_settings_District,

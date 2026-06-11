@@ -156,9 +156,9 @@ const PermitConditionManagement = () => {
     vehicle_category: {
       name: 'vehicle_category',
       type: 'select',
-      label: 'Vehicle Category',
+      label: 'Vehicle Type',
       options: vehicleCategoryOptions,
-      validation: Yup.string().required('Vehicle Category is required'),
+      validation: Yup.string().required('Vehicle Type is required'),
     },
     violation_type: {
       name: 'violation_type',
@@ -294,7 +294,7 @@ const PermitConditionManagement = () => {
   const columns = [
     { name: 'id', label: 'ID', options: { filter: false, sort: false, display: false } },
     { name: 'permit_name', label: 'Permit Name', options: { filter: true, sort: true } },
-    { name: 'vehicle_category_name', label: 'Vehicle Category', options: { filter: true, sort: false } },
+    { name: 'vehicle_category_name', label: 'Vehicle Type', options: { filter: true, sort: false } },
     { name: 'violation_type', label: 'Violation Type', options: { filter: true, sort: false } },
     {
       name: 'rule_details',

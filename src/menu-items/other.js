@@ -35,9 +35,17 @@ const other = {
         },
         {
           id: 'vehicle-category',
-          title: 'Vehicle Category',
+          title: 'Vehicle Type',
           type: 'item',
           url: '/setting/vehicle-category',
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+        {
+          id: 'vehicle-category-code',
+          title: 'Vehicle Category Code',
+          type: 'item',
+          url: '/setting/vehicle-category-code',
           breadcrumbs: false,
           roles: ['superadmin']
         },

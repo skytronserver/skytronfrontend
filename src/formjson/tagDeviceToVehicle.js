@@ -17,6 +17,7 @@ export const taggingInitials = {
   vehicle_make: "",
   vehicle_model: "",
   category: "",
+  category_code: "",
   rcFile: null,
 };
 
@@ -121,6 +122,13 @@ export const taggingFields = {
     label: "tagDeviceForm.fields.vehicleCategory",
     validation: Yup.string().required("tagDeviceForm.validation.vehicleCategoryRequired"),
     options: categoryList,
+  },
+  category_code: {
+    name: "category_code",
+    type: "select",
+    label: "Vehicle Category Code",
+    validation: Yup.string().nullable(),
+    options: [],
   },
   rcFile: {
     name: "rcFile",

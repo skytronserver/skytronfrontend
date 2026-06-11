@@ -156,7 +156,7 @@ const TripAnalysis = () => {
             <TextField
               fullWidth
               select
-              label="Vehicle Category ID"
+              label="Vehicle Type ID"
               name="vehicle_category_id"
               value={filters.vehicle_category_id}
               onChange={handleFilterChange}

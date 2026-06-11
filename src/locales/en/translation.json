@@ -498,7 +498,7 @@
     "reports": "Reports",
     "settings": "Settings",
     "notice": "Notice",
-    "vehicleCategory": "Vehicle Category",
+    "vehicleCategory": "Vehicle Type",
     "stateDistrict": "State & District",
     "frequencyFirmware": "OTA & Firmware Settings",
     "ipSetting": "IP Settings",
@@ -1068,7 +1068,7 @@
       "vehicleNumber": "Vehicle Number",
       "vehicleMake": "Vehicle Make",
       "vehicleModel": "Vehicle Model",
-      "vehicleCategory": "Vehicle Category",
+      "vehicleCategory": "Vehicle Type",
       "registrationCertificate": "Registration Certificate"
     },
     "validation": {
@@ -1083,7 +1083,7 @@
       "chassisNoRequired": "Chassis No. is required",
       "vehicleMakeRequired": "Vehicle Make is required",
       "vehicleModelRequired": "Vehicle Model is required",
-      "vehicleCategoryRequired": "Vehicle Category is required",
+      "vehicleCategoryRequired": "Vehicle Type is required",
       "registrationCertificateRequired": "Registration Certificate is required",
       "districtRequired": "District is required"
     },
@@ -1528,15 +1528,15 @@
     }
   },
   "vehicleCategory": {
-    "addNew": "Add New Vehicle Category",
+    "addNew": "Add New Vehicle Type",
     "addButton": "Add",
-    "listTitle": "Vehicle Category List",
+    "listTitle": "Vehicle Type List",
     "formSubmitSuccess": "Form Submitted Successfully",
     "formSubmitError": "Form Not Submitted",
     "form": {
       "category": {
-        "label": "Vehicle Category",
-        "required": "Vehicle Category is required"
+        "label": "Vehicle Type",
+        "required": "Vehicle Type is required"
       },
       "maxSpeed": {
         "label": "Maximum Speed",

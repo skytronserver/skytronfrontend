@@ -11,7 +11,9 @@ import {
   notificationPreferencesInitialsFields,
 } from "../formjson/notificationPreferences";
 import { stateFields, stateInitials, districtFields, districtInitials } from "../formjson/stateDistrict";
+import { vehicleCategoryCodeFormFields, vehicleCategoryCodeInitialsFields } from "../formjson/vehicleCategoryCode";
 import VehicleCategory from "../views/settings/VehicleCategory";
+import VehicleCategoryCode from "../views/settings/VehicleCategoryCode";
 import NotificationPreferences from "../views/settings/NotificationPreferences";
 import StateDistrict from "../views/settings/StateDistrict";
 import FrequencyFirmware from "../views/settings/FrequencyFirmware";
@@ -62,7 +64,17 @@ const SettingRoutes = {
         <VehicleCategory
           fieldConfig={vehicleCategoryFormFields}
           initialData={vehicleCategoryInitialsFields}
-          formTitle="Vehicle Category"
+          formTitle="Vehicle Type"
+        />
+      ),
+      roles: ['superadmin']
+    },
+    {
+      path: "/setting/vehicle-category-code",
+      element: (
+        <VehicleCategoryCode
+          fieldConfig={vehicleCategoryCodeFormFields}
+          initialData={vehicleCategoryCodeInitialsFields}
         />
       ),
       roles: ['superadmin']

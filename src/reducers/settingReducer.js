@@ -1,5 +1,6 @@
 import {
     FETCH_VEHICLE_CATEGORY,
+    FETCH_VEHICLE_CATEGORY_CODE,
     FETCH_STATE_LIST,
     FETCH_DISTRICT_LIST,
     FETCH_FIRMWARE_LIST,
@@ -11,6 +12,7 @@ import {
 
   const initialState = {
     vehicleCategoryList:[],
+    vehicleCategoryCodeList:[],
     stateList:[],
     districtList:[],
     firmwareList:[],
@@ -26,6 +28,11 @@ import {
         return {
             ...state,
             vehicleCategoryList:action.payload,
+        }
+      case FETCH_VEHICLE_CATEGORY_CODE:
+        return {
+            ...state,
+            vehicleCategoryCodeList:action.payload,
         }
      case FETCH_STATE_LIST:
         return {

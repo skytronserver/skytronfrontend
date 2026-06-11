@@ -165,7 +165,7 @@ const ActivatedDeviceReport = () => {
     },
     { 
       field: 'vehicle_category', 
-      headerName: 'Vehicle Category', 
+      headerName: 'Vehicle Type', 
       minWidth: 150,
       flex: 1 
     },

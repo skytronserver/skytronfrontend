@@ -1,3 +1,5 @@
+import { Button } from "@mui/material";
+
 export const ipSettingColumns = [
   {
     name: "id",
@@ -359,6 +361,70 @@ export const vehicleColumns = [
   }
 ];
 
+export const getVehicleCategoryCodeColumns = (onEdit, onToggleStatus) => [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "category_code",
+    label: "Category Code",
+    options: {
+      filter: true,
+      sort: true,
+    },
+  },
+  {
+    name: "details",
+    label: "Details",
+    options: {
+      filter: true,
+      sort: false,
+    },
+  },
+  {
+    name: "is_active",
+    label: "Status",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => {
+        return <p style={{ color: value ? "green" : "red" }}>{value ? "Active" : "Inactive"}</p>;
+      },
+    },
+  },
+  {
+    name: "actions",
+    label: "Action",
+    options: {
+      filter: false,
+      sort: false,
+      empty: true,
+      customBodyRender: (value, tableMeta) => {
+        const rowId = parseInt(tableMeta.rowData[0], 10);
+        const currentCode = tableMeta.rowData[1];
+        const currentDetails = tableMeta.rowData[2];
+        const isActive = tableMeta.rowData[3];
+        const rowData = { id: rowId, category_code: currentCode, details: currentDetails, is_active: isActive };
+        
+        return (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button variant="contained" color="primary" size="small" onClick={() => onEdit(rowData)}>Edit</Button>
+            <Button variant="contained" color={isActive ? "error" : "success"} size="small" onClick={() => onToggleStatus(rowData)}>
+              {isActive ? 'Deactivate' : 'Activate'}
+            </Button>
+          </div>
+        );
+      }
+    },
+  }
+];
+
 // ---- Permit Condition Columns ----
 // onStatusChange(id, currentStatus) is injected by the page component
 export const getPermitConditionColumns = (onStatusChange) => [
@@ -374,7 +440,7 @@ export const getPermitConditionColumns = (onStatusChange) => [
   },
   {
     name: "vehicle_category_name",
-    label: "Vehicle Category",
+    label: "Vehicle Type",
     options: { filter: true, sort: false },
   },
   {

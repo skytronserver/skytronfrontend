@@ -152,7 +152,7 @@ const ViolationReport = () => {
   // ── Export CSV ───────────────────────────────────────────────────────────
   const exportCSV = () => {
     if (!reportData.length) return;
-    const headers = ['ID', 'Violation Type', 'Permit Condition', 'Reg No', 'IMEI', 'Vehicle Category', 'Penalty', 'Enforcement Rule', 'Alert Timestamp', 'Status'];
+    const headers = ['ID', 'Violation Type', 'Permit Condition', 'Reg No', 'IMEI', 'Vehicle Type', 'Penalty', 'Enforcement Rule', 'Alert Timestamp', 'Status'];
     const rows = reportData.map((r) => [
       r.id, r.violation_type, r.permit_condition_name, r.vehicle_reg_no,
       r.imei, r.vehicle_category, r.penalty, r.enforcement_rule,
@@ -185,7 +185,7 @@ const ViolationReport = () => {
     { field: 'permit_condition_name', headerName: 'Permit Condition', width: 200, flex: 1.2 },
     { field: 'vehicle_reg_no', headerName: 'Reg No', width: 140, flex: 0.9 },
     { field: 'imei', headerName: 'IMEI', width: 170, flex: 1 },
-    { field: 'vehicle_category', headerName: 'Vehicle Category', width: 160, flex: 1 },
+    { field: 'vehicle_category', headerName: 'Vehicle Type', width: 160, flex: 1 },
     { field: 'penalty', headerName: 'Penalty', width: 130, flex: 0.8 },
     {
       field: 'enforcement_rule',

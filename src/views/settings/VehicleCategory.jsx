@@ -58,7 +58,7 @@ function VehicleCategory({ fieldConfig, initialData }) {
   const createVehicleCategory = async (formData) => {
     try {
       const response = await SettingService.create_settings_VehicleCategory(formData);
-      console.log("Vehicle Category Added Successfully");
+      console.log("Vehicle Type Added Successfully");
       return { code: "200", message: response.data };
     } catch (error) {
       console.error("Error in API Service:", error.message);

@@ -276,7 +276,7 @@ const ResourcePerformance = () => {
                         <TextField
                             fullWidth
                             select
-                            label="Vehicle Category"
+                            label="Vehicle Type"
                             name="vehicle_category_id"
                             value={filters.vehicle_category_id}
                             onChange={handleFilterChange}
