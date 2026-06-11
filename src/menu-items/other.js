@@ -43,7 +43,7 @@ const other = {
         },
         {
           id: 'notification-preferences',
-          title: 'Notification Delivery Mode',
+          title: 'Alert Notification Delivery Mode',
           type: 'item',
           url: '/setting/notification-preferences',
           breadcrumbs: false,

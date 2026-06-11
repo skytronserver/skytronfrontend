@@ -1557,7 +1557,7 @@
     }
   },
   "notificationPreferences": {
-    "title": "Notification Delivery Mode",
+    "title": "Alert Notification Delivery Mode",
     "saveButton": "Save",
     "formSubmitSuccess": "Preferences saved successfully",
     "formSubmitError": "Failed to save preferences",

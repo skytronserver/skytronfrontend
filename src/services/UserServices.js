@@ -158,9 +158,13 @@ const fetchDTOList = (formData) => {
     const http = getAxiosInstance();
     return http.post("/api/DTO_RTO/filter_DTO_RTO/", formData);
 }
-const getStateAdminDashboard = () => {
+const getStateAdminDashboard = (startDate, endDate) => {
     const http = getAxiosInstance();
-    return http.post('/api/homepageandstat/homepage_stateAdmin/')
+    const queryParams = new URLSearchParams();
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+    const queryString = queryParams.toString();
+    return http.post(`/api/homepageandstat/homepage_stateAdmin/${queryString ? `?${queryString}` : ''}`)
 }
 const getDealerDashboard = () => {
     const http = getAxiosInstance();
@@ -170,21 +174,33 @@ const getManufacturerDashboard = () => {
     const http = getAxiosInstance();
     return http.post('/api/homepageandstat/homepage_Manufacturer/');
 }
-const getOwnerDashboard = () => {
+const getOwnerDashboard = (startDate, endDate) => {
     const http = getAxiosInstance();
-    return http.post('/api/homepageandstat/homepage_VehicleOwner/');
+    const queryParams = new URLSearchParams();
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+    const queryString = queryParams.toString();
+    return http.post(`/api/homepageandstat/homepage_VehicleOwner/${queryString ? `?${queryString}` : ''}`);
 }
 const getDashboardUserData = () => {
     const http = getAxiosInstance();
     return http.post('/api/homepageandstat/homepage_user1/')
 }
-const getDashboardData = () => {
+const getDashboardData = (startDate, endDate) => {
     const http = getAxiosInstance();
-    return http.post('/api/homepageandstat/homepage/')
+    const queryParams = new URLSearchParams();
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+    const queryString = queryParams.toString();
+    return http.post(`/api/homepageandstat/homepage/${queryString ? `?${queryString}` : ''}`)
 }
-const getDTODashboardData = () => {
+const getDTODashboardData = (startDate, endDate) => {
     const http = getAxiosInstance();
-    return http.post('/api/homepageandstat/homepage_DTO/');
+    const queryParams = new URLSearchParams();
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+    const queryString = queryParams.toString();
+    return http.post(`/api/homepageandstat/homepage_DTO/${queryString ? `?${queryString}` : ''}`);
 }
 const getSOSAdminDashboard = (startDate, endDate) => {
     const http = getAxiosInstance();
@@ -233,9 +249,13 @@ const getESIMProviderDashboard = () => {
 };
 const getM2MProviderDashboard = getESIMProviderDashboard;
 
-const getVehicleAlertStatistics = () => {
+const getVehicleAlertStatistics = (startDate, endDate) => {
     const http = getAxiosInstance();
-    return http.get("/api/Statistics/vehicle_alert_statistics/");
+    const queryParams = new URLSearchParams();
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+    const queryString = queryParams.toString();
+    return http.get(`/api/Statistics/vehicle_alert_statistics/${queryString ? `?${queryString}` : ''}`);
 };
 
 const publicUserRegistration = (data) => {

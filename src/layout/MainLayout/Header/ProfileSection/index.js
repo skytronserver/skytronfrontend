@@ -190,6 +190,8 @@ const ProfileSection = () => {
                               ? 'M2M PROVIDER'
                               : data[1] === 'superadmin'
                               ? 'System Admin'
+                              : data[1] === 'devicemanufacture'
+                              ? 'Manufacturer'
                               : data[1]}
                           </span>
                         )}

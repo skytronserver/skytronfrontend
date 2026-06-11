@@ -349,7 +349,7 @@ const Details = () => {
   };
 
   const role = {
-    devicemanufacture: 'Device Manufacturer',
+    devicemanufacture: 'Manufacturer',
     dealer: 'Dealer',
     stateadmin: 'State Admin',
     sosadmin: 'SOS Admin',

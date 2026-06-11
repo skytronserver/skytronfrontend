@@ -130,8 +130,8 @@ const ActiveState = () => {
 
   // Chart-related state
   const [activeTab, setActiveTab] = useState(0);
-  const [sosAdminStartDate, setSosAdminStartDate] = useState("");
-  const [sosAdminEndDate, setSosAdminEndDate] = useState("");
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
 
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
@@ -139,11 +139,36 @@ const ActiveState = () => {
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   const isSuperAdmin = userRoles === 'superadmin';
 
-  const fetchSOSData = useCallback(async (startDate = "", endDate = "") => {
+  const fetchDashboardData = useCallback(async (startDate = "", endDate = "") => {
     try {
       if (userRoles === 'sosadmin') {
         const response = await UserServices.getSOSAdminDashboard(startDate, endDate);
-        const data = await response.data;
+        const rawData = await response.data;
+        const data = rawData.date_range ? {
+          ...rawData,
+          ...rawData.date_range,
+          Total_Closed_Calls: rawData.date_range.total_closed_calls ?? rawData.date_range.Total_Closed_Calls ?? 0,
+          Total_Rejected_Assignemnt: rawData.date_range.Total_Rejected_Assignment ?? rawData.date_range.Total_Rejected_Assignemnt ?? 0,
+          Total_Incoming_Calls: rawData.date_range.Total_Incoming_Calls ?? 0,
+          Total_Active_Calls: rawData.date_range.Total_Active_Calls ?? 0,
+          Total_Pending_Calls: rawData.date_range.Total_Pending_Calls ?? 0,
+          Total_Fake_Calls: rawData.date_range.Total_Fake_Calls ?? 0,
+          Broadcast_Total: rawData.date_range.Broadcast_Total ?? 0,
+          Broadcast_Total_Closed: rawData.date_range.broadcast_closed ?? rawData.date_range.Broadcast_Total_Closed ?? 0,
+          Broadcast_Total_Today: rawData.date_range.Broadcast_Total_Today ?? 0,
+          Broadcast_Total_Closed_Today: rawData.date_range.Broadcast_Total_Closed_Today ?? 0,
+          Broadcast_Currently_Pending: rawData.date_range.Broadcast_Currently_Pending ?? 0,
+          Total_Incoming_Calls_thismonth: 0,
+          Total_Incoming_Calls_thisweek: 0,
+          Total_Incoming_Calls_today: 0,
+          Total_Fake_Calls_thismonth: 0,
+          Total_Fake_Calls_thisweek: 0,
+          Total_Fake_Calls_today: 0,
+          Total_Rejected_Assignemnt_thismonth: 0,
+          Total_Rejected_Assignemnt_thisweek: 0,
+          Total_Rejected_Assignemnt_today: 0,
+        } : rawData;
+        
         setTeam((prev) => ({
           ...prev,
           Total_Teams: data.SOS_Team_Leads,
@@ -191,8 +216,12 @@ const ActiveState = () => {
           onlineAmbulance: data.SOS_Online_Ambulance_Executives || 0,
         }));
 
-        const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics();
-        const vehicleAlertData = await vehicleAlertResponse.data;
+        const vehicleAlertResponse = await UserServices.getVehicleAlertStatistics(startDate, endDate);
+        const vehicleAlertRawData = await vehicleAlertResponse.data;
+        const vehicleAlertData = vehicleAlertRawData.date_range ? {
+          ...vehicleAlertRawData,
+          ...vehicleAlertRawData.date_range
+        } : vehicleAlertRawData;
 
         setVehicleAlertStats({
           ...vehicleAlertData,
@@ -209,7 +238,26 @@ const ActiveState = () => {
 
       if (userRoles === 'teamlead') {
         const response = await UserServices.getSOSLeadDashboard(startDate, endDate);
-        const data = await response.data;
+        const rawData = await response.data;
+        const data = rawData.date_range ? {
+          ...rawData,
+          ...rawData.date_range,
+          Total_Closed_Calls: rawData.date_range.total_closed_calls ?? rawData.date_range.Total_Closed_Calls ?? 0,
+          Total_Rejected_Assignemnt: rawData.date_range.Total_Rejected_Assignment ?? rawData.date_range.Total_Rejected_Assignemnt ?? 0,
+          Total_Incoming_Calls: rawData.date_range.Total_Incoming_Calls ?? 0,
+          Total_Active_Calls: rawData.date_range.Total_Active_Calls ?? 0,
+          Total_Pending_Calls: rawData.date_range.Total_Pending_Calls ?? 0,
+          Total_Fake_Calls: rawData.date_range.Total_Fake_Calls ?? 0,
+          Total_Incoming_Calls_thismonth: 0,
+          Total_Incoming_Calls_thisweek: 0,
+          Total_Incoming_Calls_today: 0,
+          Total_Fake_Calls_thismonth: 0,
+          Total_Fake_Calls_thisweek: 0,
+          Total_Fake_Calls_today: 0,
+          Total_Rejected_Assignemnt_thismonth: 0,
+          Total_Rejected_Assignemnt_thisweek: 0,
+          Total_Rejected_Assignemnt_today: 0,
+        } : rawData;
         setTeamForLead((prev) => ({
           ...prev,
           Total_DeskExecutives: data.Total_DeskExecutives,
@@ -244,16 +292,162 @@ const ActiveState = () => {
           Total_Rejected_Assignemnt_today: data.Total_Rejected_Assignemnt_today,
         }));
       }
-    } catch (error) {
-      console.error('Error fetching SOS dashboard data:', error);
-    }
-  }, [userRoles]);
-  useEffect(() => {
-    //for owner
-    if (userRoles == 'dtorto') {
-      (async () => {
-        const response = await UserServices.getDTODashboardData();
+
+      if (userRoles === 'superadmin') {
+        const response = await UserServices.getDashboardUserData();
+        const res = await UserServices.getDashboardData(startDate, endDate);
+        const dashboardRawData = await res.data;
+        const dashboardData = dashboardRawData.date_range ? { 
+          ...dashboardRawData, 
+          ...dashboardRawData.date_range,
+          TotalAlerts: dashboardRawData.date_range.TotalAlerts ?? 0,
+          TotalAlerts_month: 0,
+          TotalAlerts_today: 0,
+          EmergencyAlerts: dashboardRawData.date_range.EmergencyAlerts ?? 0,
+          EmergencyAlerts_month: 0,
+          EmergencyAlerts_today: 0,
+          SpeedAlerts: dashboardRawData.date_range.SpeedAlerts ?? 0,
+          SpeedAlerts_month: 0,
+          SpeedAlerts_today: 0,
+          TemperatureAlerts: dashboardRawData.date_range.TemperatureAlerts ?? 0,
+          TemperatureAlerts_month: 0,
+          TemperatureAlerts_today: 0,
+        } : dashboardRawData;
         const data = await response.data;
+        
+        setUserInfoForAdmin(prev => ({
+          ...prev,
+          stateAdmin: data.state_admin || 0,
+          sosAdmin: data.SOS_admin || 0,
+          m2mServiceProvider: data.eSimProvider || 0,
+          manufacturer: dashboardData.Manufacture || 0,
+          dealer: dashboardData.Dealer || 0,
+          vehicleOwner: dashboardData.VehicleOwner || 0
+        }))
+        setFitmentInfoForAdmin((prev => ({
+          ...prev,
+          devicesFitted: dashboardData.TotalDevice || 0,
+          onlineDevice: dashboardData.TotalOnlineDevice || 0,
+          offlineDevice: dashboardData.TotalOfflineDevice || 0,
+        })))
+        setTotalAlertInfo(prev => ({
+          ...prev,
+          totalAlert: dashboardData.TotalAlerts,
+          thisMonthAlert: dashboardData.TotalAlerts_month,
+          todayAlert: dashboardData.TotalAlerts_today
+        }))
+        setEmergencyInfo(prev => ({
+          ...prev,
+          totalAlert: dashboardData.EmergencyAlerts,
+          thisMonthAlert: dashboardData.EmergencyAlerts_month,
+          todayAlert: dashboardData.EmergencyAlerts_today
+        }))
+        setOverSpeedInfo(prev => ({
+          ...prev,
+          totalAlert: dashboardData.SpeedAlerts,
+          thisMonthAlert: dashboardData.SpeedAlerts_month,
+          todayAlert: dashboardData.SpeedAlerts_today
+        }))
+        setStateInfo(prev => ({
+          ...prev,
+          total: dashboardData.Total_States,
+          active: dashboardData.Active_States,
+          inactive: dashboardData.Inactive_States
+        }))
+        setTemperAlertInfo(prev => ({
+          ...prev,
+          totalAlert: dashboardData.TemperatureAlerts || 0,
+          thisMonthAlert: dashboardData.TemperatureAlerts_month || 0,
+          todayAlert: dashboardData.TemperatureAlerts_today || 0,
+        }))
+        setStockInfo(prev => ({
+          ...prev,
+          total: dashboardData.Total_device_stock || 0,
+          taggedDevice: dashboardData.TotalTaggedDevice || 0,
+          unassigned: dashboardData.unassigned_device_stock || 0,
+        }))
+      }
+
+      if (userRoles === 'stateadmin') {
+        const response = await UserServices.getStateAdminDashboard(startDate, endDate);
+        const rawData = await response.data;
+        const data = rawData.date_range ? { 
+          ...rawData, 
+          ...rawData.date_range,
+          Total_overspeeding_Alert: rawData.date_range.Total_overspeeding_Alert ?? rawData.date_range.SpeedAlerts ?? 0,
+          Monthly_overspeeding_Alert: 0,
+          Today_overspeeding_Alert: 0,
+          Total_Emergency_Alert: rawData.date_range.Total_Emergency_Alert ?? rawData.date_range.EmergencyAlerts ?? 0,
+          Monthly_Emergency_Alert: 0,
+          Today_Emergency_Alert: 0,
+          Total_Alerts: rawData.date_range.Total_Alerts ?? rawData.date_range.Total_Alert ?? 0,
+          Monthly_Alerts: 0,
+          Today_Alerts: 0,
+          Total_harsh_brake_Alert: rawData.date_range.Total_harsh_brake_Alert ?? rawData.date_range.HarshBraking ?? 0,
+          This_month_harsh_brake_Alert: 0,
+          Today_harsh_brake_Alert: 0,
+          Total_sudden_turn_Alert: rawData.date_range.Total_sudden_turn_Alert ?? rawData.date_range.suddenturn ?? 0,
+          This_month_sudden_turn_Alert: 0,
+          Today_sudden_turn_Alert: 0,
+        } : rawData;
+        
+        setUserInfo({
+          dto: data.Total_DTO_available,
+          m2m: data.Total_M2M_Service_Provider_available || 0,
+          manufacturer: data.Total_Manufacture_available,
+          dealer: data.Total_Dealer_available,
+          owner: data.Total_Vehicle_Owner_available
+        });
+        setFitmentInfo({
+          fitted: data.Total_Fit_Device,
+          onlineDevice: data.Online_Devices,
+          offlineDevice: data.Offline_Devices,
+          inActiveFor7Days: data.Inactive_Device_7days,
+          inActiveFor30Days: data.Inactive_Device_30days,
+        });
+        setDeviceHealthInfo((prev => ({
+          ...prev,
+          totalActivatedDevice: data.Total_Device_Activated,
+          todayActive: data.Active_Device_Today,
+          inActiveFor30Days: data.Inactive_Device_30days,
+          inActiveFor7Days: data.Inactive_Device_7days
+        })))
+        setOverSpeedInfo(prev => ({
+          ...prev,
+          totalAlert: data.Total_overspeeding_Alert,
+          thisMonthAlert: data.Monthly_overspeeding_Alert,
+          todayAlert: data.Today_overspeeding_Alert
+        }))
+        setEmergencyInfo(prev => ({
+          ...prev,
+          totalAlert: data.Total_Emergency_Alert,
+          thisMonthAlert: data.Monthly_Emergency_Alert,
+          todayAlert: data.Today_Emergency_Alert
+        }))
+        setTotalAlertInfo(prev => ({
+          ...prev,
+          totalAlert: data.Total_Alerts,
+          thisMonthAlert: data.Monthly_Alerts,
+          todayAlert: data.Today_Alerts
+        }))
+      }
+
+      if (userRoles === 'dtorto') {
+        const response = await UserServices.getDTODashboardData(startDate, endDate);
+        const rawData = await response.data;
+        const data = rawData.date_range ? { 
+          ...rawData, 
+          ...rawData.date_range,
+          Total_Alert: rawData.date_range.Total_Alert ?? 0,
+          Alert_month: 0,
+          Alert_today: 0,
+          Total_activations: rawData.date_range.Total_activations ?? 0,
+          Activations_month: 0,
+          Activations_today: 0,
+          Total_SOS_calls: rawData.date_range.Total_SOS_calls ?? 0,
+          Genuine_calls: rawData.date_range.Genuine_calls ?? 0,
+          Fake_calls: rawData.date_range.Fake_calls ?? 0,
+        } : rawData;
         setDtoDashboardInfo((prev) => ({
           ...prev,
           activated: data.Total_Device_Activated,
@@ -272,12 +466,24 @@ const ActiveState = () => {
           genuineCalls: data.Genuine_calls,
           fakeCalls: data.Fake_calls
         }));
-      })();
-    }
-    if (userRoles == 'owner') {
-      (async () => {
-        const response = await UserServices.getOwnerDashboard();
-        const data = await response.data;
+      }
+
+      if (userRoles === 'owner') {
+        const response = await UserServices.getOwnerDashboard(startDate, endDate);
+        const rawData = await response.data;
+        const data = rawData.date_range ? { 
+          ...rawData, 
+          ...rawData.date_range,
+          Total_Alert: rawData.date_range.Total_Alert ?? 0,
+          Alert_month: 0,
+          Alert_today: 0,
+          Total_Harshbraking: rawData.date_range.HarshBraking ?? rawData.date_range.Total_Harshbraking ?? 0,
+          Total_suddenturn: rawData.date_range.suddenturn ?? rawData.date_range.Total_suddenturn ?? 0,
+          Total_overspeeding: rawData.date_range.SpeedAlerts ?? rawData.date_range.Total_overspeeding ?? 0,
+          Total_SOS_calls: rawData.date_range.Total_SOS_calls ?? 0,
+          Genuine_calls: rawData.date_range.Genuine_calls ?? 0,
+          Fake_calls: rawData.date_range.Fake_calls ?? 0,
+        } : rawData;
         setOwnerDashboardInfo((prev) => ({
           ...prev,
           deviceActivated: data.Total_Device_Activated,
@@ -300,10 +506,14 @@ const ActiveState = () => {
           genuineCalls: data.Genuine_calls,
           fakeCalls: data.Fake_calls,
         }));
-      })();
+      }
+    } catch (error) {
+      console.error('Error fetching SOS dashboard data:', error);
     }
+  }, [userRoles]);
+  useEffect(() => {
+    fetchDashboardData();
 
-    ////////////////////////////////////////////
     if (userRoles == 'esimprovider') {
       (async () => {
         const response = await UserServices.getESIMProviderDashboard();
@@ -456,142 +666,6 @@ const ActiveState = () => {
           thirtyDaysOffline: data.Total_Offline_30_days || 0,
         })
       })();
-    }
-    //only for superAdmin
-    if (userRoles == 'superadmin') {
-      (async () => {
-        const response = await UserServices.getDashboardUserData();
-        const res = await UserServices.getDashboardData();
-        const dashboardData = await res.data;
-        const data = await response.data;
-        setUserInfoForAdmin(prev => ({
-          ...prev,
-          stateAdmin: data.state_admin || 0,
-          sosAdmin: data.SOS_admin || 0,
-          m2mServiceProvider: data.eSimProvider || 0,
-          manufacturer: dashboardData.Manufacture || 0,
-          dealer: dashboardData.Dealer || 0,
-          vehicleOwner: dashboardData.VehicleOwner || 0
-        }))
-        setFitmentInfoForAdmin((prev => ({
-          ...prev,
-          devicesFitted: dashboardData.TotalDevice || 0,
-          onlineDevice: dashboardData.TotalOnlineDevice || 0,
-          offlineDevice: dashboardData.TotalOfflineDevice || 0,
-        })))
-        setTotalAlertInfo(prev => ({
-          ...prev,
-          totalAlert: dashboardData.TotalAlerts,
-          thisMonthAlert: dashboardData.TotalAlerts_month,
-          todayAlert: dashboardData.TotalAlerts_today
-        }))
-        setEmergencyInfo(prev => ({
-          ...prev,
-          totalAlert: dashboardData.EmergencyAlerts,
-          thisMonthAlert: dashboardData.EmergencyAlerts_month,
-          todayAlert: dashboardData.EmergencyAlerts_today
-        }))
-        setOverSpeedInfo(prev => ({
-          ...prev,
-          totalAlert: dashboardData.SpeedAlerts,
-          thisMonthAlert: dashboardData.SpeedAlerts_month,
-          todayAlert: dashboardData.SpeedAlerts_today
-        }))
-        setStateInfo(prev => ({
-          ...prev,
-          total: dashboardData.Total_States,
-          active: dashboardData.Active_States,
-          inactive: dashboardData.Inactive_States
-        }))
-        setTemperAlertInfo(prev => ({
-          ...prev,
-          totalAlert: dashboardData.TemperatureAlerts || 0,
-          thisMonthAlert: dashboardData.TemperatureAlerts_month || 0,
-          todayAlert: dashboardData.TemperatureAlerts_today || 0,
-        }))
-        setStockInfo(prev => ({
-          ...prev,
-          total: dashboardData.Total_device_stock || 0,
-          taggedDevice: dashboardData.TotalTaggedDevice || 0,
-          unassigned: dashboardData.unassigned_device_stock || 0,
-        }))
-
-      })();
-    }
-    // for stateAdmin
-    if (userRoles == 'stateadmin') {
-      (async () => {
-        const response = await UserServices.getStateAdminDashboard();
-        const data = await response.data;
-        setUserInfo({
-          dto: data.Total_DTO_available,
-          m2m: data.Total_M2M_Service_Provider_available || 0,
-          manufacturer: data.Total_Manufacture_available,
-          dealer: data.Total_Dealer_available,
-          owner: data.Total_Vehicle_Owner_available
-        });
-        setFitmentInfo({
-          fitted: data.Total_Fit_Device,
-          onlineDevice: data.Online_Devices,
-          offlineDevice: data.Offline_Devices,
-          inActiveFor7Days: data.Inactive_Device_7days,
-          inActiveFor30Days: data.Inactive_Device_30days,
-        });
-        setDeviceHealthInfo((prev => ({
-          ...prev,
-          totalActivatedDevice: data.Total_Device_Activated,
-          todayActive: data.Active_Device_Today,
-          inActiveFor30Days: data.Inactive_Device_30days,
-          inActiveFor7Days: data.Inactive_Device_7days
-        })))
-        setOverSpeedInfo(prev => ({
-          ...prev,
-          totalAlert: data.Total_overspeeding_Alert,
-          thisMonthAlert: data.Monthly_overspeeding_Alert,
-          todayAlert: data.Today_overspeeding_Alert
-        }))
-        setEmergencyInfo(prev => ({
-          ...prev,
-          totalAlert: data.Total_emergency_Alert,
-          thisMonthAlert: data.This_month_emergency_Alert,
-          todayAlert: data.Today_emergency_Alert
-        }))
-        setHarshBreakInfo(prev => ({
-          ...prev,
-          totalAlert: data.Total_harsh_brake_Alert,
-          thisMonthAlert: data.This_month_harsh_brake_Alert,
-          todayAlert: data.Today_harsh_brake_Alert
-        }))
-        setSuddenBreakInfo(prev => ({
-          ...prev,
-          totalAlert: data.Total_sudden_turn_Alert,
-          thisMonthAlert: data.This_month_sudden_turn_Alert,
-          todayAlert: data.Today_sudden_turn_Alert
-        }))
-        setStockInfo(prev => ({
-          ...prev,
-          total: data.Total_device_stock,
-          unassigned: data.unassigned_device_stock,
-          waiting: data.waiting_device_stock
-        }))
-        setDistrictInfo({
-          district: data.Total_district,
-          active: data.Active_district,
-        });
-        setActiveUsersInfo(prev => ({
-          ...prev,
-          stateAdmin: data.ActiveUsers_stateadmin,
-          esimProvider: data.ActiveUsers_esimprovider,
-          manufacturer: data.ActiveUsers_manufacturer,
-          sosAdmin: data.ActiveUsers_sosadmin,
-          sosExecutive: data.ActiveUsers_sosexecutive,
-          sosTeamLead: data.ActiveUsers_sos_teamlead,
-          sosDeskExecutive: data.ActiveUsers_sos_deskexecutive
-        }))
-      })();
-    }
-    if (userRoles === 'sosadmin' || userRoles === 'teamlead') {
-      fetchSOSData();
     }
     if (userRoles === 'desk_ex') {
       (async () => {
@@ -2487,29 +2561,29 @@ const ActiveState = () => {
               </Typography>
             </Box>
             
-            {/* Date Filter for SOS Admin */}
-            {(role === 'sosadmin' || role === 'teamlead') && (
+            {/* Date Filter */}
+            {['sosadmin', 'teamlead', 'superadmin', 'stateadmin', 'dtorto', 'owner'].includes(role) && (
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', backgroundColor: 'background.paper', p: 2, borderRadius: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <TextField
                   label="Start Date"
                   type="date"
-                  value={sosAdminStartDate}
-                  onChange={(e) => setSosAdminStartDate(e.target.value)}
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
                   InputLabelProps={{ shrink: true }}
                   size="small"
                 />
                 <TextField
                   label="End Date"
                   type="date"
-                  value={sosAdminEndDate}
-                  onChange={(e) => setSosAdminEndDate(e.target.value)}
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
                   InputLabelProps={{ shrink: true }}
                   size="small"
                 />
                 <Button 
                   variant="contained" 
                   color="primary" 
-                  onClick={() => fetchSOSData(sosAdminStartDate, sosAdminEndDate)}
+                  onClick={() => fetchDashboardData(filterStartDate, filterEndDate)}
                 >
                   Generate Report
                 </Button>
