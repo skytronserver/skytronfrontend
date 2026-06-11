@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState,useEffect,useRef } from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -30,8 +30,11 @@ import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 
-import { DashboardMap } from './SuperAdminCommon';
+import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
+import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
+
 import HomePageService from 'services/HomePage';
+import { display } from '@mui/system';
 
 const formatNumber = (value) => {
   const numeric = Number(value);
@@ -67,9 +70,90 @@ const getStatusChipStyles = (mode, status) => {
   };
 };
 
+
+const fetchAreaData = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard_SOS/areawise-device-count/",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
+const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard/sos-monitoring/?state_id=1",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
+
 const SOSMonitoringDashboard = () => {
   const [mode, setMode] = useState('dark');
   const [activeTab, setActiveTab] = useState(0);
+  const [districtData, setDistrictData] = useState([]);
+ const [cityData, setCityData] = useState([]);
+ const [localityData, setLocalityData] = useState([]);
+ const [deviceData, setDeviceData] = useState([]);
+ const [level, setLevel] = useState("district");
+ const [mapData, setMapData] = useState([]);
+ const levelRef = useRef(level);
+ const [dashboardData,setDashboardData]=useState({
+   // Calls Overview
+  total_emergency_calls_today: 0,
+  total_closed_calls_today: 0,
+  total_live_calls_now: 0,
+  total_unattended_calls_now: 0,
+
+  // ⏱️ Response Time
+  avgAmbulanceAcceptTime: 0,
+  avgPolice_OnScene: 0,
+  avg_Exec_accept: 0,
+
+  // 👨‍💼 Team Lead Performance
+  escalation_Rate: 0,
+  teamLeadHandledCallsTotal: 0,
+
+total_triggered_calls:0,
+total_assigned_calls:0,
+total_exec_accepted_calls:0,
+total_broadcasted_calls:0,
+total_on_scene_calls:0,
+total_closed_calls:0,
+police_Accepted:0,
+ amb_Accepted:0
+
+
+
+
+});
+     const [zoom, setZoom] = useState(7);
 
   const initialCases = useMemo(
     () => [
@@ -213,40 +297,72 @@ const SOSMonitoringDashboard = () => {
   const kpis = useMemo(() => {
     if (mode === 'dark') {
       return [
-        { label: 'Total Calls', value: 1256, bg: '#1e3a5f' },
-        { label: 'Live Calls', value: 18, bg: '#2a4a7c', emphasis: true },
-        { label: 'Pending Calls', value: 7, bg: '#3d4e6b' },
-        { label: 'Closed Calls', value: 1231, bg: '#1e3a5f' },
-        { label: 'Avg Exec Accept', value: '1.2 min', bg: '#2c5f6f' },
-        { label: 'Avg Police On-Scene', value: '8.5 min', bg: '#2c5f6f' },
-        { label: 'Escalation Rate', value: '5.2%', bg: '#2c5f6f' }
+        { label: 'Total Calls', value:dashboardData.total_emergency_calls_today, bg: '#1e3a5f' },
+        { label: 'Live Calls', value:  dashboardData.total_live_calls_now, bg: '#2a4a7c', emphasis: true },
+        { label: 'Pending Calls', value: dashboardData.total_unattended_calls_now, bg: '#3d4e6b' },
+        { label: 'Closed Calls', value: dashboardData.total_closed_calls_today, bg: '#1e3a5f' },
+        { label: 'Avg Exec Accept', value:  dashboardData.avg_Exec_accept != null
+        ? dashboardData.avg_Exec_accept
+        : '0 min', bg: '#2c5f6f' },
+        { label: 'Avg Police On-Scene', value:  dashboardData.avgPolice_OnScene != null
+        ? dashboardData.avgPolice_OnScene
+        : '0 min', bg: '#2c5f6f' },
+        { label: 'Escalation Rate', value:   dashboardData.escalation_Rate != null
+        ? dashboardData.escalation_Rate
+        : '0%', bg: '#2c5f6f' }
       ];
     }
 
     return [
-      { label: 'Total Calls', value: 1256, bg: '#eef2ff' },
-      { label: 'Live Calls', value: 18, bg: '#dbeafe', emphasis: true },
-      { label: 'Pending Calls', value: 7, bg: '#ecfeff' },
-      { label: 'Closed Calls', value: 1231, bg: '#f1f5f9' },
-      { label: 'Avg Exec Accept', value: '1.2 min', bg: '#fef3c7' },
-      { label: 'Avg Police On-Scene', value: '8.5 min', bg: '#ffe4e6' },
-      { label: 'Escalation Rate', value: '5.2%', bg: '#dcfce7' }
+      { label: 'Total Calls', value: dashboardData.total_emergency_calls_today, bg: '#eef2ff' },
+      { label: 'Live Calls', value:  dashboardData.total_live_calls_now, bg: '#dbeafe', emphasis: true },
+      { label: 'Pending Calls', value: dashboardData.total_unattended_calls_now, bg: '#ecfeff' },
+      { label: 'Closed Calls', value: dashboardData.total_closed_calls_today, bg: '#f1f5f9' },
+      { label: 'Avg Exec Accept', value:  dashboardData.avg_Exec_accept != null
+        ? dashboardData.avg_Exec_accept
+        : '0 min', bg: '#fef3c7' },
+      { label: 'Avg Police On-Scene', value:  dashboardData.avgPolice_OnScene != null
+        ? dashboardData.avgPolice_OnScene
+        : '0 min', bg: '#ffe4e6' },
+      { label: 'Escalation Rate', value:  dashboardData.escalation_Rate != null
+        ? dashboardData.escalation_Rate
+        : '0%', bg: '#dcfce7' }
     ];
-  }, [mode]);
+  }, [mode,dashboardData]);
 
-  const statusRows = useMemo(
-    () => [
-      { label: 'Triggered', value: 1256, color: '#3b82f6', width: 100 },
-      { label: 'Assigned', value: 1190, color: '#4ade80', width: 95 },
-      { label: 'Exec Accepted', value: 1175, color: '#4ade80', width: 93 },
-      { label: 'Broadcasted', value: 980, color: '#fb923c', width: 78 },
-      { label: 'Police Accepted', value: 920, color: '#ef4444', width: 73 },
-      { label: 'Amb Accepted', value: 880, color: '#dc2626', width: 70 },
-      { label: 'On-Scene', value: 845, color: '#6366f1', width: 67 },
-      { label: 'Closed', value: 1231, color: '#64748b', width: 98 }
-    ],
-    []
-  );
+const statusRows = useMemo(() => {
+  // keep your original structure (with width key)
+  const rows = [
+    { label: 'Triggered', value: dashboardData.total_triggered_calls ?? 0, color: '#3b82f6', width: 0 },
+    { label: 'Assigned', value: dashboardData.total_assigned_calls ?? 0, color: '#4ade80', width: 0 },
+    { label: 'Exec Accepted', value: dashboardData.total_exec_accepted_calls ?? 0, color: '#4ade80', width: 0 },
+    { label: 'Broadcasted', value: dashboardData.total_broadcasted_calls ?? 0, color: '#fb923c', width: 0 },
+    { label: 'Police Accepted', value: dashboardData.police_Accepted ?? 0, color: '#ef4444', width: 0 },
+    { label: 'Amb Accepted', value: dashboardData.amb_Accepted ?? 0, color: '#dc2626', width: 0 },
+    { label: 'On-Scene', value: dashboardData.total_on_scene_calls ?? 0, color: '#6366f1', width: 0 },
+    { label: 'Closed', value: dashboardData.total_closed_calls ?? 0, color: '#64748b', width: 0 }
+  ];
+
+  // 🔹 extract values
+  const values = rows.map(r => r.value);
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values);
+
+  const minWidth = 30;
+  const maxWidth = 100;
+
+  const getWidth = (value) => {
+    if (max === min) return maxWidth;
+    return minWidth + ((value - min) / (max - min)) * (maxWidth - minWidth);
+  };
+
+  // 🔹 replace only width
+  return rows.map(row => ({
+    ...row,
+    width: Math.round(getWidth(row.value))
+  }));
+
+}, [dashboardData]);
 
   const incidents = useMemo(
     () => [
@@ -258,6 +374,35 @@ const SOSMonitoringDashboard = () => {
     ],
     []
   );
+
+  const gpsData = useMemo(() => {
+    const nowIso = new Date().toISOString();
+    return (Array.isArray(incidents) ? incidents : []).map((item, idx) => {
+      const base = {
+        latitude: item.latitude,
+        longitude: item.longitude,
+        vehicle_reg_no: item.label || `SOS-${idx + 1}`,
+        entry_time: nowIso,
+        packet_type: 'NR',
+        ignition_status: '0',
+        speed: 0
+      };
+
+      if (item.type === 'sos') {
+        return { ...base, packet_type: 'EA', ignition_status: '1', speed: 0 };
+      }
+
+      if (item.type === 'green') {
+        return { ...base, packet_type: 'NR', ignition_status: '1', speed: 10 };
+      }
+
+      if (item.type === 'blue') {
+        return { ...base, packet_type: 'NR', ignition_status: '1', speed: 0 };
+      }
+
+      return base;
+    });
+  }, [incidents]);
 
   const cardSx = {
     bgcolor: tokens.cardBg,
@@ -315,75 +460,192 @@ const SOSMonitoringDashboard = () => {
     }
   };
 
-  const mapStyle = useMemo(() => {
-    // Lazy-load OpenLayers styling classes only when used in browser
-    // to avoid issues in non-DOM environments.
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Style } = require('ol/style/Style');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: CircleStyle } = require('ol/style/Circle');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Fill } = require('ol/style/Fill');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Stroke } = require('ol/style/Stroke');
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const { default: Text } = require('ol/style/Text');
+ 
+ 
+ const handleDistrictClick = async (district) => {
 
-    const makeCircle = (radius, fillColor, strokeColor, strokeWidth = 2) =>
-      new CircleStyle({
-        radius,
-        fill: new Fill({ color: fillColor }),
-        stroke: new Stroke({ color: strokeColor, width: strokeWidth })
-      });
+   //  setSelectedDistrictObj(district); // ⭐ ADD THIS
+  const res = await fetchAreaData({
+     district_name: district.district_name
+   });
+ 
+   if (res?.locations) {
+     const cities = res.locations.map(c => ({
+       ...c,
+       district_name: res.district_name
+     }));
+ 
+     setCityData(cities);
+     setMapData(cities);
+     setLevel("city");
+   }
+ };
+ const handleCityClick = async(city) => {
 
-    const sosCore = new Style({
-      image: makeCircle(24, '#ef4444', '#fee2e2', 3),
-      text: new Text({
-        text: 'SOS',
-        font: 'bold 15px system-ui, sans-serif',
-        fill: new Fill({ color: '#ffffff' })
-      })
-    });
+   //  setSelectedCityObj(city); // ⭐ ADD THIS
+   const res = await fetchAreaData({
+     district_name: city.district_name,
+     city_name: city.city_village_name
+   });
+ 
+   if (res?.localities) {
+     const localitiesWithParent = res.localities.map(l => ({
+       ...l,
+       district_name: res.district_name,
+       city_name: res.city_name
+     }));
+ 
+     setLocalityData(localitiesWithParent);
+     setMapData(localitiesWithParent);
+     setLevel("locality");
+   }
+ };
+ const handleLocalityClick =async (locality) => {
+   
+     //  setSelectedLocalityObj(locality); // ⭐ ADD THIS
+   const res = await fetchAreaData({
+     district_name: locality.district_name,
+     city_name: locality.city_name,
+     locality_name: locality.locality_name
+   });
+ 
+   if (res?.devices) {
+     setDeviceData(res.devices);
+     setMapData(res.devices);
+     setLevel("device");
+   }
+ };
+ const handleBack = async ({ level, data }) => {
 
-    const sosRingInner = new Style({
-      image: makeCircle(42, 'rgba(248, 113, 113, 0.12)', 'rgba(248, 113, 113, 0.6)', 2)
-    });
+   if (level === "device" && data) {
+   const res = await fetchAreaData({
+     district_name: data.district_name,
+     city_name: data.city_name
+   });
+ 
+  if (res?.localities) {
+   const localities = res.localities.map(l => ({
+     ...l,
+     district_name: res.district_name,
+     city_name: res.city_name
+   }));
+ 
+   setMapData(localities);
+   setLevel("locality");
+ }
+ }
+   else if (level === "locality" && data) {
+   
+   const res = await fetchAreaData({
+     district_name: data.district_name
+   });
+ 
+     if (res?.locations) {
+ 
+     const cities = res.locations.map(c => ({
+       ...c,
+       district_name: res.district_name
+     }));
+ 
+     setMapData(cities); // ✅ FIXED
+     setLevel("city");
+   }
+ }
+  else if (level === "city") {
+   setMapData(districtData);
+   setLevel("district");
+ }
+ };
+ 
+ useEffect(() => {
+  const loadData  = async () => {
+ try {
+       const [areaRes, metricsRes] = await Promise.all([
+         fetchAreaData({}, "GET"),
+         fetchDashboardMetrics({}, "GET")
+       ]);
+ 
+       if (Array.isArray(areaRes)) {
+         setDistrictData(areaRes);
+          setMapData(areaRes);
+       }
+ debugger
+     if (metricsRes) {
+       debugger
+   const sos = metricsRes;
+ console.log(sos);
+   setDashboardData({
+         // 📞 Calls Overview
+    total_emergency_calls_today: sos.total_emergency_calls_today,
+    total_closed_calls_today: sos.total_closed_calls_today,
+    total_live_calls_now: sos.total_live_calls_now,
+    total_unattended_calls_now: sos.total_unattended_calls_now,
 
-    const sosRingOuter = new Style({
-      image: makeCircle(60, 'rgba(248, 113, 113, 0.06)', 'rgba(248, 113, 113, 0.25)', 1)
-    });
+    // ⏱️ Response Time (Seconds)
+    avgAmbulanceAcceptTime:
+      sos.average_time_to_accept_broadcast_by_ambulance_seconds,
 
-    const greenMarker = new Style({
-      image: makeCircle(14, '#22c55e', '#bbf7d0', 2)
-    });
+    avgPolice_OnScene:
+      sos.avgPolice_OnScene,
 
-    const blueMarker = new Style({
-      image: makeCircle(14, '#1d4ed8', '#bfdbfe', 2),
-      text: new Text({
-        text: 'DS',
-        font: 'bold 14px system-ui, sans-serif',
-        fill: new Fill({ color: '#ffffff' })
-      })
-    });
+    avg_Exec_accept:
+      sos.avg_Exec_accept,
 
-    const getStyle = (item) => {
-      if (!item || !item.type) return greenMarker;
-      if (item.type === 'sos') {
-        // Return array of styles to draw concentric rings + core
-        return [sosRingOuter, sosRingInner, sosCore];
-      }
-      if (item.type === 'green') {
-        return greenMarker;
-      }
-      if (item.type === 'blue') {
-        return blueMarker;
-      }
-      return greenMarker;
-    };
+    // 👨‍💼 Team Lead Performance
+    escalation_Rate:
+      sos.escalation_Rate,
 
-    return getStyle;
-  }, []);
+    teamLeadHandledCallsTotal:
+      sos.calls_accepted_by_team_lead_total,
 
+
+//for sos call status
+total_triggered_calls:
+      sos.total_triggered_calls ?? 0,
+total_assigned_calls:
+      sos.total_assigned_calls ?? 0,
+      total_exec_accepted_calls:
+      sos.total_exec_accepted_calls ?? 0,
+        total_broadcasted_calls:
+      sos.total_broadcasted_calls ?? 0,
+          total_on_scene_calls:
+      sos.total_on_scene_calls ?? 0,
+          total_closed_calls:
+      sos.total_closed_calls ?? 0,
+        police_Accepted:
+      sos.police_Accepted ?? 0,
+        amb_Accepted:
+      sos.amb_Accepted ?? 0,
+
+
+
+
+   });
+ }
+ 
+     } catch (err) {
+       console.error(err);
+     }
+   };
+   
+ 
+   loadData ();
+ 
+ }, []);
+  // useEffect(() => {
+  
+  //   // store dummy data
+  //   setDistrictData(data);
+  
+  //   // calculate total
+  //   const total = data.reduce(
+  //     (sum, item) => sum + (item.total_vehicle_count || 0),
+  //     0
+  //   );
+  
+  //   setTotalDevices(total);
+  
+  // }, []);
   return (
     <Box
       sx={{
@@ -489,7 +751,7 @@ const SOSMonitoringDashboard = () => {
           }}
         >
           <Tab label="Dashboard Overview" />
-          <Tab label="Active SOS Cases" />
+          {/* <Tab label="Active SOS Cases" /> */}
         </Tabs>
       </Box>
 
@@ -559,15 +821,34 @@ const SOSMonitoringDashboard = () => {
                 </Stack>
               </Box>
               <Box sx={{ height: { xs: 320, md: '100%' }, flexGrow: 1 }}>
-                <DashboardMap
-                  data={incidents}
-                  center={[91.7362, 26.1445]}
-                  zoom={12}
-                  getStyle={mapStyle}
+
+ {zoom >= 9 ? (
+  <RoadsMapComponent   erss={false}
+            data={mapData}
+          level={level}
+         onZoomChange={(z) => {
+    setZoom(z);
+    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
+  }}
+          onBack={handleBack}
+  onDistrictClick={handleDistrictClick}
+  onCityClick={handleCityClick}
+  onLocalityClick={handleLocalityClick} />
+) : (
+  <BhuvanMapComponent onZoomChange={setZoom} data={mapData} onDistrictClick={handleDistrictClick} level={level} />
+)}
+
+                {/* <BhuvanMapComponent
+                 
+                  gpsData={gpsData}
+                  width="100%"
+                  height="100%"
                   autoFit
-                  autoFitFilter={(item) => item?.type === 'sos'}
-                  autoFitMaxZoom={14}
-                />
+                  markerLabelMode="vehicle"
+                  showMapTypeToggle
+                  showDrawControls={false}
+                  showSoiLayerPanel={false}
+                /> */}
               </Box>
             </Box>
           </Grid>
@@ -576,7 +857,7 @@ const SOSMonitoringDashboard = () => {
 
       {/* Tab Panel 2: Active SOS Cases */}
       {activeTab === 1 && (
-        <Grid container spacing={1.5} sx={{ flexGrow: 1, overflow: { xs: 'visible', md: 'hidden' }, maxHeight: { md: 'calc(100% - 10px)' } }}>
+        <Grid style={{display:"none"}} container spacing={1.5} sx={{ flexGrow: 1, overflow: { xs: 'visible', md: 'hidden' }, maxHeight: { md: 'calc(100% - 10px)' } }}>
           <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: '100%' } }}>
             <Box sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <Box

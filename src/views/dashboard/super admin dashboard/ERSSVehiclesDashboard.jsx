@@ -14,20 +14,8 @@ import { alpha } from '@mui/material/styles';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
-import OLMap from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import OSM from 'ol/source/OSM';
-import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import Point from 'ol/geom/Point';
-import { fromLonLat } from 'ol/proj';
-import Style from 'ol/style/Style';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import CircleStyle from 'ol/style/Circle';
-import Text from 'ol/style/Text';
+import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
+import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
 
 import { PageWrapper } from './SuperAdminCommon';
 
@@ -91,9 +79,9 @@ const MetricTile = ({ label, value, colorKey, helper }) => {
     <Box
       sx={{
         flex: 1,
-        minWidth: { xs: 140, md: 130 },
+        minWidth: { xs: 180, md: 180 },
         borderRadius: 2,
-        p: { xs: 1.5, md: 1.25 },
+        p: { xs: 2.5, md: 2.25 },
         color: '#fff',
         background: `linear-gradient(135deg, ${colors.from} 0%, ${colors.to} 100%)`,
         boxShadow: `0 8px 20px -12px ${alpha(colors.to, 0.75)}`,
@@ -101,12 +89,12 @@ const MetricTile = ({ label, value, colorKey, helper }) => {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: 0.5
+        gap: 1
       }}
     >
-      <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', md: '0.7rem' }, letterSpacing: '0.02em' }}>{label}</Typography>
-      <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', md: '1.35rem' }, lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
-      {helper ? <Typography sx={{ opacity: 0.9, fontSize: { xs: '0.7rem', md: '0.65rem' } }}>{helper}</Typography> : null}
+      <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', md: '0.875rem' }, letterSpacing: '0.02em' }}>{label}</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: { xs: '2rem', md: '1.85rem' }, lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
+      {helper ? <Typography sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', md: '0.75rem' } }}>{helper}</Typography> : null}
     </Box>
   );
 };
@@ -131,7 +119,7 @@ const LegendChip = ({ label, color, tokens }) => (
 
 const buildDummyErssVehicles = () => {
   const vehicles = [];
-  const total = 420;
+  const total = 8;
 
   const pickDistrict = (idx) => DISTRICTS[idx % DISTRICTS.length];
   const pickType = (idx) => (idx % 3 === 0 ? 'police' : 'ambulance');
@@ -166,268 +154,310 @@ const buildDummyErssVehicles = () => {
   return vehicles;
 };
 
-const ErssVehicleMap = ({ vehicles, selectedDistrict, selectedType, onSelectCluster, onBack, mode }) => {
-  const containerRef = useRef(null);
-  const mapRef = useRef(null);
-  const districtLayerRef = useRef(null);
-  const vehicleLayerRef = useRef(null);
-  const clickHandlerRef = useRef(null);
+const fetchAreaData = async (payload = {}, method = "POST") => {
+  try {
+    debugger
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard_ERSS/areawise-device-count/",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
 
-  const districtStylesRef = useRef({});
-  const vehicleStylesRef = useRef({});
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
 
-  const districtSummary = useMemo(() => {
-    const base = new Map();
-    DISTRICTS.forEach((d) => {
-      base.set(d.name, {
-        name: d.name,
-        center: d.center,
-        ambulanceCount: 0,
-        policeCount: 0
-      });
+const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard/erss-summary/?state_id=1",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
+
+
+const ErssVehicleMap = ({erss, onBack, vehicles,data ,onDistrictClick,level, onZoomChange,onCityClick,onLocalityClick }) => {
+  const gpsData = useMemo(() => {
+    const nowIso = new Date().toISOString();
+    return (Array.isArray(vehicles) ? vehicles : []).map((v) => {
+      const isOnline = v.status === 'online' || v.status === 'available' || v.status === 'on_emergency' || v.status === 'en_route_hospital';
+      const packetType = v.status === 'on_emergency' ? 'EA' : 'NR';
+
+      return {
+        latitude: v.latitude,
+        longitude: v.longitude,
+        packet_type: packetType,
+        ignition_status: isOnline ? '1' : '0',
+        speed: isOnline ? 10 : 0,
+        entry_time: nowIso,
+        markerCategory: v.type === 'ambulance' ? 'ambulance' : 'police'
+      };
     });
-
-    (Array.isArray(vehicles) ? vehicles : []).forEach((v) => {
-      const entry = base.get(v.district);
-      if (!entry) return;
-      if (v.type === 'ambulance') entry.ambulanceCount += 1;
-      if (v.type === 'police') entry.policeCount += 1;
-    });
-
-    return Array.from(base.values()).filter((d) => d.ambulanceCount + d.policeCount > 0);
   }, [vehicles]);
-
-  useEffect(() => {
-    if (!containerRef.current) return undefined;
-
-    const baseLayer = new TileLayer({ source: new OSM() });
-
-    const districtLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 40
-    });
-
-    const vehicleLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 60
-    });
-
-    const map = new OLMap({
-      target: containerRef.current,
-      layers: [baseLayer, districtLayer, vehicleLayer],
-      view: new View({
-        center: fromLonLat([91.7362, 26.1445]),
-        zoom: 7
-      })
-    });
-
-    mapRef.current = map;
-    districtLayerRef.current = districtLayer;
-    vehicleLayerRef.current = vehicleLayer;
-
-    const resizeObserver = new ResizeObserver(() => {
-      map.updateSize();
-    });
-    resizeObserver.observe(containerRef.current);
-
-    const handleWindowResize = () => {
-      if (!mapRef.current) return;
-      mapRef.current.updateSize();
-      setTimeout(() => {
-        if (mapRef.current) mapRef.current.updateSize();
-      }, 0);
-    };
-
-    window.addEventListener('resize', handleWindowResize);
-    window.addEventListener('orientationchange', handleWindowResize);
-
-    const handleClick = (evt) => {
-      if (!mapRef.current) return;
-      const clickedFeature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
-      if (!clickedFeature) return;
-
-      const districtName = clickedFeature.get('districtName');
-      const clusterType = clickedFeature.get('clusterType');
-      if (!districtName || !clusterType) return;
-
-      if (!selectedDistrict) {
-        onSelectCluster({ district: districtName, type: clusterType });
-      }
-    };
-
-    clickHandlerRef.current = handleClick;
-    map.on('singleclick', handleClick);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', handleWindowResize);
-      window.removeEventListener('orientationchange', handleWindowResize);
-      if (clickHandlerRef.current) {
-        map.un('singleclick', clickHandlerRef.current);
-        clickHandlerRef.current = null;
-      }
-      map.setTarget(null);
-      mapRef.current = null;
-      districtLayerRef.current = null;
-      vehicleLayerRef.current = null;
-    };
-  }, [onSelectCluster, selectedDistrict]);
-
-  useEffect(() => {
-    const districtLayer = districtLayerRef.current;
-    const vehicleLayer = vehicleLayerRef.current;
-    const map = mapRef.current;
-    if (!districtLayer || !vehicleLayer || !map) return;
-
-    const districtSource = districtLayer.getSource();
-    const vehicleSource = vehicleLayer.getSource();
-    districtSource.clear();
-    vehicleSource.clear();
-
-    const makeClusterStyle = ({ color, count }) => {
-      const key = `${color}-${count}`;
-      if (!districtStylesRef.current[key]) {
-        districtStylesRef.current[key] = new Style({
-          image: new CircleStyle({
-            radius: 18,
-            fill: new Fill({ color }),
-            stroke: new Stroke({ color: '#ffffff', width: 3 })
-          }),
-          text: new Text({
-            text: String(count),
-            fill: new Fill({ color: '#ffffff' }),
-            stroke: new Stroke({ color: alpha('#0f172a', 0.45), width: 4 }),
-            font: '800 13px Inter, sans-serif'
-          })
-        });
-      }
-      return districtStylesRef.current[key];
-    };
-
-    const makeVehicleStyle = ({ label, color }) => {
-      const key = `${label}-${color}`;
-      if (!vehicleStylesRef.current[key]) {
-        vehicleStylesRef.current[key] = new Style({
-          image: new CircleStyle({
-            radius: 8,
-            fill: new Fill({ color }),
-            stroke: new Stroke({ color: '#ffffff', width: 2 })
-          }),
-          text: new Text({
-            text: label,
-            offsetY: -18,
-            fill: new Fill({ color: mode === 'dark' ? '#e5e7eb' : '#0f172a' }),
-            stroke: new Stroke({ color: mode === 'dark' ? alpha('#000000', 0.75) : alpha('#ffffff', 0.95), width: 5 }),
-            font: '700 11px Inter, sans-serif'
-          })
-        });
-      }
-      return vehicleStylesRef.current[key];
-    };
-
-    if (!selectedDistrict) {
-      districtSummary.forEach((d) => {
-        const baseCoords = d.center;
-
-        if (d.ambulanceCount > 0) {
-          const feature = new Feature({
-            geometry: new Point(fromLonLat([baseCoords[0] - 0.12, baseCoords[1]])),
-            districtName: d.name,
-            clusterType: 'ambulance'
-          });
-          feature.setStyle(makeClusterStyle({ color: COLORS.ambulance, count: d.ambulanceCount }));
-          districtSource.addFeature(feature);
-        }
-
-        if (d.policeCount > 0) {
-          const feature = new Feature({
-            geometry: new Point(fromLonLat([baseCoords[0] + 0.12, baseCoords[1]])),
-            districtName: d.name,
-            clusterType: 'police'
-          });
-          feature.setStyle(makeClusterStyle({ color: COLORS.police, count: d.policeCount }));
-          districtSource.addFeature(feature);
-        }
-      });
-
-      districtLayer.setVisible(true);
-      vehicleLayer.setVisible(false);
-      map.getView().animate({ center: fromLonLat([91.7362, 26.1445]), zoom: 7, duration: 450 });
-      return;
-    }
-
-    const district = DISTRICTS.find((d) => d.name === selectedDistrict);
-    if (district) {
-      map.getView().animate({ center: fromLonLat(district.center), zoom: 10, duration: 450 });
-    }
-
-    const districtVehicles = (Array.isArray(vehicles) ? vehicles : []).filter((v) => v.district === selectedDistrict);
-    const filteredByType = selectedType ? districtVehicles.filter((v) => v.type === selectedType) : districtVehicles;
-
-    filteredByType.forEach((v) => {
-      const lat = Number(v.latitude);
-      const lon = Number(v.longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lon)) return;
-
-      const baseTypeColor = v.type === 'ambulance' ? COLORS.ambulance : COLORS.police;
-      const statusColor =
-        v.status === 'offline'
-          ? COLORS.offline
-          : v.status === 'not_reporting'
-            ? COLORS.notReporting
-            : v.status === 'on_emergency'
-              ? COLORS.emergency
-              : v.status === 'en_route_hospital'
-                ? COLORS.enRoute
-                : v.status === 'available'
-                  ? COLORS.available
-                  : baseTypeColor;
-
-      const feature = new Feature({
-        geometry: new Point(fromLonLat([lon, lat]))
-      });
-      feature.setStyle(makeVehicleStyle({ label: v.regNo, color: alpha(statusColor, 0.92) }));
-      vehicleSource.addFeature(feature);
-    });
-
-    districtLayer.setVisible(false);
-    vehicleLayer.setVisible(true);
-  }, [districtSummary, selectedDistrict, selectedType, vehicles]);
+  const [zoom, setZoom] = useState(7);
 
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Box
-        ref={containerRef}
-        sx={{
-          width: '100%',
-          height: '100%',
-          borderRadius: 2.5,
-          overflow: 'hidden',
-          border: `1px solid ${COLORS.border}`,
-          bgcolor: '#fff',
-          boxShadow: `0 12px 30px -20px ${alpha(COLORS.ambulance, 0.55)}`,
-          '& .ol-viewport': { borderRadius: 2.5 },
-          '& .ol-attribution': { display: 'none' }
-        }}
-      />
-      <img
-        src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
-        style={{
-          position: 'absolute',
-          bottom: '70px',
-          right: '10px',
-          width: '180px',
-          zIndex: 1000,
-          pointerEvents: 'none',
-          opacity: 0.8
-        }}
-        alt="Skytron Logo"
-      />
-    </Box>
+
+<>
+
+ {zoom >= 9 ? (
+  <RoadsMapComponent  onZoomChange={(z) => {
+    setZoom(z);
+    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
+  }} erss={erss} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick}/>
+) : (
+  <BhuvanMapComponent erss={true} onZoomChange={setZoom} data={data} onDistrictClick={onDistrictClick} level={level} />
+)}
+
+</>
+
+
+    // <BhuvanMapComponent
+    //   gpsData={gpsData}
+    //   width="100%"
+    //   height="100%"
+    //   autoFit
+    //   markerLabelMode="none"
+    //   showMapTypeToggle
+    //   showDrawControls={false}
+    //   showSoiLayerPanel={false}
+    //   showLogos
+    // />
   );
 };
 
 const ERSSVehiclesDashboard = () => {
+
+// const [districtData, setDistrictData] = useState([]);
+// const [totalDevices, setTotalDevices] = useState(0);
+const [districtData, setDistrictData] = useState([]);
+const [cityData, setCityData] = useState([]);
+const [localityData, setLocalityData] = useState([]);
+const [deviceData, setDeviceData] = useState([]);
+const [level, setLevel] = useState("district");
+const [mapData, setMapData] = useState([]);
+const levelRef = useRef(level);
+const [dashboardData,setDashboardData]=useState({
+   // 📱 Devices
+  totalDevices: 0,
+  onlineDevices: 0,
+  offlineDevices: 0,
+
+  // 🚨 Emergency
+  activeEmergencyCalls: 0,
+
+  // 🚑 Ambulance
+  totalAmbulanceExecutives: 0,
+  ambulanceActiveRecently: 0,
+
+  // 🚓 Police
+  totalPoliceExecutives: 0,
+  policeActiveRecently: 0,
+
+  // 👮 Combined
+  totalExecutives: 0,
+  totalActiveExecutives: 0});
+
+const handleDistrictClick = async (district) => {
+ debugger
+  //  setSelectedDistrictObj(district); // ⭐ ADD THIS
+ const res = await fetchAreaData({
+    district_name: district.district_name
+  });
+
+  if (res?.locations) {
+    const cities = res.locations.map(c => ({
+      ...c,
+      district_name: res.district_name
+    }));
+
+    setCityData(cities);
+    setMapData(cities);
+    setLevel("city");
+  }
+};
+const handleCityClick = async(city) => {
+   debugger
+  //  setSelectedCityObj(city); // ⭐ ADD THIS
+  const res = await fetchAreaData({
+    district_name: city.district_name,
+    city_name: city.city_village_name
+  });
+
+  if (res?.localities) {
+    const localitiesWithParent = res.localities.map(l => ({
+      ...l,
+      district_name: res.district_name,
+      city_name: res.city_name
+    }));
+
+    setLocalityData(localitiesWithParent);
+    setMapData(localitiesWithParent);
+    setLevel("locality");
+  }
+};
+const handleLocalityClick =async (locality) => {
+   debugger
+    //  setSelectedLocalityObj(locality); // ⭐ ADD THIS
+  const res = await fetchAreaData({
+    district_name: locality.district_name,
+    city_name: locality.city_name,
+    locality_name: locality.locality_name
+  });
+
+  if (res?.devices) {
+    setDeviceData(res.devices);
+    setMapData(res.devices);
+    setLevel("device");
+  }
+};
+const handleBack = async ({ level, data }) => {
+ debugger
+  if (level === "device" && data) {
+  const res = await fetchAreaData({
+    district_name: data.district_name,
+    city_name: data.city_name
+  });
+
+ if (res?.localities) {
+  const localities = res.localities.map(l => ({
+    ...l,
+    district_name: res.district_name,
+    city_name: res.city_name
+  }));
+
+  setMapData(localities);
+  setLevel("locality");
+}
+}
+  else if (level === "locality" && data) {
+    debugger
+  const res = await fetchAreaData({
+    district_name: data.district_name
+  });
+
+    if (res?.locations) {
+
+    const cities = res.locations.map(c => ({
+      ...c,
+      district_name: res.district_name
+    }));
+
+    setMapData(cities); // ✅ FIXED
+    setLevel("city");
+  }
+}
+ else if (level === "city") {
+  setMapData(districtData);
+  setLevel("district");
+}
+};
+
+useEffect(() => {
+ const loadData  = async () => {
+try {
+      const [areaRes, metricsRes] = await Promise.all([
+        fetchAreaData({}, "GET"),
+        fetchDashboardMetrics({}, "GET")
+      ]);
+
+      if (Array.isArray(areaRes)) {
+        setDistrictData(areaRes);
+         setMapData(areaRes);
+      }
+
+    if (metricsRes?.erss_dashboard_metrics) {
+      debugger
+  const metrics = metricsRes.erss_dashboard_metrics;
+
+  setDashboardData({
+    // 📱 Devices
+    totalDevices: metrics.total_tagged_device_count,
+    onlineDevices: metrics.online_device_count,
+    offlineDevices: metrics.offline_device_count,
+
+    // 🚨 Emergency Calls
+    activeEmergencyCalls: metrics.active_emergency_calls_count,
+
+    // 🚑 Ambulance
+    totalAmbulanceExecutives: metrics.total_ambulance_sos_executive_count,
+    ambulanceActiveRecently:
+      metrics.ambulance_executive_with_latest_location_within_5_min_count,
+
+    // 🚓 Police
+    totalPoliceExecutives: metrics.total_police_sos_executive_count,
+    policeActiveRecently:
+      metrics.police_executive_with_latest_location_within_5_min_count,
+
+    // 👮 Combined
+    totalExecutives:
+      metrics.total_police_and_ambulance_sos_executive_count,
+    totalActiveExecutives:
+      metrics.total_executive_with_latest_location_within_5_min_count
+  });
+}
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  //   const res = await fetchAreaData({}, "GET");
+
+  //   if (Array.isArray(res)) {
+  //     setDistrictData(res);
+  //     setMapData(res);
+
+  //     const total = res.total_vehicle_count;
+
+  //     setTotalDevices(total);
+  //   }
+  // };
+
+  loadData ();
+
+}, []);
+
+
+// useEffect(() => {
+
+//   // store dummy data
+//   setDistrictData(data);
+
+//   // calculate total
+//   const total = data.reduce(
+//     (sum, item) => sum + (item.total_vehicle_count || 0),
+//     0
+//   );
+
+//   setTotalDevices(total);
+
+// }, []);
+
+
+
   const [mode, setMode] = useState('light');
 
   const tokens = useMemo(() => {
@@ -564,21 +594,58 @@ const ERSSVehiclesDashboard = () => {
     });
 
     return [
-      { key: 'total', label: `Total ${selectedLabel}`, value: totals.total, helper: null },
-      { key: 'loggedIn', label: 'Logged In', value: totals.loggedIn, helper: null },
-      { key: 'online', label: 'Online', value: totals.online, helper: null },
-      { key: 'available', label: 'Available', value: totals.available, helper: null },
-      { key: 'onEmergency', label: 'On Emergency', value: totals.onEmergency, helper: null },
-      { key: 'enRoute', label: 'En-Route Hospital', value: totals.enRoute, helper: null },
-      { key: 'offline', label: 'Offline', value: totals.offline, helper: null },
-      { key: 'notReporting', label: 'Not Reporting', value: totals.notReporting, helper: ' (> 90 min)' }
+      { key: 'total', label: `Total ${selectedLabel}`, value: dashboardData.totalDevices, helper: null },
+      { key: 'online', label: 'Online', value: dashboardData.onlineDevices, helper: null },
+      { key: 'onEmergency', label: 'On Emergency', value: dashboardData.activeEmergencyCalls, helper: null },
+      { key: 'offline', label: 'Offline', value: dashboardData.offlineDevices, helper: null }
     ];
-  }, [filteredVehicles, filters.vehicleType]);
+  }, [filteredVehicles, filters.vehicleType,dashboardData]);
 
   return (
     <PageWrapper
-      title="Skytron – ERSS Vehicles Monitoring"
-      description="Ambulance & Police live monitoring across districts (dummy data)."
+       title={
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "100%",
+      }}
+    >
+      <Typography
+        sx={{
+          color: tokens.text,
+          fontSize: { xs: "1.5rem", md: "1.75rem" },
+          fontWeight: 600,
+        }}
+      >
+        ERSS Vehicles Monitoring
+      </Typography>
+
+      <IconButton
+        size="small"
+        onClick={() =>
+          setMode((prev) => (prev === "dark" ? "light" : "dark"))
+        }
+        sx={{
+          color: tokens.text,
+          bgcolor: alpha(tokens.text, mode === "dark" ? 0.08 : 0.06),
+          border: `1px solid ${alpha(tokens.text, 0.12)}`,
+          borderRadius: 1.5,
+          "&:hover": {
+            bgcolor: alpha(tokens.text, mode === "dark" ? 0.12 : 0.08),
+          },
+        }}
+      >
+        {mode === "dark" ? (
+          <LightModeOutlinedIcon fontSize="small" />
+        ) : (
+          <DarkModeOutlinedIcon fontSize="small" />
+        )}
+      </IconButton>
+    </Box>
+  }
+      // description="Ambulance & Police live monitoring across districts (dummy data)."
       sx={{
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
@@ -592,7 +659,7 @@ const ERSSVehiclesDashboard = () => {
       headerSx={{ mb: { xs: 2, md: 1.5 } }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 1 }, height: { xs: 'auto', md: '100%' } }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
+        {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
           <IconButton
             size="small"
             onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
@@ -606,52 +673,9 @@ const ERSSVehiclesDashboard = () => {
           >
             {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
           </IconButton>
-        </Box>
+        </Box> */}
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 2, md: 1.25 },
-            borderRadius: 2,
-            border: `1px solid ${tokens.border}`,
-            bgcolor: tokens.cardBg,
-            flexShrink: 0
-          }}
-        >
-          <Grid container spacing={{ xs: 2, md: 1.5 }} alignItems="center">
-            {Object.entries(FILTERS).map(([key, options]) => (
-              <Grid key={key} item xs={12} sm={6} md={3} lg={2.4}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>{key.replace(/([A-Z])/g, ' $1')}</InputLabel>
-                  <Select value={filters[key]} label={key.replace(/([A-Z])/g, ' $1')} onChange={handleFilterChange(key)}>
-                    {options.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            ))}
-            <Grid item xs={12} sm={6} md={3} lg={1.2}>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={handleReset}
-                sx={{
-                  height: 40,
-                  borderRadius: 2,
-                  fontWeight: 800,
-                  textTransform: 'none',
-                  bgcolor: COLORS.ambulance,
-                  '&:hover': { bgcolor: '#2563eb' }
-                }}
-              >
-                Reset
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+
 
         <Box sx={{ display: 'flex', gap: { xs: 1.5, md: 0.75 }, flexWrap: 'wrap', flexShrink: 0 }}>
           {kpis.map((tile) => (
@@ -659,63 +683,23 @@ const ERSSVehiclesDashboard = () => {
           ))}
         </Box>
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 1.5, md: 0.875 },
-            borderRadius: 2,
-            border: `1px solid ${tokens.border}`,
-            bgcolor: tokens.cardBg,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: { xs: 2, md: 1 },
-            flexWrap: 'wrap',
-            flexShrink: 0
-          }}
-        >
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <LegendChip label="Ambulance Cluster" color={COLORS.ambulance} tokens={tokens} />
-            <LegendChip label="Police Cluster" color={COLORS.police} tokens={tokens} />
-            <LegendChip label="Online" color={COLORS.available} tokens={tokens} />
-            <LegendChip label="Offline" color={COLORS.offline} tokens={tokens} />
-            <LegendChip label="Not Reporting" color={COLORS.notReporting} tokens={tokens} />
-            <LegendChip label="On Emergency" color={COLORS.emergency} tokens={tokens} />
-            <LegendChip label="En-Route" color={COLORS.enRoute} tokens={tokens} />
-            <LegendChip label="Available" color={COLORS.available} tokens={tokens} />
-          </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-            {selectedDistrict ? (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleBackToDistricts}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  borderColor: alpha(COLORS.ambulance, 0.35),
-                  color: mode === 'dark' ? '#93c5fd' : '#2563eb',
-                  '&:hover': { borderColor: COLORS.ambulance, bgcolor: alpha(COLORS.ambulance, 0.06) }
-                }}
-              >
-                Back to Districts
-              </Button>
-            ) : null}
-            <Typography sx={{ fontWeight: 800, color: tokens.muted, fontSize: '0.9rem' }}>
-              {selectedDistrict ? `${selectedDistrict}${selectedType ? ` (${selectedType})` : ''}` : 'District Clusters'}
-            </Typography>
-          </Box>
-        </Paper>
 
-        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
           <ErssVehicleMap
+          erss={true}
+            data={mapData}
+          level={level}
+          //  onZoomChange={handleZoomChange}
+          onBack={handleBack}
+  onDistrictClick={handleDistrictClick}
+  onCityClick={handleCityClick}
+  onLocalityClick={handleLocalityClick}
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}
             selectedType={selectedType}
             onSelectCluster={handleSelectCluster}
-            onBack={handleBackToDistricts}
+            // onBack={handleBackToDistricts}
             mode={mode}
           />
         </Box>

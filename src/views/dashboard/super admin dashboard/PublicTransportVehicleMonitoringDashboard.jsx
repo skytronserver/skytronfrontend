@@ -14,26 +14,16 @@ import { alpha } from '@mui/material/styles';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
-import OLMap from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import OSM from 'ol/source/OSM';
-import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import Point from 'ol/geom/Point';
-import { fromLonLat } from 'ol/proj';
-import Style from 'ol/style/Style';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import CircleStyle from 'ol/style/Circle';
-import Text from 'ol/style/Text';
+import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
+import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
+
 
 import {
   PageWrapper,
   useVehicleData
 } from './SuperAdminCommon';
 
+  
 const COLORS = {
   surface: '#f8fafc',
   border: alpha('#0f172a', 0.08),
@@ -86,9 +76,9 @@ const MetricTile = ({ label, value, colorKey, helper }) => {
     <Box
       sx={{
         flex: 1,
-        minWidth: { xs: 140, md: 130 },
+        minWidth: { xs: 180, md: 180 },
         borderRadius: 2,
-        p: { xs: 1.5, md: 1.25 },
+        p: { xs: 2.5, md: 2.25 },
         color: '#fff',
         background: `linear-gradient(135deg, ${colors.from} 0%, ${colors.to} 100%)`,
         boxShadow: `0 8px 20px -12px ${alpha(colors.to, 0.75)}`,
@@ -96,13 +86,13 @@ const MetricTile = ({ label, value, colorKey, helper }) => {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: 0.5
+        gap: 1
       }}
     >
-      <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', md: '0.7rem' }, letterSpacing: '0.02em' }}>{label}</Typography>
-      <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', md: '1.35rem' }, lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
+      <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', md: '0.875rem' }, letterSpacing: '0.02em' }}>{label}</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: { xs: '2rem', md: '1.85rem' }, lineHeight: 1.05 }}>{formatNumber(value)}</Typography>
       {helper ? (
-        <Typography sx={{ opacity: 0.9, fontSize: { xs: '0.7rem', md: '0.65rem' } }}>{helper}</Typography>
+        <Typography sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', md: '0.75rem' } }}>{helper}</Typography>
       ) : null}
     </Box>
   );
@@ -137,7 +127,7 @@ const DISTRICTS = [
 
 const buildDummyVehicles = (seed = []) => {
   const vehicles = [];
-  const total = 320;
+  const total = 8;
 
   const pickDistrict = (idx) => DISTRICTS[idx % DISTRICTS.length];
   const pickStatus = (idx) => {
@@ -186,253 +176,673 @@ const buildDummyVehicles = (seed = []) => {
 
   return vehicles;
 };
+const DistrictVehicleMap = ({onBack, vehicles,data ,onDistrictClick,level, onZoomChange,onCityClick,onLocalityClick }) => {
+ 
+  const gpsData = useMemo(() => {
+    const nowIso = new Date().toISOString();
+    return (Array.isArray(vehicles) ? vehicles : []).map((v) => {
+      const packetType =
+        v.status === 'ea_alert'
+          ? 'EA'
+          : v.status === 'normal_alert'
+            ? 'OT'
+            : 'NR';
 
-const DistrictVehicleMap = ({ vehicles, selectedDistrict, onSelectDistrict, mode }) => {
-  const containerRef = useRef(null);
-  const mapRef = useRef(null);
-  const districtLayerRef = useRef(null);
-  const vehicleLayerRef = useRef(null);
-  const clickHandlerRef = useRef(null);
+      const isOnline = v.status === 'online';
 
-  const districtStylesRef = useRef({});
-  const vehicleStylesRef = useRef({});
-
-  const districtSummary = useMemo(() => {
-    const summary = new Map();
-    DISTRICTS.forEach((d) => {
-      summary.set(d.name, {
-        name: d.name,
-        center: d.center,
-        color: d.color,
-        count: 0
-      });
+      return {
+        latitude: v.latitude,
+        longitude: v.longitude,
+        packet_type: 'NR',
+        ignition_status: '1',
+        speed: 0,
+        entry_time: nowIso
+      };
     });
-
-    (Array.isArray(vehicles) ? vehicles : []).forEach((v) => {
-      const entry = summary.get(v.district);
-      if (entry) entry.count += 1;
-    });
-
-    return Array.from(summary.values()).filter((entry) => entry.count > 0);
   }, [vehicles]);
+const [zoom, setZoom] = useState(7);
+  return (<>
+   {zoom >= 9 ? (
+  <RoadsMapComponent onZoomChange={(z) => {
+    setZoom(z);
+    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
+  }} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick} />
+) : (
+  <BhuvanMapComponent onZoomChange={setZoom} data={data} onDistrictClick={onDistrictClick} level={level}/>
+)}
 
-  useEffect(() => {
-    if (!containerRef.current) return undefined;
 
-    const baseLayer = new TileLayer({ source: new OSM() });
-
-    const districtLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 40
-    });
-
-    const vehicleLayer = new VectorLayer({
-      source: new VectorSource(),
-      zIndex: 60
-    });
-
-    const map = new OLMap({
-      target: containerRef.current,
-      layers: [baseLayer, districtLayer, vehicleLayer],
-      view: new View({
-        center: fromLonLat([91.7362, 26.1445]),
-        zoom: 11
-      })
-    });
-
-    mapRef.current = map;
-    districtLayerRef.current = districtLayer;
-    vehicleLayerRef.current = vehicleLayer;
-
-    const resizeObserver = new ResizeObserver(() => {
-      map.updateSize();
-    });
-    resizeObserver.observe(containerRef.current);
-
-    const handleWindowResize = () => {
-      if (!mapRef.current) return;
-      mapRef.current.updateSize();
-      setTimeout(() => {
-        if (mapRef.current) mapRef.current.updateSize();
-      }, 0);
-    };
-
-    window.addEventListener('resize', handleWindowResize);
-    window.addEventListener('orientationchange', handleWindowResize);
-
-    const handleClick = (evt) => {
-      if (!mapRef.current) return;
-
-      const clickedFeature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
-      if (!clickedFeature) return;
-
-      const districtName = clickedFeature.get('districtName');
-      if (!districtName) return;
-
-      if (!selectedDistrict) {
-        onSelectDistrict(districtName);
-      }
-    };
-
-    clickHandlerRef.current = handleClick;
-    map.on('singleclick', handleClick);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', handleWindowResize);
-      window.removeEventListener('orientationchange', handleWindowResize);
-      if (clickHandlerRef.current) {
-        map.un('singleclick', clickHandlerRef.current);
-        clickHandlerRef.current = null;
-      }
-      map.setTarget(null);
-      mapRef.current = null;
-      districtLayerRef.current = null;
-      vehicleLayerRef.current = null;
-    };
-  }, [onSelectDistrict, selectedDistrict]);
-
-  useEffect(() => {
-    const districtLayer = districtLayerRef.current;
-    const vehicleLayer = vehicleLayerRef.current;
-    const map = mapRef.current;
-    if (!districtLayer || !vehicleLayer || !map) return;
-
-    const districtSource = districtLayer.getSource();
-    const vehicleSource = vehicleLayer.getSource();
-    districtSource.clear();
-    vehicleSource.clear();
-
-    const makeDistrictStyle = (color, count) => {
-      const key = `${color}-${count}`;
-      if (!districtStylesRef.current[key]) {
-        districtStylesRef.current[key] = new Style({
-          image: new CircleStyle({
-            radius: 18,
-            fill: new Fill({ color }),
-            stroke: new Stroke({ color: '#ffffff', width: 3 })
-          }),
-          text: new Text({
-            text: String(count),
-            fill: new Fill({ color: '#ffffff' }),
-            stroke: new Stroke({ color: alpha('#0f172a', 0.4), width: 4 }),
-            font: '800 13px Inter, sans-serif'
-          })
-        });
-      }
-      return districtStylesRef.current[key];
-    };
-
-    const makeVehicleStyle = (label, statusColor) => {
-      const key = `veh-${label}-${statusColor}`;
-      if (!vehicleStylesRef.current[key]) {
-        vehicleStylesRef.current[key] = new Style({
-          image: new CircleStyle({
-            radius: 8,
-            fill: new Fill({ color: statusColor }),
-            stroke: new Stroke({ color: '#ffffff', width: 2 })
-          }),
-          text: new Text({
-            text: label,
-            offsetY: -18,
-            fill: new Fill({ color: mode === 'dark' ? '#e5e7eb' : '#0f172a' }),
-            stroke: new Stroke({ color: mode === 'dark' ? alpha('#000000', 0.75) : alpha('#ffffff', 0.95), width: 5 }),
-            font: '700 11px Inter, sans-serif'
-          })
-        });
-      }
-      return vehicleStylesRef.current[key];
-    };
-
-    if (!selectedDistrict) {
-      districtSummary.forEach((d) => {
-        const feature = new Feature({
-          geometry: new Point(fromLonLat(d.center)),
-          districtName: d.name
-        });
-        feature.setStyle(makeDistrictStyle(d.color, d.count));
-        districtSource.addFeature(feature);
-      });
-
-      districtLayer.setVisible(true);
-      vehicleLayer.setVisible(false);
-      map.getView().animate({ center: fromLonLat([91.7362, 26.1445]), zoom: 7, duration: 450 });
-      return;
-    }
-
-    const district = DISTRICTS.find((d) => d.name === selectedDistrict);
-    if (district) {
-      map.getView().animate({ center: fromLonLat(district.center), zoom: 10, duration: 450 });
-    }
-
-    const districtVehicles = (Array.isArray(vehicles) ? vehicles : []).filter((v) => v.district === selectedDistrict);
-    districtVehicles.forEach((v) => {
-      const lat = Number(v.latitude);
-      const lon = Number(v.longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lon)) return;
-
-      const statusColor =
-        v.status === 'offline' || v.status === 'not_reporting'
-          ? alpha(COLORS.offline, 0.92)
-          : v.status === 'battery_low'
-            ? alpha(COLORS.battery, 0.92)
-            : v.status === 'gps_issue'
-              ? alpha(COLORS.gpsIssue, 0.92)
-              : v.status === 'ea_alert'
-                ? alpha(COLORS.alerts, 0.92)
-                : v.status === 'normal_alert'
-                  ? alpha(COLORS.localAlerts, 0.92)
-                  : v.status === 'power_cut'
-                    ? alpha('#14b8a6', 0.92)
-                    : alpha(COLORS.online, 0.92);
-
-      const feature = new Feature({
-        geometry: new Point(fromLonLat([lon, lat])),
-        districtName: selectedDistrict
-      });
-      feature.setStyle(makeVehicleStyle(v.regNo, statusColor));
-      vehicleSource.addFeature(feature);
-    });
-
-    districtLayer.setVisible(false);
-    vehicleLayer.setVisible(true);
-  }, [districtSummary, selectedDistrict, vehicles, mode]);
-
-  return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Box
-        ref={containerRef}
-        sx={{
-          width: '100%',
-          height: '100%',
-          borderRadius: 2.5,
-          overflow: 'hidden',
-          border: `1px solid ${COLORS.border}`,
-          bgcolor: '#fff',
-          boxShadow: `0 12px 30px -20px ${alpha('#0ea5e9', 0.55)}`,
-          '& .ol-viewport': { borderRadius: 2.5 },
-          '& .ol-attribution': { display: 'none' }
-        }}
-      />
-      <img
-        src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
-        style={{
-          position: 'absolute',
-          bottom: '70px',
-          right: '10px',
-          width: '180px',
-          zIndex: 1000,
-          pointerEvents: 'none',
-          opacity: 0.8
-        }}
-        alt="Skytron Logo"
-      />
-    </Box>
+    {/* <RoadsMapComponent/>
+    <BhuvanMapComponent
+      gpsData={gpsData}
+      width="100%"
+      height="100%"
+      autoFit
+      markerLabelMode="none"
+      showMapTypeToggle
+      showDrawControls={false}
+      showSoiLayerPanel={false}
+      showLogos
+    /> */}
+    </>
   );
 };
 
+const fetchAreaData = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard/areawise-device-count/",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
+
+const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
+  try {
+    const res = await fetch(
+      "https://api.gromed.in/api/dashboard/vehicle-monitoring/",
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: method === "POST" ? JSON.stringify(payload) : null
+      }
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return null;
+  }
+};
+
+
+
+
+
+
+
+
 const PublicTransportVehicleMonitoringDashboard = () => {
   // Using existing live data hook to seed dummy points (fallback to generated)
+
+
+
+const [districtData, setDistrictData] = useState([]);
+const [cityData, setCityData] = useState([]);
+const [localityData, setLocalityData] = useState([]);
+const [deviceData, setDeviceData] = useState([]);
+const [level, setLevel] = useState("district");
+const [mapData, setMapData] = useState([]);
+const levelRef = useRef(level);
+const [dashboardData,setDashboardData]=useState({
+  total: 0,
+  online: 0,
+  offline: 0,
+  emergency: 0,
+  other: 0});
+
+// const [selectedDistrictObj, setSelectedDistrictObj] = useState(null);
+// const [selectedCityObj, setSelectedCityObj] = useState(null);
+// const [selectedLocalityObj, setSelectedLocalityObj] = useState(null);
+
+
+// const [totalDevices, setTotalDevices] = useState(0);
+// const data = [
+//   {
+//     "district_name": "Baksa",
+//     "latitude": 26.699,
+//     "longitude": 91.487,
+//     "total_vehicle_count": 18234
+//   },
+//   {
+//     "district_name": "Bajali",
+//     "latitude": 26.495,
+//     "longitude": 91.180,
+//     "total_vehicle_count": 12456
+//   },
+//   {
+//     "district_name": "Barpeta",
+//     "latitude": 26.320,
+//     "longitude": 91.000,
+//     "total_vehicle_count": 28765
+//   },
+//   {
+//     "district_name": "Biswanath",
+//     "latitude": 26.726,
+//     "longitude": 93.147,
+//     "total_vehicle_count": 15678
+//   },
+//   {
+//     "district_name": "Bongaigaon",
+//     "latitude": 26.478,
+//     "longitude": 90.556,
+//     "total_vehicle_count": 24321
+//   },
+//   {
+//     "district_name": "Cachar",
+//     "latitude": 24.833,
+//     "longitude": 92.778,
+//     "total_vehicle_count": 41234
+//   },
+//   {
+//     "district_name": "Charaideo",
+//     "latitude": 27.024,
+//     "longitude": 95.016,
+//     "total_vehicle_count": 11890
+//   },
+//   {
+//     "district_name": "Chirang",
+//     "latitude": 26.486,
+//     "longitude": 90.558,
+//     "total_vehicle_count": 10987
+//   },
+//   {
+//     "district_name": "Darrang",
+//     "latitude": 26.442,
+//     "longitude": 92.030,
+//     "total_vehicle_count": 17654
+//   },
+//   {
+//     "district_name": "Dhemaji",
+//     "latitude": 27.484,
+//     "longitude": 94.588,
+//     "total_vehicle_count": 13245
+//   },
+//   {
+//     "district_name": "Dhubri",
+//     "latitude": 26.018,
+//     "longitude": 89.974,
+//     "total_vehicle_count": 22110
+//   },
+//   {
+//     "district_name": "Dibrugarh",
+//     "latitude": 27.472,
+//     "longitude": 94.912,
+//     "total_vehicle_count": 33876
+//   },
+//   {
+//     "district_name": "Dima Hasao",
+//     "latitude": 25.164,
+//     "longitude": 93.017,
+//     "total_vehicle_count": 8456
+//   },
+//   {
+//     "district_name": "Goalpara",
+//     "latitude": 26.167,
+//     "longitude": 90.626,
+//     "total_vehicle_count": 16789
+//   },
+//   {
+//     "district_name": "Golaghat",
+//     "latitude": 26.523,
+//     "longitude": 93.962,
+//     "total_vehicle_count": 19876
+//   },
+//   {
+//     "district_name": "Hailakandi",
+//     "latitude": 24.683,
+//     "longitude": 92.561,
+//     "total_vehicle_count": 14567
+//   },
+//   {
+//     "district_name": "Hojai",
+//     "latitude": 26.002,
+//     "longitude": 92.857,
+//     "total_vehicle_count": 17345
+//   },
+//   {
+//     "district_name": "Jorhat",
+//     "latitude": 26.751,
+//     "longitude": 94.203,
+//     "total_vehicle_count": 29754
+//   },
+//   {
+//     "district_name": "Kamrup Metropolitan",
+//     "latitude": 26.144,
+//     "longitude": 91.736,
+//     "total_vehicle_count": 98543
+//   },
+//   {
+//     "district_name": "Kamrup",
+//     "latitude": 26.191,
+//     "longitude": 91.692,
+//     "total_vehicle_count": 26543
+//   },
+//   {
+//     "district_name": "Karbi Anglong",
+//     "latitude": 25.844,
+//     "longitude": 93.431,
+//     "total_vehicle_count": 15432
+//   },
+//   {
+//     "district_name": "Sribhumi",
+//     "latitude": 24.869,
+//     "longitude": 92.355,
+//     "total_vehicle_count": 21456
+//   },
+//   {
+//     "district_name": "Kokrajhar",
+//     "latitude": 26.402,
+//     "longitude": 90.273,
+//     "total_vehicle_count": 18976
+//   },
+//   {
+//     "district_name": "Lakhimpur",
+//     "latitude": 27.238,
+//     "longitude": 94.105,
+//     "total_vehicle_count": 17456
+//   },
+//   {
+//     "district_name": "Majuli",
+//     "latitude": 26.954,
+//     "longitude": 94.204,
+//     "total_vehicle_count": 5432
+//   },
+//   {
+//     "district_name": "Morigaon",
+//     "latitude": 26.252,
+//     "longitude": 92.342,
+//     "total_vehicle_count": 16234
+//   },
+//   {
+//     "district_name": "Nagaon",
+//     "latitude": 26.348,
+//     "longitude": 92.684,
+//     "total_vehicle_count": 35678
+//   },
+//   {
+//     "district_name": "Nalbari",
+//     "latitude": 26.442,
+//     "longitude": 91.441,
+//     "total_vehicle_count": 18567
+//   },
+//   {
+//     "district_name": "Sivasagar",
+//     "latitude": 26.984,
+//     "longitude": 94.637,
+//     "total_vehicle_count": 16890
+//   },
+//   {
+//     "district_name": "Sonitpur",
+//     "latitude": 26.633,
+//     "longitude": 92.800,
+//     "total_vehicle_count": 24890
+//   },
+//   {
+//     "district_name": "South Salmara-Mankachar",
+//     "latitude": 25.828,
+//     "longitude": 89.901,
+//     "total_vehicle_count": 9765
+//   },
+//   {
+//     "district_name": "Tamulpur",
+//     "latitude": 26.694,
+//     "longitude": 91.102,
+//     "total_vehicle_count": 8876
+//   },
+//   {
+//     "district_name": "Tinsukia",
+//     "latitude": 27.489,
+//     "longitude": 95.359,
+//     "total_vehicle_count": 28456
+//   },
+//   {
+//     "district_name": "Udalguri",
+//     "latitude": 26.753,
+//     "longitude": 92.102,
+//     "total_vehicle_count": 13456
+//   },
+//   {
+//     "district_name": "West Karbi Anglong",
+//     "latitude": 25.953,
+//     "longitude": 92.873,
+//     "total_vehicle_count": 7654
+//   }
+// ];
+// const cityLevelData=[{
+//   "district_name": "Kamrup",
+//   "total_locations": 5,
+//   "locations": [
+//     {
+//       "location_type": "town",
+//       "city_village_name": "Rangia",
+//       "lat": 26.4700,
+//       "lon": 91.6300,
+//       "total_vehicle_count": 12840
+//     },
+//     {
+//       "location_type": "town",
+//       "city_village_name": "Palashbari",
+//       "lat": 26.0181,
+//       "lon": 91.0844,
+//       "total_vehicle_count": 6840
+//     },
+//     {
+//       "location_type": "town",
+//       "city_village_name": "Hajo",
+//       "lat": 26.2452,
+//       "lon": 91.5253,
+//       "total_vehicle_count": 5925
+//     },
+//     {
+//       "location_type": "town",
+//       "city_village_name": "Sualkuchi",
+//       "lat": 26.1700,
+//       "lon": 91.5709,
+//       "total_vehicle_count": 4380
+//     },
+//     {
+//       "location_type": "town",
+//       "city_village_name": "Boko",
+//       "lat": 25.9778,
+//       "lon": 91.2356,
+//       "total_vehicle_count": 5175
+//     }
+//   ]
+// }];
+// const locality=[{
+//   "district_name": "Kamrup",
+//   "city_name": "Rangia",
+//   "city_center_lat": 26.4700,
+//   "city_center_lon": 91.6300,
+//   "total_localities": 10,
+//   "localities": [
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 1",
+//       "lat": 26.4728,
+//       "lon": 91.6269,
+//       "total_vehicle_count": 1180
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 2",
+//       "lat": 26.4715,
+//       "lon": 91.6288,
+//       "total_vehicle_count": 1325
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 3",
+//       "lat": 26.4694,
+//       "lon": 91.6299,
+//       "total_vehicle_count": 1490
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 4",
+//       "lat": 26.4679,
+//       "lon": 91.6314,
+//       "total_vehicle_count": 980
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 5",
+//       "lat": 26.4686,
+//       "lon": 91.6330,
+//       "total_vehicle_count": 1710
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 6",
+//       "lat": 26.4701,
+//       "lon": 91.6348,
+//       "total_vehicle_count": 1045
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 7",
+//       "lat": 26.4720,
+//       "lon": 91.6339,
+//       "total_vehicle_count": 1165
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 8",
+//       "lat": 26.4734,
+//       "lon": 91.6318,
+//       "total_vehicle_count": 760
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 9",
+//       "lat": 26.4711,
+//       "lon": 91.6361,
+//       "total_vehicle_count": 615
+//     },
+//     {
+//       "locality_type": "ward",
+//       "locality_name": "Ward No. 10",
+//       "lat": 26.4689,
+//       "lon": 91.6369,
+//       "total_vehicle_count": 570
+//     }
+//   ]
+// }];
+// const vehicleLevel=[{
+//   "district_name": "Kamrup",
+//   "city_name": "Rangia",
+//   "locality_name": "Ward No. 5",
+//   "locality_center_lat": 26.4686,
+//   "locality_center_lon": 91.6330,
+//   "total_devices": 5,
+//   "devices": [
+//     {
+//       "device_id": "DEV-KAM-RAN-W05-0001",
+//       "vehicle_reg_no": "AS01AB1234",
+//       "vehicle_type": "car",
+//       "status": "online",
+//       "lat": 26.4689,
+//       "lon": 91.6335,
+//       "last_seen": "2026-03-14T07:10:00+05:30",
+//       "speed_kmph": 34
+//     },
+//     {
+//       "device_id": "DEV-KAM-RAN-W05-0002",
+//       "vehicle_reg_no": "AS01CD5678",
+//       "vehicle_type": "bike",
+//       "status": "idle",
+//       "lat": 26.4682,
+//       "lon": 91.6326,
+//       "last_seen": "2026-03-14T07:09:10+05:30",
+//       "speed_kmph": 0
+//     },
+//     {
+//       "device_id": "DEV-KAM-RAN-W05-0003",
+//       "vehicle_reg_no": "AS25EF9087",
+//       "vehicle_type": "truck",
+//       "status": "online",
+//       "lat": 26.4693,
+//       "lon": 91.6341,
+//       "last_seen": "2026-03-14T07:08:40+05:30",
+//       "speed_kmph": 21
+//     },
+//     {
+//       "device_id": "DEV-KAM-RAN-W05-0004",
+//       "vehicle_reg_no": "AS01GH4455",
+//       "vehicle_type": "auto",
+//       "status": "offline",
+//       "lat": 26.4678,
+//       "lon": 91.6329,
+//       "last_seen": "2026-03-14T06:48:15+05:30",
+//       "speed_kmph": 0
+//     },
+//     {
+//       "device_id": "DEV-KAM-RAN-W05-0005",
+//       "vehicle_reg_no": "AS01JK7788",
+//       "vehicle_type": "bus",
+//       "status": "online",
+//       "lat": 26.4685,
+//       "lon": 91.6338,
+//       "last_seen": "2026-03-14T07:10:20+05:30",
+//       "speed_kmph": 18
+//     }
+//   ]
+// }];
+
+const handleDistrictClick = async (district) => {
+ debugger
+  //  setSelectedDistrictObj(district); // ⭐ ADD THIS
+ const res = await fetchAreaData({
+    district_name: district.district_name
+  });
+
+  if (res?.locations) {
+    const cities = res.locations.map(c => ({
+      ...c,
+      district_name: res.district_name
+    }));
+
+    setCityData(cities);
+    setMapData(cities);
+    setLevel("city");
+  }
+};
+const handleCityClick = async(city) => {
+   debugger
+  //  setSelectedCityObj(city); // ⭐ ADD THIS
+  const res = await fetchAreaData({
+    district_name: city.district_name,
+    city_name: city.city_village_name
+  });
+
+  if (res?.localities) {
+    const localitiesWithParent = res.localities.map(l => ({
+      ...l,
+      district_name: res.district_name,
+      city_name: res.city_name
+    }));
+
+    setLocalityData(localitiesWithParent);
+    setMapData(localitiesWithParent);
+    setLevel("locality");
+  }
+};
+const handleLocalityClick =async (locality) => {
+   debugger
+    //  setSelectedLocalityObj(locality); // ⭐ ADD THIS
+  const res = await fetchAreaData({
+    district_name: locality.district_name,
+    city_name: locality.city_name,
+    locality_name: locality.locality_name
+  });
+
+  if (res?.devices) {
+    setDeviceData(res.devices);
+    setMapData(res.devices);
+    setLevel("device");
+  }
+};
+const handleBack = async ({ level, data }) => {
+ debugger
+  if (level === "device" && data) {
+  const res = await fetchAreaData({
+    district_name: data.district_name,
+    city_name: data.city_name
+  });
+
+ if (res?.localities) {
+  const localities = res.localities.map(l => ({
+    ...l,
+    district_name: res.district_name,
+    city_name: res.city_name
+  }));
+
+  setMapData(localities);
+  setLevel("locality");
+}
+}
+  else if (level === "locality" && data) {
+    debugger
+  const res = await fetchAreaData({
+    district_name: data.district_name
+  });
+
+    if (res?.locations) {
+
+    const cities = res.locations.map(c => ({
+      ...c,
+      district_name: res.district_name
+    }));
+
+    setMapData(cities); // ✅ FIXED
+    setLevel("city");
+  }
+}
+ else if (level === "city") {
+  setMapData(districtData);
+  setLevel("district");
+}
+};
+
+useEffect(() => {
+ const loadData  = async () => {
+try {
+      const [areaRes, metricsRes] = await Promise.all([
+        fetchAreaData({}, "GET"),
+        fetchDashboardMetrics({}, "GET")
+      ]);
+
+      if (Array.isArray(areaRes)) {
+        setDistrictData(areaRes);
+         setMapData(areaRes);
+      }
+
+      if (metricsRes) {
+        debugger
+         const m = metricsRes.dashboard_metrics; // 👈 FIX
+
+        debugger
+        setDashboardData({
+    total: m.total_active_device_tags??0,
+    online: m.online_device_tags ??0,
+    offline: m.offline_device_tags??0,
+    emergency: m.total_emergency_alerts_today??0,
+    other: m.total_other_alerts_today??0
+  }); 
+      
+
+
+      }
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  //   const res = await fetchAreaData({}, "GET");
+
+  //   if (Array.isArray(res)) {
+  //     setDistrictData(res);
+  //     setMapData(res);
+
+  //     const total = res.total_vehicle_count;
+
+  //     setTotalDevices(total);
+  //   }
+  // };
+
+  loadData ();
+
+}, []);
+
+
+
   const { vehicleData } = useVehicleData();
 
   const [mode, setMode] = useState('light');
@@ -532,16 +942,13 @@ const PublicTransportVehicleMonitoringDashboard = () => {
     const alertsTotal = totals.eaAlerts + totals.normalAlerts;
 
     return [
-      { key: 'total', label: 'Total Devices', value: totals.total, helper: null },
-      { key: 'offline', label: 'Offline', value: totals.offline, helper: null },
-      { key: 'online', label: 'Online', value: totals.online, helper: null },
-      { key: 'alerts', label: 'EA Alerts', value: totals.eaAlerts, helper: null },
-      { key: 'alertsActive', label: 'Normal Alerts', value: totals.normalAlerts, helper: null },
-      { key: 'gps', label: 'GPS Issue', value: totals.gpsIssue, helper: null },
-      { key: 'powerCut', label: 'Power Cut Detected', value: totals.powerCut, helper: null },
-      { key: 'notReporting', label: 'Not Reporting', value: totals.notReporting, helper: '(> 90 min)' }
+      { key: 'total', label: 'Total Devices', value: dashboardData?.total, helper: null },
+      { key: 'offline', label: 'Offline', value:dashboardData?.offline, helper: null },
+      { key: 'online', label: 'Online', value: dashboardData?.online, helper: null },
+      { key: 'alerts', label: 'EA Alerts', value: dashboardData?.emergency, helper: null },
+      { key: 'alertsActive', label: 'Normal Alerts', value:dashboardData?.other, helper: null }
     ];
-  }, [filteredVehicles]);
+  }, [filteredVehicles,dashboardData]);
 
   const handleFilterChange = (key) => (event) => {
     setFilters((prev) => ({ ...prev, [key]: event.target.value }));
@@ -549,22 +956,64 @@ const PublicTransportVehicleMonitoringDashboard = () => {
 
   return (
     <PageWrapper
-      title="Skytron – Public Transport Vehicle Monitoring"
-      description="All vehicles/devices on board Skytron platform (dummy data)."
+       title={
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "100%",
+      }}
+    >
+      <Typography
+        sx={{
+          color: tokens.text,
+          fontSize: { xs: "1.5rem", md: "1.75rem" },
+          fontWeight: 600,
+        }}
+      >
+        Public Transport Vehicle Monitoring
+      </Typography>
+
+      <IconButton
+        size="small"
+        onClick={() =>
+          setMode((prev) => (prev === "dark" ? "light" : "dark"))
+        }
+        sx={{
+          color: tokens.text,
+          bgcolor: alpha(tokens.text, mode === "dark" ? 0.08 : 0.06),
+          border: `1px solid ${alpha(tokens.text, 0.12)}`,
+          borderRadius: 1.5,
+          "&:hover": {
+            bgcolor: alpha(tokens.text, mode === "dark" ? 0.12 : 0.08),
+          },
+        }}
+      >
+        {mode === "dark" ? (
+          <LightModeOutlinedIcon fontSize="small" />
+        ) : (
+          <DarkModeOutlinedIcon fontSize="small" />
+        )}
+      </IconButton>
+    </Box>
+  }
+      
       sx={{
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
         minHeight: '100vh',
         height: { xs: 'auto', md: '100%' },
-        maxHeight: { xs: 'none', md: '100%' },
+        maxHeight: { xs: 'none', md: '100%' }, 
         overflow: { xs: 'auto', md: 'hidden' }
       }}
       titleSx={{ color: tokens.text, fontSize: { xs: '1.5rem', md: '1.75rem' }, mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: { xs: '0.85rem', md: '0.875rem' } }}
       headerSx={{ mb: { xs: 2, md: 1.5 } }}
     >
+      
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 1 }, height: { xs: 'auto', md: '100%' } }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
+        {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
           <IconButton
             size="small"
             onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
@@ -578,51 +1027,9 @@ const PublicTransportVehicleMonitoringDashboard = () => {
           >
             {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
           </IconButton>
-        </Box>
+        </Box> */}
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 2, md: 1.25 },
-            borderRadius: 2,
-            border: `1px solid ${tokens.border}`,
-            bgcolor: tokens.cardBg,
-            flexShrink: 0
-          }}
-        >
-          <Grid container spacing={{ xs: 2, md: 1.5 }} alignItems="center">
-            {Object.entries(FILTERS).map(([key, options]) => (
-              <Grid key={key} item xs={12} sm={6} md={3} lg={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>{key.replace(/([A-Z])/g, ' $1')}</InputLabel>
-                  <Select value={filters[key]} label={key.replace(/([A-Z])/g, ' $1')} onChange={handleFilterChange(key)}>
-                    {options.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            ))}
-            <Grid item xs={12} sm={6} md={3} lg={2}>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{
-                  height: 40,
-                  borderRadius: 2,
-                  fontWeight: 800,
-                  textTransform: 'none',
-                  bgcolor: '#0ea5e9',
-                  '&:hover': { bgcolor: '#0284c7' }
-                }}
-              >
-                Reset
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+
 
         <Box
           sx={{
@@ -637,58 +1044,18 @@ const PublicTransportVehicleMonitoringDashboard = () => {
           ))}
         </Box>
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 1.5, md: 0.875 },
-            borderRadius: 2,
-            border: `1px solid ${tokens.border}`,
-            bgcolor: tokens.cardBg,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: { xs: 2, md: 1 },
-            flexWrap: 'wrap',
-            flexShrink: 0
-          }}
-        >
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <LegendChip label="Local Alerts" color={COLORS.localAlerts} tokens={tokens} />
-            <LegendChip label="Online" color={COLORS.online} tokens={tokens} />
-            <LegendChip label="Offline" color={COLORS.offline} tokens={tokens} />
-            <LegendChip label="Normal Alert" color={COLORS.normalAlert} tokens={tokens} />
-            <LegendChip label="EA Alert" color={COLORS.eaAlert} tokens={tokens} />
-            <LegendChip label="Not Reporting" color={COLORS.notReporting} tokens={tokens} />
-            <LegendChip label="GPS Issue" color={COLORS.gpsIssue} tokens={tokens} />
-            <LegendChip label="Battery Low" color={COLORS.batteryLow} tokens={tokens} />
-            <LegendChip label="Power Cut" color={COLORS.powerCut} tokens={tokens} />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-            {selectedDistrict ? (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleBackToDistricts}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  borderColor: alpha('#0ea5e9', 0.35),
-                  color: '#0284c7',
-                  '&:hover': { borderColor: '#0ea5e9', bgcolor: alpha('#0ea5e9', 0.06) }
-                }}
-              >
-                Back to Districts
-              </Button>
-            ) : null}
-            <Typography sx={{ fontWeight: 800, color: tokens.muted, fontSize: '0.9rem' }}>
-              {selectedDistrict ? selectedDistrict : 'District Clusters'}
-            </Typography>
-          </Box>
-        </Paper>
 
-        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column' }}>
+
+        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
           <DistrictVehicleMap
+          data={mapData}
+          level={level}
+          //  onZoomChange={handleZoomChange}
+          onBack={handleBack}
+  onDistrictClick={handleDistrictClick}
+  onCityClick={handleCityClick}
+  onLocalityClick={handleLocalityClick}
+          
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}
             onSelectDistrict={handleSelectDistrict}
@@ -701,3 +1068,4 @@ const PublicTransportVehicleMonitoringDashboard = () => {
 };
 
 export default PublicTransportVehicleMonitoringDashboard;
+
