@@ -26,7 +26,9 @@ import {
   Switch,
   FormControlLabel,
   Checkbox,
-  Autocomplete
+  Autocomplete,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import MainCard from "../../ui-component/cards/MainCard";
@@ -100,6 +102,10 @@ const LiveTracking = () => {
   const [schoolBuses, setSchoolBuses] = useState([]);
   const [pisBuses, setPisBuses] = useState([]);
   const [pisStops, setPisStops] = useState([]);
+  const [noDataMessage, setNoDataMessage] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [selectedDateTime, setSelectedDateTime] = useState("");  // Handle input changes
+  const [selectedPoiId, setSelectedPoiId] = useState("");
 
   // Handle input changes
   const handleInput = (event) => {
@@ -165,8 +171,8 @@ const LiveTracking = () => {
 
   const handlePoiTypeChange = async (event, value) => {
     setSelectedPoiType(value);
-
     setSelectedPoi(null);
+    setSelectedPoiId("");
     setPoi("");
     setPoiOptions([]);
 
@@ -188,89 +194,89 @@ const LiveTracking = () => {
   };
 
   const handleTransitLayerChange = async (
-  event
-) => {
-  const values = event.target.value;
+    event
+  ) => {
+    const values = event.target.value;
 
-  setSelectedTransitLayer(values);
+    setSelectedTransitLayer(values);
 
-  try {
-    if (
-      values.includes("school_routes") &&
-      schoolRoutes.length === 0
-    ) {
-      const res =
-        await HomePageService.getSchoolBusRoutes();
+    try {
+      if (
+        values.includes("school_routes") &&
+        schoolRoutes.length === 0
+      ) {
+        const res =
+          await HomePageService.getSchoolBusRoutes();
 
-      setSchoolRoutes(
-        res?.data?.data ||
+        setSchoolRoutes(
+          res?.data?.data ||
           res?.data ||
           []
-      );
-    }
+        );
+      }
 
-    if (
-      values.includes("pis_routes") &&
-      pisRoutes.length === 0
-    ) {
-      const res =
-        await HomePageService.getPisRoutes();
+      if (
+        values.includes("pis_routes") &&
+        pisRoutes.length === 0
+      ) {
+        const res =
+          await HomePageService.getPisRoutes();
 
-      setPisRoutes(
-        res?.data?.data ||
+        setPisRoutes(
+          res?.data?.data ||
           res?.data ||
           []
-      );
-    }
+        );
+      }
 
-    if (
-      values.includes("school_buses") &&
-      schoolBuses.length === 0
-    ) {
-      const res =
-        await HomePageService.getSchoolBusLocations();
+      if (
+        values.includes("school_buses") &&
+        schoolBuses.length === 0
+      ) {
+        const res =
+          await HomePageService.getSchoolBusLocations();
 
-      setSchoolBuses(
-        res?.data?.data ||
+        setSchoolBuses(
+          res?.data?.data ||
           res?.data ||
           []
-      );
-    }
+        );
+      }
 
-    if (
-      values.includes("pis_buses") &&
-      pisBuses.length === 0
-    ) {
-      const res =
-        await HomePageService.getPisBusLocations();
+      if (
+        values.includes("pis_buses") &&
+        pisBuses.length === 0
+      ) {
+        const res =
+          await HomePageService.getPisBusLocations();
 
-      setPisBuses(
-        res?.data?.data ||
+        setPisBuses(
+          res?.data?.data ||
           res?.data ||
           []
-      );
-    }
+        );
+      }
 
-    if (
-      values.includes("pis_stops") &&
-      pisStops.length === 0
-    ) {
-      const res =
-        await HomePageService.getPisBusStops();
+      if (
+        values.includes("pis_stops") &&
+        pisStops.length === 0
+      ) {
+        const res =
+          await HomePageService.getPisBusStops();
 
-      setPisStops(
-        res?.data?.data ||
+        setPisStops(
+          res?.data?.data ||
           res?.data ||
           []
+        );
+      }
+    } catch (err) {
+      console.error(
+        "Transit Layer Error",
+        err
       );
     }
-  } catch (err) {
-    console.error(
-      "Transit Layer Error",
-      err
-    );
-  }
-};
+  };
   const computeRow = (processedItem) => {
     // Extract block_name and route_name
     const blockName = processedItem?.device_tag_info?.block?.name ||
@@ -658,6 +664,14 @@ const LiveTracking = () => {
         setVisibleCount(firstSlice.length);
         setLoad(true);
 
+        setNoDataMessage(
+          owner
+            ? `No vehicle owner found for "${owner}"`
+            : "No data found"
+        );
+
+        setOpenSnackbar(true);
+
         // If there's exactly one vehicle, select it automatically
         if (rawData.length === 1) {
           setSelectedId(`vehicle-${rawData[0].imei}`);
@@ -847,7 +861,7 @@ const LiveTracking = () => {
       imei: imeiNo,
       regno: vehicleNo,
       owner: owner,
-      poi: poi,
+      poi: selectedPoiId,
       roads: roads,
       route_id: '',
       polygon: polygon,
@@ -875,7 +889,7 @@ const LiveTracking = () => {
       imei: imeiNo,
       regno: vehicleNo,
       owner: owner,
-      poi: poi,
+      poi: selectedPoiId,
       roads: roads,
       route_id: '',
       polygon: polygon,
@@ -892,7 +906,7 @@ const LiveTracking = () => {
 
     // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon]);
+  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, selectedPoiId]);
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -904,7 +918,7 @@ const LiveTracking = () => {
       imei: selectedRow.imei,
       regno: '',
       owner: '',
-      poi: poi,
+      poi: selectedPoiId,
       roads: '',
       route_id: '',
       polygon: '',
@@ -916,7 +930,7 @@ const LiveTracking = () => {
       speed_limit: speedLimit,
       in_range: inRange,
       poi_as_polygon: poiAsPolygon,
-      poi_t: poi,
+      poi_t: selectedPoiType || "",
     };
 
     try {
@@ -1333,9 +1347,13 @@ const LiveTracking = () => {
                                   setSelectedPoi(value);
 
                                   if (value) {
-                                    setPoi(value.name);
+                                    console.log("Selected POI:", value);
+
+                                    setPoi(value.name);        // keep existing logic
+                                    setSelectedPoiId(value.id); // NEW
                                   } else {
                                     setPoi("");
+                                    setSelectedPoiId("");
                                   }
                                 }}
                                 renderInput={(params) => (
@@ -1662,81 +1680,81 @@ const LiveTracking = () => {
               }
               label="Use NMR Location"
             />
-             
+
           </Box>
           <FormControl
-  size="small"
-  sx={{ minWidth: 250 }}
->
-  <InputLabel>
-    Transit Layer
-  </InputLabel>
+            size="small"
+            sx={{ minWidth: 250 }}
+          >
+            <InputLabel>
+              Transit Layer
+            </InputLabel>
 
-  <Select
-     multiple
-    value={selectedTransitLayer}
-    onChange={handleTransitLayerChange}
-    renderValue={(selected) =>
-      selected
-        .map((item) =>
-          item
-            .replaceAll("_", " ")
-            .toUpperCase()
-        )
-        .join(", ")
-      }
-  >
-    <MenuItem value="">
-      None
-    </MenuItem>
+            <Select
+              multiple
+              value={selectedTransitLayer}
+              onChange={handleTransitLayerChange}
+              renderValue={(selected) =>
+                selected
+                  .map((item) =>
+                    item
+                      .replaceAll("_", " ")
+                      .toUpperCase()
+                  )
+                  .join(", ")
+              }
+            >
+              <MenuItem value="">
+                None
+              </MenuItem>
 
-    <MenuItem value="school_routes">
+              <MenuItem value="school_routes">
 
-    <Checkbox
-        checked={selectedTransitLayer.includes(
-          "school_routes"
-        )}
-      />
-      School Bus Routes
-    </MenuItem>
+                <Checkbox
+                  checked={selectedTransitLayer.includes(
+                    "school_routes"
+                  )}
+                />
+                School Bus Routes
+              </MenuItem>
 
-    <MenuItem value="pis_routes">
-    <Checkbox
-        checked={selectedTransitLayer.includes(
-          "pis_routes"
-        )}
-      />
-      Public Bus Routes
-    </MenuItem>
+              <MenuItem value="pis_routes">
+                <Checkbox
+                  checked={selectedTransitLayer.includes(
+                    "pis_routes"
+                  )}
+                />
+                Public Bus Routes
+              </MenuItem>
 
-    <MenuItem value="school_buses">
-    <Checkbox
-        checked={selectedTransitLayer.includes(
-          "school_buses"
-        )}
-      />
-      School Bus Live Location
-    </MenuItem>
+              <MenuItem value="school_buses">
+                <Checkbox
+                  checked={selectedTransitLayer.includes(
+                    "school_buses"
+                  )}
+                />
+                School Bus Live Location
+              </MenuItem>
 
-    <MenuItem value="pis_buses">
-    <Checkbox
-        checked={selectedTransitLayer.includes(
-          "pis_buses"
-        )}
-      />
-      Public Bus Live Location
-    </MenuItem>
+              <MenuItem value="pis_buses">
+                <Checkbox
+                  checked={selectedTransitLayer.includes(
+                    "pis_buses"
+                  )}
+                />
+                Public Bus Live Location
+              </MenuItem>
 
-    <MenuItem value="pis_stops">
-    <Checkbox
-        checked={selectedTransitLayer.includes(
-          "pis_stops"
-        )}
-      />
-      Public Bus Stops
-    </MenuItem>
-  </Select>
-</FormControl>
+              <MenuItem value="pis_stops">
+                <Checkbox
+                  checked={selectedTransitLayer.includes(
+                    "pis_stops"
+                  )}
+                />
+                Public Bus Stops
+              </MenuItem>
+            </Select>
+          </FormControl>
 
           <MapComponent
             gpsData={filteredData}
@@ -1752,15 +1770,15 @@ const LiveTracking = () => {
             allMode={typeFilter === "default"}
             selectedPoi={selectedPoi}
             selectedTransitLayer={selectedTransitLayer}
-  schoolRoutes={schoolRoutes}
-  pisRoutes={pisRoutes}
-  schoolBuses={schoolBuses}
-  pisBuses={pisBuses}
-  pisStops={pisStops}
+            schoolRoutes={schoolRoutes}
+            pisRoutes={pisRoutes}
+            schoolBuses={schoolBuses}
+            pisBuses={pisBuses}
+            pisStops={pisStops}
           />
         </div>
       </div>
-     
+
 
       {selectedId && (
         <TableContainer component={Paper} className="skytron-table-container" sx={{ mt: 2, maxHeight: '400px' }}>
@@ -1810,6 +1828,22 @@ const LiveTracking = () => {
           </Table>
         </TableContainer>
       )}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <Alert
+          severity="warning"
+          onClose={() => setOpenSnackbar(false)}
+        >
+          {noDataMessage}
+        </Alert>
+      </Snackbar>
     </MainCard>
   );
 };

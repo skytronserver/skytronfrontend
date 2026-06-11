@@ -142,6 +142,7 @@ const getLiveTracking_data = (data, config = {}) => {
             in_range: data.in_range,
             poi_as_polygon: data.poi_as_polygon,
             poi_t: data.poi_t,
+            history_datetime: data.history_datetime,
         },
         ...config,
     });
