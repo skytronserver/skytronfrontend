@@ -34,6 +34,8 @@ const M2MStatusReport = Loadable(lazy(() => import("../views/reports/M2MStatusRe
 const ManufacturerOnboarding = Loadable(lazy(() => import("../views/pages/ManufacturerOnboarding")));
 const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingCreate")));
 const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
+const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
+const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption("skytrack");
@@ -186,6 +188,16 @@ const DeviceRoutes = {
       path: "/device/m2m-status",
       element: <M2MStatusReport />,
       roles: ["dealer"],
+    },
+    {
+      path: "/device/whitelist/requests",
+      element: <WhitelistRequests />,
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+    },
+    {
+      path: "/device/whitelist/dashboard",
+      element: <DeviceDashboard />,
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
     },
     {
       path: "/device/esim-status",

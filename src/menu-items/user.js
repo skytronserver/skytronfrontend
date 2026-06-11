@@ -473,6 +473,31 @@ const user = {
       ]
     },
     {
+      id: "whitelist-kyc",
+      title: "Whitelist & KYC",
+      type: "collapse",
+      icon: icons.IconDeviceSim,
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+      children: [
+        {
+          id: "whitelist-requests",
+          title: "Whitelist Requests",
+          type: "item",
+          url: "/device/whitelist/requests",
+          breadcrumbs: false,
+          roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+        },
+        {
+          id: "whitelist-dashboard",
+          title: "Device Dashboard",
+          type: "item",
+          url: "/device/whitelist/dashboard",
+          breadcrumbs: false,
+          roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+        }
+      ]
+    },
+    {
       id: "icons-tag",
       title: "Tagging & Activation",
       type: "collapse",
