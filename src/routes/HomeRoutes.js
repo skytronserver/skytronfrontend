@@ -16,6 +16,8 @@ const PublicTransportVehicleMonitoringDashboard = Loadable(lazy(() => import("..
 const ERSSVehiclesDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/ERSSVehiclesDashboard")));
 const SOSMonitoringDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSMonitoringDashboard")));
 const SOSAnalyticsDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSAnalyticsDashboard")));
+const HelpDesk = Loadable(lazy(() => import("views/pages/HelpDesk")))
+const HelpDeskSuccess = Loadable(lazy(() => import("views/pages/helpDeskSuccess")))
 
 const HomeRoutes = {
   path: "/",
@@ -32,6 +34,14 @@ const HomeRoutes = {
     {
       path: "/privacy-policy",
       element: <PrivacyPolicy />,
+    },
+    {
+      path: "/help-desk",
+      element: <HelpDesk />,
+    },
+    {
+      path: "/help-desk-success",
+      element: <HelpDeskSuccess />,
     },
     {
       path: "/user-registration-request",

@@ -1,0 +1,2028 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  Alert,
+  Snackbar,
+  FormControlLabel,
+  Switch,
+  Tabs,
+  Tab,
+  TextField,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Fab,
+} from "@mui/material";
+import { alpha, useTheme } from '@mui/material/styles';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
+import SendIcon from '@mui/icons-material/Send';
+import ChatIcon from '@mui/icons-material/Chat';
+import ClearIcon from '@mui/icons-material/Clear';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+
+import HomePageService from "../../services/HomePage";
+import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
+import POIService from "../../services/POIService";
+import CustomModal from "../../ui-component/CustomModal";
+import "./emcall.css";
+import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
+import { fetchSecureIncidentMedia, createMediaUrl, isVideoFile } from "../../utils/incidentImageLoader";
+import { getRole } from "../../helper";
+
+const emCallAudio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
+
+const DriverCard = ({ driver }) => {
+  const theme = useTheme();
+  const [photoUrl, setPhotoUrl] = useState(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const photoUrlRef = useRef(null);
+
+  const photoPathRaw = driver?.photo || null;
+  const photoPath = (() => {
+    if (!photoPathRaw) return null;
+    const raw = String(photoPathRaw);
+    try {
+      if (raw.startsWith("http://") || raw.startsWith("https://")) {
+        const u = new URL(raw);
+        return u.pathname.replace(/^\/+/, "");
+      }
+    } catch (e) {
+      // ignore
+    }
+    return raw.replace(/^\/+/, "");
+  })();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (photoUrlRef.current) {
+      URL.revokeObjectURL(photoUrlRef.current);
+      photoUrlRef.current = null;
+    }
+    setPhotoUrl(null);
+
+    const token =
+      sessionStorage.getItem('oAuthToken') ||
+      localStorage.getItem('oAuthToken');
+    if (!photoPath || !token) {
+      setPhotoLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setPhotoLoading(true);
+    (async () => {
+      try {
+        const blob = await fetchSecureIncidentMedia(photoPath, token);
+        if (cancelled) return;
+        const url = createMediaUrl(blob);
+        photoUrlRef.current = url;
+        setPhotoUrl(url);
+      } catch (e) {
+        if (cancelled) return;
+        setPhotoUrl(null);
+      } finally {
+        if (!cancelled) setPhotoLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (photoUrlRef.current) {
+        URL.revokeObjectURL(photoUrlRef.current);
+        photoUrlRef.current = null;
+      }
+    };
+  }, [photoPath]);
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        {photoLoading ? (
+          <Box sx={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            bgcolor: 'grey.200',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '3px solid',
+            borderColor: 'grey.300'
+          }}>
+            <Typography variant="caption">Loading...</Typography>
+          </Box>
+        ) : photoUrl ? (
+          <Box
+            component="img"
+            src={photoUrl}
+            alt="Driver"
+            sx={{
+              width: 100,
+              height: 100,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: '3px solid',
+              borderColor: 'primary.light',
+              boxShadow: theme.shadows[3]
+            }}
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <Box sx={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            bgcolor: 'grey.200',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '3px solid',
+            borderColor: 'grey.300'
+          }}>
+            <Typography variant="caption">No Photo</Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Box>
+        <Typography variant="h6" fontWeight={700} gutterBottom>
+          {driver?.name || "N/A"}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 1 }}>
+          <PhoneInTalkIcon fontSize="small" />
+          <Typography variant="body2">
+            {driver?.phone_no || "N/A"}
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+        <Typography variant="caption" color="text.secondary" display="block" gutterBottom>License Number</Typography>
+        <Typography variant="body1" fontWeight={600} sx={{ letterSpacing: 1 }}>
+          {driver?.license_no || "N/A"}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const IncidentThumbnail = ({ filePath, onClick, registeredAt }) => {
+  const [url, setUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadThumbnail = async () => {
+      try {
+        const token = sessionStorage.getItem('oAuthToken') || localStorage.getItem('oAuthToken');
+        if (!token || !filePath) return;
+        
+        const blob = await fetchSecureIncidentMedia(filePath, token);
+        if (cancelled) return;
+        const blobUrl = createMediaUrl(blob);
+        setUrl(blobUrl);
+      } catch (e) {
+        console.error("Error loading thumbnail:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadThumbnail();
+    return () => { cancelled = true; };
+  }, [filePath]);
+
+  return (
+    <Box 
+      onClick={onClick}
+      sx={{ 
+        position: 'relative',
+        width: '100%', 
+        paddingTop: '60%', 
+        borderRadius: 2, 
+        overflow: 'hidden',
+        bgcolor: '#f0f0f0',
+        cursor: 'pointer',
+        border: '3px solid #fff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': { 
+          transform: 'translateY(-4px)',
+          boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+          '& .thumbnail-img': { transform: 'scale(1.1)' },
+          '& .overlay-btn': { opacity: 1 }
+        }
+      }}
+    >
+      {loading ? (
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', fontWeight: 600 }}>Loading...</Typography>
+        </Box>
+      ) : url ? (
+        <>
+          <Box
+            component="img"
+            className="thumbnail-img"
+            src={url}
+            alt="Incident"
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 0.6s ease'
+            }}
+          />
+          <Box className="overlay-btn" sx={{ 
+            position: 'absolute', 
+            inset: 0, 
+            bgcolor: 'rgba(0,0,0,0.2)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            opacity: 0,
+            transition: 'opacity 0.3s ease'
+          }}>
+            <FullscreenIcon sx={{ color: 'white', fontSize: '2.5rem' }} />
+          </Box>
+          {isVideoFile(filePath) && (
+            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.4)', borderRadius: '50%', p: 1, display: 'flex' }}>
+              <PhoneInTalkIcon sx={{ fontSize: '1.5rem' }} />
+            </Box>
+          )}
+        </>
+      ) : (
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'error.main', fontWeight: 600 }}>Error</Typography>
+        </Box>
+      )}
+      <Box sx={{ 
+        position: 'absolute', 
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        p: 1.2, 
+        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', 
+        color: 'white' 
+      }}>
+        <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', textAlign: 'center', letterSpacing: 0.5 }}>
+          {registeredAt ? new Date(registeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const ChatPanel = ({ assignmentId, open, currentUserName }) => {
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const formatTime = (dateString) => {
+    if (!dateString) {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = ((hours + 11) % 12) + 1;
+      return `${hour12}:${minutes} ${ampm}`;
+    }
+
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
+    const hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = ((hours + 11) % 12) + 1;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  const normalizeMessages = (raw) => {
+
+    let list = [];
+    if (Array.isArray(raw)) list = raw;
+    else if (raw?.results && Array.isArray(raw.results)) list = raw.results;
+    else if (raw?.data && Array.isArray(raw.data)) list = raw.data;
+    else if (raw?.messages && Array.isArray(raw.messages)) list = raw.messages;
+
+    return list.map((item, index) => {
+      const text = item.message || item.msg || item.text || '';
+
+      // Try to derive a human-friendly sender name from nested assignment/call data
+      const nestedSenderName =
+        // Police / responder executive
+        item.assignment?.ex?.users?.[0]?.name ||
+        // Team lead user
+        item.assignment?.call?.team?.teamlead?.users?.[0]?.name ||
+        // Fallbacks from other nested user arrays if present
+        item.assignment?.admin?.users?.[0]?.name ||
+        item.call?.team?.teamlead?.users?.[0]?.name;
+
+      // Prefer full sender name similar to mobile app display
+      const sender =
+        nestedSenderName ||
+        item.sender_name || // e.g. explicit sender name field
+        item.name ||
+        (typeof item.sender === 'object' ? (item.sender.name || item.sender.full_name || item.sender.username) : undefined) ||
+        item.sender ||
+        item.user_name ||
+        item.username ||
+        item.user ||
+        item.role ||
+        'Responder';
+
+      const time = item.time || item.created_at || item.timestamp || '';
+
+      return {
+        id: item.id || index,
+        sender,
+        role: item.role || '',
+        text,
+        time: formatTime(time),
+      };
+    }).filter(m => m.text);
+  };
+
+  const fetchMessages = async () => {
+    if (!assignmentId) return;
+    try {
+      setLoading(true);
+      const resp = await HomePageService.getEMmessage({ assignment_id: assignmentId });
+      const payload = resp?.data ?? [];
+      const normalized = normalizeMessages(payload);
+      setMessages(normalized);
+    } catch (e) {
+      console.error('Error fetching EM messages:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!open || !assignmentId) return;
+
+    let cancelled = false;
+    const load = async () => {
+      await fetchMessages();
+      if (cancelled) return;
+    };
+
+    load();
+
+    const interval = setInterval(() => {
+      if (!cancelled) fetchMessages();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [open, assignmentId]);
+
+  const handleSend = async () => {
+    const trimmed = inputValue.trim();
+    if (!trimmed || !assignmentId) return;
+
+    const optimistic = {
+      id: `local-${Date.now()}`,
+      sender: "You",
+      role: "teamlead",
+      text: trimmed,
+      time: formatTime(),
+    };
+
+    setMessages((prev) => [...prev, optimistic]);
+    setInputValue("");
+
+    try {
+      await HomePageService.sendEMmessage({
+        assignment_id: assignmentId,
+        message: trimmed,
+      });
+
+      await fetchMessages();
+    } catch (e) {
+      console.error('Error sending EM message:', e);
+    }
+  };
+
+  return (
+    <Card elevation={3} sx={{ height: '60vh', borderRadius: 2, display: 'flex', flexDirection: 'column', mt: 2 }}>
+      <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'primary.main' }}>
+        <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700 }}>
+          Assignment ID: {assignmentId ?? 'N/A'}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+          Police & Ambulance Messages
+        </Typography>
+      </Box>
+
+      <Box sx={{ flex: 1, overflowY: 'auto', px: 2, py: 1.5, bgcolor: '#fafafa' }}>
+        {loading && (
+          <Box sx={{ textAlign: 'center', py: 1 }}>
+            <Typography variant="caption" color="text.secondary">Loading messages...</Typography>
+          </Box>
+        )}
+        {messages.length === 0 && !loading ? (
+          <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              No messages yet
+            </Typography>
+          </Box>
+        ) : (
+          <List sx={{ py: 0 }}>
+            {messages.map((msg) => {
+              const senderName = msg.sender || '';
+              const loweredSender = senderName.toLowerCase();
+
+              const isSelf =
+                senderName === 'You' ||
+                (currentUserName && senderName && senderName.trim() === currentUserName.trim()) ||
+                // Treat explicit team lead messages as "self" so they appear on the right
+                (msg.role && String(msg.role).toLowerCase() === 'teamlead') ||
+                loweredSender.includes('team lead');
+
+              const bgColor = isSelf ? 'primary.main' : '#fff';
+              const textColor = isSelf ? '#fff' : 'text.primary';
+              const align = isSelf ? 'flex-end' : 'flex-start';
+              const initial = msg.sender?.[0]?.toUpperCase() || '?';
+
+              return (
+                <ListItem
+                  key={msg.id}
+                  disableGutters
+                  sx={{
+                    display: 'flex',
+                    justifyContent: align,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', maxWidth: '85%', alignItems: 'flex-start', gap: 1.5, flexDirection: isSelf ? 'row-reverse' : 'row' }}>
+                    <Avatar sx={{ width: 28, height: 28, bgcolor: isSelf ? 'primary.dark' : 'grey.400', fontSize: '0.8rem' }}>
+                      {initial}
+                    </Avatar>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: isSelf ? 'flex-end' : 'flex-start' }}>
+                      <Box
+                        sx={{
+                          px: 1.5,
+                          py: 1,
+                          borderRadius: 2,
+                          bgcolor: bgColor,
+                          boxShadow: 1,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: 'block',
+                            mb: 0.5,
+                            color: isSelf ? 'rgba(255,255,255,0.9)' : 'text.secondary',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {msg.sender}
+                        </Typography>
+                        <ListItemText
+                          primary={msg.text}
+                          primaryTypographyProps={{
+                            variant: 'body2',
+                            sx: { color: textColor },
+                          }}
+                        />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{ mt: 0.25, color: 'text.disabled' }}
+                      >
+                        {msg.time}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </ListItem>
+              );
+            })}
+          </List>
+        )}
+      </Box>
+
+      <Box
+        sx={{
+          px: 1.5,
+          py: 1,
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          bgcolor: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Type a message"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
+        <IconButton color="primary" onClick={handleSend}>
+          <SendIcon />
+        </IconButton>
+      </Box>
+    </Card>
+  );
+};
+
+const EMCall = () => {
+  const theme = useTheme();
+  const { state } = useLocation();
+
+  // When opened in a new window (via window.open), router state is absent.
+  // resolveCall is run ONCE via useState initializer to avoid re-running on every render
+  // (which would remove the localStorage key on first render and return undefined on subsequent renders).
+  const [call] = useState(() => {
+    if (state?.call) return state.call;
+    // Check window.__emNewCall injected by a wrapper if used
+    if (window.__emNewCall) return window.__emNewCall;
+    // Fallback: read from localStorage (written by parent emcall tab before window.open)
+    try {
+      const raw = localStorage.getItem('emcall_new_window_data');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        localStorage.removeItem('emcall_new_window_data');
+        return parsed;
+      }
+    } catch (e) { /* ignore */ }
+    return undefined;
+  });
+  const userRole = call?.type || '';
+  const loggedInRole = getRole();
+
+  const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
+
+  // Name of the current web user (team lead) for chat alignment
+  const currentUserName = call?.team?.teamlead?.users?.[0]?.name || '';
+
+  const navigate = useNavigate();
+
+  // Distance helper (Haversine formula)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // State
+  const [assignments, setAssignments] = useState([]);
+  const assignmentsRef = useRef([]); // To track previous assignments for notifications
+  const [sosLocations, setSosLocations] = useState([]);
+
+  const [activeRoutes, setActiveRoutes] = useState([]); // Routes for assigned executives
+  const latestLocationsRef = useRef({}); // Cache for last known locations
+
+  const [broadcastDisabled, setBroadcastDisabled] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+
+  // New pending call detection (after broadcast)
+  const [newIncomingCall, setNewIncomingCall] = useState(null);
+  const emCallNewIncomingCallRef = useRef(null);
+  useEffect(() => {
+    emCallNewIncomingCallRef.current = newIncomingCall;
+  }, [newIncomingCall]);
+
+  const emCallPreviousCallsRef = useRef([]);
+  let emBuzzerTimeout = useRef(null);
+
+  // Police Data State
+  const [policeLocations, setPoliceLocations] = useState([]);
+  const [policePois, setPolicePois] = useState([]);
+  const [hospitalPois, setHospitalPois] = useState([]);
+  const [nearestPolice, setNearestPolice] = useState(null);
+  const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
+  const [nearestPoliceAddress, setNearestPoliceAddress] = useState("");
+  const [nearestHospital, setNearestHospital] = useState(null);
+  const [nearestHospitalDistance, setNearestHospitalDistance] = useState(null);
+  const [nearestHospitalAddress, setNearestHospitalAddress] = useState("");
+
+  // Toggle states for map visibility
+  const [showPoliceLayers, setShowPoliceLayers] = useState(false);
+  const [showPoiLayers, setShowPoiLayers] = useState(false);
+  const [showHospitalPoiLayers, setShowHospitalPoiLayers] = useState(false);
+  const [showAmbulanceLayers, setShowAmbulanceLayers] = useState(false);
+
+  // Tab State & Auto-play
+  const [tabValue, setTabValue] = useState(0);
+
+  // Incident Data State
+  const [incidentData, setIncidentData] = useState([]);
+  const [incidentLoading, setIncidentLoading] = useState(false);
+  const [selectedIncidentMedia, setSelectedIncidentMedia] = useState(null);
+  const [selectedIncidentType, setSelectedIncidentType] = useState('image');
+  const [incidentViewerOpen, setIncidentViewerOpen] = useState(false);
+
+  const handleTabChange = (event, newValue) => {
+    if (newValue === 4) {
+      setChatOpen(true);
+      return;
+    }
+    setTabValue(newValue);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const token =
+      sessionStorage.getItem('oAuthToken') ||
+      localStorage.getItem('oAuthToken');
+    if (!token) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const fetchPolicePois = async () => {
+      try {
+        const response = await POIService.getAllPOIs();
+        const data = response?.data || response || [];
+
+        const filtered = Array.isArray(data)
+          ? data.filter((poi) => {
+            const type = poi?.use_type || "";
+            const normalized = String(type).toLowerCase();
+            return (
+              normalized === "policestation" ||
+              normalized === "police_station" ||
+              normalized === "police"
+            );
+          })
+          : [];
+
+        const filteredHospitals = Array.isArray(data)
+          ? data.filter((poi) => {
+            const type = poi?.use_type || "";
+            const normalized = String(type).trim().toLowerCase();
+            return (
+              normalized === "hospital" ||
+              normalized === "hospitals" ||
+              normalized === "hospital_name"
+            );
+          })
+          : [];
+
+        setPolicePois(filtered);
+        setHospitalPois(filteredHospitals);
+      } catch (error) {
+        console.error("Error fetching police POIs for EmCall:", error);
+        setHospitalPois([]);
+      }
+    };
+
+    fetchPolicePois();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Fetch Incident Data
+  useEffect(() => {
+    const fetchIncidents = async () => {
+      const vehicleRegNo = call?.call?.device?.vehicle_reg_no;
+      if (!vehicleRegNo && !sosLocations.length) return;
+
+      setIncidentLoading(true);
+      try {
+        const params = {
+          vehicle_reg_no: vehicleRegNo || '',
+          page: 1,
+          page_size: 5
+        };
+
+        // If no registration number, try by location
+        if (!vehicleRegNo && sosLocations.length > 0) {
+          params.latitude = sosLocations[0].latitude;
+          params.longitude = sosLocations[0].longitude;
+          params.radius_km = 5;
+        }
+
+        const response = await HomePageService.getIncidentData(params);
+        if (response?.data?.status === "success" && Array.isArray(response.data.data)) {
+          setIncidentData(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching incidents for EMCall:", error);
+      } finally {
+        setIncidentLoading(false);
+      }
+    };
+
+    fetchIncidents();
+  }, [call?.call?.device?.vehicle_reg_no, sosLocations]);
+
+  const openIncidentMedia = async (filePath) => {
+    try {
+      const token = sessionStorage.getItem('oAuthToken') || localStorage.getItem('oAuthToken');
+      if (!token) return;
+
+      const blob = await fetchSecureIncidentMedia(filePath, token);
+      const url = createMediaUrl(blob);
+
+      setSelectedIncidentMedia(url);
+      setSelectedIncidentType(isVideoFile(filePath) ? 'video' : 'image');
+      setIncidentViewerOpen(true);
+    } catch (error) {
+      console.error("Failed to load incident media:", error);
+    }
+  };
+
+  const closeIncidentViewer = () => {
+    setIncidentViewerOpen(false);
+    setSelectedIncidentMedia(null);
+  };
+
+  useEffect(() => {
+    if (sosLocations.length > 0 && policePois.length > 0) {
+      const callPoint = sosLocations[0];
+      let minDistance = Infinity;
+      let nearestUnit = null;
+
+      policePois.forEach((poi) => {
+        try {
+          const locData = JSON.parse(poi.location);
+          if (Array.isArray(locData) && locData.length > 0) {
+            const lat = Number(locData[0][0]);
+            const lon = Number(locData[0][1]);
+
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+              const dist = calculateDistance(
+                callPoint.latitude,
+                callPoint.longitude,
+                lat,
+                lon
+              );
+
+              if (dist < minDistance) {
+                minDistance = dist;
+                nearestUnit = {
+                  ...poi,
+                  latitude: lat,
+                  longitude: lon
+                };
+              }
+            }
+          }
+        } catch (e) {
+          // ignore invalid loc data
+        }
+      });
+
+      if (nearestUnit) {
+        setNearestPolice(nearestUnit);
+        setNearestPoliceDistance(minDistance);
+
+        // Initialize address from POI data immediately (prefer description if longer)
+        const initialAddr = (nearestUnit.description?.length > (nearestUnit.address?.length || 0))
+          ? nearestUnit.description
+          : (nearestUnit.address || nearestUnit.description || "Fetching address...");
+        setNearestPoliceAddress(initialAddr);
+
+        // Fetch address via reverse geocoding to see if we can get an even better one
+        const fetchAddress = async () => {
+          try {
+            const resp = await HomePageService.getReverseGeocode(nearestUnit.latitude, nearestUnit.longitude);
+            const data = resp?.data;
+            const result = data?.results?.[0];
+
+            if (result && Array.isArray(result.address_components)) {
+              // Logic to extract city if needed in future
+              // const cityComp = result.address_components.find(...)
+            }
+
+            const geoAddr = result?.formatted_address ||
+              data?.results?.[0]?.address ||
+              data?.address ||
+              data?.formatted_address;
+
+            // Update address if we got a valid one
+            if (geoAddr) {
+              setNearestPoliceAddress(geoAddr);
+            }
+          } catch (error) {
+            console.error("Geocoding failed:", error);
+          }
+        };
+        fetchAddress();
+      }
+    }
+  }, [sosLocations, policePois]);
+
+  useEffect(() => {
+    if (sosLocations.length > 0 && hospitalPois.length > 0) {
+      const callPoint = sosLocations[0];
+      let minDistance = Infinity;
+      let nearestUnit = null;
+
+      hospitalPois.forEach((poi) => {
+        try {
+          const locData = JSON.parse(poi.location);
+          if (Array.isArray(locData) && locData.length > 0) {
+            const lat = Number(locData[0][0]);
+            const lon = Number(locData[0][1]);
+
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+              const dist = calculateDistance(
+                callPoint.latitude,
+                callPoint.longitude,
+                lat,
+                lon
+              );
+
+              if (dist < minDistance) {
+                minDistance = dist;
+                nearestUnit = {
+                  ...poi,
+                  latitude: lat,
+                  longitude: lon
+                };
+              }
+            }
+          }
+        } catch (e) {
+          // ignore invalid loc data
+        }
+      });
+
+      if (nearestUnit) {
+        setNearestHospital(nearestUnit);
+        setNearestHospitalDistance(minDistance);
+
+        const initialAddr = (nearestUnit.description?.length > (nearestUnit.address?.length || 0))
+          ? nearestUnit.description
+          : (nearestUnit.address || nearestUnit.description || "Fetching address...");
+        setNearestHospitalAddress(initialAddr);
+
+        const fetchAddress = async () => {
+          try {
+            const resp = await HomePageService.getReverseGeocode(nearestUnit.latitude, nearestUnit.longitude);
+            const data = resp?.data;
+            const result = data?.results?.[0];
+
+            const geoAddr = result?.formatted_address ||
+              data?.results?.[0]?.address ||
+              data?.address ||
+              data?.formatted_address;
+
+            if (geoAddr) {
+              setNearestHospitalAddress(geoAddr);
+            }
+          } catch (error) {
+            console.error("Geocoding failed (hospital):", error);
+          }
+        };
+        fetchAddress();
+      }
+    }
+  }, [sosLocations, hospitalPois]);
+
+  const fetchPoliceLocations = async (callLocs = []) => {
+    try {
+      const params = {
+        user_type: 'police_ex',
+      };
+
+      if (callLocs && callLocs.length > 0) {
+        const center = callLocs[0]; // Use first call location as center
+        if (center && center.latitude && center.longitude) {
+          params.lat = center.latitude;
+          params.lon = center.longitude;
+          params.radius_km = 10000;
+        }
+      }
+
+      const response = await HomePageService.getEmergencyUserLocations(params);
+
+      // Parse the nested response structure
+      const payload = response?.data ?? {};
+      let records = [];
+
+      if (payload?.results?.data && Array.isArray(payload.results.data)) {
+        records = payload.results.data;
+      } else if (Array.isArray(payload?.results)) {
+        records = payload.results;
+      } else if (Array.isArray(payload?.data)) {
+        records = payload.data;
+      } else if (Array.isArray(payload)) {
+        records = payload;
+      }
+
+      const normalized = records
+        .map((item, index) => {
+          const latitude = Number(item?.em_lat ?? item?.latitude ?? item?.lat);
+          const longitude = Number(item?.em_lon ?? item?.longitude ?? item?.lon);
+
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return null;
+          }
+
+          const fieldEx = item?.field_ex ?? {};
+          const users = fieldEx?.users ?? [];
+          const primaryUser = users[0] ?? {};
+
+          const lastUpdatedRaw = item?.time ?? fieldEx?.created ?? item?.timestamp;
+          const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw).toISOString() : new Date().toISOString();
+
+          const userName = primaryUser?.name || fieldEx?.idProofno || `Police #${index + 1}`;
+          const labelFallback = userName;
+
+          return {
+            id: item?.id || fieldEx?.id || `police-${index}`,
+            vehicle_registration_number: userName,
+            block_name: fieldEx?.district_info?.district || fieldEx?.state_info?.state || '',
+            route_name: '',
+            markerLabel: labelFallback,
+            markerCategory: 'police',
+            packet_type: 'POLICE',
+            ignition_status: 1,
+            speed: Number(item?.speed) || 0,
+            entry_time: lastUpdated,
+            date: lastUpdated.split('T')[0] ?? '',
+            time: lastUpdated.split('T')[1]?.split('Z')[0] ?? '',
+            latitude,
+            longitude,
+          };
+        })
+        .filter(Boolean);
+
+      setPoliceLocations(normalized);
+    } catch (error) {
+      console.error('Error fetching police locations:', error);
+      setPoliceLocations([]);
+    }
+  };
+
+  const fetchAndPlotLocations = async () => {
+    if (!call?.id) return;
+
+    try {
+      const response = await HomePageService.getEMCallloc({
+        assignment_id: call.id,
+      });
+
+      // Update assignments
+      if (response.data && response.data.assignments) {
+        const newAssignments = response.data.assignments;
+        const prevAssignments = assignmentsRef.current;
+
+        // Check for status changes
+        newAssignments.forEach(newAssignment => {
+          const prevAssignment = prevAssignments.find(a => a.id === newAssignment.id);
+          if (prevAssignment && prevAssignment.status !== newAssignment.status) {
+            setSnackbarMessage(`Assignment ${newAssignment.id} status changed to ${newAssignment.status}`);
+            setSnackbarSeverity(newAssignment.status === 'closed_false_allert' ? 'error' : 'info');
+            setSnackbarOpen(true);
+          }
+        });
+
+        setAssignments(newAssignments);
+        assignmentsRef.current = newAssignments;
+      }
+
+      // Filter and plot location data
+      const locations = response.data.target || [];
+      const mappedLocations = locations.map(loc => ({
+        ...loc,
+        packet_type: 'EA', // Force Red color for emergency
+        device_tag_info: {
+          ...loc.device_tag_info,
+          category_info: {
+            category: 'bus' // Default icon
+          }
+        }
+      }));
+      setSosLocations(mappedLocations);
+
+      // Process Field Executives for Routes
+      const fieldExList = response.data.fieldEx || [];
+      const newRoutes = [];
+      const newPoliceLocations = [];
+
+      if (mappedLocations.length > 0) {
+        const victimLoc = mappedLocations[0]; // Target location
+
+        // Process each field executive
+        for (const item of fieldExList) {
+          const assignment = item?.Assignment;
+          const userType = assignment?.ex?.user_type;
+
+          if (userType === 'police_ex' || userType === 'ambulance_ex') {
+            const exId = assignment?.ex?.id;
+            const locArray = item?.loc;
+
+            let exData = null;
+
+            // Check for new location data
+            if (Array.isArray(locArray) && locArray.length > 0 && locArray[0]?.em_lat && locArray[0]?.em_lon) {
+              exData = locArray[0];
+              // Update cache if ID is available
+              if (exId) {
+                latestLocationsRef.current[exId] = {
+                  ...exData,
+                  userId: assignment?.ex?.users?.[0]?.name,
+                  userType: userType
+                };
+              }
+            } else if (exId && latestLocationsRef.current[exId]) {
+              // Fallback to cached location if available
+              exData = latestLocationsRef.current[exId];
+            }
+
+            // If we have valid location data
+            if (exData) {
+              const lat = parseFloat(exData.em_lat);
+              const lon = parseFloat(exData.em_lon);
+
+              if (!isNaN(lat) && !isNaN(lon)) {
+                // Fetch shortest path from Bhuvan API
+                try {
+                  const routeResponse = await HomePageService.getRoute({
+                    points: [
+                      [lon, lat], // Executive location (lon, lat)
+                      [victimLoc.longitude, victimLoc.latitude] // Victim location
+                    ]
+                  });
+
+                  // Extract route coordinates from API response
+                  const routeData = routeResponse?.data?.data && routeResponse.data.data.paths
+                    ? routeResponse.data.data
+                    : routeResponse.data;
+
+                  if (routeData?.paths?.[0]?.points?.coordinates) {
+                    const coordinates = routeData.paths[0].points.coordinates;
+                    const distanceInMeters = routeData.paths[0].distance || 0;
+                    const distanceInKm = distanceInMeters / 1000;
+
+                    // Calculate time based on 15 km/hr speed
+                    const speedKmPerHr = 15;
+                    const timeInHours = distanceInKm / speedKmPerHr;
+                    const timeInMinutes = timeInHours * 60;
+
+                    // Add the actual road route
+                    newRoutes.push({
+                      from: [lon, lat],
+                      to: [victimLoc.longitude, victimLoc.latitude],
+                      type: userType,
+                      coordinates: coordinates, // Full path coordinates
+                      distance: distanceInMeters,
+                      distanceKm: distanceInKm,
+                      time: routeData.paths[0].time || 0,
+                      estimatedTimeMinutes: timeInMinutes
+                    });
+                  } else {
+                    // Fallback to straight line if API fails
+                    newRoutes.push({
+                      from: [lon, lat],
+                      to: [victimLoc.longitude, victimLoc.latitude],
+                      type: userType
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error fetching route for executive:', error);
+                  // Fallback to straight line on error
+                  newRoutes.push({
+                    from: [lon, lat],
+                    to: [victimLoc.longitude, victimLoc.latitude],
+                    type: userType
+                  });
+                }
+
+                // Add to Field Executive Markers
+                newPoliceLocations.push({
+                  id: `ex-${exData.id || exId || Math.random()}`,
+                  latitude: lat,
+                  longitude: lon,
+                  vehicle_registration_number: assignment?.ex?.users?.[0]?.name || latestLocationsRef.current[exId]?.userId || (userType === 'police_ex' ? "Police Unit" : "Ambulance Unit"),
+                  markerCategory: userType === 'police_ex' ? 'police' : 'ambulance',
+                  speed: exData.speed || 0,
+                  entry_time: exData.time || new Date().toISOString(),
+                  packet_type: userType === 'police_ex' ? 'POLICE' : 'AMBULANCE'
+                });
+              }
+            }
+          }
+        }
+      }
+
+      // Always update state with the computed lists (which now include cached positions)
+      setActiveRoutes(newRoutes);
+      setPoliceLocations(newPoliceLocations);
+
+    } catch (error) {
+      console.error("Fetch Locations Error:", error);
+      // Suppress error snackbar on periodic fetch to avoid spamming, or log only
+    }
+  };
+
+  // Initial Fetch and Polling for Call Data
+  useEffect(() => {
+    fetchAndPlotLocations();
+
+    const interval = setInterval(fetchAndPlotLocations, 5000);
+    return () => clearInterval(interval);
+  }, [call?.id]);
+
+  // Poll for new pending calls ONLY after broadcast has been done
+  useEffect(() => {
+    if (!broadcastDisabled) return; // Only start polling after broadcast
+
+    const checkNewPendingCall = async () => {
+      try {
+        const response = await HomePageService.getPendingSOSCall();
+        const apiCalls = response?.data?.calls || [];
+        const now = Date.now();
+
+        let persistentSeenTable = {};
+        try {
+          persistentSeenTable = JSON.parse(sessionStorage.getItem('emcall_seen_calls') || '{}');
+        } catch (e) { }
+
+        apiCalls.forEach((c) => {
+          if (!persistentSeenTable[c.id]) {
+            persistentSeenTable[c.id] = 1; // 1st poll
+          } else {
+            persistentSeenTable[c.id] += 1; // increment poll count
+          }
+
+          if (loggedInRole === 'desk_ex' && persistentSeenTable[c.id] === 4) {
+            HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
+          }
+        });
+
+        sessionStorage.setItem('emcall_seen_calls', JSON.stringify(persistentSeenTable));
+
+        // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
+        let processableCalls = apiCalls;
+        if (loggedInRole === 'teamlead') {
+          processableCalls = apiCalls.filter(
+            (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
+          );
+        } else if (loggedInRole === 'desk_ex') {
+          processableCalls = apiCalls.filter(
+            (c) => persistentSeenTable[c.id] <= 3
+          );
+        }
+
+        if (emCallNewIncomingCallRef.current && !processableCalls.some(c => c.id === emCallNewIncomingCallRef.current.id)) {
+          setNewIncomingCall(null);
+          emCallAudio.pause();
+          emCallAudio.currentTime = 0;
+          clearTimeout(emBuzzerTimeout.current);
+        }
+
+        const found = processableCalls.find(
+          (c) =>
+            c.call?.status === 'pending' &&
+            c?.status === 'pending' &&
+            c.id !== call?.id && // exclude the current active call
+            !emCallPreviousCallsRef.current.some((prev) => prev.id === c.id)
+        );
+        if (found) {
+          setNewIncomingCall(found);
+          // Play buzzer
+          try {
+            emCallAudio.currentTime = 0;
+            const playPromise = emCallAudio.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(error => console.warn("Browser blocked audio autoplay:", error));
+            }
+          } catch (e) { }
+          clearTimeout(emBuzzerTimeout.current);
+          emBuzzerTimeout.current = setTimeout(() => {
+            emCallAudio.pause();
+            emCallAudio.currentTime = 0;
+          }, 10000);
+        }
+        emCallPreviousCallsRef.current = processableCalls;
+      } catch (error) {
+        console.error('Error polling pending calls from emcall:', error);
+      }
+    };
+
+    checkNewPendingCall();
+    const interval = setInterval(checkNewPendingCall, 10000);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(emBuzzerTimeout.current);
+      emCallAudio.pause();
+      emCallAudio.currentTime = 0;
+    };
+  }, [broadcastDisabled]);
+
+  const handleAcceptNewCall = async () => {
+    if (!newIncomingCall) return;
+
+    // Open a blank window synchronously to bypass browser popup blockers
+    const newWindow = window.open('about:blank', '_blank');
+
+    try {
+      const response = await HomePageService.acceptEMCall({ assignment_id: newIncomingCall.id, accept: true });
+      const acceptedCall = response.data;
+      setNewIncomingCall(null);
+      emCallAudio.pause();
+      emCallAudio.currentTime = 0;
+      clearTimeout(emBuzzerTimeout.current);
+
+      localStorage.setItem('emcall_new_window_data', JSON.stringify(acceptedCall));
+
+      // Now redirect the opened window to the final URL
+      if (newWindow) {
+        newWindow.location.href = window.location.origin + '/emcall';
+      }
+    } catch (error) {
+      console.error('Error accepting new incoming call:', error);
+      if (newWindow) newWindow.close();
+    }
+  };
+
+  const handleDismissNewCall = (event, reason) => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
+    setNewIncomingCall(null);
+  };
+
+  const handleBroadcast = async (type) => {
+    try {
+      let broadcastType = type;
+      if (type === "both") {
+        await HomePageService.broadCast({
+          assignment_id: call.id,
+          radius: 5,
+          type: "police_ex",
+        });
+        await HomePageService.broadCast({
+          assignment_id: call.id,
+          radius: 5,
+          type: "ambulance_ex",
+        });
+        broadcastType = "Police and Ambulance";
+      } else {
+        await HomePageService.broadCast({
+          assignment_id: call.id,
+          radius: 5,
+          type,
+        });
+        broadcastType = type === "police_ex" ? "Police" : "Ambulance";
+      }
+
+      setBroadcastDisabled(true);
+      alert(`${broadcastType} broadcast successful!`);
+    } catch (error) {
+      console.error("Broadcast Error:", error);
+    }
+  };
+
+  const canCloseCall = () => {
+    if (userRole === 'teamlead') return true;
+    if (userRole !== 'desk_ex') return false;
+    if (!assignments || assignments.length === 0) return false;
+
+    const policeAssignment = assignments.find(a => a.type === "police_ex");
+    const ambulanceAssignment = assignments.find(a => a.type === "ambulance_ex");
+
+    const isClosureStatus = (status) =>
+      status === "closed" ||
+      status === "closed_false_alert" ||
+      status === "closed_false_allert";
+
+    if ((policeAssignment && isClosureStatus(policeAssignment.status)) ||
+      (ambulanceAssignment && isClosureStatus(ambulanceAssignment.status))) {
+      return true;
+    }
+    return false;
+  };
+
+  const handleCloseCall = async () => {
+    try {
+      if (userRole !== 'teamlead') {
+        if (!assignments || assignments.length === 0) {
+          throw new Error("No assignments found");
+        }
+        if (!canCloseCall()) {
+          throw new Error("Cannot close call: Conditions not met");
+        }
+      }
+
+      await HomePageService.closeCase({ assignment_id: call.id });
+      await fetchAndPlotLocations(); // Update status
+
+      setModalOpen(true);
+      setSnackbarMessage("Call closed successfully!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error("Close Call Error:", error);
+      setSnackbarMessage(error.message || "Error closing call");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleChatOpen = () => setChatOpen(true);
+  const handleChatClose = () => setChatOpen(false);
+  const handleModalClose = () => setModalOpen(false);
+  const handleRedirectToDashboard = () => navigate('/dashboard');
+  const handleSnackbarClose = (e, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
+
+  // Status Helpers
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'closed_false_allert': return 'error.main';
+      case 'closed': return 'warning.main';
+      case 'active': return 'success.main';
+      default: return 'text.primary';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    const commonSx = { fontSize: '1.5rem' };
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert':
+        return <ReportProblemIcon sx={{ ...commonSx, color: '#f44336', animation: 'pulse 2s infinite' }} />;
+      case 'closed':
+        return <AssignmentTurnedInIcon sx={{ ...commonSx, color: '#4caf50' }} />;
+      case 'accepted':
+        return <PhoneInTalkIcon sx={{ ...commonSx, color: '#2196f3', animation: 'bounce 1s infinite' }} />;
+      case 'pending':
+        return <AssignmentIcon sx={{ ...commonSx, color: '#ff9800', animation: 'spin 2s linear infinite' }} />;
+      default:
+        return <NotificationsActiveIcon sx={{ ...commonSx, color: '#757575' }} />;
+    }
+  };
+
+  const getStatusBgColor = (status) => {
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert': return alpha('#f44336', 0.08);
+      case 'closed': return alpha('#4caf50', 0.08);
+      case 'accepted': return alpha('#2196f3', 0.08);
+      case 'pending': return alpha('#ff9800', 0.08);
+      default: return alpha('#9e9e9e', 0.08);
+    }
+  };
+
+  const getStatusBorderColor = (status) => {
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert': return '#f44336';
+      case 'closed': return '#4caf50';
+      case 'accepted': return '#2196f3';
+      case 'pending': return '#ff9800';
+      default: return '#9e9e9e';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'closed_false_alert':
+      case 'closed_false_allert': return 'False Alert';
+      case 'closed': return 'Closed';
+      case 'accepted': return 'Accepted';
+      case 'pending': return 'Pending';
+      default: return status;
+    }
+  };
+
+  const getServiceIcon = (type) => {
+    return type === "police_ex"
+      ? <LocalPoliceIcon sx={{ color: '#1976d2', fontSize: '1.8rem' }} />
+      : <SupportAgentIcon sx={{ color: '#e91e63', fontSize: '1.8rem' }} />;
+  };
+
+  // Animations
+  const keyframes = `
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  `;
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = keyframes;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  console.log("nearestUnit", call);
+
+  const visibleResponderMarkers = policeLocations.filter((marker) => {
+    const category = String(marker?.markerCategory || "").toLowerCase();
+    if (category === "police") return showPoliceLayers;
+    if (category === "ambulance") return showAmbulanceLayers;
+    return showPoliceLayers;
+  });
+
+  return (
+    <>
+      {/* New Incoming Pending Call Dialog (shown after broadcast) */}
+      <Dialog open={!!newIncomingCall} onClose={handleDismissNewCall}>
+        <DialogTitle
+          sx={{
+            backgroundColor: 'darkred',
+            color: 'white',
+            textAlign: 'center',
+            fontSize: '16px',
+          }}
+        >
+          New Pending Assignment
+        </DialogTitle>
+        <DialogContent sx={{ padding: '16px !important' }}>
+          <Typography>
+            A new assignment with ID {newIncomingCall?.id} is pending. Do you want to accept it?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center' }}>
+          <Button
+            onClick={handleAcceptNewCall}
+            color="secondary"
+            variant="contained"
+          >
+            Accept
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <CustomModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        title="Success"
+        content="Call closed successfully!"
+        actions={
+          <Button onClick={handleRedirectToDashboard} color="secondary" variant="outlined">Done</Button>
+        }
+      />
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      <Box sx={{ p: 3, height: '100vh', overflow: 'hidden', background: 'linear-gradient(145deg, #f5f7fa 0%, #e4e8eb 100%)' }}>
+        <Grid container spacing={3} sx={{ height: '100%' }}>
+          {/* Call Details Card */}
+          <Grid item xs={12} md={3} sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <Card elevation={3} sx={{ height: '100%', borderRadius: 2, display: 'flex', flexDirection: 'column' }}>
+
+              {/* Fixed Map Layers Section */}
+              <Box sx={{
+                p: 2,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper'
+              }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'primary.main' }}>MAP LAYERS</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={useOldGeocodingApi}
+                        onChange={(e) => {
+                          const next = e.target.checked;
+                          setUseOldGeocodingApi(next);
+                          setUseOldGeocodingApiState(next);
+                        }}
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="body2">Old Geocoding API</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={showPoliceLayers} onChange={(e) => setShowPoliceLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Police Vehicles</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={showAmbulanceLayers} onChange={(e) => setShowAmbulanceLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Ambulance Vehicles</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={showPoiLayers} onChange={(e) => setShowPoiLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Police Stations</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={showHospitalPoiLayers} onChange={(e) => setShowHospitalPoiLayers(e.target.checked)} size="small" />}
+                    label={<Typography variant="body2">Show Hospitals</Typography>}
+                    sx={{ ml: 0 }}
+                  />
+                </Box>
+              </Box>
+
+              {/* Tabs Header */}
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  allowScrollButtonsMobile
+                  indicatorColor="primary"
+                  textColor="primary"
+                  sx={{ minHeight: 48 }}
+                >
+                  <Tab label="Call Info" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Driver" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Police & Health" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Status" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                  <Tab label="Chat" sx={{ fontSize: '0.75rem', fontWeight: 600, minHeight: 48, p: 1, minWidth: 'auto' }} />
+                </Tabs>
+              </Box>
+
+              {/* Scrollable Content Area */}
+              <CardContent sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2, position: 'relative', bgcolor: '#fff' }}>
+                {tabValue === 0 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Emergency Call ID</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.id ?? call?.id}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Vehicle RegNo</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_reg_no || "N/A"}</Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Owner Name</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.name || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Owner Phone</Typography>
+                      <Typography variant="body1" fontWeight={500}>{call?.call?.device?.vehicle_owner?.users?.[0]?.mobile || "N/A"}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Vehicle Category</Typography>
+                      <Typography variant="body1" fontWeight={500}>
+                        {typeof call?.call?.device?.category === 'object'
+                          ? (call.call.device.category?.category || "N/A")
+                          : (call?.call?.device?.category || "N/A")}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Alert Type</Typography>
+                      <Typography variant="body1" fontWeight={500} color="error.main">
+                        {call?.em_type || call?.call?.em_type || call?.call?.packet_type || "SOS"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Lat</Typography>
+                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.latitude?.toFixed(5) || "N/A"}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Lon</Typography>
+                        <Typography variant="body2" fontWeight={600}>{sosLocations[0]?.longitude?.toFixed(5) || "N/A"}</Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Incident Media Section */}
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <NotificationsActiveIcon fontSize="small" /> INCIDENT MEDIA
+                      </Typography>
+                      
+                      {incidentLoading ? (
+                        <Typography variant="body2" color="text.secondary">Loading incident media...</Typography>
+                      ) : incidentData.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {incidentData.map((incident, idx) => (
+                            <Grid item xs={12} key={incident.id || idx}>
+                              <IncidentThumbnail 
+                                filePath={incident.image_file}
+                                registeredAt={incident.registered_at}
+                                onClick={() => openIncidentMedia(incident.image_file)}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">No incident media found for this vehicle.</Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+
+                {tabValue === 1 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {(call?.call?.device?.drivers || []).length > 0 ? (
+                      (call?.call?.device?.drivers || []).map((driver, idx) => (
+                        <Box key={driver?.id || `${driver?.license_no || 'driver'}-${idx}`}>
+                          <DriverCard driver={driver} />
+                          {idx < (call?.call?.device?.drivers || []).length - 1 && (
+                            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }} />
+                          )}
+                        </Box>
+                      ))
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 6, opacity: 0.6 }}>
+                        <Typography variant="body2" color="text.secondary">No driver data.</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+                {tabValue === 2 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {nearestPolice ? (
+                        <Box sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: alpha(theme.palette.info.main, 0.08),
+                          border: '1px solid',
+                          borderColor: 'info.light'
+                        }}>
+                          <Typography variant="subtitle2" sx={{ mb: 2, color: 'info.dark', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocalPoliceIcon fontSize="small" /> NEAREST STATION
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Station Name</Typography>
+                              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                                {nearestPolice.name || nearestPolice.description || "Police Station"}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Contact Info</Typography>
+                              <Typography variant="body1" fontWeight={600}>
+                                {nearestPolice.phone ||
+                                  nearestPolice.mobile ||
+                                  nearestPolice.phoneno ||
+                                  nearestPolice.contact ||
+                                  "N/A"}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Distance</Typography>
+                              <Typography variant="h6" fontWeight={700} color="primary.main">
+                                {nearestPoliceDistance !== null ? `${nearestPoliceDistance.toFixed(2)} km` : "N/A"}
+                              </Typography>
+                            </Box>
+                            {(nearestPoliceAddress || nearestPolice.description) && (
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">Address</Typography>
+                                <Typography variant="body2" sx={{ lineHeight: 1.5, color: 'text.secondary' }}>
+                                  {nearestPoliceAddress || nearestPolice.description}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </Box>
+                      ) : (
+                        <Box sx={{ textAlign: 'center', py: 4, opacity: 0.6 }}>
+                          <LocalPoliceIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                          <Typography variant="body2" color="text.secondary">Searching for nearest police station...</Typography>
+                        </Box>
+                      )}
+
+                      {nearestHospital ? (
+                        <Box sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: alpha(theme.palette.success.main, 0.08),
+                          border: '1px solid',
+                          borderColor: 'success.light'
+                        }}>
+                          <Typography variant="subtitle2" sx={{ mb: 2, color: 'success.dark', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocalHospitalIcon fontSize="small" /> NEAREST HEALTH CENTER
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Center Name</Typography>
+                              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                                {nearestHospital.name || nearestHospital.description || "Health Center"}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Contact Info</Typography>
+                              <Typography variant="body1" fontWeight={600}>
+                                {nearestHospital.phone ||
+                                  nearestHospital.mobile ||
+                                  nearestHospital.phoneno ||
+                                  nearestHospital.contact ||
+                                  "N/A"}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Distance</Typography>
+                              <Typography variant="h6" fontWeight={700} color="primary.main">
+                                {nearestHospitalDistance !== null ? `${nearestHospitalDistance.toFixed(2)} km` : "N/A"}
+                              </Typography>
+                            </Box>
+                            {(nearestHospitalAddress || nearestHospital.description) && (
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">Address</Typography>
+                                <Typography variant="body2" sx={{ lineHeight: 1.5, color: 'text.secondary' }}>
+                                  {nearestHospitalAddress || nearestHospital.description}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </Box>
+                      ) : (
+                        <Box sx={{ textAlign: 'center', py: 4, opacity: 0.6 }}>
+                          <LocalHospitalIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                          <Typography variant="body2" color="text.secondary">Searching for nearest health center...</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+
+                {tabValue === 3 && (
+                  <Box sx={{ animation: 'fadeIn 0.5s' }}>
+                    {assignments.length > 0 ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        {assignments.map((assignment, index) => {
+                          // Find matching route for this assignment
+                          const matchingRoute = activeRoutes.find(route => route.type === assignment.type);
+                          const hasRouteInfo = matchingRoute && matchingRoute.estimatedTimeMinutes;
+
+                          return (
+                            <Box key={assignment.id} sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              p: 2,
+                              bgcolor: getStatusBgColor(assignment.status),
+                              borderRadius: 2,
+                              border: '1px solid',
+                              borderColor: getStatusBorderColor(assignment.status),
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}>
+                              {/* Decorative strip */}
+                              <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: getStatusBorderColor(assignment.status) }} />
+
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Box sx={{ mr: 2, ml: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', bgcolor: 'background.paper', boxShadow: 1 }}>
+                                  {getServiceIcon(assignment.type)}
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.65rem', fontWeight: 700 }}>
+                                    {assignment.type?.replace('_ex', '')}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.2 }}>
+                                    {getStatusIcon(assignment.status)}
+                                    <Typography variant="body2" sx={{ color: getStatusColor(assignment.status), fontWeight: 700 }}>
+                                      {getStatusText(assignment.status)}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </Box>
+
+                              {/* Route Information */}
+                              {hasRouteInfo && (
+                                <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', gap: 2 }}>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" display="block">Distance</Typography>
+                                    <Typography variant="body2" fontWeight={600} color="primary.main">
+                                      {matchingRoute.distanceKm.toFixed(2)} km
+                                    </Typography>
+                                  </Box>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" display="block">Est. Time </Typography>
+                                    <Typography variant="body2" fontWeight={600} color="primary.main">
+                                      {Math.round(matchingRoute.estimatedTimeMinutes)} min
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              )}
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 6, opacity: 0.6 }}>
+                        <AssignmentIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                        <Typography variant="body2" color="text.secondary">No tasks assigned yet.</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+              </CardContent>
+
+              {/* Fixed Bottom Broadcast Options */}
+              <CardContent sx={{ p: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
+                <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1 }}>Broadcast Actions</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1 }}>
+                  Assignment ID: {call?.id ?? "N/A"}
+                </Typography>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Button fullWidth variant="contained" color="primary" onClick={() => handleBroadcast("police_ex")} disabled={broadcastDisabled} size="small" sx={{ fontSize: '0.7rem' }}>
+                      Police
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button fullWidth variant="contained" color="secondary" onClick={() => handleBroadcast("ambulance_ex")} disabled={broadcastDisabled} size="small" sx={{ fontSize: '0.7rem' }}>
+                      Ambulance
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button fullWidth variant="outlined" color="primary" onClick={() => handleBroadcast("both")} disabled={broadcastDisabled} size="small" startIcon={<NotificationsActiveIcon />}>
+                      Broadcast Both
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button fullWidth variant="contained" color="error" onClick={handleCloseCall} disabled={!canCloseCall()} size="medium">
+                      Close Call
+                    </Button>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Map Section only; chat opens via floating action button */}
+          <Grid item xs={12} md={9} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card elevation={3} sx={{ flex: 1, minHeight: '300px', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <BhuvanMapComponent
+                gpsData={sosLocations}
+                policeData={(showPoliceLayers || showAmbulanceLayers) ? visibleResponderMarkers : []}
+                pois={[
+                  ...(showPoiLayers ? policePois : []),
+                  ...(showHospitalPoiLayers ? hospitalPois : []),
+                ]}
+                lookupPois={[...policePois, ...hospitalPois]}
+                width="100%"
+                height="100%"
+                routes={activeRoutes}
+                autoFit={true}
+                showMapTypeToggle={true}
+                showDrawControls={false}
+                showLogos={true}
+                defaultMapType="normal"
+                markerLabelMode="vehicle"
+                center={sosLocations.length > 0 ? [sosLocations[0].longitude, sosLocations[0].latitude] : [91.829437, 26.131644]}
+                zoom={sosLocations.length > 0 ? 14 : 7}
+              />
+            </Card>
+          </Grid>
+
+        </Grid>
+
+
+
+        {/* Chat Dialog */}
+        <Dialog
+          open={chatOpen}
+          onClose={handleChatClose}
+          maxWidth="md"
+          fullWidth
+          sx={{ zIndex: 99999 }}
+        >
+          <DialogTitle>
+            Assignment Chat
+          </DialogTitle>
+          <DialogContent sx={{ p: 0 }}>
+            <ChatPanel
+              assignmentId={call?.id}
+              open={chatOpen}
+              currentUserName={currentUserName}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Popup Dialog for New Pending Call */}
+        <Dialog open={!!newIncomingCall} onClose={handleDismissNewCall}>
+          <DialogTitle
+            sx={{
+              backgroundColor: "darkred",
+              color: "white",
+              textAlign: "center",
+              fontSize: "16px",
+            }}
+          >
+            New Pending Assignment
+          </DialogTitle>
+          <DialogContent sx={{ padding: "16px !important", minWidth: 300 }}>
+            <Typography>
+              A new assignment with ID {newIncomingCall?.id} is pending. Do you
+              want to accept it?
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+            <Button
+              onClick={handleAcceptNewCall}
+              color="secondary"
+              variant="contained"
+            >
+              Accept
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+      </Box>
+
+      {/* Incident Media Viewer Dialog */}
+      <Dialog 
+        open={incidentViewerOpen} 
+        onClose={closeIncidentViewer}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: 'hidden',
+            bgcolor: '#000',
+            maxHeight: '95vh'
+          }
+        }}
+        sx={{ '& .MuiDialog-paper': { m: 2 } }}
+      >
+        <DialogTitle sx={{ 
+          m: 0, 
+          p: 2, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          bgcolor: '#1a1a1a',
+          color: '#fff',
+          borderBottom: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <Typography variant="subtitle1" fontWeight={700}>Incident Media Preview</Typography>
+          <IconButton onClick={closeIncidentViewer} size="small" sx={{ color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}>
+            <ClearIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, bgcolor: 'black', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {selectedIncidentType === 'video' ? (
+            <video 
+              src={selectedIncidentMedia} 
+              controls 
+              autoPlay 
+              style={{ maxWidth: '100%', maxHeight: '85vh', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }} 
+            />
+          ) : (
+            <img 
+              src={selectedIncidentMedia} 
+              alt="Incident Large" 
+              style={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default EMCall;

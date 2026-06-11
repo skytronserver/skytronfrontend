@@ -34,7 +34,8 @@ import { decipherEncryption } from "../../../helper";
 import { dashboardInitialState } from "./dashboardInitialState";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useTranslation } from "react-i18next";
-const SOSDashboard = lazy(() => import("../../direct/SOSDashboard"))
+//const SOSDashboard = lazy(() => import("../../direct/SOSDashboard"))
+const SOSDashboard = lazy(() => import("../../direct/SOSPoliceDashboard"))
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
