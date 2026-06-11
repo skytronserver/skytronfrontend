@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import { Divider, Grid, Stack, Typography, useMediaQuery, Button, TextField } from "@mui/material";
 import { Navigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import CircularProgress from "@mui/material/CircularProgress";
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
@@ -14,8 +15,10 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import Tooltip from '@mui/material/Tooltip';
 
 const SetPassword = () => {
+  const { t } = useTranslation();
   const { reset_token } = useParams();
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
@@ -23,6 +26,7 @@ const SetPassword = () => {
   const [error, setError] = useState(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState('');
   const [arePasswordsMatch, setArePasswordsMatch] = useState(false);
   const [mobileNumber, setMobileNumber] = useState(""); 
   const [isValidMobile, setIsValidMobile] = useState(true);
@@ -53,6 +57,14 @@ const SetPassword = () => {
   };
   const handlePasswordChange = (value) => {
     setPassword(value); 
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordPattern.test(value)) {
+      setPasswordError(
+        t('auth.passwordRequirements') || "Password must contain at least one uppercase, lowercase, numeric, and special character"
+      );
+    } else {
+      setPasswordError('');
+    }
   };
 
   const handleConfirmPasswordChange = (value) => {
@@ -212,22 +224,26 @@ const SetPassword = () => {
                           inputProps={{ max: maxDob }}
                         />
                         <br/><br/>
-                        <TextField
-                          label="New Password"
-                          type={showPassword ? 'text' : 'password'}
-                          value={password}
-                          onChange={(e) => handlePasswordChange(e.target.value)}
-                          fullWidth
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton onClick={handleClickShowPassword} edge="end">
-                                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
+                        <Tooltip title={t('auth.passwordRequirements') || "Password must contain at least one uppercase, lowercase, numeric, and special character"} arrow placement="top">
+                          <TextField
+                            label="New Password"
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => handlePasswordChange(e.target.value)}
+                            fullWidth
+                            error={!!passwordError}
+                            helperText={passwordError}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton onClick={handleClickShowPassword} edge="end">
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Tooltip>
                         <br/><br/>
                         <TextField
                           label="Confirm New Password"
@@ -254,7 +270,7 @@ const SetPassword = () => {
                           type="button"
                           variant="contained"
                           onClick={handleSetPassword}
-                          disabled={!arePasswordsMatch}
+                          disabled={!arePasswordsMatch || !!passwordError || !password}
                         >
                           Reset Password
                         </Button>

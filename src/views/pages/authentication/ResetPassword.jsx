@@ -14,6 +14,7 @@ import { BASE_URL } from "../../../store/constant";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { encryptWithPublicKey } from '../../../actions/loginActions';
+import Tooltip from '@mui/material/Tooltip';
 const ResetPassword = () => {
   const { reset_token } = useParams();
   const theme = useTheme();
@@ -241,24 +242,26 @@ const ResetPassword = () => {
                           inputProps={{ max: maxDob }}
                         />
                         <br/><br/>
-                        <TextField
-                          label={t('auth.newPassword')}
-                          type={showPassword ? 'text' : 'password'}
-                          value={password}
-                          onChange={(e) => handlePasswordChange(e.target.value)}
-                          fullWidth
-                          error={!!passwordError}
-                          helperText={passwordError}
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton onClick={handleClickShowPassword} edge="end">
-                                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
+                        <Tooltip title={t('auth.passwordRequirements')} arrow placement="top">
+                          <TextField
+                            label={t('auth.newPassword')}
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => handlePasswordChange(e.target.value)}
+                            fullWidth
+                            error={!!passwordError}
+                            helperText={passwordError}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton onClick={handleClickShowPassword} edge="end">
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Tooltip>
                         <br/><br/>
                         <TextField
                           label={t('auth.confirmNewPassword')}
@@ -285,7 +288,7 @@ const ResetPassword = () => {
                           type="button"
                           variant="contained"
                           onClick={handleResetPassword}
-                          disabled={!arePasswordsMatch} // Disable button if passwords don't match
+                          disabled={!arePasswordsMatch || !!passwordError || !password} // Disable button if passwords don't match or there's an error
                         >
                           {t('auth.setPassword')}
                         </Button>
