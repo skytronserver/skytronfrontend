@@ -434,7 +434,8 @@ const TicketDetail = () => {
                         size="small"
                         fullWidth
                         onClick={openEscalate}
-                        color="warning"
+                        color="inherit"
+                        sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}
                       >
                         {ticket.escalated_to ? "Re-Escalate" : "Escalate Ticket"}
                       </Button>
