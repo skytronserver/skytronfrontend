@@ -147,29 +147,9 @@ const ActiveState = () => {
     }
   })();
 
-  let effectiveRole = userRoles;
-  const standardRoles = ['superadmin', 'stateadmin', 'devicemanufacture', 'dtorto', 'dealer', 'owner', 'esimprovider', 'filment', 'sosadmin', 'teamlead', 'desk_ex', 'schooladmin', 'parentuser'];
-  
-  if (!standardRoles.includes(userRoles) && permissions?.dashboard?.data_scope) {
-    const scopeMap = {
-      'national': 'superadmin',
-      'state': 'stateadmin',
-      'district': 'dtorto',
-      'dealer': 'dealer',
-      'manufacturer': 'devicemanufacture',
-      'owner': 'owner',
-      'self': 'schooladmin'
-    };
-    
-    const mappedRole = scopeMap[permissions.dashboard.data_scope.toLowerCase()];
-    if (mappedRole) {
-      effectiveRole = mappedRole;
-    }
-  }
-
   const fetchDashboardData = useCallback(async (startDate = "", endDate = "") => {
     try {
-      if (effectiveRole === 'sosadmin') {
+      if (userRoles === 'sosadmin') {
         const response = await UserServices.getSOSAdminDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? {
@@ -264,7 +244,7 @@ const ActiveState = () => {
         });
       }
 
-      if (effectiveRole === 'teamlead') {
+      if (userRoles === 'teamlead') {
         const response = await UserServices.getSOSLeadDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? {
@@ -321,7 +301,7 @@ const ActiveState = () => {
         }));
       }
 
-      if (effectiveRole === 'superadmin') {
+      if (userRoles === 'superadmin') {
         const response = await UserServices.getDashboardUserData();
         const res = await UserServices.getDashboardData(startDate, endDate);
         const dashboardRawData = await res.data;
@@ -396,7 +376,7 @@ const ActiveState = () => {
         }))
       }
 
-      if (effectiveRole === 'stateadmin') {
+      if (userRoles === 'stateadmin') {
         const response = await UserServices.getStateAdminDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? { 
@@ -460,7 +440,7 @@ const ActiveState = () => {
         }))
       }
 
-      if (effectiveRole === 'dtorto') {
+      if (userRoles === 'dtorto') {
         const response = await UserServices.getDTODashboardData(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? { 
@@ -496,7 +476,7 @@ const ActiveState = () => {
         }));
       }
 
-      if (effectiveRole === 'owner') {
+      if (userRoles === 'owner') {
         const response = await UserServices.getOwnerDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? { 
@@ -695,7 +675,7 @@ const ActiveState = () => {
         })
       })();
     }
-    if (effectiveRole === 'desk_ex') {
+    if (userRoles === 'desk_ex') {
       (async () => {
         const response = await UserServices.getSOSExeDashboard();
         const data = await response.data;
@@ -3091,7 +3071,7 @@ const ActiveState = () => {
   };
 
   const renderDashboardContent = (role) => {
-    switch (effectiveRole) {
+    switch (role) {
       case "superadmin":
         return (
           <div>
@@ -3823,7 +3803,7 @@ const ActiveState = () => {
           Total_Assignemnt_thisweek: assignment.Total_Assignemnt_thisweek
         }} />
       ) : (
-        <DashboardView role={effectiveRole} />
+        <DashboardView role={userRoles} />
       )}
     </>
 

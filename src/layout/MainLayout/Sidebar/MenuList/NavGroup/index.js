@@ -58,12 +58,6 @@ const NavGroup = ({ item, role, permissions }) => {
     }
   });
 
-  const validItems = items?.filter(item => item !== null) || [];
-  
-  if (validItems.length === 0) {
-    return null;
-  }
-
   return (
     <>
       <List

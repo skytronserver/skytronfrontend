@@ -9,25 +9,16 @@ export const MENU_MODULE_MAP = {
   // Dashboard
   "dashboard": "dashboard",
   "default": "dashboard",
+  "morth-dashboard": "dashboard",
 
   // GPS Tracking
   "live-tracking": "gps_tracking",
+  "vehicle-history": "gps_history",
   "history-playback": "gps_history",
   
   // Settings
   "setting-all-routes": "settings_management",
   "setting-all": "settings_management",
-  "notice-create": "settings_management",
-  "send-command": "settings_management",
-  "vehicle-category": "settings_management",
-  "vehicle-category-code": "settings_management",
-  "notification-preferences": "settings_management",
-  "state-district": "settings_management",
-  "firmware-frequency": "settings_management",
-  "archive-restore": "settings_management",
-  "ip-settings": "settings_management",
-  "login-settings": "settings_management",
-  "permit-conditions": "settings_management",
   
   // Reports
   "icons-report": "reports",
@@ -36,9 +27,6 @@ export const MENU_MODULE_MAP = {
   "device-management": "device_management",
   "device-model": "device_management",
   "device-stock": "device_stock",
-  "new-device": "device_stock",
-  "upload-device": "device_stock",
-  "assign-device": "device_stock",
   
   // Tagging
   "icons-tag": "vehicle_tagging",
@@ -47,6 +35,7 @@ export const MENU_MODULE_MAP = {
   "download-tagging-receipt": "vehicle_tagging",
   
   // User Management
+  "utilities": "user_management",
   "new-icons": "user_management",
   "user-list": "user_management",
   "admin-user-list": "stateadmin_management",
@@ -66,13 +55,21 @@ export const MENU_MODULE_MAP = {
   
   // Alerts & SOS
   "sos-call-list": "emergency_management",
-  "new-icons-em-team": "emergency_teams"
+  "new-icons-em-team": "emergency_teams",
+  
+  // PIS
+  "pis-group": "route_management", // mapping broadly
+  
+  // School Bus
+  "schoolbus": "route_management", // mapping broadly
 };
 
 // Maps frontend route path to backend 'module_code'
 export const ROUTE_MODULE_MAP = {
   "/dashboard": "dashboard",
+  "/superadmin-dashboard": "dashboard",
   "/live-tracking": "gps_tracking",
+  "/vehicle-history": "gps_history",
   "/history-playback": "gps_history",
   "/poi-viewer": "poi_management",
   "/route-fixing": "route_management",
@@ -81,16 +78,10 @@ export const ROUTE_MODULE_MAP = {
   "/trip-viewer": "trip_management",
   "/device/list": "device_management",
   "/device/new": "device_stock",
-  "/device/bulkupload": "device_stock",
-  "/device/assign-device": "device_stock",
   "/tag/device-vehicle": "vehicle_tagging",
-  "/device/show-tagged-device": "vehicle_tagging",
-  "/tag/download-receipt": "vehicle_tagging",
-  "/tag/unapproved-vehicle": "vehicle_tagging",
   "/sos-alert": "emergency_management",
   "/sos-call-list": "emergency_management",
   "/setting/notice": "notice_management",
-  "/setting": "settings_management",
   "/user/registeredUser": "user_management",
 };
 

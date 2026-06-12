@@ -84,11 +84,6 @@ const NavCollapse = ({ menu, level, role, permissions }) => {
     }
   });
 
-  const validMenus = menus?.filter(item => item !== null) || [];
-  if (validMenus.length === 0) {
-    return null;
-  }
-
   // Get translation key based on menu title
   const getTranslationKey = (title) => {
     // Special case for "Create New"

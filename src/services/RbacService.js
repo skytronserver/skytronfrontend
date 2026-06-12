@@ -15,14 +15,6 @@ const listAllRoles = () => {
 };
 
 /**
- * GET /api/rbac/modules/
- * List all modules
- */
-const listModules = () => {
-  return getAxiosInstance().get('/api/rbac/modules/');
-};
-
-/**
  * GET /api/rbac/roles/active/
  * List active roles — used for dropdowns (any authenticated user)
  */
@@ -58,6 +50,14 @@ const deactivateRole = (data) => {
 };
 
 // ─── MODULE PERMISSION MANAGEMENT ───────────────────────────────────────────
+
+/**
+ * GET /api/rbac/modules/
+ * Get list of modules in the RBAC system
+ */
+const listAllModules = () => {
+  return getAxiosInstance().get('/api/rbac/modules/');
+};
 
 /**
  * GET /api/rbac/roles/permissions/?role_code=X
@@ -143,13 +143,13 @@ const checkModuleAccess = (data) => {
 
 const RbacService = {
   listAllRoles,
-  listModules,
   listActiveRoles,
   createRole,
   updateRole,
   deactivateRole,
   getRolePermissions,
   updateRolePermissions,
+  listAllModules,
   listCustomUsers,
   createCustomUser,
   updateCustomUser,

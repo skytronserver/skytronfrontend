@@ -11,8 +11,6 @@ import RbacService from '../../services/RbacService';
 import '../../views/forms/form.css';
 
 // ─── Module master list ────────────────────────────────────────────────────────
-// Now fetched dynamically from the API
-
 const DATA_SCOPES = [
   { value: 'national',     label: 'National' },
   { value: 'state',        label: 'State' },
@@ -39,6 +37,7 @@ const defaultRow = () => ({
 // ─── Main component ────────────────────────────────────────────────────────────
 const PermissionManagement = () => {
   const [roles, setRoles] = useState([]);
+  const [allModules, setAllModules] = useState([]);
   const [selectedRole, setSelectedRole] = useState('');
   const [perms, setPerms] = useState({});
   const [loading, setLoading] = useState(false);
@@ -46,19 +45,16 @@ const PermissionManagement = () => {
   const [dirty, setDirty] = useState(false);
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({ error: false, message: '', errorList: [] });
-  const [allModules, setAllModules] = useState([]);
 
-  // ── Load active roles and modules ─────────────────────────────────────────
+  // ── Load active roles and modules ────────────────────────────────────
   useEffect(() => {
-    Promise.all([
-      RbacService.listActiveRoles(),
-      RbacService.listModules()
-    ])
-    .then(([rolesRes, modulesRes]) => {
-      setRoles(rolesRes.data?.roles || []);
-      setAllModules(modulesRes.data?.modules || []);
-    })
-    .catch(() => showAlert('Failed to load roles and modules.'));
+    RbacService.listActiveRoles()
+      .then(res => setRoles(res.data?.roles || []))
+      .catch(() => showAlert('Failed to load roles.'));
+      
+    RbacService.listAllModules()
+      .then(res => setAllModules(res.data?.modules || []))
+      .catch(() => showAlert('Failed to load modules.'));
   }, []);
 
   // ── Load permissions when role selected ───────────────────────────────────
@@ -89,7 +85,7 @@ const PermissionManagement = () => {
     }
   }, [allModules]);
 
-  useEffect(() => { if (selectedRole && allModules.length > 0) loadPermissions(selectedRole); }, [selectedRole, allModules, loadPermissions]);
+  useEffect(() => { if (selectedRole && allModules.length > 0) loadPermissions(selectedRole); }, [selectedRole, loadPermissions, allModules.length]);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const showAlert = (message) => { setAlert(prev => ({ ...prev, message })); setOpen(true); };

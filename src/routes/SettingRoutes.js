@@ -23,41 +23,27 @@ import NoticeForm from "../views/forms/NoticeForm";
 import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
 import SchoolHolidayList from "../views/reports/SchoolHolidayList";
 import PermitConditionManagement from "../views/settings/PermitConditionManagement";
-import CustomAlertManagement from "../views/settings/CustomAlertManagement";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
-import { canViewRoute } from "../utils/rbacUtils";
 
 // ─── RBAC Pages ────────────────────────────────────────────────────────────────
 import RoleManagement from "../views/settings/RoleManagement";
 import PermissionManagement from "../views/settings/PermissionManagement";
 import CustomUserManagement from "../views/user/CustomUserManagement";
 
-const PrivateRoute = ({ element, roles, path }) => {
+const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption('skytrack')
   const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
   const data = userData && userData.split("-").map(item => myDecipher(item))
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated') || localStorage.getItem('isAuthenticated');
-  const permissions = useSelector((state) => state.login.permissions) || (() => {
-    try {
-      const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  })();
   const userRoles = data && data.length > 2 && data[1];
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-
-  const formattedPath = path?.startsWith('/') ? path : `/${path}`;
-  const isAuthorized = canViewRoute(formattedPath, userRoles, permissions, roles);
-
-  if (!isAuthorized) {
-    // User does not have any of the required roles or module permissions
+  if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
+    // User does not have any of the required roles
     return <NotAuthorized />;
   }
   return element;
@@ -65,7 +51,7 @@ const PrivateRoute = ({ element, roles, path }) => {
 
 const applyPrivateRoute = (route) => ({
   ...route,
-  element: <PrivateRoute element={route.element} roles={route.roles} path={route.path} />,
+  element: <PrivateRoute element={route.element} roles={route.roles} />,
 });
 
 const SettingRoutes = {
@@ -183,13 +169,6 @@ const SettingRoutes = {
       path: "/setting/permit-conditions",
       element: (
         <PermitConditionManagement />
-      ),
-      roles: ['superadmin']
-    },
-    {
-      path: "/setting/custom-alerts",
-      element: (
-        <CustomAlertManagement />
       ),
       roles: ['superadmin']
     },
