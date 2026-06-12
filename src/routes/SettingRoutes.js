@@ -23,6 +23,8 @@ import NoticeForm from "../views/forms/NoticeForm";
 import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
 import SchoolHolidayList from "../views/reports/SchoolHolidayList";
 import PermitConditionManagement from "../views/settings/PermitConditionManagement";
+import CustomAlertManagement from "../views/settings/CustomAlertManagement";
+import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
 import { canViewRoute } from "../utils/rbacUtils";
@@ -51,7 +53,7 @@ const PrivateRoute = ({ element, roles, path }) => {
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  
+
   const formattedPath = path?.startsWith('/') ? path : `/${path}`;
   const isAuthorized = canViewRoute(formattedPath, userRoles, permissions, roles);
 
@@ -182,6 +184,13 @@ const SettingRoutes = {
       path: "/setting/permit-conditions",
       element: (
         <PermitConditionManagement />
+      ),
+      roles: ['superadmin']
+    },
+    {
+      path: "/setting/custom-alerts",
+      element: (
+        <CustomAlertManagement />
       ),
       roles: ['superadmin']
     },

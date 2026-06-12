@@ -9,10 +9,25 @@ import {
   Grid,
   Alert,
   CircularProgress,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import ComplaintService from "../../services/helpDeskServices";
+import DeleteIcon from "@mui/icons-material/Delete";
+import HelpDeskService from "../../services/helpDeskServices";
 import { useNavigate } from "react-router-dom";
+
+const ALLOWED_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "application/pdf",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
 const ComplaintBooking = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -21,245 +36,116 @@ const ComplaintBooking = () => {
     email: "",
     title: "",
     details: "",
-    image: null,
   });
-
-  const [preview, setPreview] = useState("");
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
   const [apiError, setApiError] = useState("");
-  const [ticketRef, setTicketRef] = useState("");
-  const [errors, setErrors] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    image: "",
-    title: "",
-    details: "",
-  });
-
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "name") {
-      const filteredValue = value.replace(/[^a-zA-Z\s]/g, "");
-
-      setFormData((prev) => ({
-        ...prev,
-        name: filteredValue,
-      }));
-
-      return;
-    }
-
-    if (name === "phone") {
-      const filteredValue = value.replace(/\D/g, "").slice(0, 10);
-
-      setFormData((prev) => ({
-        ...prev,
-        phone: filteredValue,
-      }));
-
-      return;
-    }
-
-    if (name === "title") {
-      setFormData((prev) => ({
-        ...prev,
-        title: value.slice(0, 500),
-      }));
-
-      return;
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-
-    if (!file) return;
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      setErrors((prev) => ({
-        ...prev,
-        image: "Only Image or PDF files are allowed.",
-      }));
-      return;
-    }
-
-    if (file.size > 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        image: "Maximum file size allowed is 1 MB.",
-      }));
-      return;
-    }
-
-    setErrors((prev) => ({
-      ...prev,
-      image: "",
-    }));
-
-    setFormData((prev) => ({
-      ...prev,
-      image: file,
-    }));
-
-    if (file.type !== "application/pdf") {
-      setPreview(URL.createObjectURL(file));
+      setFormData((prev) => ({ ...prev, name: value.replace(/[^a-zA-Z\s]/g, "") }));
+    } else if (name === "phone") {
+      setFormData((prev) => ({ ...prev, phone: value.replace(/\D/g, "").slice(0, 10) }));
+    } else if (name === "title") {
+      setFormData((prev) => ({ ...prev, title: value.slice(0, 500) }));
     } else {
-      setPreview("");
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleFileChange = (e) => {
+    const selected = Array.from(e.target.files);
+    const fileErrors = [];
+    const valid = [];
+    selected.forEach((file) => {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        fileErrors.push(`${file.name}: unsupported file type.`);
+      } else if (file.size > MAX_FILE_SIZE) {
+        fileErrors.push(`${file.name}: exceeds 10 MB limit.`);
+      } else {
+        valid.push(file);
+      }
+    });
+    if (fileErrors.length) {
+      setErrors((prev) => ({ ...prev, files: fileErrors.join(" ") }));
+    } else {
+      setErrors((prev) => ({ ...prev, files: "" }));
+    }
+    setFiles((prev) => [...prev, ...valid]);
+    e.target.value = "";
+  };
+
+  const removeFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!/^[0-9]{10}$/.test(formData.phone))
+      newErrors.phone = "Enter a valid 10-digit mobile number";
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      newErrors.email = "Enter a valid email address";
+    if (!formData.title.trim()) newErrors.title = "Complaint title is required";
+    if (!formData.details.trim()) newErrors.details = "Complaint details are required";
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    } else if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
-      newErrors.name = "Only alphabets are allowed";
-    }
-
-    if (!/^[0-9]{10}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid 10 digit mobile number";
-    }
-
-    if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.title.trim()) {
-      newErrors.title = "Complaint title is required";
-    } else if (formData.title.length > 500) {
-      newErrors.title = "Complaint title cannot exceed 500 characters";
-    }
-
-    if (!formData.details.trim()) {
-      newErrors.details = "Complaint details are required";
-    }
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
-
-    setErrors({
-      name: "",
-      phone: "",
-      email: "",
-      image: "",
-      title: "",
-      details: "",
-    });
-
+    setErrors({});
     setLoading(true);
 
     try {
       const payload = new FormData();
-
       payload.append("applicant_name", formData.name);
       payload.append("applicant_phone", formData.phone);
-      payload.append("applicant_email", formData.email);
+      if (formData.email) payload.append("applicant_email", formData.email);
       payload.append("title", formData.title);
       payload.append("details", formData.details);
+      files.forEach((file, i) => payload.append(`file_${i}`, file));
 
-      if (formData.image) {
-        payload.append("image", formData.image);
-      }
-
-      const response =
-        await ComplaintService.createComplaint(payload);
-
-
- if (response.success) {
-  navigate("/help-desk-success", {
-    state: {
-      ticketRef: response.data.ticket_ref,
-      message: response.data.message,
-    },
-  });
-  return;
-} else {
+      const response = await HelpDeskService.createComplaintPublic(payload);
+      if (response.success) {
+        navigate("/help-desk-success", {
+          state: {
+            ticketRef: response.data.ticket_ref,
+            message: response.data.message,
+          },
+        });
+      } else {
         setApiError(response.message);
-        return;
       }
     } catch (error) {
-      console.error(error);
+      setApiError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#f4f6f8",
-        py: 5,
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f4f6f8", py: 5 }}>
       <Container maxWidth="md">
-        <Paper
-          elevation={4}
-          sx={{
-            p: { xs: 3, md: 5 },
-            borderRadius: 4,
-          }}
-        >
-          <Typography
-            variant="h4"
-            align="center"
-            fontWeight={700}
-            gutterBottom
-          >
- Help Desk
-           </Typography>
-
-          <Typography
-            variant="body1"
-            align="center"
-            color="text.secondary"
-            mb={4}
-          >
+        <Paper elevation={4} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4 }}>
+          <Typography variant="h4" align="center" fontWeight={700} gutterBottom>
+            Help Desk
+          </Typography>
+          <Typography variant="body1" align="center" color="text.secondary" mb={4}>
             Submit your complaint and our team will get back to you shortly.
           </Typography>
 
           {apiError && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" sx={{ mb: 3 }} onClose={() => setApiError("")}>
               {apiError}
             </Alert>
           )}
-
-
-          {success && (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              {success}
-            </Alert>
-          )}
-          {ticketRef && (
-  <Alert severity="info" sx={{ mb: 3 }}>
-    Ticket Reference: <strong>{ticketRef}</strong>
-  </Alert>
-)}
 
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
@@ -286,10 +172,7 @@ const ComplaintBooking = () => {
                   onChange={handleChange}
                   error={!!errors.phone}
                   helperText={errors.phone}
-                  inputProps={{
-                    maxLength: 10,
-                    inputMode: "numeric",
-                  }}
+                  inputProps={{ maxLength: 10, inputMode: "numeric" }}
                 />
               </Grid>
 
@@ -297,9 +180,8 @@ const ComplaintBooking = () => {
                 <TextField
                   fullWidth
                   type="email"
-                  label="Email Address"
+                  label="Email Address (Optional)"
                   name="email"
-                  required
                   value={formData.email}
                   onChange={handleChange}
                   error={!!errors.email}
@@ -316,13 +198,8 @@ const ComplaintBooking = () => {
                   value={formData.title}
                   onChange={handleChange}
                   error={!!errors.title}
-                  helperText={
-                    errors.title ||
-                    `${formData.title.length}/500 characters`
-                  }
-                  inputProps={{
-                    maxLength: 500,
-                  }}
+                  helperText={errors.title || `${formData.title.length}/500`}
+                  inputProps={{ maxLength: 500 }}
                 />
               </Grid>
 
@@ -337,14 +214,7 @@ const ComplaintBooking = () => {
                   value={formData.details}
                   onChange={handleChange}
                   error={!!errors.details}
-                  helperText={
-                    errors.details ||
-                    `${formData.details.length}/10000 characters`
-                  }
-                  inputProps={{
-                    maxLength: 10000,
-                  }}
-
+                  helperText={errors.details}
                 />
               </Grid>
 
@@ -353,56 +223,42 @@ const ComplaintBooking = () => {
                   component="label"
                   variant="outlined"
                   startIcon={<CloudUploadIcon />}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: "none",
-                  }}
+                  sx={{ borderRadius: 2, textTransform: "none" }}
                 >
-                  Upload Image (Optional)
-
+                  Attach Files (Optional — PNG, JPEG, PDF, XLS, XLSX · max 10 MB each)
                   <input
                     hidden
                     type="file"
-                    accept="image/*,.pdf"
-                    onChange={handleImageUpload}
+                    multiple
+                    accept=".png,.jpg,.jpeg,.pdf,.xls,.xlsx"
+                    onChange={handleFileChange}
                   />
                 </Button>
-                {formData.image?.type === "application/pdf" && (
-                  <Typography
-                    variant="body2"
-                    color="success.main"
-                    sx={{ mt: 1 }}
-                  >
-                    PDF selected: {formData.image.name}
+                {errors.files && (
+                  <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                    {errors.files}
                   </Typography>
                 )}
-                {errors.image && (
-                  <Typography
-                    variant="body2"
-                    color="error"
-                    sx={{ mt: 1 }}
-                  >
-                    {errors.image}
-                  </Typography>
+                {files.length > 0 && (
+                  <List dense sx={{ mt: 1 }}>
+                    {files.map((file, i) => (
+                      <ListItem
+                        key={i}
+                        secondaryAction={
+                          <IconButton edge="end" size="small" onClick={() => removeFile(i)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        }
+                      >
+                        <ListItemText
+                          primary={file.name}
+                          secondary={`${(file.size / 1024).toFixed(0)} KB`}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
                 )}
               </Grid>
-
-              {preview && (
-                <Grid item xs={12}>
-                  <Box
-                    component="img"
-                    src={preview}
-                    alt="preview"
-                    sx={{
-                      width: 180,
-                      height: 180,
-                      objectFit: "cover",
-                      borderRadius: 2,
-                      border: "1px solid #ddd",
-                    }}
-                  />
-                </Grid>
-              )}
 
               <Grid item xs={12}>
                 <Button
@@ -411,17 +267,9 @@ const ComplaintBooking = () => {
                   size="large"
                   fullWidth
                   disabled={loading}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    fontWeight: 600,
-                  }}
+                  sx={{ py: 1.5, borderRadius: 2, fontWeight: 600 }}
                 >
-                  {loading ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    "Submit Complaint"
-                  )}
+                  {loading ? <CircularProgress size={24} color="inherit" /> : "Submit Complaint"}
                 </Button>
               </Grid>
             </Grid>

@@ -18,6 +18,7 @@ const SOSMonitoringDashboard = Loadable(lazy(() => import("../views/dashboard/su
 const SOSAnalyticsDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSAnalyticsDashboard")));
 const HelpDesk = Loadable(lazy(() => import("views/pages/HelpDesk")))
 const HelpDeskSuccess = Loadable(lazy(() => import("views/pages/helpDeskSuccess")))
+const PublicTracker = Loadable(lazy(() => import("views/complaint/PublicTracker")))
 
 const HomeRoutes = {
   path: "/",
@@ -40,8 +41,16 @@ const HomeRoutes = {
       element: <HelpDesk />,
     },
     {
+      path: "/complaint/new",
+      element: <HelpDesk />,
+    },
+    {
       path: "/help-desk-success",
       element: <HelpDeskSuccess />,
+    },
+    {
+      path: "/complaint/track",
+      element: <PublicTracker />,
     },
     {
       path: "/user-registration-request",

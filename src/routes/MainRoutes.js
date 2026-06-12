@@ -164,6 +164,14 @@ const MorthDashboard = Loadable(
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import("../views/sample-page")));
+
+// Complaint Management
+const HelpDeskDashboard = Loadable(lazy(() => import("../views/complaint/HelpDeskDashboard")));
+const HelpDeskCreateTicket = Loadable(lazy(() => import("../views/complaint/HelpDeskCreateTicket")));
+const TicketDetail = Loadable(lazy(() => import("../views/complaint/TicketDetail")));
+const StaffTicketList = Loadable(lazy(() => import("../views/complaint/StaffTicketList")));
+const ManufacturerTickets = Loadable(lazy(() => import("../views/complaint/ManufacturerTickets")));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -549,7 +557,36 @@ const MainRoutes = {
       path: '/analytics/comparative-analysis',
       element: <ComparativeAnalysis />,
       roles: ['superadmin', 'stateadmin']
-    }
+    },
+    // Complaint Management — HelpDesk
+    {
+      path: '/helpdesk/tickets',
+      element: <HelpDeskDashboard />,
+      roles: ['helpdesk'],
+    },
+    {
+      path: '/helpdesk/tickets/new',
+      element: <HelpDeskCreateTicket />,
+      roles: ['helpdesk'],
+    },
+    // Complaint Management — Ticket Detail (all staff roles)
+    {
+      path: '/helpdesk/tickets/:id',
+      element: <TicketDetail />,
+      roles: ['helpdesk', 'teamlead', 'sosexecutive', 'sosadmin', 'stateadmin', 'superadmin', 'devicemanufacture'],
+    },
+    // Complaint Management — Staff list (elevated roles)
+    {
+      path: '/staff/tickets',
+      element: <StaffTicketList />,
+      roles: ['teamlead', 'sosexecutive', 'sosadmin', 'stateadmin', 'superadmin'],
+    },
+    // Complaint Management — Manufacturer view
+    {
+      path: '/manufacturer/tickets',
+      element: <ManufacturerTickets />,
+      roles: ['devicemanufacture'],
+    },
   ].map((route) => applyPrivateRoute(route)),
 };
 

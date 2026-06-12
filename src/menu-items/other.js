@@ -104,6 +104,14 @@ const other = {
           url: '/setting/permit-conditions',
           breadcrumbs: false,
           roles: ['superadmin']
+        },
+        {
+          id: 'custom-alerts',
+          title: 'Custom Alerts',
+          type: 'item',
+          url: '/setting/custom-alerts',
+          breadcrumbs: false,
+          roles: ['superadmin']
         }
       ]
     }
