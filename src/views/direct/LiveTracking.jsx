@@ -106,6 +106,136 @@ const LiveTracking = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState("");  // Handle input changes
   const [selectedPoiId, setSelectedPoiId] = useState("");
+  const [alertHeatmapData, setAlertHeatmapData] = useState([]);
+
+  const [showAlertHeatmap, setShowAlertHeatmap] = useState(false);
+
+  const [selectedAlertTypes, setSelectedAlertTypes] = useState([]);
+
+  const ALERT_TYPES = [
+    "HarshBreak",
+    "HarshAcceleration",
+    "HarshTurn",
+    "OverSpeed",
+    "GPSLoss",
+    "NetworkLoss",
+    "LowExtBat",
+    "ExtBatDiscnt",
+  ];
+  const alertDropdownRef =
+    useRef(null);
+  const [alertPanelOpen, setAlertPanelOpen] =
+    useState(false);
+  const [alertFilter, setAlertFilter] = useState({
+    start_datetime: "",
+    end_datetime: new Date().toISOString().slice(0, 16),
+    state_id: "",
+    district_id: "",
+    vehicle_category_id: "",
+  });
+
+  const fetchAlertHeatmap = async () => {
+    try {
+
+      if (
+        !selectedAlertTypes.length ||
+        !alertFilter.start_datetime ||
+        !alertFilter.end_datetime
+      ) {
+        return;
+      }
+
+      const requests = selectedAlertTypes.map(
+        (alertType) =>
+          HomePageService.getAlertHeatmap({
+            start_datetime:
+              alertFilter.start_datetime,
+            end_datetime:
+              alertFilter.end_datetime,
+            alert_type:
+              alertType,
+            vehicle_category_id:
+              alertFilter.vehicle_category_id,
+            state_id:
+              alertFilter.state_id,
+          })
+      );
+
+      const responses =
+        await Promise.all(requests);
+
+      const mergedData =
+        responses.flatMap((res) => {
+
+          const payload =
+            res?.data;
+
+
+          if (
+            Array.isArray(
+              payload?.data?.alerts
+            )
+          )
+
+            return payload.data.alerts;
+
+          return [];
+        });
+
+
+
+      setAlertHeatmapData(
+        mergedData
+      );
+
+      setShowAlertHeatmap(true);
+
+    } catch (err) {
+      console.error(
+        "Alert Heatmap Error",
+        err
+      );
+    }
+  };
+
+  useEffect(() => {
+
+    const handleOutsideClick = (
+      event
+    ) => {
+
+      if (
+        alertDropdownRef.current &&
+        !alertDropdownRef.current.contains(
+          event.target
+        )
+      ) {
+
+        if (
+          selectedAlertTypes.length &&
+          alertFilter.start_datetime &&
+          alertFilter.end_datetime
+        ) {
+          fetchAlertHeatmap();
+        }
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+      );
+
+  }, [
+    selectedAlertTypes,
+    alertFilter,
+  ]);
 
   // Handle input changes
   const handleInput = (event) => {
@@ -859,44 +989,9 @@ const LiveTracking = () => {
     event.preventDefault();
     const isPoiSelected = !!selectedPoiId;
 
-const isPolygonPoi =
-  selectedPoi &&
-  String(selectedPoi.mark_type).toLowerCase() === "polygon";
-    const params = {
-      imei: imeiNo,
-      regno: vehicleNo,
-      owner: owner,
-      poi: selectedPoiId,
-      roads: roads,
-      route_id: '',
-      polygon: polygon,
-      category: category,
-      make: make,
-      district: district,
-      district_id: '',
-      manufacturer_id: '',
-      speed_limit: speedLimit,
-       // Required logic
-  in_range: isPoiSelected ? true : inRange,
-  poi_as_polygon: isPolygonPoi,
-  poi_t: "",
-    };
-
-    setSelectedId(null); // Reset selection when submitting new search
-    setFocusedEntry(null);
-    setUseNmrLocation(false);
-    setNmrArea(null);
-
-    retriveMapData(params);
-  };
-
-  useEffect(() => {
-      const isPoiSelected = !!selectedPoiId;
-
-const isPolygonPoi =
-  selectedPoi &&
-  String(selectedPoi.mark_type).toLowerCase() === "polygon";
-  
+    const isPolygonPoi =
+      selectedPoi &&
+      String(selectedPoi.mark_type).toLowerCase() === "polygon";
     const params = {
       imei: imeiNo,
       regno: vehicleNo,
@@ -912,9 +1007,44 @@ const isPolygonPoi =
       manufacturer_id: '',
       speed_limit: speedLimit,
       // Required logic
-  in_range: isPoiSelected ? true : inRange,
-  poi_as_polygon: isPolygonPoi,
-  poi_t: "",
+      in_range: isPoiSelected ? true : inRange,
+      poi_as_polygon: isPolygonPoi,
+      poi_t: "",
+    };
+
+    setSelectedId(null); // Reset selection when submitting new search
+    setFocusedEntry(null);
+    setUseNmrLocation(false);
+    setNmrArea(null);
+
+    retriveMapData(params);
+  };
+
+  useEffect(() => {
+    const isPoiSelected = !!selectedPoiId;
+
+    const isPolygonPoi =
+      selectedPoi &&
+      String(selectedPoi.mark_type).toLowerCase() === "polygon";
+
+    const params = {
+      imei: imeiNo,
+      regno: vehicleNo,
+      owner: owner,
+      poi: selectedPoiId,
+      roads: roads,
+      route_id: '',
+      polygon: polygon,
+      category: category,
+      make: make,
+      district: district,
+      district_id: '',
+      manufacturer_id: '',
+      speed_limit: speedLimit,
+      // Required logic
+      in_range: isPoiSelected ? true : inRange,
+      poi_as_polygon: isPolygonPoi,
+      poi_t: "",
     };
 
     // Single fetch when filters/inputs change, no repeating interval
@@ -928,10 +1058,10 @@ const isPolygonPoi =
     if (!selectedRow) return;
     const isPoiSelected = !!selectedPoiId;
 
-const isPolygonPoi =
-  selectedPoi &&
-  String(selectedPoi.mark_type).toLowerCase() === "polygon";
-  
+    const isPolygonPoi =
+      selectedPoi &&
+      String(selectedPoi.mark_type).toLowerCase() === "polygon";
+
     const params = {
       imei: selectedRow.imei,
       regno: '',
@@ -947,9 +1077,9 @@ const isPolygonPoi =
       manufacturer_id: '',
       speed_limit: speedLimit,
       // Required logic
-  in_range: isPoiSelected ? true : inRange,
-  poi_as_polygon: isPolygonPoi,
-  poi_t: "",
+      in_range: isPoiSelected ? true : inRange,
+      poi_as_polygon: isPolygonPoi,
+      poi_t: "",
     };
 
     try {
@@ -1366,7 +1496,6 @@ const isPolygonPoi =
                                   setSelectedPoi(value);
 
                                   if (value) {
-                                    console.log("Selected POI:", value);
 
                                     setPoi(value.name);        // keep existing logic
                                     setSelectedPoiId(value.id); // NEW
@@ -1701,80 +1830,269 @@ const isPolygonPoi =
             />
 
           </Box>
-          <FormControl
-            size="small"
-            sx={{ minWidth: 250 }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 2,
+              mb: 1,
+            }}
           >
-            <InputLabel>
-              Transit Layer
-            </InputLabel>
-
-            <Select
-              multiple
-              value={selectedTransitLayer}
-              onChange={handleTransitLayerChange}
-              renderValue={(selected) =>
-                selected
-                  .map((item) =>
-                    item
-                      .replaceAll("_", " ")
-                      .toUpperCase()
-                  )
-                  .join(", ")
-              }
+            <FormControl
+              size="small"
+              sx={{ minWidth: 250 }}
             >
-              <MenuItem value="">
-                None
-              </MenuItem>
+              <InputLabel>
+                Transit Layer
+              </InputLabel>
 
-              <MenuItem value="school_routes">
+              <Select
+                multiple
+                value={selectedTransitLayer}
+                onChange={handleTransitLayerChange}
+                renderValue={(selected) =>
+                  selected
+                    .map((item) =>
+                      item
+                        .replaceAll("_", " ")
+                        .toUpperCase()
+                    )
+                    .join(", ")
+                }
+              >
+                <MenuItem value="">
+                  None
+                </MenuItem>
 
-                <Checkbox
-                  checked={selectedTransitLayer.includes(
-                    "school_routes"
-                  )}
-                />
-                School Bus Routes
-              </MenuItem>
+                <MenuItem value="school_routes">
 
-              <MenuItem value="pis_routes">
-                <Checkbox
-                  checked={selectedTransitLayer.includes(
-                    "pis_routes"
-                  )}
-                />
-                Public Bus Routes
-              </MenuItem>
+                  <Checkbox
+                    checked={selectedTransitLayer.includes(
+                      "school_routes"
+                    )}
+                  />
+                  School Bus Routes
+                </MenuItem>
 
-              <MenuItem value="school_buses">
-                <Checkbox
-                  checked={selectedTransitLayer.includes(
-                    "school_buses"
-                  )}
-                />
-                School Bus Live Location
-              </MenuItem>
+                <MenuItem value="pis_routes">
+                  <Checkbox
+                    checked={selectedTransitLayer.includes(
+                      "pis_routes"
+                    )}
+                  />
+                  Public Bus Routes
+                </MenuItem>
 
-              <MenuItem value="pis_buses">
-                <Checkbox
-                  checked={selectedTransitLayer.includes(
-                    "pis_buses"
-                  )}
-                />
-                Public Bus Live Location
-              </MenuItem>
+                <MenuItem value="school_buses">
+                  <Checkbox
+                    checked={selectedTransitLayer.includes(
+                      "school_buses"
+                    )}
+                  />
+                  School Bus Live Location
+                </MenuItem>
 
-              <MenuItem value="pis_stops">
-                <Checkbox
-                  checked={selectedTransitLayer.includes(
-                    "pis_stops"
-                  )}
-                />
-                Public Bus Stops
-              </MenuItem>
-            </Select>
-          </FormControl>
+                <MenuItem value="pis_buses">
+                  <Checkbox
+                    checked={selectedTransitLayer.includes(
+                      "pis_buses"
+                    )}
+                  />
+                  Public Bus Live Location
+                </MenuItem>
 
+                <MenuItem value="pis_stops">
+                  <Checkbox
+                    checked={selectedTransitLayer.includes(
+                      "pis_stops"
+                    )}
+                  />
+                  Public Bus Stops
+                </MenuItem>
+              </Select>
+            </FormControl>
+
+
+            <Box
+              ref={alertDropdownRef}
+              sx={{
+                minWidth: 250
+              }}
+            >
+              <Paper
+                elevation={2}
+                sx={{
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  onClick={() =>
+                    setAlertPanelOpen(
+                      !alertPanelOpen
+                    )
+                  }
+                  sx={{
+                    p: 1.5,
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    bgcolor: "#fafafa",
+                  }}
+                >
+                  <Typography
+                    fontWeight={600}
+                  >
+                    Alert Heatmap Filters
+                  </Typography>
+
+                  {alertPanelOpen
+                    ? "▲"
+                    : "▼"}
+                </Box>
+
+                <Collapse
+                  in={alertPanelOpen}
+                >
+                  <Box
+                    sx={{
+                      p: 2,
+                      display: "flex",
+                      flexDirection:
+                        "column",
+                      gap: 2,
+                    }}
+                  >
+                    <FormControl
+
+                      size="small"
+                    >
+                      <InputLabel>
+                        Alert Types
+                      </InputLabel>
+
+                      <Select
+                        multiple
+                        value={
+                          selectedAlertTypes
+                        }
+                        label="Alert Types"
+                        onChange={(e) =>
+                          setSelectedAlertTypes(
+                            e.target.value
+                          )
+                        }
+                        renderValue={(
+                          selected
+                        ) =>
+                          selected.join(
+                            ", "
+                          )
+                        }
+                      >
+                        {ALERT_TYPES.map(
+                          (
+                            type
+                          ) => (
+                            <MenuItem
+                              key={
+                                type
+                              }
+                              value={
+                                type
+                              }
+                            >
+                              <Checkbox
+                                checked={selectedAlertTypes.includes(
+                                  type
+                                )}
+                              />
+                              {
+                                type
+                              }
+                            </MenuItem>
+                          )
+                        )}
+                      </Select>
+                    </FormControl>
+
+                    <TextField
+
+                      size="small"
+                      type="datetime-local"
+                      label="Start Datetime"
+                      InputLabelProps={{
+                        shrink:
+                          true,
+                      }}
+                      value={
+                        alertFilter.start_datetime
+                      }
+                      onChange={(
+                        e
+                      ) =>
+                        setAlertFilter(
+                          (
+                            prev
+                          ) => ({
+                            ...prev,
+                            start_datetime:
+                              e
+                                .target
+                                .value,
+                          })
+                        )
+                      }
+                    />
+
+                    <TextField
+
+                      size="small"
+                      type="datetime-local"
+                      label="End Datetime"
+                      InputLabelProps={{
+                        shrink:
+                          true,
+                      }}
+                      value={
+                        alertFilter.end_datetime
+                      }
+                      onChange={(
+                        e
+                      ) =>
+                        setAlertFilter(
+                          (
+                            prev
+                          ) => ({
+                            ...prev,
+                            end_datetime:
+                              e
+                                .target
+                                .value,
+                          })
+                        )
+                      }
+                    />
+
+                    <Button
+                      variant="contained"
+
+                      onClick={() => {
+                        fetchAlertHeatmap();
+                        setAlertPanelOpen(
+                          false
+                        );
+                      }}
+                    >
+                      Apply Heatmap
+                    </Button>
+                  </Box>
+                </Collapse>
+              </Paper>
+            </Box>
+          </Box>
           <MapComponent
             gpsData={filteredData}
             policeData={[...(showPolice ? policeLocations : []), ...(showAmbulance ? ambulanceLocations : [])]}
@@ -1794,6 +2112,12 @@ const isPolygonPoi =
             schoolBuses={schoolBuses}
             pisBuses={pisBuses}
             pisStops={pisStops}
+            alertHeatmapData={
+              alertHeatmapData
+            }
+            showAlertHeatmap={
+              showAlertHeatmap
+            }
           />
         </div>
       </div>

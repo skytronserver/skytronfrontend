@@ -908,6 +908,8 @@ const MapComponent = ({
     schoolBuses = [],
     pisBuses = [],
     pisStops = [],
+    alertHeatmapData,
+    showAlertHeatmap
 }) => {
     const overlayElement = useRef();
     const lastClickedVehicleRef = useRef(null);
@@ -948,6 +950,147 @@ const MapComponent = ({
     const routeInfoOverlayRef = useRef(null);        // OL Overlay for route info popup
     const routeInfoOverlayElementRef = useRef(null);
     const drawSourceRef = useRef(new VectorSource());
+    const [initialMap, setInitialMap] = useState(null);
+    const alertLayerRef = useRef(null);
+
+    const ALERT_TYPE_COLORS = {
+        // NetworkLoss: "#ff9800",
+        // ExtBatDiscnt: "#f44336",
+        // LowExtBat: "#9c27b0",
+        // LowIntBat: "#673ab7",
+        // GPSLoss: "#795548",
+        // OverSpeed: "#e91e63",
+        // HarshBreak: "#2196f3",
+        // HarshAcceleration: "#00bcd4",
+        // HarshTurn: "#3f51b5",
+        // Em: "#d50000",
+        // Eng: "#4caf50",
+        // BoxTemp: "#ff5722",
+        NetworkLoss: "rgba(244, 67, 54, 0.5)",
+        ExtBatDiscnt: "rgba(244, 67, 54, 0.5)",
+        LowExtBat: "rgba(244, 67, 54, 0.5)",
+        LowIntBat: "rgba(244, 67, 54, 0.5)",
+        GPSLoss: "rgba(244, 67, 54, 0.5)",
+        OverSpeed: "rgba(244, 67, 54, 0.5)",
+        HarshBreak: "rgba(244, 67, 54, 0.5)",
+        HarshAcceleration: "rgba(244, 67, 54, 0.5)",
+        HarshTurn: "rgba(244, 67, 54, 0.5)",
+        Em: "rgba(244, 67, 54, 0.5)",
+        Eng: "rgba(244, 67, 54, 0.5)",
+        BoxTemp: "rgba(244, 67, 54, 0.5)",
+    };
+
+    const showAlertMarkersOnMap = (
+        map,
+        alertData = []
+    ) => {
+
+        if (!map) return;
+
+        if (alertLayerRef.current) {
+            map.removeLayer(alertLayerRef.current);
+        }
+
+        const features = [];
+
+        alertData.forEach((alert) => {
+
+            const lat = Number(alert.latitude);
+            const lon = Number(alert.longitude);
+
+            if (
+                !Number.isFinite(lat) ||
+                !Number.isFinite(lon)
+            ) {
+                return;
+            }
+
+            const color =
+                ALERT_TYPE_COLORS[
+                alert.alert_type
+                ] || "#000000";
+
+            const feature = new Feature({
+                geometry: new Point([
+                    lon,
+                    lat,
+                ]),
+                alertData: alert,
+            });
+
+            feature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: 8,
+                        fill: new Fill({
+                            color,
+                        }),
+                        stroke: new Stroke({
+                            color: "#ffffff",
+                            width: 2,
+                        }),
+                    }),
+                })
+            );
+
+            features.push(feature);
+
+        });
+
+        const source =
+            new VectorSource({
+                features,
+            });
+
+        const layer =
+            new VectorLayer({
+                source,
+                zIndex: 9999,
+            });
+
+        map.addLayer(layer);
+
+        alertLayerRef.current =
+            layer;
+    };
+
+    useEffect(() => {
+
+        const activeMap =
+            map || initialMap;
+
+        if (!activeMap) return;
+
+
+        if (!showAlertHeatmap) {
+
+            if (
+                alertLayerRef.current
+            ) {
+
+                activeMap.removeLayer(
+                    alertLayerRef.current
+                );
+
+                alertLayerRef.current =
+                    null;
+            }
+
+
+        }
+
+        showAlertMarkersOnMap(
+            activeMap,
+            alertHeatmapData
+        );
+
+    }, [
+        map,
+        initialMap,
+        alertHeatmapData,
+        showAlertHeatmap
+    ]);
+
     useEffect(() => {
         if (!map) return;
 
@@ -1598,11 +1741,6 @@ const MapComponent = ({
         map.addLayer(layer);
 
         transitLayerRef.current = layer;
-
-        //   console.log(
-        //     "TRANSIT LAYER ADDED",
-        //     map.getLayers().getArray().includes(layer)
-        //   );
 
         return () => {
             if (map && layer) {

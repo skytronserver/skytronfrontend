@@ -435,6 +435,14 @@ const getPisBusStops = () => {
     return http.get("/school/api/map/pis/bus-stops/");
 };
 
+const getAlertHeatmap = (params = {}, config = {}) => {
+    const http = getAxiosInstance();
+    return http.get('/school/api/analytics/alert-heatmap/', {
+        params,
+        ...config,
+    });
+};
+
 const HomePageService = {
     getLiveTracking,
     getLiveTracking_data,
@@ -478,6 +486,7 @@ const HomePageService = {
     getSchoolBusLocations,
     getPisRoutes,
     getSchoolBusRoutes,
+    getAlertHeatmap
 
 };
 
