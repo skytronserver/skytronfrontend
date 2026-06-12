@@ -31,6 +31,7 @@ import NotAuthorized from "../views/pages/NotAuthorized";
 import RoleManagement from "../views/settings/RoleManagement";
 import PermissionManagement from "../views/settings/PermissionManagement";
 import CustomUserManagement from "../views/user/CustomUserManagement";
+import CustomAlertManagement from "../views/settings/CustomAlertManagement";
 
 const PrivateRoute = ({ element, roles }) => {
   const myDecipher = decipherEncryption('skytrack')
@@ -171,6 +172,12 @@ const SettingRoutes = {
         <PermitConditionManagement />
       ),
       roles: ['superadmin']
+    },
+    // ─── Custom Alerts ───────────────────────────────────────────────────────
+    {
+      path: "/setting/custom-alerts",
+      element: <CustomAlertManagement />,
+      roles: ['superadmin', 'stateadmin']
     },
     // ─── RBAC Routes ─────────────────────────────────────────────────────────
     {

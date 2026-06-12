@@ -386,7 +386,7 @@ const CustomAlertManagement = () => {
             </Box>
           )}
 
-          <Grid container spacing={2} className="form-controller">
+          <Grid container spacing={2}>
             {/* Name */}
             <Grid item xs={12} md={6}>
               <TextField
