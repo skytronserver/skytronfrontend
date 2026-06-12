@@ -11,31 +11,7 @@ import RbacService from '../../services/RbacService';
 import '../../views/forms/form.css';
 
 // ─── Module master list ────────────────────────────────────────────────────────
-const ALL_MODULES = [
-  { code: 'dashboard',               label: 'Dashboard' },
-  { code: 'gps_tracking',            label: 'GPS Live Tracking' },
-  { code: 'gps_history',             label: 'GPS History' },
-  { code: 'gps_clustering',          label: 'GPS Cluster / Grid' },
-  { code: 'device_management',       label: 'Device Model Management' },
-  { code: 'device_stock',            label: 'Device Stock & Inventory' },
-  { code: 'vehicle_tagging',         label: 'Vehicle Tagging' },
-  { code: 'driver_management',       label: 'Driver Management' },
-  { code: 'owner_management',        label: 'Vehicle Owner Management' },
-  { code: 'manufacturer_management', label: 'Manufacturer Management' },
-  { code: 'dealer_management',       label: 'Dealer Management' },
-  { code: 'stateadmin_management',   label: 'State Admin Management' },
-  { code: 'esim_management',         label: 'eSIM Provider Management' },
-  { code: 'emergency_management',    label: 'Emergency (SOS) Management' },
-  { code: 'emergency_teams',         label: 'Emergency Teams' },
-  { code: 'poi_management',          label: 'Points of Interest' },
-  { code: 'route_management',        label: 'Route Management' },
-  { code: 'alerts',                  label: 'Alerts & Notifications' },
-  { code: 'reports',                 label: 'Reports' },
-  { code: 'user_management',         label: 'User Management' },
-  { code: 'notice_management',       label: 'Notices' },
-  { code: 'trip_management',         label: 'Trip Management' },
-  { code: 'settings_management',     label: 'System Settings' },
-];
+// Now fetched dynamically from the API
 
 const DATA_SCOPES = [
   { value: 'national',     label: 'National' },
@@ -70,12 +46,19 @@ const PermissionManagement = () => {
   const [dirty, setDirty] = useState(false);
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState({ error: false, message: '', errorList: [] });
+  const [allModules, setAllModules] = useState([]);
 
-  // ── Load active roles for the dropdown ────────────────────────────────────
+  // ── Load active roles and modules ─────────────────────────────────────────
   useEffect(() => {
-    RbacService.listActiveRoles()
-      .then(res => setRoles(res.data?.roles || []))
-      .catch(() => showAlert('Failed to load roles.'));
+    Promise.all([
+      RbacService.listActiveRoles(),
+      RbacService.listModules()
+    ])
+    .then(([rolesRes, modulesRes]) => {
+      setRoles(rolesRes.data?.roles || []);
+      setAllModules(modulesRes.data?.modules || []);
+    })
+    .catch(() => showAlert('Failed to load roles and modules.'));
   }, []);
 
   // ── Load permissions when role selected ───────────────────────────────────
@@ -86,7 +69,7 @@ const PermissionManagement = () => {
     try {
       const res = await RbacService.getRolePermissions(roleCode);
       const map = {};
-      ALL_MODULES.forEach(m => { map[m.code] = defaultRow(); });
+      allModules.forEach(m => { map[m.code] = defaultRow(); });
       (res.data?.permissions || []).forEach(p => {
         map[p.module] = {
           can_view:     p.can_view,
@@ -104,9 +87,9 @@ const PermissionManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [allModules]);
 
-  useEffect(() => { if (selectedRole) loadPermissions(selectedRole); }, [selectedRole, loadPermissions]);
+  useEffect(() => { if (selectedRole && allModules.length > 0) loadPermissions(selectedRole); }, [selectedRole, allModules, loadPermissions]);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const showAlert = (message) => { setAlert(prev => ({ ...prev, message })); setOpen(true); };
@@ -144,7 +127,7 @@ const PermissionManagement = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const permissions = ALL_MODULES.map(m => ({ module: m.code, ...perms[m.code] }));
+      const permissions = allModules.map(m => ({ module: m.code, ...perms[m.code] }));
       await RbacService.updateRolePermissions({ role_code: selectedRole, permissions });
       setDirty(false);
       setAlert(prev => ({ ...prev, error: false, errorList: [] }));
@@ -224,7 +207,7 @@ const PermissionManagement = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {ALL_MODULES.map(mod => {
+                      {allModules.map(mod => {
                         const row = perms[mod.code] || defaultRow();
                         const active = isRowActive(mod.code);
                         return (

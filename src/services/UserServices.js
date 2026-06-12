@@ -287,6 +287,20 @@ const getSOSMonthlyMetrics = (year) => {
     return http.get(`${process.env.REACT_APP_BASE_URL}api/SOS/monthly_metrics/?year=${year}`);
 };
 
+const getLoginReport = (params) => {
+    const http = getAxiosInstance();
+    const queryParams = new URLSearchParams();
+    if (params) {
+        Object.keys(params).forEach(key => {
+            if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                queryParams.append(key, params[key]);
+            }
+        });
+    }
+    const queryString = queryParams.toString();
+    return http.get(`/school/api/admin/users/login-report/${queryString ? `?${queryString}` : ''}`);
+};
+
 
 const UserServices = {
 
@@ -344,7 +358,8 @@ const UserServices = {
     getPoliceFleetMetrics: () => {
         const http = getAxiosInstance();
         return http.get('/api/police_fleet_metrics/');
-    }
+    },
+    getLoginReport
 };
 
 export default UserServices;

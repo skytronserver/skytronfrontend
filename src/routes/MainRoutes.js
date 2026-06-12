@@ -9,6 +9,7 @@ import ApproveSchool from "views/schoolbus/ApproveSchool";
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
 import { decipherEncryption } from "../helper";
+import { canViewRoute } from "../utils/rbacUtils";
 
 // Lazy-loaded components
 const LiveTracking = Loadable(lazy(() => import("../views/direct/LiveTracking")));
@@ -95,7 +96,7 @@ const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import(".
 const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/AIS140DeviceManufacturerRegistrationAdminReview")));
 const DeviceModelTechnicalOnboardingAdminList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingAdminList")));
 
-const PrivateRoute = ({ element, roles }) => {
+const PrivateRoute = ({ element, roles, path }) => {
   const myDecipher = decipherEncryption("skytrack");
   // Fall back to localStorage so new windows (opened via window.open) are also authenticated
   const userData =
@@ -106,16 +107,24 @@ const PrivateRoute = ({ element, roles }) => {
     useSelector((state) => state.login.user.isAuthenticated) ||
     sessionStorage.getItem("isAuthenticated") ||
     localStorage.getItem("isAuthenticated");
+  const permissions = useSelector((state) => state.login.permissions) || (() => {
+    try {
+      const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  if (
-    roles &&
-    roles.length > 0 &&
-    !roles.some((role) => userRoles.includes(role))
-  ) {
-    // User does not have any of the required roles
+  
+  const formattedPath = path?.startsWith('/') ? path : `/${path}`;
+  const isAuthorized = canViewRoute(formattedPath, userRoles, permissions, roles);
+
+  if (!isAuthorized) {
+    // User does not have any of the required roles or module permissions
     return <NotAuthorized />;
   }
   const normalizedRole = (userRoles || '').toLowerCase().trim();
@@ -136,7 +145,7 @@ const PrivateRoute = ({ element, roles }) => {
 
 const applyPrivateRoute = (route) => ({
   ...route,
-  element: <PrivateRoute element={route.element} roles={route.roles} />,
+  element: <PrivateRoute element={route.element} roles={route.roles} path={route.path} />,
 });
 
 const AgencyDeviceModelList = Loadable(

@@ -7,11 +7,20 @@ import menuItem from '../../../../menu-items';
 import { useSelector } from 'react-redux';
 import { decipherEncryption } from '../../../../helper';
 import { SYSTEM_ENV } from '../../../../store/constant';
+import { canViewMenu } from '../../../../utils/rbacUtils';
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
   const myDecipher = decipherEncryption('skytrack')
   const userData = useSelector((state) => state.login.cookiesData) || sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
+  const permissions = useSelector((state) => state.login.permissions) || (() => {
+    try {
+      const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
   const data = userData && userData.split("-").map(item => myDecipher(item))
   const userRoles = userData && data.length > 2 && data[1];
   const role = menuItem.role || userRoles;
@@ -37,11 +46,10 @@ const MenuList = () => {
 
   const navItems = menuItem.items.map((item) => {
     switch (item.type) {
-      case 'group':
-        const group = item?.roles ?
-          (item.roles.includes(role) ? <NavGroup key={item.id} item={item} role={role} /> : '')
-          : <NavGroup key={item.id} item={item} role={role} />;
-        return group;
+      case 'group': {
+        const canView = canViewMenu(item.id, role, permissions, item.roles);
+        return canView ? <NavGroup key={item.id} item={item} role={role} permissions={permissions} /> : null;
+      }
       default:
         return (
           <Typography key={item.id} variant="h6" color="error" align="center">

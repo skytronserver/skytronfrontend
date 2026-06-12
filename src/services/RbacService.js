@@ -15,6 +15,14 @@ const listAllRoles = () => {
 };
 
 /**
+ * GET /api/rbac/modules/
+ * List all modules
+ */
+const listModules = () => {
+  return getAxiosInstance().get('/api/rbac/modules/');
+};
+
+/**
  * GET /api/rbac/roles/active/
  * List active roles — used for dropdowns (any authenticated user)
  */
@@ -135,6 +143,7 @@ const checkModuleAccess = (data) => {
 
 const RbacService = {
   listAllRoles,
+  listModules,
   listActiveRoles,
   createRole,
   updateRole,

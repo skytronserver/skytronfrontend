@@ -8,10 +8,11 @@ import { Divider, List, Typography } from '@mui/material';
 // project imports
 import NavItem from '../NavItem';
 import NavCollapse from '../NavCollapse';
+import { canViewMenu } from '../../../../../utils/rbacUtils';
 
 // ==============================|| SIDEBAR MENU LIST GROUP ||============================== //
 
-const NavGroup = ({ item, role }) => {
+const NavGroup = ({ item, role, permissions }) => {
   const theme = useTheme();
   const { t } = useTranslation();
 
@@ -40,14 +41,14 @@ const NavGroup = ({ item, role }) => {
   const items = item.children?.map((menu) => {
   
     switch (menu.type) {
-      case 'collapse':
-        
-        const collapse = menu.roles ? (menu.roles.includes(role) ? <NavCollapse key={menu.id} menu={menu} level={1} role={role}/> : '') : <NavCollapse key={menu.id} menu={menu} level={1} role={role}/>;
-        return collapse;
-      case 'item':
-       
-        const navItem = menu.roles ? (menu.roles.includes(role) ? <NavItem key={menu.id} item={menu} level={1} /> : '') : <NavItem key={menu.id} item={menu} level={1} />;
-        return navItem;
+      case 'collapse': {
+        const canView = canViewMenu(menu.id, role, permissions, menu.roles);
+        return canView ? <NavCollapse key={menu.id} menu={menu} level={1} role={role} permissions={permissions} /> : null;
+      }
+      case 'item': {
+        const canView = canViewMenu(menu.id, role, permissions, menu.roles);
+        return canView ? <NavItem key={menu.id} item={menu} level={1} permissions={permissions} /> : null;
+      }
       default:
         return (
           <Typography key={menu.id} variant="h6" color="error" align="center">
@@ -56,6 +57,12 @@ const NavGroup = ({ item, role }) => {
         );
     }
   });
+
+  const validItems = items?.filter(item => item !== null) || [];
+  
+  if (validItems.length === 0) {
+    return null;
+  }
 
   return (
     <>

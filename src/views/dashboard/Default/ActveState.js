@@ -138,10 +138,38 @@ const ActiveState = () => {
   const data = userData && userData.split("-").map((item) => myDecipher(item));
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
   const isSuperAdmin = userRoles === 'superadmin';
+  const permissions = (() => {
+    try {
+      const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  let effectiveRole = userRoles;
+  const standardRoles = ['superadmin', 'stateadmin', 'devicemanufacture', 'dtorto', 'dealer', 'owner', 'esimprovider', 'filment', 'sosadmin', 'teamlead', 'desk_ex', 'schooladmin', 'parentuser'];
+  
+  if (!standardRoles.includes(userRoles) && permissions?.dashboard?.data_scope) {
+    const scopeMap = {
+      'national': 'superadmin',
+      'state': 'stateadmin',
+      'district': 'dtorto',
+      'dealer': 'dealer',
+      'manufacturer': 'devicemanufacture',
+      'owner': 'owner',
+      'self': 'schooladmin'
+    };
+    
+    const mappedRole = scopeMap[permissions.dashboard.data_scope.toLowerCase()];
+    if (mappedRole) {
+      effectiveRole = mappedRole;
+    }
+  }
 
   const fetchDashboardData = useCallback(async (startDate = "", endDate = "") => {
     try {
-      if (userRoles === 'sosadmin') {
+      if (effectiveRole === 'sosadmin') {
         const response = await UserServices.getSOSAdminDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? {
@@ -236,7 +264,7 @@ const ActiveState = () => {
         });
       }
 
-      if (userRoles === 'teamlead') {
+      if (effectiveRole === 'teamlead') {
         const response = await UserServices.getSOSLeadDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? {
@@ -293,7 +321,7 @@ const ActiveState = () => {
         }));
       }
 
-      if (userRoles === 'superadmin') {
+      if (effectiveRole === 'superadmin') {
         const response = await UserServices.getDashboardUserData();
         const res = await UserServices.getDashboardData(startDate, endDate);
         const dashboardRawData = await res.data;
@@ -368,7 +396,7 @@ const ActiveState = () => {
         }))
       }
 
-      if (userRoles === 'stateadmin') {
+      if (effectiveRole === 'stateadmin') {
         const response = await UserServices.getStateAdminDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? { 
@@ -432,7 +460,7 @@ const ActiveState = () => {
         }))
       }
 
-      if (userRoles === 'dtorto') {
+      if (effectiveRole === 'dtorto') {
         const response = await UserServices.getDTODashboardData(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? { 
@@ -468,7 +496,7 @@ const ActiveState = () => {
         }));
       }
 
-      if (userRoles === 'owner') {
+      if (effectiveRole === 'owner') {
         const response = await UserServices.getOwnerDashboard(startDate, endDate);
         const rawData = await response.data;
         const data = rawData.date_range ? { 
@@ -667,7 +695,7 @@ const ActiveState = () => {
         })
       })();
     }
-    if (userRoles === 'desk_ex') {
+    if (effectiveRole === 'desk_ex') {
       (async () => {
         const response = await UserServices.getSOSExeDashboard();
         const data = await response.data;
@@ -3063,7 +3091,7 @@ const ActiveState = () => {
   };
 
   const renderDashboardContent = (role) => {
-    switch (role) {
+    switch (effectiveRole) {
       case "superadmin":
         return (
           <div>
@@ -3730,6 +3758,30 @@ const ActiveState = () => {
           </Grid>
         );
       default:
+        if (permissions && permissions.dashboard && permissions.dashboard.view) {
+          return (
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              p={4}
+            >
+              <Typography
+                variant="h3"
+                color="primary"
+                align="center"
+                sx={{ fontWeight: 600, mb: 2 }}
+              >
+                Welcome to Skytrack Dashboard
+              </Typography>
+              <Typography variant="body1" align="center" color="textSecondary">
+                You are logged in as a custom role ({role}). Stay tuned for more features.
+              </Typography>
+            </Box>
+          );
+        }
+
         return (
           <Box
             display="flex"
@@ -3771,7 +3823,7 @@ const ActiveState = () => {
           Total_Assignemnt_thisweek: assignment.Total_Assignemnt_thisweek
         }} />
       ) : (
-        <DashboardView role={userRoles} />
+        <DashboardView role={effectiveRole} />
       )}
     </>
 

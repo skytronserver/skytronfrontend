@@ -616,6 +616,14 @@ const user = {
           roles: ["superadmin"],
         },
         {
+          id: "login-report",
+          title: "Login Report",
+          type: "item",
+          url: "/reports/login-report",
+          breadcrumbs: false,
+          roles: ["superadmin"],
+        },
+        {
           id: "user-list",
           title: "Users",
           type: "item",

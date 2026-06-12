@@ -10,6 +10,7 @@ import { Collapse, List, ListItemButton, ListItemIcon, ListItemText, Typography 
 
 // project imports
 import NavItem from '../NavItem';
+import { canViewMenu } from '../../../../../utils/rbacUtils';
 
 // assets
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -17,7 +18,7 @@ import { IconChevronDown, IconChevronUp } from '@tabler/icons';
 
 // ==============================|| SIDEBAR MENU LIST COLLAPSE ITEMS ||============================== //
 
-const NavCollapse = ({ menu, level, role }) => {
+const NavCollapse = ({ menu, level, role, permissions }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const customization = useSelector((state) => state.customization);
@@ -66,13 +67,14 @@ const NavCollapse = ({ menu, level, role }) => {
   const menus = menu.children?.map((item) => {
     
     switch (item.type) {
-      case 'collapse':
-        const collapse = item.roles ? (item.roles.includes(role) ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/> : '') : <NavCollapse key={item.id} menu={item} level={level + 1} role={role}/>;
-        return collapse;
-      case 'item':
-        
-        const navItem = item.roles ? (item.roles.includes(role) ? <NavItem key={item.id} item={item} level={level + 1} /> : '') : <NavItem key={item.id} item={item} level={level + 1} />;
-        return navItem;
+      case 'collapse': {
+        const canView = canViewMenu(item.id, role, permissions, item.roles);
+        return canView ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role} permissions={permissions} /> : null;
+      }
+      case 'item': {
+        const canView = canViewMenu(item.id, role, permissions, item.roles);
+        return canView ? <NavItem key={item.id} item={item} level={level + 1} permissions={permissions} /> : null;
+      }
       default:
         return (
           <Typography key={item.id} variant="h6" color="error" align="center">
@@ -81,6 +83,11 @@ const NavCollapse = ({ menu, level, role }) => {
         );
     }
   });
+
+  const validMenus = menus?.filter(item => item !== null) || [];
+  if (validMenus.length === 0) {
+    return null;
+  }
 
   // Get translation key based on menu title
   const getTranslationKey = (title) => {
@@ -179,7 +186,8 @@ const NavCollapse = ({ menu, level, role }) => {
 NavCollapse.propTypes = {
   menu: PropTypes.object,
   level: PropTypes.number,
-  role: PropTypes.string
+  role: PropTypes.string,
+  permissions: PropTypes.object
 };
 
 export default NavCollapse;
