@@ -12,10 +12,7 @@ const InaugurationPhotos = Loadable(lazy(() => import("../views/public/Inaugurat
 const RegistrationStatusTracker = Loadable(lazy(() => import("../views/homepage/RegistrationStatusTracker")));
 const RegistrationAdminReview = Loadable(lazy(() => import("../views/homepage/RegistrationAdminReview")));
 const UserRegistrationForm = Loadable(lazy(() => import("../views/homepage/UserRegistrationForm")));
-const PublicTransportVehicleMonitoringDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/PublicTransportVehicleMonitoringDashboard")));
-const ERSSVehiclesDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/ERSSVehiclesDashboard")));
-const SOSMonitoringDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSMonitoringDashboard")));
-const SOSAnalyticsDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/SOSAnalyticsDashboard")));
+
 const HelpDesk = Loadable(lazy(() => import("views/pages/HelpDesk")))
 const HelpDeskSuccess = Loadable(lazy(() => import("views/pages/helpDeskSuccess")))
 const PublicTracker = Loadable(lazy(() => import("views/complaint/PublicTracker")))
@@ -76,22 +73,7 @@ const HomeRoutes = {
       path: "/inauguration-photos",
       element: <InaugurationPhotos />,
     },
-    {
-      path: "/superadmin-dashboard/vehicle-monitoring",
-      element: <PublicTransportVehicleMonitoringDashboard />,
-    },
-    {
-      path: "/superadmin-dashboard/erss-vehicles",
-      element: <ERSSVehiclesDashboard />,
-    },
-    {
-      path: "/superadmin-dashboard/sos",
-      element: <SOSMonitoringDashboard />,
-    },
-    {
-      path: "/superadmin-dashboard/sos-analytics",
-      element: <SOSAnalyticsDashboard />,
-    }
+
 
   ],
 };

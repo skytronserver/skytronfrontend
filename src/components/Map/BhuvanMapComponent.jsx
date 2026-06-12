@@ -48,6 +48,12 @@ const BhuvanMapComponent = ({
     policeData = [],
     pois = [],
     lookupPois,
+    data = [],
+    erss = false,
+    level,
+    onDistrictClick,
+    onCityClick,
+    onLocalityClick,
     width = "100%",
     height = "400px",
     onPolygonComplete,
@@ -1055,6 +1061,102 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         dynamicOverlay.setPosition(coordinates);
         dynamicOverlay.getElement().style.display = "block";
     };
+
+
+
+    // Dynamic Markers (districts, cities, localities) from data prop
+    useEffect(() => {
+        if (!map || !data || data.length === 0) return;
+
+        const vectorSource = new VectorSource();
+        const counts = data.map(d => d.total_vehicle_count ?? d.total_devices ?? 1);
+        const minVehicles = Math.min(...counts);
+        const maxVehicles = Math.max(...counts);
+        
+        const fillColor = erss
+            ? "rgba(255, 0, 0, 0.7)"      // 🔴 RED for ERSS
+            : "rgba(14,165,233,0.6)";     // 🔵 default
+        const strokeColor = erss ? "#ff0000" : "#fff";
+
+        data.forEach(d => {
+            const lon = d.lon ?? d.longitude;
+            const lat = d.lat ?? d.latitude;
+            if (!lon || !lat) return;
+
+            const feature = new Feature({
+                geometry: new Point([lon, lat]),
+                name: d.city_village_name || d.district_name || d.locality_name || d.vehicle_reg_no,
+                vehicles: d.total_vehicle_count,
+                raw: d
+            });
+
+            // bubble size based on vehicles
+            const MIN_RADIUS = 20;
+            const MAX_RADIUS = 40;
+            const radius =
+                MIN_RADIUS +
+                (((d.total_vehicle_count ?? d.total_devices ?? 1) - minVehicles) /
+                    (maxVehicles - minVehicles || 1)) *
+                (MAX_RADIUS - MIN_RADIUS);
+
+            const label = level === "device" 
+                ? d.vehicle_reg_no 
+                : (d.total_vehicle_count ?? d.total_devices ?? "");
+
+            feature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: radius,
+                        fill: new Fill({ color: fillColor }),
+                        stroke: new Stroke({ color: strokeColor, width: 2 })
+                    }),
+                    text: new Text({
+                        text: String(label),   // ⭐ show count
+                        fill: new Fill({ color: "#fff" }),
+                        stroke: new Stroke({ color: "#000", width: 3 }),
+                        font: "bold 12px Arial",
+                        textAlign: "center",
+                        textBaseline: "middle"
+                    })
+                })
+            );
+
+            vectorSource.addFeature(feature);
+        });
+
+        const dataVectorLayer = new VectorLayer({
+            source: vectorSource,
+            zIndex: 5
+        });
+
+        map.addLayer(dataVectorLayer);
+
+        // Click handler for data markers
+        const clickHandler = (event) => {
+            map.forEachFeatureAtPixel(event.pixel, (feature) => {
+                const props = feature.get("raw");
+                if (!props) return;
+
+                if (level === "district") {
+                    onDistrictClick?.(props);
+                } else if (level === "city") {
+                    onCityClick?.(props);
+                } else if (level === "locality") {
+                    onLocalityClick?.(props);
+                }
+            });
+        };
+
+        map.on("singleclick", clickHandler);
+
+        return () => {
+            if (map) {
+                if (dataVectorLayer) map.removeLayer(dataVectorLayer);
+                map.un("singleclick", clickHandler);
+            }
+        };
+    }, [map, data, erss, level, onDistrictClick, onCityClick, onLocalityClick]);
+
 
     // Set the correct icon style based on data conditions and vehicle type
     const getIconStyle = (data, vehicleType, labelMode) => {

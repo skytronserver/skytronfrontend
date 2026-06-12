@@ -10,6 +10,10 @@ export const MENU_MODULE_MAP = {
   "dashboard": "dashboard",
   "default": "dashboard",
   "morth-dashboard": "dashboard",
+  "vehicle-monitoring": "dashboard",
+  "erss-vehicles": "dashboard",
+  "sos-dashboard-menu": "dashboard",
+  "sos-analytics": "dashboard",
 
   // GPS Tracking
   "live-tracking": "gps_tracking",
@@ -79,6 +83,10 @@ export const MENU_MODULE_MAP = {
 export const ROUTE_MODULE_MAP = {
   "/dashboard": "dashboard",
   "/superadmin-dashboard": "dashboard",
+  "/superadmin-dashboard/vehicle-monitoring": "dashboard",
+  "/superadmin-dashboard/erss-vehicles": "dashboard",
+  "/superadmin-dashboard/sos": "dashboard",
+  "/superadmin-dashboard/sos-analytics": "dashboard",
   "/live-tracking": "gps_tracking",
   "/vehicle-history": "gps_history",
   "/history-playback": "gps_history",

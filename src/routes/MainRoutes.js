@@ -195,6 +195,26 @@ const MainRoutes = {
       roles: ["superadmin"],
     },
     {
+      path: "/superadmin-dashboard/vehicle-monitoring",
+      element: <PublicTransportVehicleMonitoringDashboard />,
+      roles: ["superadmin", "sosadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/erss-vehicles",
+      element: <ERSSVehiclesDashboard />,
+      roles: ["superadmin", "sosadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/sos",
+      element: <SOSMonitoringDashboard />,
+      roles: ["superadmin", "sosadmin"],
+    },
+    {
+      path: "/superadmin-dashboard/sos-analytics",
+      element: <SOSAnalyticsDashboard />,
+      roles: ["superadmin", "sosadmin"],
+    },
+    {
       path: "/superadmin-dashboard/m2m-registration-requests",
       element: <M2MRegistrationAdminReview />,
       roles: ["superadmin"],

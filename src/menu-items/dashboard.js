@@ -37,10 +37,51 @@ const dashboard = {
       icon: icons.IconDashboard,
       breadcrumbs: false
     },
-
-
-
-
+    {
+      id: 'central-dashboard-collapse',
+      title: 'Central Dashboard',
+      type: 'collapse',
+      icon: icons.IconDashboard,
+      roles: ['superadmin', 'sosadmin'],
+      children: [
+        {
+          id: 'vehicle-monitoring',
+          title: 'Vehicle Monitoring',
+          type: 'item',
+          url: '/superadmin-dashboard/vehicle-monitoring',
+          icon: icons.IconCar,
+          breadcrumbs: false,
+          roles: ['superadmin', 'sosadmin']
+        },
+        {
+          id: 'erss-vehicles',
+          title: 'ERSS Vehicles',
+          type: 'item',
+          url: '/superadmin-dashboard/erss-vehicles',
+          icon: icons.IconAmbulance,
+          breadcrumbs: false,
+          roles: ['superadmin', 'sosadmin']
+        },
+        {
+          id: 'sos-dashboard-menu',
+          title: 'SOS Dashboard',
+          type: 'item',
+          url: '/superadmin-dashboard/sos',
+          icon: icons.IconAlertTriangle,
+          breadcrumbs: false,
+          roles: ['superadmin', 'sosadmin']
+        },
+        {
+          id: 'sos-analytics',
+          title: 'SOS Analytics',
+          type: 'item',
+          url: '/superadmin-dashboard/sos-analytics',
+          icon: icons.IconChartBar,
+          breadcrumbs: false,
+          roles: ['superadmin', 'sosadmin']
+        }
+      ]
+    },
     {
       id: 'morth-dashboard',
       title: 'MoRTH Dashboard',
