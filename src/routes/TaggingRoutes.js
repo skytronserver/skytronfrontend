@@ -1,10 +1,11 @@
 import { lazy } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
+import { canViewRoute } from "../utils/rbacUtils";
 
 // Lazy-loaded components
 const TagDeviceToVehicle = Loadable(lazy(() => import("../views/tagging/TagDeviceToVehicle")));
@@ -13,18 +14,36 @@ const NotAuthorized = Loadable(lazy(() => import("../views/pages/NotAuthorized")
 const UploadReceipt = Loadable(lazy(() => import("../views/tagging/UploadReceipt")));
 const VahanVerification = Loadable(lazy(() => import("../views/tagging/VahanVerification")));
 const PrivateRoute = ({ element, roles }) => {
+  const location = useLocation();
   const myDecipher = decipherEncryption('skytrack')
   const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
   const data = userData && userData.split("-").map(item => myDecipher(item))
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated') || localStorage.getItem('isAuthenticated');
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+  
+  const permissions = (() => {
+    try {
+      const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
+  
+  if (userRoles) {
+    const canAccess = canViewRoute(location.pathname, userRoles, permissions, roles);
+    if (!canAccess) {
+      return <NotAuthorized />;
+    }
+  } else if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
     // User does not have any of the required roles
     return <NotAuthorized />;
   }
+  
   return element;
 };
 

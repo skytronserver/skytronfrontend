@@ -1,6 +1,7 @@
 import { lazy } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { canViewRoute } from "../utils/rbacUtils";
 import { SYSTEM_ENV } from "../store/constant";
 import CreateSchool from "views/schoolbus/CreateSchool";
 import ApproveSchool from "views/schoolbus/ApproveSchool";
@@ -9,7 +10,6 @@ import ApproveSchool from "views/schoolbus/ApproveSchool";
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
 import { decipherEncryption } from "../helper";
-import { canViewRoute } from "../utils/rbacUtils";
 
 // Lazy-loaded components
 const LiveTracking = Loadable(lazy(() => import("../views/direct/LiveTracking")));
@@ -96,18 +96,15 @@ const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import(".
 const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/AIS140DeviceManufacturerRegistrationAdminReview")));
 const DeviceModelTechnicalOnboardingAdminList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingAdminList")));
 
-const PrivateRoute = ({ element, roles, path }) => {
-  const myDecipher = decipherEncryption("skytrack");
-  // Fall back to localStorage so new windows (opened via window.open) are also authenticated
-  const userData =
-    sessionStorage.getItem("cookiesData") ||
-    localStorage.getItem("cookiesData");
-  const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const isAuthenticated =
-    useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated") ||
-    localStorage.getItem("isAuthenticated");
-  const permissions = useSelector((state) => state.login.permissions) || (() => {
+const PrivateRoute = ({ element, roles }) => {
+  const location = useLocation();
+  const myDecipher = decipherEncryption('skytrack')
+  const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
+  const data = userData && userData.split("-").map(item => myDecipher(item))
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated') || localStorage.getItem('isAuthenticated');
+  const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+  
+  const permissions = (() => {
     try {
       const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
       return raw ? JSON.parse(raw) : null;
@@ -115,12 +112,12 @@ const PrivateRoute = ({ element, roles, path }) => {
       return null;
     }
   })();
-  const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
   
-  const formattedPath = path?.startsWith('/') ? path : `/${path}`;
+  const formattedPath = location.pathname;
   const isAuthorized = canViewRoute(formattedPath, userRoles, permissions, roles);
 
   if (!isAuthorized) {

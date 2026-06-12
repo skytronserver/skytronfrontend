@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import { canViewRoute } from "../utils/rbacUtils";
+import { Navigate, useLocation } from "react-router-dom";
 // project imports
 
 // project imports
@@ -38,25 +39,36 @@ const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/Whiteli
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
 
 const PrivateRoute = ({ element, roles }) => {
-  const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
-  const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const isAuthenticated =
-    useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated") ||
-    localStorage.getItem("isAuthenticated");
+  const location = useLocation();
+  const myDecipher = decipherEncryption('skytrack')
+  const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
+  const data = userData && userData.split("-").map(item => myDecipher(item))
+  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated') || localStorage.getItem('isAuthenticated');
   const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+  
+  const permissions = (() => {
+    try {
+      const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  if (
-    roles &&
-    roles.length > 0 &&
-    !roles.some((role) => userRoles.includes(role))
-  ) {
+  
+  if (userRoles) {
+    const canAccess = canViewRoute(location.pathname, userRoles, permissions, roles);
+    if (!canAccess) {
+      return <NotAuthorized />;
+    }
+  } else if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
     // User does not have any of the required roles
     return <NotAuthorized />;
   }
+  
   return element;
 };
 

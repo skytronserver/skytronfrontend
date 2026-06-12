@@ -27,6 +27,10 @@ export const MENU_MODULE_MAP = {
   "device-management": "device_management",
   "device-model": "device_management",
   "device-stock": "device_stock",
+  "new-device": "device_stock",
+  "upload-device": "device_stock",
+  "assign-device": "device_stock",
+  "combined-stock": "device_stock",
   
   // Tagging
   "icons-tag": "vehicle_tagging",
@@ -35,7 +39,6 @@ export const MENU_MODULE_MAP = {
   "download-tagging-receipt": "vehicle_tagging",
   
   // User Management
-  "utilities": "user_management",
   "new-icons": "user_management",
   "user-list": "user_management",
   "admin-user-list": "stateadmin_management",
@@ -62,6 +65,14 @@ export const MENU_MODULE_MAP = {
   
   // School Bus
   "schoolbus": "route_management", // mapping broadly
+  
+  // Complaints
+  "complaint-management": "complaint",
+  "complaints-group": "complaint",
+  "helpdesk-tickets": "complaint",
+  "helpdesk-new-ticket": "complaint",
+  "staff-tickets": "complaint",
+  "manufacturer-tickets": "complaint",
 };
 
 // Maps frontend route path to backend 'module_code'
@@ -78,11 +89,23 @@ export const ROUTE_MODULE_MAP = {
   "/trip-viewer": "trip_management",
   "/device/list": "device_management",
   "/device/new": "device_stock",
+  "/device/bulkupload": "device_stock",
+  "/device/assign-device": "device_stock",
+  "/device/combined-stock-report": "device_stock",
+  "/device/show-tagged-device": "vehicle_tagging",
+  "/device/show-device": "device_stock",
+  "/device/show-available-device": "device_stock",
   "/tag/device-vehicle": "vehicle_tagging",
+  "/tag/unapproved-vehicle": "vehicle_tagging",
+  "/tag/download-receipt": "vehicle_tagging",
+  "/tag/vahan-verification": "vehicle_tagging",
   "/sos-alert": "emergency_management",
   "/sos-call-list": "emergency_management",
   "/setting/notice": "notice_management",
   "/user/registeredUser": "user_management",
+  "/helpdesk/tickets": "complaint",
+  "/staff/tickets": "complaint",
+  "/manufacturer/tickets": "complaint",
 };
 
 /**
@@ -103,7 +126,12 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
   if (permissions) {
     const apiModule = MENU_MODULE_MAP[menuId];
     if (apiModule && permissions[apiModule]) {
-      return permissions[apiModule].menu === true || permissions[apiModule].view === true;
+      return (
+        permissions[apiModule].menu === true ||
+        permissions[apiModule].show_in_menu === true ||
+        permissions[apiModule].view === true ||
+        permissions[apiModule].can_view === true
+      );
     }
   }
 
@@ -137,7 +165,7 @@ export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) =
     if (matchingKey) {
       const apiModule = ROUTE_MODULE_MAP[matchingKey];
       if (permissions[apiModule]) {
-        return permissions[apiModule].view === true;
+        return permissions[apiModule].view === true || permissions[apiModule].can_view === true;
       }
     } else {
       // If no mapping, we can try to allow if they have dashboard access as a baseline,
