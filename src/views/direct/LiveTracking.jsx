@@ -857,6 +857,11 @@ const LiveTracking = () => {
   // Triggered on form submit to fetch new data
   const handleSubmit = (event) => {
     event.preventDefault();
+    const isPoiSelected = !!selectedPoiId;
+
+const isPolygonPoi =
+  selectedPoi &&
+  String(selectedPoi.mark_type).toLowerCase() === "polygon";
     const params = {
       imei: imeiNo,
       regno: vehicleNo,
@@ -871,9 +876,10 @@ const LiveTracking = () => {
       district_id: '',
       manufacturer_id: '',
       speed_limit: speedLimit,
-      in_range: inRange,
-      poi_as_polygon: poiAsPolygon,
-      poi_t: poi,
+       // Required logic
+  in_range: isPoiSelected ? true : inRange,
+  poi_as_polygon: isPolygonPoi,
+  poi_t: "",
     };
 
     setSelectedId(null); // Reset selection when submitting new search
@@ -885,6 +891,12 @@ const LiveTracking = () => {
   };
 
   useEffect(() => {
+      const isPoiSelected = !!selectedPoiId;
+
+const isPolygonPoi =
+  selectedPoi &&
+  String(selectedPoi.mark_type).toLowerCase() === "polygon";
+  
     const params = {
       imei: imeiNo,
       regno: vehicleNo,
@@ -899,9 +911,10 @@ const LiveTracking = () => {
       district_id: '',
       manufacturer_id: '',
       speed_limit: speedLimit,
-      in_range: inRange,
-      poi_as_polygon: poiAsPolygon,
-      poi_t: poi,
+      // Required logic
+  in_range: isPoiSelected ? true : inRange,
+  poi_as_polygon: isPolygonPoi,
+  poi_t: "",
     };
 
     // Single fetch when filters/inputs change, no repeating interval
@@ -913,7 +926,12 @@ const LiveTracking = () => {
 
     const selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === selectedId);
     if (!selectedRow) return;
+    const isPoiSelected = !!selectedPoiId;
 
+const isPolygonPoi =
+  selectedPoi &&
+  String(selectedPoi.mark_type).toLowerCase() === "polygon";
+  
     const params = {
       imei: selectedRow.imei,
       regno: '',
@@ -928,9 +946,10 @@ const LiveTracking = () => {
       district_id: '',
       manufacturer_id: '',
       speed_limit: speedLimit,
-      in_range: inRange,
-      poi_as_polygon: poiAsPolygon,
-      poi_t: selectedPoiType || "",
+      // Required logic
+  in_range: isPoiSelected ? true : inRange,
+  poi_as_polygon: isPolygonPoi,
+  poi_t: "",
     };
 
     try {

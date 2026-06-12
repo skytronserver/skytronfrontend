@@ -58,6 +58,8 @@ import {
     Icon,
     Stroke as OlStroke,
 } from "ol/style";
+import { getAxiosInstance } from "../../services/axiosInstance";
+
 import { Draw } from "ol/interaction";
 import Polygon from "ol/geom/Polygon";
 import Circle from "ol/geom/Circle";
@@ -939,7 +941,12 @@ const MapComponent = ({
         poiTransitOverlay,
         setPoiTransitOverlay,
     ] = useState(null);
-
+    // Get Direction feature refs
+    const routeVectorLayerRef = useRef(null);
+    const activeVehicleForRouteRef = useRef(null); // { lat, lng } of vehicle when "Get Direction" clicked
+    const isPickingDestinationRef = useRef(false);  // true while waiting for user map click
+    const routeInfoOverlayRef = useRef(null);        // OL Overlay for route info popup
+    const routeInfoOverlayElementRef = useRef(null);
     const drawSourceRef = useRef(new VectorSource());
     useEffect(() => {
         if (!map) return;
@@ -2738,6 +2745,17 @@ const MapComponent = ({
                 initialOverlay.setPosition(undefined);
             }
         });
+
+        if (routeInfoOverlayElementRef.current) {
+            const routeInfoOverlay = new Overlay({
+                element: routeInfoOverlayElementRef.current,
+                autoPan: true,
+                positioning: "bottom-center",
+                stopEvent: true,
+            });
+            initialMap.addOverlay(routeInfoOverlay);
+            routeInfoOverlayRef.current = routeInfoOverlay;
+        }
 
         setMap(initialMap);
         setVectorLayer(initialVectorLayer);
@@ -5356,6 +5374,18 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 </div>
+<div style="padding: 8px 10px 4px; border-top: 1px solid #f1f5f9; margin-top: 4px;">
+<button
+  id="get-direction-btn"
+  data-vehicle-lat="${entryData.latitude}"
+  data-vehicle-lng="${entryData.longitude}"
+  style="width:100%;padding:7px 0;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.03em;"
+>
+  🧭 Get Direction
+</button>
+<div id="get-direction-hint" style="display:none;margin-top:6px;font-size:11px;color:#1e40af;text-align:center;padding:4px 6px;background:#eff6ff;border-radius:4px;">
+  Click anywhere on the map to draw route from this vehicle
+</div>
 </div>
 `;
                         };
@@ -5639,6 +5669,19 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 </div>
+<div style="padding: 8px 10px 4px; border-top: 1px solid #f1f5f9; margin-top: 4px;">
+<button
+  id="get-direction-btn"
+  data-vehicle-lat="${focusEntry.latitude}"
+  data-vehicle-lng="${focusEntry.longitude}"
+  style="width:100%;padding:7px 0;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.03em;"
+>
+  🧭 Get Direction
+</button>
+<div id="get-direction-hint" style="display:none;margin-top:6px;font-size:11px;color:#1e40af;text-align:center;padding:4px 6px;background:#eff6ff;border-radius:4px;">
+  Click anywhere on the map to draw route from this vehicle
+</div>
+
 </div>
 `;
     }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
@@ -5704,6 +5747,296 @@ ${policeInfoRows || policeDetailsRows
 <path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
 </svg>
 `;
+                    const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
+
+                    feature.setStyle(
+                        new Style({
+                            image: new Icon({
+                                anchor: [0.5, 1],
+                                src: iconUrl,
+                                scale: 1.0,
+                            }),
+                        })
+                    );
+                    return feature;
+                })
+                .filter(Boolean);
+
+            source.addFeatures(features);
+        }
+    }, [incidentData, map, incidentVectorLayer]);
+
+    useEffect(() => {
+        if (!map) return;
+
+        const routeSource = new VectorSource();
+        const routeLayer = new VectorLayer({
+            source: routeSource,
+            zIndex: 500,
+            style: new Style({
+                stroke: new Stroke({ color: "#1e40af", width: 4 }),
+            }),
+        });
+        map.addLayer(routeLayer);
+        routeVectorLayerRef.current = routeLayer;
+
+        return () => {
+            map.removeLayer(routeLayer);
+            routeVectorLayerRef.current = null;
+        };
+    }, [map]);
+
+    // ── Clear route when a different vehicle is selected ──────────────────────
+    useEffect(() => {
+        // Cancel any pending destination-pick
+        isPickingDestinationRef.current = false;
+        activeVehicleForRouteRef.current = null;
+
+        // Hide the hint text if it's visible
+        const hint = document.getElementById("get-direction-hint");
+        if (hint) hint.style.display = "none";
+
+        // Clear previously drawn route from the map
+        const routeSource = routeVectorLayerRef.current?.getSource();
+        if (routeSource) routeSource.clear();
+
+        // Hide route info popup
+        if (routeInfoOverlayElementRef.current) {
+            routeInfoOverlayElementRef.current.style.display = "none";
+        }
+        if (routeInfoOverlayRef.current) {
+            routeInfoOverlayRef.current.setPosition(undefined);
+        }
+
+    }, [focusEntry?.imei]);   // fires only when the selected vehicle changes
+
+    // Listen for clicks on the "Get Direction" button inside the overlay card
+    useEffect(() => {
+        const container = overlayElement.current;
+        if (!container) return;
+
+        const handleGetDirectionClick = (event) => {
+            const btn = event.target?.closest?.("#get-direction-btn");
+            if (!btn) return;
+
+            const vLat = parseFloat(btn.getAttribute("data-vehicle-lat"));
+            const vLng = parseFloat(btn.getAttribute("data-vehicle-lng"));
+            if (!Number.isFinite(vLat) || !Number.isFinite(vLng)) return;
+
+            activeVehicleForRouteRef.current = { lat: vLat, lng: vLng };
+            isPickingDestinationRef.current = true;
+
+            // Show hint inside overlay
+            const hint = document.getElementById("get-direction-hint");
+            if (hint) hint.style.display = "block";
+        };
+
+        container.addEventListener("click", handleGetDirectionClick);
+        return () => container.removeEventListener("click", handleGetDirectionClick);
+    }, []);
+
+    // Listen for map clicks when in destination-picking mode
+    useEffect(() => {
+        if (!map) return;
+
+        const handleMapClickForRoute = async (event) => {
+            if (!isPickingDestinationRef.current) return;
+            if (!activeVehicleForRouteRef.current) return;
+
+            isPickingDestinationRef.current = false;
+
+            // Hide hint
+            const hint = document.getElementById("get-direction-hint");
+            if (hint) hint.style.display = "none";
+
+            const [destLon, destLat] = event.coordinate;
+
+            const { lat: vLat, lng: vLng } = activeVehicleForRouteRef.current;
+
+            try {
+                const http = getAxiosInstance();
+                const response = await http.post("/api/get_routePath/", {
+                    points: [
+                        [vLng, vLat],
+                        [destLon, destLat],
+                    ],
+                });
+
+                const routeData = response?.data?.data ?? response?.data;
+                const paths = routeData?.paths ?? [];
+                if (!paths.length) {
+                    console.warn("Get Direction: no paths returned");
+                    return;
+                }
+
+                const coordinates = paths[0]?.points?.coordinates ?? [];
+                if (coordinates.length < 2) return;
+
+                // Draw route on map
+                const routeSource = routeVectorLayerRef.current?.getSource();
+                if (!routeSource) return;
+
+                routeSource.clear();
+
+                // Route line
+                const lineCoords = coordinates.map(([lon, lat]) => [lon, lat]);
+                const lineFeature = new Feature({ geometry: new LineString(lineCoords) });
+                lineFeature.setStyle(new Style({ stroke: new Stroke({ color: "#1e40af", width: 5 }) }));
+                routeSource.addFeature(lineFeature);
+
+                // Destination pin
+                const destFeature = new Feature({ geometry: new Point([destLon, destLat]) });
+                destFeature.setStyle(new Style({
+                    image: new CircleStyle({
+                        radius: 8,
+                        fill: new Fill({ color: "#dc2626" }),
+                        stroke: new Stroke({ color: "#fff", width: 2 }),
+                    }),
+                }));
+                routeSource.addFeature(destFeature);
+
+                // Fit view to route
+                const extent = routeSource.getExtent();
+                if (extent && extent.every(Number.isFinite)) {
+                    map.getView().fit(extent, { padding: [60, 60, 60, 60], duration: 600 });
+                }
+                // ── Route Info Popup ──────────────────────────────────────────
+                // Distance from API response (metres), fallback to 0
+                const distanceM = paths[0]?.distance ?? 0;
+                const distanceKm = distanceM / 1000;
+
+                // ETA based on avg speed of 15 km/h
+                const etaHours = distanceKm / 15;
+                const etaMinutes = Math.round(etaHours * 60);
+                const etaDisplay = etaMinutes < 60
+                    ? `${etaMinutes} min`
+                    : `${Math.floor(etaMinutes / 60)}h ${etaMinutes % 60}min`;
+
+                // Show loading state in popup immediately
+                const infoEl = routeInfoOverlayElementRef.current;
+                if (infoEl) {
+                    infoEl.style.display = "block";
+                    infoEl.innerHTML = `
+                    <div style="
+                      background:#fff;border-radius:10px;padding:14px 16px;
+                      box-shadow:0 6px 24px rgba(0,0,0,.22);border:1px solid #e5e7eb;
+                      min-width:280px;max-width:340px;font-family:'Roboto',sans-serif;font-size:12px;color:#1f2933;
+                    ">
+                      <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:10px;">🧭 Route Info</div>
+                      <div style="color:#6b7280;font-size:11px;margin-bottom:8px;">Fetching addresses…</div>
+                      <div style="display:flex;gap:16px;margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;">
+                        <div style="text-align:center;">
+                          <div style="font-size:11px;color:#6b7280;">Distance</div>
+                          <div style="font-weight:700;font-size:13px;color:#111827;">${distanceKm.toFixed(2)} km</div>
+                        </div>
+                        <div style="text-align:center;">
+                          <div style="font-size:11px;color:#6b7280;">ETA <span style="font-size:9px;">(avg 15 km/h)</span></div>
+                          <div style="font-weight:700;font-size:13px;color:#111827;">${etaDisplay}</div>
+                        </div>
+                      </div>
+                    </div>`;
+                    // Position popup at midpoint of the route
+                    const midIdx = Math.floor(lineCoords.length / 2);
+                    if (routeInfoOverlayRef.current) {
+                        routeInfoOverlayRef.current.setPosition(lineCoords[midIdx]);
+                    }
+                }
+
+                // Fetch source & destination addresses via reverse geocoding
+                const geocodeUrl = process.env.REACT_APP_GEOCODING_URL || "https://map-geocoding.gromed.in";
+                const fetchAddress = async (lat, lon) => {
+                    try {
+                        const resp = await HomePageService.getReverseGeocode(lat, lon);
+                        return resp?.data?.address || resp?.data?.display_name || `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+                    } catch {
+                        return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+                    }
+                };
+
+                const [srcAddress, destAddress] = await Promise.all([
+                    fetchAddress(vLat, vLng),
+                    fetchAddress(destLat, destLon),
+                ]);
+
+                // Update popup with full address info
+                if (infoEl && infoEl.style.display !== "none") {
+                    infoEl.innerHTML = `
+                    <div style="
+                      background:#fff;border-radius:10px;padding:14px 16px;
+                      box-shadow:0 6px 24px rgba(0,0,0,.22);border:1px solid #e5e7eb;
+                      min-width:280px;max-width:340px;font-family:'Roboto',sans-serif;font-size:12px;color:#1f2933;position:relative;
+                    ">
+                      <button id="route-info-close-btn" style="
+                        position:absolute;top:8px;right:10px;background:none;border:none;
+                        font-size:16px;cursor:pointer;color:#6b7280;line-height:1;
+                      ">✕</button>
+                      <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:10px;">🧭 Route Info</div>
+                      <div style="margin-bottom:8px;">
+                        <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">📍 Source</div>
+                        <div style="font-size:11px;font-weight:500;color:#111827;line-height:1.4;">${srcAddress}</div>
+                      </div>
+                      <div style="margin-bottom:10px;">
+                        <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">🏁 Destination</div>
+                        <div style="font-size:11px;font-weight:500;color:#111827;line-height:1.4;">${destAddress}</div>
+                      </div>
+                      <div style="display:flex;gap:16px;padding-top:10px;border-top:1px solid #f1f5f9;">
+                        <div style="flex:1;text-align:center;background:#eff6ff;border-radius:8px;padding:8px 4px;">
+                          <div style="font-size:10px;color:#3b82f6;">Distance</div>
+                          <div style="font-weight:700;font-size:15px;color:#1e40af;">${distanceKm.toFixed(2)} km</div>
+                        </div>
+                        <div style="flex:1;text-align:center;background:#f0fdf4;border-radius:8px;padding:8px 4px;">
+                          <div style="font-size:10px;color:#16a34a;">ETA <span style="font-size:9px;">(avg 15 km/h)</span></div>
+                          <div style="font-weight:700;font-size:15px;color:#15803d;">${etaDisplay}</div>
+                        </div>
+                      </div>
+                    </div>`;
+                    // Wire up close button
+                    const closeBtn = infoEl.querySelector("#route-info-close-btn");
+                    if (closeBtn) {
+                        closeBtn.addEventListener("click", () => {
+                            infoEl.style.display = "none";
+                            const routeSource = routeVectorLayerRef.current?.getSource();
+                            if (routeSource) routeSource.clear();
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Get Direction API error:", err);
+            }
+        };
+
+        map.on("singleclick", handleMapClickForRoute);
+        return () => map.un("singleclick", handleMapClickForRoute);
+    }, [map]);
+    // ── End Get Direction ──────────────────────────────────────────────────────
+    useEffect(() => {
+        if (!map || !incidentVectorLayer) return;
+
+        const source = incidentVectorLayer.getSource();
+        source.clear();
+
+        if (incidentData.length > 0) {
+            const features = incidentData
+                .map((incident) => {
+                    const longitude = Number(incident.longitude);
+                    const latitude = Number(incident.latitude);
+
+                    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+
+                    const feature = new Feature({
+                        geometry: new Point([longitude, latitude]),
+                        data: incident,
+                        isIncident: true,
+                    });
+
+                    // Style for incident
+                    const svgIcon = `
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L1 21H23L12 2Z" fill="#F44336" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M12 9V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <path d="M12 18V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    `;
                     const iconUrl = `data:image/svg+xml;base64,${window.btoa(svgIcon)}`;
 
                     feature.setStyle(
@@ -7186,6 +7519,8 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             <div ref={overlayElement} className="dynamic-overlay">
                 <div id="overlay-content"></div>
             </div>
+            {/* Route Info Popup Overlay (Get Direction result) */}
+            <div ref={routeInfoOverlayElementRef} style={{ display: "none" }} />
             <div
                 ref={poiTransitOverlayElement}
                 className="ol-popup"
