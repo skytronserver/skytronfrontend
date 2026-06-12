@@ -23,6 +23,7 @@ import NoticeForm from "../views/forms/NoticeForm";
 import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
 import SchoolHolidayList from "../views/reports/SchoolHolidayList";
 import PermitConditionManagement from "../views/settings/PermitConditionManagement";
+import CustomAlertManagement from "../views/settings/CustomAlertManagement";
 import { decipherEncryption } from '../helper';
 import { useSelector } from "react-redux";
 import NotAuthorized from "../views/pages/NotAuthorized";
@@ -169,6 +170,13 @@ const SettingRoutes = {
       path: "/setting/permit-conditions",
       element: (
         <PermitConditionManagement />
+      ),
+      roles: ['superadmin']
+    },
+    {
+      path: "/setting/custom-alerts",
+      element: (
+        <CustomAlertManagement />
       ),
       roles: ['superadmin']
     },
