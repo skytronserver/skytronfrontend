@@ -18,7 +18,7 @@ This API is typically used to populate:
 ## Endpoint
 
 ``` http
-GET /api/custom-alerts/parameters/
+GET /school/api/custom-alerts/parameters/
 
  ```
 
@@ -51,7 +51,7 @@ Authorization: Bearer <access_token>
 ## Example Request
 
 ``` http
-GET /api/custom-alerts/parameters/
+GET /school/api/custom-alerts/parameters/
 
  ```
 
@@ -298,7 +298,7 @@ Creates a new custom alert rule with one or more subrules. These rules are autom
 ## Endpoint
 
 ``` http
-POST /api/custom-alerts/rules/
+POST /school/api/custom-alerts/rules/
 
  ```
 
@@ -667,7 +667,7 @@ Returns all custom alert rules visible to the authenticated user.
 ## Endpoint
 
 ``` http
-GET /api/custom-alerts/rules/
+GET /school/api/custom-alerts/rules/
 
  ```
 
@@ -712,28 +712,28 @@ Authorization: Bearer <access_token>
 ### Get All Rules
 
 ``` http
-GET /api/custom-alerts/rules/
+GET /school/api/custom-alerts/rules/
 
  ```
 
 ### Filter Active Rules
 
 ``` http
-GET /api/custom-alerts/rules/?status=active
+GET /school/api/custom-alerts/rules/?status=active
 
  ```
 
 ### Search Rules
 
 ``` http
-GET /api/custom-alerts/rules/?search=speed
+GET /school/api/custom-alerts/rules/?search=speed
 
  ```
 
 ### Filter By State (Super Admin)
 
 ``` http
-GET /api/custom-alerts/rules/?state_id=5
+GET /school/api/custom-alerts/rules/?state_id=5
 
  ```
 
@@ -850,7 +850,7 @@ Can view:
 ### Status Filter
 
 ``` http
-GET /api/custom-alerts/rules/?status=active
+GET /school/api/custom-alerts/rules/?status=active
 
  ```
 
@@ -867,14 +867,14 @@ inactive
 Searches rule names using case-insensitive partial matching.
 
 ``` http
-GET /api/custom-alerts/rules/?search=speed
+GET /school/api/custom-alerts/rules/?search=speed
 
  ```
 
 ### State Filter (Super Admin Only)
 
 ``` http
-GET /api/custom-alerts/rules/?state_id=5
+GET /school/api/custom-alerts/rules/?state_id=5
 
  ```
 
@@ -914,7 +914,7 @@ Returns detailed information for a specific custom alert rule, including its con
 ## Endpoint
 
 ``` http
-GET /api/custom-alerts/rules/{id}/
+GET /school/api/custom-alerts/rules/{id}/
 
  ```
 
@@ -955,7 +955,7 @@ Authorization: Bearer <access_token>
 ## Example Request
 
 ``` http
-GET /api/custom-alerts/rules/1/
+GET /school/api/custom-alerts/rules/1/
 
  ```
 
@@ -1138,7 +1138,7 @@ Results are paginated and support filtering by rule, vehicle, state, and date ra
 ## Endpoint
 
 ``` http
-GET /api/custom-alerts/logs/
+GET /school/api/custom-alerts/logs/
 
  ```
 
@@ -1187,42 +1187,42 @@ Authorization: Bearer <access_token>
 ### Get All Logs
 
 ``` http
-GET /api/custom-alerts/logs/
+GET /school/api/custom-alerts/logs/
 
  ```
 
 ### Filter By Rule
 
 ``` http
-GET /api/custom-alerts/logs/?rule_id=1
+GET /school/api/custom-alerts/logs/?rule_id=1
 
  ```
 
 ### Filter By Vehicle
 
 ``` http
-GET /api/custom-alerts/logs/?vehicle_reg_no=UP16AB1001
+GET /school/api/custom-alerts/logs/?vehicle_reg_no=UP16AB1001
 
  ```
 
 ### Filter By Date Range
 
 ``` http
-GET /api/custom-alerts/logs/?from_datetime=2026-06-01T00:00:00Z&to_datetime=2026-06-30T23:59:59Z
+GET /school/api/custom-alerts/logs/?from_datetime=2026-06-01T00:00:00Z&to_datetime=2026-06-30T23:59:59Z
 
  ```
 
 ### Filter By State (Super Admin)
 
 ``` http
-GET /api/custom-alerts/logs/?state_id=5
+GET /school/api/custom-alerts/logs/?state_id=5
 
  ```
 
 ### Pagination
 
 ``` http
-GET /api/custom-alerts/logs/?page=2&page_size=50
+GET /school/api/custom-alerts/logs/?page=2&page_size=50
 
  ```
 
@@ -1414,7 +1414,7 @@ If the `subrules` field is included, all existing subrules are deleted and repla
 ## Endpoint
 
 ``` http
-POST /api/custom-alerts/rules/{id}/update/
+POST /school/api/custom-alerts/rules/{id}/update/
 
  ```
 
@@ -1745,7 +1745,7 @@ Hard deletion is not supported because alert logs reference the rule.
 ## Endpoint
 
 ``` http
-POST /api/custom-alerts/rules/{id}/delete/
+POST /school/api/custom-alerts/rules/{id}/delete/
 
  ```
 
@@ -1797,7 +1797,7 @@ No request body is required.
 ## Example Request
 
 ``` http
-POST /api/custom-alerts/rules/1/delete/
+POST /school/api/custom-alerts/rules/1/delete/
 
  ```
 

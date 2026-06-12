@@ -93,7 +93,7 @@ const getActivityLog = async (id) => {
 const updateStatus = async (id, data) => {
   try {
     const http = getAxiosInstance();
-    const response = await http.patch(
+    const response = await http.post(
       `/api/complaint/${id}/update-status/`,
       data
     );
@@ -106,7 +106,7 @@ const updateStatus = async (id, data) => {
 const escalateTicket = async (id, data) => {
   try {
     const http = getAxiosInstance();
-    const response = await http.patch(`/api/complaint/${id}/escalate/`, data);
+    const response = await http.post(`/api/complaint/${id}/escalate/`, data);
     return { success: true, data: response.data };
   } catch (error) {
     return handleError(error);
