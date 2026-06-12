@@ -5967,11 +5967,15 @@ ${policeInfoRows || policeDetailsRows
             // Show hint inside overlay
             const hint = document.getElementById("get-direction-hint");
             if (hint) hint.style.display = "block";
+            // CLOSE VEHICLE POPUP IMMEDIATELY
+    if (dynamicOverlay) {
+        dynamicOverlay.setPosition(undefined);
+    }
         };
 
         container.addEventListener("click", handleGetDirectionClick);
         return () => container.removeEventListener("click", handleGetDirectionClick);
-    }, []);
+    }, [dynamicOverlay]);
 
     // Listen for map clicks when in destination-picking mode
     useEffect(() => {
