@@ -136,8 +136,8 @@ const ActiveState = () => {
   const myDecipher = decipherEncryption("skytrack");
   const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
   const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
-  const isSuperAdmin = userRoles === 'superadmin';
+  const baseUserRole = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
+  
   const permissions = (() => {
     try {
       const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
@@ -146,6 +146,23 @@ const ActiveState = () => {
       return null;
     }
   })();
+
+  const standardRoles = ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture', 'dealer', 'owner', 'esimprovider', 'sosadmin', 'teamlead', 'desk_ex', 'police_ex', 'ambulance_ex'];
+  let userRoles = baseUserRole;
+  if (baseUserRole && !standardRoles.includes(baseUserRole) && permissions && permissions.dashboard) {
+    const dataScope = permissions.dashboard.data_scope || permissions.dashboard.dataScope;
+    if (dataScope) {
+      const ds = dataScope.toLowerCase();
+      if (ds === 'national') userRoles = 'superadmin';
+      else if (ds === 'state') userRoles = 'stateadmin';
+      else if (ds === 'district') userRoles = 'dtorto';
+      else if (ds === 'manufacturer') userRoles = 'devicemanufacture';
+      else if (ds === 'dealer') userRoles = 'dealer';
+      else if (ds === 'owner') userRoles = 'owner';
+    }
+  }
+
+  const isSuperAdmin = userRoles === 'superadmin';
 
   const fetchDashboardData = useCallback(async (startDate = "", endDate = "") => {
     try {

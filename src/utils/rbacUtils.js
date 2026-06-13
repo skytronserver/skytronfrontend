@@ -4,6 +4,8 @@
  * Dynamic RBAC module codes, and checking permissions.
  */
 
+import menuItems from '../menu-items';
+
 // Maps frontend menu item 'id' to backend 'module_code'
 export const MENU_MODULE_MAP = {
   // Dashboard
@@ -120,26 +122,45 @@ export const ROUTE_MODULE_MAP = {
  * Check if the user has permission to view a menu item.
  * @param {string} menuId - The ID of the menu item (from menu-items config)
  * @param {string} role - The user's role (string)
- * @param {object} permissions - The permissions object from Redux state
+ * @param {object|array} permissions - The permissions object or array from Redux state
  * @param {array} fallbackRoles - The hardcoded array of roles from the menu-items config
  * @returns {boolean}
  */
 export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
+  const standardRoles = ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture', 'dealer', 'owner', 'esimprovider', 'sosadmin', 'teamlead', 'desk_ex', 'police_ex', 'ambulance_ex'];
+  const isCustomRole = role && !standardRoles.includes(role);
+
   // 1. Backward compatibility: if the role is explicitly in the hardcoded list, allow.
-  if (fallbackRoles && fallbackRoles.length > 0 && fallbackRoles.includes(role)) {
+  if (!isCustomRole && fallbackRoles && fallbackRoles.length > 0 && fallbackRoles.includes(role)) {
     return true;
   }
 
   // 2. Dynamic RBAC check
   if (permissions) {
     const apiModule = MENU_MODULE_MAP[menuId];
-    if (apiModule && permissions[apiModule]) {
-      return (
-        permissions[apiModule].menu === true ||
-        permissions[apiModule].show_in_menu === true ||
-        permissions[apiModule].view === true ||
-        permissions[apiModule].can_view === true
-      );
+    if (apiModule) {
+      let modPerms = null;
+      if (Array.isArray(permissions)) {
+        modPerms = permissions.find(p => p.module === apiModule);
+      } else {
+        modPerms = permissions[apiModule];
+      }
+
+      if (modPerms) {
+        // Check if any view/menu flag is true
+        const hasAccess = modPerms.menu === true || 
+                          modPerms.show_in_menu === true || 
+                          modPerms.view === true || 
+                          modPerms.can_view === true;
+        
+        if (hasAccess) return true;
+        if (isCustomRole) return false; // Strict deny for custom roles if module exists but no access
+      } else if (isCustomRole) {
+        return false; // Strict deny if custom role has no permissions object for this mapped module
+      }
+    } else if (isCustomRole && fallbackRoles && fallbackRoles.length > 0) {
+      // If module is not in map, but is restricted by roles, deny for custom role
+      return false;
     }
   }
 
@@ -152,17 +173,40 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
   return false;
 };
 
+let routeToMenuIdMap = null;
+const getRouteToMenuIdMap = () => {
+  if (routeToMenuIdMap) return routeToMenuIdMap;
+  routeToMenuIdMap = {};
+  const traverse = (items) => {
+    items.forEach(item => {
+      if (item.url) {
+        routeToMenuIdMap[item.url] = item.id;
+      }
+      if (item.children) {
+        traverse(item.children);
+      }
+    });
+  };
+  if (menuItems && menuItems.items) {
+    traverse(menuItems.items);
+  }
+  return routeToMenuIdMap;
+};
+
 /**
  * Check if the user has permission to view a route.
  * @param {string} routePath - The path of the route
  * @param {string} role - The user's role (string)
- * @param {object} permissions - The permissions object from Redux state
+ * @param {object|array} permissions - The permissions object or array from Redux state
  * @param {array} fallbackRoles - The hardcoded array of roles from the route config
  * @returns {boolean}
  */
 export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) => {
+  const standardRoles = ['superadmin', 'stateadmin', 'dtorto', 'devicemanufacture', 'dealer', 'owner', 'esimprovider', 'sosadmin', 'teamlead', 'desk_ex', 'police_ex', 'ambulance_ex'];
+  const isCustomRole = role && !standardRoles.includes(role);
+
   // 1. Backward compatibility: if the role is explicitly in the hardcoded list, allow.
-  if (fallbackRoles && fallbackRoles.length > 0 && fallbackRoles.includes(role)) {
+  if (!isCustomRole && fallbackRoles && fallbackRoles.length > 0 && fallbackRoles.includes(role)) {
     return true;
   }
 
@@ -170,14 +214,36 @@ export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) =
   if (permissions) {
     // Try to find an exact or prefix match for the route
     const matchingKey = Object.keys(ROUTE_MODULE_MAP).find(path => routePath.startsWith(path));
+    let apiModule = null;
+    
     if (matchingKey) {
-      const apiModule = ROUTE_MODULE_MAP[matchingKey];
-      if (permissions[apiModule]) {
-        return permissions[apiModule].view === true || permissions[apiModule].can_view === true;
-      }
+      apiModule = ROUTE_MODULE_MAP[matchingKey];
     } else {
-      // If no mapping, we can try to allow if they have dashboard access as a baseline,
-      // but it's safer to deny if they don't match fallbackRoles.
+      // Fallback: Check if the route is defined in menu-items, and map it to its module
+      const map = getRouteToMenuIdMap();
+      const menuId = map[routePath];
+      if (menuId) {
+        apiModule = MENU_MODULE_MAP[menuId];
+      }
+    }
+
+    if (apiModule) {
+      let modPerms = null;
+      if (Array.isArray(permissions)) {
+        modPerms = permissions.find(p => p.module === apiModule);
+      } else {
+        modPerms = permissions[apiModule];
+      }
+
+      if (modPerms) {
+        const hasAccess = modPerms.view === true || modPerms.can_view === true;
+        if (hasAccess) return true;
+        if (isCustomRole) return false;
+      } else if (isCustomRole) {
+        return false;
+      }
+    } else if (isCustomRole && fallbackRoles && fallbackRoles.length > 0) {
+      return false;
     }
   }
 
