@@ -2039,42 +2039,130 @@ const MapComponent = ({
 
         poiVectorLayer.setVisible(true);
 
-        const lat = Number(selectedPoi.lat);
-        const lon = Number(selectedPoi.lon);
-
-
         const source = poiVectorLayer.getSource();
-
         source.clear();
 
-        const feature = new Feature({
-            geometry: new Point([lon, lat]),
-            poiData: selectedPoi,
-        });
+        try {
+            const location = JSON.parse(selectedPoi.location);
+            if (!Array.isArray(location) || location.length === 0) return;
 
-        feature.setStyle(
-            new Style({
-                image: new CircleStyle({
-                    radius: 10,
-                    fill: new Fill({ color: "red" }),
-                    stroke: new Stroke({
-                        color: "#fff",
-                        width: 2,
-                    }),
-                }),
-            })
-        );
+            let feature;
+            let focusCenter = null;
 
-        source.addFeature(feature);
+            switch (selectedPoi.mark_type) {
+                case "Point": {
+                    if (location[0] && location[0].length === 2) {
+                        const [lat, lon] = location[0];
+                        const longitude = Number(lon);
+                        const latitude = Number(lat);
+                        if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                            feature = new Feature({
+                                geometry: new Point([longitude, latitude]),
+                                poiData: selectedPoi,
+                            });
+                            focusCenter = [longitude, latitude];
+                        }
+                    }
+                    break;
+                }
 
+                case "Circle": {
+                    if (location[0] && location[0].length === 2) {
+                        const [lat, lon] = location[0];
+                        const longitude = Number(lon);
+                        const latitude = Number(lat);
+                        if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                            const radiusMeters = parseFloat(selectedPoi.radius) || 100;
+                            const metersPerDegree =
+                                111320 * Math.cos((latitude * Math.PI) / 180) || 111320;
+                            const radiusDegrees = radiusMeters / metersPerDegree;
+                            feature = new Feature({
+                                geometry: new Circle([longitude, latitude], radiusDegrees),
+                                poiData: selectedPoi,
+                            });
+                            focusCenter = [longitude, latitude];
+                        }
+                    }
+                    break;
+                }
 
+                case "Polygon": {
+                    if (location.length >= 3) {
+                        const polygonCoords = location
+                            .map((coord) => {
+                                if (coord && coord.length === 2) {
+                                    const [lat, lon] = coord;
+                                    const longitude = Number(lon);
+                                    const latitude = Number(lat);
+                                    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                                        return [longitude, latitude];
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter((coord) => coord !== null);
 
-        map.getView().animate({
-            center: [lon, lat],
-            zoom: 17,
-            duration: 1000,
-        });
+                        if (polygonCoords.length >= 3) {
+                            feature = new Feature({
+                                geometry: new Polygon([polygonCoords]),
+                                poiData: selectedPoi,
+                            });
+                            // Focus on centroid of first coordinate
+                            focusCenter = polygonCoords[0];
+                        }
+                    }
+                    break;
+                }
 
+                case "Road": {
+                    if (location.length >= 2) {
+                        const roadCoords = location
+                            .map((coord) => {
+                                if (coord && coord.length === 2) {
+                                    const [lat, lon] = coord;
+                                    const longitude = Number(lon);
+                                    const latitude = Number(lat);
+                                    if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+                                        return [longitude, latitude];
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter((coord) => coord !== null);
+
+                        if (roadCoords.length >= 2) {
+                            feature = new Feature({
+                                geometry: new LineString(roadCoords),
+                                poiData: selectedPoi,
+                            });
+                            // Focus on midpoint of the road
+                            const midIdx = Math.floor(roadCoords.length / 2);
+                            focusCenter = roadCoords[midIdx];
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    break;
+            }
+
+            if (feature) {
+                const styles = getPoiStyles(selectedPoi);
+                feature.setStyle(styles);
+                source.addFeature(feature);
+
+                if (focusCenter) {
+                    map.getView().animate({
+                        center: focusCenter,
+                        zoom: 17,
+                        duration: 1000,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error rendering selectedPoi on map:", selectedPoi?.id, error);
+        }
 
     }, [selectedPoi, map, poiVectorLayer]);
 
@@ -5967,11 +6055,15 @@ ${policeInfoRows || policeDetailsRows
             // Show hint inside overlay
             const hint = document.getElementById("get-direction-hint");
             if (hint) hint.style.display = "block";
+            // CLOSE VEHICLE POPUP IMMEDIATELY
+    if (dynamicOverlay) {
+        dynamicOverlay.setPosition(undefined);
+    }
         };
 
         container.addEventListener("click", handleGetDirectionClick);
         return () => container.removeEventListener("click", handleGetDirectionClick);
-    }, []);
+    }, [dynamicOverlay]);
 
     // Listen for map clicks when in destination-picking mode
     useEffect(() => {
