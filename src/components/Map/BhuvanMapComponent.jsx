@@ -20,16 +20,10 @@ import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
-import { fromLonLat } from "ol/proj";
-// import VectorLayer from "ol/layer/Vector";
-// import VectorSource from "ol/source/Vector";
-// import Feature from "ol/Feature";
-// import Point from "ol/geom/Point";
-// import { Style, Circle as CircleStyle, Fill, Stroke, Text } from "ol/style";
 
 /**
  * Reusable Bhuvan Map Component with OpenLayers
- * Supports Normal (Bhuvan) and Satellite (OSM) base layers
+ * Supports Normal (Bhuvan) and Satellite (OSM) base layerss
  * 
  * @param {Object} props
  * @param {Array} props.gpsData - Array of GPS data points to display as markers
@@ -50,30 +44,32 @@ import { fromLonLat } from "ol/proj";
  * @param {number} props.zoom - Initial zoom level (default: 10)
  */
 const BhuvanMapComponent = ({
-    level,
-    onDistrictClick,
-    erss=false,
     gpsData = [],
-    onZoomChange ,
-    data,
     policeData = [],
     pois = [],
     lookupPois,
+    data = [],
+    erss = false,
+    level,
+    onDistrictClick,
+    onCityClick,
+    onLocalityClick,
     width = "100%",
-    height = "100%",
+    height = "400px",
     onPolygonComplete,
     onMarkerClick,
     onMapReady,
+    onZoomChange,
     autoFit = false,
     focusEntry = null,
     markerLabelMode = "vehicle",
     showMapTypeToggle = true,
-    showDrawControls = false,//removed by ruteek
+    showDrawControls = true,
     showLogos = true,
     showSoiLayerPanel = true,
     defaultMapType = "normal",
     center = [91.7362, 26.1445], // Guwahati, Assam
-    zoom = 7,
+    zoom = 10,
     routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
 }) => {
     const poisForLookup = Array.isArray(lookupPois) ? lookupPois : pois;
@@ -87,8 +83,98 @@ const BhuvanMapComponent = ({
     const [drawVectorLayer, setDrawVectorLayer] = useState(null);
     const [drawInteraction, setDrawInteraction] = useState(null);
     const [poiVectorLayer, setPoiVectorLayer] = useState(null);
-   const lastSelectedRef = useRef(null);
-const levelRef = useRef(level);
+    const userHasInteractedRef = useRef(false);
+    const hasAutoFittedRef = useRef(false);
+    const vehicleFeatureRef = useRef({});
+    const vehicleTrailRef = useRef({});
+    const lastValidPositionRef = useRef({});
+
+    useEffect(() => {
+        if (!map || !onZoomChange) return;
+
+        const view = map.getView();
+        const handleZoomChange = () => {
+            const currentZoom = view.getZoom();
+            if (currentZoom !== undefined) {
+                onZoomChange(Math.round(currentZoom));
+            }
+        };
+
+        view.on('change:resolution', handleZoomChange);
+        
+        return () => {
+            view.un('change:resolution', handleZoomChange);
+        };
+    }, [map, onZoomChange]);
+
+    const isInsideIndia = (lon, lat) => {
+        // Approx bounding box for India
+        return (
+            lat >= 6 && lat <= 38 &&
+            lon >= 68 && lon <= 98
+        );
+    };
+
+    const getSmoothedPosition = (imei, newPoint) => {
+        if (!vehicleTrailRef.current[imei]) {
+            vehicleTrailRef.current[imei] = [];
+        }
+
+        const trail = vehicleTrailRef.current[imei];
+
+        trail.push(newPoint);
+
+        // Keep last 5 points only
+        if (trail.length > 5) {
+            trail.shift();
+        }
+
+        // Average
+        const avg = trail.reduce(
+            (acc, curr) => {
+                acc.lon += curr[0];
+                acc.lat += curr[1];
+                return acc;
+            },
+            { lon: 0, lat: 0 }
+        );
+        console.log("IMEI:", imei);
+        console.log("Trail:", trail);
+        console.log("Average:", [
+            avg.lon / trail.length,
+            avg.lat / trail.length
+        ]);
+
+        return [
+            avg.lon / trail.length,
+            avg.lat / trail.length
+        ];
+
+    };
+
+
+    const animateFeature = (feature, start, end, duration = 500) => {
+        const startTime = performance.now();
+
+        const animate = (time) => {
+            const elapsed = time - startTime;
+            const t = Math.min(elapsed / duration, 1);
+
+            const lon = start[0] + (end[0] - start[0]) * t;
+            const lat = start[1] + (end[1] - start[1]) * t;
+
+            feature.getGeometry().setCoordinates([lon, lat]);
+
+            if (t < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        console.log("Animating from:", start, "to:", end);
+
+        requestAnimationFrame(animate);
+    };
+
     useEffect(() => {
         const container = overlayElement.current;
         if (!container) return;
@@ -119,9 +205,6 @@ const levelRef = useRef(level);
 
         container.addEventListener("click", handleClick);
         return () => container.removeEventListener("click", handleClick);
-
-
-        
     }, []);
 
     // Map type state: 'normal' | 'satellite' | 'soi'
@@ -192,11 +275,7 @@ const levelRef = useRef(level);
 
     // Bhuvan WMS Configuration
     const resolveBhuvanWmsUrl = () => {
-        const envUrl = process.env.REACT_APP_BHUVAN_URL;
-        if (!envUrl) {
-            return "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms";
-        }
-
+        const envUrl = process.env.REACT_APP_BHUVAN_URL || "https://bhuvan-vec1.nrsc.gov.in";
         const normalizedUrl = envUrl.replace(/\/$/, "");
         if (normalizedUrl.includes("/bhuvan/gwc/service/wms")) {
             return normalizedUrl;
@@ -263,11 +342,14 @@ const levelRef = useRef(level);
         dealer: "#8E24AA",
         personal: "#43A047",
         prohibited_area: "#D81B60",
+        Prohibited_Area: "#D81B60",
         unauthorised_stop: "#D81B60",
         permitroute: "#FB8C00",
         tollgate: "#6D4C41",
         parking: "#00897B",
         no_parking: "#C62828",
+        NoParking: "#C62828",
+        noparking: "#C62828",
         villageboundary: "#5E35B1",
         cityboundary: "#3949AB",
         districtboundary: "#00838F",
@@ -482,7 +564,8 @@ const levelRef = useRef(level);
         };
 
         const iconScale = scaleByColor[color] || scaleByColor.default;
-        const labelGap = color === "grey" ? 15 : 5;
+        // Reducing labelGap to 0 to make it stick to the top
+        const labelGap = color === "grey" ? 5 : 0;
         const labelOffsetY = -(Math.round(iconScale * 1000) + labelGap);
 
         return new Style({
@@ -593,9 +676,9 @@ const levelRef = useRef(level);
                 make: "",
                 district: "",
                 speed_limit: "",
-                poi_id: "",
                 in_range: false,
                 poi_as_polygon: false,
+                poi_t: "",
             });
 
             const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
@@ -998,6 +1081,110 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         dynamicOverlay.getElement().style.display = "block";
     };
 
+
+
+    // Dynamic Markers (districts, cities, localities) from data prop
+    useEffect(() => {
+        if (!map || !data || data.length === 0) return;
+
+        const vectorSource = new VectorSource();
+        const counts = data.map(d => d.total_vehicle_count ?? d.total_devices ?? 1);
+        const minVehicles = Math.min(...counts);
+        const maxVehicles = Math.max(...counts);
+        
+        const fillColor = erss
+            ? "rgba(255, 0, 0, 0.7)"      // 🔴 RED for ERSS
+            : "rgba(14,165,233,0.6)";     // 🔵 default
+        const strokeColor = erss ? "#ff0000" : "#fff";
+
+        data.forEach(d => {
+            const lon = d.lon ?? d.longitude;
+            const lat = d.lat ?? d.latitude;
+            if (!lon || !lat) return;
+
+            const feature = new Feature({
+                geometry: new Point([lon, lat]),
+                name: d.city_village_name || d.district_name || d.locality_name || d.vehicle_reg_no,
+                vehicles: d.total_vehicle_count,
+                raw: d
+            });
+
+            // bubble size based on vehicles
+            const MIN_RADIUS = 20;
+            const MAX_RADIUS = 40;
+            const radius =
+                MIN_RADIUS +
+                (((d.total_vehicle_count ?? d.total_devices ?? 1) - minVehicles) /
+                    (maxVehicles - minVehicles || 1)) *
+                (MAX_RADIUS - MIN_RADIUS);
+
+            const label = level === "device" 
+                ? d.vehicle_reg_no 
+                : (d.total_vehicle_count ?? d.total_devices ?? "");
+
+            feature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: radius,
+                        fill: new Fill({ color: fillColor }),
+                        stroke: new Stroke({ color: strokeColor, width: 2 })
+                    }),
+                    text: new Text({
+                        text: String(label),   // ⭐ show count
+                        fill: new Fill({ color: "#fff" }),
+                        stroke: new Stroke({ color: "#000", width: 3 }),
+                        font: "bold 12px Arial",
+                        textAlign: "center",
+                        textBaseline: "middle"
+                    })
+                })
+            );
+
+            vectorSource.addFeature(feature);
+        });
+
+        const dataVectorLayer = new VectorLayer({
+            source: vectorSource,
+            zIndex: 5
+        });
+
+        map.addLayer(dataVectorLayer);
+
+        // Click handler for data markers
+        const clickHandler = (event) => {
+            map.forEachFeatureAtPixel(event.pixel, (feature) => {
+                const props = feature.get("raw");
+                if (!props) return;
+
+                // ⭐ Zoom into the clicked bubble
+                const view = map.getView();
+                view.animate({
+                    center: feature.getGeometry().getCoordinates(),
+                    zoom: (view.getZoom() || 7) + 2,
+                    duration: 500
+                });
+
+                if (level === "district") {
+                    onDistrictClick?.(props);
+                } else if (level === "city") {
+                    onCityClick?.(props);
+                } else if (level === "locality") {
+                    onLocalityClick?.(props);
+                }
+            });
+        };
+
+        map.on("singleclick", clickHandler);
+
+        return () => {
+            if (map) {
+                if (dataVectorLayer) map.removeLayer(dataVectorLayer);
+                map.un("singleclick", clickHandler);
+            }
+        };
+    }, [map, data, erss, level, onDistrictClick, onCityClick, onLocalityClick]);
+
+
     // Set the correct icon style based on data conditions and vehicle type
     const getIconStyle = (data, vehicleType, labelMode) => {
         const entryTime = new Date(data.entry_time);
@@ -1037,7 +1224,6 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
     // Initialize Normal Map (Bhuvan Layers)
     useEffect(() => {
-       
         if (mapType !== "normal" || !normalMapContainerRef.current) return;
 
         // Create the three WMS layers
@@ -1053,7 +1239,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
         const roadsLayer = new TileLayer({
             source: new XYZ({
-                url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
                 attributions: '&copy; OpenStreetMap contributors',
                 maxZoom: 20,
                 projection: "EPSG:3857"
@@ -1062,74 +1248,9 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
             minZoom: 11,
         });
 
-
-// Vector source for district markers
-    const vectorSource = new VectorSource();
-
-    // Add markers from JSON
-if (!Array.isArray(data) || data.length === 0) return;
-const counts = data.map(d => d.total_vehicle_count);
-const minVehicles = Math.min(...counts);
-const maxVehicles = Math.max(...counts);
-const fillColor = erss
-  ? "rgba(255, 0, 0, 0.7)"      // 🔴 RED for ERSS
-  : "rgba(14,165,233,0.6)";     // 🔵 default
-
-const strokeColor = erss ? "#ff0000" : "#fff";
-    data?.forEach(d => {
-
-      const feature = new Feature({
-        geometry: new Point([d.longitude, d.latitude]),
-        name: d.district_name,
-        vehicles: d.total_vehicle_count,
-          raw: d 
-      });
-
-      // bubble size based on vehicles
-      const MIN_RADIUS = 20;
-const MAX_RADIUS = 40;
-
-const radius =
-  MIN_RADIUS +
-  ((d.total_vehicle_count - minVehicles) /
-    (maxVehicles - minVehicles)) *
-    (MAX_RADIUS - MIN_RADIUS);
-
-      feature.setStyle(
-        new Style({
-          image: new CircleStyle({
-            radius: radius,
-            fill: new Fill({ color: fillColor }),
-            stroke: new Stroke({ color: strokeColor, width: 2 })
-          }),
-         
-    text: new Text({
-      text: String(d.total_vehicle_count),   // ⭐ show count
-      fill: new Fill({ color: "#fff" }),
-      stroke: new Stroke({ color: "#000", width: 3 }),
-      font: "bold 12px Arial",
-      textAlign: "center",
-      textBaseline: "middle"   })
-        })
-      );
-
-      vectorSource.addFeature(feature);
-
-    });
-
-    const vectorLayer = new VectorLayer({
-      source: vectorSource,
-      zIndex: 5,
-       
-    });
-
-
-
-
-
         const initialMap = new Map({
             target: normalMapContainerRef.current,
-            layers: [india3Layer, adminGroupLayer, roadsLayer,vectorLayer],
+            layers: [india3Layer, adminGroupLayer, roadsLayer],
 
             view: new View({
                 projection: "EPSG:4326",
@@ -1142,48 +1263,9 @@ const radius =
             pixelRatio: 1,
         });
 
- // ✅ CLICK EVENT
-    initialMap.on("singleclick", function (evt) {
-      initialMap.forEachFeatureAtPixel(evt.pixel, function (feature) {
-
-        const props = feature.get("raw");
-        lastSelectedRef.current = props; // ⭐ STORE LAST CLICKED
- const currentLevel = levelRef.current; 
-    if (currentLevel === "district") {
-      onDistrictClick?.(props);
-    }
-
-   
-        view.animate({
-          center: feature.getGeometry().getCoordinates(),
-          zoom: view.getZoom() + 4,
-          duration: 500
+        initialMap.on("movestart", () => {
+            userHasInteractedRef.current = true;
         });
-
-      });
-    });
-
-
-        /* ⭐ ADD THIS BLOCK HERE */
-const view = initialMap.getView();
-
-let lastZoom = Math.round(view.getZoom());
-
-view.on("change:resolution", () => {
-
-    const currentZoom = view.getZoom();
-
-    if (currentZoom !== lastZoom) {
-        lastZoom = currentZoom;
-
-        if (onZoomChange) {
-            onZoomChange(currentZoom);
-        }
-    }
-    
-
-});
-        
         // Initialize vector layer for markers
         const initialVectorLayer = new VectorLayer({
             source: new VectorSource(),
@@ -1280,15 +1362,14 @@ view.on("change:resolution", () => {
                 normalMapRef.current = null;
             }
         };
-    }, [mapType,data]);
-   
+    }, [mapType]);
 
     // Initialize SOI Map (Bhuvan base + skytron overlays)
     useEffect(() => {
         if (mapType !== "soi" || !soiMapContainerRef.current) return;
 
         try {
-            const geoserverURL = "https://map.gromed.in/geoserver/skytron/wms";
+            const geoserverURL = `${process.env.REACT_APP_GEOSERVER_URL || 'https://map.gromed.in/geoserver'}/skytron/wms`;
 
             const bhuvanIndia3Layer = new TileLayer({
                 source: (() => {
@@ -1310,7 +1391,7 @@ view.on("change:resolution", () => {
 
             const bhuvanRoadsLayer = new TileLayer({
                 source: new XYZ({
-                    url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+                    url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
                     attributions: '&copy; OpenStreetMap contributors',
                     maxZoom: 20,
                     projection: "EPSG:3857"
@@ -2145,7 +2226,7 @@ view.on("change:resolution", () => {
             const osmLayer = new TileLayer({
                 title: "OSM Satellite",
                 source: new XYZ({
-                    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                    url: process.env.REACT_APP_SATELLITE_TILE_URL || "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
                     attributions: " Esri",
                     maxZoom: 18,
                 }),
@@ -2284,9 +2365,20 @@ view.on("change:resolution", () => {
             vectorLayer.getSource().addFeatures(features);
 
             // Only auto-fit if autoFit prop is true and there are markers
-            if (autoFit && features.length > 0) {
+            if (
+                autoFit &&
+                features.length > 0 &&
+                !hasAutoFittedRef.current
+            ) {
                 const extent = vectorLayer.getSource().getExtent();
-                map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+
+                map.getView().fit(extent, {
+                    padding: [50, 50, 50, 50],
+                    maxZoom: 15
+                });
+
+                // ✅ lock after first auto zoom
+                hasAutoFittedRef.current = true;
             }
 
             // Handle map click to display the overlay and zoom to street level
@@ -2359,8 +2451,6 @@ view.on("change:resolution", () => {
                             }, 0);
                         }
                     })();
- 
-
 
                     // Zoom to street level when clicked (zoom level 18)
                     map.getView().animate({
@@ -2368,7 +2458,6 @@ view.on("change:resolution", () => {
                         zoom: 18,
                         duration: 500, // Animate the zoom for 500ms
                     });
-                   
                 });
             };
 
@@ -2388,9 +2477,105 @@ view.on("change:resolution", () => {
         dynamicOverlay,
         markerLabelMode,
         autoFit,
-        onMarkerClick
+        onMarkerClick,
     ]);
+    useEffect(() => {
+        if (!vectorLayer || !gpsData || gpsData.length === 0) return;
 
+        const source = vectorLayer.getSource();
+
+
+        // Merge all vehicle sources
+        const allVehicles = [
+            ...(gpsData || []).map(v => ({ ...v, markerCategory: "vehicle" })),
+            ...(policeData || []).map(v => ({ ...v, markerCategory: "police" })),
+        ];
+
+        allVehicles.forEach((data) => {
+            const imei =
+                data.device_imei ||
+                data.device?.device?.imei ||
+                data.Assignment?.call?.device?.device?.imei ||
+                data.id ||
+                data.vehicle_reg_no ||
+                JSON.stringify(data);
+
+            if (!imei) return;
+
+
+            const newCoord = [data.longitude, data.latitude];
+            // ✅ CHECK INDIA BOUNDARY
+            const isValidIndia = isInsideIndia(newCoord[0], newCoord[1]);
+
+            // ✅ If outside India → fallback to last valid
+            if (!isValidIndia) {
+                if (lastValidPositionRef.current[imei]) {
+                    newCoord = lastValidPositionRef.current[imei];
+                } else {
+                    // If no previous valid → skip this point completely
+                    return;
+                }
+            } else {
+                // ✅ Store valid coordinate
+                lastValidPositionRef.current[imei] = newCoord;
+            }
+
+            const smoothCoord = getSmoothedPosition(imei, newCoord);
+
+            let feature = vehicleFeatureRef.current[imei];
+
+            if (!feature) {
+                // CREATE feature first time
+                feature = new Feature({
+                    geometry: new Point(smoothCoord),
+                });
+
+                feature.setStyle(
+                    getIconStyle(data, data.vehicle_type, markerLabelMode)
+                );
+
+                vehicleFeatureRef.current[imei] = feature;
+                source.addFeature(feature);
+            } else {
+                // ANIMATE movement
+                const currentCoord =
+                    feature.getGeometry().getCoordinates();
+
+                animateFeature(feature, currentCoord, smoothCoord, 600);
+            }
+            // 🔍 DEBUG: RAW vs SMOOTH
+            const rawFeature = new Feature({
+                geometry: new Point(newCoord),
+            });
+
+            rawFeature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: 5,
+                        fill: new Fill({ color: "red" }), // RAW = RED
+                    }),
+                })
+            );
+
+            const smoothFeature = new Feature({
+                geometry: new Point(smoothCoord),
+            });
+
+            smoothFeature.setStyle(
+                new Style({
+                    image: new CircleStyle({
+                        radius: 5,
+                        fill: new Fill({ color: "green" }), // SMOOTH = GREEN
+                    }),
+                })
+            );
+
+            // Add to map
+            vectorLayer.getSource().addFeature(rawFeature);
+            vectorLayer.getSource().addFeature(smoothFeature);
+        });
+
+    }, [gpsData, vectorLayer]);
     // Render POIs
     useEffect(() => {
         if (!map || !poiVectorLayer) return;
@@ -2579,7 +2764,7 @@ view.on("change:resolution", () => {
                                     Satellite
                                 </Button>
                             </Tooltip>
-                            {/* <Tooltip title="SOI Map - Bhuvan base + SOI overlays">
+                            <Tooltip title="SOI Map - Bhuvan base + SOI overlays">
                                 <Button
                                     onClick={() => setMapType("soi")}
                                     variant={mapType === "soi" ? "contained" : "outlined"}
@@ -2591,7 +2776,7 @@ view.on("change:resolution", () => {
                                 >
                                     SOI
                                 </Button>
-                            </Tooltip> */}
+                            </Tooltip>
                         </ButtonGroup>
 
                         {mapType === "soi" && showSoiLayerPanel && (
@@ -2692,7 +2877,7 @@ view.on("change:resolution", () => {
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
-                                        bottom: "5px",
+                                        bottom: "20px",
                                         right: 0,
                                         height: "60px",
                                         width: "auto",
@@ -2747,7 +2932,7 @@ view.on("change:resolution", () => {
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
-                                        bottom: "5px",
+                                        bottom: "20px",
                                         right: 0,
                                         height: "60px",
                                         width: "auto",
@@ -2802,7 +2987,7 @@ view.on("change:resolution", () => {
                                     src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
                                     style={{
                                         position: "absolute",
-                                        bottom: "5px",
+                                        bottom: "20px",
                                         right: 0,
                                         height: "60px",
                                         width: "auto",

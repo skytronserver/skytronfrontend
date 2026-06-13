@@ -222,16 +222,16 @@ const ErssVehicleMap = ({erss, onBack, vehicles,data ,onDistrictClick,level, onZ
   return (
 
 <>
-
- {zoom >= 9 ? (
-  <RoadsMapComponent  onZoomChange={(z) => {
-    setZoom(z);
-    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
-  }} erss={erss} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick}/>
-) : (
-  <BhuvanMapComponent erss={true} onZoomChange={setZoom} data={data} onDistrictClick={onDistrictClick} level={level} />
-)}
-
+  <BhuvanMapComponent 
+    erss={erss} 
+    onZoomChange={setZoom} 
+    data={data} 
+    onDistrictClick={onDistrictClick} 
+    onCityClick={onCityClick} 
+    onLocalityClick={onLocalityClick} 
+    onBack={onBack}
+    level={level} 
+  />
 </>
 
 

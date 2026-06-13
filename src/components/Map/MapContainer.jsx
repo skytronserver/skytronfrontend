@@ -26,7 +26,7 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
         // India3 layer
         new TileLayer({
           source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+            url: `${process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in'}/bhuvan/gwc/service/wms`,
             params: {
               'LAYERS': 'india3',
               'TILED': true,
@@ -45,7 +45,7 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
         // Admin group layer (basemap)
         new TileLayer({
           source: new TileWMS({
-            url: process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
+            url: `${process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in'}/bhuvan/gwc/service/wms`,
             params: {
               'LAYERS': 'basemap%3Aadmin_group',
               'TILED': true,
@@ -65,7 +65,7 @@ export const MapContainer = ({ markers, selectedMarker, onMarkerClick }) => {
         // Roads layer
         new TileLayer({
           source: new XYZ({
-            url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+            url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
             attributions: '© OpenStreetMap contributors',
             maxZoom: 20,
             projection: "EPSG:3857"

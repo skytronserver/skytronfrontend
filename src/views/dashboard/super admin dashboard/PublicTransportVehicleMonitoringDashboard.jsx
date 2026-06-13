@@ -202,14 +202,15 @@ const DistrictVehicleMap = ({onBack, vehicles,data ,onDistrictClick,level, onZoo
   }, [vehicles]);
 const [zoom, setZoom] = useState(7);
   return (<>
-   {zoom >= 9 ? (
-  <RoadsMapComponent onZoomChange={(z) => {
-    setZoom(z);
-    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
-  }} data={data} onBack={onBack}  onDistrictClick={onDistrictClick} level={level}  onCityClick={onCityClick}  onLocalityClick={onLocalityClick} />
-) : (
-  <BhuvanMapComponent onZoomChange={setZoom} data={data} onDistrictClick={onDistrictClick} level={level}/>
-)}
+  <BhuvanMapComponent 
+    onZoomChange={setZoom} 
+    data={data} 
+    onDistrictClick={onDistrictClick} 
+    onCityClick={onCityClick} 
+    onLocalityClick={onLocalityClick} 
+    onBack={onBack}
+    level={level} 
+  />
 
 
     {/* <RoadsMapComponent/>

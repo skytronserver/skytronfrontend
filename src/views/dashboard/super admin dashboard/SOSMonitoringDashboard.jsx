@@ -821,24 +821,16 @@ total_assigned_calls:
                 </Stack>
               </Box>
               <Box sx={{ height: { xs: 320, md: '100%' }, flexGrow: 1 }}>
-
- {zoom >= 9 ? (
-  <RoadsMapComponent   erss={false}
-            data={mapData}
-          level={level}
-         onZoomChange={(z) => {
-    setZoom(z);
-    // onZoomChange?.(z);   // ⭐ PASS TO PARENT
-  }}
-          onBack={handleBack}
-  onDistrictClick={handleDistrictClick}
-  onCityClick={handleCityClick}
-  onLocalityClick={handleLocalityClick} />
-) : (
-  <BhuvanMapComponent onZoomChange={setZoom} data={mapData} onDistrictClick={handleDistrictClick} level={level} />
-)}
-
-                {/* <BhuvanMapComponent
+                <BhuvanMapComponent 
+                  erss={false}
+                  data={mapData}
+                  level={level}
+                  onZoomChange={setZoom}
+                  onBack={handleBack}
+                  onDistrictClick={handleDistrictClick}
+                  onCityClick={handleCityClick}
+                  onLocalityClick={handleLocalityClick}
+                />                {/* <BhuvanMapComponent
                  
                   gpsData={gpsData}
                   width="100%"
