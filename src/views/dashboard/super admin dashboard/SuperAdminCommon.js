@@ -23,7 +23,6 @@ import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
 import TileWMS from 'ol/source/TileWMS';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -31,7 +30,6 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import Style from 'ol/style/Style';
 import Icon from 'ol/style/Icon';
-import { fromLonLat } from 'ol/proj';
 import { createEmpty, extend as extendExtent, isEmpty as isEmptyExtent } from 'ol/extent';
 
 // Services
@@ -105,7 +103,8 @@ const DashboardMap = ({
       new TileLayer({
         source: new TileWMS({
           url:
-            `${process.env.REACT_APP_BHUVAN_URL || 'https://bhuvan-vec1.nrsc.gov.in'}/bhuvan/gwc/service/wms`,
+            process.env.REACT_APP_BHUVAN_URL ||
+            'https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms',
           params: {
             LAYERS: 'basemap%3Aadmin_group',
             TILED: true,
@@ -128,9 +127,10 @@ const DashboardMap = ({
 
     const initialMap = new Map({
       target: mapRef.current,
-      layers: [new TileLayer({ source: new OSM() }), createBhuvanWms(), vector],
+      layers: [createBhuvanWms(), vector],
       view: new View({
-        center: fromLonLat(center),
+        projection: 'EPSG:4326',
+        center,
         zoom
       })
     });
@@ -174,7 +174,7 @@ const DashboardMap = ({
 
         if (Number.isNaN(lat) || Number.isNaN(lon)) return null;
 
-        const coords = fromLonLat([lon, lat]);
+        const coords = [lon, lat];
         const feature = new Feature({
           geometry: new Point(coords),
           data: item
@@ -200,7 +200,7 @@ const DashboardMap = ({
       const lon = Number(item.longitude);
       if (Number.isNaN(lat) || Number.isNaN(lon)) continue;
 
-      extendExtent(extent, new Point(fromLonLat([lon, lat])).getExtent());
+      extendExtent(extent, new Point([lon, lat]).getExtent());
       matched += 1;
     }
 
