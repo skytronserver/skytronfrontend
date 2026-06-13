@@ -1,6 +1,3 @@
-
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
@@ -748,6 +745,146 @@ const getMarkerLabelText = (entry, mode = "vehicle") => {
     }
 };
 
+const COLUMN_LABELS = {
+    vehicle_registration_number: "Vehicle No",
+    imei: "IMEI",
+    entry_time: "Entry Time",
+    packet_type: "Packet Type",
+    alert_id: "Alert ID",
+    packet_status: "Packet Status",
+    gps_status: "GPS Status",
+    date: "Date",
+    time: "Time",
+    latitude: "Latitude",
+    latitude_dir: "Latitude Dir",
+    longitude: "Longitude",
+    longitude_dir: "Longitude Dir",
+    speed: "Speed",
+    heading: "Heading",
+    satellites: "Satellites",
+    altitude: "Altitude",
+    pdop: "PDOP",
+    hdop: "HDOP",
+    network_operator: "Network Operator",
+    ignition_status: "Ignition Status",
+    main_power_status: "Main Power Status",
+    main_input_voltage: "Main Input Voltage",
+    internal_battery_voltage: "Internal Battery Voltage",
+    emergency_status: "Emergency Status",
+    box_tamper_alert: "Box Tamper Alert",
+    gsm_signal_strength: "GSM Signal Strength",
+    mcc: "MCC",
+    mnc: "MNC",
+    lac: "LAC",
+    cell_id: "Cell ID",
+    nbr1_cell_id: "NBR1 Cell ID",
+    nbr1_lac: "NBR1 LAC",
+    nbr1_signal_strength: "NBR1 Signal",
+    nbr2_cell_id: "NBR2 Cell ID",
+    nbr2_lac: "NBR2 LAC",
+    nbr2_signal_strength: "NBR2 Signal",
+    nbr3_cell_id: "NBR3 Cell ID",
+    nbr3_lac: "NBR3 LAC",
+    nbr3_signal_strength: "NBR3 Signal",
+    nbr4_cell_id: "NBR4 Cell ID",
+    nbr4_lac: "NBR4 LAC",
+    nbr4_signal_strength: "NBR4 Signal",
+    digital_input_status: "Digital Input Status",
+    digital_output_status: "Digital Output Status",
+    frame_number: "Frame Number",
+    odometer: "Odometer",
+    packet_datetime: "Packet Datetime",
+    category_name: "Category",
+    max_speed: "Max Speed",
+    warn_speed: "Warn Speed",
+    vehicle_make: "Vehicle Make",
+    vehicle_model: "Vehicle Model",
+    engine_no: "Engine No",
+    chassis_no: "Chassis No",
+    sale_type: "Sale Type",
+    owner_name: "Owner Name",
+    owner_email: "Owner Email",
+    owner_mobile: "Owner Mobile",
+    owner_role: "Owner Role",
+    device_id: "Device ID",
+    dealer_name: "Dealer Name",
+    manufacturer_name: "Manufacturer Name",
+    tag_status: "Tag Status",
+    tagged_date: "Tagged Date",
+    nearest_poi: "Nearest POI",
+    nearest_police: "Nearest Police",
+};
+
+const getColumnValue = (entry, key) => {
+
+    switch (key) {
+
+        case "packet_status":
+            return resolvePacketTypeLabel(entry);
+
+        case "nearest_poi":
+            return resolveNearestPoiLabel(entry);
+
+        case "nearest_police":
+            return resolveNearestPoliceDetails(entry)?.name || "-";
+
+        case "category_name":
+            return (
+                entry?.device_tag_info?.category_info?.category ||
+                "-"
+            );
+
+        case "max_speed":
+            return (
+                entry?.device_tag_info?.category_info?.maxSpeed ||
+                "-"
+            );
+
+        case "warn_speed":
+            return (
+                entry?.device_tag_info?.category_info?.warnSpeed ||
+                "-"
+            );
+
+        case "owner_name":
+            return (
+                entry?.device_tag_info?.vehicle_owner?.users?.[0]?.name ||
+                "-"
+            );
+
+        case "owner_email":
+            return (
+                entry?.device_tag_info?.vehicle_owner?.users?.[0]?.email ||
+                "-"
+            );
+
+        case "owner_mobile":
+            return (
+                entry?.device_tag_info?.vehicle_owner?.users?.[0]?.mobile ||
+                "-"
+            );
+
+        case "dealer_name":
+            return (
+                entry?.device_tag_info?.device_info?.dealer?.company_name ||
+                "-"
+            );
+
+        case "manufacturer_name":
+            return (
+                entry?.device_tag_info?.device_info?.manufacturer?.company_name ||
+                "-"
+            );
+
+        case "ignition_status":
+            return Number(entry?.ignition_status) === 1
+                ? "ON"
+                : "OFF";
+
+        default:
+            return entry?.[key] ?? "-";
+    }
+};
 const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
     const displayLabel = getMarkerLabelText(entry, markerLabelMode) || "-";
     const isStale = isEntryStale15Min(entry);
@@ -909,7 +1046,8 @@ const MapComponent = ({
     pisBuses = [],
     pisStops = [],
     alertHeatmapData,
-    showAlertHeatmap
+    showAlertHeatmap,
+    selectedColumns = [],
 }) => {
     const overlayElement = useRef();
     const lastClickedVehicleRef = useRef(null);
@@ -5795,6 +5933,9 @@ ${policeInfoRows || policeDetailsRows
                 : "",
         ].join("");
 
+        const showSelectedOnly =
+    Array.isArray(selectedColumns) &&
+    selectedColumns.length > 0;
         overlayContent.innerHTML = `
 <div class="overlay-card">
 <div class="overlay-header">
@@ -5811,6 +5952,7 @@ ${policeInfoRows || policeDetailsRows
 <button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
 </div>
 
+${!showSelectedOnly ? `
 <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
 <div class="overlay-section">
 <div class="overlay-section-title">Vehicle Information</div>
@@ -5895,6 +6037,39 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 </div>
+
+` : `
+<div class="overlay-section">
+<div class="overlay-section-title">
+Selected Fields
+</div>
+
+<div class="overlay-section-body">
+
+${selectedColumns.map((key) => {
+    const label = COLUMN_LABELS[key] || key;
+    const value = getColumnValue(focusEntry, key);
+
+    return `
+    <div class="overlay-row">
+        <span class="overlay-label">${label}</span>
+        <span class="overlay-value">
+            ${
+                value !== null &&
+                value !== undefined &&
+                value !== ""
+                    ? String(value)
+                    : "-"
+            }
+        </span>
+    </div>
+    `;
+}).join("")}
+
+</div>
+</div>
+`}
+
 <div style="padding: 8px 10px 4px; border-top: 1px solid #f1f5f9; margin-top: 4px;">
 <button
   id="get-direction-btn"
@@ -5910,7 +6085,7 @@ ${policeInfoRows || policeDetailsRows
 
 </div>
 `;
-    }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
+    }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address, selectedColumns]);
 
     useEffect(() => {
         const container = overlayElement.current;
