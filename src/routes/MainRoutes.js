@@ -1,3 +1,4 @@
+import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -96,49 +97,7 @@ const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import(".
 const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/AIS140DeviceManufacturerRegistrationAdminReview")));
 const DeviceModelTechnicalOnboardingAdminList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingAdminList")));
 
-const PrivateRoute = ({ element, roles }) => {
-  const location = useLocation();
-  const myDecipher = decipherEncryption('skytrack')
-  const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
-  const data = userData && userData.split("-").map(item => myDecipher(item))
-  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated') || localStorage.getItem('isAuthenticated');
-  const userRoles = userData && data.length > 2 && data[1]; // Get the user role after login from redux store
-  
-  const permissions = (() => {
-    try {
-      const raw = sessionStorage.getItem('userPermissions') || localStorage.getItem('userPermissions');
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  })();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-  
-  const formattedPath = location.pathname;
-  const isAuthorized = canViewRoute(formattedPath, userRoles, permissions, roles);
-
-  if (!isAuthorized) {
-    // User does not have any of the required roles or module permissions
-    return <NotAuthorized />;
-  }
-  const normalizedRole = (userRoles || '').toLowerCase().trim();
-  const isRestrictedRole = ['teamlead', 'team_lead', 'team lead', 'sos_teamlead', 'desk_ex', 'desk_executive', 'desk executive', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'].includes(normalizedRole);
-  console.log(`[ACL] Route Check - Role: ${normalizedRole}, Env: ${SYSTEM_ENV}, Restricted: ${isRestrictedRole}`);
-
-  if (SYSTEM_ENV === 'prod') {
-    if (isRestrictedRole) {
-      return <NotAuthorized />;
-    }
-  } else if (SYSTEM_ENV === 'sos') {
-    if (!isRestrictedRole) {
-      return <NotAuthorized />;
-    }
-  }
-  return element;
-};
 
 const applyPrivateRoute = (route) => ({
   ...route,

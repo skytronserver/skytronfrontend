@@ -1,3 +1,4 @@
+import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
@@ -48,28 +49,7 @@ const LoginReport = Loadable(lazy(() => import("../views/reports/LoginReport")))
 const CreateEMTeam = Loadable(lazy(() => import("../views/sosManagement/CreateEMTeam")));
 const ListEmTeam = Loadable(lazy(() => import("../views/sosManagement/ListEmTeam")));
 const SOSTimestamp = Loadable(lazy(() => import("views/sosManagement/SOSTimestamp")));
-const PrivateRoute = ({ element, roles }) => {
-  const myDecipher = decipherEncryption("skytrack");
-  const userData = sessionStorage.getItem("cookiesData") || localStorage.getItem("cookiesData");
-  const data = userData && userData.split("-").map((item) => myDecipher(item));
-  const isAuthenticated =
-    useSelector((state) => state.login.user.isAuthenticated) ||
-    sessionStorage.getItem("isAuthenticated") ||
-    localStorage.getItem("isAuthenticated");
-  const userRoles = data && data.length > 2 && data[1]; // Get the user role after login from redux store
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-  if (
-    roles &&
-    roles.length > 0 &&
-    !roles.some((role) => userRoles.includes(role))
-  ) {
-    // User does not have any of the required roles
-    return <NotAuthorized />;
-  }
-  return element;
-};
+
 
 const applyPrivateRoute = (route) => ({
   ...route,

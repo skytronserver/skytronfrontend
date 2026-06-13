@@ -118,6 +118,31 @@ export const ROUTE_MODULE_MAP = {
   "/manufacturer/tickets": "complaint",
 };
 
+let expandedMenuModuleMap = null;
+const getExpandedMenuModuleMap = () => {
+  if (expandedMenuModuleMap) return expandedMenuModuleMap;
+  expandedMenuModuleMap = { ...MENU_MODULE_MAP };
+  
+  const traverse = (items, currentModule) => {
+    items.forEach(item => {
+      const itemModule = MENU_MODULE_MAP[item.id] || currentModule;
+      
+      if (itemModule && !expandedMenuModuleMap[item.id]) {
+        expandedMenuModuleMap[item.id] = itemModule;
+      }
+      
+      if (item.children) {
+        traverse(item.children, itemModule);
+      }
+    });
+  };
+  
+  if (menuItems && menuItems.items) {
+    traverse(menuItems.items, null);
+  }
+  return expandedMenuModuleMap;
+};
+
 /**
  * Check if the user has permission to view a menu item.
  * @param {string} menuId - The ID of the menu item (from menu-items config)
@@ -137,7 +162,8 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
 
   // 2. Dynamic RBAC check
   if (permissions) {
-    const apiModule = MENU_MODULE_MAP[menuId];
+    const map = getExpandedMenuModuleMap();
+    const apiModule = map[menuId];
     if (apiModule) {
       let modPerms = null;
       if (Array.isArray(permissions)) {
@@ -223,7 +249,8 @@ export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) =
       const map = getRouteToMenuIdMap();
       const menuId = map[routePath];
       if (menuId) {
-        apiModule = MENU_MODULE_MAP[menuId];
+        const expandedMap = getExpandedMenuModuleMap();
+        apiModule = expandedMap[menuId];
       }
     }
 

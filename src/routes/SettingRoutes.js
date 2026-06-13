@@ -1,3 +1,4 @@
+import PrivateRoute from './PrivateRoute';
 import { Navigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import IPSetting from "../views/settings/IPSetting";
@@ -33,22 +34,6 @@ import PermissionManagement from "../views/settings/PermissionManagement";
 import CustomUserManagement from "../views/user/CustomUserManagement";
 import CustomAlertManagement from "../views/settings/CustomAlertManagement";
 
-const PrivateRoute = ({ element, roles }) => {
-  const myDecipher = decipherEncryption('skytrack')
-  const userData = sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
-  const data = userData && userData.split("-").map(item => myDecipher(item))
-  const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated) || sessionStorage.getItem('isAuthenticated') || localStorage.getItem('isAuthenticated');
-  const userRoles = data && data.length > 2 && data[1];
-
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-  if (roles && roles.length > 0 && !roles.some(role => userRoles.includes(role))) {
-    // User does not have any of the required roles
-    return <NotAuthorized />;
-  }
-  return element;
-};
 
 const applyPrivateRoute = (route) => ({
   ...route,
