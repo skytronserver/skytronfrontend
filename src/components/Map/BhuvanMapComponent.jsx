@@ -59,6 +59,7 @@ const BhuvanMapComponent = ({
     onPolygonComplete,
     onMarkerClick,
     onMapReady,
+    onZoomChange,
     autoFit = false,
     focusEntry = null,
     markerLabelMode = "vehicle",
@@ -87,6 +88,24 @@ const BhuvanMapComponent = ({
     const vehicleFeatureRef = useRef({});
     const vehicleTrailRef = useRef({});
     const lastValidPositionRef = useRef({});
+
+    useEffect(() => {
+        if (!map || !onZoomChange) return;
+
+        const view = map.getView();
+        const handleZoomChange = () => {
+            const currentZoom = view.getZoom();
+            if (currentZoom !== undefined) {
+                onZoomChange(Math.round(currentZoom));
+            }
+        };
+
+        view.on('change:resolution', handleZoomChange);
+        
+        return () => {
+            view.un('change:resolution', handleZoomChange);
+        };
+    }, [map, onZoomChange]);
 
     const isInsideIndia = (lon, lat) => {
         // Approx bounding box for India
