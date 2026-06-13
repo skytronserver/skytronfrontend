@@ -5944,13 +5944,7 @@ ${policeInfoRows || policeDetailsRows
 </div>
 <div class="overlay-pill ${pillClass}">${pillText}</div>
 </div>
-<div class="overlay-tabs" data-overlay-tabs>
-<div class="overlay-tab-list" role="tablist">
-<button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
-<button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
-<button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
-<button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
-</div>
+
 
 ${!showSelectedOnly ? `
 <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
@@ -5958,28 +5952,16 @@ ${!showSelectedOnly ? `
 <div class="overlay-section-title">Vehicle Information</div>
 <div class="overlay-section-body">
 <div class="overlay-row">
-<span class="overlay-label">Packet Status</span>
-<span class="overlay-value">${packetTypeLabel}</span>
+<span class="overlay-label">Vehicle No</span>
+<span class="overlay-value">${focusEntry.vehicle_registration_number || "-"}</span>
 </div>
 <div class="overlay-row">
-<span class="overlay-label">Date</span>
-<span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
+<span class="overlay-label">IMEI</span>
+<span class="overlay-value">${focusEntry.imei || "-"}</span>
 </div>
 <div class="overlay-row">
-<span class="overlay-label">Time</span>
-<span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Speed</span>
-<span class="overlay-value">${speedValue} km/h</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Category</span>
-<span class="overlay-value">${(focusEntry?.device_tag_info?.category_info?.category || focusEntry?.category || "-").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Battery</span>
-<span class="overlay-value">${focusEntry.internal_battery_voltage || "-"} - ${focusEntry.main_input_voltage || "-"}</span>
+<span class="overlay-label">Alert Id</span>
+<span class="overlay-value">${focusEntry.alert_id || "-"}</span>
 </div>
 <div class="overlay-row">
 <span class="overlay-label">Latitude</span>
@@ -5993,50 +5975,6 @@ ${!showSelectedOnly ? `
 </div>
 </div>
 
-<div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-body">
-<div class="overlay-row overlay-row--multiline">
-<span class="overlay-label">Address</span>
-<span class="overlay-value overlay-value--multiline">${focusEntry.address || '-'}</span>
-</div>
-<div class="overlay-row overlay-row--multiline">
-<span class="overlay-label">Nearest Poi</span>
-<span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Route Information</div>
-<div class="overlay-section-body">
-<!-- Basic Route Info -->
-<div class="overlay-row">
-<span class="overlay-label">Route Name</span>
-<span class="overlay-value">${routeName}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Route ID</span>
-<span class="overlay-value">${routeId}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Police Support</div>
-<div class="overlay-section-body">
-${policeInfoRows || policeDetailsRows
-                ? `${policeInfoRows}${policeDetailsRows}`
-                : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
-            }
-</div>
-</div>
-</div>
-</div>
 
 ` : `
 <div class="overlay-section">

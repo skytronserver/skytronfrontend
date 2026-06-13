@@ -215,6 +215,16 @@ const COLUMN_OPTIONS = [
   { key: "nearest_police", label: "Nearest Police" }
 ];
 
+const DEFAULT_COLUMNS = [
+  "vehicle_registration_number",
+  "imei",
+  "owner_name",
+  "latitude",
+  "longitude",
+  "speed",
+  "alert_id",
+];
+
 const [selectedColumns, setSelectedColumns] = useState([]);
   const ALERT_TYPES = [
     "HarshBreak",
@@ -1520,7 +1530,9 @@ switch (key) {
     ? COLUMN_OPTIONS.filter((col) =>
         selectedColumns.includes(col.key)
       )
-    : COLUMN_OPTIONS;
+    : COLUMN_OPTIONS.filter((col) =>
+        DEFAULT_COLUMNS.includes(col.key)
+      );
   return (
     <MainCard>
       <Typography variant="h4">{t('liveTracking.title')}</Typography>
