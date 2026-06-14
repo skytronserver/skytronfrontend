@@ -319,7 +319,7 @@ const TicketDetail = () => {
                           primary={att.file_name}
                           secondary={formatDateTime(att.uploaded_at)}
                         />
-                        <Button size="small" variant="outlined" href={`${process.env.REACT_APP_BASE_URL}${att.file_path}`} target="_blank" rel="noreferrer">
+                        <Button size="small" variant="outlined" href={`${process.env.REACT_APP_BASE_URL}files/${att.file_path}`} target="_blank" rel="noreferrer">
                           View
                         </Button>
                       </ListItem>
@@ -341,7 +341,7 @@ const TicketDetail = () => {
                   <Typography variant="body2" color="text.disabled">No resolution submitted yet.</Typography>
                 )}
                 {ticket.final_report_file && (
-                  <Button size="small" variant="outlined" href={`${process.env.REACT_APP_BASE_URL}${ticket.final_report_file}`} target="_blank" rel="noreferrer" sx={{ mt: 1 }}>
+                  <Button size="small" variant="outlined" href={`${process.env.REACT_APP_BASE_URL}files/${ticket.final_report_file}`} target="_blank" rel="noreferrer" sx={{ mt: 1 }}>
                     Download Final Report
                   </Button>
                 )}
