@@ -1,6 +1,3 @@
-
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
@@ -748,6 +745,146 @@ const getMarkerLabelText = (entry, mode = "vehicle") => {
     }
 };
 
+const COLUMN_LABELS = {
+    vehicle_registration_number: "Vehicle No",
+    imei: "IMEI",
+    entry_time: "Entry Time",
+    packet_type: "Packet Type",
+    alert_id: "Alert ID",
+    packet_status: "Packet Status",
+    gps_status: "GPS Status",
+    date: "Date",
+    time: "Time",
+    latitude: "Latitude",
+    latitude_dir: "Latitude Dir",
+    longitude: "Longitude",
+    longitude_dir: "Longitude Dir",
+    speed: "Speed",
+    heading: "Heading",
+    satellites: "Satellites",
+    altitude: "Altitude",
+    pdop: "PDOP",
+    hdop: "HDOP",
+    network_operator: "Network Operator",
+    ignition_status: "Ignition Status",
+    main_power_status: "Main Power Status",
+    main_input_voltage: "Main Input Voltage",
+    internal_battery_voltage: "Internal Battery Voltage",
+    emergency_status: "Emergency Status",
+    box_tamper_alert: "Box Tamper Alert",
+    gsm_signal_strength: "GSM Signal Strength",
+    mcc: "MCC",
+    mnc: "MNC",
+    lac: "LAC",
+    cell_id: "Cell ID",
+    nbr1_cell_id: "NBR1 Cell ID",
+    nbr1_lac: "NBR1 LAC",
+    nbr1_signal_strength: "NBR1 Signal",
+    nbr2_cell_id: "NBR2 Cell ID",
+    nbr2_lac: "NBR2 LAC",
+    nbr2_signal_strength: "NBR2 Signal",
+    nbr3_cell_id: "NBR3 Cell ID",
+    nbr3_lac: "NBR3 LAC",
+    nbr3_signal_strength: "NBR3 Signal",
+    nbr4_cell_id: "NBR4 Cell ID",
+    nbr4_lac: "NBR4 LAC",
+    nbr4_signal_strength: "NBR4 Signal",
+    digital_input_status: "Digital Input Status",
+    digital_output_status: "Digital Output Status",
+    frame_number: "Frame Number",
+    odometer: "Odometer",
+    packet_datetime: "Packet Datetime",
+    category_name: "Category",
+    max_speed: "Max Speed",
+    warn_speed: "Warn Speed",
+    vehicle_make: "Vehicle Make",
+    vehicle_model: "Vehicle Model",
+    engine_no: "Engine No",
+    chassis_no: "Chassis No",
+    sale_type: "Sale Type",
+    owner_name: "Owner Name",
+    owner_email: "Owner Email",
+    owner_mobile: "Owner Mobile",
+    owner_role: "Owner Role",
+    device_id: "Device ID",
+    dealer_name: "Dealer Name",
+    manufacturer_name: "Manufacturer Name",
+    tag_status: "Tag Status",
+    tagged_date: "Tagged Date",
+    nearest_poi: "Nearest POI",
+    nearest_police: "Nearest Police",
+};
+
+const getColumnValue = (entry, key) => {
+
+    switch (key) {
+
+        case "packet_status":
+            return resolvePacketTypeLabel(entry);
+
+        case "nearest_poi":
+            return resolveNearestPoiLabel(entry);
+
+        case "nearest_police":
+            return resolveNearestPoliceDetails(entry)?.name || "-";
+
+        case "category_name":
+            return (
+                entry?.device_tag_info?.category_info?.category ||
+                "-"
+            );
+
+        case "max_speed":
+            return (
+                entry?.device_tag_info?.category_info?.maxSpeed ||
+                "-"
+            );
+
+        case "warn_speed":
+            return (
+                entry?.device_tag_info?.category_info?.warnSpeed ||
+                "-"
+            );
+
+        case "owner_name":
+            return (
+                entry?.device_tag_info?.vehicle_owner?.users?.[0]?.name ||
+                "-"
+            );
+
+        case "owner_email":
+            return (
+                entry?.device_tag_info?.vehicle_owner?.users?.[0]?.email ||
+                "-"
+            );
+
+        case "owner_mobile":
+            return (
+                entry?.device_tag_info?.vehicle_owner?.users?.[0]?.mobile ||
+                "-"
+            );
+
+        case "dealer_name":
+            return (
+                entry?.device_tag_info?.device_info?.dealer?.company_name ||
+                "-"
+            );
+
+        case "manufacturer_name":
+            return (
+                entry?.device_tag_info?.device_info?.manufacturer?.company_name ||
+                "-"
+            );
+
+        case "ignition_status":
+            return Number(entry?.ignition_status) === 1
+                ? "ON"
+                : "OFF";
+
+        default:
+            return entry?.[key] ?? "-";
+    }
+};
 const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
     const displayLabel = getMarkerLabelText(entry, markerLabelMode) || "-";
     const isStale = isEntryStale15Min(entry);
@@ -909,7 +1046,8 @@ const MapComponent = ({
     pisBuses = [],
     pisStops = [],
     alertHeatmapData,
-    showAlertHeatmap
+    showAlertHeatmap,
+    selectedColumns = [],
 }) => {
     const overlayElement = useRef();
     const lastClickedVehicleRef = useRef(null);
@@ -2917,6 +3055,7 @@ const MapComponent = ({
                 if (poiData) {
 
                     setPopupType("poi");
+                    console.log("POI CLICK DATA:", poiData);
                     setSelectedPoiData(poiData);
                     setSelectedTransitData(null);
 
@@ -5795,6 +5934,9 @@ ${policeInfoRows || policeDetailsRows
                 : "",
         ].join("");
 
+        const showSelectedOnly =
+    Array.isArray(selectedColumns) &&
+    selectedColumns.length > 0;
         overlayContent.innerHTML = `
 <div class="overlay-card">
 <div class="overlay-header">
@@ -5803,41 +5945,24 @@ ${policeInfoRows || policeDetailsRows
 </div>
 <div class="overlay-pill ${pillClass}">${pillText}</div>
 </div>
-<div class="overlay-tabs" data-overlay-tabs>
-<div class="overlay-tab-list" role="tablist">
-<button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
-<button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
-<button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
-<button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
-</div>
 
+
+${!showSelectedOnly ? `
 <div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
 <div class="overlay-section">
 <div class="overlay-section-title">Vehicle Information</div>
 <div class="overlay-section-body">
 <div class="overlay-row">
-<span class="overlay-label">Packet Status</span>
-<span class="overlay-value">${packetTypeLabel}</span>
+<span class="overlay-label">Vehicle No</span>
+<span class="overlay-value">${focusEntry.vehicle_registration_number || "-"}</span>
 </div>
 <div class="overlay-row">
-<span class="overlay-label">Date</span>
-<span class="overlay-value">${formatDateDDMMYY(focusEntry.date)}</span>
+<span class="overlay-label">IMEI</span>
+<span class="overlay-value">${focusEntry.imei || "-"}</span>
 </div>
 <div class="overlay-row">
-<span class="overlay-label">Time</span>
-<span class="overlay-value">${formatTimeHHMMSS(focusEntry.time)}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Speed</span>
-<span class="overlay-value">${speedValue} km/h</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Category</span>
-<span class="overlay-value">${(focusEntry?.device_tag_info?.category_info?.category || focusEntry?.category || "-").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Battery</span>
-<span class="overlay-value">${focusEntry.internal_battery_voltage || "-"} - ${focusEntry.main_input_voltage || "-"}</span>
+<span class="overlay-label">Alert Id</span>
+<span class="overlay-value">${focusEntry.alert_id || "-"}</span>
 </div>
 <div class="overlay-row">
 <span class="overlay-label">Latitude</span>
@@ -5851,50 +5976,39 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 
-<div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
+
+` : `
 <div class="overlay-section">
-<div class="overlay-section-body">
-<div class="overlay-row overlay-row--multiline">
-<span class="overlay-label">Address</span>
-<span class="overlay-value overlay-value--multiline">${focusEntry.address || '-'}</span>
-</div>
-<div class="overlay-row overlay-row--multiline">
-<span class="overlay-label">Nearest Poi</span>
-<span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
-</div>
-</div>
-</div>
+<div class="overlay-section-title">
+Selected Fields
 </div>
 
-<div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Route Information</div>
 <div class="overlay-section-body">
-<!-- Basic Route Info -->
-<div class="overlay-row">
-<span class="overlay-label">Route Name</span>
-<span class="overlay-value">${routeName}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Route ID</span>
-<span class="overlay-value">${routeId}</span>
-</div>
-</div>
-</div>
-</div>
 
-<div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Police Support</div>
-<div class="overlay-section-body">
-${policeInfoRows || policeDetailsRows
-                ? `${policeInfoRows}${policeDetailsRows}`
-                : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
+${selectedColumns.map((key) => {
+    const label = COLUMN_LABELS[key] || key;
+    const value = getColumnValue(focusEntry, key);
+
+    return `
+    <div class="overlay-row">
+        <span class="overlay-label">${label}</span>
+        <span class="overlay-value">
+            ${
+                value !== null &&
+                value !== undefined &&
+                value !== ""
+                    ? String(value)
+                    : "-"
             }
+        </span>
+    </div>
+    `;
+}).join("")}
+
 </div>
 </div>
-</div>
-</div>
+`}
+
 <div style="padding: 8px 10px 4px; border-top: 1px solid #f1f5f9; margin-top: 4px;">
 <button
   id="get-direction-btn"
@@ -5910,7 +6024,7 @@ ${policeInfoRows || policeDetailsRows
 
 </div>
 `;
-    }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
+    }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address, selectedColumns]);
 
     useEffect(() => {
         const container = overlayElement.current;
@@ -6621,26 +6735,36 @@ ${policeInfoRows || policeDetailsRows
 
         const draw = new Draw({
             source: drawSourceRef.current,
-            type: "LineString", // Polyline
+            type: "Polygon", // Polyline
         });
 
         map.addInteraction(draw);
         setDrawInteraction(draw);
 
-        draw.on("drawend", (event) => {
-            console.log("DRAW END");
+       draw.on("drawend", (event) => {
+    console.log("DRAW END");
 
-            const feature = event.feature;
+    const feature = event.feature;
+    const geometry = feature.getGeometry();
 
-            console.log(
-                "FEATURE COUNT:",
-                drawSourceRef.current.getFeatures().length
-            );
+    if (geometry.getType() === "Polygon") {
 
-            // keep feature on map
-            map.removeInteraction(draw);
-            setDrawInteraction(null);
-        });
+        const coordinates =
+            geometry.getCoordinates()[0];
+
+        console.log(
+            "POLYGON COORDS:",
+            coordinates
+        );
+
+        if (onPolygonComplete) {
+            onPolygonComplete(coordinates);
+        }
+    }
+
+    map.removeInteraction(draw);
+    setDrawInteraction(null);
+});
     };
 
     // const clearPolygon = () => {
@@ -7755,45 +7879,126 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 ref={poiTransitOverlayElement}
                 className="ol-popup"
             >
-                {popupType === "poi" &&
-                    selectedPoiData && (
-                        <div style={{
-                            padding: "10px", background: "#fff",
-                            borderRadius: "10px",
-                            border: "1px solid #ddd",
-                            boxShadow: "0 4px 20px rgba(0,0,0,.25)",
-                        }}>
-                            <h3>POI Details</h3>
+         {popupType === "poi" && selectedPoiData && (
+    <div
+        style={{
+            width: "280px",
+            background: "#fff",
+            borderRadius: "6px",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+            padding: "12px",
+            position: "relative",
+            fontFamily: "Arial, sans-serif",
+        }}
+    >
+        {/* Close Button */}
+        <div
+            onClick={() => {
+                setSelectedPoiData(null);
+                setPopupType(null);
+            }}
+            style={{
+                position: "absolute",
+                top: "8px",
+                right: "10px",
+                cursor: "pointer",
+                color: "#777",
+                fontSize: "18px",
+                fontWeight: "bold",
+            }}
+        >
+            ×
+        </div>
 
-                            <table style={{ width: "100%" }}>
-                                <tbody>
-                                    {Object.entries(selectedPoiData).map(
-                                        ([key, value]) => (
-                                            <tr key={key}>
-                                                <td
-                                                    style={{
-                                                        fontWeight: "bold",
-                                                        padding: "6px",
-                                                    }}
-                                                >
-                                                    {key}
-                                                </td>
+        {/* POI Name */}
+        <div
+            style={{
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "#4a5568",
+                marginBottom: "4px",
+            }}
+        >
+            {selectedPoiData?.name || "-"}
+        </div>
 
-                                                <td
-                                                    style={{
-                                                        padding: "6px",
-                                                    }}
-                                                >
-                                                    {String(value ?? "-")}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+        {/* POI Type / Subtitle */}
+        <div
+            style={{
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#718096",
+                marginBottom: "4px",
+            }}
+        >
+            {selectedPoiData?.area || "-"}
+        </div>
 
-                    )}
+        {/* Address */}
+        <div
+            style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                lineHeight: "1.4",
+                marginBottom: "8px",
+            }}
+        >
+            {selectedPoiData?.address || "-"}
+        </div>
+
+        {/* Phone */}
+        <div
+            style={{
+                fontSize: "13px",
+                color: "#4b5563",
+                marginBottom: "10px",
+            }}
+        >
+            <strong>Phone:</strong>{" "}
+            {selectedPoiData?.phone || "-"}
+        </div>
+
+        {/* Tags */}
+        <div
+            style={{
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap",
+            }}
+        >
+            {/* School Tag */}
+            <span
+                style={{
+                    background: "#2196f3",
+                    color: "#fff",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                }}
+            >
+                {selectedPoiData?.use_type || "POI"}
+            </span>
+
+            {/* Active Tag */}
+            <span
+                style={{
+                    background:
+                        selectedPoiData?.status === "Active"
+                            ? "#22c55e"
+                            : "#ef4444",
+                    color: "#fff",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                }}
+            >
+                {selectedPoiData?.status || "Inactive"}
+            </span>
+        </div>
+    </div>
+)}
 
                 {popupType === "transit" &&
                     selectedTransitData && (

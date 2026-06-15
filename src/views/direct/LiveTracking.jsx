@@ -111,7 +111,121 @@ const LiveTracking = () => {
   const [showAlertHeatmap, setShowAlertHeatmap] = useState(false);
 
   const [selectedAlertTypes, setSelectedAlertTypes] = useState([]);
+const COLUMN_OPTIONS = [
+  // Vehicle
+  { key: "vehicle_registration_number", label: "Vehicle No" },
+  { key: "imei", label: "IMEI" },
 
+  // Packet
+  { key: "entry_time", label: "Entry Time" },
+  { key: "packet_type", label: "Packet Type" },
+  { key: "alert_id", label: "Alert ID" },
+  { key: "packet_status", label: "Packet Status" },
+  { key: "gps_status", label: "GPS Status" },
+
+  // Location
+  { key: "date", label: "Date" },
+  { key: "time", label: "Time" },
+  { key: "latitude", label: "Latitude" },
+  { key: "latitude_dir", label: "Latitude Dir" },
+  { key: "longitude", label: "Longitude" },
+  { key: "longitude_dir", label: "Longitude Dir" },
+
+  // Telemetry
+  { key: "speed", label: "Speed" },
+  { key: "heading", label: "Heading" },
+  { key: "satellites", label: "Satellites" },
+  { key: "altitude", label: "Altitude" },
+  { key: "pdop", label: "PDOP" },
+  { key: "hdop", label: "HDOP" },
+
+  // Power
+  { key: "network_operator", label: "Network Operator" },
+  { key: "ignition_status", label: "Ignition Status" },
+  { key: "main_power_status", label: "Main Power Status" },
+  { key: "main_input_voltage", label: "Main Input Voltage" },
+  { key: "internal_battery_voltage", label: "Internal Battery Voltage" },
+
+  // Alerts
+  { key: "emergency_status", label: "Emergency Status" },
+  { key: "box_tamper_alert", label: "Box Tamper Alert" },
+
+  // GSM
+  { key: "gsm_signal_strength", label: "GSM Signal Strength" },
+  { key: "mcc", label: "MCC" },
+  { key: "mnc", label: "MNC" },
+  { key: "lac", label: "LAC" },
+  { key: "cell_id", label: "Cell ID" },
+
+  // Neighbour Towers
+  { key: "nbr1_cell_id", label: "NBR1 Cell ID" },
+  { key: "nbr1_lac", label: "NBR1 LAC" },
+  { key: "nbr1_signal_strength", label: "NBR1 Signal" },
+
+  { key: "nbr2_cell_id", label: "NBR2 Cell ID" },
+  { key: "nbr2_lac", label: "NBR2 LAC" },
+  { key: "nbr2_signal_strength", label: "NBR2 Signal" },
+
+  { key: "nbr3_cell_id", label: "NBR3 Cell ID" },
+  { key: "nbr3_lac", label: "NBR3 LAC" },
+  { key: "nbr3_signal_strength", label: "NBR3 Signal" },
+
+  { key: "nbr4_cell_id", label: "NBR4 Cell ID" },
+  { key: "nbr4_lac", label: "NBR4 LAC" },
+  { key: "nbr4_signal_strength", label: "NBR4 Signal" },
+
+  // Digital
+  { key: "digital_input_status", label: "Digital Input Status" },
+  { key: "digital_output_status", label: "Digital Output Status" },
+
+  // Misc
+  { key: "frame_number", label: "Frame Number" },
+  { key: "odometer", label: "Odometer" },
+  { key: "packet_datetime", label: "Packet Datetime" },
+
+  // Category
+  { key: "category_name", label: "Category" },
+  { key: "max_speed", label: "Max Speed" },
+  { key: "warn_speed", label: "Warn Speed" },
+
+  // Vehicle Details
+  { key: "vehicle_make", label: "Vehicle Make" },
+  { key: "vehicle_model", label: "Vehicle Model" },
+  { key: "engine_no", label: "Engine No" },
+  { key: "chassis_no", label: "Chassis No" },
+  { key: "sale_type", label: "Sale Type" },
+
+  // Owner Details
+  { key: "owner_name", label: "Owner Name" },
+  { key: "owner_email", label: "Owner Email" },
+  { key: "owner_mobile", label: "Owner Mobile" },
+  { key: "owner_role", label: "Owner Role" },
+
+  // Device Details
+  { key: "device_id", label: "Device ID" },
+  { key: "dealer_name", label: "Dealer Name" },
+  { key: "manufacturer_name", label: "Manufacturer Name" },
+
+  // Status
+  { key: "tag_status", label: "Tag Status" },
+  { key: "tagged_date", label: "Tagged Date" },
+
+  // Nearby
+  { key: "nearest_poi", label: "Nearest POI" },
+  { key: "nearest_police", label: "Nearest Police" }
+];
+
+const DEFAULT_COLUMNS = [
+  "vehicle_registration_number",
+  "imei",
+  "owner_name",
+  "latitude",
+  "longitude",
+  "speed",
+  "alert_id",
+];
+
+const [selectedColumns, setSelectedColumns] = useState([]);
   const ALERT_TYPES = [
     "HarshBreak",
     "HarshAcceleration",
@@ -122,6 +236,43 @@ const LiveTracking = () => {
     "LowExtBat",
     "ExtBatDiscnt",
   ];
+  const handlePolygonComplete = async (coords) => {
+  try {
+    console.log("Polygon Received:", coords);
+
+    // API expects polygon string
+    const polygonString = JSON.stringify(coords);
+
+    setPolygon(polygonString);
+
+    const response = await HomePageService.getLiveTracking_data({
+      imei: "",
+      regno: "",
+      owner,
+      poi: "",
+      roads: "",
+      polygon: polygonString,
+      category,
+      make: "",
+      district: "",
+      speed_limit: "",
+      in_range: false,
+      poi_t: "",
+    });
+
+    const apiData = response?.data?.data || [];
+console.log("Polygon Vehicles:", apiData);
+    console.log("Polygon Vehicles:", apiData);
+
+    const processedData = apiData.map(computeRow);
+
+setFilteredData(processedData);
+setTableDataTop(processedData);
+
+  } catch (error) {
+    console.error("Polygon API Error:", error);
+  }
+};
   const alertDropdownRef =
     useRef(null);
   const [alertPanelOpen, setAlertPanelOpen] =
@@ -1331,6 +1482,61 @@ const LiveTracking = () => {
 
   const getDisplayCellValue = (row, key) => {
     if (!row) return "";
+switch (key) {
+  case "category_name":
+    return row?.device_tag_info?.category_info?.category || "-";
+
+  case "max_speed":
+    return row?.device_tag_info?.category_info?.maxSpeed || "-";
+
+  case "warn_speed":
+    return row?.device_tag_info?.category_info?.warnSpeed || "-";
+
+  case "vehicle_make":
+    return row?.device_tag_info?.vehicle_make || "-";
+
+  case "vehicle_model":
+    return row?.device_tag_info?.vehicle_model || "-";
+
+  case "engine_no":
+    return row?.device_tag_info?.engine_no || "-";
+
+  case "chassis_no":
+    return row?.device_tag_info?.chassis_no || "-";
+
+  case "sale_type":
+    return row?.device_tag_info?.sale_type || "-";
+
+  case "owner_name":
+    return row?.device_tag_info?.vehicle_owner?.users?.[0]?.name || "-";
+
+  case "owner_email":
+    return row?.device_tag_info?.vehicle_owner?.users?.[0]?.email || "-";
+
+  case "owner_mobile":
+    return row?.device_tag_info?.vehicle_owner?.users?.[0]?.mobile || "-";
+
+  case "owner_role":
+    return row?.device_tag_info?.vehicle_owner?.users?.[0]?.role || "-";
+
+  case "device_id":
+    return row?.device_tag_info?.device_info?.id || "-";
+
+  case "dealer_name":
+    return row?.device_tag_info?.device_info?.dealer?.company_name || "-";
+
+  case "manufacturer_name":
+    return row?.device_tag_info?.device_info?.manufacturer?.company_name || "-";
+
+  case "tag_status":
+    return row?.device_tag_info?.status || "-";
+
+  case "tagged_date":
+    return row?.device_tag_info?.tagged || "-";
+
+   default:
+      break;
+  }
 
     if (key === "packet_type" || key === "packet_status") {
       const entryTimeMs = resolveEntryTimestampMs(row);
@@ -1356,7 +1562,14 @@ const LiveTracking = () => {
       ""
     );
   };
-
+   const visibleColumns =
+  selectedColumns.length > 0
+    ? COLUMN_OPTIONS.filter((col) =>
+        selectedColumns.includes(col.key)
+      )
+    : COLUMN_OPTIONS.filter((col) =>
+        DEFAULT_COLUMNS.includes(col.key)
+      );
   return (
     <MainCard>
       <Typography variant="h4">{t('liveTracking.title')}</Typography>
@@ -2100,7 +2313,7 @@ const LiveTracking = () => {
             onVehicleClick={handleVehicleMarkerClick}
             width="100%"
             height={selectedId ? "400px" : "600px"}
-            onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
+            //onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
             focusEntry={focusedEntry}
             markerLabelMode={markerLabelMode}
             nmrArea={nmrArea}
@@ -2118,23 +2331,69 @@ const LiveTracking = () => {
             showAlertHeatmap={
               showAlertHeatmap
             }
+            selectedColumns={selectedColumns}
+            onPolygonComplete={handlePolygonComplete}
           />
         </div>
       </div>
 
+<FormControl size="small" sx={{ minWidth: 220, mb: 1 }}>
+  <InputLabel>Select Columns</InputLabel>
+
+  <Select
+    multiple
+    value={selectedColumns}
+    label="Select Columns"
+   renderValue={(selected) => {
+    if (!selected.length) return "All Columns";
+
+    const selectedLabels = COLUMN_OPTIONS
+      .filter((col) => selected.includes(col.key))
+      .map((col) => col.label);
+
+    return selectedLabels.length > 1
+      ? `${selectedLabels[0]} (+${selectedLabels.length - 1})`
+      : selectedLabels[0];
+  }}
+  >
+    {COLUMN_OPTIONS.map((column) => (
+      <MenuItem key={column.key} value={column.key}>
+        <Checkbox
+          checked={selectedColumns.includes(column.key)}
+          onChange={() => {
+            if (selectedColumns.includes(column.key)) {
+              setSelectedColumns(
+                selectedColumns.filter(
+                  (item) => item !== column.key
+                )
+              );
+            } else {
+              setSelectedColumns([
+                ...selectedColumns,
+                column.key,
+              ]);
+            }
+          }}
+        />
+        {column.label}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
 
       {selectedId && (
+     
         <TableContainer component={Paper} className="skytron-table-container" sx={{ mt: 2, maxHeight: '400px' }}>
           <Table stickyHeader className="skytron-table">
             <TableHead>
               <TableRow>
-                {Object.keys(keyMapping).map((key) => (
+                {visibleColumns.map((column) => (
                   <TableCell
-                    key={key}
+                    key={column.key}
                     className="skytron-table-header-cell"
                     sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
                   >
-                    {keyMapping[key]}
+                    {column.label}
                   </TableCell>
                 ))}
               </TableRow>
@@ -2147,12 +2406,12 @@ const LiveTracking = () => {
                     className="skytron-table-row"
                     sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                   >
-                    {Object.keys(keyMapping).map((key, cellIndex) => (
+                    {visibleColumns.map((column, cellIndex) => (
                       <TableCell
-                        key={`cell-${key}-${cellIndex}`}
+                        key={`cell-${column.key}-${cellIndex}`}
                         className="skytron-table-cell"
                       >
-                        {getDisplayCellValue(row, key)}
+                        {getDisplayCellValue(row, column.key)}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -2160,7 +2419,7 @@ const LiveTracking = () => {
               ) : (
                 <TableRow key="no-filtered-data">
                   <TableCell
-                    colSpan={Object.keys(keyMapping).length}
+                    colSpan={visibleColumns.length}
                     className="skytron-no-data-cell"
                   >
                     {t('liveTracking.noData')}

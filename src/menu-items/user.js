@@ -16,7 +16,8 @@ import {
   IconRoute,
   IconCalendarTime,
   IconCalculator,
-  IconMapPin,IconHistory
+  IconMapPin,IconHistory,
+  
 } from "@tabler/icons";
 
 const icons = {
@@ -36,7 +37,8 @@ const icons = {
   IconCalendarTime,
   IconCalculator,
   IconMapPin,
-  IconHistory
+  IconHistory,
+  
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -242,11 +244,20 @@ const user = {
       roles: ["superadmin", "stateadmin", "owner", "dtorto"],
     },
     {
+      id: "vehicle-tracking",
+      title: "Vehicle Tracking Report",
+      type: "item",
+      url: "/vehicle-tracking-report",
+      icon: icons.IconMap,
+      breadcrumbs: false,
+      roles: ["superadmin", "stateadmin", "owner", "dtorto"],
+    },
+    {
       id: "vehicle-history",
       title: "Vehicle History",
       type: "item",
       url: "/vehicle-history",
-      icon: icons.IconHistory,
+      icon: icons.IconCalendarTime,
       breadcrumbs: false,
       roles: ["superadmin", "stateadmin", "owner", "dtorto"],
     },
