@@ -3055,6 +3055,7 @@ const MapComponent = ({
                 if (poiData) {
 
                     setPopupType("poi");
+                    console.log("POI CLICK DATA:", poiData);
                     setSelectedPoiData(poiData);
                     setSelectedTransitData(null);
 
@@ -6734,26 +6735,36 @@ ${selectedColumns.map((key) => {
 
         const draw = new Draw({
             source: drawSourceRef.current,
-            type: "LineString", // Polyline
+            type: "Polygon", // Polyline
         });
 
         map.addInteraction(draw);
         setDrawInteraction(draw);
 
-        draw.on("drawend", (event) => {
-            console.log("DRAW END");
+       draw.on("drawend", (event) => {
+    console.log("DRAW END");
 
-            const feature = event.feature;
+    const feature = event.feature;
+    const geometry = feature.getGeometry();
 
-            console.log(
-                "FEATURE COUNT:",
-                drawSourceRef.current.getFeatures().length
-            );
+    if (geometry.getType() === "Polygon") {
 
-            // keep feature on map
-            map.removeInteraction(draw);
-            setDrawInteraction(null);
-        });
+        const coordinates =
+            geometry.getCoordinates()[0];
+
+        console.log(
+            "POLYGON COORDS:",
+            coordinates
+        );
+
+        if (onPolygonComplete) {
+            onPolygonComplete(coordinates);
+        }
+    }
+
+    map.removeInteraction(draw);
+    setDrawInteraction(null);
+});
     };
 
     // const clearPolygon = () => {
@@ -7868,45 +7879,126 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 ref={poiTransitOverlayElement}
                 className="ol-popup"
             >
-                {popupType === "poi" &&
-                    selectedPoiData && (
-                        <div style={{
-                            padding: "10px", background: "#fff",
-                            borderRadius: "10px",
-                            border: "1px solid #ddd",
-                            boxShadow: "0 4px 20px rgba(0,0,0,.25)",
-                        }}>
-                            <h3>POI Details</h3>
+         {popupType === "poi" && selectedPoiData && (
+    <div
+        style={{
+            width: "280px",
+            background: "#fff",
+            borderRadius: "6px",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+            padding: "12px",
+            position: "relative",
+            fontFamily: "Arial, sans-serif",
+        }}
+    >
+        {/* Close Button */}
+        <div
+            onClick={() => {
+                setSelectedPoiData(null);
+                setPopupType(null);
+            }}
+            style={{
+                position: "absolute",
+                top: "8px",
+                right: "10px",
+                cursor: "pointer",
+                color: "#777",
+                fontSize: "18px",
+                fontWeight: "bold",
+            }}
+        >
+            ×
+        </div>
 
-                            <table style={{ width: "100%" }}>
-                                <tbody>
-                                    {Object.entries(selectedPoiData).map(
-                                        ([key, value]) => (
-                                            <tr key={key}>
-                                                <td
-                                                    style={{
-                                                        fontWeight: "bold",
-                                                        padding: "6px",
-                                                    }}
-                                                >
-                                                    {key}
-                                                </td>
+        {/* POI Name */}
+        <div
+            style={{
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "#4a5568",
+                marginBottom: "4px",
+            }}
+        >
+            {selectedPoiData?.name || "-"}
+        </div>
 
-                                                <td
-                                                    style={{
-                                                        padding: "6px",
-                                                    }}
-                                                >
-                                                    {String(value ?? "-")}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+        {/* POI Type / Subtitle */}
+        <div
+            style={{
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#718096",
+                marginBottom: "4px",
+            }}
+        >
+            {selectedPoiData?.area || "-"}
+        </div>
 
-                    )}
+        {/* Address */}
+        <div
+            style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                lineHeight: "1.4",
+                marginBottom: "8px",
+            }}
+        >
+            {selectedPoiData?.address || "-"}
+        </div>
+
+        {/* Phone */}
+        <div
+            style={{
+                fontSize: "13px",
+                color: "#4b5563",
+                marginBottom: "10px",
+            }}
+        >
+            <strong>Phone:</strong>{" "}
+            {selectedPoiData?.phone || "-"}
+        </div>
+
+        {/* Tags */}
+        <div
+            style={{
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap",
+            }}
+        >
+            {/* School Tag */}
+            <span
+                style={{
+                    background: "#2196f3",
+                    color: "#fff",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                }}
+            >
+                {selectedPoiData?.use_type || "POI"}
+            </span>
+
+            {/* Active Tag */}
+            <span
+                style={{
+                    background:
+                        selectedPoiData?.status === "Active"
+                            ? "#22c55e"
+                            : "#ef4444",
+                    color: "#fff",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                }}
+            >
+                {selectedPoiData?.status || "Inactive"}
+            </span>
+        </div>
+    </div>
+)}
 
                 {popupType === "transit" &&
                     selectedTransitData && (

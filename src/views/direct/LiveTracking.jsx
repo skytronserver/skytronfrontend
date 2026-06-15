@@ -236,6 +236,43 @@ const [selectedColumns, setSelectedColumns] = useState([]);
     "LowExtBat",
     "ExtBatDiscnt",
   ];
+  const handlePolygonComplete = async (coords) => {
+  try {
+    console.log("Polygon Received:", coords);
+
+    // API expects polygon string
+    const polygonString = JSON.stringify(coords);
+
+    setPolygon(polygonString);
+
+    const response = await HomePageService.getLiveTracking_data({
+      imei: "",
+      regno: "",
+      owner,
+      poi: "",
+      roads: "",
+      polygon: polygonString,
+      category,
+      make: "",
+      district: "",
+      speed_limit: "",
+      in_range: false,
+      poi_t: "",
+    });
+
+    const apiData = response?.data?.data || [];
+console.log("Polygon Vehicles:", apiData);
+    console.log("Polygon Vehicles:", apiData);
+
+    const processedData = apiData.map(computeRow);
+
+setFilteredData(processedData);
+setTableDataTop(processedData);
+
+  } catch (error) {
+    console.error("Polygon API Error:", error);
+  }
+};
   const alertDropdownRef =
     useRef(null);
   const [alertPanelOpen, setAlertPanelOpen] =
@@ -2276,7 +2313,7 @@ switch (key) {
             onVehicleClick={handleVehicleMarkerClick}
             width="100%"
             height={selectedId ? "400px" : "600px"}
-            onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
+            //onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
             focusEntry={focusedEntry}
             markerLabelMode={markerLabelMode}
             nmrArea={nmrArea}
@@ -2295,6 +2332,7 @@ switch (key) {
               showAlertHeatmap
             }
             selectedColumns={selectedColumns}
+            onPolygonComplete={handlePolygonComplete}
           />
         </div>
       </div>
