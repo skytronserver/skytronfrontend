@@ -2,6 +2,7 @@ import * as Yup from "yup";
 export const vehicleCategoryCodeInitialsFields = {
     category_code: "",
     details: "",
+    speed_limit: "",
     is_active: true
 };
 
@@ -17,6 +18,12 @@ export const vehicleCategoryCodeFormFields = {
         type: "text",
         label: "Details",
         validation: Yup.string().nullable(),
+    },
+    speed_limit: {
+        name: "speed_limit",
+        type: "text",
+        label: "Speed Limit",
+        validation: Yup.string().nullable().max(5, "Max 5 characters allowed"),
     },
     is_active: {
         name: "is_active",

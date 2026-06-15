@@ -50,6 +50,15 @@ const other = {
           roles: ['superadmin']
         },
         {
+          id: 'permit-master',
+          title: 'Permit Master',
+          type: 'item',
+          url: '/setting/permit-master',
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+
+        {
           id: 'notification-preferences',
           title: 'Alert Notification Delivery Mode',
           type: 'item',

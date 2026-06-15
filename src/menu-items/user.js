@@ -844,7 +844,7 @@ const user = {
           url: '/reports/health-packet-log',
           icon: icons.IconDeviceAnalytics,
           breadcrumbs: false,
-          roles: ['superadmin']
+          roles: ['superadmin', 'sosadmin']
         },
         {
           id: 'api-data-log',

@@ -155,6 +155,24 @@ const filter_violation_report = (data) => {
   return http.get('/school/api/enforcement/violations/', { params: data });
 };
 
+// Permit Master
+const create_settings_permit_master = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/permit_master/create/", data);
+};
+const edit_settings_permit_master = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/permit_master/edit/", data);
+};
+const list_settings_permit_master = (data) => {
+  const http = getAxiosInstance();
+  return http.get("/api/Settings/permit_master/list/", { params: data });
+};
+const list_all_settings_permit_master = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/Settings/permit_master/list_all/", data);
+};
+
 const SettingService = {
   create_settings_hp_freq,
   filter_settings_hp_freq,
@@ -187,6 +205,10 @@ const SettingService = {
   filter_permit_conditions,
   update_permit_condition_status,
   filter_violation_report,
+  create_settings_permit_master,
+  edit_settings_permit_master,
+  list_settings_permit_master,
+  list_all_settings_permit_master,
 };
 
 export default SettingService;

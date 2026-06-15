@@ -13,8 +13,10 @@ import {
 } from "../formjson/notificationPreferences";
 import { stateFields, stateInitials, districtFields, districtInitials } from "../formjson/stateDistrict";
 import { vehicleCategoryCodeFormFields, vehicleCategoryCodeInitialsFields } from "../formjson/vehicleCategoryCode";
+import { permitMasterFormFields, permitMasterInitialsFields } from "../formjson/permitMaster";
 import VehicleCategory from "../views/settings/VehicleCategory";
 import VehicleCategoryCode from "../views/settings/VehicleCategoryCode";
+import PermitMaster from "../views/settings/PermitMaster";
 import NotificationPreferences from "../views/settings/NotificationPreferences";
 import StateDistrict from "../views/settings/StateDistrict";
 import FrequencyFirmware from "../views/settings/FrequencyFirmware";
@@ -61,6 +63,16 @@ const SettingRoutes = {
         <VehicleCategoryCode
           fieldConfig={vehicleCategoryCodeFormFields}
           initialData={vehicleCategoryCodeInitialsFields}
+        />
+      ),
+      roles: ['superadmin']
+    },
+    {
+      path: "/setting/permit-master",
+      element: (
+        <PermitMaster
+          fieldConfig={permitMasterFormFields}
+          initialData={permitMasterInitialsFields}
         />
       ),
       roles: ['superadmin']

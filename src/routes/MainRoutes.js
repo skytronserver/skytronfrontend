@@ -376,7 +376,7 @@ const MainRoutes = {
     {
       path: '/reports/health-packet-log',
       element: <HealthPacketLog />,
-      roles: ['superadmin']
+      roles: ['superadmin', 'sosadmin']
     },
     {
       path: '/reports/poi-report',

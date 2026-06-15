@@ -388,6 +388,17 @@ export const getVehicleCategoryCodeColumns = (onEdit, onToggleStatus) => [
     },
   },
   {
+    name: "speed_limit",
+    label: "Speed Limit",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => {
+        return <p>{value ? value : "N/A"}</p>;
+      },
+    },
+  },
+  {
     name: "is_active",
     label: "Status",
     options: {
@@ -409,8 +420,9 @@ export const getVehicleCategoryCodeColumns = (onEdit, onToggleStatus) => [
         const rowId = parseInt(tableMeta.rowData[0], 10);
         const currentCode = tableMeta.rowData[1];
         const currentDetails = tableMeta.rowData[2];
-        const isActive = tableMeta.rowData[3];
-        const rowData = { id: rowId, category_code: currentCode, details: currentDetails, is_active: isActive };
+        const currentSpeedLimit = tableMeta.rowData[3];
+        const isActive = tableMeta.rowData[4];
+        const rowData = { id: rowId, category_code: currentCode, details: currentDetails, speed_limit: currentSpeedLimit, is_active: isActive };
         
         return (
           <div style={{ display: 'flex', gap: '10px' }}>
@@ -539,5 +551,61 @@ export const getPermitConditionColumns = (onStatusChange) => [
       },
     },
   },
+];
+
+// ---- Permit Master Columns ----
+export const getPermitMasterColumns = (onEdit, onToggleStatus) => [
+  {
+    name: "id",
+    label: "ID",
+    options: {
+      filter: false,
+      sort: false,
+      display: false,
+    },
+  },
+  {
+    name: "name",
+    label: "Name",
+    options: {
+      filter: true,
+      sort: true,
+    },
+  },
+  {
+    name: "is_active",
+    label: "Status",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => {
+        return <p style={{ color: value ? "green" : "red" }}>{value ? "Active" : "Inactive"}</p>;
+      },
+    },
+  },
+  {
+    name: "actions",
+    label: "Action",
+    options: {
+      filter: false,
+      sort: false,
+      empty: true,
+      customBodyRender: (value, tableMeta) => {
+        const rowId = parseInt(tableMeta.rowData[0], 10);
+        const currentName = tableMeta.rowData[1];
+        const isActive = tableMeta.rowData[2];
+        const rowData = { id: rowId, name: currentName, is_active: isActive };
+        
+        return (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button variant="contained" color="primary" size="small" onClick={() => onEdit(rowData)}>Edit</Button>
+            <Button variant="contained" color={isActive ? "error" : "success"} size="small" onClick={() => onToggleStatus(rowData)}>
+              {isActive ? 'Deactivate' : 'Activate'}
+            </Button>
+          </div>
+        );
+      }
+    },
+  }
 ];
 

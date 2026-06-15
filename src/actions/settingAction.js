@@ -7,6 +7,7 @@ export const FETCH_OTA_LIST='FETCH_OTA_LIST';
 export const FETCH_FIRMWARE_LIST='FETCH_FIRMWARE_LIST';
 export const FETCH_IP_SETTING_LIST='FETCH_IP_SETTING_LIST';
 export const FETCH_PERMIT_CONDITION_LIST='FETCH_PERMIT_CONDITION_LIST';
+export const FETCH_PERMIT_MASTER_LIST='FETCH_PERMIT_MASTER_LIST';
 export const fetchVehicleCategory=(data)=>({
     type:FETCH_VEHICLE_CATEGORY,
     payload:data,
@@ -41,5 +42,9 @@ export const fetchIPSettingList=(data)=>({
 })
 export const fetchPermitConditionList=(data)=>({
     type:FETCH_PERMIT_CONDITION_LIST,
+    payload:data,
+})
+export const fetchPermitMasterList=(data)=>({
+    type:FETCH_PERMIT_MASTER_LIST,
     payload:data,
 })
