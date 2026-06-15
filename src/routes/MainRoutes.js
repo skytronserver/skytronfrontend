@@ -350,7 +350,7 @@ const MainRoutes = {
     {
       path: '/reports/device-health-report',
       element: <DeviceHealthReport />,
-      roles: ['superadmin', 'stateadmin']
+      roles: ['superadmin', 'stateadmin', 'devicemanufacture', 'sosadmin']
     },
     {
       path: '/reports/user-statistics-report',

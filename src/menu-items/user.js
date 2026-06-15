@@ -882,7 +882,7 @@ const user = {
           type: 'item',
           url: '/reports/device-health-report',
           breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin']
+          roles: ['superadmin', 'stateadmin', 'devicemanufacture', 'sosadmin']
         },
         {
           id: 'user-statistics-report',
