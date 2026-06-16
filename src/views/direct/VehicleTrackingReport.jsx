@@ -27,6 +27,8 @@ import {
   TableHead,
   TablePagination,
 } from "@mui/material";
+import Button from "@mui/material/Button";
+import DownloadIcon from "@mui/icons-material/Download";
 
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -68,6 +70,10 @@ const [poiTypeLoading, setPoiTypeLoading] = useState(false);
 const [page, setPage] = useState(0);
 const [rowsPerPage, setRowsPerPage] = useState(25);
 const [selectedPoiId, setSelectedPoiId] = useState("");
+const [startDateTime, setStartDateTime] = useState("");
+const [endDateTime, setEndDateTime] = useState("");
+const [noData, setNoData] = useState(false);
+
 useEffect(() => {
   const fetchPoiTypes = async () => {
     try {
@@ -145,6 +151,8 @@ const handlePoiTypeChange = async (
   speed_limit: speedLimit,
   in_range: false,
   poi_t: selectedPoiType || "",
+      start_datetime: startDateTime,
+    end_datetime: endDateTime,
       });
 
     const vehicles = response?.data?.data || [];
@@ -183,6 +191,8 @@ useEffect(() => {
   selectedPoiId,
   selectedPoiType,
   speedLimit,
+  startDateTime,
+  endDateTime,
 ]);
 
 const statusCounts = {
@@ -244,6 +254,60 @@ useEffect(() => {
     setSelectedVehicle(filteredVehicles[0]);
   }
 }, [filteredVehicles, selectedVehicle]);
+
+const handleExport = () => {
+  if (!filteredVehicles.length) {
+    alert("No data available to export");
+    return;
+  }
+
+  const exportData = filteredVehicles.map((vehicle) => ({
+    "Vehicle No": vehicle.vehicle_registration_number || "",
+    IMEI: vehicle.imei || "",
+    Owner:
+      vehicle?.device_tag_info?.vehicle_owner?.users?.[0]?.name || "",
+    Category:
+      vehicle?.device_tag_info?.category_info?.category || "",
+    Make:
+      vehicle?.device_tag_info?.vehicle_make || "",
+    Speed: vehicle.speed || "",
+    "GPS Status":
+      vehicle.gps_status === "1" ? "Online" : "Offline",
+    Ignition:
+      vehicle.ignition_status === "1" ? "ON" : "OFF",
+    Latitude: vehicle.latitude || "",
+    Longitude: vehicle.longitude || "",
+    Date: vehicle.date || "",
+    Time: vehicle.time || "",
+    "Last Update": vehicle.packet_datetime || "",
+  }));
+
+  const csvContent =
+    "data:text/csv;charset=utf-8," +
+    [
+      Object.keys(exportData[0]).join(","),
+      ...exportData.map((row) =>
+        Object.values(row)
+          .map((value) => `"${value}"`)
+          .join(",")
+      ),
+    ].join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute(
+    "download",
+    `vehicle_tracking_report_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`
+  );
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
   return (
   <Box sx={{ p: 3 }}>
     <Typography
@@ -379,6 +443,32 @@ useEffect(() => {
               )}
             />
           </Grid>
+
+          <Grid item xs={12} md={3}>
+  <TextField
+    fullWidth
+    label="Start Date Time"
+    type="datetime-local"
+    InputLabelProps={{ shrink: true }}
+    value={startDateTime}
+    onChange={(e) =>
+      setStartDateTime(e.target.value)
+    }
+  />
+</Grid>
+
+<Grid item xs={12} md={3}>
+  <TextField
+    fullWidth
+    label="End Date Time"
+    type="datetime-local"
+    InputLabelProps={{ shrink: true }}
+    value={endDateTime}
+    onChange={(e) =>
+      setEndDateTime(e.target.value)
+    }
+  />
+</Grid>
         </Grid>
       </CardContent>
     </Card>
@@ -387,6 +477,19 @@ useEffect(() => {
 
     <Card>
       <CardContent>
+        <Box
+  display="flex"
+  justifyContent="flex-end"
+  mb={2}
+>
+  <Button
+    variant="contained"
+    startIcon={<DownloadIcon />}
+    onClick={handleExport}
+  >
+    Export Data
+  </Button>
+</Box>
         {loading ? (
           <Box
             display="flex"
