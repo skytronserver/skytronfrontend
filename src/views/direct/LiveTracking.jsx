@@ -53,7 +53,7 @@ const LiveTracking = () => {
   const normalizeCategoryKey = useCallback((value) => {
     return String(value || '').trim().toLowerCase();
   }, []);
-
+const [loading, setLoading] = useState(false);
   const [vehicleNo, setVehicleNo] = useState("");
   const [imeiNo, setImeiNo] = useState("");
   const [owner, setOwner] = useState("");
@@ -107,9 +107,9 @@ const LiveTracking = () => {
   const [selectedDateTime, setSelectedDateTime] = useState("");  // Handle input changes
   const [selectedPoiId, setSelectedPoiId] = useState("");
   const [alertHeatmapData, setAlertHeatmapData] = useState([]);
-
   const [showAlertHeatmap, setShowAlertHeatmap] = useState(false);
-
+const [debouncedVehicleNo, setDebouncedVehicleNo] = useState(vehicleNo);
+const [debouncedOwner, setDebouncedOwner] = useState(owner);
   const [selectedAlertTypes, setSelectedAlertTypes] = useState([]);
   const COLUMN_OPTIONS = [
     // Vehicle
@@ -318,6 +318,23 @@ const LiveTracking = () => {
       );
     }
   };
+
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedVehicleNo(vehicleNo);
+  }, 800);
+
+  return () => clearTimeout(timer);
+}, [vehicleNo]);
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedOwner(owner);
+  }, 800);
+
+  return () => clearTimeout(timer);
+}, [owner]);
+
 
   useEffect(() => {
 
@@ -814,7 +831,21 @@ const LiveTracking = () => {
       setIncidentData([]);
     }
   }, [computeSearchCenter]);
+useEffect(() => {
+  if (showPolice) {
+    fetchPoliceLocations(fullRawRef.current);
+  } else {
+    setPoliceLocations([]);
+  }
+}, [showPolice]);
 
+useEffect(() => {
+  if (showAmbulance) {
+    fetchAmbulanceLocations(fullRawRef.current);
+  } else {
+    setAmbulanceLocations([]);
+  }
+}, [showAmbulance]);
   const isBadGnss = (entry) => {
     const lat = Number(entry?.latitude);
     const lon = Number(entry?.longitude);
@@ -935,8 +966,13 @@ const LiveTracking = () => {
         // Defer auxiliary data fetches to avoid blocking first paint
         setTimeout(() => {
           const all = fullRawRef.current?.length ? fullRawRef.current : rawData;
-          fetchPoliceLocations(all);
-          fetchAmbulanceLocations(all);
+          if (showPolice) {
+    fetchPoliceLocations(all);
+  }
+
+  if (showAmbulance) {
+    fetchAmbulanceLocations(all);
+  }
           fetchIncidents(all);
         }, 0);
       } else {
@@ -944,6 +980,8 @@ const LiveTracking = () => {
         setFilteredData([]);
         setSelectedId(null);
         setFocusedEntry(null);
+        setNoDataMessage("No data found");
+   setOpenSnackbar(true);
         setCategoryMaxSpeed('');
         setCategorySpeedMap({});
         setUseNmrLocation(false);
@@ -1150,8 +1188,8 @@ const LiveTracking = () => {
 
     const params = {
       imei: imeiNo,
-      regno: vehicleNo,
-      owner: owner,
+      regno: debouncedVehicleNo,
+      owner: debouncedOwner,
       poi: selectedPoiId,
       roads: roads,
       route_id: '',
@@ -1169,7 +1207,8 @@ const LiveTracking = () => {
     };
     // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
-  }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, selectedPoiId]);
+   
+  }, [imeiNo, debouncedVehicleNo, debouncedOwner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, selectedPoiId]);
 
   const refreshSelectedVehicle = async () => {
     if (!selectedId) return;
@@ -1229,7 +1268,7 @@ const LiveTracking = () => {
     }, 10000);
 
     return () => clearInterval(intervalId);
-  }, [selectedId, tableDataTop]);
+  }, [selectedId,tableDataTop]);
 
   // Helper to calculate time difference in minutes
   const calculateTimeDifference = (startTime, endTime) => {
@@ -1877,8 +1916,15 @@ const LiveTracking = () => {
                 ) : (
                   <TableRow key="no-data">
                     <TableCell colSpan={6} style={{ textAlign: 'center' }}>
-                      <CircularProgress size="30px" title={t('liveTracking.noData')} />
-                    </TableCell>
+{loading ? (
+  <CircularProgress />
+) : (
+  <TableRow>
+    <TableCell colSpan={6} align="center">
+      No Data Found
+    </TableCell>
+  </TableRow>
+)}                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
