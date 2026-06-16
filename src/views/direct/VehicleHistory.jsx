@@ -53,6 +53,7 @@ const VehicleHistory = () => {
     const normalizeCategoryKey = useCallback((value) => {
         return String(value || '').trim().toLowerCase();
     }, []);
+const [loading, setLoading] = useState(false);
 
     const [vehicleNo, setVehicleNo] = useState("");
     const [imeiNo, setImeiNo] = useState("");
@@ -104,7 +105,10 @@ const VehicleHistory = () => {
     const [pisStops, setPisStops] = useState([]);
     const [noDataMessage, setNoDataMessage] = useState("");
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [selectedDateTime, setSelectedDateTime] = useState("");  // Handle input changes
+    const [selectedDateTime, setSelectedDateTime] = useState("");
+    const [debouncedVehicleNo, setDebouncedVehicleNo] = useState(vehicleNo);
+    const [debouncedOwner, setDebouncedOwner] = useState(owner);
+      // Handle input changes
     const COLUMN_OPTIONS = [
       // Vehicle
       { key: "vehicle_registration_number", label: "Vehicle No" },
@@ -390,6 +394,22 @@ const VehicleHistory = () => {
             );
         }
     };
+     useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedVehicleNo(vehicleNo);
+      }, 800);
+    
+      return () => clearTimeout(timer);
+    }, [vehicleNo]);
+    
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedOwner(owner);
+      }, 800);
+    
+      return () => clearTimeout(timer);
+    }, [owner]);
+    
     const computeRow = (processedItem) => {
         // Extract block_name and route_name
         const blockName = processedItem?.device_tag_info?.block?.name ||
@@ -677,6 +697,21 @@ const VehicleHistory = () => {
         }
     }, [computeSearchCenter]);
 
+    useEffect(() => {
+      if (showPolice) {
+        fetchPoliceLocations(fullRawRef.current);
+      } else {
+        setPoliceLocations([]);
+      }
+    }, [showPolice]);
+    
+    useEffect(() => {
+      if (showAmbulance) {
+        fetchAmbulanceLocations(fullRawRef.current);
+      } else {
+        setAmbulanceLocations([]);
+      }
+    }, [showAmbulance]);
     const isBadGnss = (entry) => {
         const lat = Number(entry?.latitude);
         const lon = Number(entry?.longitude);
@@ -797,8 +832,13 @@ const VehicleHistory = () => {
                 // Defer auxiliary data fetches to avoid blocking first paint
                 setTimeout(() => {
                     const all = fullRawRef.current?.length ? fullRawRef.current : rawData;
-                    fetchPoliceLocations(all);
-                    fetchAmbulanceLocations(all);
+                       if (showPolice) {
+    fetchPoliceLocations(all);
+  }
+
+  if (showAmbulance) {
+    fetchAmbulanceLocations(all);
+  }
                     fetchIncidents(all);
                 }, 0);
             } else {
@@ -820,6 +860,8 @@ const VehicleHistory = () => {
             setFilteredData([]);
             setSelectedId(null);
             setFocusedEntry(null);
+            setNoDataMessage("No data found");
+   setOpenSnackbar(true);
             setCategoryMaxSpeed('');
             setCategorySpeedMap({});
             setUseNmrLocation(false);
@@ -970,6 +1012,11 @@ const VehicleHistory = () => {
     // Triggered on form submit to fetch new data
     const handleSubmit = (event) => {
         event.preventDefault();
+        const isPoiSelected = !!selectedPoiId;
+
+    const isPolygonPoi =
+      selectedPoi &&
+      String(selectedPoi.mark_type).toLowerCase() === "polygon";
         const params = {
             imei: imeiNo,
             regno: vehicleNo,
@@ -984,9 +1031,9 @@ const VehicleHistory = () => {
             district_id: '',
             manufacturer_id: '',
             speed_limit: speedLimit,
-            in_range: inRange,
-            poi_as_polygon: poiAsPolygon,
-            poi_t: poi,
+            in_range: isPoiSelected || !!polygon ? true : inRange,
+            poi_as_polygon: isPolygonPoi,
+            poi_t: "",
             history_datetime: selectedDateTime,
         };
 
@@ -999,10 +1046,16 @@ const VehicleHistory = () => {
     };
 
     useEffect(() => {
+            const isPoiSelected = !!selectedPoiId;
+
+    const isPolygonPoi =
+      selectedPoi &&
+      String(selectedPoi.mark_type).toLowerCase() === "polygon";
+
         const params = {
             imei: imeiNo,
-            regno: vehicleNo,
-            owner: owner,
+            regno: debouncedVehicleNo,
+            owner: debouncedOwner,
             poi: selectedPoiId,
             roads: roads,
             route_id: '',
@@ -1013,21 +1066,26 @@ const VehicleHistory = () => {
             district_id: '',
             manufacturer_id: '',
             speed_limit: speedLimit,
-            in_range: inRange,
-            poi_as_polygon: poiAsPolygon,
-            poi_t: poi,
+            in_range: isPoiSelected || Boolean(polygon),
+            poi_as_polygon: isPolygonPoi,
+            poi_t: "",
             history_datetime: selectedDateTime,
         };
 
         // Single fetch when filters/inputs change, no repeating interval
         retriveMapData(params);
-    }, [imeiNo, vehicleNo, owner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, selectedDateTime, selectedPoiId,]);
+    }, [imeiNo, debouncedVehicleNo, debouncedOwner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, selectedDateTime, selectedPoiId,]);
 
     const refreshSelectedVehicle = async () => {
         if (!selectedId) return;
 
-        const selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === selectedId);
-        if (!selectedRow) return;
+    const selectedRow = tableDataTop.find((row) => `vehicle-${row.imei}` === selectedId);
+    if (!selectedRow) return;
+    const isPoiSelected = !!selectedPoiId;
+
+    const isPolygonPoi =
+      selectedPoi &&
+      String(selectedPoi.mark_type).toLowerCase() === "polygon";
 
         const params = {
             imei: selectedRow.imei,
@@ -1043,9 +1101,9 @@ const VehicleHistory = () => {
             district_id: '',
             manufacturer_id: '',
             speed_limit: speedLimit,
-            in_range: inRange,
-            poi_as_polygon: poiAsPolygon,
-            poi_t: selectedPoiType || "",
+            in_range: isPoiSelected ? true : inRange,
+            poi_as_polygon: isPolygonPoi,
+            poi_t: "",
         };
 
         try {
@@ -1075,7 +1133,7 @@ const VehicleHistory = () => {
         }, 10000);
 
         return () => clearInterval(intervalId);
-    }, [selectedId, tableDataTop]);
+    }, [selectedId,tableDataTop]);
 
     // Helper to calculate time difference in minutes
     const calculateTimeDifference = (startTime, endTime) => {
@@ -1724,8 +1782,15 @@ switch (key) {
                                 ) : (
                                     <TableRow key="no-data">
                                         <TableCell colSpan={6} style={{ textAlign: 'center' }}>
-                                            <CircularProgress size="30px" title={t('liveTracking.noData')} />
-                                        </TableCell>
+{loading ? (
+  <CircularProgress />
+) : (
+  <TableRow>
+    <TableCell colSpan={6} align="center">
+      No Data Found
+    </TableCell>
+  </TableRow>
+)}                                         </TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>

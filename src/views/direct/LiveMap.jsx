@@ -7957,6 +7957,16 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             <strong>Phone:</strong>{" "}
             {selectedPoiData?.phone || "-"}
         </div>
+        <div
+            style={{
+                fontSize: "13px",
+                color: "#4b5563",
+                marginBottom: "10px",
+            }}
+        >
+            <strong>Speed Limit:</strong>{" "}
+            {selectedPoiData?.speed_limit || "-"}
+        </div>
 
         {/* Tags */}
         <div
