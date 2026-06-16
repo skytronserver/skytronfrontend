@@ -143,6 +143,8 @@ const getLiveTracking_data = (data, config = {}) => {
             poi_as_polygon: data.poi_as_polygon,
             poi_t: data.poi_t,
             history_datetime: data.history_datetime,
+            start_datetime: data.start_datetime,
+end_datetime: data.end_datetime,
         },
         ...config,
     });

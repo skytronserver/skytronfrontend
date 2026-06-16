@@ -73,54 +73,124 @@ const poiPopupOverlayRef = useRef(null);
 const showPoiPopup = (poiData) => {
   if (!poiPopupRef.current || !poiPopupOverlayRef.current) return;
 
+  const name =
+    poiData.name ||
+    poiData.poi_name ||
+    poiData.title ||
+    "POI";
+
+  const type =
+    poiData.poi_type ||
+    poiData.type ||
+    "POI";
+
+  const address =
+    poiData.address ||
+    poiData.location ||
+    poiData.poi_address ||
+    "-";
+
+  const phone =
+    poiData.phone ||
+    poiData.mobile ||
+    poiData.contact ||
+    "-";
+
   const html = `
     <div style="
-      min-width:300px;
-      max-width:450px;
-      max-height:350px;
-      overflow:auto;
-      padding:10px;
+      width:320px;
+      background:#ffffff;
+      border-radius:8px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.25);
+      font-family:Arial, sans-serif;
+      overflow:hidden;
+      position:relative;
     ">
-      <h3 style="
-        margin:0 0 10px 0;
-        color:#1976d2;
-      ">
-        POI Details
-      </h3>
 
-      <table style="
-        width:100%;
-        border-collapse:collapse;
-      ">
-        ${Object.entries(poiData)
-          .map(
-            ([key, value]) => `
-            <tr>
-              <td style="
-                font-weight:bold;
-                padding:6px;
-                border-bottom:1px solid #eee;
-                width:40%;
-              ">
-                ${key}
-              </td>
+      <div style="
+        position:absolute;
+        top:10px;
+        right:12px;
+        cursor:pointer;
+        color:#888;
+        font-size:20px;
+        font-weight:bold;
+      "
+      onclick="this.parentElement.parentElement.style.display='none'">
+        ×
+      </div>
 
-              <td style="
-                padding:6px;
-                border-bottom:1px solid #eee;
-              ">
-                ${value ?? "-"}
-              </td>
-            </tr>
-          `
-          )
-          .join("")}
-      </table>
+      <div style="padding:14px 16px;">
+
+        <div style="
+          font-size:15px;
+          font-weight:600;
+          color:#4b5563;
+          margin-bottom:2px;
+        ">
+          ${name}
+        </div>
+
+        <div style="
+          font-size:13px;
+          font-weight:600;
+          color:#7b8794;
+          margin-bottom:12px;
+        ">
+          ${type}
+        </div>
+
+        <div style="
+          font-size:13px;
+          color:#6b7280;
+          line-height:1.5;
+          margin-bottom:12px;
+        ">
+          ${address}
+        </div>
+
+        <div style="
+          font-size:14px;
+          color:#4b5563;
+          margin-bottom:14px;
+        ">
+          <strong>Phone :-</strong>
+          ${phone}
+        </div>
+
+        <div style="
+          display:flex;
+          gap:10px;
+          align-items:center;
+        ">
+          <span style="
+            background:#2196f3;
+            color:white;
+            padding:6px 16px;
+            border-radius:18px;
+            font-size:13px;
+            font-weight:500;
+          ">
+            ${type}
+          </span>
+
+          <span style="
+            background:#34c759;
+            color:white;
+            padding:6px 16px;
+            border-radius:18px;
+            font-size:13px;
+            font-weight:500;
+          ">
+            Active
+          </span>
+        </div>
+
+      </div>
     </div>
   `;
 
   poiPopupRef.current.innerHTML = html;
-
   poiPopupRef.current.style.display = "block";
 
   poiPopupOverlayRef.current.setPosition(

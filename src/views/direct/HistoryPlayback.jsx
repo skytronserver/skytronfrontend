@@ -401,7 +401,7 @@ const HistoryPlayback = () => {
                       setSelectedPoi(value);
 
                       if (value) {
-                        setPoi(value.name);
+                        setPoi(value.id);
                       }
                     }}
                     renderInput={(params) => (
