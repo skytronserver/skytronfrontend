@@ -2176,7 +2176,7 @@ const MapComponent = ({
         if (!map || !selectedPoi || !poiVectorLayer) return;
 
         poiVectorLayer.setVisible(true);
-
+ 
         const source = poiVectorLayer.getSource();
         source.clear();
 
@@ -7880,7 +7880,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 className="ol-popup"
             >
          {popupType === "poi" && selectedPoiData && (
-    <div
+    <div 
         style={{
             width: "280px",
             background: "#fff",
@@ -7889,6 +7889,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             padding: "12px",
             position: "relative",
             fontFamily: "Arial, sans-serif",
+            margin:"55px"
         }}
     >
         {/* Close Button */}
