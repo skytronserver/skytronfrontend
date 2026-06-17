@@ -28,39 +28,39 @@ const SetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState('');
   const [arePasswordsMatch, setArePasswordsMatch] = useState(false);
-  const [mobileNumber, setMobileNumber] = useState(""); 
+  const [mobileNumber, setMobileNumber] = useState("");
   const [isValidMobile, setIsValidMobile] = useState(true);
   const [idNo, setIdNo] = useState("");
   const [dob, setDob] = useState("");
   const [isNotEmpty, setIsNotEmpty] = useState({
-    idNo:true,
-    dob:true
+    idNo: true,
+    dob: true
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleIdNo = (event) => {
     setIdNo(event.target.value);
-    if (event.target.value!== "") {
-        setIsNotEmpty((prev)=>({...prev,idNo:true}));
-      } else {
-        setIsNotEmpty((prev)=>({...prev,idNo:false}));
+    if (event.target.value !== "") {
+      setIsNotEmpty((prev) => ({ ...prev, idNo: true }));
+    } else {
+      setIsNotEmpty((prev) => ({ ...prev, idNo: false }));
     }
   };
   const handleDob = (event) => {
     setDob(event.target.value);
-    if (event.target.value!== "") {
-        setIsNotEmpty((prev)=>({...prev,dob:true}));
-      } else {
-        setIsNotEmpty((prev)=>({...prev,dob:false}));
+    if (event.target.value !== "") {
+      setIsNotEmpty((prev) => ({ ...prev, dob: true }));
+    } else {
+      setIsNotEmpty((prev) => ({ ...prev, dob: false }));
     }
   };
   const handlePasswordChange = (value) => {
-    setPassword(value); 
+    setPassword(value);
     const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
     if (!passwordPattern.test(value)) {
       setPasswordError(
-        t('auth.passwordRequirements') || "Password must contain at least one uppercase, lowercase, numeric, and special character"
+        t('auth.passwordRequirements') || "Password must contain at least one uppercase, lowercase, numeric, and special character. MINIMUM PASSWORD LENGTH should be 8"
       );
     } else {
       setPasswordError('');
@@ -70,9 +70,9 @@ const SetPassword = () => {
   const handleConfirmPasswordChange = (value) => {
     setConfirmPassword(value);
   };
-  useEffect(()=>{
+  useEffect(() => {
     setArePasswordsMatch(password === confirmPassword);
-  },[password,confirmPassword]);
+  }, [password, confirmPassword]);
   const handleMobileNumberChange = (event) => {
     let value = event.target.value.replace(/\D/g, ''); // Remove non-digits
     if (value.length > 10) value = value.slice(0, 10); // Limit to 10 digits
@@ -83,31 +83,31 @@ const SetPassword = () => {
   const maxDob = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
     .toISOString().split('T')[0];
   const handleSetPassword = async () => {
-    if(password!=''){
-        setLoading(true)
-        try {
-            // Encrypt the password before sending
-            const encryptedPassword = encryptWithPublicKey(password);
-            await axios.post(`${BASE_URL}api/password_reset/`, {mobile:mobileNumber, new_password: encryptedPassword,id_no:idNo,dob:dob,token:reset_token },{
-                headers:{
-                    "Content-type": "application/json",
-                    "Authorization": "Token "+reset_token,
-                  }
-            });
-            window.location.href="/"
-          } catch (err) {
-            console.error(err);
-            setError('Failed to reset password');
-          }finally{
-            setLoading(false)
+    if (password != '') {
+      setLoading(true)
+      try {
+        // Encrypt the password before sending
+        const encryptedPassword = encryptWithPublicKey(password);
+        await axios.post(`${BASE_URL}api/password_reset/`, { mobile: mobileNumber, new_password: encryptedPassword, id_no: idNo, dob: dob, token: reset_token }, {
+          headers: {
+            "Content-type": "application/json",
+            "Authorization": "Token " + reset_token,
           }
-    }else{
-        mobileNumber==='' && setIsValidMobile(false);
-        dob==='' &&  setIsNotEmpty((prev)=>({...prev,dob:false}));
-        idNo==='' &&   setIsNotEmpty((prev)=>({...prev,idNo:false}));
-        setError('Failed to reset password or password field is empty');
+        });
+        window.location.href = "/"
+      } catch (err) {
+        console.error(err);
+        setError('Failed to reset password');
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      mobileNumber === '' && setIsValidMobile(false);
+      dob === '' && setIsNotEmpty((prev) => ({ ...prev, dob: false }));
+      idNo === '' && setIsNotEmpty((prev) => ({ ...prev, idNo: false }));
+      setError('Failed to reset password or password field is empty');
     }
-    
+
   };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -159,7 +159,7 @@ const SetPassword = () => {
                     <Grid item xs={12}>
                       <Grid
                         container
-                        direction={matchDownSM? "column-reverse" : "row"}
+                        direction={matchDownSM ? "column-reverse" : "row"}
                         alignItems="center"
                         justifyContent="center"
                       >
@@ -172,14 +172,14 @@ const SetPassword = () => {
                             <Typography
                               color={theme.palette.secondary.main}
                               gutterBottom
-                              variant={matchDownSM? "h3" : "h2"}
+                              variant={matchDownSM ? "h3" : "h2"}
                             >
-                             SKYTRON
+                              SKYTRON
                             </Typography>
                             <Typography
                               variant="caption"
                               fontSize="16px"
-                              textAlign={matchDownSM? "center" : "inherit"}
+                              textAlign={matchDownSM ? "center" : "inherit"}
                             >
                               Reset Password
                             </Typography>
@@ -189,17 +189,17 @@ const SetPassword = () => {
                     </Grid>
                     <Grid item xs={12}>
                       <Typography align="center">
-                      <TextField
+                        <TextField
                           label="Mobile Number"
                           type="tel"
                           value={mobileNumber}
                           onChange={handleMobileNumberChange}
                           fullWidth
                           error={!isValidMobile}
-                          helperText={!isValidMobile? "Invalid mobile number" : ""}
+                          helperText={!isValidMobile ? "Invalid mobile number" : ""}
                           inputProps={{ maxLength: 10 }}
                         />
-                        <br/><br/>
+                        <br /><br />
                         <TextField
                           label="Last 4 Digit of your id proof"
                           type="text"
@@ -208,10 +208,10 @@ const SetPassword = () => {
                           fullWidth
                           required
                           error={!isNotEmpty.idNo}
-                          helperText={!isNotEmpty.idNo? "This is required field" : ""}
+                          helperText={!isNotEmpty.idNo ? "This is required field" : ""}
                         />
-                        <br/><br/>
-                        <label htmlFor="dob" style={{textAlign:"left",display:"block"}}>Date of Birth</label>
+                        <br /><br />
+                        <label htmlFor="dob" style={{ textAlign: "left", display: "block" }}>Date of Birth</label>
                         <TextField
                           type="date"
                           value={dob}
@@ -220,11 +220,11 @@ const SetPassword = () => {
                           fullWidth
                           required
                           error={!isNotEmpty.dob}
-                          helperText={!isNotEmpty.dob? "This is required field" : ""}
+                          helperText={!isNotEmpty.dob ? "This is required field" : ""}
                           inputProps={{ max: maxDob }}
                         />
-                        <br/><br/>
-                        <Tooltip title={t('auth.passwordRequirements') || "Password must contain at least one uppercase, lowercase, numeric, and special character"} arrow placement="top">
+                        <br /><br />
+                        <Tooltip title={t('auth.passwordRequirements') || "Password must be more than 8 characters long,must contain at least one uppercase, lowercase, numeric, and special character."} arrow placement="top">
                           <TextField
                             label="New Password"
                             type={showPassword ? 'text' : 'password'}
@@ -244,7 +244,7 @@ const SetPassword = () => {
                             }}
                           />
                         </Tooltip>
-                        <br/><br/>
+                        <br /><br />
                         <TextField
                           label="Confirm New Password"
                           type={showConfirmPassword ? 'text' : 'password'}
@@ -263,7 +263,7 @@ const SetPassword = () => {
                             ),
                           }}
                         />
-                        <br/><br/>
+                        <br /><br />
                         <Button
                           color="primary"
                           size="large"
