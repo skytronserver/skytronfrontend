@@ -596,7 +596,7 @@
     "newPassword": "New Password",
     "confirmNewPassword": "Confirm New Password",
     "passwordsDoNotMatch": "Passwords do not match",
-    "passwordRequirements": "Password must contain at least one uppercase, lowercase, numeric, and special character. MINIMUM PASSWORD LENGTH should be 8",
+    "passwordRequirements": "Password must be more than 8 characters long,must contain at least one uppercase, lowercase, numeric, and special character.",
     "failedPasswordReset": "Failed to reset password",
     "failedPasswordResetEmpty": "Failed to reset password or password field is empty",
     "skytronPasswordSet": "Skytron Password Set",

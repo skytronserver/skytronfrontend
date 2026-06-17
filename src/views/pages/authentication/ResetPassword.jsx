@@ -61,7 +61,7 @@ const ResetPassword = () => {
     // Check if the password matches the pattern
     if (!passwordPattern.test(value)) {
       setPasswordError(
-        t('auth.passwordRequirements')
+        t('auth.passwordRequirements') || "Password must be more than 8 characters long,must contain at least one uppercase, lowercase, numeric, and special character."
       );
     } else {
       setPasswordError(''); // Clear error if password is valid
@@ -242,7 +242,7 @@ const ResetPassword = () => {
                           inputProps={{ max: maxDob }}
                         />
                         <br/><br/>
-                        <Tooltip title={t('auth.passwordRequirements')} arrow placement="top">
+                        <Tooltip title={t('auth.passwordRequirements') || "Password must be more than 8 characters long,must contain at least one uppercase, lowercase, numeric, and special character."} arrow placement="top">
                           <TextField
                             label={t('auth.newPassword')}
                             type={showPassword ? 'text' : 'password'}

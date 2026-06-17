@@ -60,7 +60,7 @@ const SetPassword = () => {
     const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
     if (!passwordPattern.test(value)) {
       setPasswordError(
-        t('auth.passwordRequirements') || "Password must contain at least one uppercase, lowercase, numeric, and special character. MINIMUM PASSWORD LENGTH should be 8"
+        t('auth.passwordRequirements') || "Password must be more than 8 characters long,must contain at least one uppercase, lowercase, numeric, and special character."
       );
     } else {
       setPasswordError('');
