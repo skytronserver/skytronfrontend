@@ -46,7 +46,10 @@ const HistoryPlayback = () => {
   const [poiTypes, setPoiTypes] = useState([]);
   const [selectedPoiType, setSelectedPoiType] = useState(null);
   const [poiTypeLoading, setPoiTypeLoading] = useState(false);
-
+  const [poiVehicles, setPoiVehicles] = useState([]);
+  const [selectedPoiVehicle, setSelectedPoiVehicle] = useState(null);
+  const [loadingPoiVehicles, setLoadingPoiVehicles] = useState(false);
+  const [showPoiVehicles, setShowPoiVehicles] = useState(false);
   // Fetch vehicle list on mount
   useEffect(() => {
     let isMounted = true;
@@ -134,37 +137,21 @@ const HistoryPlayback = () => {
     }
   };
 
-  // Fetch GPS data only when vehicle map is shown
-  useEffect(() => {
-    if (!showVehicleMap || vehicleGpsData.length > 0) return;
+  const handlePoiChange = (event, value) => {
+    if (!selectedPoiType) return;
+    setSelectedPoi(value);
+    setPoi(value?.id || "");
 
-    let isMounted = true;
-    setIsLoadingGpsData(true);
+    setPoiVehicles([]);
+    setSelectedPoiVehicle(null);
 
-    const fetchVehicleGpsData = async () => {
-      try {
-        const response = await HomePageService.getLiveTracking_data({});
-        if (isMounted && Array.isArray(response?.data?.data)) {
-          setVehicleGpsData(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching vehicle GPS data:", error);
-        if (isMounted) {
-          setVehicleGpsData([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingGpsData(false);
-        }
-      }
-    };
+    // Important
+    setShowPoiVehicles(false);
+    setShowHistoryMap(false);
+    setShowVehicleMap(false);
 
-    fetchVehicleGpsData();
+  };
 
-    return () => {
-      isMounted = false;
-    };
-  }, [showVehicleMap, vehicleGpsData.length]);
 
   // Validate date range
   const validateDateRange = useCallback((from, to) => {
@@ -178,7 +165,7 @@ const HistoryPlayback = () => {
   }, []);
 
   // Handle form submission
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
     if (!fromDate || !toDate) {
@@ -191,6 +178,47 @@ const HistoryPlayback = () => {
       alert(error);
       return;
     }
+    if (
+      selectedPoi &&
+      !showPoiVehicles
+    ) {
+      try {
+        setLoadingPoiVehicles(true);
+        const response =
+          await HomePageService.getLiveTracking_data({
+            poi: selectedPoi.id,
+          });
+
+        const vehicles =
+          response?.data?.data || [];
+
+        const uniqueVehicles = [
+          ...new Set(
+            vehicles
+              .map(v => v.vehicle_registration_number)
+              .filter(Boolean)
+          ),
+        ];
+
+        setPoiVehicles(uniqueVehicles);
+        setShowPoiVehicles(true);
+
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingPoiVehicles(false);
+      }
+    }
+
+    if (selectedPoiVehicle) {
+
+      setVehicleNo(selectedPoiVehicle);
+
+      setShowVehicleMap(false);
+      setShowHistoryMap(true);
+
+      return;
+    }
 
     if (vehicleNo) {
       setShowHistoryMap(true);
@@ -199,7 +227,9 @@ const HistoryPlayback = () => {
       setShowHistoryMap(false);
       setShowVehicleMap(true);
     }
-  }, [fromDate, toDate, vehicleNo, validateDateRange]);
+  }, [fromDate, toDate, vehicleNo, validateDateRange, selectedPoi,
+    showPoiVehicles,
+    selectedPoiVehicle]);
 
   // Handle vehicle selection from map
   const handleVehicleSelect = useCallback((selectedVehicleNo) => {
@@ -395,15 +425,7 @@ const HistoryPlayback = () => {
                       setPoi(value);
                       fetchPois(value);
                     }}
-                    onChange={(event, value) => {
-                      if (!selectedPoiType) return;
-
-                      setSelectedPoi(value);
-
-                      if (value) {
-                        setPoi(value.id);
-                      }
-                    }}
+                    onChange={handlePoiChange}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -434,6 +456,37 @@ const HistoryPlayback = () => {
                     )}
                   />
                 </Grid>
+                {showPoiVehicles && (
+                  <Grid item md={3} sm={6} xs={12}>
+                    <Autocomplete
+                      options={poiVehicles}
+                      value={selectedPoiVehicle}
+                      loading={loadingPoiVehicles}
+                      onChange={(event, value) =>
+                        setSelectedPoiVehicle(value || null)
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Vehicle Registration Number"
+                          size="small"
+                          fullWidth
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {loadingPoiVehicles ? (
+                                  <CircularProgress size={20} />
+                                ) : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            ),
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                )}
                 {/* <Grid item md={3} sm={6} xs={12}>
                   <TextField
                     fullWidth
@@ -488,6 +541,8 @@ const HistoryPlayback = () => {
               showLogos={true}
               defaultMapType="normal"
               markerLabelMode="vehicle"
+              poi={poi}
+              selectedPoi={selectedPoi}
               onMarkerClick={(entryData) => {
                 // Extract vehicle registration number and trigger selection
                 const vehicleRegNo = entryData.vehicle_registration_number ||

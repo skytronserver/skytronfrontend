@@ -71,6 +71,8 @@ const BhuvanMapComponent = ({
     center = [91.7362, 26.1445], // Guwahati, Assam
     zoom = 10,
     routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
+    poi,
+    selectedPoi,
 }) => {
     const poisForLookup = Array.isArray(lookupPois) ? lookupPois : pois;
     const overlayElement = useRef();
@@ -88,25 +90,7 @@ const BhuvanMapComponent = ({
     const vehicleFeatureRef = useRef({});
     const vehicleTrailRef = useRef({});
     const lastValidPositionRef = useRef({});
-
-    useEffect(() => {
-        if (!map || !onZoomChange) return;
-
-        const view = map.getView();
-        const handleZoomChange = () => {
-            const currentZoom = view.getZoom();
-            if (currentZoom !== undefined) {
-                onZoomChange(Math.round(currentZoom));
-            }
-        };
-
-        view.on('change:resolution', handleZoomChange);
-        
-        return () => {
-            view.un('change:resolution', handleZoomChange);
-        };
-    }, [map, onZoomChange]);
-
+    const [selectedPoiLayer, setSelectedPoiLayer] = useState(null);
     const isInsideIndia = (lon, lat) => {
         // Approx bounding box for India
         return (
@@ -138,12 +122,12 @@ const BhuvanMapComponent = ({
             },
             { lon: 0, lat: 0 }
         );
-        console.log("IMEI:", imei);
-        console.log("Trail:", trail);
-        console.log("Average:", [
-            avg.lon / trail.length,
-            avg.lat / trail.length
-        ]);
+        // console.log("IMEI:", imei);
+        // console.log("Trail:", trail);
+        // console.log("Average:", [
+        //     avg.lon / trail.length,
+        //     avg.lat / trail.length
+        // ]);
 
         return [
             avg.lon / trail.length,
@@ -170,7 +154,7 @@ const BhuvanMapComponent = ({
             }
         };
 
-        console.log("Animating from:", start, "to:", end);
+        //console.log("Animating from:", start, "to:", end);
 
         requestAnimationFrame(animate);
     };
@@ -589,10 +573,63 @@ const BhuvanMapComponent = ({
                 : undefined,
         });
     };
+    useEffect(() => {
+        if (!selectedPoi || !poiVectorLayer || !map) return;
 
+        const source = selectedPoiLayer.getSource();
+        source.clear();
+
+
+        let geometry = null;
+
+        const location =
+            typeof selectedPoi.location === "string"
+                ? JSON.parse(selectedPoi.location)
+                : selectedPoi.location;
+
+        switch (selectedPoi.mark_type) {
+            case "Point":
+                geometry = new Point([
+                    location[0][1],
+                    location[0][0],
+                ]);
+                break;
+
+            case "Polygon":
+                geometry = new Polygon([
+                    location.map(([lat, lon]) => [lon, lat]),
+                ]);
+                break;
+
+            case "Road":
+                geometry = new LineString(
+                    location.map(([lat, lon]) => [lon, lat])
+                );
+                break;
+
+            default:
+                geometry = new Point([
+                    location[0][1],
+                    location[0][0],
+                ]);
+        }
+
+        const feature = new Feature({ geometry });
+
+        feature.setStyle(getPoiStyles(selectedPoi));
+
+        source.addFeature(feature);
+        if (geometry.getExtent) {
+            map.getView().fit(geometry.getExtent(), {
+                padding: [100, 100, 100, 100],
+                maxZoom: 16,
+                duration: 1000,
+            });
+        }
+    }, [selectedPoi, selectedPoiLayer, map]);
     const getMarkerLabel = (entry, mode) => {
         if (!entry) return "";
-        console.debug(`[BhuvanMap] getMarkerLabel: mode=${mode}, imei=${entry.imei || entry.device_tag_info?.device?.imei}`);
+        //console.debug(`[BhuvanMap] getMarkerLabel: mode=${mode}, imei=${entry.imei || entry.device_tag_info?.device?.imei}`);
 
         switch (mode) {
             case "block": {
@@ -1091,7 +1128,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         const counts = data.map(d => d.total_vehicle_count ?? d.total_devices ?? 1);
         const minVehicles = Math.min(...counts);
         const maxVehicles = Math.max(...counts);
-        
+
         const fillColor = erss
             ? "rgba(255, 0, 0, 0.7)"      // 🔴 RED for ERSS
             : "rgba(14,165,233,0.6)";     // 🔵 default
@@ -1118,8 +1155,8 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                     (maxVehicles - minVehicles || 1)) *
                 (MAX_RADIUS - MIN_RADIUS);
 
-            const label = level === "device" 
-                ? d.vehicle_reg_no 
+            const label = level === "device"
+                ? d.vehicle_reg_no
                 : (d.total_vehicle_count ?? d.total_devices ?? "");
 
             feature.setStyle(
@@ -1280,7 +1317,16 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         });
         initialMap.addLayer(poiLayer);
         setPoiVectorLayer(poiLayer);
+        const selectedPoiSource = new VectorSource();
 
+        const selectedPoiLayerObj = new VectorLayer({
+            source: selectedPoiSource,
+            zIndex: 9999,
+        });
+
+        initialMap.addLayer(selectedPoiLayerObj);
+
+        setSelectedPoiLayer(selectedPoiLayerObj);
         // Initialize Route Layer
         const routeLayer = new VectorLayer({
             source: new VectorSource(),
@@ -2028,7 +2074,16 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                 declutter: true,
             });
             soiMap.addLayer(initialPoiVectorLayer);
+            const selectedPoiSource = new VectorSource();
 
+            const selectedPoiLayerObj = new VectorLayer({
+                source: selectedPoiSource,
+                zIndex: 9999,
+            });
+
+            soiMap.addLayer(selectedPoiLayerObj);
+
+            setSelectedPoiLayer(selectedPoiLayerObj);
             const drawSource = new VectorSource();
             const drawLayer = new VectorLayer({
                 source: drawSource,

@@ -21,7 +21,7 @@ import { getCenter } from "ol/extent"; // For centering the map
 import axios from "axios";
 import Select from "ol/interaction/Select";
 import { formatDateTime } from "../../helper";
-
+import Polygon from "ol/geom/Polygon";
 const GPSHistoryMap = ({
   startDateTime,
   endDateTime,
@@ -68,35 +68,35 @@ const GPSHistoryMap = ({
   const poiMarkerRef = useRef(null);
   const poiSourceRef = useRef(null);
   const poiPopupRef = useRef(null);
-const poiPopupOverlayRef = useRef(null);
+  const poiPopupOverlayRef = useRef(null);
 
-const showPoiPopup = (poiData) => {
-  if (!poiPopupRef.current || !poiPopupOverlayRef.current) return;
+  const showPoiPopup = (poiData) => {
+    if (!poiPopupRef.current || !poiPopupOverlayRef.current) return;
 
-  const name =
-    poiData.name ||
-    poiData.poi_name ||
-    poiData.title ||
-    "POI";
+    const name =
+      poiData.name ||
+      poiData.poi_name ||
+      poiData.title ||
+      "POI";
 
-  const type =
-    poiData.poi_type ||
-    poiData.type ||
-    "POI";
+    const type =
+      poiData.poi_type ||
+      poiData.type ||
+      "POI";
 
-  const address =
-    poiData.address ||
-    poiData.location ||
-    poiData.poi_address ||
-    "-";
+    const address =
+      poiData.address ||
+      poiData.location ||
+      poiData.poi_address ||
+      "-";
 
-  const phone =
-    poiData.phone ||
-    poiData.mobile ||
-    poiData.contact ||
-    "-";
+    const phone =
+      poiData.phone ||
+      poiData.mobile ||
+      poiData.contact ||
+      "-";
 
-  const html = `
+    const html = `
     <div style="
       width:320px;
       background:#ffffff;
@@ -190,78 +190,196 @@ const showPoiPopup = (poiData) => {
     </div>
   `;
 
-  poiPopupRef.current.innerHTML = html;
-  poiPopupRef.current.style.display = "block";
+    poiPopupRef.current.innerHTML = html;
+    poiPopupRef.current.style.display = "block";
 
-  poiPopupOverlayRef.current.setPosition(
-    fromLonLat([
-      parseFloat(poiData.lon),
-      parseFloat(poiData.lat),
-    ])
-  );
-};
+    poiPopupOverlayRef.current.setPosition(
+      fromLonLat([
+        parseFloat(poiData.lon),
+        parseFloat(poiData.lat),
+      ])
+    );
+  };
 
-const closePoiPopup = () => {
-  if (!poiPopupRef.current) return;
+  const closePoiPopup = () => {
+    if (!poiPopupRef.current) return;
 
-  poiPopupRef.current.style.display = "none";
+    poiPopupRef.current.style.display = "none";
 
-  if (poiPopupOverlayRef.current) {
-    poiPopupOverlayRef.current.setPosition(undefined);
-  }
-};
+    if (poiPopupOverlayRef.current) {
+      poiPopupOverlayRef.current.setPosition(undefined);
+    }
+  };
 
+  // useEffect(() => {
+  //   if (!map || !selectedPoi || !markerRef.current) return;
+
+  //   const lat = parseFloat(selectedPoi.lat);
+  //   const lon = parseFloat(selectedPoi.lon);
+
+  //   if (!lat || !lon) return;
+
+  //   // remove previous POI marker
+  //   if (poiMarkerRef.current) {
+  //     poiSourceRef.current.removeFeature(poiMarkerRef.current);
+  //   }
+
+  //   const poiFeature = new Feature({
+  //     geometry: new Point(
+  //       fromLonLat([lon, lat])
+  //     ),
+  //   });
+  //   poiFeature.set("poiData", selectedPoi);
+
+  //   poiFeature.setStyle(
+  //     new Style({
+  //       image: new CircleStyle({
+  //         radius: 10,
+  //         fill: new Fill({
+  //           color: "#ff0000",
+  //         }),
+  //         stroke: new Stroke({
+  //           color: "#ffffff",
+  //           width: 2,
+  //         }),
+  //       }),
+  //       text: new Text({
+  //         text: selectedPoi.name,
+  //         offsetY: -20,
+  //       }),
+  //     })
+  //   );
+
+  //   poiSourceRef.current.addFeature(poiFeature);
+
+  //   poiMarkerRef.current = poiFeature;
+
+  //   map.getView().animate({
+  //     center: fromLonLat([lon, lat]),
+  //     zoom: 18,
+  //     duration: 1000,
+  //   });
+
+  // }, [selectedPoi, map]);
   useEffect(() => {
-    if (!map || !selectedPoi || !markerRef.current) return;
+    if (!map || !selectedPoi || !poiSourceRef.current) return;
 
-    const lat = parseFloat(selectedPoi.lat);
-    const lon = parseFloat(selectedPoi.lon);
+    poiSourceRef.current.clear();
 
-    if (!lat || !lon) return;
+    let location;
 
-    // remove previous POI marker
-    if (poiMarkerRef.current) {
-      poiSourceRef.current.removeFeature(poiMarkerRef.current);
+    try {
+      location =
+        typeof selectedPoi.location === "string"
+          ? JSON.parse(selectedPoi.location)
+          : selectedPoi.location;
+    } catch (e) {
+      console.error("Invalid POI location", e);
+      return;
+    }
+
+    if (!location) return;
+
+    let geometry;
+
+    switch (selectedPoi.mark_type) {
+      case "Point":
+        geometry = new Point(
+          fromLonLat([
+            Number(location[0][1]),
+            Number(location[0][0]),
+          ])
+        );
+        break;
+
+      case "Polygon":
+        geometry = new Polygon([
+          location.map(([lat, lon]) =>
+            fromLonLat([Number(lon), Number(lat)])
+          ),
+        ]);
+        break;
+
+      case "Road":
+        geometry = new LineString(
+          location.map(([lat, lon]) =>
+            fromLonLat([Number(lon), Number(lat)])
+          )
+        );
+        break;
+
+      default:
+        geometry = new Point(
+          fromLonLat([
+            Number(location[0][1]),
+            Number(location[0][0]),
+          ])
+        );
     }
 
     const poiFeature = new Feature({
-      geometry: new Point(
-        fromLonLat([lon, lat])
-      ),
+      geometry,
     });
+
     poiFeature.set("poiData", selectedPoi);
 
-    poiFeature.setStyle(
-      new Style({
-        image: new CircleStyle({
-          radius: 10,
+    let style;
+
+    switch (selectedPoi.mark_type) {
+      case "Polygon":
+        style = new Style({
           fill: new Fill({
-            color: "#ff0000",
+            color: "rgba(33,150,243,0.25)",
           }),
           stroke: new Stroke({
-            color: "#ffffff",
-            width: 2,
+            color: "#2196f3",
+            width: 3,
           }),
-        }),
-        text: new Text({
-          text: selectedPoi.name,
-          offsetY: -20,
-        }),
-      })
-    );
+        });
+        break;
+
+      case "Road":
+        style = new Style({
+          stroke: new Stroke({
+            color: "#ff5722",
+            width: 4,
+          }),
+        });
+        break;
+
+      default:
+        style = new Style({
+          image: new CircleStyle({
+            radius: 10,
+            fill: new Fill({
+              color: "#ff0000",
+            }),
+            stroke: new Stroke({
+              color: "#ffffff",
+              width: 2,
+            }),
+          }),
+          text: new Text({
+            text: selectedPoi.name || "",
+            offsetY: -20,
+          }),
+        });
+    }
+
+    poiFeature.setStyle(style);
 
     poiSourceRef.current.addFeature(poiFeature);
 
     poiMarkerRef.current = poiFeature;
 
-    map.getView().animate({
-      center: fromLonLat([lon, lat]),
-      zoom: 18,
+    const extent = geometry.getExtent();
+
+    map.getView().fit(extent, {
+      padding: [120, 120, 120, 120],
       duration: 1000,
+      maxZoom: 18,
     });
-
   }, [selectedPoi, map]);
-
   function getStatusInfo(data) {
     if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
 
@@ -609,21 +727,21 @@ const closePoiPopup = () => {
         },
       });
       initialMap.addOverlay(overlay);
-   const poiPopupOverlay = new Overlay({
-  element: poiPopupRef.current,
-  positioning: "bottom-center",
-  stopEvent: true,
-  autoPan: {
-    animation: {
-      duration: 250,
-    },
-  },
-  offset: [0, -15],
-});
+      const poiPopupOverlay = new Overlay({
+        element: poiPopupRef.current,
+        positioning: "bottom-center",
+        stopEvent: true,
+        autoPan: {
+          animation: {
+            duration: 250,
+          },
+        },
+        offset: [0, -15],
+      });
 
-initialMap.addOverlay(poiPopupOverlay);
+      initialMap.addOverlay(poiPopupOverlay);
 
-poiPopupOverlayRef.current = poiPopupOverlay;
+      poiPopupOverlayRef.current = poiPopupOverlay;
 
       // Create overlay for moving info box
       const infoOverlay = new Overlay({
@@ -655,25 +773,25 @@ poiPopupOverlayRef.current = poiPopupOverlay;
 
       setMap(initialMap);
       initialMap.on("singleclick", (evt) => {
-  let poiClicked = false;
+        let poiClicked = false;
 
-  initialMap.forEachFeatureAtPixel(
-    evt.pixel,
-    (feature) => {
-      const poiData = feature.get("poiData");
+        initialMap.forEachFeatureAtPixel(
+          evt.pixel,
+          (feature) => {
+            const poiData = feature.get("poiData");
 
-      if (poiData) {
-        showPoiPopup(poiData);
-        poiClicked = true;
-        return true;
-      }
-    }
-  );
+            if (poiData) {
+              showPoiPopup(poiData);
+              poiClicked = true;
+              return true;
+            }
+          }
+        );
 
-  if (!poiClicked) {
-    closePoiPopup();
-  }
-});
+        if (!poiClicked) {
+          closePoiPopup();
+        }
+      });
       markerRef.current = markerSource;
       featureOverlayRef.current = overlay;
     }
@@ -1443,20 +1561,20 @@ poiPopupOverlayRef.current = poiPopupOverlay;
 
       <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative' }}>
         {/* <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} /> */}
-<div
-  ref={poiPopupRef}
-  style={{
-    display: "none",
-    background: "#fff",
-    borderRadius: "10px",
-    border: "1px solid #ddd",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-    zIndex: 99999,
-    position: "relative",
-    // overflowY: "auto",
-    maxHeight: "350px",
-  }}
-/>
+        <div
+          ref={poiPopupRef}
+          style={{
+            display: "none",
+            background: "#fff",
+            borderRadius: "10px",
+            border: "1px solid #ddd",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+            zIndex: 99999,
+            position: "relative",
+            // overflowY: "auto",
+            maxHeight: "350px",
+          }}
+        />
         {/* Hidden Container for Overlay Content - React Renders Here, OL uses DOM element */}
         <div ref={infoBoxElementRef} style={{ position: 'absolute', minWidth: '150px', top: '-17px', left: '50%', transform: 'translateX(-50%)' }}>
           {currentData && (
