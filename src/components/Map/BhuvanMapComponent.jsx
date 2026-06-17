@@ -64,7 +64,7 @@ const BhuvanMapComponent = ({
     center = [91.7362, 26.1445], // Guwahati, Assam
     zoom = 10,
     routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
-     poi,
+    poi,
     selectedPoi,
 }) => {
     const poisForLookup = Array.isArray(lookupPois) ? lookupPois : pois;
@@ -83,7 +83,7 @@ const BhuvanMapComponent = ({
     const vehicleFeatureRef = useRef({});
     const vehicleTrailRef = useRef({});
     const lastValidPositionRef = useRef({});
-const [selectedPoiLayer, setSelectedPoiLayer] = useState(null);
+    const [selectedPoiLayer, setSelectedPoiLayer] = useState(null);
     const isInsideIndia = (lon, lat) => {
         // Approx bounding box for India
         return (
@@ -91,13 +91,7 @@ const [selectedPoiLayer, setSelectedPoiLayer] = useState(null);
             lon >= 68 && lon <= 98
         );
     };
-useEffect(() => {
-  console.log("BhuvanMap selectedPoi:", selectedPoi);
-  console.log("Selected POI Full:", selectedPoi);
-console.log("Location:", selectedPoi?.location);
-console.log("Lat:", selectedPoi?.lat);
-console.log("Lon:", selectedPoi?.lon);
-}, [selectedPoi]);
+
     const getSmoothedPosition = (imei, newPoint) => {
         if (!vehicleTrailRef.current[imei]) {
             vehicleTrailRef.current[imei] = [];
@@ -572,88 +566,60 @@ console.log("Lon:", selectedPoi?.lon);
                 : undefined,
         });
     };
-useEffect(() => {
-    if (!selectedPoi || !poiVectorLayer || !map) return;
+    useEffect(() => {
+        if (!selectedPoi || !poiVectorLayer || !map) return;
 
-const source = selectedPoiLayer.getSource();
-    source.clear();
+        const source = selectedPoiLayer.getSource();
+        source.clear();
 
-    console.log("selectedPoiLayer", selectedPoiLayer);
-console.log("poiVectorLayer", poiVectorLayer);
-    let geometry = null;
 
-    const location =
-        typeof selectedPoi.location === "string"
-            ? JSON.parse(selectedPoi.location)
-            : selectedPoi.location;
+        let geometry = null;
 
-    switch (selectedPoi.mark_type) {
-        case "Point":
-            geometry = new Point([
-                location[0][1],
-                location[0][0],
-            ]);
-            break;
+        const location =
+            typeof selectedPoi.location === "string"
+                ? JSON.parse(selectedPoi.location)
+                : selectedPoi.location;
 
-        case "Polygon":
-            geometry = new Polygon([
-                location.map(([lat, lon]) => [lon, lat]),
-            ]);
-            break;
+        switch (selectedPoi.mark_type) {
+            case "Point":
+                geometry = new Point([
+                    location[0][1],
+                    location[0][0],
+                ]);
+                break;
 
-        case "Road":
-            geometry = new LineString(
-                location.map(([lat, lon]) => [lon, lat])
-            );
-            break;
+            case "Polygon":
+                geometry = new Polygon([
+                    location.map(([lat, lon]) => [lon, lat]),
+                ]);
+                break;
 
-        default:
-            geometry = new Point([
-                location[0][1],
-                location[0][0],
-            ]);
-    }
+            case "Road":
+                geometry = new LineString(
+                    location.map(([lat, lon]) => [lon, lat])
+                );
+                break;
 
-    const feature = new Feature({ geometry });
+            default:
+                geometry = new Point([
+                    location[0][1],
+                    location[0][0],
+                ]);
+        }
 
-    feature.setStyle(getPoiStyles(selectedPoi));
+        const feature = new Feature({ geometry });
 
-    source.addFeature(feature);
-    console.log(
-  "Map Center:",
-  map.getView().getCenter()
-);
-console.log(
-  "After Add Feature",
-  source.getFeatures().length
-);
-console.log(
-  "Feature Coordinates:",
-  geometry.getCoordinates()
-);
+        feature.setStyle(getPoiStyles(selectedPoi));
 
-console.log(
-  "Current Zoom:",
-  map.getView().getZoom()
-);
-console.log(
-    "Feature Count:",
-    selectedPoiLayer.getSource().getFeatures().length
-);
-setTimeout(() => {
-  console.log(
-    "Feature Count After 2 Seconds:",
-    selectedPoiLayer.getSource().getFeatures().length
-  );
-}, 2000);
-    if (geometry.getExtent) {
-        map.getView().fit(geometry.getExtent(), {
-            padding: [100, 100, 100, 100],
-            maxZoom: 16,
-            duration: 1000,
-        });
-    }
-}, [selectedPoi, selectedPoiLayer, map]);
+        source.addFeature(feature);
+        if (geometry.getExtent) {
+            map.getView().fit(geometry.getExtent(), {
+                padding: [100, 100, 100, 100],
+                maxZoom: 16,
+                duration: 1000,
+            });
+        }
+    }, [selectedPoi, selectedPoiLayer, map]);
     const getMarkerLabel = (entry, mode) => {
         if (!entry) return "";
         //console.debug(`[BhuvanMap] getMarkerLabel: mode=${mode}, imei=${entry.imei || entry.device_tag_info?.device?.imei}`);
@@ -1240,16 +1206,16 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         });
         initialMap.addLayer(poiLayer);
         setPoiVectorLayer(poiLayer);
-const selectedPoiSource = new VectorSource();
+        const selectedPoiSource = new VectorSource();
 
-const selectedPoiLayerObj = new VectorLayer({
-    source: selectedPoiSource,
-    zIndex: 9999,
-});
+        const selectedPoiLayerObj = new VectorLayer({
+            source: selectedPoiSource,
+            zIndex: 9999,
+        });
 
-initialMap.addLayer(selectedPoiLayerObj);
+        initialMap.addLayer(selectedPoiLayerObj);
 
-setSelectedPoiLayer(selectedPoiLayerObj);
+        setSelectedPoiLayer(selectedPoiLayerObj);
         // Initialize Route Layer
         const routeLayer = new VectorLayer({
             source: new VectorSource(),
@@ -1997,16 +1963,16 @@ setSelectedPoiLayer(selectedPoiLayerObj);
                 declutter: true,
             });
             soiMap.addLayer(initialPoiVectorLayer);
-const selectedPoiSource = new VectorSource();
+            const selectedPoiSource = new VectorSource();
 
-const selectedPoiLayerObj = new VectorLayer({
-    source: selectedPoiSource,
-    zIndex: 9999,
-});
+            const selectedPoiLayerObj = new VectorLayer({
+                source: selectedPoiSource,
+                zIndex: 9999,
+            });
 
-soiMap.addLayer(selectedPoiLayerObj);
+            soiMap.addLayer(selectedPoiLayerObj);
 
-setSelectedPoiLayer(selectedPoiLayerObj);
+            setSelectedPoiLayer(selectedPoiLayerObj);
             const drawSource = new VectorSource();
             const drawLayer = new VectorLayer({
                 source: drawSource,

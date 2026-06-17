@@ -46,10 +46,10 @@ const HistoryPlayback = () => {
   const [poiTypes, setPoiTypes] = useState([]);
   const [selectedPoiType, setSelectedPoiType] = useState(null);
   const [poiTypeLoading, setPoiTypeLoading] = useState(false);
-const [poiVehicles, setPoiVehicles] = useState([]);
-const [selectedPoiVehicle, setSelectedPoiVehicle] = useState(null);
-const [loadingPoiVehicles, setLoadingPoiVehicles] = useState(false);
-const [showPoiVehicles, setShowPoiVehicles] = useState(false);
+  const [poiVehicles, setPoiVehicles] = useState([]);
+  const [selectedPoiVehicle, setSelectedPoiVehicle] = useState(null);
+  const [loadingPoiVehicles, setLoadingPoiVehicles] = useState(false);
+  const [showPoiVehicles, setShowPoiVehicles] = useState(false);
   // Fetch vehicle list on mount
   useEffect(() => {
     let isMounted = true;
@@ -137,52 +137,21 @@ const [showPoiVehicles, setShowPoiVehicles] = useState(false);
     }
   };
 
-const handlePoiChange = (event, value) => {
-  if (!selectedPoiType) return;
-console.log("Selected POI Object:", value);
-  setSelectedPoi(value);
-  setPoi(value?.id || "");
+  const handlePoiChange = (event, value) => {
+    if (!selectedPoiType) return;
+    setSelectedPoi(value);
+    setPoi(value?.id || "");
 
-  setPoiVehicles([]);
-  setSelectedPoiVehicle(null);
+    setPoiVehicles([]);
+    setSelectedPoiVehicle(null);
 
-  // Important
-  setShowPoiVehicles(false);
+    // Important
+    setShowPoiVehicles(false);
+    setShowHistoryMap(false);
+    setShowVehicleMap(false);
 
-  console.log("POI Changed:", value);
-};
+  };
 
-  // Fetch GPS data only when vehicle map is shown
-  // useEffect(() => {
-  //   if (!showVehicleMap || vehicleGpsData.length > 0) return;
-
-  //   let isMounted = true;
-  //   setIsLoadingGpsData(true);
-
-  //   const fetchVehicleGpsData = async () => {
-  //     try {
-  //       const response = await HomePageService.getLiveTracking_data({});
-  //       if (isMounted && Array.isArray(response?.data?.data)) {
-  //         setVehicleGpsData(response.data.data);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching vehicle GPS data:", error);
-  //       if (isMounted) {
-  //         setVehicleGpsData([]);
-  //       }
-  //     } finally {
-  //       if (isMounted) {
-  //         setIsLoadingGpsData(false);
-  //       }
-  //     }
-  //   };
-
-  //   fetchVehicleGpsData();
-
-  //   return () => {
-  //     isMounted = false;
-  //   };
-  // }, [showVehicleMap, vehicleGpsData.length]);
 
   // Validate date range
   const validateDateRange = useCallback((from, to) => {
@@ -196,7 +165,7 @@ console.log("Selected POI Object:", value);
   }, []);
 
   // Handle form submission
-  const handleSubmit = useCallback( async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
     if (!fromDate || !toDate) {
@@ -209,41 +178,47 @@ console.log("Selected POI Object:", value);
       alert(error);
       return;
     }
-   if (
-  selectedPoi &&
-  !showPoiVehicles
-) {
-  try {
-    setLoadingPoiVehicles(true);
-console.log("Sending POI ID:", selectedPoi.id);
-    const response =
-      await HomePageService.getLiveTracking_data({
-  poi: selectedPoi.id,
-});
-console.log("Request Data:", {
-  poi_id: selectedPoi.id,
-});
-    const vehicles =
-      response?.data?.data || [];
+    if (
+      selectedPoi &&
+      !showPoiVehicles
+    ) {
+      try {
+        setLoadingPoiVehicles(true);
+        const response =
+          await HomePageService.getLiveTracking_data({
+            poi: selectedPoi.id,
+          });
 
-    const uniqueVehicles = [
-      ...new Set(
-        vehicles
-          .map(v => v.vehicle_registration_number)
-          .filter(Boolean)
-      ),
-    ];
-console.log("POI API Response:", response?.data);
-console.log("Vehicles:", vehicles);
-    setPoiVehicles(uniqueVehicles);
-    setShowPoiVehicles(true);
+        const vehicles =
+          response?.data?.data || [];
 
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setLoadingPoiVehicles(false);
-  }
-}
+        const uniqueVehicles = [
+          ...new Set(
+            vehicles
+              .map(v => v.vehicle_registration_number)
+              .filter(Boolean)
+          ),
+        ];
+
+        setPoiVehicles(uniqueVehicles);
+        setShowPoiVehicles(true);
+
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingPoiVehicles(false);
+      }
+    }
+
+    if (selectedPoiVehicle) {
+
+      setVehicleNo(selectedPoiVehicle);
+
+      setShowVehicleMap(false);
+      setShowHistoryMap(true);
+
+      return;
+    }
 
     if (vehicleNo) {
       setShowHistoryMap(true);
@@ -252,9 +227,9 @@ console.log("Vehicles:", vehicles);
       setShowHistoryMap(false);
       setShowVehicleMap(true);
     }
-  }, [fromDate, toDate, vehicleNo, validateDateRange,selectedPoi,
-  showPoiVehicles,
-  selectedPoiVehicle]);
+  }, [fromDate, toDate, vehicleNo, validateDateRange, selectedPoi,
+    showPoiVehicles,
+    selectedPoiVehicle]);
 
   // Handle vehicle selection from map
   const handleVehicleSelect = useCallback((selectedVehicleNo) => {
@@ -481,37 +456,37 @@ console.log("Vehicles:", vehicles);
                     )}
                   />
                 </Grid>
-                {showPoiVehicles  && (
-  <Grid item md={3} sm={6} xs={12}>
-    <Autocomplete
-      options={poiVehicles}
-      value={selectedPoiVehicle}
-      loading={loadingPoiVehicles}
-      onChange={(event, value) =>
-        setSelectedPoiVehicle(value || null)
-      }
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="Vehicle Registration Number"
-          size="small"
-          fullWidth
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {loadingPoiVehicles ? (
-                  <CircularProgress size={20} />
-                ) : null}
-                {params.InputProps.endAdornment}
-              </>
-            ),
-          }}
-        />
-      )}
-    />
-  </Grid>
-)}
+                {showPoiVehicles && (
+                  <Grid item md={3} sm={6} xs={12}>
+                    <Autocomplete
+                      options={poiVehicles}
+                      value={selectedPoiVehicle}
+                      loading={loadingPoiVehicles}
+                      onChange={(event, value) =>
+                        setSelectedPoiVehicle(value || null)
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Vehicle Registration Number"
+                          size="small"
+                          fullWidth
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {loadingPoiVehicles ? (
+                                  <CircularProgress size={20} />
+                                ) : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            ),
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                )}
                 {/* <Grid item md={3} sm={6} xs={12}>
                   <TextField
                     fullWidth
@@ -567,7 +542,7 @@ console.log("Vehicles:", vehicles);
               defaultMapType="normal"
               markerLabelMode="vehicle"
               poi={poi}
-            selectedPoi={selectedPoi}
+              selectedPoi={selectedPoi}
               onMarkerClick={(entryData) => {
                 // Extract vehicle registration number and trigger selection
                 const vehicleRegNo = entryData.vehicle_registration_number ||
