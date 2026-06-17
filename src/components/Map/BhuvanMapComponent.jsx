@@ -64,6 +64,8 @@ const BhuvanMapComponent = ({
     center = [91.7362, 26.1445], // Guwahati, Assam
     zoom = 10,
     routes = [], // New prop for routes: [{ from: [lon, lat], to: [lon, lat], type: 'police'|'ambulance' }]
+     poi,
+    selectedPoi,
 }) => {
     const poisForLookup = Array.isArray(lookupPois) ? lookupPois : pois;
     const overlayElement = useRef();
@@ -81,7 +83,7 @@ const BhuvanMapComponent = ({
     const vehicleFeatureRef = useRef({});
     const vehicleTrailRef = useRef({});
     const lastValidPositionRef = useRef({});
-
+const [selectedPoiLayer, setSelectedPoiLayer] = useState(null);
     const isInsideIndia = (lon, lat) => {
         // Approx bounding box for India
         return (
@@ -89,7 +91,13 @@ const BhuvanMapComponent = ({
             lon >= 68 && lon <= 98
         );
     };
-
+useEffect(() => {
+  console.log("BhuvanMap selectedPoi:", selectedPoi);
+  console.log("Selected POI Full:", selectedPoi);
+console.log("Location:", selectedPoi?.location);
+console.log("Lat:", selectedPoi?.lat);
+console.log("Lon:", selectedPoi?.lon);
+}, [selectedPoi]);
     const getSmoothedPosition = (imei, newPoint) => {
         if (!vehicleTrailRef.current[imei]) {
             vehicleTrailRef.current[imei] = [];
@@ -113,12 +121,12 @@ const BhuvanMapComponent = ({
             },
             { lon: 0, lat: 0 }
         );
-        console.log("IMEI:", imei);
-        console.log("Trail:", trail);
-        console.log("Average:", [
-            avg.lon / trail.length,
-            avg.lat / trail.length
-        ]);
+        // console.log("IMEI:", imei);
+        // console.log("Trail:", trail);
+        // console.log("Average:", [
+        //     avg.lon / trail.length,
+        //     avg.lat / trail.length
+        // ]);
 
         return [
             avg.lon / trail.length,
@@ -145,7 +153,7 @@ const BhuvanMapComponent = ({
             }
         };
 
-        console.log("Animating from:", start, "to:", end);
+        //console.log("Animating from:", start, "to:", end);
 
         requestAnimationFrame(animate);
     };
@@ -564,10 +572,91 @@ const BhuvanMapComponent = ({
                 : undefined,
         });
     };
+useEffect(() => {
+    if (!selectedPoi || !poiVectorLayer || !map) return;
 
+const source = selectedPoiLayer.getSource();
+    source.clear();
+
+    console.log("selectedPoiLayer", selectedPoiLayer);
+console.log("poiVectorLayer", poiVectorLayer);
+    let geometry = null;
+
+    const location =
+        typeof selectedPoi.location === "string"
+            ? JSON.parse(selectedPoi.location)
+            : selectedPoi.location;
+
+    switch (selectedPoi.mark_type) {
+        case "Point":
+            geometry = new Point([
+                location[0][1],
+                location[0][0],
+            ]);
+            break;
+
+        case "Polygon":
+            geometry = new Polygon([
+                location.map(([lat, lon]) => [lon, lat]),
+            ]);
+            break;
+
+        case "Road":
+            geometry = new LineString(
+                location.map(([lat, lon]) => [lon, lat])
+            );
+            break;
+
+        default:
+            geometry = new Point([
+                location[0][1],
+                location[0][0],
+            ]);
+    }
+
+    const feature = new Feature({ geometry });
+
+    feature.setStyle(getPoiStyles(selectedPoi));
+
+    source.addFeature(feature);
+    console.log(
+  "Map Center:",
+  map.getView().getCenter()
+);
+console.log(
+  "After Add Feature",
+  source.getFeatures().length
+);
+console.log(
+  "Feature Coordinates:",
+  geometry.getCoordinates()
+);
+
+console.log(
+  "Current Zoom:",
+  map.getView().getZoom()
+);
+console.log(
+    "Feature Count:",
+    selectedPoiLayer.getSource().getFeatures().length
+);
+setTimeout(() => {
+  console.log(
+    "Feature Count After 2 Seconds:",
+    selectedPoiLayer.getSource().getFeatures().length
+  );
+}, 2000);
+    if (geometry.getExtent) {
+        map.getView().fit(geometry.getExtent(), {
+            padding: [100, 100, 100, 100],
+            maxZoom: 16,
+            duration: 1000,
+        });
+    }
+}, [selectedPoi, selectedPoiLayer, map]);
     const getMarkerLabel = (entry, mode) => {
         if (!entry) return "";
-        console.debug(`[BhuvanMap] getMarkerLabel: mode=${mode}, imei=${entry.imei || entry.device_tag_info?.device?.imei}`);
+        //console.debug(`[BhuvanMap] getMarkerLabel: mode=${mode}, imei=${entry.imei || entry.device_tag_info?.device?.imei}`);
 
         switch (mode) {
             case "block": {
@@ -1151,7 +1240,16 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         });
         initialMap.addLayer(poiLayer);
         setPoiVectorLayer(poiLayer);
+const selectedPoiSource = new VectorSource();
 
+const selectedPoiLayerObj = new VectorLayer({
+    source: selectedPoiSource,
+    zIndex: 9999,
+});
+
+initialMap.addLayer(selectedPoiLayerObj);
+
+setSelectedPoiLayer(selectedPoiLayerObj);
         // Initialize Route Layer
         const routeLayer = new VectorLayer({
             source: new VectorSource(),
@@ -1899,7 +1997,16 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                 declutter: true,
             });
             soiMap.addLayer(initialPoiVectorLayer);
+const selectedPoiSource = new VectorSource();
 
+const selectedPoiLayerObj = new VectorLayer({
+    source: selectedPoiSource,
+    zIndex: 9999,
+});
+
+soiMap.addLayer(selectedPoiLayerObj);
+
+setSelectedPoiLayer(selectedPoiLayerObj);
             const drawSource = new VectorSource();
             const drawLayer = new VectorLayer({
                 source: drawSource,

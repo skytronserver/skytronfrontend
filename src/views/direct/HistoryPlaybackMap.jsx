@@ -21,7 +21,7 @@ import { getCenter } from "ol/extent"; // For centering the map
 import axios from "axios";
 import Select from "ol/interaction/Select";
 import { formatDateTime } from "../../helper";
-
+import Polygon from "ol/geom/Polygon";
 const GPSHistoryMap = ({
   startDateTime,
   endDateTime,
@@ -211,28 +211,144 @@ const closePoiPopup = () => {
   }
 };
 
-  useEffect(() => {
-    if (!map || !selectedPoi || !markerRef.current) return;
+  // useEffect(() => {
+  //   if (!map || !selectedPoi || !markerRef.current) return;
 
-    const lat = parseFloat(selectedPoi.lat);
-    const lon = parseFloat(selectedPoi.lon);
+  //   const lat = parseFloat(selectedPoi.lat);
+  //   const lon = parseFloat(selectedPoi.lon);
 
-    if (!lat || !lon) return;
+  //   if (!lat || !lon) return;
 
-    // remove previous POI marker
-    if (poiMarkerRef.current) {
-      poiSourceRef.current.removeFeature(poiMarkerRef.current);
-    }
+  //   // remove previous POI marker
+  //   if (poiMarkerRef.current) {
+  //     poiSourceRef.current.removeFeature(poiMarkerRef.current);
+  //   }
 
-    const poiFeature = new Feature({
-      geometry: new Point(
-        fromLonLat([lon, lat])
-      ),
-    });
-    poiFeature.set("poiData", selectedPoi);
+  //   const poiFeature = new Feature({
+  //     geometry: new Point(
+  //       fromLonLat([lon, lat])
+  //     ),
+  //   });
+  //   poiFeature.set("poiData", selectedPoi);
 
-    poiFeature.setStyle(
-      new Style({
+  //   poiFeature.setStyle(
+  //     new Style({
+  //       image: new CircleStyle({
+  //         radius: 10,
+  //         fill: new Fill({
+  //           color: "#ff0000",
+  //         }),
+  //         stroke: new Stroke({
+  //           color: "#ffffff",
+  //           width: 2,
+  //         }),
+  //       }),
+  //       text: new Text({
+  //         text: selectedPoi.name,
+  //         offsetY: -20,
+  //       }),
+  //     })
+  //   );
+
+  //   poiSourceRef.current.addFeature(poiFeature);
+
+  //   poiMarkerRef.current = poiFeature;
+
+  //   map.getView().animate({
+  //     center: fromLonLat([lon, lat]),
+  //     zoom: 18,
+  //     duration: 1000,
+  //   });
+
+  // }, [selectedPoi, map]);
+useEffect(() => {
+  if (!map || !selectedPoi || !poiSourceRef.current) return;
+
+  poiSourceRef.current.clear();
+
+  let location;
+
+  try {
+    location =
+      typeof selectedPoi.location === "string"
+        ? JSON.parse(selectedPoi.location)
+        : selectedPoi.location;
+  } catch (e) {
+    console.error("Invalid POI location", e);
+    return;
+  }
+
+  if (!location) return;
+
+  let geometry;
+
+  switch (selectedPoi.mark_type) {
+    case "Point":
+      geometry = new Point(
+        fromLonLat([
+          Number(location[0][1]),
+          Number(location[0][0]),
+        ])
+      );
+      break;
+
+    case "Polygon":
+      geometry = new Polygon([
+        location.map(([lat, lon]) =>
+          fromLonLat([Number(lon), Number(lat)])
+        ),
+      ]);
+      break;
+
+    case "Road":
+      geometry = new LineString(
+        location.map(([lat, lon]) =>
+          fromLonLat([Number(lon), Number(lat)])
+        )
+      );
+      break;
+
+    default:
+      geometry = new Point(
+        fromLonLat([
+          Number(location[0][1]),
+          Number(location[0][0]),
+        ])
+      );
+  }
+
+  const poiFeature = new Feature({
+    geometry,
+  });
+
+  poiFeature.set("poiData", selectedPoi);
+
+  let style;
+
+  switch (selectedPoi.mark_type) {
+    case "Polygon":
+      style = new Style({
+        fill: new Fill({
+          color: "rgba(33,150,243,0.25)",
+        }),
+        stroke: new Stroke({
+          color: "#2196f3",
+          width: 3,
+        }),
+      });
+      break;
+
+    case "Road":
+      style = new Style({
+        stroke: new Stroke({
+          color: "#ff5722",
+          width: 4,
+        }),
+      });
+      break;
+
+    default:
+      style = new Style({
         image: new CircleStyle({
           radius: 10,
           fill: new Fill({
@@ -244,24 +360,26 @@ const closePoiPopup = () => {
           }),
         }),
         text: new Text({
-          text: selectedPoi.name,
+          text: selectedPoi.name || "",
           offsetY: -20,
         }),
-      })
-    );
+      });
+  }
 
-    poiSourceRef.current.addFeature(poiFeature);
+  poiFeature.setStyle(style);
 
-    poiMarkerRef.current = poiFeature;
+  poiSourceRef.current.addFeature(poiFeature);
 
-    map.getView().animate({
-      center: fromLonLat([lon, lat]),
-      zoom: 18,
-      duration: 1000,
-    });
+  poiMarkerRef.current = poiFeature;
 
-  }, [selectedPoi, map]);
+  const extent = geometry.getExtent();
 
+  map.getView().fit(extent, {
+    padding: [120, 120, 120, 120],
+    duration: 1000,
+    maxZoom: 18,
+  });
+}, [selectedPoi, map]);
   function getStatusInfo(data) {
     if (!data) return { colorKey: 'grey', colorHex: '#757575', statusText: 'N/A' };
 
