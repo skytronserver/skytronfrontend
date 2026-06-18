@@ -8,7 +8,7 @@ import { Divider, List, Typography } from '@mui/material';
 // project imports
 import NavItem from '../NavItem';
 import NavCollapse from '../NavCollapse';
-import { canViewMenu } from '../../../../../utils/rbacUtils';
+import { canViewMenu, hasVisibleChildren } from '../../../../../utils/rbacUtils';
 
 // ==============================|| SIDEBAR MENU LIST GROUP ||============================== //
 
@@ -43,7 +43,8 @@ const NavGroup = ({ item, role, permissions }) => {
     switch (menu.type) {
       case 'collapse': {
         const canView = canViewMenu(menu.id, role, permissions, menu.roles);
-        return canView ? <NavCollapse key={menu.id} menu={menu} level={1} role={role} permissions={permissions} /> : null;
+        const hasChildren = hasVisibleChildren(menu, role, permissions);
+        return (canView && hasChildren) ? <NavCollapse key={menu.id} menu={menu} level={1} role={role} permissions={permissions} /> : null;
       }
       case 'item': {
         const canView = canViewMenu(menu.id, role, permissions, menu.roles);

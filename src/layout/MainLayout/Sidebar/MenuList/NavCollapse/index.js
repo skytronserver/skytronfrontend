@@ -10,7 +10,7 @@ import { Collapse, List, ListItemButton, ListItemIcon, ListItemText, Typography 
 
 // project imports
 import NavItem from '../NavItem';
-import { canViewMenu } from '../../../../../utils/rbacUtils';
+import { canViewMenu, hasVisibleChildren } from '../../../../../utils/rbacUtils';
 
 // assets
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -69,7 +69,8 @@ const NavCollapse = ({ menu, level, role, permissions }) => {
     switch (item.type) {
       case 'collapse': {
         const canView = canViewMenu(item.id, role, permissions, item.roles);
-        return canView ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role} permissions={permissions} /> : null;
+        const hasChildren = hasVisibleChildren(item, role, permissions);
+        return (canView && hasChildren) ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role} permissions={permissions} /> : null;
       }
       case 'item': {
         const canView = canViewMenu(item.id, role, permissions, item.roles);

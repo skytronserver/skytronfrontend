@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useRef } from 'react';
 import { decipherEncryption } from '../../../../helper';
 import { SYSTEM_ENV } from '../../../../store/constant';
-import { canViewMenu } from '../../../../utils/rbacUtils';
+import { canViewMenu, hasVisibleChildren } from '../../../../utils/rbacUtils';
 import RbacService from '../../../../services/RbacService';
 import { setPermissions } from '../../../../actions/loginActions';
 
@@ -111,7 +111,8 @@ const MenuList = () => {
     switch (item.type) {
       case 'group': {
         const canView = canViewMenu(item.id, role, permissions, item.roles);
-        return canView
+        const hasChildren = hasVisibleChildren(item, role, permissions);
+        return (canView && hasChildren)
           ? <NavGroup key={item.id} item={item} role={role} permissions={permissions} />
           : null;
       }

@@ -516,6 +516,30 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
   return false;
 };
 
+// ─── hasVisibleChildren ──────────────────────────────────────────────────────
+/**
+ * Recursively check if a menu group or collapse has at least one visible child.
+ *
+ * @param {object}        menuItem     - menu-items node
+ * @param {string}        role         - user's role string
+ * @param {object|array}  permissions  - module permissions
+ */
+export const hasVisibleChildren = (menuItem, role, permissions) => {
+  if (!menuItem.children || menuItem.children.length === 0) {
+    return canViewMenu(menuItem.id, role, permissions, menuItem?.roles || []);
+  }
+
+  return menuItem.children.some(child => {
+    if (child.type === 'item') {
+      return canViewMenu(child.id, role, permissions, child.roles || []);
+    } else if (child.type === 'collapse' || child.type === 'group') {
+      const canView = canViewMenu(child.id, role, permissions, child.roles || []);
+      return canView && hasVisibleChildren(child, role, permissions);
+    }
+    return false;
+  });
+};
+
 // ─── canViewRoute ─────────────────────────────────────────────────────────────
 /**
  * Decide whether a user may access a route.
