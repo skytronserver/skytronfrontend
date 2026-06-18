@@ -62,7 +62,7 @@ const WhitelistRequests = () => {
   // ----------------------------------------------------
   // Tabs & Layout States
   // ----------------------------------------------------
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(isAdmin ? 1 : 0);
 
   // ----------------------------------------------------
   // List Whitelist Requests States
@@ -385,7 +385,7 @@ const WhitelistRequests = () => {
     <Grid container spacing={gridSpacing}>
       {/* Title Header */}
       <Grid item xs={12}>
-        <PageHeader title="Whitelist Requests & Verification" />
+        <PageHeader title={isAdmin ? "Active Whitelisted Devices" : "Whitelist Requests & Verification"} />
       </Grid>
 
       {/* Tabs Selection */}
@@ -407,8 +407,8 @@ const WhitelistRequests = () => {
             }
           }}
         >
-          <Tab label="Whitelist Requests" />
-          <Tab label="Active Whitelisted Entries" />
+          {!isAdmin && <Tab label="Whitelist Requests" value={0} />}
+          <Tab label="Active Whitelisted Entries" value={1} />
         </Tabs>
       </Grid>
 

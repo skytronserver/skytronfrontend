@@ -2,6 +2,7 @@
 import { SET_USER, SET_LOADING, SET_ERROR, VERIFY_OTP, BASE_URL, SYSTEM_ENV } from '../store/constant';
 import { cipherEncryption } from '../helper';
 import axios from 'axios';
+import RbacService from '../services/RbacService';
 // Import node-forge for RSA encryption
 import forge from 'node-forge';
 
@@ -305,10 +306,28 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
       localStorage.setItem('dealerDistricts', JSON.stringify(response.data.info.districts));
     }
 
-    if (response.data?.permissions) {
-      sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
-      localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
-      dispatch(setPermissions(response.data.permissions));
+    // Always fetch ROLE-CONFIGURED permissions so sidebar toggles are respected
+    try {
+      const roleRes = await RbacService.getRolePermissions(effectiveRole || userRole);
+      const rolePerms = roleRes.data?.permissions;
+      if (rolePerms && rolePerms.length > 0) {
+        sessionStorage.setItem('userPermissions', JSON.stringify(rolePerms));
+        localStorage.setItem('userPermissions', JSON.stringify(rolePerms));
+        dispatch(setPermissions(rolePerms));
+      } else if (response.data?.permissions) {
+        // Fallback to login-response permissions if role perms not configured
+        sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+        localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+        dispatch(setPermissions(response.data.permissions));
+      }
+    } catch (permErr) {
+      console.warn('[RBAC] Could not fetch role permissions:', permErr?.message);
+      // Fallback to login-response permissions
+      if (response.data?.permissions) {
+        sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+        localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+        dispatch(setPermissions(response.data.permissions));
+      }
     }
 
     const errorData = {

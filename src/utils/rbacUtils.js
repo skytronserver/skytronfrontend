@@ -71,6 +71,7 @@ export const MENU_MODULE_MAP = {
   'sos-admin':                   'cn_sos_admin',
   'system-admin':                'cn_system_admin',
   'sos-user':                    'cn_sos_user',
+  'vehicle-owner':               'cn_vehicle_owner',
 
   // ── M2M & Manufacturer Requests ───────────────────────────────────────────
   'm2m-registration-requests':              'm2m_registration',
@@ -135,6 +136,8 @@ export const MENU_MODULE_MAP = {
   'device-health-report':        'report_device_health',
   'user-statistics-report':      'report_user_stats',
   'violation-report':            'report_violation',
+  'sos-call-list-report':        'report_sos_call_list',
+  'fitment-report':              'report_fitment',
 
   // ── Settings ──────────────────────────────────────────────────────────────
   'setting-all-routes':          'settings_management',
@@ -211,9 +214,6 @@ export const MENU_MODULE_MAP = {
   'provider-device-list-pending': 'esim_management',
   'provider-device-list-invalid': 'esim_management',
   'provider-device-list-valid':   'esim_management',
-
-  // ── Create Vehicle Owner (dealer) ─────────────────────────────────────────
-  'vehicle-owner-create':        'cn_vehicle_owner',
 
   // ── Alerts ────────────────────────────────────────────────────────────────
   'alerts':                      'alerts',
@@ -475,36 +475,43 @@ const resolveModulePerms = (permissions, moduleCode) => {
  * @param {string[]}      fallbackRoles - hardcoded `roles` array from menu config
  */
 export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
-  const isCustomRole = role && !STANDARD_ROLES.has(role);
+  // ── 100% Dynamic RBAC ────────────────────────────────────────────────────
+  // Sidebar visibility is controlled ENTIRELY by the RBAC permission toggles.
+  // Hardcoded roles[] are NOT used — only what's saved in the permission
+  // management page matters.
 
-  // 1. Standard role: trust hardcoded roles list for backward compat
-  if (!isCustomRole && fallbackRoles.length > 0 && fallbackRoles.includes(role)) {
-    return true;
-  }
-
-  // 2. Dynamic permission check
   if (permissions) {
     const moduleCode = getExpandedMenuModuleMap()[menuId];
+    if (menuId === 'vehicle-owner') {
+      console.log('[RBAC DEBUG canViewMenu] vehicle-owner moduleCode:', moduleCode);
+    }
     if (moduleCode) {
       const p = resolveModulePerms(permissions, moduleCode);
-      if (p) {
-        const hasAccess =
-          p.menu === true || p.show_in_menu === true ||
-          p.view === true || p.can_view === true;
-        if (hasAccess) return true;
-        if (isCustomRole) return false;
-      } else if (isCustomRole) {
-        return false;
+      if (menuId === 'vehicle-owner') {
+        console.log('[RBAC DEBUG canViewMenu] vehicle-owner perm:', p);
       }
-    } else if (isCustomRole && fallbackRoles.length > 0) {
-      // Module not mapped but item is role-restricted → deny custom role
+      if (p) {
+        // Exact toggle value — ON = show, OFF = hide
+        const result = !!(p.menu || p.show_in_menu || p.view || p.can_view);
+        if (menuId === 'vehicle-owner') {
+           console.log('[RBAC DEBUG canViewMenu] vehicle-owner returning:', result);
+        }
+        return result;
+      }
+      // Module mapped but no permission entry saved → hide
+      if (menuId === 'vehicle-owner') console.log('[RBAC DEBUG canViewMenu] vehicle-owner returning false (no perm entry)');
       return false;
     }
+    // No module mapping → not controlled by RBAC yet, use roles as fallback
+    if (menuId === 'vehicle-owner') {
+      console.log('[RBAC DEBUG canViewMenu] vehicle-owner falling back to roles:', fallbackRoles, 'role:', role);
+    }
+    if (!fallbackRoles || fallbackRoles.length === 0) return true;
+    return fallbackRoles.includes(role);
   }
 
-  // 3. No roles restriction → public to all authenticated users
-  if (!fallbackRoles || fallbackRoles.length === 0) return true;
-
+  // Permissions not loaded yet (API still loading) → hide everything
+  // to avoid flashing items before permissions arrive
   return false;
 };
 
@@ -518,33 +525,29 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
  * @param {string[]}      fallbackRoles - hardcoded `roles` array from route config
  */
 export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) => {
-  const isCustomRole = role && !STANDARD_ROLES.has(role);
+  // ── 100% Dynamic RBAC ────────────────────────────────────────────────────
+  // Route access is controlled ENTIRELY by the RBAC permission toggles.
+  // Hardcoded roles[] are NOT used — only what's saved in the permission
+  // management page matters, just like the sidebar menu.
 
-  // 1. Standard role: trust hardcoded roles list
-  if (!isCustomRole && fallbackRoles.length > 0 && fallbackRoles.includes(role)) {
-    return true;
-  }
-
-  // 2. Dynamic permission check
   if (permissions) {
     const moduleCode = resolveRouteModule(routePath);
     if (moduleCode) {
       const p = resolveModulePerms(permissions, moduleCode);
       if (p) {
-        const hasAccess = p.view === true || p.can_view === true;
-        if (hasAccess) return true;
-        if (isCustomRole) return false;
-      } else if (isCustomRole) {
-        return false;
+        // Exact toggle value — ON = allow, OFF = deny
+        return !!(p.view || p.can_view);
       }
-    } else if (isCustomRole && fallbackRoles.length > 0) {
+      // Module mapped but no permission entry saved → deny access
       return false;
     }
+    
+    // No module mapping → not controlled by RBAC yet, use roles as fallback
+    if (!fallbackRoles || fallbackRoles.length === 0) return true;
+    return fallbackRoles.includes(role);
   }
 
-  // 3. No roles restriction → accessible to all authenticated users
-  if (!fallbackRoles || fallbackRoles.length === 0) return true;
-
+  // Permissions not loaded yet (API still loading) → block access by default
   return false;
 };
 

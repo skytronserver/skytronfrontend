@@ -10,6 +10,7 @@ import { Avatar, Chip, ListItemButton, ListItemIcon, ListItemText, Typography, u
 
 // project imports
 import { MENU_OPEN, SET_MENU } from '../../../../../store/actions';
+import { decipherEncryption } from '../../../../../helper';
 
 // assets
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -23,6 +24,18 @@ const NavItem = ({ item, level }) => {
   const { pathname } = useLocation();
   const customization = useSelector((state) => state.customization);
   const matchesSM = useMediaQuery(theme.breakpoints.down('lg'));
+
+  // Determine role for dynamic title
+  const myDecipher = decipherEncryption('skytrack');
+  const userData = useSelector((state) => state.login?.cookiesData) || sessionStorage.getItem('cookiesData') || localStorage.getItem('cookiesData');
+  const data = userData && typeof userData === 'string' && userData.split('-').map((val) => myDecipher(val));
+  const role = data && data.length > 2 ? data[1] : null;
+  const isAdmin = role === 'superadmin' || role === 'stateadmin';
+
+  let displayTitle = item.title;
+  if (item.id === 'whitelist-requests' && isAdmin) {
+    displayTitle = 'Active Whitelist';
+  }
 
   const Icon = item.icon;
   const itemIcon = item?.icon ? (
@@ -112,7 +125,7 @@ const NavItem = ({ item, level }) => {
         primary={
           <Typography variant={customization.isOpen.findIndex((id) => id === item.id) > -1 ? 'h5' : 'body1'} color="inherit">
             {/* Translate menu title if there is a matching key, fallback to the original title */}
-            {t(getTranslationKey(item.title), { fallbackLng: 'en', defaultValue: item.title })}
+            {t(getTranslationKey(displayTitle), { fallbackLng: 'en', defaultValue: displayTitle })}
           </Typography>
         }
         secondary={

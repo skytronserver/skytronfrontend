@@ -602,7 +602,7 @@ const user = {
           roles: ["superadmin", "sosadmin"],
         },
         {
-          id: "sos-call-list",
+          id: "sos-call-list-report",
           title: "SOS Call List",
           type: "item",
           url: "/sos-call-list",
@@ -683,7 +683,7 @@ const user = {
           roles: ["dealer"],
         },
         {
-          id: "view-device",
+          id: "fitment-report",
           title: "Fitment Report",
           type: "item",
           url: "/device/show-available-device",
@@ -699,7 +699,7 @@ const user = {
           roles: ["superadmin", "stateadmin", "devicemanufacture"],
         },
         {
-          id: "vehicle-owner",
+          id: "vehicle-owner-list",
           title: "Vehicle Owner",
           type: "item",
           url: "/user/vehicle-owner-list",
@@ -707,7 +707,7 @@ const user = {
           roles: ["superadmin", "stateadmin"],
         },
         {
-          id: "vehicle-owner",
+          id: "vehicle-owner-report",
           title: "Vehicle Owner Report",
           type: "item",
           url: "/user/vehicle-owner-list",
