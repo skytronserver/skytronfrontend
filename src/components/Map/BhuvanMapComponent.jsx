@@ -674,7 +674,7 @@ const BhuvanMapComponent = ({
         }
     };
 
-    // Helper to calculate time difference in minutes
+    // Helper to calculate time difference in minutess
     const calculateTimeDifference = (startTime, endTime) => {
         const timeDifferenceMillis = endTime - startTime;
         return timeDifferenceMillis / (1000 * 60); // Convert milliseconds to minutes
