@@ -551,3 +551,266 @@
 |---|---|---|---|
 | `dashboard` | V | owner | `/dashboard` |
 | `sbs_parent_tracking` | V | self | `/schoolbus/parent-tracking` |
+
+---
+
+## Appendix: Route → API Endpoints Reference
+
+> **Base URL**: All `/api/...` paths are relative to `REACT_APP_BASE_URL` via the shared axios instance (`src/services/axiosInstance.js` / `http-common.js`).  
+> **School bus API**: `school/api/...` paths use `REACT_APP_SCHOOL_BUS_API_URL`.  
+> **External calls**: Several `/superadmin-dashboard` sub-tabs call `https://api.gromed.in/` directly via `fetch()`, bypassing the axios instance.  
+> **Mock flag**: School bus routes respect `REACT_APP_USE_SCHOOLBUS_MOCK` — real API paths are listed; mock in-memory data is used when the flag is `true`.
+
+---
+
+### A.1 Dashboards & Central
+
+| Route | API Endpoints |
+|---|---|
+| `/dashboard` | `POST /api/homepageandstat/homepage/`<br>`POST /api/homepageandstat/homepage_stateAdmin/`<br>`POST /api/homepageandstat/homepage_DTO/`<br>`POST /api/homepageandstat/homepage_VehicleOwner/`<br>`POST /api/homepageandstat/homepage_Dealer/`<br>`POST /api/homepageandstat/homepage_Manufacturer/`<br>`POST /api/homepageandstat/homepage_esimProvider/`<br>`GET /api/SOS/SOS_Admin_report/`<br>`GET /api/SOS/SOS_TL_report/`<br>`GET /api/SOS/SOS_EX_report/`<br>`GET /api/Statistics/vehicle_alert_statistics/` |
+| `/morth-dashboard` | `GET /api/central_api/` |
+| `/superadmin-dashboard` | `GET /api/gps_track_data_api` *(transport tab)*<br>`GET /api/police_fleet_metrics/` *(public safety tab)*<br>`GET /api/ambulance_fleet_metrics/` *(public safety tab)*<br>`POST https://api.gromed.in/api/dashboard/areawise-device-count/` *(vehicle monitoring)*<br>`POST https://api.gromed.in/api/dashboard/vehicle-monitoring/` *(vehicle monitoring)*<br>`POST https://api.gromed.in/api/dashboard_ERSS/areawise-device-count/` *(ERSS)*<br>`POST https://api.gromed.in/api/dashboard/erss-summary/` *(ERSS)*<br>`POST https://api.gromed.in/api/dashboard_SOS/areawise-device-count/` *(SOS monitoring)*<br>`POST https://api.gromed.in/api/dashboard/sos-monitoring/` *(SOS monitoring)*<br>`POST /api/EM/DEx/updateCaseMeta/` *(SOS monitoring)*<br>`GET /api/vehicle_status_metrics/` *(SOS analytics)*<br>`GET /api/SOS/SOS_Admin_report/` *(SOS analytics)*<br>`GET /api/SOS/SOS_TL_report/` *(SOS analytics)*<br>`POST /api/EM/DEx/getPendingCallList/` *(SOS analytics)* |
+
+---
+
+### A.2 School Bus System
+
+| Route | API Endpoints |
+|---|---|
+| `/schoolbus` | `GET school/api/admin/school/overview/` |
+| `/schoolbus/bus-tagging` | `GET school/api/admin/buses/tag/history/`<br>`POST school/api/admin/buses/tag/initiate/`<br>`POST school/api/admin/buses/tag/{tagId}/verify-otp/`<br>`POST school/api/admin/buses/tag/{tagId}/documents/` *(multipart)* |
+| `/schoolbus/route-management` | `GET school/api/admin/routes/`<br>`POST school/api/admin/routes/`<br>`POST school/api/admin/routes/{id}/update/`<br>`POST school/api/admin/routes/{id}/delete/`<br>`POST school/api/admin/routes/{routeId}/stops/add/`<br>`POST school/api/admin/bus-stops/{stopId}/update/`<br>`POST school/api/admin/routes/{routeId}/stops/{stopId}/remove/` |
+| `/schoolbus/bus-assignment` | `GET school/api/admin/buses/available/`<br>`GET school/api/admin/routes/{routeId}/buses/`<br>`POST /api/schoolbus/assign`<br>`PUT /api/schoolbus/reassign/{busId}`<br>`DELETE /api/schoolbus/untag/{busId}` |
+| `/schoolbus/profile-management` | `GET school/api/admin/parents/`<br>`POST school/api/admin/parents/`<br>`GET school/api/admin/students/`<br>`POST school/api/admin/students/`<br>`POST /api/Settings/filter_settings_State/`<br>`POST /api/Settings/filter_settings_District/`<br>`POST /api/resend_usercreation_otp/`<br>`POST /api/resend_parent_activation_otp/` |
+| `/schoolbus/reports` | `GET school/api/admin/trips/attendance/raw/`<br>`GET school/api/admin/trips/`<br>`GET /api/schoolbus/reports/traffic`<br>`GET /api/schoolbus/reports/unplanned-usage`<br>`GET /api/schoolbus/alerts/feed` |
+| `/schoolbus/Create-School` | `POST school/api/schools/apply/` *(multipart)* |
+| `/schoolbus/Approve-School` | `GET school/api/state-admin/schools/`<br>`POST school/api/state-admin/schools/{applicationId}/decision/` |
+| `/schoolbus/bus-tracking` | `GET /api/gps_track_data_api` |
+| `/schoolbus/create-trip` | `POST school/api/admin/trips/`<br>`GET school/api/admin/routes/assignments/`<br>`POST school/api/admin/trips/validate-holidays/`<br>`POST school/api/admin/trips/{tripId}/attendance/init/`<br>`GET school/api/admin/trips/{tripId}/attendance/raw/`<br>`POST school/api/admin/trips/{tripId}/attendance/pickup/`<br>`POST school/api/admin/trips/{tripId}/attendance/drop/` |
+| `/schoolbus/parent-tracking` | `GET school/api/parents/students/live-location/` |
+
+---
+
+### A.3 Test Agency
+
+| Route | API Endpoints |
+|---|---|
+| `/new/test-agency` | `POST /api/testAgency/name_list/`<br>`POST /api/testAgency/create_testAgency/` *(multipart)* |
+| `/test-agency/list` | `POST /api/testAgency/list/`<br>`POST /api/testAgency/update_testAgency/` *(multipart)* |
+| `/new/test-agency-details` | `POST /api/testAgency/details/create/` |
+| `/test-agency/details-list` | `GET /api/testAgency/details/list/` |
+| `/test-agency/assigned-models` | `POST /api/testAgency/device_models/` |
+
+---
+
+### A.4 User / Account Creation
+
+| Route | API Endpoints |
+|---|---|
+| `/user/newStateAdmin` | `POST /api/StateAdmin/create_StateAdmin/` *(multipart)*<br>`POST /api/resend_usercreation_otp/` |
+| `/user/newM2MUser` | `POST /api/eSimProvider/create_eSimProvider/` *(multipart)* |
+| `/manufacturer/new` | `POST /api/devicestock/deviceStockCreate/` *(multipart)* |
+| `/new/sos-admin` | `POST /api/SOSAdmin/create_SOSAdmin/` *(multipart)* |
+| `/new/system-admin` | `POST /api/create_systemadmin/` |
+| `/user/newDto` | `POST /api/DTO_RTO/create_DTO_RTO/` *(multipart)* |
+| `/user/newDealerAccount` | `POST /api/dealer/filter_dealer/`<br>`POST /api/dealer/create_dealer/` *(multipart)* |
+| `/new/sos-user` | `POST /api/SOSuser/create_SOSuser/` *(multipart)* |
+| `/new/vehicleOwner` | `POST /api/VehicleOwner/filter_VehicleOwner/`<br>`POST /api/VehicleOwner/create_VehicleOwner/` *(multipart)*<br>`POST /api/VehicleOwner/update_VehicleOwner/` *(multipart)* |
+| `/new/otherUser` | `POST /api/create_user/` |
+
+---
+
+### A.5 M2M & Manufacturer Requests
+
+| Route | API Endpoints |
+|---|---|
+| `/superadmin-dashboard/m2m-registration-requests` | `POST /api/eSimProvider/filter_eSimProvider/?all_user=true`<br>`POST /api/eSimProvider/update_eSimProvider/` |
+| `/superadmin-dashboard/vehicle-manufacturer-registration-requests` | `POST /api/manufacturer/filter_manufacturers/?all_user=true`<br>`POST /api/manufacturer/update_manufacturer/` |
+| `/superadmin-dashboard/ais-140-device-manufacturer-registration-requests` | `POST /api/manufacturer/filter_manufacturers/?all_user=true`<br>`POST /api/manufacturer/update_manufacturer/` |
+| `/device/m2m-status` | `POST /api/dealer/check_esim_status/` |
+| `/device/m2m-activation` | `POST /api/esimActivateReq/create/` |
+| `/device/activation-request/:deviceStatus` | `POST /api/esimActivateReq/filter/`<br>`POST /api/esimActivateReq/update/` |
+
+---
+
+### A.6 Technical Onboarding
+
+| Route | API Endpoints |
+|---|---|
+| `/superadmin-dashboard/technical-onboarding-requests` | `POST /api/devicemodel/technical-onboarding/superadmin/list/`<br>`POST /api/manufacturer/filter_TechOnboardmanufacturers/`<br>`POST /api/devicemodel/technical-onboarding/superadmin/mark-ongoing/`<br>`POST /api/devicemodel/technical-onboarding/superadmin/finalize/` *(multipart)*<br>`POST /api/manufacturer/approve_tech_onboarding/` |
+| `/stateadmin-dashboard/technical-onboarding-requests` | `POST /api/devicemodel/technical-onboarding/superadmin/list/`<br>`POST /api/manufacturer/filter_TechOnboardmanufacturers/`<br>`POST /api/devicemodel/technical-onboarding/superadmin/mark-ongoing/`<br>`POST /api/devicemodel/technical-onboarding/superadmin/finalize/` *(multipart)*<br>`POST /api/manufacturer/approve_tech_onboarding/` |
+| `/manufacturer/technical-onboarding/create` | `POST /api/devicemodel/devicemodelFilter/`<br>`POST /api/devicemodel/technical-onboarding/manufacturer/list/`<br>`POST /api/devicemodel/technical-onboarding/create/` *(multipart)* |
+| `/manufacturer/technical-onboarding/list` | `POST /api/devicemodel/technical-onboarding/manufacturer/list/` |
+
+---
+
+### A.7 Tracking & Playback
+
+| Route | API Endpoints |
+|---|---|
+| `/live-tracking` | `GET /api/gps_track_data_api`<br>`GET /api/gps-data-map/`<br>`POST /api/get_live_vehicle_no/`<br>`GET /api/poi/types/`<br>`GET /api/poi/list/`<br>`GET school/api/map/school-bus/routes/`<br>`GET school/api/map/pis/routes/`<br>`GET school/api/map/school-bus/buses/`<br>`GET school/api/map/pis/buses/`<br>`GET school/api/map/pis/bus-stops/`<br>`GET /api/emuser-locations/`<br>`POST /api/incident/filter/`<br>`POST /api/cell_location/`<br>`GET /api/geocode/` |
+| `/vehicle-tracking-report` | `GET /api/gps_track_data_api`<br>`GET /api/poi/types/`<br>`GET /api/poi/list/` |
+| `/vehicle-history` | `GET /api/gps_track_data_api`<br>`GET /api/poi/types/`<br>`GET /api/poi/list/`<br>`GET school/api/map/school-bus/routes/`<br>`GET school/api/map/pis/routes/`<br>`GET /api/emuser-locations/`<br>`POST /api/incident/filter/`<br>`POST /api/cell_location/`<br>`GET /api/geocode/` |
+| `/history-playback` | `POST /api/get_live_vehicle_no/`<br>`GET /api/gps_history_map/`<br>`GET /api/poi/types/`<br>`GET /api/poi/list/`<br>`GET /api/gps_track_data_api` |
+| `/trip-viewer` | `POST /api/tag/tag_ownerlist/` |
+| `/trip-planning` | `GET /api/trip/`<br>`POST /api/trip/create/`<br>`PUT /api/trip/{tripId}/update/`<br>`POST /api/trip/{tripId}/end/`<br>`POST /api/trip/{tripId}/cancel/`<br>`POST /api/getRoute/`<br>`POST /api/saveRoute/`<br>`POST /api/delRoute/` |
+| `/route-fixing` | `POST /api/getRoute/`<br>`POST /api/get_routePath/`<br>`POST /api/saveRoute/`<br>`POST /api/delRoute/` |
+
+---
+
+### A.8 VLTD Approval
+
+| Route | API Endpoints |
+|---|---|
+| `/device/list` | `GET /api/devicemodel/devicemodelAwaitingStateApproval/` |
+| `/deviceCOP/list` | `GET /api/devicemodel/COPAwaitingStateApproval/` |
+| `/device/approved-models` | `POST /api/stateadmin/reports/approved-models/` |
+| `/device/approved-cops` | `POST /api/stateadmin/reports/approved-cops/` |
+
+---
+
+### A.9 Whitelist & KYC
+
+| Route | API Endpoints |
+|---|---|
+| `/device/whitelist/requests` | `GET /api/whitelist/request/list/`<br>`GET /api/whitelist/request/esim/all/`<br>`GET /api/whitelist/active/list/`<br>`POST /api/whitelist/request/create/`<br>`POST /api/whitelist/request/{id}/approve/`<br>`POST /api/whitelist/request/{id}/deny/` |
+| `/device/whitelist/dashboard` | `GET /api/whitelist/device/dashboard/`<br>`GET /api/whitelist/device/{id}/detail/`<br>`POST /api/whitelist/device/{id}/kyc/update/` |
+
+---
+
+### A.10 POI
+
+| Route | API Endpoints |
+|---|---|
+| `/poi-viewer` | `GET /api/poi/list/`<br>`POST /api/poi/create/` *(multipart)*<br>`POST /api/poi/update/` *(multipart)*<br>`POST /api/poi/delete/`<br>`POST /api/get_routePath/`<br>`GET /api/geocode/` |
+| `/reports/poi-report` | `GET /api/poi/list/` |
+
+---
+
+### A.11 Reports
+
+| Route | API Endpoints |
+|---|---|
+| `/sos-report` | `GET /api/SOS/report/` |
+| `/notice/all-notice-list` | `POST /api/notice/list/`<br>`POST /api/notice/delete/` |
+| `/user/registeredUser` | `GET /api/get_list/`<br>`POST /api/deactivateUser/`<br>`POST /api/activateUser/`<br>`POST /api/resend_usercreation_otp/` |
+| `/user/state-admin-list` | `POST /api/StateAdmin/filter_StateAdmin/` |
+| `/user/manufacturer-list` | `POST /api/manufacturer/filter_manufacturers/?all_user=true` |
+| `/user/sos-other-list` | `POST /api/SOSuser/filter_SOSuser/` |
+| `/user/m2m-provider-list` | `POST /api/eSimProvider/filter_eSimProvider/?all_user=true` |
+| `/user/dealerList` | `POST /api/dealer/filter_dealer/` |
+| `/user/vehicle-owner-list` | `POST /api/VehicleOwner/filter_VehicleOwner/`<br>`POST /api/update_vehicle_owner_expiry/` |
+| `/user/dto-user-list` | `POST /api/DTO_RTO/filter_DTO_RTO/` |
+| `/user/sos-user-list` | `POST /api/SOSAdmin/filter_SOSAdmin/` |
+| `/sos-call-list` | `POST /api/EM/DEx/getPendingCallList/`<br>`POST /api/EM/DEx/replyCall/` |
+| `/device/combined-stock-report` | `POST /api/devicestock/combined/` |
+| `/device/fit-device` | `GET /api/sell/SellListAvailableDeviceStock/`<br>`PATCH /api/sell/SellFitDevice/`<br>`PATCH /api/sell/configure_sms_gateway/`<br>`PATCH /api/sell/configure_sos_gateway/`<br>`PATCH /api/sell/configure_ip_port/` |
+| `/device/all-tagged-devices` | `POST /api/tag/StateAdmin_view_all_tagging/` |
+| `/reports/gps-data-log` | `GET /api/gps-data-log-table/` |
+| `/reports/activation-log-report` | `GET /api/gps-data-log-table/` |
+| `/reports/emergency-data-logs` | `GET /api/gps-em-data-log-table/` |
+| `/reports/health-packet-log` | `GET /api/gps-data-log-table/`<br>`GET /api/gps-em-data-log-table/` |
+| `/reports/api-data-log` | `POST /api/apiLog/?page={page}&per_page={per_page}` |
+| `/reports/activated-device-report` | `POST /api/device/activated_device_list/` |
+| `/reports/alert-report` | `POST /api/alertlog/filter/` |
+| `/reports/incident-report` | `POST /api/incident/filter/` |
+| `/reports/device-health-report` | `GET /api/device-health-status/` |
+| `/reports/user-statistics-report` | `GET /api/Statistics/user_statistics/` |
+| `/reports/violation-report` | `POST /api/Settings/filter_settings_VehicleCategory/`<br>`GET school/api/enforcement/permit-conditions/list/`<br>`GET school/api/enforcement/violations/` |
+| `/alert-list` | `POST /api/list-alerts/` |
+
+---
+
+### A.12 Settings
+
+| Route | API Endpoints |
+|---|---|
+| `/setting/notice` | `POST /api/notice/filter/`<br>`POST /api/notice/create/` *(multipart)*<br>`POST /api/notice/update/` *(multipart)* |
+| `/setting/send-command` | `POST /api/mqtt/send_command/` |
+| `/setting/vehicle-category` | `POST /api/Settings/filter_settings_VehicleCategory/`<br>`POST /api/Settings/create_settings_VehicleCategory/` |
+| `/setting/vehicle-category-code` | `POST /api/Settings/vehicle_category_code/list/`<br>`POST /api/Settings/vehicle_category_code/create/`<br>`POST /api/Settings/vehicle_category_code/edit/` |
+| `/setting/notification-preferences` | `GET /api/user/notification-preferences/`<br>`POST /api/user/notification-preferences/` |
+| `/setting/state-district` | `POST /api/Settings/filter_settings_State/`<br>`POST /api/Settings/filter_settings_District/`<br>`POST /api/Settings/create_settings_State/`<br>`POST /api/Settings/create_settings_District/` |
+| `/setting/frequency-firmware` | `POST /api/Settings/filter_settings_hp_freq/`<br>`POST /api/Settings/create_settings_hp_freq/`<br>`POST /api/ota/filter/`<br>`POST /api/ota/create/`<br>`POST /api/Settings/filter_settings_firmware/`<br>`POST /api/Settings/create_settings_firmware/` |
+| `/setting/archive-restore` | `GET /api/gpsdata/archives/list/`<br>`POST /api/gpsdata/archive/`<br>`POST /api/gpsdata/restore/` |
+| `/setting/ip-settings` | `POST /api/Settings/filter_settings_ip/`<br>`POST /api/Settings/create_settings_ip/` |
+| `/setting/login-settings` | `POST /api/set_login_settings/` |
+| `/setting/permit-conditions` | `POST /api/Settings/filter_settings_VehicleCategory/`<br>`GET school/api/enforcement/permit-conditions/list/`<br>`POST school/api/enforcement/permit-conditions/`<br>`POST school/api/enforcement/permit-conditions/{id}/update/` |
+| `/setting/custom-alerts` | `GET school/api/custom-alerts/parameters/`<br>`GET school/api/custom-alerts/rules/`<br>`POST school/api/custom-alerts/rules/`<br>`POST school/api/custom-alerts/rules/{id}/update/`<br>`POST school/api/custom-alerts/rules/{id}/delete/` |
+
+---
+
+### A.13 Passenger Info System (PIS)
+
+| Route | API Endpoints |
+|---|---|
+| `/pis/bus-stops` | `GET school/api/pis/bus-stops/`<br>`POST school/api/pis/bus-stops/`<br>`POST school/api/pis/bus-stops/{id}/update/`<br>`POST school/api/pis/bus-stops/{id}/toggle/` |
+| `/pis/bus-routes` | `GET school/api/pis/routes/`<br>`GET school/api/pis/bus-stops/`<br>`POST school/api/pis/routes/`<br>`POST school/api/pis/routes/{id}/update/`<br>`POST school/api/pis/routes/{id}/toggle/` |
+| `/pis/bus-schedules` | `GET school/api/pis/schedules/`<br>`GET school/api/pis/routes/`<br>`GET school/api/pis/bus-stops/`<br>`GET school/api/pis/available-buses/`<br>`POST school/api/pis/schedules/`<br>`POST school/api/pis/schedules/{scheduleId}/update-status/` |
+
+---
+
+### A.14 State Transport Analytics
+
+| Route | API Endpoints |
+|---|---|
+| `/analytics/trip-analysis` | `GET school/api/analytics/trips/` |
+| `/analytics/driving-alerts` | `GET school/api/analytics/driving-pattern-alerts/` |
+| `/analytics/vehicle-alerts` | `GET school/api/analytics/vehicle-alert-summary/` |
+| `/analytics/pis-summary` | `GET school/api/analytics/pis-summary/` |
+| `/analytics/operational` | `GET school/api/analytics/operational/` |
+| `/analytics/comparative-analysis` | `GET school/api/pis/routes/`<br>`GET school/api/analytics/comparative-analysis/` |
+| `/analytics/resource-performance` | `GET school/api/analytics/resource-performance/` |
+
+---
+
+### A.15 Custom User Module (RBAC)
+
+| Route | API Endpoints |
+|---|---|
+| `/setting/rbac/roles` | `GET /api/rbac/roles/`<br>`POST /api/rbac/roles/create/`<br>`POST /api/rbac/roles/update/`<br>`POST /api/rbac/roles/deactivate/` |
+| `/setting/rbac/permissions` | `GET /api/rbac/roles/active/`<br>`GET /api/rbac/modules/`<br>`GET /api/rbac/roles/permissions/?role_code={roleCode}`<br>`POST /api/rbac/roles/permissions/update/` |
+| `/setting/rbac/custom-users` | `GET /api/rbac/roles/active/`<br>`GET /api/rbac/users/`<br>`POST /api/rbac/users/create/` *(multipart)*<br>`POST /api/rbac/users/update/` *(multipart)*<br>`POST /api/rbac/users/assign-role/` |
+
+---
+
+### A.16 Complaint Tickets / Helpdesk
+
+| Route | API Endpoints |
+|---|---|
+| `/helpdesk/tickets` | `GET /api/complaint/list/`<br>`GET /api/complaint/list/?status={status}` |
+| `/helpdesk/tickets/new` | `GET /api/complaint/device-imei/?q={query}`<br>`POST /api/complaint/create/` *(multipart)* |
+| `/staff/tickets` | `GET /api/complaint/list/` |
+
+---
+
+### A.17 Device, Stock & Management
+
+| Route | API Endpoints |
+|---|---|
+| `/device/new` | `POST /api/devicestock/deviceStockCreate/` *(multipart)*<br>`POST /api/devicemodel/devicemodelDetails/` |
+| `/device/show-available-device` | `GET /api/sell/SellListAvailableDeviceStock/` |
+| `/deviceModel/new` | `POST /api/devicemodel/devicemodelCreate/` *(multipart)*<br>`POST /api/devicemodel/COPUpload/` *(multipart)* |
+| `/deviceModel/extension` | `POST /api/devicemodel/devicemodelDetails/`<br>`POST /api/devicemodel/COPUpload/` *(multipart)* |
+| `/device/show-device` | `POST /api/devicestock/deviceStockFilter/` |
+| `/device/bulkupload` | `POST /api/devicestock/deviceStockCreateBulk/` *(multipart)*<br>`GET /api/devicestock/deviceStockBulkSample/` |
+| `/device/bulk-assign` | `POST /api/dealer/filter_dealer/`<br>`POST /api/devicestock/StockAssignToDealer/`<br>`GET /api/devicestock/deviceStockBulkSample/` |
+| `/device/show-tagged-device` | `POST /api/devicestock/deviceStockFilter/`<br>`POST /api/tag/untag/`<br>`POST /api/tag/retag/`<br>`POST /api/tag/update-temp-registration/` *(multipart)* |
+
+---
+
+### A.18 Emergency & SOS
+
+| Route | API Endpoints |
+|---|---|
+| `/sos-alert` | `GET /api/emergency-call-listener-admin/` |
+| `/list/em-team` | `POST /api/EM/list_EMteam/`<br>`POST /api/EM/remove_EMteam/`<br>`POST /api/EM/activate_EMteam/` |
+| `/new/em-team` | `POST /api/EM/get_EMteam/`<br>`POST /api/EM/create_EMteam/`<br>`POST /api/EM/edit_EMteam/` |
+
+---
+
+### A.19 Other Management
+
+| Route | API Endpoints |
+|---|---|
+| `/user/list` | `GET /api/get_list/` |

@@ -20,6 +20,10 @@ services:
       - REACT_APP_SATELLITE_TILE_URL=https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
       # System environment: dev | prod | sos
       - REACT_APP_SYSTEM_ENV=dev
+      - REACT_APP_GROMED_TOKEN=
+      - REACT_APP_CUSTOM_URL=
+      - REACT_APP_USE_OLD_GEOCODING_API=false
+      - REACT_APP_USE_SCHOOLBUS_MOCK=false
     volumes:
       - .:/app
       - /app/node_modules
