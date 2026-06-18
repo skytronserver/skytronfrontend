@@ -33,8 +33,8 @@ const M2MUser = () => {
       const stateList = await retriveStateList();
       setUpdatedFormField((prevConfig) => ({
         ...prevConfig,
-        stateId: {
-          ...prevConfig.stateId,
+        state: {
+          ...prevConfig.state,
           options: stateList,
         },
       }));
@@ -109,7 +109,7 @@ const M2MUser = () => {
     fd.append("company_name", values?.company_name || "");
     fd.append("gstnnumber", values?.gstnnumber || "");
     fd.append("idProofno", values?.idProofno || "");
-    fd.append("stateId", values?.stateId || "");
+    fd.append("stateId", values?.state || "");
     fd.append("lat", values?.lat || "");
     fd.append("lon", values?.lon || "");
 
