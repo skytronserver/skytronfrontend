@@ -111,8 +111,8 @@ export const MENU_MODULE_MAP = {
   'user-list':                   'report_users',
   'admin-user-list':             'report_state_admin',
   'manufacturer-list':           'report_manufacturer',
-  'sos-admin-list':              'report_sos_users',
-  'sos-other-list':              'report_sos_admin',
+  'sos-admin-list':              'report_sos_admin',
+  'sos-other-list':              'report_sos_users',
   'm2m-provider-list':           'report_m2m_provider',
   'dealer-list':                 'report_dealers',
   'vehicle-owner-list':          'report_vehicle_owner',
@@ -308,7 +308,7 @@ export const ROUTE_MODULE_MAP = {
   '/user/registeredUser':                                          'report_users',
   '/user/state-admin-list':                                        'report_state_admin',
   '/user/manufacturer-list':                                       'report_manufacturer',
-  '/user/sos-other-list':                                          'report_sos_admin',
+  '/user/sos-other-list':                                          'report_sos_users',
   '/user/m2m-provider-list':                                       'report_m2m_provider',
   '/user/dealerList':                                              'report_dealers',
   '/user/vehicle-owner-list':                                      'report_vehicle_owner',
@@ -316,7 +316,7 @@ export const ROUTE_MODULE_MAP = {
   '/device/combined-stock-report':                                 'report_device',
   '/device/fit-device':                                            'report_fitment',
   '/device/all-tagged-devices':                                    'report_device',
-  '/user/sos-user-list':                                           'report_sos_users',
+  '/user/sos-user-list':                                           'report_sos_admin',
   '/sos-call-list':                                                'sos_call_list',
 
   // Settings (specific paths before generic /setting prefix)
@@ -549,10 +549,32 @@ export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) =
   if (permissions) {
     const moduleCode = resolveRouteModule(routePath);
     if (moduleCode) {
-      const p = resolveModulePerms(permissions, moduleCode);
+      let p = resolveModulePerms(permissions, moduleCode);
+      
+      // Helper function to check if permission object grants access
+      const isGranted = (perm) => perm ? !!(perm.view || perm.can_view || perm.menu || perm.show_in_menu) : false;
+
+      // Special case for routes with multiple possible module codes
+      if (!isGranted(p) && routePath === '/sos-call-list') {
+        const p2 = resolveModulePerms(permissions, 'report_sos_call_list');
+        if (isGranted(p2)) p = p2;
+      }
+      if (!isGranted(p) && routePath === '/sos-call-list') {
+        const p3 = resolveModulePerms(permissions, 'sos_call_list');
+        if (isGranted(p3)) p = p3;
+      }
+
       if (p) {
         // Exact toggle value — ON = allow, OFF = deny
-        return !!(p.view || p.can_view);
+        const result = isGranted(p);
+        if (routePath === '/sos-call-list') {
+          console.log('[RBAC DEBUG canViewRoute] /sos-call-list allowing access:', result, p);
+        }
+        return result;
+      }
+      // Module mapped but no permission entry saved → deny access
+      if (routePath === '/sos-call-list') {
+        console.log('[RBAC DEBUG canViewRoute] /sos-call-list denying access: no permission entry found');
       }
       // Module mapped but no permission entry saved → deny access
       return false;
