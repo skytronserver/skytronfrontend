@@ -62,7 +62,6 @@ export const MENU_MODULE_MAP = {
   'assigned-models-menu':        'ta_view_models',
 
   // ── Create New ────────────────────────────────────────────────────────────
-  'new-icons':                   'user_management',
   'state-admin':                 'cn_state_admin',
   'm2m-user':                    'cn_m2m_provider',
   'manufacturer-user':           'cn_manufacturer',
@@ -79,7 +78,6 @@ export const MENU_MODULE_MAP = {
   'ais140-manufacturer-registration-requests': 'mfr_ais140_requests',
   'superadmin-technical-onboarding-requests':  'tech_onboarding',
   'stateadmin-technical-onboarding-requests':  'tech_onboarding_final',
-  'manufacturer-technical-onboarding':         'mfr_onboarding_new',
   'manufacturer-technical-onboarding-create':  'mfr_onboarding_new',
   'manufacturer-technical-onboarding-list':    'mfr_onboarding_list',
 
@@ -94,14 +92,12 @@ export const MENU_MODULE_MAP = {
   'trip-planning':               'trip_monitor',
 
   // ── VLTD Approval ─────────────────────────────────────────────────────────
-  'device-management':           'device_management',
   'view-device':                 'vltd_pending_model',
   'view-device-cop':             'vltd_pending_cop',
   'approved-models':             'vltd_approved_models',
   'approved-cops':               'vltd_approved_cops',
 
   // ── Whitelist & KYC ───────────────────────────────────────────────────────
-  'whitelist-kyc':               'wkyc_requests',
   'whitelist-requests':          'wkyc_requests',
   'whitelist-dashboard':         'wkyc_device_dashboard',
 
@@ -109,7 +105,6 @@ export const MENU_MODULE_MAP = {
   'poi-viewer':                  'poi_viewer',
 
   // ── Reports ───────────────────────────────────────────────────────────────
-  'icons-report':                'reports',
   'sos-report':                  'report_sos',
   'all-notice-list':             'report_notices',
   'login-report':                'reports',
@@ -191,22 +186,18 @@ export const MENU_MODULE_MAP = {
   'manufacturer-tickets':        'ct_escalated',
 
   // ── Device, Stock & Management ────────────────────────────────────────────
-  'device-model':                'dm_create_model',
   'new-device-model':            'dm_create_model',
   'device-model-extension':      'dm_tac_cop',
-  'device-stock':                'device_stock',
   'new-device':                  'ds_individual',
   'upload-device':               'ds_bulk',
   'assign-device':               'ds_assign',
   'check-m2m-status':            'dealer_m2m_status',
   'activate-m2m-device':         'dealer_request_m2m',
-  'icons-tag':                   'vehicle_tagging',
   'new-tagging':                 'dealer_tag_device',
   'tagged-device':               'dealer_download_cert',
   'download-tagging-receipt':    'dealer_download_cert',
 
   // ── Emergency & SOS ───────────────────────────────────────────────────────
-  'new-icons-em-team':           'emergency_teams',
   'em-team':                     'em_team_create',
   'em-team-list':                'em_team_list',
   'sos-call-list':               'sos_call_list',
