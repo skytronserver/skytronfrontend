@@ -704,15 +704,7 @@ const user = {
           type: "item",
           url: "/user/vehicle-owner-list",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin"],
-        },
-        {
-          id: "vehicle-owner-report",
-          title: "Vehicle Owner Report",
-          type: "item",
-          url: "/user/vehicle-owner-list",
-          breadcrumbs: false,
-          roles: ["dealer"],
+          roles: ["superadmin", "stateadmin", "dealer"],
         },
         {
           id: "dto-user-list",
