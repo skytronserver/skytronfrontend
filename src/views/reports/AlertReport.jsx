@@ -574,7 +574,7 @@ const AlertReport = () => {
                           onChange={(e) => handleFilterChange('state_id', e.target.value)}
                         >
                           <MenuItem value="">All States</MenuItem>
-                          {statesList.map(state => (
+                          {(statesList || []).map(state => (
                             <MenuItem key={state.value} value={state.value}>{state.label}</MenuItem>
                           ))}
                         </Select>
