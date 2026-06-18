@@ -307,22 +307,31 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
     }
 
     // Always fetch ROLE-CONFIGURED permissions so sidebar toggles are respected
-    try {
-      const roleRes = await RbacService.getRolePermissions(effectiveRole || userRole);
-      const rolePerms = roleRes.data?.permissions;
-      if (rolePerms && rolePerms.length > 0) {
-        sessionStorage.setItem('userPermissions', JSON.stringify(rolePerms));
-        localStorage.setItem('userPermissions', JSON.stringify(rolePerms));
-        dispatch(setPermissions(rolePerms));
-      } else if (response.data?.permissions) {
-        // Fallback to login-response permissions if role perms not configured
-        sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
-        localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
-        dispatch(setPermissions(response.data.permissions));
+    if (userRole === 'superadmin') {
+      try {
+        const roleRes = await RbacService.getRolePermissions(effectiveRole || userRole);
+        const rolePerms = roleRes.data?.permissions;
+        if (rolePerms && rolePerms.length > 0) {
+          sessionStorage.setItem('userPermissions', JSON.stringify(rolePerms));
+          localStorage.setItem('userPermissions', JSON.stringify(rolePerms));
+          dispatch(setPermissions(rolePerms));
+        } else if (response.data?.permissions) {
+          // Fallback to login-response permissions if role perms not configured
+          sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+          localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+          dispatch(setPermissions(response.data.permissions));
+        }
+      } catch (permErr) {
+        console.warn('[RBAC] Could not fetch role permissions:', permErr?.message);
+        // Fallback to login-response permissions
+        if (response.data?.permissions) {
+          sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+          localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
+          dispatch(setPermissions(response.data.permissions));
+        }
       }
-    } catch (permErr) {
-      console.warn('[RBAC] Could not fetch role permissions:', permErr?.message);
-      // Fallback to login-response permissions
+    } else {
+      // For non-superadmin users, directly use the permissions returned in the login response
       if (response.data?.permissions) {
         sessionStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
         localStorage.setItem('userPermissions', JSON.stringify(response.data.permissions));
