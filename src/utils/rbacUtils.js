@@ -368,11 +368,11 @@ export const ROUTE_MODULE_MAP = {
   '/manufacturer/tickets':                                         'ct_escalated',
 
   // Device, Stock & Management
-  '/device/new':                                                   'device_management',
-  '/device/show-available-device':                                 'device_stock',
+  '/device/new':                                                   'ds_individual',
+  '/device/show-available-device':                                 'report_fitment',
   '/deviceModel/new':                                              'dm_create_model',
   '/deviceModel/extension':                                        'dm_tac_cop',
-  '/device/show-device':                                           'ds_individual',
+  '/device/show-device':                                           'report_stock',
   '/device/bulkupload':                                            'ds_bulk',
   '/device/bulk-assign':                                           'ds_assign',
   '/device/assign-device':                                         'ds_assign',
