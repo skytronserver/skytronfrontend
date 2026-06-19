@@ -111,8 +111,8 @@ export const MENU_MODULE_MAP = {
   'user-list':                   'report_users',
   'admin-user-list':             'report_state_admin',
   'manufacturer-list':           'report_manufacturer',
-  'sos-admin-list':              'report_sos_users',
-  'sos-other-list':              'report_sos_admin',
+  'sos-admin-list':              'report_sos_admin',
+  'sos-other-list':              'report_sos_users',
   'm2m-provider-list':           'report_m2m_provider',
   'dealer-list':                 'report_dealers',
   'vehicle-owner-list':          'report_vehicle_owner',
@@ -308,7 +308,7 @@ export const ROUTE_MODULE_MAP = {
   '/user/registeredUser':                                          'report_users',
   '/user/state-admin-list':                                        'report_state_admin',
   '/user/manufacturer-list':                                       'report_manufacturer',
-  '/user/sos-other-list':                                          'report_sos_admin',
+  '/user/sos-other-list':                                          'report_sos_users',
   '/user/m2m-provider-list':                                       'report_m2m_provider',
   '/user/dealerList':                                              'report_dealers',
   '/user/vehicle-owner-list':                                      'report_vehicle_owner',
@@ -316,8 +316,8 @@ export const ROUTE_MODULE_MAP = {
   '/device/combined-stock-report':                                 'report_device',
   '/device/fit-device':                                            'report_fitment',
   '/device/all-tagged-devices':                                    'report_device',
-  '/user/sos-user-list':                                           'report_sos_users',
-  '/sos-call-list':                                                'sos_call_list',
+  '/user/sos-user-list':                                           'report_sos_admin',
+  '/sos-call-list':                                                ['sos_call_list', 'report_sos_call_list'],
 
   // Settings (specific paths before generic /setting prefix)
   '/setting/notice':                                               'settings_notice',
@@ -549,6 +549,13 @@ export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) =
   if (permissions) {
     const moduleCode = resolveRouteModule(routePath);
     if (moduleCode) {
+      if (Array.isArray(moduleCode)) {
+        return moduleCode.some(code => {
+          const p = resolveModulePerms(permissions, code);
+          return p && (p.view || p.can_view);
+        });
+      }
+
       const p = resolveModulePerms(permissions, moduleCode);
       if (p) {
         // Exact toggle value — ON = allow, OFF = deny
