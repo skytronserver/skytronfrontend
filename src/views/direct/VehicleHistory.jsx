@@ -34,7 +34,7 @@ import {
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
-import MapComponent from "./LiveMap";
+import MapComponent from "./vehicleHistoryMap";
 import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -1128,12 +1128,9 @@ const [loading, setLoading] = useState(false);
     useEffect(() => {
         if (!selectedId) return;
 
-        const intervalId = setInterval(() => {
             refreshSelectedVehicle();
-        }, 10000);
 
-        return () => clearInterval(intervalId);
-    }, [selectedId,tableDataTop]);
+    }, [selectedId]);
 
     // Helper to calculate time difference in minutes
     const calculateTimeDifference = (startTime, endTime) => {
