@@ -46,7 +46,7 @@ const steps = [
 const rawOtCommands = [
   "1. IP 103.195.217.127",
   "2. Port: 8883",
-  "3. Emergency fallback No: 9435496378",
+  "3. Emergency fallback No: 7635975659",
   "4: Registration No in case of already registered vehicle.",
   "5: In case of new un-registered vehicle, please set Reg number in devices in following format-",
   "",
@@ -82,6 +82,7 @@ function TagDeviceToVehicle() {
   const pollingIntervalRef = useRef(null);
   const [reload, setReload] = useState(false);
   const [getMap, setGetMap] = useState({ imei: "", regno: "" });
+  const [finalOwnerOtpSent, setFinalOwnerOtpSent] = useState(true);
   const deviceSosEnteredAtRef = useRef(null);
   const appSosEnteredAtRef = useRef(null);
   const mapStepEnteredAtRef = useRef(null);
@@ -454,8 +455,13 @@ function TagDeviceToVehicle() {
     };
     try {
       if (type === 'owner') { await TaggingService.tagSendOwnerOtp(otpData); }
-      if (type === 'finalOwner') { await TaggingService.sendTagSendOwnerOtpFinal(otpData); }
-      setActiveStep(prevActiveStep => prevActiveStep + 1)
+      // finalOwner: do NOT call the API here — just advance to step 8
+      if (type === 'finalOwner') {
+        setFinalOwnerOtpSent(false); // show SMS instructions first
+        setActiveStep(prevActiveStep => prevActiveStep + 1);
+        return;
+      }
+      setActiveStep(prevActiveStep => prevActiveStep + 1);
       setResendTimer(180);
       setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'Vehicle Owner OTP has been sent successfully', type: 'success' }));
     } catch (error) {
@@ -463,8 +469,29 @@ function TagDeviceToVehicle() {
       setDismissibleAlert((prev) => ({
         ...prev,
         isOpen: true,
-        message:
-          "Something went wrong! Please try after sometimes or check your details",
+        message: "Something went wrong! Please try after sometimes or check your details",
+        type: "error",
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
+    }
+  };
+
+  // Called when user clicks "Check Activation Status" on step 8
+  const checkActivationStatus = async () => {
+    setLoading((prev) => ({ ...prev, loader: true }));
+    const otpData = { device_id: deviceId };
+    try {
+      await TaggingService.sendTagSendOwnerOtpFinal(otpData);
+      setFinalOwnerOtpSent(true);
+      setResendTimer(180);
+      setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'Vehicle Owner OTP has been sent successfully', type: 'success' }));
+    } catch (error) {
+      console.error("Error checking activation status", error.message);
+      setDismissibleAlert((prev) => ({
+        ...prev,
+        isOpen: true,
+        message: "Activation not yet received. Please send the SMS and try again.",
         type: "error",
       }));
     } finally {
@@ -1213,53 +1240,98 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 8: Final Owner OTP (Original Step 11) */}
+            {/* Step 8: Final Owner OTP */}
             {activeStep === 7 && (
               <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>
-                    An OTP has been sent to vehicle owner mobile number. Please
-                    enter the OTP below to continue.
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <MuiOtpInput
-                    value={otp.finalOwner}
-                    onChange={handleFinalOwnerOtp}
-                    length={6}
-                  />
-                  <br />
-                  <Typography>
-                    <Grid container spacing={1} alignItems="center">
-                      <Grid item>
-                        <Button
-                          color="primary"
-                          type="submit"
-                          variant="contained"
-                          onClick={() => handleOtpSubmit("finalOwner")}
-                        >
-                          Submit
-                        </Button>
-                      </Grid>
-                      <Grid item>
-                        {resendTimer > 0 ? (
-                          <Typography variant="body2" sx={{ ml: 1 }}>
-                            {t("auth.resendOtpIn", { seconds: resendTimer })}
-                          </Typography>
-                        ) : (
-                          <Button
-                            size="small"
-                            onClick={() => handleResendOtp("finalOwner")}
-                            disabled={loading.loader}
-                            sx={{ textTransform: "none", ml: 1 }}
-                          >
-                            {t("auth.resend")}
-                          </Button>
-                        )}
-                      </Grid>
+                {!finalOwnerOtpSent ? (
+                  /* Phase 1 — show SMS activation instructions + Check Activation Status button */
+                  <>
+                    <Grid item xs={12}>
+                      <Typography variant="body1" sx={{ mb: 2 }}>
+                        Send the following activation message to the Primary MSISDN or Fallback MSISDN of the VLT device.
+                      </Typography>
+                      <Typography variant="body1" sx={{ mb: 1 }}>
+                        <strong>Activation Message Request Format to the VLT Device (Through SMS):</strong>
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontFamily: "monospace",
+                          backgroundColor: "#f4f4f4",
+                          p: 1.5,
+                          borderRadius: 1,
+                          display: "inline-block",
+                          letterSpacing: "0.03em",
+                          mb: 2,
+                        }}
+                      >
+                        ACTV,348752,7635975659
+                      </Typography>
+                      <Typography variant="body1" sx={{ mt: 1 }}>
+                        The OTP will be send to the owner's phone number after the Activation Message Response for the IMEI{" "}
+                        <strong>{ownerDetails?.IMEI || getMap?.imei || "—"}</strong>{" "}
+                        is successfully received at <strong>7635975659</strong>.
+                      </Typography>
                     </Grid>
-                  </Typography>
-                </Grid>
+                    <Grid item xs={12}>
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={checkActivationStatus}
+                        disabled={loading.loader}
+                      >
+                        Check Activation Status
+                      </Button>
+                    </Grid>
+                  </>
+                ) : (
+                  /* Phase 2 — API succeeded, show OTP entry */
+                  <>
+                    <Grid item xs={12}>
+                      <Typography>
+                        An OTP has been sent to vehicle owner mobile number. Please enter the OTP below to continue.
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={5}>
+                      <MuiOtpInput
+                        value={otp.finalOwner}
+                        onChange={handleFinalOwnerOtp}
+                        length={6}
+                      />
+                      <br />
+                      <Typography>
+                        <Grid container spacing={1} alignItems="center">
+                          <Grid item>
+                            <Button
+                              color="primary"
+                              type="submit"
+                              variant="contained"
+                              onClick={() => handleOtpSubmit("finalOwner")}
+                            >
+                              Submit
+                            </Button>
+                          </Grid>
+                          <Grid item>
+                            {resendTimer > 0 ? (
+                              <Typography variant="body2" sx={{ ml: 1 }}>
+                                {t("auth.resendOtpIn", { seconds: resendTimer })}
+                              </Typography>
+                            ) : (
+                              <Button
+                                size="small"
+                                onClick={() => handleResendOtp("finalOwner")}
+                                disabled={loading.loader}
+                                sx={{ textTransform: "none", ml: 1 }}
+                              >
+                                {t("auth.resend")}
+                              </Button>
+                            )}
+                          </Grid>
+                        </Grid>
+                      </Typography>
+                    </Grid>
+                  </>
+                )}
               </Grid>
             )}
           </MainCard>
