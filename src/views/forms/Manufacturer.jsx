@@ -133,15 +133,36 @@ const Manufacturer = () => {
     fd.append("role", "devicemanufacture");
     fd.append("createdby", userId || "");
     fd.append("name", values?.name || "");
-    fd.append("mobile", values?.mobile || "");
     fd.append("email", values?.email || "");
+    fd.append("mobile", values?.mobile || "");
     fd.append("dob", values?.dob || "");
     fd.append("expirydate", values?.expirydate || "");
     fd.append("company_name", values?.company_name || "");
+    fd.append("company_address", values?.company_address || "");
+    fd.append("company_pin", values?.company_pin || "");
+    fd.append("company_email", values?.company_email || "");
+    fd.append("company_phoneno", values?.company_phoneno || "");
     fd.append("gstnnumber", values?.gstnnumber || "");
+    fd.append("panno", values?.panno || "");
+    fd.append("company_registration_no", values?.company_registration_no || "");
     fd.append("idProofno", values?.idProofno || "");
     fd.append("state", values?.state || "");
-    fd.append("tac", values?.tac || "");
+    fd.append("address", values?.address || "");
+    fd.append("pin", values?.pin || "");
+    fd.append("manufacturer_type", values?.manufacturer_type || "");
+    fd.append("tac", values?.tac_no || values?.tac || "");
+    fd.append("tac_validity", values?.tac_validity || "");
+    const tacValidityRaw = values?.tac_validity;
+    const tacDate = tacValidityRaw ? new Date(tacValidityRaw) : null;
+    const todayDate = new Date(new Date().toISOString().split("T")[0]);
+    const isTacExpired =
+      tacDate && !Number.isNaN(tacDate.getTime())
+        ? tacDate.getTime() < todayDate.getTime()
+        : false;
+    if (isTacExpired) {
+      fd.append("cop_no", values?.cop_no || "");
+      fd.append("cop_validity", values?.cop_validity || "");
+    }
     fd.append("device_model_details", values?.device_model_details || "");
     fd.append("lat", values?.lat || "");
     fd.append("lon", values?.lon || "");
@@ -158,11 +179,37 @@ const Manufacturer = () => {
     });
 
     if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
-    if (values?.file_companRegCertificate)
-      fd.append("file_companRegCertificate", values.file_companRegCertificate);
-    if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
-    if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
-    if (values?.file_affidavitNda) fd.append("file_affidavitNda", values.file_affidavitNda);
+    if (values?.file_officialTechnicalOnboardingRequestLetter)
+      fd.append(
+        "file_officialTechnicalOnboardingRequestLetter",
+        values.file_officialTechnicalOnboardingRequestLetter
+      );
+    if (values?.file_vehicleTypeApprovalTacAnnexureCopy)
+      fd.append(
+        "file_vehicleTypeApprovalTacAnnexureCopy",
+        values.file_vehicleTypeApprovalTacAnnexureCopy
+      );
+    if (values?.file_ais140DeviceTacCopy)
+      fd.append("file_ais140DeviceTacCopy", values.file_ais140DeviceTacCopy);
+    if (isTacExpired && values?.cop_file) fd.append("cop_file", values.cop_file);
+    if (
+      values?.manufacturer_type === "Vehicle manufacturer" &&
+      values?.file_factoryFitmentDeclaration
+    )
+      fd.append("file_factoryFitmentDeclaration", values.file_factoryFitmentDeclaration);
+    if (values?.file_affidavitCumUndertakingBackendAccess)
+      fd.append("file_affidavitNda", values.file_affidavitCumUndertakingBackendAccess);
+    if (values?.file_selfCertifiedGstRegistrationCertificate)
+      fd.append("file_GSTCertificate", values.file_selfCertifiedGstRegistrationCertificate);
+    if (values?.file_selfCertifiedIdProofAuthorisedSignatory)
+      fd.append("file_idProof", values.file_selfCertifiedIdProofAuthorisedSignatory);
+    if (values?.file_pan)
+      fd.append("file_pan", values.file_pan);
+    if (values?.file_selfCertifiedCompanyRegistrationCertificateOptional)
+      fd.append(
+        "file_companRegCertificate",
+        values.file_selfCertifiedCompanyRegistrationCertificateOptional
+      );
 
     const response = await handleCreateUser(fd);
     if (response.code === "200") {

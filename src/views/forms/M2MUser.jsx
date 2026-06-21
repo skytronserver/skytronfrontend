@@ -107,11 +107,20 @@ const M2MUser = () => {
     fd.append("dob", values?.dob || "");
     fd.append("expirydate", values?.expirydate || "");
     fd.append("company_name", values?.company_name || "");
+    fd.append("company_address", values?.company_address || "");
+    fd.append("company_pin", values?.company_pin || "");
+    fd.append("company_email", values?.company_email || "");
+    fd.append("company_phoneno", values?.company_phoneno || "");
     fd.append("gstnnumber", values?.gstnnumber || "");
+    fd.append("panno", values?.panno || "");
+    fd.append("company_registration_no", values?.company_registration_no || "");
     fd.append("idProofno", values?.idProofno || "");
     fd.append("stateId", values?.state || "");
+    fd.append("address", values?.address || "");
+    fd.append("pin", values?.pin || "");
     fd.append("lat", values?.lat || "");
     fd.append("lon", values?.lon || "");
+    fd.append("m2m_reg_certificate_no", values?.m2m_reg_certificate_no || "");
 
     (values?.telecomProviders || []).forEach((p) => {
       if (p !== undefined && p !== null && String(p).trim() !== "") {
@@ -120,10 +129,29 @@ const M2MUser = () => {
     });
 
     if (values?.file_authLetter) fd.append("file_authLetter", values.file_authLetter);
-    if (values?.file_companRegCertificate)
-      fd.append("file_companRegCertificate", values.file_companRegCertificate);
-    if (values?.file_GSTCertificate) fd.append("file_GSTCertificate", values.file_GSTCertificate);
-    if (values?.file_idProof) fd.append("file_idProof", values.file_idProof);
+    if (values?.file_officialTechnicalOnboardingRequestLetter)
+      fd.append(
+        "file_officialTechnicalOnboardingRequestLetter",
+        values.file_officialTechnicalOnboardingRequestLetter
+      );
+    if (values?.file_selfCertifiedDotM2mRegistrationCertificate)
+      fd.append(
+        "file_selfCertifiedDotM2mRegistrationCertificate",
+        values.file_selfCertifiedDotM2mRegistrationCertificate
+      );
+    if (values?.file_affidavitCumUndertakingBackendAccess)
+      fd.append("file_affidavitNda", values.file_affidavitCumUndertakingBackendAccess);
+    if (values?.file_selfCertifiedGstRegistrationCertificate)
+      fd.append("file_GSTCertificate", values.file_selfCertifiedGstRegistrationCertificate);
+    if (values?.file_selfCertifiedIdProofAuthorisedSignatory)
+      fd.append("file_idProof", values.file_selfCertifiedIdProofAuthorisedSignatory);
+    if (values?.file_selfCertifiedPanCard)
+      fd.append("file_pan", values.file_selfCertifiedPanCard);
+    if (values?.file_selfCertifiedCompanyRegistrationCertificateOptional)
+      fd.append(
+        "file_companRegCertificate",
+        values.file_selfCertifiedCompanyRegistrationCertificateOptional
+      );
 
     const response = await handleCreateUser(fd);
     if (response.code === "200") {
