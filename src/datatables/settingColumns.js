@@ -238,6 +238,30 @@ export const firmwareColumns = [
       sort: false,
     },
   },
+  {
+    name: "file_bin",
+    label: "File Path",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "file_size",
+    label: "File Size (bytes)",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
+  {
+    name: "file_hash_md5",
+    label: "MD5 Hash",
+    options: {
+      filter: false,
+      sort: false,
+    },
+  },
 ]
 export const stateColumns = [
   {

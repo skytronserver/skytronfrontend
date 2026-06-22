@@ -243,6 +243,7 @@ function FrequencyFirmware() {
       setSubmitting(false);
       setLoading(false);
       resetForm(otaInitials);
+      setTimeout(() => window.location.reload(), 1500);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
@@ -267,6 +268,7 @@ function FrequencyFirmware() {
       setSubmitting(false);
       setLoading(false);
       resetForm(firmwareInitials);
+      setTimeout(() => window.location.reload(), 1500);
     } else {
       setAlert((prevAlert) => ({
         ...prevAlert,
