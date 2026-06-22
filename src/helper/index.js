@@ -398,6 +398,31 @@ export const fetchDeviceListForTagging = async () => {
     return [];
   }
 };
+
+export const fetchDeviceListForOldVehicle = async () => {
+  try {
+    const filter = {
+      esim_status: "ESIM_Active_Confirmed",
+      stock_status: "Fitted"
+    };
+    const response = await StockServices.stockFilter(filter);
+    const devices = response.data.data || [];
+    const validDevices = devices.filter(device => isCertValid(device.model || device.device_model || device));
+
+    const list = validDevices.map((device) => ({
+      value: device.id,
+      label: device.imei,
+    }));
+    const uniqueList = [
+      ...new Map(list.map((item) => [item["value"], item])).values(),
+    ];
+    return uniqueList;
+  } catch (error) {
+    console.error("fetchDeviceListForOldVehicle error:", error.response?.data || error.message);
+    return [];
+  }
+};
+
 export const fetchEsimProvider = async () => {
   try {
     const response = await StockServices.getProviderList();

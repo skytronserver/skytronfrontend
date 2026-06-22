@@ -403,6 +403,11 @@ const FormField = ({
               const file = originalEvent?.currentTarget?.files?.[0];
               const fieldName = originalEvent?.currentTarget?.name;
 
+              // Reset the input value so the same file can be selected again
+              if (originalEvent.target) {
+                originalEvent.target.value = null;
+              }
+
               if (!file) return;
 
               const maxSize = 1024 * 1024; // 1 MB

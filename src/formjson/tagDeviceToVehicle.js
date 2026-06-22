@@ -21,6 +21,18 @@ export const taggingInitials = {
   rcFile: null,
 };
 
+const isNotDummy = (value) => {
+  if (!value) return true;
+  // Reject if any character repeats 5 or more times in a row (e.g., 11111, SSSSS)
+  if (/(.)\1{4,}/.test(value)) return false;
+  // Reject obvious sequential numbers (e.g., 123456, 987654)
+  if (/012345|123456|234567|345678|456789|567890/.test(value)) return false;
+  if (/987654|876543|765432|654321|543210/.test(value)) return false;
+  // Reject simple alternating patterns (e.g., 12121212)
+  if (/^(..)\1+$/.test(value)) return false;
+  return true;
+};
+
 export const taggingFields = {
   vehicle_type: {
     name: "vehicle_type",
@@ -44,7 +56,8 @@ export const taggingFields = {
     type: "tel",
     label: "tagDeviceForm.fields.ownerMobile",
     validation: Yup.string()
-      .matches(/^\d{10}$/, 'tagDeviceForm.validation.mobileFormat')
+      .matches(/^[6-9]\d{9}$/, 'tagDeviceForm.validation.mobileFormat')
+      .test('not-dummy', 'Mobile number looks like a dummy entry', isNotDummy)
       .required('tagDeviceForm.validation.mobileRequired'),
   },
   state_code: {
@@ -76,7 +89,10 @@ export const taggingFields = {
       is: "old",
       then: (schema) =>
         schema
-          .matches(/^[A-Z0-9]+$/, "tagDeviceForm.validation.vehicleNumberFormat")
+          .matches(/^[A-Z]{0,3}[0-9]{1,4}$/, "Vehicle Number must be 1-3 letters followed by 1-4 numbers (e.g., AB1234, 1234)")
+          .min(1, "Vehicle number is required")
+          .max(7, "Vehicle number cannot exceed 7 characters")
+          .test('not-dummy', 'Vehicle number looks like a dummy entry', isNotDummy)
           .required("tagDeviceForm.validation.vehicleNumberRequired"),
       otherwise: (schema) => schema.notRequired(),
     }),
@@ -96,25 +112,46 @@ export const taggingFields = {
     name: "engine_no",
     type: "text",
     label: "tagDeviceForm.fields.engineNo",
-    validation: Yup.string().required("tagDeviceForm.validation.engineNoRequired"),
+    validation: Yup.string()
+      .matches(/^[A-Z0-9]+$/, "Engine number must contain only uppercase letters and numbers")
+      .min(5, "Engine number must be at least 5 characters")
+      .max(20, "Engine number cannot exceed 20 characters")
+      .test('not-dummy', 'Engine number looks like a dummy entry', isNotDummy)
+      .required("tagDeviceForm.validation.engineNoRequired"),
   },
   chassis_no: {
     name: "chassis_no",
     type: "text",
     label: "tagDeviceForm.fields.chassisNo",
-    validation: Yup.string().required("tagDeviceForm.validation.chassisNoRequired"),
+    validation: Yup.string()
+      .matches(/^[A-HJ-NPR-Z0-9]+$/, "Chassis number cannot contain the letters 'I', 'O', or 'Q' (Indian standard)")
+      .length(17, "Chassis number must be exactly 17 characters long")
+      .test('not-dummy', 'Chassis number looks like a dummy entry', isNotDummy)
+      .required("tagDeviceForm.validation.chassisNoRequired"),
   },
   vehicle_make: {
     name: "vehicle_make",
     type: "text",
     label: "tagDeviceForm.fields.vehicleMake",
-    validation: Yup.string().required("tagDeviceForm.validation.vehicleMakeRequired"),
+    validation: Yup.string()
+      .trim()
+      .min(2, "Vehicle Make must be at least 2 characters")
+      .max(50, "Vehicle Make cannot exceed 50 characters")
+      .matches(/^[a-zA-Z0-9\s.-]+$/, "Vehicle Make contains invalid characters")
+      .test('not-dummy', 'Vehicle Make looks like a dummy entry', isNotDummy)
+      .required("tagDeviceForm.validation.vehicleMakeRequired"),
   },
   vehicle_model: {
     name: "vehicle_model",
     type: "text",
     label: "tagDeviceForm.fields.vehicleModel",
-    validation: Yup.string().required("tagDeviceForm.validation.vehicleModelRequired"),
+    validation: Yup.string()
+      .trim()
+      .min(2, "Vehicle Model must be at least 2 characters")
+      .max(50, "Vehicle Model cannot exceed 50 characters")
+      .matches(/^[a-zA-Z0-9\s.-]+$/, "Vehicle Model contains invalid characters")
+      .test('not-dummy', 'Vehicle Model looks like a dummy entry', isNotDummy)
+      .required("tagDeviceForm.validation.vehicleModelRequired"),
   },
   category: {
     name: "category",

@@ -17,6 +17,7 @@ import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import {
   fetchDeviceListForTagging,
+  fetchDeviceListForOldVehicle,
   fetchVehicleCategory,
   fetchVehicleCategoryCode,
 } from "../../helper";
@@ -225,8 +226,6 @@ function TagDeviceToVehicle() {
 
   const [vahanDetails, setVahanDetails] = useState({
     owner_name: "",
-    email: "",
-    mobile: "",
     device_serial_no: "",
     ICCID: "",
     IMEI: "",
@@ -269,7 +268,7 @@ function TagDeviceToVehicle() {
   useEffect(() => {
     (async () => {
       try {
-        const deviceList = await fetchDeviceListForTagging();
+        const deviceList = await fetchDeviceListForOldVehicle(); // default is "old" vehicle
         const categoryList = await fetchVehicleCategory();
         const categoryCodeList = await fetchVehicleCategoryCode();
 
@@ -564,6 +563,7 @@ function TagDeviceToVehicle() {
         tac_no: vahanData?.tacNo,
         tac_valid_upto: vahanData?.tacValidUpto,
         vehicle_class: vahanData?.vehClass,
+        // email and mobile intentionally excluded from Vahan display
       }));
       setDismissibleAlert(prev => ({ ...prev, isOpen: true, message: 'Vahan Details are successfully fetched', type: 'success' }));
     } catch (error) {
@@ -673,8 +673,8 @@ function TagDeviceToVehicle() {
   };
 
   const validationTagging = Yup.object(
-    Object.keys(updatedFormFields).reduce((acc, field) => {
-      acc[field] = updatedFormFields[field].validation;
+    Object.keys(taggingFields).reduce((acc, field) => {
+      acc[field] = taggingFields[field].validation;
       return acc;
     }, {})
   );
@@ -906,26 +906,45 @@ function TagDeviceToVehicle() {
                               onChange={
                                 field === "chassis_no"
                                   ? (e) => {
-                                      const value = e?.target?.value ?? "";
+                                      let value = (e?.target?.value ?? "").toUpperCase();
+                                      formik.setFieldValue("chassis_no", value);
                                       if (formik?.values?.vehicle_type === "new") {
                                         const lastThree = value.length >= 3 ? value.slice(-3) : value;
                                         formik.setFieldValue("owner_id", `TMP${lastThree}`);
                                       }
                                     }
+                                  : field === "engine_no"
+                                  ? (e) => {
+                                      let value = (e?.target?.value ?? "").toUpperCase();
+                                      formik.setFieldValue("engine_no", value);
+                                    }
                                   : undefined
                               }
                               handleOptionChange={
                                 field === "vehicle_type"
-                                  ? (e) => {
+                                  ? async (e) => {
                                       const value = e?.target?.value;
                                       formik.setFieldValue("vehicle_type", value);
+                                      formik.setFieldValue("device", "");
                                       if (value === "new") {
                                         formik.setFieldValue("vehicle_number", "");
                                         const chassisValue = formik?.values?.chassis_no ?? "";
                                         const lastThree = chassisValue.length >= 3 ? chassisValue.slice(-3) : chassisValue;
                                         formik.setFieldValue("owner_id", `TMP${lastThree}`);
+                                        // Load new-vehicle IMEI list (Available_for_fitting)
+                                        const newDeviceList = await fetchDeviceListForTagging();
+                                        setUpdatedFormField((prev) => ({
+                                          ...prev,
+                                          device: { ...prev.device, options: Array.isArray(newDeviceList) ? newDeviceList : [] },
+                                        }));
                                       } else {
                                         formik.setFieldValue("owner_id", "");
+                                        // Load old-vehicle IMEI list (Fitted)
+                                        const oldDeviceList = await fetchDeviceListForOldVehicle();
+                                        setUpdatedFormField((prev) => ({
+                                          ...prev,
+                                          device: { ...prev.device, options: Array.isArray(oldDeviceList) ? oldDeviceList : [] },
+                                        }));
                                       }
                                     }
                                   : undefined
@@ -950,80 +969,131 @@ function TagDeviceToVehicle() {
               </Formik>
             )}
             {/* Step 3: Ready for Activation / Vahan (Original Step 5) */}
-            {activeStep === 2 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  {!vahanDetails.IMEI && !loading.loader && (
-                    <Typography color="error">
-                      Failed to fetch VAHAN data. Please ensure the device is correctly tagged or try again.
-                    </Typography>
-                  )}
-                </Grid>
-                <Grid item xs={12}>
-                  <Grid container spacing={1}>
-                    <Grid
-                      item
-                      xs={6}
-                      sx={{
-                        borderRadius: '8px 0 0 8px',
-                        border: '1px solid #f0f0f0',
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      <DisplayTable
-                        values={ownerDetails}
-                        title="Details as in Skytron VLTD Backend"
-                      />
-                    </Grid>
-                    <Grid
-                      item
-                      xs={6}
-                      sx={{
-                        borderRadius: '0 8px 8px 0',
-                        border: '1px solid #f0f0f0',
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      <DisplayTable
-                        values={vahanDetails}
-                        title="Details as in Vahan"
-                      />
+            {activeStep === 2 && (() => {
+              // Fields to compare between ownerDetails and vahanDetails
+              // Format: { ownerKey, vahanKey, label }
+              const comparablePairs = [
+                { ownerKey: 'device_ESN',      vahanKey: 'device_serial_no' },
+                { ownerKey: 'ICCID',           vahanKey: 'ICCID' },
+                { ownerKey: 'IMEI',            vahanKey: 'IMEI' },
+                { ownerKey: 'vehicle_reg_no',  vahanKey: 'vehicle_reg_no' },
+                { ownerKey: 'vehicle_make',    vahanKey: 'vehicle_make' },
+                { ownerKey: 'vehicle_model',   vahanKey: 'vehicle_model' },
+                { ownerKey: 'engine_no',       vahanKey: 'engine_no' },
+                { ownerKey: 'chassis_no',      vahanKey: 'chassis_no' },
+              ];
+
+              // Build highlight maps for both tables
+              const ownerHighlights = {};
+              const vahanHighlights = {};
+              let hasMismatch = false;
+
+              comparablePairs.forEach(({ ownerKey, vahanKey }) => {
+                const ownerVal = (ownerDetails[ownerKey] || '').toString().trim().toLowerCase();
+                const vahanVal = (vahanDetails[vahanKey] || '').toString().trim().toLowerCase();
+                // Only compare if both sides have data
+                if (ownerVal && vahanVal) {
+                  const isMatch = ownerVal === vahanVal;
+                  ownerHighlights[ownerKey] = isMatch ? 'match' : 'mismatch';
+                  vahanHighlights[vahanKey] = isMatch ? 'match' : 'mismatch';
+                  if (!isMatch) hasMismatch = true;
+                }
+              });
+
+              const canProceed = vahanDetails.IMEI && !hasMismatch;
+
+              return (
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    {!vahanDetails.IMEI && !loading.loader && (
+                      <Typography color="error">
+                        Failed to fetch VAHAN data. Please ensure the device is correctly tagged or try again.
+                      </Typography>
+                    )}
+                    {vahanDetails.IMEI && hasMismatch && (
+                      <Typography color="error" sx={{ fontWeight: 600, mb: 1 }}>
+                        ⚠️ Some fields do not match between Skytron and Vahan data. Please resolve the mismatches before proceeding.
+                      </Typography>
+                    )}
+                    {vahanDetails.IMEI && !hasMismatch && (
+                      <Typography sx={{ color: '#2e7d32', fontWeight: 600, mb: 1 }}>
+                        ✅ All comparable fields match. You can proceed.
+                      </Typography>
+                    )}
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Grid container spacing={1}>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          borderRadius: '8px 0 0 8px',
+                          border: '1px solid #f0f0f0',
+                          backgroundColor: 'white'
+                        }}
+                      >
+                        <DisplayTable
+                          values={ownerDetails}
+                          title="Details as in Skytron VLTD Backend"
+                          highlights={ownerHighlights}
+                        />
+                      </Grid>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          borderRadius: '0 8px 8px 0',
+                          border: '1px solid #f0f0f0',
+                          backgroundColor: 'white'
+                        }}
+                      >
+                        <DisplayTable
+                          values={vahanDetails}
+                          title="Details as in Vahan"
+                          highlights={vahanHighlights}
+                        />
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
 
-                <Grid item xs={12}>
-                  <br />
-                  <Typography align="right" sx={{ mt: 2 }}>
-                    {loading.loader ? (
-                      <CircularProgress size={24} />
-                    ) : (
-                      vahanDetails.IMEI && (
-                        <Button
-                          color="primary"
-                          type="button"
-                          variant="contained"
-                          onClick={() => setActiveStep((prev) => prev + 1)}
-                        >
-                          Next
-                        </Button>
-                      )
-                    )}
-                    {!vahanDetails.IMEI && !loading.loader && (
-                       <Button
-                       color="secondary"
-                       type="button"
-                       variant="outlined"
-                       onClick={getVahanDetail}
-                       sx={{ ml: 1 }}
-                     >
-                       Retry Fetching Data
-                     </Button>
-                    )}
-                  </Typography>
+                  <Grid item xs={12}>
+                    <br />
+                    <Typography align="right" sx={{ mt: 2 }}>
+                      {loading.loader ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        <>
+                          {!vahanDetails.IMEI && (
+                            <Button
+                              color="secondary"
+                              type="button"
+                              variant="outlined"
+                              onClick={getVahanDetail}
+                              sx={{ ml: 1 }}
+                            >
+                              Retry Fetching Data
+                            </Button>
+                          )}
+                          {vahanDetails.IMEI && (
+                            <Button
+                              color="primary"
+                              type="button"
+                              variant="contained"
+                              disabled={!canProceed}
+                              onClick={() => setActiveStep((prev) => prev + 1)}
+                              title={hasMismatch ? 'Fix mismatched fields before proceeding' : ''}
+                            >
+                              Next
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </Typography>
+                  </Grid>
                 </Grid>
-              </Grid>
-            )}
+              );
+            })()}
+
 
             {/* Step 4: Dealer Verification (Original Step 2) */}
             {activeStep === 3 && (
