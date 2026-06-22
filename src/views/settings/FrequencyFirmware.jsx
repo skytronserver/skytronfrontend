@@ -46,40 +46,40 @@ function FrequencyFirmware() {
     errorList: [],
   });
   const [loading, setLoading] = useState(false);
-  const [firmwareFormFields,setFirmwareFormFields]=useState(firmwareFields);
-  const [frequencyForm,setFrequencyForm]=useState(hpFrequencyFields);
-  const [otaForm,setOtaForm]=useState(otaFields);
-  const [isFormLoaded,setIsFormLoaded]=useState(false);
+  const [firmwareFormFields, setFirmwareFormFields] = useState(firmwareFields);
+  const [frequencyForm, setFrequencyForm] = useState(hpFrequencyFields);
+  const [otaForm, setOtaForm] = useState(otaFields);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [eligibleModels, setEligibleModels] = useState([]);
-  useEffect(()=>{
-    (async()=>{
-    const modelList = isManufacturer ? await retriveTechnicalOnboardedModelList() : await retriveModelList();
-    setEligibleModels(modelList);
-    setFirmwareFormFields(prevConfig =>({
-      ...prevConfig,
-      devicemodel: {
-        ...prevConfig.devicemodel,
-        options: modelList,
-      },
-    }))
-    setFrequencyForm(prevConfig =>({
-      ...prevConfig,
-      devicemodel: {
-        ...prevConfig.devicemodel,
-        options: modelList,
-      },
-    }))
-    setOtaForm(prevConfig =>({
-      ...prevConfig,
-      devicemodel: {
-        ...prevConfig.devicemodel,
-        options: modelList,
-      },
-    }))
-    setIsFormLoaded(true)
+  useEffect(() => {
+    (async () => {
+      const modelList = isManufacturer ? await retriveTechnicalOnboardedModelList() : await retriveModelList();
+      setEligibleModels(modelList);
+      setFirmwareFormFields(prevConfig => ({
+        ...prevConfig,
+        devicemodel: {
+          ...prevConfig.devicemodel,
+          options: modelList,
+        },
+      }))
+      setFrequencyForm(prevConfig => ({
+        ...prevConfig,
+        devicemodel: {
+          ...prevConfig.devicemodel,
+          options: modelList,
+        },
+      }))
+      setOtaForm(prevConfig => ({
+        ...prevConfig,
+        devicemodel: {
+          ...prevConfig.devicemodel,
+          options: modelList,
+        },
+      }))
+      setIsFormLoaded(true)
     }
-  )()
-  },[])
+    )()
+  }, [])
   //Fetching Data from store
   const dispatch = useDispatch();
   const frequencyList = useSelector((state) => state.setting.frequencyList);
@@ -100,10 +100,10 @@ function FrequencyFirmware() {
         const otaData = Array.isArray(response?.data?.data)
           ? response.data.data
           : Array.isArray(response?.data?.results)
-          ? response.data.results
-          : Array.isArray(response?.data)
-          ? response.data
-          : [];
+            ? response.data.results
+            : Array.isArray(response?.data)
+              ? response.data
+              : [];
 
         dispatch(fetchOtaList(otaData));
       } catch (error) {
@@ -364,7 +364,7 @@ function FrequencyFirmware() {
           }}
         >
           <MainCard title={t('firmware.title')}>
-           {isFormLoaded &&  <Formik
+            {isFormLoaded && <Formik
               initialValues={firmwareInitials}
               validationSchema={validationFirmwareSchema}
               onSubmit={handleFirmwareSubmit}
@@ -395,7 +395,7 @@ function FrequencyFirmware() {
                 </form>
               )}
             </Formik>
-}
+            }
           </MainCard>
         </Grid>
       </Grid>
@@ -413,12 +413,12 @@ function FrequencyFirmware() {
             <MainCard title={t('ota.listTitle')}>
               {load && (
                 <DynamicDatatables
-                   tableTitle={t('ota.listTitle')}
-                  rows={isManufacturer 
+                  tableTitle={t('ota.listTitle')}
+                  rows={isManufacturer
                     ? otaList.filter(item => {
-                        const modelId = item.devicemodel || item.devicemodel_info?.id;
-                        return modelId && eligibleModels.some(m => String(m.value) === String(modelId));
-                      })
+                      const modelId = item.devicemodel || item.devicemodel_info?.id;
+                      return modelId && eligibleModels.some(m => String(m.value) === String(modelId));
+                    })
                     : otaList
                   }
                   columns={otaColumns}
@@ -439,11 +439,11 @@ function FrequencyFirmware() {
             {load && (
               <DynamicDatatables
                 tableTitle={t('firmware.listTitle')}
-                rows={isManufacturer 
+                rows={isManufacturer
                   ? firmwareList.filter(item => {
-                      const modelId = item.devicemodel || item.devicemodel_info?.id;
-                      return modelId && eligibleModels.some(m => String(m.value) === String(modelId));
-                    })
+                    const modelId = item.devicemodel || item.devicemodel_info?.id;
+                    return modelId && eligibleModels.some(m => String(m.value) === String(modelId));
+                  })
                   : firmwareList
                 }
                 columns={firmwareColumns}

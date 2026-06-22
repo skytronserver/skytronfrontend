@@ -447,7 +447,7 @@ export const getVehicleCategoryCodeColumns = (onEdit, onToggleStatus) => [
         const currentSpeedLimit = tableMeta.rowData[3];
         const isActive = tableMeta.rowData[4];
         const rowData = { id: rowId, category_code: currentCode, details: currentDetails, speed_limit: currentSpeedLimit, is_active: isActive };
-        
+
         return (
           <div style={{ display: 'flex', gap: '10px' }}>
             <Button variant="contained" color="primary" size="small" onClick={() => onEdit(rowData)}>Edit</Button>
@@ -510,7 +510,7 @@ export const getPermitConditionColumns = (onStatusChange) => [
       sort: false,
       customBodyRender: (value) => {
         const colorMap = { created: '#1976d2', active: '#2e7d32', deactive: '#c62828' };
-        const bgMap   = { created: '#e3f2fd', active: '#e8f5e9', deactive: '#ffebee' };
+        const bgMap = { created: '#e3f2fd', active: '#e8f5e9', deactive: '#ffebee' };
         return (
           <span style={{
             display: 'inline-block',
@@ -619,7 +619,7 @@ export const getPermitMasterColumns = (onEdit, onToggleStatus) => [
         const currentName = tableMeta.rowData[1];
         const isActive = tableMeta.rowData[2];
         const rowData = { id: rowId, name: currentName, is_active: isActive };
-        
+
         return (
           <div style={{ display: 'flex', gap: '10px' }}>
             <Button variant="contained" color="primary" size="small" onClick={() => onEdit(rowData)}>Edit</Button>
