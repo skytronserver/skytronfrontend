@@ -14,7 +14,11 @@ export const createAxiosInstance = (token) => {
 
   // Add an interceptor to handle FormData for file uploads
   axiosInstance.interceptors.request.use((config) => {
-    if (config.headers['Content-type'] === 'multipart/form-data') {
+    if (config.data instanceof FormData) {
+      // If data is already FormData, remove Content-Type to allow browser to set boundary
+      delete config.headers['Content-type'];
+      delete config.headers['Content-Type'];
+    } else if (config.headers['Content-type'] === 'multipart/form-data' || config.headers['Content-Type'] === 'multipart/form-data') {
       const formData = new FormData();
       for (const key in config.data) {
         if (config.data.hasOwnProperty(key)) {
@@ -22,7 +26,9 @@ export const createAxiosInstance = (token) => {
         }
       }
       config.data = formData;
-      config.headers['Content-Type'] = 'multipart/form-data';
+      // Remove Content-Type to allow browser to set boundary
+      delete config.headers['Content-type'];
+      delete config.headers['Content-Type'];
     }
     return config;
   });

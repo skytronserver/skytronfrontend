@@ -382,7 +382,24 @@ export const fetchDeviceListForTagging = async () => {
     };
     const response = await StockServices.stockFilter(filter);
     const devices = response.data.data || [];
-    const validDevices = devices.filter(device => isCertValid(device.model || device.device_model || device));
+
+    // New vehicle: 1-year SIM plan → validity > today AND < 2 years from today (date only, no time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const twoYearsFromNow = new Date();
+    twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
+    twoYearsFromNow.setHours(0, 0, 0, 0);
+
+    const validDevices = devices.filter(device => {
+      if (device.is_tagged === true) return false;  // exclude already-tagged devices
+      if (!isCertValid(device.model || device.device_model || device)) return false;
+      const validity = device.esim_validity;
+      if (!validity) return false;
+      // Compare date-only (strip time to avoid timezone issues)
+      const validityDate = new Date(validity.split('T')[0]);
+      return validityDate > today && validityDate < twoYearsFromNow;
+    });
 
     const list = validDevices.map((device) => ({
       value: device.id,
@@ -394,7 +411,7 @@ export const fetchDeviceListForTagging = async () => {
     return uniqueList;
   } catch (error) {
     console.error("fetchDeviceListForTagging error:", error.response?.data || error.message);
-    // Return empty fallback so the dropdown doesn’t crash
+    // Return empty fallback so the dropdown doesn't crash
     return [];
   }
 };
@@ -403,11 +420,25 @@ export const fetchDeviceListForOldVehicle = async () => {
   try {
     const filter = {
       esim_status: "ESIM_Active_Confirmed",
-      stock_status: "Fitted"
+      stock_status: "Available_for_fitting"
     };
     const response = await StockServices.stockFilter(filter);
     const devices = response.data.data || [];
-    const validDevices = devices.filter(device => isCertValid(device.model || device.device_model || device));
+
+    // Old vehicle: 2-year SIM plan → validity >= 2 years from today (date only, no time)
+    const twoYearsFromNow = new Date();
+    twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
+    twoYearsFromNow.setHours(0, 0, 0, 0);
+
+    const validDevices = devices.filter(device => {
+      if (device.is_tagged === true) return false;  // exclude already-tagged devices
+      if (!isCertValid(device.model || device.device_model || device)) return false;
+      const validity = device.esim_validity;
+      if (!validity) return false;
+      // Compare date-only (strip time to avoid timezone issues)
+      const validityDate = new Date(validity.split('T')[0]);
+      return validityDate >= twoYearsFromNow;
+    });
 
     const list = validDevices.map((device) => ({
       value: device.id,

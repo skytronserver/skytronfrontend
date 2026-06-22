@@ -178,7 +178,11 @@ function FrequencyFirmware() {
   };
   const createFirmware = async (formData) => {
     try {
-      const resp = await SettingService.create_settings_firmware(formData);
+      const dataToSend = new FormData();
+      Object.keys(formData).forEach((key) => {
+        dataToSend.append(key, formData[key]);
+      });
+      const resp = await SettingService.create_settings_firmware(dataToSend);
       console.log("Firmware added successfully");
       return { code: "200", message: resp.data };
     } catch (error) {

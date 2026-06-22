@@ -48,6 +48,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
+          required={fieldConfig.required}
           multiline={fieldConfig.multiline || false}
           rows={fieldConfig.rows || 1}
           disabled={disabled ? true : false}
@@ -144,6 +145,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           type="number"
+          required={fieldConfig.required}
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
@@ -169,6 +171,7 @@ const FormField = ({
             fullWidth
             margin="normal"
             type="number"
+            required={fieldConfig.required}
             disabled={disabled ? true : false}
             {...formik.getFieldProps(fieldConfig.name)}
             error={
@@ -267,6 +270,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
+          required={fieldConfig.required}
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
@@ -296,6 +300,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
+          required={fieldConfig.required}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
             formik.touched[fieldConfig.name] &&
@@ -571,6 +576,7 @@ const FormField = ({
                 }}
               >
                 {t(label)}
+                {fieldConfig.required && <span style={{ color: "#d32f2f", marginLeft: "4px" }}>*</span>}
                 {" : "}
                 <span style={{ color: "#2196f3", fontStyle: "italic" }}>
                   {formik.values[fieldConfig.name]?.name || ""}
@@ -661,6 +667,7 @@ const FormField = ({
           margin="normal"
           disabled={disabled ? true : false}
           type="date"
+          required={fieldConfig.required}
           {...formik.getFieldProps(fieldConfig.name)}
           InputLabelProps={{
             shrink: true,
@@ -716,6 +723,7 @@ const FormField = ({
           fullWidth
           margin="normal"
           type="tel"
+          required={fieldConfig.required}
           disabled={disabled ? true : false}
           inputProps={{
             maxLength: 10,
@@ -744,6 +752,7 @@ const FormField = ({
           fullWidth
           margin="normal"
           type="time"
+          required={fieldConfig.required}
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           InputLabelProps={{
@@ -781,6 +790,7 @@ const FormField = ({
               variant="outlined"
               fullWidth
               margin="normal"
+              required={fieldConfig.required}
               error={
                 formik.touched[fieldConfig.name] &&
                 Boolean(formik.errors[fieldConfig.name])
