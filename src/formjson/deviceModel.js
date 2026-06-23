@@ -1,4 +1,10 @@
 import * as Yup from "yup";
+const FILE_SIZE = 512 * 1024; // 512 KB
+const SUPPORTED_FORMATS = [
+  "image/png",
+  "image/jpeg",
+  "application/pdf",
+];
 const providerList = []
 const today = new Date().toISOString().split('T')[0];
 export const deviceModelInitials = {
@@ -79,7 +85,16 @@ export const deviceModelFormField = {
     name: "tac_doc_path",
     type: "file",
     label: "deviceModelForm.fields.uploadTac",
-    validation: Yup.mixed().required("deviceModelForm.validation.tacRequired"),
+    validation: Yup.mixed()
+      .required("deviceModelForm.validation.tacRequired")
+      .test("fileSize", "File size is too large (max 512KB)", value => {
+        if (!value) return false;
+        return value.size <= FILE_SIZE;
+      })
+      .test("fileFormat", "Unsupported format (must be PDF, JPG, PNG)", value => {
+        if (!value) return false;
+        return SUPPORTED_FORMATS.includes(value.type);
+      }),
   },
   cop_no: {
     name: "cop_no",
@@ -121,7 +136,16 @@ export const deviceModelFormField = {
         const todayStr = new Date().toISOString().split('T')[0];
         return val < todayStr;
       },
-      then: Yup.mixed().required("modelExtensionForm.validation.copRequired"),
+      then: Yup.mixed()
+        .required("modelExtensionForm.validation.copRequired")
+        .test("fileSize", "File size is too large (max 512KB)", value => {
+          if (!value) return false;
+          return value.size <= FILE_SIZE;
+        })
+        .test("fileFormat", "Unsupported format (must be PDF, JPG, PNG)", value => {
+          if (!value) return false;
+          return SUPPORTED_FORMATS.includes(value.type);
+        }),
       otherwise: Yup.mixed().nullable()
     }),
   },

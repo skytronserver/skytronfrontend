@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldPanValidation, goldGstValidation, goldIdProofValidation, goldLatValidation, goldLonValidation, goldPinValidation } from "./validationHelpers";
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
@@ -61,31 +62,31 @@ export const m2mUserFormField = {
     name: "name",
     type: "text",
     label: "m2mUser.form.fields.name",
-    validation: Yup.string().required("m2mUser.form.validation.name_required"),
+    validation: goldNameValidation("Name"),
   },
   email: {
     name: "email",
     type: "text",
     label: "m2mUser.form.fields.email",
-    validation: Yup.string().email("m2mUser.form.validation.invalid_email").required("m2mUser.form.validation.email_required"),
+    validation: goldEmailValidation("Email"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
     label: "m2mUser.form.fields.mobile",
-    validation: Yup.string().matches(/^\d{10}$/, 'm2mUser.form.validation.invalid_mobile').required('m2mUser.form.validation.mobile_required'),
+    validation: goldMobileValidation("Mobile"),
   },
   dob: {
     name: "dob",
     type: "date",
     label: "m2mUser.form.fields.dob",
-    validation: Yup.date().required("m2mUser.form.validation.dob_required"),
+    validation: goldDobValidation("Date of Birth"),
   },
   idProofno: {
     name: "idProofno",
     type: "text",
     label: "m2mUser.form.fields.id_proof_number",
-    validation: Yup.string().min(5, "m2mUser.form.validation.id_proof_min_length").required("m2mUser.form.validation.id_proof_required"),
+    validation: goldIdProofValidation("ID Proof No"),
   },
   address: {
     name: "address",
@@ -97,9 +98,7 @@ export const m2mUserFormField = {
     name: "pin",
     type: "text",
     label: "Applicant PIN Code",
-    validation: Yup.string()
-      .matches(/^\d{6}$/, "PIN Code must be 6 digits")
-      .required("PIN Code is required"),
+    validation: goldPinValidation("PIN Code"),
   },
   state: {
     name: "state",
@@ -113,19 +112,19 @@ export const m2mUserFormField = {
     name: "company_name",
     type: "text",
     label: "m2mUser.form.fields.company_name",
-    validation: Yup.string().required("m2mUser.form.validation.company_name_required"),
+    validation: goldNameValidation("Company Name"),
   },
   company_email: {
     name: "company_email",
     type: "text",
     label: "Company Email",
-    validation: Yup.string().email("Please enter a valid company email").required("Company Email is required"),
+    validation: goldEmailValidation("Company Email"),
   },
   company_phoneno: {
     name: "company_phoneno",
     type: "tel",
     label: "Company Phone No",
-    validation: Yup.string().matches(/^\d{10}$/, "Please enter a valid 10-digit phone number").required("Company Phone No is required"),
+    validation: goldMobileValidation("Company Phone No"),
   },
   company_address: {
     name: "company_address",
@@ -137,42 +136,33 @@ export const m2mUserFormField = {
     name: "company_pin",
     type: "text",
     label: "Company PIN",
-    validation: Yup.string().matches(/^\d{6}$/, "Please enter a valid 6-digit PIN").required("Company PIN is required"),
+    validation: goldPinValidation("Company PIN"),
   },
   lat: {
     name: "lat",
     type: "number",
     label: "Latitude",
-    validation: Yup.string()
-      .matches(/^-?\d+\.\d+$/, "Latitude must be in decimal format (e.g., 21.9974)")
-      .required("Latitude is required"),
+    validation: goldLatValidation("Latitude"),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Longitude",
     gridHidden: true,
-    validation: Yup.string()
-      .matches(/^-?\d+\.\d+$/, "Longitude must be in decimal format (e.g., 79.0011)")
-      .required("Longitude is required"),
+    validation: goldLonValidation("Longitude"),
   },
 
   gstnnumber: {
     name: "gstnnumber",
     type: "text",
     label: "Company GST No",
-    validation: Yup.string()
-      .matches(
-        /^([0][1-9]|[1-2][0-9]|[3][0-7])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$/,
-        "Please enter a valid GST number"
-      )
-      .required("m2mUser.form.validation.gst_no_required"),
+    validation: goldGstValidation("Company GST No"),
   },
   panno: {
     name: "panno",
     type: "text",
     label: "Company PAN No",
-    validation: Yup.string().required("Company PAN No is required"),
+    validation: goldPanValidation("Company PAN No"),
   },
   company_registration_no: {
     name: "company_registration_no",

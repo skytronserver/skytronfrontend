@@ -1,4 +1,5 @@
 import * as Yup from "yup"; 
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 
 let stateList=[];
 let districtList=[];
@@ -30,19 +31,19 @@ export const dtoFormFields = {
     name:"name",
     type: "text",
     label: "dtoForm.fields.name",
-    validation: Yup.string().required("dtoForm.validation.nameRequired"),
+    validation: goldNameValidation("Name"),
   },
   email: {
     name:"email",
     type: "text",
     label: "dtoForm.fields.email",
-    validation: Yup.string().email("dtoForm.validation.invalidEmail").required("dtoForm.validation.emailRequired"),
+    validation: goldEmailValidation("Email"),
   },
   mobile: {
     name:"mobile",
     type: "tel",
     label: "dtoForm.fields.mobile",
-    validation: Yup.string().matches(/^\d{10}$/, "dtoForm.validation.mobileFormat").required("dtoForm.validation.mobileRequired"),
+    validation: goldMobileValidation("Mobile"),
   },
   state: {
     name:"state",
@@ -62,13 +63,13 @@ export const dtoFormFields = {
     name:"idProofno",
     type: "text",
     label: "dtoForm.fields.idProofNo",
-    validation: Yup.string().min(5, "dtoForm.validation.idProofMinLength").required("dtoForm.validation.idProofRequired"),
+    validation: goldIdProofValidation("ID Proof No"),
   },
   dob: {
     name:"dob",
     type: "date",
     label: "dtoForm.fields.dob",
-    validation: Yup.date().required("dtoForm.validation.dobRequired"),
+    validation: goldDobValidation("Date of Birth"),
     maxDate:today
   },
   expirydate: {
@@ -123,16 +124,12 @@ export const dtoFormFields = {
     name: "lat",
     type: "number",
     label: "Latitude",
-    validation: Yup.number()
-      .typeError("dtoForm.validation.latNumber")
-      .required("Latitude is required"),
+    validation: goldLatValidation("Latitude"),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Longitude",
-    validation: Yup.number()
-      .typeError("dtoForm.validation.lonNumber")
-      .required("Longitude is required"),
+    validation: goldLonValidation("Longitude"),
   }
 };

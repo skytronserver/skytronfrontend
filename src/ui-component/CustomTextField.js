@@ -25,6 +25,18 @@ const FormField = ({
   onChange,
 }) => {
   const { t } = useTranslation();
+
+  const isMandatory = React.useMemo(() => {
+    if (fieldConfig.required) return true;
+    try {
+      if (fieldConfig.validation && typeof fieldConfig.validation.describe === 'function') {
+        const desc = fieldConfig.validation.describe();
+        return desc.tests && desc.tests.some(t => t.name === 'required');
+      }
+    } catch (e) {}
+    return false;
+  }, [fieldConfig]);
+
   const inputProps = {
     onKeyDown: (e) => e.preventDefault(), // Prevent typing
     ...(fieldConfig.minDate && { min: fieldConfig.minDate }),
@@ -48,7 +60,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
-          required={fieldConfig.required}
+          required={isMandatory}
           multiline={fieldConfig.multiline || false}
           rows={fieldConfig.rows || 1}
           disabled={disabled ? true : false}
@@ -145,7 +157,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           type="number"
-          required={fieldConfig.required}
+          required={isMandatory}
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
@@ -171,7 +183,7 @@ const FormField = ({
             fullWidth
             margin="normal"
             type="number"
-            required={fieldConfig.required}
+            required={isMandatory}
             disabled={disabled ? true : false}
             {...formik.getFieldProps(fieldConfig.name)}
             error={
@@ -259,7 +271,7 @@ const FormField = ({
               color="primary"
             />
           }
-          label={t(label)}
+          label={<>{t(label)}{isMandatory && <span style={{ color: "#d32f2f", marginLeft: "4px" }}>*</span>}</>}
         />
       );
     case "select":
@@ -270,7 +282,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
-          required={fieldConfig.required}
+          required={isMandatory}
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
@@ -300,7 +312,7 @@ const FormField = ({
           variant="outlined"
           fullWidth
           margin="normal"
-          required={fieldConfig.required}
+          required={isMandatory}
           {...formik.getFieldProps(fieldConfig.name)}
           error={
             formik.touched[fieldConfig.name] &&
@@ -576,7 +588,7 @@ const FormField = ({
                 }}
               >
                 {t(label)}
-                {fieldConfig.required && <span style={{ color: "#d32f2f", marginLeft: "4px" }}>*</span>}
+                {isMandatory && <span style={{ color: "#d32f2f", marginLeft: "4px" }}>*</span>}
                 {" : "}
                 <span style={{ color: "#2196f3", fontStyle: "italic" }}>
                   {formik.values[fieldConfig.name]?.name || ""}
@@ -618,7 +630,7 @@ const FormField = ({
             className={`custom-fieldset ${formik.errors[fieldConfig.name] && "custom-fieldset-error"
               }`}
           >
-            <legend>{t(label)}</legend>
+            <legend>{t(label)}{isMandatory && <span style={{ color: "#d32f2f", marginLeft: "4px" }}>*</span>}</legend>
             <RadioGroup
               row
               aria-label={label}
@@ -667,7 +679,7 @@ const FormField = ({
           margin="normal"
           disabled={disabled ? true : false}
           type="date"
-          required={fieldConfig.required}
+          required={isMandatory}
           {...formik.getFieldProps(fieldConfig.name)}
           InputLabelProps={{
             shrink: true,
@@ -723,7 +735,7 @@ const FormField = ({
           fullWidth
           margin="normal"
           type="tel"
-          required={fieldConfig.required}
+          required={isMandatory}
           disabled={disabled ? true : false}
           inputProps={{
             maxLength: 10,
@@ -752,7 +764,7 @@ const FormField = ({
           fullWidth
           margin="normal"
           type="time"
-          required={fieldConfig.required}
+          required={isMandatory}
           disabled={disabled ? true : false}
           {...formik.getFieldProps(fieldConfig.name)}
           InputLabelProps={{
@@ -790,7 +802,7 @@ const FormField = ({
               variant="outlined"
               fullWidth
               margin="normal"
-              required={fieldConfig.required}
+              required={isMandatory}
               error={
                 formik.touched[fieldConfig.name] &&
                 Boolean(formik.errors[fieldConfig.name])

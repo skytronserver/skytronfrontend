@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldPanValidation, goldGstValidation, goldIdProofValidation, goldLatValidation, goldLonValidation, goldPinValidation } from "./validationHelpers";
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
@@ -86,32 +87,31 @@ export const manufacturerFormField = {
     name: "name",
     type: "text",
     label: "Applicant Name",
-    validation: Yup.string().required("manufacturer.form.validation.name_required"),
+    validation: goldNameValidation("Applicant Name"),
   },
   email: {
     name: "email",
     type: "text",
     label: "Applicant Email",
-    validation: Yup.string().email("manufacturer.form.validation.invalid_email").required("manufacturer.form.validation.email_required"),
+    validation: goldEmailValidation("Applicant Email"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
     label: "Applicant Mobile No",
-    validation: Yup.string().matches(/^\d{10}$/, 'manufacturer.form.validation.invalid_mobile').required('manufacturer.form.validation.mobile_required'),
+    validation: goldMobileValidation("Applicant Mobile No"),
   },
   dob: {
     name: "dob",
     type: "date",
     label: "Applicant DOB",
-    validation: Yup.date()
-      .required("manufacturer.form.validation.dob_required"),
+    validation: goldDobValidation("Applicant DOB"),
   },
   idProofno: {
     name: "idProofno",
     type: "text",
     label: "Applicant ID Proof No (PAN CARD, ADHAR, VOTER ID, DRIVING LICENSE, PASSPORT)",
-    validation: Yup.string().min(5, "manufacturer.form.validation.id_proof_min_length").required("manufacturer.form.validation.id_proof_required"),
+    validation: goldIdProofValidation("Applicant ID Proof No"),
   },
   address: {
     name: "address",
@@ -123,9 +123,7 @@ export const manufacturerFormField = {
     name: "pin",
     type: "text",
     label: "Applicant PIN Code",
-    validation: Yup.string()
-      .matches(/^\d{6}$/, "PIN Code must be 6 digits")
-      .required("PIN Code is required"),
+    validation: goldPinValidation("Applicant PIN Code"),
   },
   state: {
     name: "state",
@@ -139,19 +137,19 @@ export const manufacturerFormField = {
     name: "company_name",
     type: "text",
     label: "Company Name",
-    validation: Yup.string().required("manufacturer.form.validation.company_name_required"),
+    validation: goldNameValidation("Company Name"),
   },
   company_email: {
     name: "company_email",
     type: "text",
     label: "Company Email",
-    validation: Yup.string().email("Please enter a valid company email").required("Company Email is required"),
+    validation: goldEmailValidation("Company Email"),
   },
   company_phoneno: {
     name: "company_phoneno",
     type: "tel",
     label: "Company Phone No",
-    validation: Yup.string().matches(/^\d{10}$/, "Please enter a valid 10-digit phone number").required("Company Phone No is required"),
+    validation: goldMobileValidation("Company Phone No"),
   },
   company_address: {
     name: "company_address",
@@ -163,24 +161,20 @@ export const manufacturerFormField = {
     name: "company_pin",
     type: "text",
     label: "Company PIN",
-    validation: Yup.string().matches(/^\d{6}$/, "Please enter a valid 6-digit PIN").required("Company PIN is required"),
+    validation: goldPinValidation("Company PIN"),
   },
   lat: {
     name: "lat",
     type: "number",
     label: "Company Address Lat",
-    validation: Yup.string()
-      .matches(/^-?\d+\.\d+$/, "Latitude must be in decimal format (e.g., 21.9974)")
-      .required("Latitude is required"),
+    validation: goldLatValidation("Company Address Lat"),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Company Address Lon",
     gridHidden: true,
-    validation: Yup.string()
-      .matches(/^-?\d+\.\d+$/, "Longitude must be in decimal format (e.g., 79.0011)")
-      .required("Longitude is required"),
+    validation: goldLonValidation("Company Address Lon"),
   },
   assam_office_address: {
     name: "assam_office_address",
@@ -192,46 +186,37 @@ export const manufacturerFormField = {
     name: "assam_office_pin",
     type: "text",
     label: "Assam Office PIN",
-    validation: Yup.string().matches(/^\d{6}$/, "Please enter a valid 6-digit PIN").required("Assam Office PIN is required"),
+    validation: goldPinValidation("Assam Office PIN"),
   },
   assam_office_phone: {
     name: "assam_office_phone",
     type: "tel",
     label: "Assam Office Phone No",
-    validation: Yup.string().matches(/^\d{10}$/, "Please enter a valid 10-digit phone number").required("Assam Office Phone No is required"),
+    validation: goldMobileValidation("Assam Office Phone No"),
   },
   assam_office_lat: {
     name: "assam_office_lat",
     type: "number",
     label: "Assam Office Lat",
-    validation: Yup.string()
-      .matches(/^-?\d+\.\d+$/, "Latitude must be in decimal format")
-      .required("Assam Office Latitude is required"),
+    validation: goldLatValidation("Assam Office Lat"),
   },
   assam_office_lon: {
     name: "assam_office_lon",
     type: "number",
     label: "Assam Office Lon",
-    validation: Yup.string()
-      .matches(/^-?\d+\.\d+$/, "Longitude must be in decimal format")
-      .required("Assam Office Longitude is required"),
+    validation: goldLonValidation("Assam Office Lon"),
   },
   gstnnumber: {
     name: "gstnnumber",
     type: "text",
     label: "Company GST No",
-    validation: Yup.string()
-      .matches(
-        /^([0][1-9]|[1-2][0-9]|[3][0-7])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$/,
-        "Please enter a valid GST number"
-      )
-      .required("manufacturer.form.validation.gst_no_required"),
+    validation: goldGstValidation("Company GST No"),
   },
   panno: {
     name: "panno",
     type: "text",
     label: "Company PAN No",
-    validation: Yup.string().required("Company PAN No is required"),
+    validation: goldPanValidation("Company PAN No"),
   },
   company_registration_no: {
     name: "company_registration_no",

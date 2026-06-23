@@ -1,4 +1,5 @@
 import * as Yup from "yup"; 
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 const FILE_SIZE = 512 * 1024 ; // 512 MB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 let stateList=[];
@@ -24,29 +25,25 @@ export const stateAdminInitialValues = {
       name:"name",
       type: "text",
       label: "Name",
-      validation: Yup.string().required("stateAdmin.validation.nameRequired"),
+      validation: goldNameValidation("Name"),
     },
     email: {
       name:"email",
       type: "text",
       label: "Email",
-      validation: Yup.string()
-        .email("stateAdmin.validation.invalidEmail")
-        .required("stateAdmin.validation.emailRequired"),
+      validation: goldEmailValidation("Email"),
     },
     mobile: {
       name:"mobile",
       type: "tel",
       label: "Mobile",
-      validation: Yup.string()
-        .matches(/^\d{10}$/, 'stateAdmin.validation.mobileFormat')
-        .required('stateAdmin.validation.mobileRequired'),
+      validation: goldMobileValidation("Mobile"),
     },
     dob: {
       name:"dob",
       type: "date",
       label: "Date of Birth",
-      validation: Yup.date().required("stateAdmin.validation.dobRequired"),
+      validation: goldDobValidation("Date of Birth"),
       maxDate:today
     },
     expirydate: {
@@ -68,9 +65,7 @@ export const stateAdminInitialValues = {
       name:"idProofno",
       type: "text",
       label: "ID Proof Number",
-      validation: Yup.string()
-        .min(5, "stateAdmin.validation.idProofMinLength")
-        .required("stateAdmin.validation.idProofRequired"),
+      validation: goldIdProofValidation("ID Proof Number"),
     },
     file_idProof: {
       name:"file_idProof",
@@ -108,16 +103,12 @@ export const stateAdminInitialValues = {
       name: "lat",
       type: "number",
       label: "Latitude",
-      validation: Yup.number()
-        .typeError("Latitude must be a number")
-        .nullable(),
+      validation: goldLatValidation("Latitude").nullable(),
     },
     lon: {
       name: "lon",
       type: "number",
       label: "Longitude",
-      validation: Yup.number()
-        .typeError("Longitude must be a number")
-        .nullable(),
+      validation: goldLonValidation("Longitude").nullable(),
     },
   };

@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldLatValidation, goldLonValidation } from "./validationHelpers";
 
 export const busTaggingFields = (t) => ({
     vehicleRegNo: {
@@ -102,14 +103,14 @@ export const busStopFields = (t) => ({
         type: "number",
         label: "Latitude",
         placeholder: "28.6139",
-        validation: Yup.number().required("Latitude is required"),
+        validation: goldLatValidation("Latitude"),
     },
     longitude: {
         name: "longitude",
         type: "number",
         label: "Longitude",
         placeholder: "77.2090",
-        validation: Yup.number().required("Longitude is required"),
+        validation: goldLonValidation("Longitude"),
     },
     timing: {
         name: "timing",

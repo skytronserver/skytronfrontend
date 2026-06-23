@@ -33,7 +33,7 @@ export const ipSettingFormFields = {
         name: "ip_tracking",
         type: "text",
         label: "form.ipTracking1.label",
-        validation: Yup.string().required("form.ipTracking1.required"),
+        validation: Yup.string().matches(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, "Invalid IPv4 format").required("form.ipTracking1.required"),
     },
     ip_tracking2: {
         name: "ip_tracking2",
@@ -44,13 +44,13 @@ export const ipSettingFormFields = {
         name: "ip_sos",
         type: "text",
         label: "form.ipSos.label",
-        validation: Yup.string().required("form.ipSos.required"),
+        validation: Yup.string().matches(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, "Invalid IPv4 format").required("form.ipSos.required"),
     },
     port_tracking: {
         name: "port_tracking",
         type: "text",
         label: "form.portTracking1.label",
-        validation: Yup.string().required("form.portTracking1.required"),
+        validation: Yup.number().min(1, "Port must be at least 1").max(65535, "Port cannot exceed 65535").required("form.portTracking1.required"),
     },
     port_tracking2: {
         name: "port_tracking2",
@@ -61,7 +61,7 @@ export const ipSettingFormFields = {
         name: "port_sos",
         type: "text",
         label: "form.portSos.label",
-        validation: Yup.string().required("form.portSos.required"),
+        validation: Yup.number().min(1, "Port must be at least 1").max(65535, "Port cannot exceed 65535").required("form.portSos.required"),
     },
     sms_tracking: {
         name: "sms_tracking",

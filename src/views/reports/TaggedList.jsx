@@ -41,9 +41,13 @@ const TaggedList = () => {
         };
         const response = await StockServices.stockFilter(filter);
         console.log(response.data.data,'pplplplplp')
-        setTagged(response.data.data) 
+        const filteredData = response.data.data.filter(item => {
+          if (item.stock_status === 'Device_Untagged') return true;
+          return item.device_tag_info?.status === 'Owner_Final_OTP_Verified';
+        });
+        setTagged(filteredData) 
         const initialState = {};
-        response.data.data.forEach((item) => {
+        filteredData.forEach((item) => {
           initialState[item.id] = item.stock_status === 'Device_Untagged' ? 'untagged' : 'tagged';
         });
         setRowTagState(initialState);

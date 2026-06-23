@@ -1,6 +1,7 @@
 // formjson/customUser.js
 // Form field config for Custom User creation/editing — follows the project's FormField pattern.
 import * as Yup from 'yup';
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldPinValidation } from './validationHelpers';
 import { indianStates } from './indianState';
 
 const FILE_SIZE = 512 * 1024; // 512 KB
@@ -26,29 +27,25 @@ export const customUserFields = {
     name: 'name',
     type: 'text',
     label: 'Full Name',
-    validation: Yup.string().required('Name is required'),
+    validation: goldNameValidation('Full Name'),
   },
   mobile: {
     name: 'mobile',
     type: 'tel',
     label: 'Mobile Number',
-    validation: Yup.string()
-      .matches(/^\d{10}$/, 'Mobile must be a 10-digit number')
-      .required('Mobile is required'),
+    validation: goldMobileValidation('Mobile Number'),
   },
   email: {
     name: 'email',
     type: 'text',
     label: 'Email',
-    validation: Yup.string()
-      .email('Invalid email address')
-      .required('Email is required'),
+    validation: goldEmailValidation('Email'),
   },
   dob: {
     name: 'dob',
     type: 'date',
     label: 'Date of Birth',
-    validation: Yup.date().nullable(),
+    validation: goldDobValidation('Date of Birth').nullable(),
   },
   role_code: {
     name: 'role_code',
@@ -69,9 +66,7 @@ export const customUserFields = {
     name: 'address_pin',
     type: 'text',
     label: 'PIN Code',
-    validation: Yup.string()
-      .matches(/^\d{6}$/, 'PIN must be 6 digits')
-      .nullable(),
+    validation: goldPinValidation('PIN Code').nullable(),
   },
   address_State: {
     name: 'address_State',

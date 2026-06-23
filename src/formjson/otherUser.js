@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 export const otherUserInitialValues = {
   name: "",
   mobile: "",
@@ -15,29 +16,25 @@ export const otherUserFormField = {
     name: "name",
     type: "text",
     label: "Name",
-    validation: Yup.string().required("Name is required"),
+    validation: goldNameValidation("Name"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
     label: "Mobile",
-    validation: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile Number is required"),
+    validation: goldMobileValidation("Mobile"),
   },
   email: {
     name: "email",
     type: "text",
     label: "Email",
-    validation: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+    validation: goldEmailValidation("Email"),
   },
   dob: {
     name:"dob",
     type: "date",
     label: "Date of Birth",
-    validation: Yup.date().required("Date of Birth is required"),
+    validation: goldDobValidation("Date of Birth"),
   },
   dtoCode: {
     name: "dtoCode",
@@ -49,7 +46,7 @@ export const otherUserFormField = {
     name: "idProofno",
     type: "text",
     label: "User ID Number",
-    validation: Yup.string().required("User ID No is required field"),
+    validation: goldIdProofValidation("User ID Number"),
   },
   file_idProof: {
     name: "file_idProof",
@@ -61,16 +58,12 @@ export const otherUserFormField = {
     name: "lat",
     type: "number",
     label: "Latitude",
-    validation: Yup.number()
-      .typeError("Latitude must be a number")
-      .nullable(),
+    validation: goldLatValidation("Latitude").nullable(),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Longitude",
-    validation: Yup.number()
-      .typeError("Longitude must be a number")
-      .nullable(),
+    validation: goldLonValidation("Longitude").nullable(),
   },
 };

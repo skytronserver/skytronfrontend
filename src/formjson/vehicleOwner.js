@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 const currentDate = new Date();
 const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
@@ -25,32 +26,21 @@ export const vehicleOwnerField = {
     type: "text",
     label: "vehicleOwnerForm.fields.name",
     required: true,
-    validation: Yup.string()
-      .trim()
-      .min(2, "Name must be at least 2 characters")
-      .max(100, "Name cannot exceed 100 characters")
-      .matches(/^[A-Za-z\s]+$/, "Name must contain only alphabets")
-      .required("vehicleOwnerForm.validation.nameRequired"),
+    validation: goldNameValidation("Name"),
   },
   email: {
     name: "email",
     type: "text",
     label: "vehicleOwnerForm.fields.email",
     required: true,
-    validation: Yup.string()
-      .trim()
-      .email("vehicleOwnerForm.validation.invalidEmail")
-      .max(100, "Email cannot exceed 100 characters")
-      .required("vehicleOwnerForm.validation.emailRequired"),
+    validation: goldEmailValidation("Email"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
     label: "vehicleOwnerForm.fields.mobile",
     required: true,
-    validation: Yup.string()
-      .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit Indian number starting with 6-9")
-      .required("vehicleOwnerForm.validation.mobileRequired"),
+    validation: goldMobileValidation("Mobile"),
   },
   dob: {
     name: "dob",
@@ -58,18 +48,7 @@ export const vehicleOwnerField = {
     label: "vehicleOwnerForm.fields.dob",
     required: true,
     maxDate: today,
-    validation: Yup.date()
-      .typeError("Please enter a valid date")
-      .max(new Date(), "Date of birth cannot be in the future")
-      .test("age", "Owner must be at least 18 years old", (value) => {
-        if (!value) return false;
-        const today = new Date();
-        const age = today.getFullYear() - value.getFullYear();
-        const monthDiff = today.getMonth() - value.getMonth();
-        const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < value.getDate())) ? age - 1 : age;
-        return adjustedAge >= 18;
-      })
-      .required("vehicleOwnerForm.validation.dobRequired"),
+    validation: goldDobValidation("Date of Birth"),
   },
   address: {
     name: "address",
@@ -94,40 +73,21 @@ export const vehicleOwnerField = {
     type: "text",
     label: "vehicleOwnerForm.fields.idProofNo",
     required: true,
-    validation: Yup.string()
-      .trim()
-      .required("vehicleOwnerForm.validation.idProofNoRequired")
-      .test("idProofFormat", "Enter a valid ID: Aadhaar (12 digits), Voter ID (e.g. ABC1234567), Passport (e.g. A1234567), or Driving License (e.g. DL0120110149646)", (value) => {
-        if (!value) return false;
-        const v = value.trim().toUpperCase().replace(/\s/g, "");
-        const aadhaar       = /^\d{12}$/;                          // 12 digits
-        const voterId       = /^[A-Z]{3}\d{7}$/;                   // 3 letters + 7 digits (e.g. ABC1234567)
-        const passport      = /^[A-Z]\d{7}$/;                      // 1 letter + 7 digits (e.g. A1234567)
-        const drivingLicense = /^[A-Z]{2}\d{10,13}$/;              // 2 letters + 10-13 digits (e.g. DL0120110149646)
-        return aadhaar.test(v) || voterId.test(v) || passport.test(v) || drivingLicense.test(v);
-      }),
+    validation: goldIdProofValidation("ID Proof No"),
   },
   lat: {
     name: "lat",
     type: "number",
     label: "Latitude",
     required: true,
-    validation: Yup.number()
-      .typeError("Latitude must be a number")
-      .min(-90, "Latitude must be between -90 and 90")
-      .max(90, "Latitude must be between -90 and 90")
-      .required("Latitude is required"),
+    validation: goldLatValidation("Latitude"),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Longitude",
     required: true,
-    validation: Yup.number()
-      .typeError("Longitude must be a number")
-      .min(-180, "Longitude must be between -180 and 180")
-      .max(180, "Longitude must be between -180 and 180")
-      .required("Longitude is required"),
+    validation: goldLonValidation("Longitude"),
   },
   file_idProof: {
     name: "file_idProof",

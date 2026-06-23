@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldMobileValidation } from "./validationHelpers";
 let deviceList = [];
 let ownerList = [];
 let categoryList = [];
@@ -48,9 +49,7 @@ export const taggingFields = {
     type: "tel",
     label: "tagDeviceForm.fields.ownerMobile",
     required: true,
-    validation: Yup.string()
-      .matches(/^[6-9]\d{9}$/, 'tagDeviceForm.validation.mobileFormat')
-      .required('tagDeviceForm.validation.mobileRequired'),
+    validation: goldMobileValidation("Owner Mobile"),
   },
   state_code: {
     name: "state_code",

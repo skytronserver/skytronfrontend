@@ -1,5 +1,6 @@
 import { disable } from "ol/rotationconstraint";
 import * as Yup from "yup";
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 let stateList = [];
 const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = [
@@ -48,29 +49,25 @@ export const sosUserFormField = {
     name: "name",
     type: "text",
     label: "sosUserForm.fields.name",
-    validation: Yup.string().required("sosUserForm.validation.nameRequired"),
+    validation: goldNameValidation("Name"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
     label: "sosUserForm.fields.mobile",
-    validation: Yup.string()
-      .matches(/^\d{10}$/, "sosUserForm.validation.invalidMobile")
-      .required("sosUserForm.validation.mobileRequired"),
+    validation: goldMobileValidation("Mobile Number"),
   },
   email: {
     name: "email",
     type: "text",
     label: "sosUserForm.fields.email",
-    validation: Yup.string()
-      .email("sosUserForm.validation.invalidEmail")
-      .required("sosUserForm.validation.emailRequired"),
+    validation: goldEmailValidation("Email"),
   },
   dob: {
     name: "dob",
     type: "date",
     label: "sosUserForm.fields.dob",
-    validation: Yup.date().required("sosUserForm.validation.dobRequired"),
+    validation: goldDobValidation("Date of Birth"),
     maxDate: today,
   },
   state: {
@@ -84,9 +81,7 @@ export const sosUserFormField = {
     name: "idProofno",
     type: "text",
     label: "sosUserForm.fields.idProofNo",
-    validation: Yup.string()
-      .min(5, "sosUserForm.validation.idProofNoLength")
-      .required("sosUserForm.validation.idProofNoRequired"),
+    validation: goldIdProofValidation("ID Proof No"),
   },
   file_idProof: {
     name: "file_idProof",
@@ -140,17 +135,13 @@ export const sosUserFormField = {
     name: "lat",
     type: "number",
     label: "Latitude",
-    validation: Yup.number()
-      .typeError("Latitude must be a number")
-      .nullable(),
+    validation: goldLatValidation("Latitude").nullable(),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Longitude",
-    validation: Yup.number()
-      .typeError("Longitude must be a number")
-      .nullable(),
+    validation: goldLonValidation("Longitude").nullable(),
   },
 };
 
@@ -174,29 +165,25 @@ export const sosOtherUserFormField = {
     name: "name",
     type: "text",
     label: "sosUserForm.fields.name",
-    validation: Yup.string().required("sosUserForm.validation.nameRequired"),
+    validation: goldNameValidation("Name"),
   },
   mobile: {
     name: "mobile",
     type: "text",
     label: "sosUserForm.fields.mobile",
-    validation: Yup.string()
-      .matches(/^\d{10}$/, "sosUserForm.validation.invalidMobile")
-      .required("sosUserForm.validation.mobileRequired"),
+    validation: goldMobileValidation("Mobile Number"),
   },
   email: {
     name: "email",
     type: "text",
     label: "sosUserForm.fields.email",
-    validation: Yup.string()
-      .email("sosUserForm.validation.invalidEmail")
-      .required("sosUserForm.validation.emailRequired"),
+    validation: goldEmailValidation("Email"),
   },
   dob: {
     name: "dob",
     type: "date",
     label: "sosUserForm.fields.dob",
-    validation: Yup.date().required("sosUserForm.validation.dobRequired"),
+    validation: goldDobValidation("Date of Birth"),
     maxDate: today,
   },
   state: {
@@ -211,9 +198,7 @@ export const sosOtherUserFormField = {
     name: "idProofno",
     type: "text",
     label: "sosUserForm.fields.idProofNo",
-    validation: Yup.string()
-      .min(5, "sosUserForm.validation.idProofNoLength")
-      .required("sosUserForm.validation.idProofNoRequired"),
+    validation: goldIdProofValidation("ID Proof No"),
   },
   file_idProof: {
     name: "file_idProof",
@@ -270,7 +255,7 @@ export const emTeamFormField = {
     name: "name",
     type: "text",
     label: "emTeamForm.fields.name",
-    validation: Yup.string().required("emTeamForm.validation.nameRequired"),
+    validation: goldNameValidation("Team Name"),
   },
   detail: {
     name: "detail",

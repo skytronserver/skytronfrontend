@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 
 export const parentProfileFields = (t) => ({
     name: {
@@ -6,21 +7,21 @@ export const parentProfileFields = (t) => ({
         type: "text",
         label: "Parent Name",
         placeholder: "Enter parent's full name",
-        validation: Yup.string().required("Parent name is required"),
+        validation: goldNameValidation("Parent Name"),
     },
     email: {
         name: "email",
         type: "text",
         label: "Email Address",
         placeholder: "parent@email.com",
-        validation: Yup.string().email("Invalid email").required("Email is required"),
+        validation: goldEmailValidation("Email"),
     },
     mobile: {
         name: "mobile",
         type: "tel",
         label: "Mobile Number",
         placeholder: "9876543210",
-        validation: Yup.string().length(10, "Mobile must be 10 digits").required("Mobile is required"),
+        validation: goldMobileValidation("Mobile Number"),
     },
     address: {
         name: "address",
@@ -34,20 +35,20 @@ export const parentProfileFields = (t) => ({
         type: "number",
         label: "Latitude",
         placeholder: "28.6139",
-        validation: Yup.number().required("Latitude is required"),
+        validation: goldLatValidation("Latitude"),
     },
     lon: {
         name: "lon",
         type: "number",
         label: "Longitude",
         placeholder: "77.2090",
-        validation: Yup.number().required("Longitude is required"),
+        validation: goldLonValidation("Longitude"),
     },
     dob: {
         name: "dob",
         type: "date",
         label: "Date of Birth",
-        validation: Yup.date().required("Date of Birth is required")
+        validation: goldDobValidation("Date of Birth")
     },
 });
 
@@ -57,7 +58,7 @@ export const studentProfileFields = (t, parents = [], routes = [], stops = [], b
         type: "text",
         label: "Student Name",
         placeholder: "Enter student's full name",
-        validation: Yup.string().required("Student name is required"),
+        validation: goldNameValidation("Student Name"),
     },
     class: {
         name: "class",

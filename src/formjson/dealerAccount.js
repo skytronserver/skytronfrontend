@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldGstValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 const FILE_SIZE = 512 * 1024; // 512 MB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const currentDate = new Date();
@@ -38,47 +39,38 @@ export const dealerAccountFormField = {
     name: "name",
     type: "text",
     label: "dealerAccountForm.fields.name",
-    validation: Yup.string().required("dealerAccountForm.validation.nameRequired"),
+    validation: goldNameValidation("Name"),
   },
   email: {
     name: "email",
     type: "text",
     label: "dealerAccountForm.fields.email",
-    validation: Yup.string()
-      .email("dealerAccountForm.validation.invalidEmail")
-      .required("dealerAccountForm.validation.emailRequired"),
+    validation: goldEmailValidation("Email"),
   },
   mobile: {
     name: "mobile",
     type: "tel",
     label: "dealerAccountForm.fields.mobile",
-    validation: Yup.string()
-      .matches(/^\d{10}$/, "dealerAccountForm.validation.mobileFormat")
-      .required("dealerAccountForm.validation.mobileRequired"),
+    validation: goldMobileValidation("Mobile"),
   },
   dob: {
     name: "dob",
     type: "date",
     label: "dealerAccountForm.fields.dob",
-    validation: Yup.date().required("dealerAccountForm.validation.dobRequired"),
+    validation: goldDobValidation("Date of Birth"),
     maxDate: today
   },
   company_name: {
     name: "company_name",
     type: "text",
     label: "dealerAccountForm.fields.companyName",
-    validation: Yup.string().required("dealerAccountForm.validation.companyNameRequired"),
+    validation: goldNameValidation("Company Name"),
   },
   gstnnumber: {
     name: "gstnnumber",
     type: "text",
     label: "Company GST No",
-    validation: Yup.string()
-      .matches(
-        /^([0][1-9]|[1-2][0-9]|[3][0-7])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$/,
-        "Please enter a valid GST number"
-      )
-      .required("dealerAccountForm.validation.gstNoRequired"),
+    validation: goldGstValidation("Company GST No"),
   },
   address_State: {
     name: "address_State",
@@ -98,7 +90,7 @@ export const dealerAccountFormField = {
     name: "idProofno",
     type: "text",
     label: "dealerAccountForm.fields.userIdProofNo",
-    validation: Yup.string().min(5, "dealerAccountForm.validation.idProofMinLength").required("dealerAccountForm.validation.userIdProofNoRequired"),
+    validation: goldIdProofValidation("User ID Proof No"),
   },
   expirydate: {
     name: "expirydate",
@@ -172,16 +164,12 @@ export const dealerAccountFormField = {
     name: "lat",
     type: "number",
     label: "Latitude",
-    validation: Yup.number()
-      .typeError("dealerAccountForm.validation.latNumber")
-      .required("Latitude is required"),
+    validation: goldLatValidation("Latitude"),
   },
   lon: {
     name: "lon",
     type: "number",
     label: "Longitude",
-    validation: Yup.number()
-      .typeError("dealerAccountForm.validation.lonNumber")
-      .required("Longitude is required"),
+    validation: goldLonValidation("Longitude"),
   },
 };
