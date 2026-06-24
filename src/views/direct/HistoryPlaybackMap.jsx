@@ -1678,7 +1678,7 @@ map.renderSync();
   >
     {mapType === "normal"
       ? "Satellite View"
-      : "Normal View"}
+      : "Map View"}
   </Button>
         <div
           ref={poiPopupRef}
