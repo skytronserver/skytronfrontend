@@ -69,6 +69,12 @@ const GPSHistoryMap = ({
   const poiSourceRef = useRef(null);
   const poiPopupRef = useRef(null);
   const poiPopupOverlayRef = useRef(null);
+  const [mapType, setMapType] = useState("normal");
+  const normalLayerRef = useRef();
+const satelliteLayerRef = useRef();
+const adminLayerRef = useRef();
+const roadLayerRef = useRef();
+const satelliteLabelLayerRef = useRef();
 
   const showPoiPopup = (poiData) => {
     if (!poiPopupRef.current || !poiPopupOverlayRef.current) return;
@@ -690,34 +696,102 @@ const GPSHistoryMap = ({
         console.log(`[Map] Container Size: ${mapRef.current.clientWidth}x${mapRef.current.clientHeight}`);
       }
 
-      const initialMap = new Map({
-        target: mapRef.current,
-        layers: [
-          new TileLayer({
-            source: createBhuvanSource("india3"),
-            zIndex: 1,
-          }),
-          new TileLayer({
-            source: createBhuvanSource("basemap:admin_group"),
-            zIndex: 4,
-          }),
-          new TileLayer({
-            source: new XYZ({
-              url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
-              attributions: '© OpenStreetMap contributors',
-              maxZoom: 20,
-              projection: "EPSG:3857"
-            }),
-            zIndex: 3,
-            minZoom: 11,
-          }),
-        ],
-        view: new View({
-          center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
-          zoom: 7,
-        }),
-        pixelRatio: 1,
-      });
+      const normalBaseLayer = new TileLayer({
+  source: createBhuvanSource("india3"),
+  zIndex: 1,
+  visible: true,
+});
+
+const adminLayer = new TileLayer({
+  source: createBhuvanSource("basemap:admin_group"),
+  zIndex: 4,
+  visible: true,
+});
+
+const roadLayer = new TileLayer({
+  source: new XYZ({
+    url:
+      process.env.REACT_APP_TILE_SERVER_URL ||
+      "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+    attributions: "© OpenStreetMap contributors",
+    maxZoom: 20,
+    projection: "EPSG:3857",
+  }),
+  zIndex: 3,
+  minZoom: 11,
+  visible: true,
+});
+
+const satelliteLayer = new TileLayer({
+  source: new XYZ({
+    url: process.env.REACT_APP_SATELLITE_TILE_URL || "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                        attributions: " Esri",
+                        maxZoom: 18,
+  }),
+  visible: false,
+  zIndex: 2,
+});
+const satelliteLabelLayer = new TileLayer({
+  source: new XYZ({
+    url:
+      "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+    attributions: "Esri"
+  }),
+  visible: false,
+  zIndex: 10,
+});
+const initialMap = new Map({
+  target: mapRef.current,
+  layers: [
+    normalBaseLayer,
+    satelliteLayer,
+    satelliteLabelLayer,
+    roadLayer,
+    adminLayer,
+  ],
+  view: new View({
+    center: fromLonLat([91.829437, 26.131644]),
+    zoom: 7,
+  }),
+  pixelRatio: 1,
+});
+
+// IMPORTANT
+normalLayerRef.current = normalBaseLayer;
+satelliteLayerRef.current = satelliteLayer;
+satelliteLabelLayerRef.current = satelliteLabelLayer;
+adminLayerRef.current = adminLayer;
+roadLayerRef.current = roadLayer;
+
+
+      // const initialMap = new Map({
+      //   target: mapRef.current,
+      //   layers: [
+      //     new TileLayer({
+      //       source: createBhuvanSource("india3"),
+      //       zIndex: 1,
+      //     }),
+      //     new TileLayer({
+      //       source: createBhuvanSource("basemap:admin_group"),
+      //       zIndex: 4,
+      //     }),
+      //     new TileLayer({
+      //       source: new XYZ({
+      //         url: process.env.REACT_APP_TILE_SERVER_URL || "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+      //         attributions: '© OpenStreetMap contributors',
+      //         maxZoom: 20,
+      //         projection: "EPSG:3857"
+      //       }),
+      //       zIndex: 3,
+      //       minZoom: 11,
+      //     }),
+      //   ],
+      //   view: new View({
+      //     center: fromLonLat([91.829437, 26.131644]), // Initial center of the map
+      //     zoom: 7,
+      //   }),
+      //   pixelRatio: 1,
+      // });
 
       const overlay = new Overlay({
         element: overlayRef.current,
@@ -796,6 +870,35 @@ const GPSHistoryMap = ({
       featureOverlayRef.current = overlay;
     }
   }, [map]);
+
+const toggleMapType = () => {
+
+  if (mapType === "normal") {
+    normalLayerRef.current.setVisible(false);
+    satelliteLayerRef.current.setVisible(true);
+  satelliteLabelLayerRef.current.setVisible(true);
+    // Keep labels visible
+  adminLayerRef.current.setVisible(false);
+
+  // Optional
+  roadLayerRef.current.setVisible(false);
+
+    // satelliteLayerRef.current.setVisible(true);
+map.renderSync();
+    setMapType("satellite");
+   
+
+  } else {
+    normalLayerRef.current.setVisible(true);
+    adminLayerRef.current.setVisible(true);
+        roadLayerRef.current.setVisible(true);
+
+    satelliteLayerRef.current.setVisible(false);
+map.renderSync();
+    setMapType("normal");
+  }
+};
+
 
   const zoomIn = () => {
     map.getView().setZoom(map.getView().getZoom() + 1);
@@ -1561,6 +1664,22 @@ const GPSHistoryMap = ({
 
       <Box ref={mapRef} sx={{ width: "100%", height: "600px", position: 'relative' }}>
         {/* <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} /> */}
+        <Button
+    variant="contained"
+    size="small"
+    onClick={toggleMapType}
+    sx={{
+      position: "absolute",
+      top: 10,
+      right: 10,
+      zIndex: 9999,
+      minWidth: "120px",
+    }}
+  >
+    {mapType === "normal"
+      ? "Satellite View"
+      : "Normal View"}
+  </Button>
         <div
           ref={poiPopupRef}
           style={{
