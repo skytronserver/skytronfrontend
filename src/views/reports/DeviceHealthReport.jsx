@@ -260,6 +260,24 @@ const DeviceHealthReport = () => {
     }));
   };
 
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    setPage(0);
+    fetchHealthData();
+  }, 10000); // 10 sec delay
+
+  return () => clearTimeout(timer);
+}, [
+  filters.vehicle_reg_no,
+  filters.device_tag_id,
+  filters.imei,
+  filters.device_stock_id,
+  filters.device_model_id,
+  filters.district_id,
+  filters.manufacturer_id,
+  filters.vehicle_owner_id
+]);
+
   const handleApplyFilters = () => {
     setPage(0);
     fetchHealthData();

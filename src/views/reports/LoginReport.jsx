@@ -75,6 +75,20 @@ const LoginReport = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]); // refetch when pagination changes
 
+  useEffect(() => {
+   const timer = setTimeout(() => {
+    fetchReport();
+  }, 10000); // 10 seconds
+
+  return () => clearTimeout(timer);
+}, [
+  page,
+  pageSize,
+  filters.search,
+  filters.role,
+  filters.status,
+  filters.is_online
+]);
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({

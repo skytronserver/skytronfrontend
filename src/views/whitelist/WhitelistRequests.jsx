@@ -229,7 +229,7 @@ const WhitelistRequests = () => {
     } else {
       fetchActiveWhitelists();
     }
-  }, [activeTab, reqPage, reqRowsPerPage, reqTypeFilter, reqStatusFilter, activePage, activeRowsPerPage, activeTypeFilter]);
+  }, [activeTab, reqPage, reqRowsPerPage, reqTypeFilter, reqStatusFilter, activePage, activeRowsPerPage, activeTypeFilter, activeStockIdFilter, activeProviderIdFilter]);
 
   // Load providers once on mount
   useEffect(() => {

@@ -26,6 +26,8 @@ import {
   InputAdornment,
   Tooltip
 } from '@mui/material';
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import { IconEdit, IconMapPin } from '@tabler/icons';
 import PISService from '../../services/PISServices';
 import { retriveStateList, retriveDistrictList } from '../../helper';
@@ -45,6 +47,55 @@ const BusStopManagement = () => {
     district: '',
   });
 
+  const [snackbar, setSnackbar] = useState({
+  open: false,
+  message: "",
+  severity: "error",
+});
+
+const showSnackbar = (message, severity = "error") => {
+  setSnackbar({
+    open: true,
+    message,
+    severity,
+  });
+};
+const [errors, setErrors] = useState({});
+
+const validateForm = () => {
+  const validationErrors = [];
+
+  if (!formData.name?.trim()) {
+    validationErrors.push("Stop Name is required");
+  }
+
+  if (!formData.latitude) {
+    validationErrors.push("Latitude is required");
+  }
+
+  if (!formData.longitude) {
+    validationErrors.push("Longitude is required");
+  }
+
+  if (!formData.address?.trim()) {
+    validationErrors.push("Address is required");
+  }
+
+  if (!formData.state) {
+    validationErrors.push("State is required");
+  }
+
+  if (!formData.district) {
+    validationErrors.push("District is required");
+  }
+
+  if (validationErrors.length > 0) {
+    showSnackbar(validationErrors.join(" | "), "error");
+    return false;
+  }
+
+  return true;
+};
   // Load states on mount
   useEffect(() => {
     const loadStates = async () => {
@@ -136,15 +187,26 @@ const BusStopManagement = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setErrors((prev) => ({
+    ...prev,
+    [name]: ""
+  }));
     // Reset district when state changes
     if (name === 'state') {
       setFormData(prev => ({ ...prev, state: value, district: '' }));
+      setErrors((prev) => ({
+      ...prev,
+      state: "",
+      district: ""
+    }));
+
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) return;
     const payload = {
       name: formData.name,
       latitude: formData.latitude,
@@ -157,13 +219,26 @@ const BusStopManagement = () => {
     try {
       if (editingStop) {
         await PISService.updateBusStop(editingStop.id, payload);
+        showSnackbar("Bus Stop updated successfully", "success");
       } else {
         await PISService.createBusStop(payload);
+        showSnackbar("Bus Stop created successfully", "success");
       }
       fetchBusStops();
       handleClose();
     } catch (error) {
       console.error("Failed to save bus stop:", error);
+      if (error?.response?.data) {
+    const apiErrors = error.response.data;
+
+    const errorMessage = Object.entries(apiErrors)
+      .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+      .join(" | ");
+
+    showSnackbar(errorMessage, "error");
+  } else {
+    showSnackbar("Failed to save bus stop", "error");
+  }
     }
   };
 
@@ -364,6 +439,34 @@ const BusStopManagement = () => {
           <Button onClick={handleSubmit} variant="contained" color="primary">Save</Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+  open={snackbar.open}
+  autoHideDuration={5000}
+  onClose={() =>
+    setSnackbar((prev) => ({
+      ...prev,
+      open: false,
+    }))
+  }
+  anchorOrigin={{
+    vertical: "top",
+    horizontal: "right",
+  }}
+>
+  <Alert
+    severity={snackbar.severity}
+    onClose={() =>
+      setSnackbar((prev) => ({
+        ...prev,
+        open: false,
+      }))
+    }
+    variant="filled"
+    sx={{ width: "100%" }}
+  >
+    {snackbar.message}
+  </Alert>
+</Snackbar>
     </Box>
   );
 };

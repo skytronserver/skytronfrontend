@@ -185,6 +185,21 @@ const POIReport = () => {
         setFilteredData(result);
     };
 
+    useEffect(() => {
+    const timer = setTimeout(() => {
+        applyFilters();
+    }, 10000); // 10 seconds
+
+    return () => clearTimeout(timer);
+}, [
+    filters.name,
+    filters.status,
+    filters.mark_type,
+    filters.use_type,
+    quickRange,
+    poiData
+]);
+
     // Clear all filters
     const clearFilters = () => {
         setFilters({

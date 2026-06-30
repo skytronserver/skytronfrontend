@@ -4,6 +4,8 @@ import {
   DialogTitle, Grid, MenuItem, Select, TextField, Typography, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, FormControl, InputLabel
 } from '@mui/material';
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import { IconEdit, IconPlayerPlay, IconSquareRoundedX, IconCheck } from '@tabler/icons';
 import PISService from '../../services/PISServices';
 import { decipherEncryption } from '../../helper';
@@ -15,6 +17,52 @@ const BusScheduleManagement = () => {
   const [open, setOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
+  const [errors, setErrors] = useState({});
+
+const [snackbar, setSnackbar] = useState({
+  open: false,
+  message: "",
+  severity: "success",
+});
+
+const handleSnackbarClose = () => {
+  setSnackbar((prev) => ({
+    ...prev,
+    open: false,
+  }));
+};
+
+const validateForm = () => {
+  let tempErrors = {};
+
+  if (!formData.service_type) {
+    tempErrors.service_type = "Service Type is required";
+  }
+
+  if (!formData.start_datetime) {
+    tempErrors.start_datetime = "Start Datetime is required";
+  } else {
+    const selectedDate = new Date(formData.start_datetime);
+    const currentDate = new Date();
+
+    if (selectedDate < currentDate) {
+      tempErrors.start_datetime =
+        "Start Datetime cannot be in the past";
+    }
+  }
+
+  if (!formData.route) {
+    tempErrors.route = "Route is required";
+  }
+
+  if (!formData.bus) {
+    tempErrors.bus = "Bus is required";
+  }
+
+  setErrors(tempErrors);
+
+  return Object.keys(tempErrors).length === 0;
+};
 
   const [formData, setFormData] = useState({
     service_type: 'Express',
@@ -81,11 +129,35 @@ const BusScheduleManagement = () => {
     setOpen(false);
   };
 
+  // const handleChange = (e) => {
+  //   setFormData({ ...formData, [e.target.name]: e.target.value });
+  // };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const { name, value } = e.target;
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+
+  setErrors((prev) => ({
+    ...prev,
+    [name]: "",
+  }));
+};
 
   const handleSubmit = async () => {
+
+      if (!validateForm()) {
+    setSnackbar({
+      open: true,
+      message: "Please fill all required fields",
+      severity: "error",
+    });
+    return;
+  }
+
     try {
       const payload = {
         service_type: formData.service_type,
@@ -94,24 +166,75 @@ const BusScheduleManagement = () => {
         bus: formData.bus
       };
 
-      await PISService.createBusSchedule(payload);
+      // await PISService.createBusSchedule(payload);
+      const response = await PISService.createBusSchedule(payload);
+      setSnackbar({
+      open: true,
+      message:
+        response?.message ||
+        response?.data?.message ||
+        "Bus Schedule created successfully",
+      severity: "success",
+    });
       fetchData();
       handleClose();
     } catch (error) {
       console.error("Failed to save bus schedule:", error);
+      const errorMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message ||
+      "Failed to create bus schedule";
+
+    setSnackbar({
+      open: true,
+      message: errorMessage,
+      severity: "error",
+    });
     }
   };
 
+  // const handleUpdateStatus = async (scheduleId, newStatus) => {
+  //   try {
+  //     await PISService.updateTripStatus(scheduleId, newStatus);
+  //     fetchData();
+  //   } catch (error) {
+  //     console.error("Failed to update status:", error);
+  //     const msg = error.response?.data?.message || "Failed to update trip status";
+  //     alert(msg);
+  //   }
+  // };
+
   const handleUpdateStatus = async (scheduleId, newStatus) => {
-    try {
-      await PISService.updateTripStatus(scheduleId, newStatus);
-      fetchData();
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      const msg = error.response?.data?.message || "Failed to update trip status";
-      alert(msg);
-    }
-  };
+  try {
+    const response = await PISService.updateTripStatus(
+      scheduleId,
+      newStatus
+    );
+
+    setSnackbar({
+      open: true,
+      message:
+        response?.message ||
+        response?.data?.message ||
+        "Status updated successfully",
+      severity: "success",
+    });
+
+    fetchData();
+  } catch (error) {
+    const msg =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      "Failed to update trip status";
+
+    setSnackbar({
+      open: true,
+      message: msg,
+      severity: "error",
+    });
+  }
+};
 
   const getRouteName = (routeId) => {
     const route = routes.find(r => r.id === routeId);
@@ -241,11 +364,13 @@ const BusScheduleManagement = () => {
                 type="datetime-local"
                 value={formData.start_datetime}
                 onChange={handleChange}
+                error={!!errors.start_datetime}
+  helperText={errors.start_datetime}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={!!errors.route}>
                 <InputLabel>Route</InputLabel>
                 <Select
                   name="route"
@@ -257,10 +382,15 @@ const BusScheduleManagement = () => {
                     <MenuItem key={route.id} value={route.id}>{route.name}</MenuItem>
                   ))}
                 </Select>
+                {errors.route && (
+  <Typography color="error" variant="caption">
+    {errors.route}
+  </Typography>
+)}
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={!!errors.bus}>
                 <InputLabel>Bus</InputLabel>
                 <Select
                   name="bus"
@@ -272,6 +402,11 @@ const BusScheduleManagement = () => {
                     <MenuItem key={bus.id} value={bus.id}>{bus.vehicle_reg_no || bus.name}</MenuItem>
                   ))}
                 </Select>
+                {errors.bus && (
+  <Typography color="error" variant="caption">
+    {errors.bus}
+  </Typography>
+)}
               </FormControl>
             </Grid>
           </Grid>
@@ -281,6 +416,24 @@ const BusScheduleManagement = () => {
           <Button onClick={handleSubmit} variant="contained" color="primary">Save</Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+  open={snackbar.open}
+  autoHideDuration={4000}
+  onClose={handleSnackbarClose}
+  anchorOrigin={{
+    vertical: "top",
+    horizontal: "right",
+  }}
+>
+  <Alert
+    onClose={handleSnackbarClose}
+    severity={snackbar.severity}
+    variant="filled"
+    sx={{ width: "100%" }}
+  >
+    {snackbar.message}
+  </Alert>
+</Snackbar>
     </Box>
   );
 };

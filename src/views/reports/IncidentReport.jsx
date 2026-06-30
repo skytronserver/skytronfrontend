@@ -158,6 +158,34 @@ const IncidentReport = () => {
         });
     };
 
+    useEffect(() => {
+    const timer = setTimeout(() => {
+        setPaginationModel(prev => ({
+            ...prev,
+            page: 0
+        }));
+
+        setFilters(prev => ({
+            ...prev,
+            page: 1
+        }));
+
+        handleSearch();
+    }, 10000); // 10 seconds
+
+    return () => clearTimeout(timer);
+}, [
+    filters.vehicle_reg_no,
+    filters.registered_by,
+    filters.district,
+    filters.police_station,
+    filters.nearest_police_station,
+    filters.registered_at_from,
+    filters.registered_at_to,
+    filters.latitude,
+    filters.longitude,
+    filters.radius_km
+]);
     const openMediaViewer = async (filePath) => {
         try {
             const token = sessionStorage.getItem('oAuthToken');

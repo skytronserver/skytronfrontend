@@ -27,6 +27,8 @@ import AnimateButton from '../../ui-component/extended/AnimateButton';
 import { gridSpacing } from '../../store/constant';
 import { parentProfileFields, studentProfileFields } from '../../formjson/schoolprofiles';
 import SchoolBusService from '../../services/SchoolBusService';
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 
 const ProfileManagement = () => {
     const theme = useTheme();
@@ -44,37 +46,50 @@ const ProfileManagement = () => {
     const [routeStops, setRouteStops] = useState([]);
     const [buses, setbuses] = useState([]);
 
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success",
+    });
+
+    const handleCloseSnackbar = () => {
+        setSnackbar((prev) => ({
+            ...prev,
+            open: false,
+        }));
+    };
+
 
     const loadStops = async (routeId) => {
         if (!routeId) {
             setRouteStops([]);
-                    setbuses([]);
+            setbuses([]);
 
             return;
         }
-         try {
-        // debugger;
+        try {
+            // debugger;
 
-        const busRes = await SchoolBusService.getBuses_P_Manage(routeId);
-    //  console.log(busRes);
-        setbuses(
-            Array.isArray(busRes?.data?.data)
-                ? busRes.data.data
-                : []
-        );
+            const busRes = await SchoolBusService.getBuses_P_Manage(routeId);
+            //  console.log(busRes);
+            setbuses(
+                Array.isArray(busRes?.data?.data)
+                    ? busRes.data.data
+                    : []
+            );
 
-        const res = await SchoolBusService.getStops(routeId);
+            const res = await SchoolBusService.getStops(routeId);
 
-        setRouteStops(
-            Array.isArray(res?.data?.data?.[0]?.stops)
-                ? res.data.data[0].stops
-                : []
-        );
-    } catch (error) {
-        console.error("Error loading stops/buses:", error);
-        setbuses([]);
-        setRouteStops([]);
-    }
+            setRouteStops(
+                Array.isArray(res?.data?.data?.[0]?.stops)
+                    ? res.data.data[0].stops
+                    : []
+            );
+        } catch (error) {
+            console.error("Error loading stops/buses:", error);
+            setbuses([]);
+            setRouteStops([]);
+        }
     };
 
     useEffect(() => {
@@ -230,43 +245,60 @@ const ProfileManagement = () => {
                                 longitude: values.lon
                             };
 
-
+                            let successMessage = "";
                             SchoolBusService.createParent(apiPayload)
-    .then(async (createRes) => {
+                                .then(async (createRes) => {
+                                    successMessage =
+                                        createRes?.data?.message ||
+                                        "Parent profile created successfully";
+                                    // Parent created response
+                                    const parentData = createRes?.data?.data;
 
-        // Parent created response
-        const parentData = createRes?.data?.data;
+                                    // Call OTP API using created parent id
+                                    if (parentData?.id) {
+                                        await SchoolBusService.resendParentCreationOtp({
+                                            user_id: parentData.id
+                                        });
+                                    }
 
-        // Call OTP API using created parent id
-        if (parentData?.id) {
-            await SchoolBusService.resendParentCreationOtp({
-                user_id: parentData.id
-            });
-        }
+                                    // Reload parents list
+                                    return SchoolBusService.getParents();
+                                })
+                                .then((pRes) => {
+                                    setParents(
+                                        Array.isArray(pRes?.data?.data)
+                                            ? pRes.data?.data
+                                            : []
+                                    );
 
-        // Reload parents list
-        return SchoolBusService.getParents();
-    })
-    .then((pRes) => {
+                                    setSnackbar({
+                                        open: true,
+                                        message: successMessage,
+                                        severity: "success",
+                                    });
 
-        setParents(
-            Array.isArray(pRes?.data?.data)
-                ? pRes.data?.data
-                : []
-        );
+                                    resetForm();
+                                    setOpenParent(false);
+                                })
+                                .catch((e) => {
+                                    console.error(e);
 
-        resetForm();
-        setOpenParent(false);
+                                    const errorMsg =
+                                        e?.response?.data?.message ||
+                                        e?.response?.data?.error ||
+                                        e?.message ||
+                                        "Failed to create parent profile";
 
-    })
-    .catch((e) => {
-        console.error(e);
-        setError(e?.message || 'Failed to create parent profile');
-    })
-    .finally(() => {
-        setLoading(false);
-        setSubmitting(false);
-    });
+                                    setSnackbar({
+                                        open: true,
+                                        message: errorMsg,
+                                        severity: "error",
+                                    });
+                                })
+                                .finally(() => {
+                                    setLoading(false);
+                                    setSubmitting(false);
+                                });
                         }}
                     >
                         {(formik) => (
@@ -305,13 +337,36 @@ const ProfileManagement = () => {
                             SchoolBusService.createStudent(values)
                                 .then(() => SchoolBusService.getStudents())
                                 .then((sRes) => {
-                                    setStudents(Array.isArray(sRes?.data) ? sRes.data : []);
+                                    setStudents(
+                                        Array.isArray(sRes?.data?.data)
+                                            ? sRes.data.data
+                                            : []
+                                    );
+
+                                    setSnackbar({
+                                        open: true,
+                                        message:
+                                            sRes?.data?.message ||
+                                            "Student profile created successfully",
+                                        severity: "success",
+                                    });
+
                                     resetForm();
                                     setOpenStudent(false);
                                     setRouteStops([]);
                                 })
                                 .catch((e) => {
-                                    setError(e?.message || 'Failed to create student profile');
+                                    const errorMsg =
+                                        e?.response?.data?.message ||
+                                        e?.response?.data?.error ||
+                                        e?.message ||
+                                        "Failed to create student profile";
+
+                                    setSnackbar({
+                                        open: true,
+                                        message: errorMsg,
+                                        severity: "error",
+                                    });
                                 })
                                 .finally(() => {
                                     setLoading(false);
@@ -322,7 +377,7 @@ const ProfileManagement = () => {
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
                                 <Grid container spacing={1}>
-                                    {Object.values(studentProfileFields(t, parents, routes, routeStops,buses)).map((field) => (
+                                    {Object.values(studentProfileFields(t, parents, routes, routeStops, buses)).map((field) => (
                                         <Grid item xs={12} key={field.name}>
                                             <FormField
                                                 fieldConfig={field}
@@ -354,6 +409,22 @@ const ProfileManagement = () => {
                     </Formik>
                 </DialogContent>
             </Dialog>
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            >
+                <MuiAlert
+                    elevation={6}
+                    variant="filled"
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
+                >
+                    {snackbar.message}
+                </MuiAlert>
+            </Snackbar>
         </Box>
     );
 };

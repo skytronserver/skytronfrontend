@@ -221,6 +221,28 @@ const DeviceDashboard = () => {
     fetchDevices();
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+ fetchDevices();
+  }, 10000); // 10 seconds
+
+  return () => clearTimeout(timer);
+ 
+}, [
+  page,
+  pageSize,
+  sortBy,
+  sortOrder,
+  imeiQuery,
+  esnQuery,
+  iccidQuery,
+  msisdnQuery,
+  esimStatusFilter,
+  stockStatusFilter,
+  kycStatusFilter,
+  providerFilter
+]);
+
   const handleResetFilters = () => {
     setImeiQuery('');
     setEsnQuery('');

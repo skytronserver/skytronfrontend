@@ -396,6 +396,26 @@ const AlertReport = () => {
     }
   };
 
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    setPage(0);
+    fetchAlertData();
+  }, 10000); // 10 seconds
+
+  return () => clearTimeout(timer);
+}, [
+  filters.type,
+  filters.status,
+  filters.vehicle_reg_no,
+  filters.state_id,
+  filters.district,
+  filters.start_date,
+  filters.end_date,
+  filters.latitude,
+  filters.longitude,
+  filters.radius
+]);
+
   // Handle search
   const handleSearch = () => {
     setPage(0);
