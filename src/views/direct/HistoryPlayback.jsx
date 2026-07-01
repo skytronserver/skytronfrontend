@@ -7,9 +7,10 @@ import { dateTimeUpdate } from "../../helper";
 import { FormControl, Autocomplete, TextField, Button, Grid, Typography, Box, CircularProgress, Collapse, IconButton, Tooltip } from '@mui/material';
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useTranslation } from "react-i18next";
-
-const MAX_HISTORY_RANGE_MS = 1000 * 60 * 60 * 24 * 365 * 2; // two years
-
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+//const MAX_HISTORY_RANGE_MS = 1000 * 60 * 60 * 24 * 365 * 2; // two years
+const MAX_HISTORY_RANGE_MS = 2 * 60 * 60 * 1000; // 2 Hours
 const HistoryPlayback = () => {
   const { t } = useTranslation();
 
@@ -50,6 +51,12 @@ const HistoryPlayback = () => {
   const [selectedPoiVehicle, setSelectedPoiVehicle] = useState(null);
   const [loadingPoiVehicles, setLoadingPoiVehicles] = useState(false);
   const [showPoiVehicles, setShowPoiVehicles] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+  open: false,
+  message: "",
+  severity: "info",
+});
+
   // Fetch vehicle list on mount
   useEffect(() => {
     let isMounted = true;
@@ -159,7 +166,7 @@ const HistoryPlayback = () => {
     const toDateObj = new Date(to);
 
     if (toDateObj.getTime() - fromDateObj.getTime() > MAX_HISTORY_RANGE_MS) {
-      return "Date range cannot exceed 2 years. Please select a shorter range.";
+      return "Date range cannot exceed 2 hours. Please select a shorter range.";
     }
     return null;
   }, []);
@@ -255,7 +262,18 @@ const HistoryPlayback = () => {
     }
 
     setFromDate(dateTimeUpdate(selected));
-  }, []);
+      const currentToDate = new Date(toDate);
+
+  const diff = currentToDate.getTime() - selected.getTime();
+
+  if (diff > MAX_HISTORY_RANGE_MS || diff < 0) {
+    const autoEndDate = new Date(
+      selected.getTime() + MAX_HISTORY_RANGE_MS
+    );
+
+    setToDate(dateTimeUpdate(autoEndDate));
+  }
+  }, [toDate]);
 
   // Handle to date change
   const handleToDateChange = useCallback((e) => {
@@ -268,8 +286,36 @@ const HistoryPlayback = () => {
       return;
     }
 
-    setToDate(dateTimeUpdate(selected));
-  }, []);
+    //setToDate(dateTimeUpdate(selected));
+    const from = new Date(fromDate);
+
+  const diff = selected.getTime() - from.getTime();
+
+  if (diff > MAX_HISTORY_RANGE_MS) {
+    alert("Maximum allowed range is 2 hours");
+
+    const autoEndDate = new Date(
+      from.getTime() + MAX_HISTORY_RANGE_MS
+    );
+
+    setToDate(dateTimeUpdate(autoEndDate));
+    return;
+  }
+
+  if (diff < 0) {
+    alert("End Date cannot be before Start Date");
+
+    const autoEndDate = new Date(
+      from.getTime() + MAX_HISTORY_RANGE_MS
+    );
+
+    setToDate(dateTimeUpdate(autoEndDate));
+    return;
+  }
+
+  setToDate(dateTimeUpdate(selected));
+
+  }, [fromDate]);
 
   // Handle back to vehicle selection
   const handleBackToVehicleSelection = useCallback(() => {

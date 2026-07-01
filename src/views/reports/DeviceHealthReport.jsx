@@ -264,7 +264,7 @@ const DeviceHealthReport = () => {
   const timer = setTimeout(() => {
     setPage(0);
     fetchHealthData();
-  }, 10000); // 10 sec delay
+  }, 3000); // 3 sec delay
 
   return () => clearTimeout(timer);
 }, [

@@ -22,6 +22,10 @@ import axios from "axios";
 import Select from "ol/interaction/Select";
 import { formatDateTime } from "../../helper";
 import Polygon from "ol/geom/Polygon";
+import {
+  Snackbar,
+  Alert,
+} from "@mui/material";
 const GPSHistoryMap = ({
   startDateTime,
   endDateTime,
@@ -75,7 +79,11 @@ const satelliteLayerRef = useRef();
 const adminLayerRef = useRef();
 const roadLayerRef = useRef();
 const satelliteLabelLayerRef = useRef();
-
+const [snackbar, setSnackbar] = useState({
+  open: false,
+  message: "",
+  severity: "info",
+});
   const showPoiPopup = (poiData) => {
     if (!poiPopupRef.current || !poiPopupOverlayRef.current) return;
 
@@ -622,12 +630,35 @@ const satelliteLabelLayerRef = useRef();
         );
 
         const data = response.data.data;
+        if (!data.length) {
+  setDownloadStatus("Idle");
+  setMapData([]);
+  setMaxSliderValue(0);
+
+  setSnackbar({
+    open: true,
+    severity: "warning",
+    message:
+      "No data available. Please select another date and time.",
+  });
+
+  return;
+}
         setDownloadStatus("Processing");
         setMapData(data);
         setMaxSliderValue(data.length - 1);
       }
     } catch (error) {
       console.error("Error fetching map data:", error);
+      setDownloadStatus("Idle");
+
+  setSnackbar({
+    open: true,
+    severity: "error",
+    message:
+      error?.response?.data?.message ||
+      "Failed to fetch GPS history data.",
+  });
     }
   };
 
@@ -1770,6 +1801,33 @@ map.renderSync();
       >
         <p id="overlay-content"></p>
       </Box>
+      <Snackbar
+  open={snackbar.open}
+  autoHideDuration={4000}
+  onClose={() =>
+    setSnackbar((prev) => ({
+      ...prev,
+      open: false,
+    }))
+  }
+  anchorOrigin={{
+    vertical: "top",
+    horizontal: "right",
+  }}
+>
+  <Alert
+    severity={snackbar.severity}
+    variant="filled"
+    onClose={() =>
+      setSnackbar((prev) => ({
+        ...prev,
+        open: false,
+      }))
+    }
+  >
+    {snackbar.message}
+  </Alert>
+</Snackbar>
     </Box>
   );
 };

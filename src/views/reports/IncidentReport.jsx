@@ -171,7 +171,7 @@ const IncidentReport = () => {
         }));
 
         handleSearch();
-    }, 10000); // 10 seconds
+    }, 3000); // 3 seconds
 
     return () => clearTimeout(timer);
 }, [

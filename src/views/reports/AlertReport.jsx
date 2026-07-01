@@ -400,7 +400,7 @@ const AlertReport = () => {
   const timer = setTimeout(() => {
     setPage(0);
     fetchAlertData();
-  }, 10000); // 10 seconds
+  }, 3000); // 3 seconds
 
   return () => clearTimeout(timer);
 }, [
