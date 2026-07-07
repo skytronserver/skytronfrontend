@@ -129,6 +129,10 @@ const TicketDetail = Loadable(lazy(() => import("../views/complaint/TicketDetail
 const StaffTicketList = Loadable(lazy(() => import("../views/complaint/StaffTicketList")));
 const ManufacturerTickets = Loadable(lazy(() => import("../views/complaint/ManufacturerTickets")));
 
+// OTA Management
+const OtaCommandDefinition = Loadable(lazy(() => import("../views/ota/OtaCommandDefinition")));
+const OtaCommandHistory = Loadable(lazy(() => import("../views/ota/OtaCommandHistory")));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -568,6 +572,17 @@ const MainRoutes = {
       path: '/manufacturer/tickets',
       element: <ManufacturerTickets />,
       roles: ['devicemanufacture'],
+    },
+    // OTA Management Routes
+    {
+      path: "/ota/commands",
+      element: <OtaCommandDefinition />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/ota/history",
+      element: <OtaCommandHistory />,
+      roles: ["superadmin"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };

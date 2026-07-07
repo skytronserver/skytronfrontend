@@ -913,6 +913,31 @@ const user = {
         // },
       ],
     },
+    {
+      id: "ota-management",
+      title: "OTA Management",
+      type: "collapse",
+      icon: icons.IconBrandChrome,
+      roles: ["superadmin"],
+      children: [
+        {
+          id: "ota-commands",
+          title: "Command Definition",
+          type: "item",
+          url: "/ota/commands",
+          breadcrumbs: false,
+          roles: ["superadmin"],
+        },
+        {
+          id: "ota-history",
+          title: "Command History",
+          type: "item",
+          url: "/ota/history",
+          breadcrumbs: false,
+          roles: ["superadmin"],
+        }
+      ]
+    }
   ],
 };
 
