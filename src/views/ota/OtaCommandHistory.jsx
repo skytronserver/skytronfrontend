@@ -70,7 +70,16 @@ const OtaCommandHistory = () => {
           sx={{ flexGrow: 1 }}
         />
 
-        <Button variant="contained" color="secondary">Search</Button>
+        <Button 
+          variant="contained" 
+          color="secondary"
+          onClick={() => {
+            console.log("Fetching History with:", { searchField, searchValue });
+            // API Call Here: axios.get(`/api/ota-history?${searchField}=${searchValue}`)
+          }}
+        >
+          Search
+        </Button>
       </Paper>
 
       <Paper sx={{ height: 600, width: '100%' }}>

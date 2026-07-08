@@ -11,7 +11,8 @@ import {
   InputLabel, 
   FormControl, 
   Box,
-  Typography
+  Typography,
+  Autocomplete
 } from '@mui/material';
 
 const SendCommandPopup = ({ open, handleClose }) => {
@@ -21,9 +22,16 @@ const SendCommandPopup = ({ open, handleClose }) => {
   const [actionType, setActionType] = useState('');
   const [valueSelection, setValueSelection] = useState('');
   const [customValue, setCustomValue] = useState('');
+  const [selectedDevice, setSelectedDevice] = useState(null);
 
   // Mock data for commands and list of values
   const activeCommands = ['Reboot Device', 'Set Speed Limit', 'Get Location'];
+  const dummyDevices = [
+    { imei: '868204040123456', registration: 'KA01AB1234', owner: 'John Doe' },
+    { imei: '868204040123457', registration: 'KA01AB1235', owner: 'Jane Smith' },
+    { imei: '868204040123458', registration: 'MH12CD5678', owner: 'Acme Corp' },
+    { imei: '868204040123459', registration: 'DL01EF9012', owner: 'Bob Wilson' },
+  ];
   const listValues = ['Value 1', 'Value 2', 'others'];
 
   const handleSubmit = () => {
@@ -52,20 +60,52 @@ const SendCommandPopup = ({ open, handleClose }) => {
               <Select
                 value={filterType}
                 label="Filter By"
-                onChange={(e) => setFilterType(e.target.value)}
+                onChange={(e) => {
+                  setFilterType(e.target.value);
+                  setFilterValue('');
+                  setSelectedDevice(null);
+                }}
               >
                 <MenuItem value="registration">Registration No</MenuItem>
                 <MenuItem value="owner">Owner Name</MenuItem>
+                <MenuItem value="imei">IMEI</MenuItem>
               </Select>
             </FormControl>
-            <TextField 
-              label="Enter value to find IMEI" 
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
-              fullWidth 
+            <Autocomplete
+              options={dummyDevices}
+              getOptionLabel={(option) => {
+                if (!filterType) return '';
+                if (typeof option === 'string') return option;
+                return option[filterType] || '';
+              }}
+              renderOption={(props, option) => (
+                <li {...props} key={option.imei}>
+                  <Box>
+                    <Typography variant="body2">{option[filterType]}</Typography>
+                    <Typography variant="caption" color="textSecondary">IMEI: {option.imei}</Typography>
+                  </Box>
+                </li>
+              )}
+              fullWidth
               disabled={!filterType}
+              value={selectedDevice}
+              onChange={(e, newValue) => {
+                setSelectedDevice(newValue);
+                setFilterValue(newValue ? newValue[filterType] : '');
+              }}
+              renderInput={(params) => (
+                <TextField 
+                  {...params} 
+                  label="Enter value to find IMEI" 
+                />
+              )}
             />
           </Box>
+          {selectedDevice && (
+            <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
+              Target IMEI: {selectedDevice.imei}
+            </Typography>
+          )}
 
           <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Command Details</Typography>
           

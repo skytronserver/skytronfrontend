@@ -40,9 +40,31 @@ const mockData = [
 const OtaCommandDefinition = () => {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState(mockData);
+  const [selectedRow, setSelectedRow] = useState(null);
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleOpen = () => {
+    setSelectedRow(null);
+    setOpen(true);
+  };
+  
+  const handleOpenUpdate = (row) => {
+    setSelectedRow(row);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedRow(null);
+  };
+
+  const handleToggleStatus = (id) => {
+    setRows(rows.map(row => {
+      if (row.id === id) {
+        return { ...row, status: row.status === 'Active' ? 'Inactive' : 'Active' };
+      }
+      return row;
+    }));
+  };
 
   const columns = [
     { field: 'otaId', headerName: 'OTA ID', width: 130 },
@@ -66,8 +88,13 @@ const OtaCommandDefinition = () => {
       width: 250,
       renderCell: (params) => (
         <Box>
-          <Button size="small" variant="outlined" sx={{ mr: 1 }}>Update</Button>
-          <Button size="small" variant="contained" color={params.row.status === 'Active' ? 'error' : 'success'}>
+          <Button size="small" variant="outlined" sx={{ mr: 1 }} onClick={() => handleOpenUpdate(params.row)}>Update</Button>
+          <Button 
+            size="small" 
+            variant="contained" 
+            color={params.row.status === 'Active' ? 'error' : 'success'}
+            onClick={() => handleToggleStatus(params.row.id)}
+          >
             {params.row.status === 'Active' ? 'Deactivate' : 'Activate'}
           </Button>
         </Box>
@@ -103,9 +130,10 @@ const OtaCommandDefinition = () => {
       </Paper>
 
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>Create New OTA Command</DialogTitle>
+        <DialogTitle>{selectedRow ? 'Update OTA Command' : 'Create New OTA Command'}</DialogTitle>
         <Formik
-          initialValues={{
+          enableReinitialize
+          initialValues={selectedRow || {
             commandId: '',
             specification: '',
             commandKey: '',
@@ -119,15 +147,19 @@ const OtaCommandDefinition = () => {
           }}
           validationSchema={validationSchema}
           onSubmit={(values, { resetForm }) => {
-            const newRow = { 
-              ...values, 
-              id: rows.length + 1,
-              createdBy: 'Current User',
-              updatedBy: 'Current User',
-              createdAt: new Date().toISOString().split('T')[0],
-              updatedAt: new Date().toISOString().split('T')[0]
-            };
-            setRows([...rows, newRow]);
+            if (selectedRow) {
+              setRows(rows.map(row => row.id === selectedRow.id ? { ...values, updatedAt: new Date().toISOString().split('T')[0] } : row));
+            } else {
+              const newRow = { 
+                ...values, 
+                id: rows.length > 0 ? Math.max(...rows.map(r => r.id)) + 1 : 1,
+                createdBy: 'Current User',
+                updatedBy: 'Current User',
+                createdAt: new Date().toISOString().split('T')[0],
+                updatedAt: new Date().toISOString().split('T')[0]
+              };
+              setRows([...rows, newRow]);
+            }
             resetForm();
             handleClose();
           }}
@@ -199,7 +231,7 @@ const OtaCommandDefinition = () => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                <Button type="submit" variant="contained" color="primary">Create</Button>
+                <Button type="submit" variant="contained" color="primary">{selectedRow ? 'Update' : 'Create'}</Button>
               </DialogActions>
             </Form>
           )}
