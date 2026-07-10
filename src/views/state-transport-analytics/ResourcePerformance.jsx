@@ -213,7 +213,30 @@ const ResourcePerformance = () => {
     }
 
     const fleetSummary = data?.fleet_summary;
-    const buses = data?.buses || [];
+    let buses = data?.buses || [];
+
+    // Client-side filtering fallback for Departure Punctuality
+    if (filters.departure_punctuality) {
+        buses = buses.filter(bus => {
+            // Using 90% as the threshold for 'On Time' performance
+            if (filters.departure_punctuality === 'on_time') return bus.on_time_start_rate_pct >= 90;
+            if (filters.departure_punctuality === 'late') return bus.on_time_start_rate_pct < 90;
+            if (filters.departure_punctuality === 'early') return false; // API doesn't distinguish early starts
+            return true;
+        });
+    }
+
+    // Client-side filtering fallback for Arrival Punctuality
+    if (filters.arrival_punctuality) {
+        buses = buses.filter(bus => {
+            const delay = bus.avg_stop_delay_minutes || 0;
+            // Using 5 minutes delay as threshold for 'On Time'
+            if (filters.arrival_punctuality === 'on_time') return delay <= 5;
+            if (filters.arrival_punctuality === 'late') return delay > 5;
+            if (filters.arrival_punctuality === 'early') return delay < 0; 
+            return true;
+        });
+    }
 
     const performanceChartData = [
         { name: 'Completion', value: fleetSummary?.completion_rate_pct || 0 },
