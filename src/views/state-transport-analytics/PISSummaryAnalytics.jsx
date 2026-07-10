@@ -53,12 +53,21 @@ const PISSummaryAnalytics = () => {
     const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString().slice(0, 16);
     const endOfDay = new Date(new Date().setHours(23, 59, 59, 999)).toISOString().slice(0, 16);
 
+    const PUNCTUALITY_OPTIONS = [
+        { value: '', label: 'All' },
+        { value: 'on_time', label: 'On Time' },
+        { value: 'early', label: 'Early' },
+        { value: 'late', label: 'Late' },
+    ];
+
     const [filters, setFilters] = useState({
         start_datetime: startOfDay,
         end_datetime: endOfDay,
         state_id: '',
         district_id: '',
-        vehicle_category_id: ''
+        vehicle_category_id: '',
+        departure_punctuality: '',
+        arrival_punctuality: ''
     });
 
     const [data, setData] = useState(null);
@@ -103,6 +112,8 @@ const PISSummaryAnalytics = () => {
             if (filters.state_id) params.state_id = filters.state_id;
             if (filters.district_id) params.district_id = filters.district_id;
             if (filters.vehicle_category_id) params.vehicle_category_id = filters.vehicle_category_id;
+            if (filters.departure_punctuality) params.departure_punctuality = filters.departure_punctuality;
+            if (filters.arrival_punctuality) params.arrival_punctuality = filters.arrival_punctuality;
 
             const response = await PISService.getPISSummary(params);
             if (response && response.success) {
@@ -139,7 +150,9 @@ const PISSummaryAnalytics = () => {
             end_datetime: endOfDay,
             state_id: '',
             district_id: '',
-            vehicle_category_id: ''
+            vehicle_category_id: '',
+            departure_punctuality: '',
+            arrival_punctuality: ''
         });
         setDistricts([]);
     };
@@ -258,6 +271,40 @@ const PISSummaryAnalytics = () => {
                             <MenuItem value="">All Categories</MenuItem>
                             {vehicleCategories.map((vc) => (
                                 <MenuItem key={vc.id} value={vc.id}>{vc.category}</MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={2.4}>
+                        <TextField
+                            fullWidth
+                            select
+                            label="Departure Punctuality"
+                            name="departure_punctuality"
+                            value={filters.departure_punctuality}
+                            onChange={handleFilterChange}
+                            size="small"
+                        >
+                            {PUNCTUALITY_OPTIONS.map((opt) => (
+                                <MenuItem key={opt.value} value={opt.value}>
+                                    {opt.value === '' ? 'All Departure' : opt.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={2.4}>
+                        <TextField
+                            fullWidth
+                            select
+                            label="Arrival Punctuality"
+                            name="arrival_punctuality"
+                            value={filters.arrival_punctuality}
+                            onChange={handleFilterChange}
+                            size="small"
+                        >
+                            {PUNCTUALITY_OPTIONS.map((opt) => (
+                                <MenuItem key={opt.value} value={opt.value}>
+                                    {opt.value === '' ? 'All Arrival' : opt.label}
+                                </MenuItem>
                             ))}
                         </TextField>
                     </Grid>

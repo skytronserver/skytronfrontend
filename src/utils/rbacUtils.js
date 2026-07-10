@@ -153,8 +153,9 @@ export const MENU_MODULE_MAP = {
   'custom-alerts':               'settings_custom_alerts',
 
   // ── PIS ───────────────────────────────────────────────────────────────────
-  'pis-management':              'pis_bus_stops',
-  'pis-main':                    'pis_bus_stops',
+  // pis-management and pis-main are intentionally NOT mapped here.
+  // The sidebar uses hasVisibleChildren() to show the group/collapse
+  // whenever ANY child permission (bus-stops, bus-routes, bus-schedules) is ON.
   'bus-stops':                   'pis_bus_stops',
   'bus-routes':                  'pis_bus_routes',
   'bus-schedules':               'pis_bus_schedules',

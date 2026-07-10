@@ -80,7 +80,6 @@ const CreateTrip = Loadable(lazy(() => import("../views/schoolbus/CreateTrip")))
 const BusStopManagement = Loadable(lazy(() => import("../views/pis/BusStopManagement")));
 const BusRouteManagement = Loadable(lazy(() => import("../views/pis/BusRouteManagement")));
 const BusScheduleManagement = Loadable(lazy(() => import("../views/pis/BusScheduleManagement")));
-const PISReports = Loadable(lazy(() => import("../views/pis/PISReports")));
 
 // State Transport Analytics Components
 const TripAnalysis = Loadable(lazy(() => import("../views/state-transport-analytics/TripAnalysis")));
@@ -492,11 +491,6 @@ const MainRoutes = {
       path: '/pis/bus-schedules',
       element: <BusScheduleManagement />,
       roles: ['superadmin', 'stateadmin', 'dtorto', 'owner']
-    },
-    {
-      path: '/pis/reports',
-      element: <PISReports />,
-      roles: ['superadmin', 'stateadmin', 'dtorto']
     },
     // State Transport Analytics Routes
     {

@@ -60,8 +60,17 @@ const ResourcePerformance = () => {
         end_datetime: endOfPeriod,
         owner_id: '',
         vehicle_category_id: '',
-        service_type: ''
+        service_type: '',
+        departure_punctuality: '',
+        arrival_punctuality: ''
     });
+
+    const PUNCTUALITY_OPTIONS = [
+        { value: '', label: 'All' },
+        { value: 'on_time', label: 'On Time' },
+        { value: 'early', label: 'Early' },
+        { value: 'late', label: 'Late' },
+    ];
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -97,6 +106,8 @@ const ResourcePerformance = () => {
             if (filters.owner_id) params.owner_id = filters.owner_id;
             if (filters.vehicle_category_id) params.vehicle_category_id = filters.vehicle_category_id;
             if (filters.service_type) params.service_type = filters.service_type;
+            if (filters.departure_punctuality) params.departure_punctuality = filters.departure_punctuality;
+            if (filters.arrival_punctuality) params.arrival_punctuality = filters.arrival_punctuality;
 
             const response = await PISService.getResourcePerformance(params);
             if (response && response.success) {
@@ -128,7 +139,9 @@ const ResourcePerformance = () => {
             end_datetime: endOfPeriod,
             owner_id: '',
             vehicle_category_id: '',
-            service_type: ''
+            service_type: '',
+            departure_punctuality: '',
+            arrival_punctuality: ''
         });
     };
 
@@ -301,6 +314,40 @@ const ResourcePerformance = () => {
                             <MenuItem value="">All Service Types</MenuItem>
                             {serviceTypes.map((st) => (
                                 <MenuItem key={st} value={st}>{st}</MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={2.4}>
+                        <TextField
+                            fullWidth
+                            select
+                            label="Departure Punctuality"
+                            name="departure_punctuality"
+                            value={filters.departure_punctuality}
+                            onChange={handleFilterChange}
+                            size="small"
+                        >
+                            {PUNCTUALITY_OPTIONS.map((opt) => (
+                                <MenuItem key={opt.value} value={opt.value}>
+                                    {opt.value === '' ? 'All Departure' : opt.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={2.4}>
+                        <TextField
+                            fullWidth
+                            select
+                            label="Arrival Punctuality"
+                            name="arrival_punctuality"
+                            value={filters.arrival_punctuality}
+                            onChange={handleFilterChange}
+                            size="small"
+                        >
+                            {PUNCTUALITY_OPTIONS.map((opt) => (
+                                <MenuItem key={opt.value} value={opt.value}>
+                                    {opt.value === '' ? 'All Arrival' : opt.label}
+                                </MenuItem>
                             ))}
                         </TextField>
                     </Grid>
