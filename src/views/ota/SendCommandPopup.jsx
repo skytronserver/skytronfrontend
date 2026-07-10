@@ -75,7 +75,15 @@ const SendCommandPopup = ({ open, handleClose }) => {
     setLoadingDevices(true);
     try {
       const axios = getAxiosInstance();
-      const paramName = filterType === 'registration' ? 'vehicle_reg_no' : 'owner_name';
+      const paramMap = {
+        registration: 'vehicle_reg_no',
+        owner: 'owner_name',
+        imei: 'imei',
+        dealer_name: 'dealer_name',
+        manufacturer_name: 'manufacturer_name',
+        district: 'district',
+      };
+      const paramName = paramMap[filterType] || 'vehicle_reg_no';
       const response = await axios.get(`/api/ota/command/device-search/?${paramName}=${query}`);
       if (response.data?.status === 'success') {
         setDeviceOptions(response.data.data);
@@ -175,6 +183,10 @@ const SendCommandPopup = ({ open, handleClose }) => {
               >
                 <MenuItem value="registration">Registration No</MenuItem>
                 <MenuItem value="owner">Owner Name</MenuItem>
+                <MenuItem value="imei">IMEI</MenuItem>
+                <MenuItem value="dealer_name">Dealer Name</MenuItem>
+                <MenuItem value="manufacturer_name">Manufacturer Name</MenuItem>
+                <MenuItem value="district">District</MenuItem>
               </Select>
             </FormControl>
             <Autocomplete
@@ -182,7 +194,12 @@ const SendCommandPopup = ({ open, handleClose }) => {
               getOptionLabel={(option) => {
                 if (!option) return '';
                 if (filterType === 'registration') return option.vehicle_reg_no || '';
-                return option.owner_name || '';
+                if (filterType === 'owner') return option.owner_name || '';
+                if (filterType === 'imei') return option.imei || '';
+                if (filterType === 'dealer_name') return option.dealer_name || '';
+                if (filterType === 'manufacturer_name') return option.manufacturer_name || '';
+                if (filterType === 'district') return option.district || '';
+                return option.vehicle_reg_no || option.owner_name || '';
               }}
               filterOptions={(x) => x} // Disable local filtering
               renderOption={(props, option) => (
