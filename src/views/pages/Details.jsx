@@ -473,6 +473,7 @@ const Details = () => {
                     justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
                     sx={{ flexWrap: 'wrap' }}
                   >
+                    {/* STEP 1: Resend OTP button hidden (commented out)
                     {getRole() !== "stateadmin" && (
                       (userType === 'serviceProvider' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'accept')) ||
                       (userType === 'manufacturer' && (lastApprovedId === userId || isApplicantActive || effectiveStatusLower === 'allow to login' || effectiveStatusLower === 'allow to add dealer'))) && (
@@ -494,6 +495,7 @@ const Details = () => {
                           Resend OTP
                         </Button>
                       )}
+                    */}
                     {userType === 'serviceProvider' ? (
                       isRequestPending ? (
                         <>

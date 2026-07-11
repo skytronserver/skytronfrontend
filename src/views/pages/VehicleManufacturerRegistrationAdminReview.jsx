@@ -252,6 +252,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
+                {/* STEP 1: Resend OTP button hidden (commented out)
                 {getRole() !== "stateadmin" && canResendOtp ? (
                   <Button
                     size="small"
@@ -270,6 +271,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                     Resend OTP
                   </Button>
                 ) : null}
+                */}
                 {isRequestPending ? (
                   <>
                     <Button
@@ -291,7 +293,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      Allow to login
+                      Device found Compatible
                     </Button>
                   </>
                 ) : null}

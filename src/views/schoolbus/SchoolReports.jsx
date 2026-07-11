@@ -538,21 +538,21 @@ return (
                     <MainCard>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                             <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-                                {/* <Tab label="Unplanned Usage" /> */}
                                 <Tab label="Attendance" />
                                 <Tab label="Trip Management" />
+                                <Tab label="Unplanned Usage" />
                                 {/* <Tab label="Traffic" /> */}
                             </Tabs>
                         </Box>
 
-                        {/* {tabValue === 0 && (
+                        {tabValue === 2 && (
                             <DynamicDatatables
                                 tableTitle="Unplanned Usage"
                                 rows={unplanned}
                                 columns={unplannedCols}
                                 options={{ selectableRows: 'none', filter: true, search: true }}
                             />
-                        )} */}
+                        )}
 
                         {tabValue === 0 && (
     attendance.length > 0 ? (

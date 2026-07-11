@@ -417,7 +417,16 @@ export const manufacturerColumns = [
   { name: "tac_validity", label: "TAC Validity", options: { filter: false, sort: false } },
   { name: "cop_no", label: "COP No", options: { filter: false, sort: false } },
   { name: "cop_validity", label: "COP Validity", options: { filter: false, sort: false } },
-  { name: "status", label: "Request Status", options: { filter: false, sort: false } },
+  {
+    name: "status", label: "Compatibility Test Result", options: {
+      filter: false, sort: false,
+      customBodyRender: (value) => {
+        if (!value) return "";
+        if (String(value).trim().toLowerCase() === "allow to login") return "Device found Compatible";
+        return value;
+      }
+    }
+  },
   { name: "created", label: "Created On", options: { filter: true, sort: false } },
 ];
 export const serviceProviderCol = [
@@ -491,7 +500,16 @@ export const serviceProviderCol = [
   },
   { name: "m2m_reg_certificate_no", label: "M2M Reg Certificate No", options: { filter: false, sort: false } },
 
-  { name: "status", label: "Request Status", options: { filter: false, sort: false } },
+  {
+    name: "status", label: "Compatibility Test Result", options: {
+      filter: false, sort: false,
+      customBodyRender: (value) => {
+        if (!value) return "";
+        if (String(value).trim().toLowerCase() === "allow to login") return "Device found Compatible";
+        return value;
+      }
+    }
+  },
   { name: "created", label: "Created On", options: { filter: true, sort: false } },
 
 ];
