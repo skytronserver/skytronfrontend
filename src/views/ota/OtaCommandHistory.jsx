@@ -128,10 +128,13 @@ const OtaCommandHistory = () => {
           >
             <MenuItem value="registration_no">Registration No</MenuItem>
             <MenuItem value="imei">IMEI</MenuItem>
-            <MenuItem value="dealer_id">Dealer</MenuItem>
+            <MenuItem value="dealer_name">Dealer Name</MenuItem>
+            <MenuItem value="owner_name">Owner Name</MenuItem>
+            <MenuItem value="manufacturer_name">Manufacturer Name</MenuItem>
+            <MenuItem value="district">District</MenuItem>
           </TextField>
           
-          {searchField === 'dealer_id' ? (
+          {searchField === 'dealer_name' ? (
             <TextField
               select
               size="small"
@@ -142,7 +145,7 @@ const OtaCommandHistory = () => {
             >
               <MenuItem value=""><em>Select a Dealer...</em></MenuItem>
               {dealers.map((dealer) => (
-                <MenuItem key={dealer.id} value={dealer.id}>
+                <MenuItem key={dealer.id} value={dealer.company_name || dealer.name || ''}>
                   {dealer.company_name || dealer.name || `Dealer ID: ${dealer.id}`}
                 </MenuItem>
               ))}
