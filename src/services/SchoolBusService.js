@@ -2,7 +2,7 @@ import { getAxiosInstance } from './axiosInstance';
 
 const shouldUseMock = () => {
   const flag = process.env.REACT_APP_USE_SCHOOLBUS_MOCK;
-  if (flag === undefined || flag === null) return true;
+  if (flag === undefined || flag === null) return false;
   return String(flag).toLowerCase() === 'true';
 };
 

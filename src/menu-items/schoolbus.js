@@ -1,10 +1,10 @@
 // assets
 import { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
-  IconCircleCheck,IconCurrentLocation,IconClipboardCheck,IconReportAnalytics ,IconClockPlay  } from '@tabler/icons';
+  IconCircleCheck,IconCurrentLocation,IconClipboardCheck,IconReportAnalytics ,IconClockPlay, IconCalendarEvent } from '@tabler/icons';
 
 // constant
 const icons = { IconBus, IconRoute, IconUserCircle, IconMapPin, IconLockAccess, IconDashboard,IconSchool,
-  IconCircleCheck,IconCurrentLocation,IconClipboardCheck,IconReportAnalytics ,IconClockPlay  };
+  IconCircleCheck,IconCurrentLocation,IconClipboardCheck,IconReportAnalytics ,IconClockPlay, IconCalendarEvent };
 
 // ==============================|| SCHOOL BUS MENU ITEMS ||============================== //
 
@@ -91,6 +91,15 @@ const schoolbus = {
                     icon: icons.IconReportAnalytics ,
                     breadcrumbs: false,
                     roles: ['superadmin', 'schooladmin']
+                },
+                {
+                    id: 'school-holidays',
+                    title: 'School Holidays',
+                    type: 'item',
+                    url: '/schoolbus/holidays',
+                    icon: icons.IconCalendarEvent,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'stateadmin', 'schooladmin']
                 },
                 // {
                 //     id: 'attendance-management',
