@@ -101,6 +101,15 @@ const schoolbus = {
                     breadcrumbs: false,
                     roles: ['superadmin', 'stateadmin', 'schooladmin']
                 },
+                {
+                    id: 'alerts-center',
+                    title: 'Alerts Center',
+                    type: 'item',
+                    url: '/schoolbus/alerts',
+                    icon: icons.IconReportAnalytics,
+                    breadcrumbs: false,
+                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                },
                 // {
                 //     id: 'attendance-management',
                 //     title: 'Attendance Management',
