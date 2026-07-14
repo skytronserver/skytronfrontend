@@ -19,6 +19,8 @@ export const taggingInitials = {
   vehicle_model: "",
   category: "",
   category_code: "",
+  trailer_type: "without_trailer",
+  rfid_no: "",
   rcFile: null,
 };
 
@@ -167,6 +169,32 @@ export const taggingFields = {
     label: "Vehicle Category Code",
     validation: Yup.string().nullable(),
     options: [],
+  },
+  trailer_type: {
+    name: "trailer_type",
+    type: "select",
+    label: "Trailer",
+    required: true,
+    validation: Yup.string().oneOf(["with_trailer", "without_trailer"]).required("Trailer selection is required"),
+    options: [
+      { label: "Without Trailer", value: "without_trailer" },
+      { label: "With Trailer", value: "with_trailer" },
+    ],
+  },
+  rfid_no: {
+    name: "rfid_no",
+    type: "text",
+    label: "RFID No.",
+    required: false,
+    validation: Yup.string().when("trailer_type", {
+      is: "with_trailer",
+      then: (schema) =>
+        schema
+          .trim()
+          .min(1, "RFID No. is required when trailer is selected")
+          .required("RFID No. is required when trailer is selected"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
   },
   rcFile: {
     name: "rcFile",

@@ -96,6 +96,10 @@ function TagDeviceToVehicle() {
     api: false,
   });
   const [dealerDistricts, setDealerDistricts] = useState([]);
+  const [trailerType, setTrailerType] = useState("without_trailer");
+  const [rfidNo, setRfidNo] = useState("");
+  // Sub-phase: when with_trailer, RFID must be verified before showing the map
+  const [rfidVerified, setRfidVerified] = useState(false);
 
   const getStepFromQuery = () => {
     try {
@@ -409,6 +413,7 @@ function TagDeviceToVehicle() {
     };
   }, [activeStep, deviceSosAlertStopped, appSosAlertStopped, ownerDetails?.IMEI, getMap?.imei, ownerDetails?.vehicle_reg_no, getMap?.regno]);
 
+
   const handleDealerOtp = (otp) => {
     setOtp((prev) => ({ ...prev, dealer: otp }));
   };
@@ -696,11 +701,22 @@ function TagDeviceToVehicle() {
       delete apiValues.owner_id;
       delete apiValues.district_code;
       delete apiValues.vehicle_number;
+      // Remove rfid_no from API payload if without trailer
+      if (values.trailer_type !== "with_trailer") {
+        delete apiValues.rfid_no;
+      }
+      delete apiValues.trailer_type;
+
       const response = await TaggingService.tagDeviceToVehicle(apiValues);
       resetForm(taggingInitials);
       const newDeviceId = response?.data?.data?.device;
       setDeviceId(newDeviceId);
-      
+
+      // Store trailer and rfid info
+      setTrailerType(values.trailer_type || "without_trailer");
+      setRfidNo(values.rfid_no || "");
+      setRfidVerified(false); // reset so RFID sub-phase shows fresh on step 6
+
       // Mark device as fitted after tagging
       if (newDeviceId) {
         try {
@@ -787,7 +803,9 @@ function TagDeviceToVehicle() {
             ) : (
               <React.Fragment>
                 <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
-                  {t(steps[activeStep].label)}
+                  {activeStep === 6 && trailerType === "with_trailer" && !rfidVerified
+                    ? "RFID Verification"
+                    : t(steps[activeStep].label)}
                 </Typography>
               </React.Fragment>
             )}
@@ -848,8 +866,11 @@ function TagDeviceToVehicle() {
                     <Grid container spacing={2} className="form-controller">
                       {Object.keys(updatedFormFields).map((field) => {
                         const isNewVehicle = formik?.values?.vehicle_type === "new";
+                        const isWithTrailer = formik?.values?.trailer_type === "with_trailer";
                         if (field === "vehicle_reg_no") return null;
                         if (field === "state_code") return null;
+                        // Hide rfid_no if without trailer
+                        if (field === "rfid_no" && !isWithTrailer) return null;
                         if (field === "district_code") {
                           return (
                             <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
@@ -899,7 +920,9 @@ function TagDeviceToVehicle() {
                             <FormField
                               fieldConfig={{
                                 ...updatedFormFields[field],
-                                label: field === "rcFile" && isNewVehicle ? "Upload vehicle purchase document" : t(updatedFormFields[field].label)
+                                label: field === "rcFile" && isNewVehicle ? "Upload vehicle purchase document" : t(updatedFormFields[field].label),
+                                // Make rfid_no required when with_trailer
+                                required: field === "rfid_no" ? isWithTrailer : updatedFormFields[field].required,
                               }}
                               formik={formik}
                               handleFileChange={handleFileChange}
@@ -1280,33 +1303,84 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 7: Confirm Location / Map (Original Step 8) */}
+            {/* Step 7: Confirm Location / Map — with RFID sub-phase if with_trailer */}
             {activeStep === 6 && (
               <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography>Confirm the vehicle location on the map and request OTP for final verification.</Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <Typography>
-                    <Button
-                      color="primary"
-                      type="submit"
-                      variant="contained"
-                      onClick={() => sendOwnerOtp("finalOwner")}
-                      disabled={!htmlContent?.data || !Array.isArray(htmlContent.data) || htmlContent.data.length === 0}
-                    >
-                      {t("common.confirmLocation", "Confirm Location")}
-                    </Button>
-                  </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <MapComponent
-                    gpsData={htmlContent?.data}
-                    width="100%"
-                    height="600px"
-                    autoFit={true}
-                  />
-                </Grid>
+                {/* RFID Verification sub-phase — shown first when with_trailer and not yet verified */}
+                {trailerType === "with_trailer" && !rfidVerified ? (
+                  <>
+                    <Grid item xs={12}>
+                      <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
+                        Please verify the RFID number on the trailer matches the one recorded during tagging before proceeding to live location.
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={8} md={5}>
+                      <div
+                        style={{
+                          border: '2px solid #1976d2',
+                          borderRadius: '12px',
+                          padding: '28px 32px',
+                          textAlign: 'center',
+                          backgroundColor: '#f0f6ff',
+                        }}
+                      >
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.75rem' }}>
+                          Registered RFID No.
+                        </Typography>
+                        <Typography
+                          variant="h3"
+                          sx={{
+                            fontWeight: 700,
+                            letterSpacing: '0.15em',
+                            color: '#1976d2',
+                            fontFamily: 'monospace',
+                            mt: 1,
+                          }}
+                        >
+                          {rfidNo || '—'}
+                        </Typography>
+                      </div>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Button
+                        color="primary"
+                        type="button"
+                        variant="contained"
+                        onClick={() => setRfidVerified(true)}
+                      >
+                        RFID Verified — Proceed to Live Location
+                      </Button>
+                    </Grid>
+                  </>
+                ) : (
+                  /* Map phase — shown when without_trailer OR rfid has been verified */
+                  <>
+                    <Grid item xs={12}>
+                      <Typography>Confirm the vehicle location on the map and request OTP for final verification.</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={5}>
+                      <Typography>
+                        <Button
+                          color="primary"
+                          type="submit"
+                          variant="contained"
+                          onClick={() => sendOwnerOtp("finalOwner")}
+                          disabled={!htmlContent?.data || !Array.isArray(htmlContent.data) || htmlContent.data.length === 0}
+                        >
+                          {t("common.confirmLocation", "Confirm Location")}
+                        </Button>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <MapComponent
+                        gpsData={htmlContent?.data}
+                        width="100%"
+                        height="600px"
+                        autoFit={true}
+                      />
+                    </Grid>
+                  </>
+                )}
               </Grid>
             )}
 

@@ -1053,6 +1053,7 @@
       "readyForActivation": "Data from VAHAN portal",
       "sosButtonPress": "SOS Button Press",
       "activateSosInApp": "Activate SOS in App",
+      "rfidVerification": "RFID Verification",
       "getLocation": "Get Location",
       "confirmLocation": "Confirm Location",
       "ownerOtpConfirmation": "Owner OTP Confirmation"
