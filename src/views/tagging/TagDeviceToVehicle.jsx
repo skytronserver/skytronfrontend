@@ -864,16 +864,11 @@ function TagDeviceToVehicle() {
               </Grid>
             ) : (
               <React.Fragment>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
-                    {activeStep === 6 && trailerType === "with_trailer" && !rfidVerified
-                      ? "RFID Verification"
-                      : t(steps[activeStep].label)}
-                  </Typography>
-                  <Button variant="outlined" color="secondary" onClick={() => setActiveStep(prev => prev + 1)}>
-                    Skip Step
-                  </Button>
-                </div>
+                <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
+                  {activeStep === 6 && trailerType === "with_trailer" && !rfidVerified
+                    ? "RFID Verification"
+                    : t(steps[activeStep].label)}
+                </Typography>
               </React.Fragment>
             )}
 
