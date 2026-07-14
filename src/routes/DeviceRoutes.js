@@ -38,6 +38,7 @@ const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../view
 const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
 const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
+const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/ActivationStatusList")));
 
 
 
@@ -139,6 +140,11 @@ const DeviceRoutes = {
       path: "/device/show-tagged-device",
       element: <TaggedList />,
       roles: ["superadmin", "devicemanufacture", "dealer"],
+    },
+    {
+      path: "/tag/activation-status",
+      element: <ActivationStatusList />,
+      roles: ["superadmin", "dealer"],
     },
     {
       path: "/device/combined-stock-report",

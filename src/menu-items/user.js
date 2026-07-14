@@ -541,6 +541,14 @@ const user = {
           breadcrumbs: false,
           roles: ["dealer"],
         },
+        {
+          id: "activation-status",
+          title: "Activation Status",
+          type: "item",
+          url: "/tag/activation-status",
+          breadcrumbs: false,
+          roles: ["dealer"],
+        },
 
         // {
         //   id: "view-pending",

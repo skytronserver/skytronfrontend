@@ -792,21 +792,88 @@ function TagDeviceToVehicle() {
                 direction="column"
                 justifyContent="center"
                 alignItems="center"
-                sx={{ minHeight: "350px", textAlign: "center", p: 2 }}
+                sx={{ minHeight: "350px", textAlign: "center", p: 4 }}
               >
-                <Grid item xs={12}>
-                  <Typography variant="h2" sx={{ fontWeight: "bold", color: "#000" }}>
-                    Tagging for {ownerDetails?.vehicle_reg_no || getMap?.regno || "N/A"} with {ownerDetails?.IMEI || getMap?.imei || "N/A"} is completed.
+                {/* Success Icon */}
+                <Grid item xs={12} sx={{ mb: 2 }}>
+                  <div style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #4CAF50, #2e7d32)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto",
+                    boxShadow: "0 4px 20px rgba(76, 175, 80, 0.4)"
+                  }}>
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </Grid>
+
+                {/* Title */}
+                <Grid item xs={12} sx={{ mb: 1 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 700, color: "#1a1a2e" }}>
+                    Tagging Completed!
                   </Typography>
+                </Grid>
+
+                {/* Completion Line */}
+                <Grid item xs={12} sx={{ mb: 3 }}>
+                  <Typography variant="body1" sx={{ color: "#555", fontSize: "0.95rem" }}>
+                    Tagging for <strong>{ownerDetails?.vehicle_reg_no || getMap?.regno || "N/A"}</strong> with <strong>{ownerDetails?.IMEI || getMap?.imei || "N/A"}</strong> is completed.
+                  </Typography>
+                </Grid>
+
+
+
+                {/* Action Buttons */}
+                <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{
+                      px: 3,
+                      py: 1.2,
+                      borderRadius: 2,
+                      fontWeight: 600,
+                      boxShadow: "0 4px 14px rgba(103, 58, 183, 0.4)",
+                      textTransform: "none",
+                      fontSize: "0.95rem"
+                    }}
+                  >
+                    Send Activation Command
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    sx={{
+                      px: 3,
+                      py: 1.2,
+                      borderRadius: 2,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      fontSize: "0.95rem"
+                    }}
+                  >
+                    Skip
+                  </Button>
                 </Grid>
               </Grid>
             ) : (
               <React.Fragment>
-                <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
-                  {activeStep === 6 && trailerType === "with_trailer" && !rfidVerified
-                    ? "RFID Verification"
-                    : t(steps[activeStep].label)}
-                </Typography>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={{ mt: 2, mb: 2 }} variant="h4">
+                    {activeStep === 6 && trailerType === "with_trailer" && !rfidVerified
+                      ? "RFID Verification"
+                      : t(steps[activeStep].label)}
+                  </Typography>
+                  <Button variant="outlined" color="secondary" onClick={() => setActiveStep(prev => prev + 1)}>
+                    Skip Step
+                  </Button>
+                </div>
               </React.Fragment>
             )}
 
