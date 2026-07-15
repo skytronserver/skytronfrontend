@@ -1783,6 +1783,37 @@ map.renderSync();
                     Loc: {Number(currentData.lat).toFixed(4)}, {Number(currentData.lon).toFixed(4)}
                   </Typography>
                 </Grid>
+                {vehicleRegistrationNumber === 'AS01PT0014' && (
+                  <Grid item xs={12}>
+                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
+                      Trailer ID: TR-8902
+                    </Typography>
+                  </Grid>
+                )}
+                {vehicleRegistrationNumber === 'AS01PT0015' && (
+                  <Grid item xs={12}>
+                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
+                      Trailer ID: TR-8903
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'warning.main', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
+                      Alert: RFID Mismatched
+                    </Typography>
+                  </Grid>
+                )}
+                {vehicleRegistrationNumber === 'AS01PT0012' && (
+                  <Grid item xs={12}>
+                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'error.main', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
+                      Alert: RFID Missing
+                    </Typography>
+                  </Grid>
+                )}
+                {vehicleRegistrationNumber === 'AS01PT0027' && (
+                  <Grid item xs={12}>
+                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
+                      Trailer ID: TR-8904
+                    </Typography>
+                  </Grid>
+                )}
               </Grid>
             </Paper>
           )}

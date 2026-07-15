@@ -87,7 +87,13 @@ const AlertReport = () => {
     { value: 'Tilt', label: 'Tilt' },
     { value: 'HarshBreak', label: 'HarshBreak' },
     { value: 'HarshTurn', label: 'HarshTurn' },
-    { value: 'HarshAcceleration', label: 'HarshAcceleration' }
+    { value: 'HarshAcceleration', label: 'HarshAcceleration' },
+    { value: 'IntBatRecharged', label: 'Internal Battery Recharged' },
+    { value: 'MainBatConnected', label: 'Connect back to main battery' },
+    { value: 'IgnitionOn', label: 'Ignition ON' },
+    { value: 'IgnitionOff', label: 'Ignition OFF' },
+    { value: 'EmergencyStateOff', label: 'Emergency state OFF' },
+    { value: 'OtaParamChange', label: 'Over the air parameter change' }
   ];
 
   // Alert status options

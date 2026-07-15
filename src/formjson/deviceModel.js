@@ -21,6 +21,8 @@ export const deviceModelInitials = {
   cop_file: null,
   agency_address: "",
   agency_pincode: "",
+  api_url: "",
+  token: "",
 };
 export const deviceModelFormField = {
   eSimProviders: {
@@ -148,5 +150,17 @@ export const deviceModelFormField = {
         }),
       otherwise: Yup.mixed().nullable()
     }),
+  },
+  api_url: {
+    name: "api_url",
+    type: "text",
+    label: "API URL",
+    validation: Yup.string(),
+  },
+  token: {
+    name: "token",
+    type: "text",
+    label: "Token",
+    validation: Yup.string(),
   },
 };

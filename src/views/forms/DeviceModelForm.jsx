@@ -161,6 +161,8 @@ const DeviceModelForm = () => {
       modelPayload.append("vendor_id", values.vendor_id);
       modelPayload.append("hardware_version", values.hardware_version);
       modelPayload.append("tac_doc_path", values.tac_doc_path);
+      modelPayload.append("api_url", values.api_url);
+      modelPayload.append("token", values.token);
       modelPayload.append("approval", "0");
       modelPayload.append("approved_by", "");
       modelPayload.append("created_by", userId || "");
@@ -290,6 +292,17 @@ const DeviceModelForm = () => {
                           </Grid>
                         )
                       })}
+                      <Grid item md={6} sm={12} xs={12} style={{ display: "flex", alignItems: "center" }}>
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          href="/templates/Dummy Pdf.pdf"
+                          download="API_Format.pdf"
+                          target="_blank"
+                        >
+                          Download API Format
+                        </Button>
+                      </Grid>
                       <Grid item xs={12} style={{ marginTop: "20px" }}>
                         <Button
                           type="submit"

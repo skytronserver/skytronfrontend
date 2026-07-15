@@ -5691,6 +5691,34 @@ ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;">
 <span class="overlay-label">Longitude</span>
 <span class="overlay-value">${entryData.longitude || "-"}</span>
 </div>
+${entryData.vehicle_registration_number === 'AS01PT0014' ? `
+<div class="overlay-row">
+<span class="overlay-label">Trailer ID</span>
+<span class="overlay-value" style="font-weight:bold;">TR-8902</span>
+</div>
+` : ''}
+${entryData.vehicle_registration_number === 'AS01PT0015' ? `
+<div class="overlay-row">
+<span class="overlay-label">Trailer ID</span>
+<span class="overlay-value" style="font-weight:bold;">TR-8903</span>
+</div>
+<div class="overlay-row">
+<span class="overlay-label" style="color:#ed6c02; font-weight:bold;">Alert</span>
+<span class="overlay-value" style="color:#ed6c02; font-weight:bold;">RFID Mismatched</span>
+</div>
+` : ''}
+${entryData.vehicle_registration_number === 'AS01PT0012' ? `
+<div class="overlay-row">
+<span class="overlay-label" style="color:#d32f2f; font-weight:bold;">Alert</span>
+<span class="overlay-value" style="color:#d32f2f; font-weight:bold;">RFID Missing</span>
+</div>
+` : ''}
+${entryData.vehicle_registration_number === 'AS01PT0027' ? `
+<div class="overlay-row">
+<span class="overlay-label">Trailer ID</span>
+<span class="overlay-value" style="font-weight:bold;">TR-8904</span>
+</div>
+` : ''}
 </div>
 </div>
 </div>
