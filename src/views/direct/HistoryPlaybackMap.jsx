@@ -40,6 +40,7 @@ const GPSHistoryMap = ({
 }) => {
   const [map, setMap] = useState(null);
   const [mapData, setMapData] = useState([]);
+  const [deviceTagInfo, setDeviceTagInfo] = useState(null);
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
   const [currentData, setCurrentData] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -630,6 +631,8 @@ const [snackbar, setSnackbar] = useState({
         );
 
         const data = response.data.data;
+        const tagInfo = response.data.device_tag_info || null;
+        setDeviceTagInfo(tagInfo);
         if (!data.length) {
   setDownloadStatus("Idle");
   setMapData([]);
@@ -1772,6 +1775,19 @@ map.renderSync();
                     </Typography>
                   )}
                 </Grid>
+
+                <Grid item xs={12}>
+                  <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1 }}>
+                    <span style={{ fontWeight: 'bold' }}>Trailer:</span> {deviceTagInfo?.with_trailer === true || deviceTagInfo?.with_trailer === "true" ? 'Attached' : 'None'}
+                  </Typography>
+                </Grid>
+                {(deviceTagInfo?.with_trailer === true || deviceTagInfo?.with_trailer === "true") && (
+                  <Grid item xs={12}>
+                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1 }}>
+                      <span style={{ fontWeight: 'bold' }}>Trailer ID:</span> {deviceTagInfo?.trailer_id || "-"}
+                    </Typography>
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1 }}>
                     {/* Show full formatted date time */}
@@ -1783,37 +1799,6 @@ map.renderSync();
                     Loc: {Number(currentData.lat).toFixed(4)}, {Number(currentData.lon).toFixed(4)}
                   </Typography>
                 </Grid>
-                {vehicleRegistrationNumber === 'AS01PT0014' && (
-                  <Grid item xs={12}>
-                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
-                      Trailer ID: TR-8902
-                    </Typography>
-                  </Grid>
-                )}
-                {vehicleRegistrationNumber === 'AS01PT0015' && (
-                  <Grid item xs={12}>
-                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
-                      Trailer ID: TR-8903
-                    </Typography>
-                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'warning.main', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
-                      Alert: RFID Mismatched
-                    </Typography>
-                  </Grid>
-                )}
-                {vehicleRegistrationNumber === 'AS01PT0012' && (
-                  <Grid item xs={12}>
-                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'error.main', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
-                      Alert: RFID Missing
-                    </Typography>
-                  </Grid>
-                )}
-                {vehicleRegistrationNumber === 'AS01PT0027' && (
-                  <Grid item xs={12}>
-                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.1, fontWeight: 'bold' }}>
-                      Trailer ID: TR-8904
-                    </Typography>
-                  </Grid>
-                )}
               </Grid>
             </Paper>
           )}

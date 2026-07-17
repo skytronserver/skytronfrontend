@@ -701,11 +701,10 @@ function TagDeviceToVehicle() {
       delete apiValues.owner_id;
       delete apiValues.district_code;
       delete apiValues.vehicle_number;
-      // Remove rfid_no from API payload if without trailer
-      if (values.trailer_type !== "with_trailer") {
-        delete apiValues.rfid_no;
+      // Remove trailer_id from API payload if without trailer
+      if (values.with_trailer !== "true") {
+        delete apiValues.trailer_id;
       }
-      delete apiValues.trailer_type;
 
       const response = await TaggingService.tagDeviceToVehicle(apiValues);
       resetForm(taggingInitials);
@@ -713,8 +712,8 @@ function TagDeviceToVehicle() {
       setDeviceId(newDeviceId);
 
       // Store trailer and rfid info
-      setTrailerType(values.trailer_type || "without_trailer");
-      setRfidNo(values.rfid_no || "");
+      setTrailerType(values.with_trailer === "true" ? "with_trailer" : "without_trailer");
+      setRfidNo(values.trailer_id || "");
       setRfidVerified(false); // reset so RFID sub-phase shows fresh on step 6
 
       // Mark device as fitted after tagging
@@ -928,11 +927,11 @@ function TagDeviceToVehicle() {
                     <Grid container spacing={2} className="form-controller">
                       {Object.keys(updatedFormFields).map((field) => {
                         const isNewVehicle = formik?.values?.vehicle_type === "new";
-                        const isWithTrailer = formik?.values?.trailer_type === "with_trailer";
+                        const isWithTrailer = formik?.values?.with_trailer === "true";
                         if (field === "vehicle_reg_no") return null;
                         if (field === "state_code") return null;
-                        // Hide rfid_no if without trailer
-                        if (field === "rfid_no" && !isWithTrailer) return null;
+                        // Hide trailer_id if without trailer
+                        if (field === "trailer_id" && !isWithTrailer) return null;
                         if (field === "district_code") {
                           return (
                             <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
@@ -983,8 +982,8 @@ function TagDeviceToVehicle() {
                               fieldConfig={{
                                 ...updatedFormFields[field],
                                 label: field === "rcFile" && isNewVehicle ? "Upload vehicle purchase document" : t(updatedFormFields[field].label),
-                                // Make rfid_no required when with_trailer
-                                required: field === "rfid_no" ? isWithTrailer : updatedFormFields[field].required,
+                                // Make trailer_id required when with_trailer
+                                required: field === "trailer_id" ? isWithTrailer : updatedFormFields[field].required,
                               }}
                               formik={formik}
                               handleFileChange={handleFileChange}

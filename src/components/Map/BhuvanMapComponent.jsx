@@ -1072,6 +1072,16 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 </div>
 `;
 
+        const withTrailer = entryData?.with_trailer === true || entryData?.with_trailer === "true" || entryData?.device_tag_info?.with_trailer === true || entryData?.device_tag_info?.with_trailer === "true";
+        const trailerId = entryData?.trailer_id || entryData?.device_tag_info?.trailer_id || "-";
+        
+        const trailerHtml = withTrailer ? `
+                      <div class="overlay-row"><span class="overlay-label">Trailer</span><span class="overlay-value">Attached</span></div>
+                      <div class="overlay-row"><span class="overlay-label">Trailer ID</span><span class="overlay-value">${safeValue(trailerId)}</span></div>
+        ` : `
+                      <div class="overlay-row"><span class="overlay-label">Trailer</span><span class="overlay-value">None</span></div>
+        `;
+
         const el = document.getElementById("overlay-content");
         if (!el) return;
 
@@ -1098,6 +1108,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
                       <div class="overlay-row"><span class="overlay-label">Battery</span><span class="overlay-value">${battery}</span></div>
                       <div class="overlay-row"><span class="overlay-label">Latitude</span><span class="overlay-value">${latText}</span></div>
                       <div class="overlay-row"><span class="overlay-label">Longitude</span><span class="overlay-value">${lonText}</span></div>
+${trailerHtml}
                     </div>
                   </div>
                 </div>

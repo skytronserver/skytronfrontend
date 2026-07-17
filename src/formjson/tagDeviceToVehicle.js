@@ -19,8 +19,8 @@ export const taggingInitials = {
   vehicle_model: "",
   category: "",
   category_code: "",
-  trailer_type: "without_trailer",
-  rfid_no: "",
+  with_trailer: "false",
+  trailer_id: "",
   rcFile: null,
 };
 
@@ -170,29 +170,30 @@ export const taggingFields = {
     validation: Yup.string().nullable(),
     options: [],
   },
-  trailer_type: {
-    name: "trailer_type",
+  with_trailer: {
+    name: "with_trailer",
     type: "select",
     label: "Trailer",
     required: true,
-    validation: Yup.string().oneOf(["with_trailer", "without_trailer"]).required("Trailer selection is required"),
+    validation: Yup.string().oneOf(["true", "false"]).required("Trailer selection is required"),
     options: [
-      { label: "Without Trailer", value: "without_trailer" },
-      { label: "With Trailer", value: "with_trailer" },
+      { label: "Without Trailer", value: "false" },
+      { label: "With Trailer", value: "true" },
     ],
   },
-  rfid_no: {
-    name: "rfid_no",
+  trailer_id: {
+    name: "trailer_id",
     type: "text",
-    label: "RFID No.",
+    label: "Trailer ID",
     required: false,
-    validation: Yup.string().when("trailer_type", {
-      is: "with_trailer",
+    validation: Yup.string().when("with_trailer", {
+      is: "true",
       then: (schema) =>
         schema
           .trim()
-          .min(1, "RFID No. is required when trailer is selected")
-          .required("RFID No. is required when trailer is selected"),
+          .matches(/^[a-zA-Z0-9]+$/, "trailer_id must be alphanumeric with a maximum length of 30 characters.")
+          .max(30, "trailer_id must be alphanumeric with a maximum length of 30 characters.")
+          .required("trailer_id is required when with_trailer is true."),
       otherwise: (schema) => schema.notRequired(),
     }),
   },
