@@ -106,6 +106,18 @@ const gettaggedDeviceList=(data)=>{
   const http=getAxiosInstance();
   return http.post('/api/tag/StateAdmin_view_all_tagging/')
 }
+const sendActivationCommand = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/device/send-activation-command/', data);
+}
+const checkActivationStatus = (params) => {
+  const http = getAxiosInstance();
+  return http.get('/api/device/activation-status/', { params });
+}
+const getPendingActivations = (params) => {
+  const http = getAxiosInstance();
+  return http.get('/api/device/pending-activations/', { params });
+}
 
 
 const TaggingService = {
@@ -131,7 +143,10 @@ const TaggingService = {
     retagDevice,
     updateTempRegistration,
     cancelTagDevice,
-    gettaggedDeviceList
+    gettaggedDeviceList,
+    sendActivationCommand,
+    checkActivationStatus,
+    getPendingActivations
 
 };
 

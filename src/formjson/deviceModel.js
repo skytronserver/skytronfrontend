@@ -155,12 +155,15 @@ export const deviceModelFormField = {
     name: "api_url",
     type: "text",
     label: "API URL",
-    validation: Yup.string(),
+    placeholder: "https://example.com/device/callback",
+    validation: Yup.string().url("Must be a valid URL").nullable(),
   },
   token: {
     name: "token",
     type: "text",
-    label: "Token",
-    validation: Yup.string(),
+    label: "Token (up to 500 characters)",
+    multiline: true,
+    rows: 3,
+    validation: Yup.string().max(500, "Token can be at most 500 characters").nullable(),
   },
 };

@@ -1,69 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import { gridSpacing } from "../../store/constant";
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { useTranslation } from 'react-i18next';
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
-
-const dummyDevices = [
-  {
-    device_id: "DEV-1001",
-    imei: "11000000000001",
-    vehicle_number: "AS01TMP101",
-    status: "Activated",
-    tag_date: "2026-07-10 10:30:00"
-  },
-  {
-    device_id: "DEV-1002",
-    imei: "11000000000002",
-    vehicle_number: "AS01TMP102",
-    status: "Skipped",
-    tag_date: "2026-07-11 11:45:00"
-  },
-  {
-    device_id: "DEV-1003",
-    imei: "11000000000003",
-    vehicle_number: "AS01TMP103",
-    status: "Skipped",
-    tag_date: "2026-07-12 09:15:00"
-  },
-  {
-    device_id: "DEV-1004",
-    imei: "11000000000004",
-    vehicle_number: "AS01TMP104",
-    status: "Activated",
-    tag_date: "2026-07-13 14:20:00"
-  },
-  {
-    device_id: "DEV-1005",
-    imei: "11000000000005",
-    vehicle_number: "AS01TMP105",
-    status: "Not Activated",
-    tag_date: "2026-07-14 08:00:00"
-  }
-];
+import TaggingService from '../../services/TaggingService';
 
 const ActivationStatusList = () => {
   const { t } = useTranslation();
-  const [devices, setDevices] = useState(dummyDevices);
+  const [devices, setDevices] = useState([]);
   const [alertInfo, setAlertInfo] = useState({ isOpen: false, type: "success", message: "" });
+  const [loading, setLoading] = useState(false);
 
-  const handleSendActivationCommand = (deviceId) => {
-    // Dummy API call
-    console.log(`Sending activation command to device: ${deviceId}`);
-    setAlertInfo({
-      isOpen: true,
-      message: `Activation command sent to device ${deviceId}! (Dummy API)`,
-      type: "success"
-    });
-    
-    // Update local state to reflect change (dummy behavior)
-    setDevices(prevDevices => 
-      prevDevices.map(device => 
-        device.device_id === deviceId ? { ...device, status: "Activated" } : device
-      )
-    );
+  const fetchPendingActivations = async () => {
+    try {
+      setLoading(true);
+      const response = await TaggingService.getPendingActivations({ page: 1, page_size: 100 });
+      const rawData = response?.data?.data || [];
+      const formatted = rawData.map(item => ({
+        device_id: item.device_tag || item.id,
+        imei: item.imei,
+        vehicle_number: item.device_tag_info?.vehicle_reg_no || "N/A",
+        status: item.send_status === "queued" ? "Pending" : item.send_status,
+        tag_date: item.sent_at ? new Date(item.sent_at).toLocaleString() : "-"
+      }));
+      setDevices(formatted);
+    } catch (err) {
+      console.error(err);
+      setAlertInfo({ isOpen: true, message: "Failed to fetch pending activations.", type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingActivations();
+  }, []);
+
+  const handleSendActivationCommand = async (deviceId) => {
+    try {
+      setLoading(true);
+      await TaggingService.sendActivationCommand({ device_tag_id: deviceId });
+      setAlertInfo({
+        isOpen: true,
+        message: `Activation command queued successfully!`,
+        type: "success"
+      });
+      fetchPendingActivations(); // Refresh list
+    } catch (err) {
+      const errorMsg = err?.response?.data?.error || err?.response?.data?.message || "Failed to send activation command.";
+      setAlertInfo({
+        isOpen: true,
+        message: errorMsg,
+        type: "error"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckStatus = async (deviceId) => {
+    try {
+      setLoading(true);
+      const response = await TaggingService.checkActivationStatus({ device_tag_id: deviceId });
+      if (response?.data?.reply_received) {
+        setAlertInfo({
+          isOpen: true,
+          message: `Device has successfully replied to the activation command!`,
+          type: "success"
+        });
+        fetchPendingActivations(); // Refresh list to update status
+      } else {
+        setAlertInfo({
+          isOpen: true,
+          message: `Device has not replied yet. Still pending.`,
+          type: "info"
+        });
+      }
+    } catch (err) {
+      const errorMsg = err?.response?.data?.error || err?.response?.data?.message || "Failed to check activation status.";
+      setAlertInfo({
+        isOpen: true,
+        message: errorMsg,
+        type: "error"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCloseAlert = () => {
@@ -96,7 +120,8 @@ const ActivationStatusList = () => {
         customBodyRender: (value) => {
           let color = "#555";
           if (value === "Activated") color = "green";
-          if (value === "Skipped" || value === "Not Activated") color = "red";
+          if (value === "Pending") color = "orange";
+          if (value === "Skipped" || value === "Not Activated" || value === "queued") color = "red";
           return <span style={{ color, fontWeight: "bold" }}>{value}</span>;
         }
       }
@@ -124,14 +149,24 @@ const ActivationStatusList = () => {
           }
 
           return (
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => handleSendActivationCommand(deviceId)}
-            >
-              Send Activation Command
-            </Button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => handleSendActivationCommand(deviceId)}
+              >
+                Send Command
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={() => handleCheckStatus(deviceId)}
+              >
+                Check Status
+              </Button>
+            </div>
           );
         }
       }

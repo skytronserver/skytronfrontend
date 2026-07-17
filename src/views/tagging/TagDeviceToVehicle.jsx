@@ -100,6 +100,7 @@ function TagDeviceToVehicle() {
   const [rfidNo, setRfidNo] = useState("");
   // Sub-phase: when with_trailer, RFID must be verified before showing the map
   const [rfidVerified, setRfidVerified] = useState(false);
+  const [activationCommandSent, setActivationCommandSent] = useState(false);
 
   const getStepFromQuery = () => {
     try {
@@ -756,6 +757,33 @@ function TagDeviceToVehicle() {
     setReload((prev) => !prev);
   };
 
+  const handleSendActivationCommand = async () => {
+    setLoading((prev) => ({ ...prev, loader: true }));
+    try {
+      // The API requires device_tag_id.
+      // Assuming 'deviceId' is the tag ID or we need to pass it. 
+      // If we don't have the tag ID, we can pass imei if the API supports it, or use deviceId state.
+      const payload = { device_tag_id: deviceId }; 
+      await TaggingService.sendActivationCommand(payload);
+      setDismissibleAlert({
+        isOpen: true,
+        message: 'Activation command queued successfully.',
+        type: 'success'
+      });
+      setActivationCommandSent(true);
+      // Optionally redirect or reset
+    } catch (err) {
+      const errorMsg = err?.response?.data?.error || err?.response?.data?.message || 'Failed to send activation command.';
+      setDismissibleAlert({
+        isOpen: true,
+        message: errorMsg,
+        type: 'error'
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, loader: false }));
+    }
+  };
+
   return (
     <>
       <AutoHideAlert
@@ -830,35 +858,57 @@ function TagDeviceToVehicle() {
 
                 {/* Action Buttons */}
                 <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{
-                      px: 3,
-                      py: 1.2,
-                      borderRadius: 2,
-                      fontWeight: 600,
-                      boxShadow: "0 4px 14px rgba(103, 58, 183, 0.4)",
-                      textTransform: "none",
-                      fontSize: "0.95rem"
-                    }}
-                  >
-                    Send Activation Command
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    sx={{
-                      px: 3,
-                      py: 1.2,
-                      borderRadius: 2,
-                      fontWeight: 600,
-                      textTransform: "none",
-                      fontSize: "0.95rem"
-                    }}
-                  >
-                    Skip
-                  </Button>
+                  {!activationCommandSent ? (
+                    <>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{
+                          px: 3,
+                          py: 1.2,
+                          borderRadius: 2,
+                          fontWeight: 600,
+                          boxShadow: "0 4px 14px rgba(103, 58, 183, 0.4)",
+                          textTransform: "none",
+                          fontSize: "0.95rem"
+                        }}
+                        onClick={handleSendActivationCommand}
+                      >
+                        Send Activation Command
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={reset}
+                        sx={{
+                          px: 3,
+                          py: 1.2,
+                          borderRadius: 2,
+                          fontWeight: 600,
+                          textTransform: "none",
+                          fontSize: "0.95rem"
+                        }}
+                      >
+                        Skip
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={reset}
+                      sx={{
+                        px: 4,
+                        py: 1.2,
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        textTransform: "none",
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      Finish & New Tagging
+                    </Button>
+                  )}
                 </Grid>
               </Grid>
             ) : (

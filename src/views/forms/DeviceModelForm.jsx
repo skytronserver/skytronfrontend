@@ -281,8 +281,10 @@ const DeviceModelForm = () => {
                         if (['cop_no', 'cop_validity', 'cop_file'].includes(field) && !isExpired) {
                           return null;
                         }
+                        // Full-width for api_url and token
+                        const isFullWidth = ['api_url', 'token'].includes(field);
                         return (
-                          <Grid key={field} item md={6} sm={12} xs={12}>
+                          <Grid key={field} item md={isFullWidth ? 12 : 6} sm={12} xs={12}>
                             <FormField
                               fieldConfig={updatedFormFields[field]}
                               formik={formik}
@@ -292,7 +294,7 @@ const DeviceModelForm = () => {
                           </Grid>
                         )
                       })}
-                      <Grid item md={6} sm={12} xs={12} style={{ display: "flex", alignItems: "center" }}>
+                      <Grid item xs={12} style={{ display: "flex", alignItems: "center", marginTop: "4px" }}>
                         <Button
                           variant="outlined"
                           color="secondary"
