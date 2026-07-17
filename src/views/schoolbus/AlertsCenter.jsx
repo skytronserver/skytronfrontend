@@ -29,7 +29,7 @@ const AlertsCenter = () => {
         SchoolBusService.getAlertsFeed()
             .then((res) => {
                 if (!mounted) return;
-                setAlerts(Array.isArray(res?.data) ? res.data : []);
+                setAlerts(res?.data?.data || []);
             })
             .catch((e) => {
                 if (!mounted) return;
@@ -46,10 +46,49 @@ const AlertsCenter = () => {
     }, []);
 
     const columns = [
-        { name: 'time', label: 'Time' },
-        { name: 'vehicleRegNo', label: 'Vehicle' },
-        { name: 'route', label: 'Route' },
-        { name: 'type', label: 'Alert Type' },
+        {
+  name: "timestamp",
+  label: "Time",
+  options: {
+    customBodyRender: (value) => {
+      if (!value) return "-";
+
+      return new Date(value).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      });
+    },
+  },
+},
+  {
+    name: "vehicle_reg_no",
+    label: "Vehicle"
+  },
+  {
+    name: "alert_type",
+    label: "Alert Type"
+  },
+  {
+    name: "alert_title",
+    label: "Title"
+  },
+  {
+    name: "message",
+    label: "Message"
+  },
+  {
+    name: "latitude",
+    label: "Latitude"
+  },
+  {
+    name: "longitude",
+    label: "Longitude"
+  },
         {
             name: 'severity',
             label: 'Severity',
@@ -63,7 +102,6 @@ const AlertsCenter = () => {
                 )
             }
         },
-        { name: 'message', label: 'Message' }
     ];
 
     const filtered = alerts.filter((a) => {

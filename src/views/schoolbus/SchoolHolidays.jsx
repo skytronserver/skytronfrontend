@@ -36,7 +36,11 @@ const SchoolHolidays = () => {
         SchoolBusService.getHolidays()
             .then((res) => {
                 if (!mounted) return;
-                setHolidays(Array.isArray(res?.data) ? res.data : []);
+                 setHolidays(
+      Array.isArray(res?.data?.data)
+        ? res.data.data
+        : []
+    );
             })
             .catch((e) => {
                 if (!mounted) return;
@@ -54,7 +58,7 @@ const SchoolHolidays = () => {
 
     const columns = [
         { name: 'date', label: 'Date' },
-        { name: 'name', label: 'Holiday' },
+        { name: 'title', label: 'Holiday' },
         { name: 'type', label: 'Type' }
     ];
 
@@ -106,26 +110,40 @@ const SchoolHolidays = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Formik
-                        initialValues={{ date: '', name: '', type: 'Holiday' }}
+                        initialValues={{
+    date: '',
+    title: '',
+    type: ''
+}}
                         validationSchema={Yup.object().shape({
                             date: Yup.string().required('Date is required'),
-                            name: Yup.string().required('Name is required'),
-                            type: Yup.string().required('Type is required')
+                            title: Yup.string().required('Holiday title is required'),
+                            type: Yup.string().required('Holiday type is required')
                         })}
                         onSubmit={(values, { setSubmitting, resetForm }) => {
                             setError('');
                             setLoading(true);
-
-                            SchoolBusService.createHoliday(values)
+const payload = {
+        date: values.date,
+        title: values.title,
+        type: values.type
+    };
+                            SchoolBusService.createHoliday(payload)
                                 .then(() => SchoolBusService.getHolidays())
                                 .then((res) => {
-                                    setHolidays(Array.isArray(res?.data) ? res.data : []);
-                                    resetForm();
+setHolidays(
+      Array.isArray(res?.data?.data)
+        ? res.data.data
+        : []
+    );                                    resetForm();
                                     setOpenAdd(false);
                                 })
                                 .catch((e) => {
-                                    setError(e?.message || 'Failed to add holiday');
-                                })
+setError(
+                e?.response?.data?.message ||
+                e?.message ||
+                'Failed to add holiday'
+            );                                })
                                 .finally(() => {
                                     setLoading(false);
                                     setSubmitting(false);
@@ -135,17 +153,18 @@ const SchoolHolidays = () => {
                         {(formik) => (
                             <form onSubmit={formik.handleSubmit}>
                                 <FormField fieldConfig={{ name: 'date', type: 'date', label: 'Date' }} formik={formik} />
-                                <FormField fieldConfig={{ name: 'name', type: 'text', label: 'Holiday Name' }} formik={formik} />
+                                <FormField fieldConfig={{ name: 'title', type: 'text', label: 'Holiday Title' }} formik={formik} />
                                 <FormField
                                     fieldConfig={{
                                         name: 'type',
                                         type: 'select',
-                                        label: 'Type',
+                                        label: 'Holiday Type',
                                         options: [
-                                            { label: 'Holiday', value: 'Holiday' },
-                                            { label: 'Exam', value: 'Exam' },
-                                            { label: 'Event', value: 'Event' }
-                                        ]
+            { label: 'National', value: 'national' },
+            { label: 'Festival', value: 'festival' },
+            { label: 'Local', value: 'local' },
+            { label: 'Emergency', value: 'emergency' }
+        ]
                                     }}
                                     formik={formik}
                                 />

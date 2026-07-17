@@ -611,16 +611,23 @@ const api = {
   },
   getHolidays() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/holidays');
+    return http.get('/school/api/admin/holidays/');
   },
   createHoliday(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/holidays', data);
+    return http.post('/school/api/admin/holidays/', data);
   },
   getUnplannedUsageReport() {
     const http = getAxiosInstance();
     return http.get('/api/schoolbus/reports/unplanned-usage');
   },
+  getUnplannedUsage(fromDate, toDate) {
+  const http = getAxiosInstance();
+
+  return http.get(
+    `/school/api/admin/reports/unplanned-movement/?from_datetime=${fromDate}&to_datetime=${toDate}`
+  );
+},
   // getAttendanceReport() {
   //   const http = getAxiosInstance();
   //   return http.get('/api/schoolbus/reports/attendance');
@@ -639,7 +646,7 @@ const api = {
   },
   getAlertsFeed() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/alerts/feed');
+    return http.get('/school/api/admin/school/alerts/');
   },
   getTaggedVehicles() {
     const http = getAxiosInstance();
@@ -949,6 +956,8 @@ const SchoolBusService = {
 
 markDrop: (...args) =>
   api.markDrop(...args),
+getUnplannedUsage: (...args) =>
+    api.getUnplannedUsage(...args),
 };
 
 export default SchoolBusService;
