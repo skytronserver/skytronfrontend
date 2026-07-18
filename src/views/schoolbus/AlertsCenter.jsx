@@ -6,7 +6,11 @@ import {
     Tabs,
     Tab,
     Alert,
-    Chip
+    Chip,
+     FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import MainCard from '../../ui-component/cards/MainCard';
@@ -17,33 +21,56 @@ import SchoolBusService from '../../services/SchoolBusService';
 const AlertsCenter = () => {
     const theme = useTheme();
     const [tabValue, setTabValue] = useState(0);
+    const [alertType, setAlertType] = useState("All");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [alerts, setAlerts] = useState([]);
 
-    useEffect(() => {
-        let mounted = true;
-        setError('');
-        setLoading(true);
+    const handleAlertTypeChange = (event) => {
+  setAlertType(event.target.value);
+};
 
-        SchoolBusService.getAlertsFeed()
-            .then((res) => {
-                if (!mounted) return;
-                setAlerts(res?.data?.data || []);
-            })
-            .catch((e) => {
-                if (!mounted) return;
-                setError(e?.message || 'Failed to load alerts');
-            })
-            .finally(() => {
-                if (!mounted) return;
-                setLoading(false);
-            });
+    // useEffect(() => {
+    //     let mounted = true;
+    //     setError('');
+    //     setLoading(true);
 
-        return () => {
-            mounted = false;
-        };
-    }, []);
+    //     SchoolBusService.getAlertsFeed()
+    //         .then((res) => {
+    //             if (!mounted) return;
+    //             setAlerts(res?.data?.data || []);
+    //         })
+    //         .catch((e) => {
+    //             if (!mounted) return;
+    //             setError(e?.message || 'Failed to load alerts');
+    //         })
+    //         .finally(() => {
+    //             if (!mounted) return;
+    //             setLoading(false);
+    //         });
+
+    //     return () => {
+    //         mounted = false;
+    //     };
+    // }, []);
+   const fetchAlerts = async () => {
+  try {
+    setLoading(true);
+
+    const apiAlertType =
+      alertType === "All" ? "" : alertType;
+
+    const res = await SchoolBusService.getAlertsFeed(apiAlertType);
+
+    setAlerts(res?.data?.data || []);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchAlerts();
+}, [alertType]);
 
     const columns = [
         {
@@ -104,13 +131,13 @@ const AlertsCenter = () => {
         },
     ];
 
-    const filtered = alerts.filter((a) => {
-        if (tabValue === 0) return true;
-        if (tabValue === 1) return a.category === 'Trip';
-        if (tabValue === 2) return a.category === 'Driving';
-        if (tabValue === 3) return a.category === 'SOS';
-        return true;
-    });
+    // const filtered = alerts.filter((a) => {
+    //     if (tabValue === 0) return true;
+    //     if (tabValue === 1) return a.category === 'Trip';
+    //     if (tabValue === 2) return a.category === 'Driving';
+    //     if (tabValue === 3) return a.category === 'SOS';
+    //     return true;
+    // });
 
     return (
         <Box sx={{ p: 3 }}>
@@ -138,17 +165,45 @@ const AlertsCenter = () => {
 
                 <Grid item xs={12}>
                     <MainCard>
-                        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-                            <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
+                        {/* <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                            <Tabs value={tabValue} onChange={handleTabChange}>
                                 <Tab label="All" />
                                 <Tab label="Trip" />
                                 <Tab label="Driving" />
                                 <Tab label="SOS" />
                             </Tabs>
-                        </Box>
+                        </Box> */}
+                        <Box sx={{ mb: 2, width: 250 }}>
+  <FormControl fullWidth size="small">
+    <InputLabel>Alert Type</InputLabel>
+
+    <Select
+      value={alertType}
+      label="Alert Type"
+      onChange={handleAlertTypeChange}
+      displayEmpty
+      renderValue={(selected) => {
+      if (!selected) {
+        return "All";
+      }
+      if (selected === "OverSpeed") {
+        return "Driving";
+      }
+      if (selected === "Em") {
+        return "Emergency";
+      }
+      return selected;
+    }}
+    >
+      <MenuItem value="All">All</MenuItem>
+      <MenuItem value="OverSpeed">Driving</MenuItem>
+      <MenuItem value="Em">Emergency</MenuItem>
+    </Select>
+  </FormControl>
+</Box>
                         <DynamicDatatables
                             tableTitle="Alerts"
-                            rows={filtered}
+                            rows={alerts}
                             columns={columns}
                             options={{ selectableRows: 'none', filter: true, search: true }}
                         />

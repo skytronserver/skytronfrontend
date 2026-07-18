@@ -644,10 +644,15 @@ const api = {
     const http = getAxiosInstance();
     return http.get('/api/schoolbus/reports/traffic');
   },
-  getAlertsFeed() {
-    const http = getAxiosInstance();
-    return http.get('/school/api/admin/school/alerts/');
-  },
+  getAlertsFeed(alertType = "") {
+  const http = getAxiosInstance();
+
+  const url = alertType
+    ? `/school/api/admin/school/alerts/?alert_type=${alertType}`
+    : `/school/api/admin/school/alerts/`;
+
+  return http.get(url);
+},
   getTaggedVehicles() {
     const http = getAxiosInstance();
     return http.get('school/api/admin/buses/tag/history/');
@@ -712,11 +717,11 @@ const api = {
   },
   getRouteOptions() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/routes/options');
+    return http.get('/school/api/schoolbus/routes/options');
   },
   getAssignments() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/assignments');
+    return http.get('/school/api/schoolbus/assignments');
   },
   assignBus(data) {
     const http = getAxiosInstance();
