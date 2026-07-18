@@ -99,7 +99,7 @@ const schoolbus = {
                     url: '/schoolbus/holidays',
                     icon: icons.IconCalendarEvent,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                    roles: ['stateadmin', 'schooladmin']
                 },
                 {
                     id: 'alerts-center',
@@ -108,7 +108,7 @@ const schoolbus = {
                     url: '/schoolbus/alerts',
                     icon: icons.IconReportAnalytics,
                     breadcrumbs: false,
-                    roles: ['superadmin', 'stateadmin', 'schooladmin']
+                    roles: ['stateadmin', 'schooladmin']
                 },
                 // {
                 //     id: 'attendance-management',
