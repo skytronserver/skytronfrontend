@@ -45,8 +45,9 @@ const BusAssignment = () => {
     const [routes, setRoutes] = useState([]);
     const [assignments, setAssignments] = useState([]);
 
-    const resolveBusId = (busRegNo) => buses.find((b) => String(b.regNo) === String(busRegNo))?.id || '';
-    const resolveRouteId = (routeName) => routes.find((r) => String(r.name) === String(routeName))?.id || '';
+    const resolveBusId = (busRegNo) =>
+        buses.find((b) => String(b.vehicle_reg_no) === String(busRegNo))?.id || '';
+    const resolveRouteId = (routeName) => routes.find((r) => String(r.route_name) === String(routeName))?.id || '';
 
     useEffect(() => {
         let mounted = true;
@@ -56,9 +57,23 @@ const BusAssignment = () => {
         Promise.all([SchoolBusService.getBuses(), SchoolBusService.getRouteOptions(), SchoolBusService.getAssignments()])
             .then(([bRes, rRes, aRes]) => {
                 if (!mounted) return;
-                setBuses(Array.isArray(bRes?.data?.data) ? bRes.data?.data : []);
-                setRoutes(Array.isArray(rRes?.data) ? rRes.data : []);
-                setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
+                setBuses(
+                    Array.isArray(bRes?.data?.data)
+                        ? bRes.data.data
+                        : []
+                );
+
+                setRoutes(
+                    Array.isArray(rRes?.data?.data)
+                        ? rRes.data.data
+                        : []
+                );
+
+                setAssignments(
+                    Array.isArray(aRes?.data?.data)
+                        ? aRes.data.data
+                        : []
+                );
             })
             .catch((e) => {
                 if (!mounted) return;
@@ -75,10 +90,28 @@ const BusAssignment = () => {
     }, []);
 
     const columns = [
-        { name: 'busRegNo', label: 'Vehicle Reg No' },
-        { name: 'driverName', label: 'Driver' },
-        { name: 'routeName', label: 'Assigned Route' },
-        { name: 'assignmentDate', label: 'Assigned Date' },
+        { name: 'bus_number', label: 'Vehicle Reg No' },
+
+        {
+            name: 'driver',
+            label: 'Driver',
+            options: {
+                customBodyRender: (value) => value?.name || '-'
+            }
+        },
+
+        { name: 'route_name', label: 'Assigned Route' },
+
+        {
+            name: 'assigned_date',
+            label: 'Assigned Date',
+            options: {
+                customBodyRender: (value) =>
+                    value
+                        ? new Date(value).toLocaleString()
+                        : '-'
+            }
+        },
         {
             name: 'status',
             label: 'Status',
@@ -95,7 +128,7 @@ const BusAssignment = () => {
                 customBodyRender: (value, tableMeta) => {
                     const rowIndex = tableMeta?.rowIndex;
                     const assignment = typeof rowIndex === 'number' ? assignments?.[rowIndex] : null;
-                    const busId = assignment ? resolveBusId(assignment.busRegNo) : '';
+                    const busId = assignment ? resolveBusId(assignment.bus_number) : '';
 
                     return (
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -155,9 +188,9 @@ const BusAssignment = () => {
     const initialFormValues =
         mode === 'reassign' && selectedAssignment
             ? {
-                  busId: resolveBusId(selectedAssignment.busRegNo),
-                  routeId: resolveRouteId(selectedAssignment.routeName)
-              }
+                busId: resolveBusId(selectedAssignment.bus_number),
+                routeId: resolveRouteId(selectedAssignment.route_name)
+            }
             : { busId: '', routeId: '' };
 
     return (
@@ -267,9 +300,12 @@ const BusAssignment = () => {
 
                             const run = async () => {
                                 if (mode === 'reassign') {
-                                    await SchoolBusService.reassignBus(values.busId, { routeId: values.routeId });
+                                    await SchoolBusService.reassignBus(values.busId, { route: values.routeId });
                                 } else {
-                                    await SchoolBusService.assignBus(values);
+                                    await SchoolBusService.assignBus({
+                                        bus: Number(values.busId),
+                                        route: Number(values.routeId)
+                                    });;
                                 }
                                 const aRes = await SchoolBusService.getAssignments();
                                 setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
@@ -281,7 +317,13 @@ const BusAssignment = () => {
 
                             Promise.resolve(run())
                                 .catch((e) => {
-                                    setError(e?.message || 'Assignment failed');
+                                    const errorMessage =
+                                        e?.response?.data?.detail ||
+                                        e?.response?.data?.message ||
+                                        e?.message ||
+                                        'Assignment failed';
+
+                                    setError(errorMessage);
                                 })
                                 .finally(() => {
                                     setLoading(false);
@@ -330,7 +372,13 @@ const BusAssignment = () => {
                                     if (!fn) return;
                                     Promise.resolve(fn())
                                         .catch((e) => {
-                                            setError(e?.message || 'Action failed');
+                                            const errorMessage =
+                                                e?.response?.data?.detail ||
+                                                e?.response?.data?.message ||
+                                                e?.message ||
+                                                'Action failed';
+
+                                            setError(errorMessage);
                                         })
                                         .finally(() => {
                                             setLoading(false);

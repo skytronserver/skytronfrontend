@@ -6,6 +6,7 @@ import { canViewRoute } from "../utils/rbacUtils";
 import { SYSTEM_ENV } from "../store/constant";
 import CreateSchool from "views/schoolbus/CreateSchool";
 import ApproveSchool from "views/schoolbus/ApproveSchool";
+import SchoolBusApproval from "views/schoolbus/SchoolBusApproval";
 
 // project imports
 import MainLayout from "../layout/MainLayout";
@@ -440,7 +441,7 @@ const MainRoutes = {
     {
       path: '/schoolbus/holidays',
       element: <SchoolHolidays />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
+      roles: ['schooladmin']
     },
     {
       path: '/schoolbus/alerts',
@@ -461,11 +462,13 @@ const MainRoutes = {
     {
       path: '/schoolbus/Approve-School',
       element: <ApproveSchool />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/schoolbus/Approve-School-bus',
+      element: <SchoolBusApproval />,
       roles: ['superadmin']
-    }
-
-
-    ,
+    },
     {
       path: '/schoolbus/onboarding',
       element: <SchoolOnboarding />,

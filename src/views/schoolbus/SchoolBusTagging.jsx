@@ -57,11 +57,11 @@ const SchoolBusTagging = () => {
         let mounted = true;
         setError('');
         setLoading(true);
-                 debugger
+                //  debugger
        
         Promise.all([SchoolBusService.getTaggedVehicles(), SchoolBusService.getBuses()])
             .then(([tagRes, busRes]) => {
-                debugger
+                // debugger
                 if (!mounted) return;
                 setTaggedVehicles(Array.isArray(tagRes?.data?.data) ? tagRes.data.data : []);
                 setActivatedVehicles(Array.isArray(busRes?.data?.data) ? busRes.data.data : []);
@@ -165,20 +165,20 @@ const SchoolBusTagging = () => {
 
                                 const run = async () => {
                                     if (activeStep === 0) {
-                                        debugger
+                                        // debugger
                                         const selectedVehicle = activatedVehicles.find(
                                             (v) => v.vehicle_reg_no === values.vehicleRegNo
                                             );
 
                                             const vehicleId = selectedVehicle?.id;
                                         setLoading(true);
-                                        debugger
+                                        // debugger
                                         const res = await SchoolBusService.requestTagVehicle({  id: vehicleId, vehicle_reg_no: values.vehicleRegNo });
                                         setTagContext({ requestId: res?.data?.data?.tag_id  || null, vehicleRegNo: values.vehicleRegNo });
                                         handleNext();
                                     } else if (activeStep === 1) {
                                         setLoading(true);
-                                        debugger
+                                        // debugger
                                         await SchoolBusService.validateTagOtp({ requestId: tagContext.requestId, otp: values.otp });
                                         handleNext();
                                     } else if (activeStep === 2) {
@@ -194,7 +194,7 @@ const SchoolBusTagging = () => {
 
 
                                         // ✅ ONLY these keys (match curl exactly)
-                                        debugger
+                                        // debugger
                                         formData.append("RC", values.rcCertificate);
                                         formData.append("PERMIT", values.schoolBusPermit);
                                         formData.append("REQUEST_LETTER", values.requestLetter);
@@ -280,7 +280,7 @@ const SchoolBusTagging = () => {
                                                     Tagging request for {tagContext.vehicleRegNo || formik.values.vehicleRegNo} submitted.
                                                 </Typography>
                                                 <Typography variant="body1" sx={{ mt: 2, maxWidth: 600, mx: 'auto' }}>
-                                                    The request is now pending with the State Admin for review. You can track the status in the table below.
+                                                    The request is now pending with the Super Admin for review. You can track the status in the table below.
                                                 </Typography>
                                             </Box>
                                         )}
@@ -332,7 +332,7 @@ const SchoolBusTagging = () => {
                         <Grid item xs={12}>
                             <MainCard title="Approval Process">
                                 <Typography variant="body2">
-                                    Once submitted, the State Admin verifies the documents. Upon approval:
+                                    Once submitted, the Super Admin verifies the documents. Upon approval:
                                 </Typography>
                                 <Alert severity="info" sx={{ mt: 1 }}>
                                     Auto-generated credentials link will be sent to the school email and mobile.

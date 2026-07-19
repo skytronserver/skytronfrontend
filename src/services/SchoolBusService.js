@@ -717,23 +717,23 @@ const api = {
   },
   getRouteOptions() {
     const http = getAxiosInstance();
-    return http.get('/school/api/schoolbus/routes/options');
+    return http.get('/school/api/admin/routes/');
   },
   getAssignments() {
     const http = getAxiosInstance();
-    return http.get('/school/api/schoolbus/assignments');
+    return http.get('/school/api/admin/routes/assignments/');
   },
   assignBus(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/assign', data);
+    return http.post('/school/api/admin/routes/assign-bus/', data);
   },
-  reassignBus(busId, data) {
+  reassignBus(bus_id, data) {
     const http = getAxiosInstance();
-    return http.put(`/api/schoolbus/reassign/${busId}`, data);
+    return http.post(`/school/api/admin/routes/${bus_id}/reassign/`, data);
   },
-  untagBus(busId) {
+  untagBus(bus_id) {
     const http = getAxiosInstance();
-    return http.delete(`/api/schoolbus/untag/${busId}`);
+    return http.delete(`/api/admin/routes/${bus_id}/remove-bus/`);
   },
   getParents() {
     const http = getAxiosInstance();
@@ -875,6 +875,29 @@ markDrop(tripId, data) {
     data
   );
 },
+
+approveBusTag(tagId) {
+  const http = getAxiosInstance();
+
+  return http.post(
+    `/school/api/state-admin/bus-tags/${tagId}/decision/`,
+    {
+      decision: "APPROVE"
+    }
+  );
+},
+
+rejectBusTag(tagId, remarks) {
+  const http = getAxiosInstance();
+
+  return http.post(
+    `/school/api/state-admin/bus-tags/${tagId}/decision/`,
+    {
+      decision: "REJECT",
+      remarks
+    }
+  );
+},
 };
 
 const SchoolBusService = {
@@ -963,6 +986,11 @@ markDrop: (...args) =>
   api.markDrop(...args),
 getUnplannedUsage: (...args) =>
     api.getUnplannedUsage(...args),
+approveBusTag: (...args) =>
+  api.approveBusTag(...args),
+
+rejectBusTag: (...args) =>
+  api.rejectBusTag(...args),
 };
 
 export default SchoolBusService;
