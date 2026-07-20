@@ -3111,16 +3111,8 @@ const MapComponent = ({
             }
         });
 
-        if (routeInfoOverlayElementRef.current) {
-            const routeInfoOverlay = new Overlay({
-                element: routeInfoOverlayElementRef.current,
-                autoPan: true,
-                positioning: "bottom-center",
-                stopEvent: true,
-            });
-            initialMap.addOverlay(routeInfoOverlay);
-            routeInfoOverlayRef.current = routeInfoOverlay;
-        }
+        // Route Info panel is now a fixed CSS-positioned div (top-right of map container)
+        // No OL Overlay needed — visibility is toggled directly via routeInfoOverlayElementRef
 
         setMap(initialMap);
         setVectorLayer(initialVectorLayer);
@@ -6144,9 +6136,7 @@ ${selectedColumns.map((key) => {
         if (routeInfoOverlayElementRef.current) {
             routeInfoOverlayElementRef.current.style.display = "none";
         }
-        if (routeInfoOverlayRef.current) {
-            routeInfoOverlayRef.current.setPosition(undefined);
-        }
+        // routeInfoOverlay is CSS-positioned; visibility already hidden above
 
     }, [focusEntry?.imei]);   // fires only when the selected vehicle changes
 
@@ -6279,11 +6269,7 @@ ${selectedColumns.map((key) => {
                         </div>
                       </div>
                     </div>`;
-                    // Position popup at midpoint of the route
-                    const midIdx = Math.floor(lineCoords.length / 2);
-                    if (routeInfoOverlayRef.current) {
-                        routeInfoOverlayRef.current.setPosition(lineCoords[midIdx]);
-                    }
+                    // Panel is CSS-positioned — no OL setPosition needed
                 }
 
                 // Fetch source & destination addresses via reverse geocoding
@@ -7862,6 +7848,18 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 >
                     {/* Map div injected by useEffect */}
                 </div>
+                {/* Route Info Panel — anchored to top-right corner of map */}
+                <div
+                    ref={routeInfoOverlayElementRef}
+                    style={{
+                        display: "none",
+                        position: "absolute",
+                        top: "12px",
+                        right: "12px",
+                        zIndex: 1200,
+                        pointerEvents: "auto",
+                    }}
+                />
             </div>
 
             {/* --- Attribution Logos --- */}
@@ -7873,8 +7871,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             <div ref={overlayElement} className="dynamic-overlay">
                 <div id="overlay-content"></div>
             </div>
-            {/* Route Info Popup Overlay (Get Direction result) */}
-            <div ref={routeInfoOverlayElementRef} style={{ display: "none" }} />
+
             <div
                 ref={poiTransitOverlayElement}
                 className="ol-popup"
