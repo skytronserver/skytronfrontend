@@ -139,6 +139,15 @@ const schoolbus = {
                     roles: ['superadmin']
                 },
                  {
+                    id: 'approve-School-bus',
+                    title: 'Approve School Bus',
+                    type: 'item',
+                    url: '/schoolbus/Approve-School-bus',
+                    icon: icons.IconSchool,
+                    breadcrumbs: false,
+                    roles: ['superadmin']
+                },
+                 {
                     id: 'Approve-School',
                     title: 'Approve School',
                     type: 'item',
