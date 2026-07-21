@@ -715,6 +715,10 @@ const api = {
     const http = getAxiosInstance();
     return http.get('school/api/admin/buses/available/');
   },
+  getAvailableTaggedBuses() {
+  const http = getAxiosInstance();
+  return http.get('/school/api/admin/buses/');
+},
   getRouteOptions() {
     const http = getAxiosInstance();
     return http.get('/school/api/admin/routes/');
@@ -733,7 +737,7 @@ const api = {
   },
   untagBus(bus_id) {
     const http = getAxiosInstance();
-    return http.delete(`/api/admin/routes/${bus_id}/remove-bus/`);
+    return http.post(`/school/api/admin/routes/${bus_id}/remove-bus/`);
   },
   getParents() {
     const http = getAxiosInstance();
@@ -991,6 +995,8 @@ approveBusTag: (...args) =>
 
 rejectBusTag: (...args) =>
   api.rejectBusTag(...args),
+getAvailableTaggedBuses: (...args) =>
+  api.getAvailableTaggedBuses(...args),
 };
 
 export default SchoolBusService;
