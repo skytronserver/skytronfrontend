@@ -24,7 +24,6 @@
     "i18next-browser-languagedetector": "^6.1.8",
     "jspdf": "^3.0.4",
     "leaflet": "^1.9.4",
-    "mappls-web-maps": "^3.8.0",
     "material-ui-popup-state": "^4.0.1",
     "mui-datatables": "^4.3.0",
     "mui-one-time-password-input": "^2.0.1",
