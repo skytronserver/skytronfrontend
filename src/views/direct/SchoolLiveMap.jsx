@@ -1,4 +1,3 @@
-/* eslint-disable */
 
 
 
@@ -1018,13 +1017,21 @@ const MapComponent = ({
     const satelliteMapContainerRef = useRef(null);
     const soiMapContainerRef = useRef(null);
     const hdMapContainerRef = useRef(null); // Mappls SDK Refs
+    const hdMapInnerRef = useRef(null);
     const hdVehicleMarkersRef = useRef([]); // Store vehicle markers for HD map
     const hdPoiMarkersRef = useRef([]); // Store POI markers for HD map
     const hdIncidentMarkersRef = useRef([]); // Store incident markers for HD map
+    const mapplsInstanceRef = useRef(null);
+    const mapplsInitializedRef = useRef(false);
+    const mapplsInitInProgressRef = useRef(false);
+    const mapplsLibraryPollRef = useRef(null);
+    const hdMapContainerIdRef = useRef(null);
 
     // HD Map Drawing State & Refs
     const [drawingMode, setDrawingMode] = useState(null); // 'polygon' or null
-    const [drawingPoints] = useState([]);
+    const [drawingPoints, setDrawingPoints] = useState([]);
+    const tempPolyRef = useRef(null);
+    const tempMarkersRef = useRef([]);
 
     /**
     * Logic to calculate averaged location
@@ -6253,4 +6260,3 @@ overflow: visible;
 };
 
 export default MapComponent;
-
