@@ -104,9 +104,8 @@ const MenuList = () => {
   const navItems = menuItem.items.map((item) => {
     switch (item.type) {
       case 'group': {
-        const canView = canViewMenu(item.id, role, permissions, item.roles);
         const hasChildren = hasVisibleChildren(item, role, permissions);
-        return (canView && hasChildren)
+        return hasChildren
           ? <NavGroup key={item.id} item={item} role={role} permissions={permissions} />
           : null;
       }

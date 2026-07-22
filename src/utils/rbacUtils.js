@@ -529,8 +529,7 @@ export const hasVisibleChildren = (menuItem, role, permissions) => {
     if (child.type === 'item') {
       return canViewMenu(child.id, role, permissions, child.roles || []);
     } else if (child.type === 'collapse' || child.type === 'group') {
-      const canView = canViewMenu(child.id, role, permissions, child.roles || []);
-      return canView && hasVisibleChildren(child, role, permissions);
+      return hasVisibleChildren(child, role, permissions);
     }
     return false;
   });
