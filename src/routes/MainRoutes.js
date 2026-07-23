@@ -1,9 +1,9 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
-import CreateSchool from "views/schoolbus/CreateSchool";
-import ApproveSchool from "views/schoolbus/ApproveSchool";
-import SchoolBusApproval from "views/schoolbus/SchoolBusApproval";
+const CreateSchool = Loadable(lazy(() => import("views/schoolbus/CreateSchool")));
+const ApproveSchool = Loadable(lazy(() => import("views/schoolbus/ApproveSchool")));
+const SchoolBusApproval = Loadable(lazy(() => import("views/schoolbus/SchoolBusApproval")));
 
 // project imports
 import MainLayout from "../layout/MainLayout";

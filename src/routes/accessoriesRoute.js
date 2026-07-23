@@ -2,7 +2,10 @@ import PrivateRoute from './PrivateRoute';
 // project imports
 
 import MainLayout from "../layout/MainLayout";
-import AccessoryForm from "views/forms/AccessoryForm";
+import { lazy } from "react";
+import Loadable from "../ui-component/Loadable";
+
+const AccessoryForm = Loadable(lazy(() => import("views/forms/AccessoryForm")));
 
 
 

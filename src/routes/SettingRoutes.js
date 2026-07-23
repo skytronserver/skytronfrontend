@@ -1,7 +1,9 @@
 import PrivateRoute from './PrivateRoute';
 import MainLayout from "../layout/MainLayout";
-import IPSetting from "../views/settings/IPSetting";
-import LoginSettings from "../views/settings/LoginSettings";
+import { lazy } from "react";
+import Loadable from "../ui-component/Loadable";
+const IPSetting = Loadable(lazy(() => import("../views/settings/IPSetting")));
+const LoginSettings = Loadable(lazy(() => import("../views/settings/LoginSettings")));
 import {
   vehicleCategoryFormFields,
   vehicleCategoryInitialsFields,
@@ -13,24 +15,24 @@ import {
 import { stateFields, stateInitials, districtFields, districtInitials } from "../formjson/stateDistrict";
 import { vehicleCategoryCodeFormFields, vehicleCategoryCodeInitialsFields } from "../formjson/vehicleCategoryCode";
 import { permitMasterFormFields, permitMasterInitialsFields } from "../formjson/permitMaster";
-import VehicleCategory from "../views/settings/VehicleCategory";
-import VehicleCategoryCode from "../views/settings/VehicleCategoryCode";
-import PermitMaster from "../views/settings/PermitMaster";
-import NotificationPreferences from "../views/settings/NotificationPreferences";
-import StateDistrict from "../views/settings/StateDistrict";
-import FrequencyFirmware from "../views/settings/FrequencyFirmware";
-import SendCommand from "../views/settings/SendCommand";
-import ArchiveRestore from "../views/settings/ArchiveRestore";
-import NoticeForm from "../views/forms/NoticeForm";
-import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
-import SchoolHolidayList from "../views/reports/SchoolHolidayList";
-import PermitConditionManagement from "../views/settings/PermitConditionManagement";
+const VehicleCategory = Loadable(lazy(() => import("../views/settings/VehicleCategory")));
+const VehicleCategoryCode = Loadable(lazy(() => import("../views/settings/VehicleCategoryCode")));
+const PermitMaster = Loadable(lazy(() => import("../views/settings/PermitMaster")));
+const NotificationPreferences = Loadable(lazy(() => import("../views/settings/NotificationPreferences")));
+const StateDistrict = Loadable(lazy(() => import("../views/settings/StateDistrict")));
+const FrequencyFirmware = Loadable(lazy(() => import("../views/settings/FrequencyFirmware")));
+const SendCommand = Loadable(lazy(() => import("../views/settings/SendCommand")));
+const ArchiveRestore = Loadable(lazy(() => import("../views/settings/ArchiveRestore")));
+const NoticeForm = Loadable(lazy(() => import("../views/forms/NoticeForm")));
+const SchoolHolidayForm = Loadable(lazy(() => import("../views/forms/SchoolHolidayForm")));
+const SchoolHolidayList = Loadable(lazy(() => import("../views/reports/SchoolHolidayList")));
+const PermitConditionManagement = Loadable(lazy(() => import("../views/settings/PermitConditionManagement")));
 
 // ─── RBAC Pages ────────────────────────────────────────────────────────────────
-import RoleManagement from "../views/settings/RoleManagement";
-import PermissionManagement from "../views/settings/PermissionManagement";
-import CustomUserManagement from "../views/user/CustomUserManagement";
-import CustomAlertManagement from "../views/settings/CustomAlertManagement";
+const RoleManagement = Loadable(lazy(() => import("../views/settings/RoleManagement")));
+const PermissionManagement = Loadable(lazy(() => import("../views/settings/PermissionManagement")));
+const CustomUserManagement = Loadable(lazy(() => import("../views/user/CustomUserManagement")));
+const CustomAlertManagement = Loadable(lazy(() => import("../views/settings/CustomAlertManagement")));
 
 
 const applyPrivateRoute = (route) => ({
