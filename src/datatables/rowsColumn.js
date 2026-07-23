@@ -1,4 +1,3 @@
-import { display } from "@mui/system";
 import { openFile, getRole } from "../helper";
 const user_type = {
   teamlead: "Team Lead",

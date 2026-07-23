@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
-import { Divider, Grid, Stack, Typography, useMediaQuery, Button, TextField } from "@mui/material";
-import { Navigate } from "react-router-dom";
+import { Grid, Stack, Typography, useMediaQuery, Button, TextField } from "@mui/material";
 import { useTranslation } from 'react-i18next';
 import CircularProgress from "@mui/material/CircularProgress";
 import AuthWrapper1 from "./AuthWrapper1";

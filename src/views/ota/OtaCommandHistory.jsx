@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Paper, TextField, MenuItem, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Button, Typography, Paper, TextField, MenuItem } from '@mui/material';
 // Need ExpandMoreIcon? Since we aren't sure if @mui/icons-material is installed, we can just use a simple string like "▼" or a basic button text if Accordion is too complex. 
 // Let's stick to a simple Box that can be toggled to show advanced filters.
 import { DataGrid } from '@mui/x-data-grid';

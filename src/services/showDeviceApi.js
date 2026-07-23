@@ -1,5 +1,4 @@
 import { getAxiosInstance } from './axiosInstance'; 
-import { BASE_URL } from '../store/constant';
 const getDevice=()=>{
     const http = getAxiosInstance();
     return http.get(`/api/devicestock/deviceStockFilter/`)

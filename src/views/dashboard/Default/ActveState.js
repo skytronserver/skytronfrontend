@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import React from "react";
-import { Grid, Card, CardContent, Typography, Box, Fab, Tabs, Tab, Button, Paper, Divider, TextField, MenuItem, IconButton, Tooltip as MuiTooltip, Chip } from "@mui/material";
-import { Add as AddIcon, BarChart as ChartIcon, DeleteOutline as DeleteIcon, Visibility, VisibilityOff, ContentCopy, KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
+import { Grid, Card, CardContent, Typography, Box, Tabs, Tab, Button, Paper, Divider, TextField, MenuItem, IconButton, Tooltip as MuiTooltip, Chip } from "@mui/material";
+import { BarChart as ChartIcon, DeleteOutline as DeleteIcon, Visibility, VisibilityOff, ContentCopy, KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
 import Widget from "./Widget";
 import UserServices from "../../../services/UserServices";
 import { lazy } from "react";

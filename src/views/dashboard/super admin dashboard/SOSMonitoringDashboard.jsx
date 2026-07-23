@@ -4,7 +4,6 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
-import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -12,7 +11,6 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
@@ -31,10 +29,8 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 
 import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
-import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
 
 import HomePageService from 'services/HomePage';
-import { display } from '@mui/system';
 
 const formatNumber = (value) => {
   const numeric = Number(value);

@@ -3,8 +3,6 @@ import {
     Grid,
     Box,
     Typography,
-    Tabs,
-    Tab,
     Alert,
     Chip,
      FormControl,

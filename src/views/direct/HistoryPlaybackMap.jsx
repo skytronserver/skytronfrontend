@@ -4,7 +4,6 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import StopIcon from '@mui/icons-material/Stop';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
@@ -17,7 +16,7 @@ import { Icon, Style, Stroke, Circle as CircleStyle, Fill, Text } from "ol/style
 import Point from "ol/geom/Point";
 import Feature from "ol/Feature";
 import LineString from "ol/geom/LineString";
-import { getCenter } from "ol/extent"; // For centering the map
+// For centering the map
 import axios from "axios";
 import Select from "ol/interaction/Select";
 import { formatDateTime } from "../../helper";

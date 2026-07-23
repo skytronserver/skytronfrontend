@@ -5,7 +5,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
     Button,
-    ButtonGroup,
     Tooltip,
     Box,
     IconButton,
@@ -20,7 +19,6 @@ import {
     Alert,
     InputBase,
     Divider,
-    Collapse,
     Switch,
     FormControlLabel
 } from "@mui/material";
@@ -34,13 +32,11 @@ import {
     Check as CheckIcon,
     Map as MapIcon,
     Satellite as SatelliteIcon,
-    Public as PublicIcon,
-    Hd as HdIcon,
-    Terrain as TerrainIcon
+    Public as PublicIcon
 } from "@mui/icons-material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { Vector as VectorSource, TileWMS, XYZ, Cluster } from "ol/source";
+import { Vector as VectorSource, TileWMS, XYZ } from "ol/source";
 import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
 import {
     Icon,

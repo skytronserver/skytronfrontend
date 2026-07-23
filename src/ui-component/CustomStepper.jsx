@@ -4,7 +4,6 @@ import {
   Step,
   StepLabel,
   Stepper,
-  Typography,
   useTheme,
 } from '@mui/material';
 

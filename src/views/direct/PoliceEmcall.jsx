@@ -24,7 +24,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Fab,
 } from "@mui/material";
 import { alpha, useTheme } from '@mui/material/styles';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -36,7 +35,6 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import SendIcon from '@mui/icons-material/Send';
-import ChatIcon from '@mui/icons-material/Chat';
 import ClearIcon from '@mui/icons-material/Clear';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 

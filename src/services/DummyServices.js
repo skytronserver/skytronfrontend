@@ -1,4 +1,3 @@
-import http from './http-common';
 import { getAxiosInstance } from './axiosInstance'; 
 const getAll = () => {
   const http = getAxiosInstance(); 

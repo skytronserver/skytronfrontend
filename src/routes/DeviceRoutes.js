@@ -1,14 +1,11 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
-import { useSelector } from "react-redux";
-import { canViewRoute } from "../utils/rbacUtils";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 // project imports
 
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
-import { decipherEncryption } from "../helper";
 
 // Lazy-loaded components
 const DeviceForm = Loadable(lazy(() => import("../views/forms/DeviceForm")));

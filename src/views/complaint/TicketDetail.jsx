@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Chip,
   Paper,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,7 +19,6 @@ import {
   ListItemText,
   IconButton,
   Tooltip,
-  Stack,
 } from "@mui/material";
 import MainCard from "ui-component/cards/MainCard";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";

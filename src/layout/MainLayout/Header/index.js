@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 // material-ui
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, ButtonBase } from "@mui/material";
-import { getRole } from "../../../helper";
 // project imports
 import LogoSection from "../LogoSection";
 import ProfileSection from "./ProfileSection";

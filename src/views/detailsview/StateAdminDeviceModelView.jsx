@@ -17,7 +17,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { useTranslation } from "react-i18next";
-import SettingService from "../../services/SettingService";
 import DescriptionIcon from '@mui/icons-material/Description';
 /* project component/helper import sections */
 import AutoHideAlert from "../../ui-component/AutoHideAlert"

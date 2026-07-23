@@ -1,9 +1,6 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { canViewRoute } from "../utils/rbacUtils";
-import { SYSTEM_ENV } from "../store/constant";
+import { Navigate } from "react-router-dom";
 import CreateSchool from "views/schoolbus/CreateSchool";
 import ApproveSchool from "views/schoolbus/ApproveSchool";
 import SchoolBusApproval from "views/schoolbus/SchoolBusApproval";
@@ -11,7 +8,6 @@ import SchoolBusApproval from "views/schoolbus/SchoolBusApproval";
 // project imports
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
-import { decipherEncryption } from "../helper";
 
 // Lazy-loaded components
 const LiveTracking = Loadable(lazy(() => import("../views/direct/LiveTracking")));

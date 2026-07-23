@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Grid, Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import { IconAlertTriangle, IconDeviceAnalytics, IconEmergencyBed, IconTruck } from '@tabler/icons';
+import { Grid, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { IconDeviceAnalytics, IconEmergencyBed, IconTruck } from '@tabler/icons';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';

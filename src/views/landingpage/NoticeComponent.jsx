@@ -1,10 +1,6 @@
 import { Container, Typography, Button, List, ListItem, ListItemText, ListItemSecondaryAction, CircularProgress, Divider, Box } from "@mui/material";
-import DetailSection from "./DetailSection";
-import AboutUs from "./AboutUs";
-import ContactUs from "./ContactUs";
-import Footer from "./Footer";
 import { useEffect, useState } from "react";
-import { BASE_URL,CUSTOM_BASE_URL } from "../../store/constant";
+import { BASE_URL } from "../../store/constant";
 
 const NoticeComponent = () => {
   const [notices, setNotices] = useState([]);

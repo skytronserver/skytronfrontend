@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import { forwardRef } from 'react';
-import { useTheme } from '@mui/material/styles';
 import { Card, CardContent, Typography } from '@mui/material';
 
 const PageHeader = forwardRef(

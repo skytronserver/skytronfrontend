@@ -1,13 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Box, Button, Slider, Typography, Paper, CircularProgress } from "@mui/material";
+import { Box, Button, Slider, Typography, Paper } from "@mui/material";
 import "ol/ol.css";
-import VectorSource from "ol/source/Vector";
-import { Icon, Style, Stroke, Circle as CircleStyle, Fill, Text } from "ol/style";
+import { Icon, Style, Stroke } from "ol/style";
 import Point from "ol/geom/Point";
 import Feature from "ol/Feature";
 import LineString from "ol/geom/LineString";
-import { getCenter } from "ol/extent";
-import Select from "ol/interaction/Select";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 
 const TripPlanningMap = ({

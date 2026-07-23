@@ -13,7 +13,6 @@ import { fetchTaggedAwaitingOwner } from "../../actions/commonDataActions";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { awaitingOwnerApproval } from "../../datatables/rowsColumn";
 import MainCard from "../../ui-component/cards/MainCard";
-import { openFile } from "../../helper";
 import { useTranslation } from 'react-i18next';
 const UnApprovedTag = () => {
   const { t } = useTranslation();

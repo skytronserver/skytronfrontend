@@ -10,7 +10,6 @@ import {
     Button,
     useTheme,
     CircularProgress,
-    Divider,
     Tab,
     Tabs,
     Table,
@@ -21,26 +20,17 @@ import {
     TableRow,
     Paper,
     Chip,
-    Avatar,
     IconButton,
     Collapse
 } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import {
     IconArrowRight,
-    IconBus,
-    IconMapPin,
-    IconRoute,
     IconSearch,
     IconRefresh,
-    IconChartBar,
     IconScale,
-    IconTimeline,
     IconChevronDown,
-    IconChevronUp,
-    IconClock,
-    IconCircleCheck,
-    IconCircleX
+    IconChevronUp
 } from '@tabler/icons';
 import {
     BarChart,
@@ -50,10 +40,7 @@ import {
     CartesianGrid,
     Tooltip as RechartsTooltip,
     Legend,
-    ResponsiveContainer,
-    ScatterChart,
-    Scatter,
-    ZAxis
+    ResponsiveContainer
 } from 'recharts';
 import PISService from '../../services/PISServices';
 import SettingService from '../../services/SettingService';

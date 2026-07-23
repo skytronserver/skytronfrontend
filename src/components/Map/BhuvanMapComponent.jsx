@@ -15,7 +15,6 @@ import { Draw } from "ol/interaction";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import Polygon from "ol/geom/Polygon";
-import Circle from "ol/geom/Circle";
 import LineString from "ol/geom/LineString";
 import Overlay from "ol/Overlay";
 import "ol/ol.css";

@@ -12,7 +12,7 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
 import CustomLoader from "../../ui-component/CustomLoader";
 import { modelExtensionInitials, modelExtensionFormField } from "../../formjson/modelExtension";
-import { filterModelList, retriveTechnicalOnboardedModelList } from "../../helper";
+import { retriveTechnicalOnboardedModelList } from "../../helper";
 
 import { useTranslation } from 'react-i18next';
 

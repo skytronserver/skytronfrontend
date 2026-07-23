@@ -19,7 +19,6 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
     Avatar
 } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
@@ -27,13 +26,8 @@ import {
     IconSettingsAutomation,
     IconClock,
     IconCircleX,
-    IconMapPin,
-    IconRoute,
     IconSearch,
-    IconRefresh,
-    IconTimeline,
-    IconChartBar,
-    IconReportAnalytics
+    IconRefresh
 } from '@tabler/icons';
 import {
     BarChart,

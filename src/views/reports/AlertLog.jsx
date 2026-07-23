@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Paper, Typography, TextField, Button } from '@mui/material';
+import { Grid, Paper, TextField, Button } from '@mui/material';
 import MainCard from '../../ui-component/cards/MainCard';
 import showDeviceApi from '../../services/showDeviceApi';
-import { useNavigate } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import CustomLoader from '../../ui-component/CustomLoader';
 import { dateTimeUpdate } from "../../helper";

@@ -1,11 +1,7 @@
 import PrivateRoute from './PrivateRoute';
-import { Navigate } from "react-router-dom";
 // project imports
 
 import MainLayout from "../layout/MainLayout";
-import { useSelector } from "react-redux";
-import { decipherEncryption } from "../helper";
-import NotAuthorized from "../views/pages/NotAuthorized";
 import AccessoryForm from "views/forms/AccessoryForm";
 
 

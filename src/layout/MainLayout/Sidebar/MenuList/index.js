@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useRef } from 'react';
 import { decipherEncryption } from '../../../../helper';
 import { SYSTEM_ENV } from '../../../../store/constant';
-import { canViewMenu, hasVisibleChildren } from '../../../../utils/rbacUtils';
+import { hasVisibleChildren } from '../../../../utils/rbacUtils';
 import RbacService from '../../../../services/RbacService';
 import { setPermissions } from '../../../../actions/loginActions';
 

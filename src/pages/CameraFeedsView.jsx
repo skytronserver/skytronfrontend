@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Box, Grid, Paper, Typography, IconButton, Chip, useTheme, useMediaQuery, Modal } from '@mui/material';
 import { MapContainer } from '../components/Map/MapContainer';
 import { styled } from '@mui/material/styles';
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';

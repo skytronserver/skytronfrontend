@@ -1,5 +1,4 @@
 import PrivateRoute from './PrivateRoute';
-import { Navigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import IPSetting from "../views/settings/IPSetting";
 import LoginSettings from "../views/settings/LoginSettings";
@@ -26,9 +25,6 @@ import NoticeForm from "../views/forms/NoticeForm";
 import SchoolHolidayForm from "../views/forms/SchoolHolidayForm";
 import SchoolHolidayList from "../views/reports/SchoolHolidayList";
 import PermitConditionManagement from "../views/settings/PermitConditionManagement";
-import { decipherEncryption } from '../helper';
-import { useSelector } from "react-redux";
-import NotAuthorized from "../views/pages/NotAuthorized";
 
 // ─── RBAC Pages ────────────────────────────────────────────────────────────────
 import RoleManagement from "../views/settings/RoleManagement";

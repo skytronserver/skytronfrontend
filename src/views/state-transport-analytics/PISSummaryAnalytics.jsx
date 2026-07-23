@@ -24,9 +24,7 @@ import {
     IconBus,
     IconRoute,
     IconMapPin,
-    IconCalendarEvent,
     IconSearch,
-    IconFilter,
     IconRefresh
 } from '@tabler/icons';
 import {

@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
     Button,
-    ButtonGroup,
     Tooltip,
     Box,
     IconButton,
@@ -17,7 +16,6 @@ import {
     Alert,
     InputBase,
     Divider,
-    Collapse,
     Switch,
     FormControlLabel
 } from "@mui/material";
@@ -25,7 +23,6 @@ import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import { Vector as VectorSource } from "ol/source";
 import { Vector as VectorLayer } from "ol/layer";
-import { fromLonLat } from "ol/proj";
 import {
     Style,
     Fill,
@@ -43,9 +40,7 @@ import {
     Check as CheckIcon,
     Map as MapIcon,
     Satellite as SatelliteIcon,
-    Public as PublicIcon,
-    Hd as HdIcon,
-    Terrain as TerrainIcon
+    Public as PublicIcon
 } from "@mui/icons-material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, } from "ol/layer";
@@ -53,7 +48,6 @@ import { TileWMS, XYZ, Cluster } from "ol/source";
 import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
 import {
     Icon,
-    Stroke as OlStroke,
 } from "ol/style";
 import { getAxiosInstance } from "../../services/axiosInstance";
 

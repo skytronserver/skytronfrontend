@@ -12,7 +12,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { stockFilterAction } from '../../actions/stockActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { showDeviceColumns } from '../../datatables/rowsColumn';
-import { decipherEncryption, getRole } from "../../helper";
+import { getRole } from "../../helper";
 
 const ShowDevice = () => {
   const [load, setLoad] = useState(false);

@@ -12,11 +12,9 @@ import {
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import LoginIcon from "@mui/icons-material/Login";
-import BusinessIcon from "@mui/icons-material/Business";
 import RouterIcon from "@mui/icons-material/Router";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
 import DevicesIcon from "@mui/icons-material/Devices";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import skytronlogo from "../../assets/images/skytron-logo2.png";
 import "./registrationForm.css";
 

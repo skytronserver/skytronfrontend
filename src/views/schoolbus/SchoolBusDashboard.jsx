@@ -9,11 +9,8 @@ import {
     Grid,
     Box,
     Typography,
-    Card,
-    CardContent,
     Alert,
     Avatar,
-    Divider,
     Chip
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
