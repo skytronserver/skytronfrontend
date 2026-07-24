@@ -2,8 +2,6 @@ import PrivateRoute from './PrivateRoute';
 import MainLayout from "../layout/MainLayout";
 import { lazy } from "react";
 import Loadable from "../ui-component/Loadable";
-const IPSetting = Loadable(lazy(() => import("../views/settings/IPSetting")));
-const LoginSettings = Loadable(lazy(() => import("../views/settings/LoginSettings")));
 import {
   vehicleCategoryFormFields,
   vehicleCategoryInitialsFields,
@@ -15,6 +13,9 @@ import {
 import { stateFields, stateInitials, districtFields, districtInitials } from "../formjson/stateDistrict";
 import { vehicleCategoryCodeFormFields, vehicleCategoryCodeInitialsFields } from "../formjson/vehicleCategoryCode";
 import { permitMasterFormFields, permitMasterInitialsFields } from "../formjson/permitMaster";
+
+const IPSetting = Loadable(lazy(() => import("../views/settings/IPSetting")));
+const LoginSettings = Loadable(lazy(() => import("../views/settings/LoginSettings")));
 const VehicleCategory = Loadable(lazy(() => import("../views/settings/VehicleCategory")));
 const VehicleCategoryCode = Loadable(lazy(() => import("../views/settings/VehicleCategoryCode")));
 const PermitMaster = Loadable(lazy(() => import("../views/settings/PermitMaster")));

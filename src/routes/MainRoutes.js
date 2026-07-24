@@ -1,13 +1,14 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
-const CreateSchool = Loadable(lazy(() => import("views/schoolbus/CreateSchool")));
-const ApproveSchool = Loadable(lazy(() => import("views/schoolbus/ApproveSchool")));
-const SchoolBusApproval = Loadable(lazy(() => import("views/schoolbus/SchoolBusApproval")));
 
 // project imports
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
+
+const CreateSchool = Loadable(lazy(() => import("views/schoolbus/CreateSchool")));
+const ApproveSchool = Loadable(lazy(() => import("views/schoolbus/ApproveSchool")));
+const SchoolBusApproval = Loadable(lazy(() => import("views/schoolbus/SchoolBusApproval")));
 
 // Lazy-loaded components
 const LiveTracking = Loadable(lazy(() => import("../views/direct/LiveTracking")));
