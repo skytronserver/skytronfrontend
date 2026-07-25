@@ -1,5 +1,5 @@
 import { openFile, getRole } from "../helper";
-const user_type = {
+export const user_type = {
   teamlead: "Team Lead",
   desk_ex: "Desk Executive",
   police_ex: "Police Executive",

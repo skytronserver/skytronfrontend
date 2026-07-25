@@ -21,8 +21,8 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const importantLinksOpen = Boolean(anchorEl);
   const [downloadAppAnchorEl, setDownloadAppAnchorEl] = useState(null);
   const downloadAppOpen = Boolean(downloadAppAnchorEl);
-  const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
-  const dashboardOpen = Boolean(dashboardAnchorEl);
+  // const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
+  // const dashboardOpen = Boolean(dashboardAnchorEl);
   const [drawerImportantLinksOpen, setDrawerImportantLinksOpen] = useState(false);
   const [drawerDownloadAppOpen, setDrawerDownloadAppOpen] = useState(false);
 
@@ -52,13 +52,13 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
     setDownloadAppAnchorEl(null);
   };
 
-  const handleDashboardClick = (event) => {
-    setDashboardAnchorEl(event.currentTarget);
-  };
+  // const handleDashboardClick = (event) => {
+  //   setDashboardAnchorEl(event.currentTarget);
+  // };
 
-  const handleDashboardClose = () => {
-    setDashboardAnchorEl(null);
-  };
+  // const handleDashboardClose = () => {
+  //   setDashboardAnchorEl(null);
+  // };
 
   return (
     <div>

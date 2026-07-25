@@ -1,7 +1,7 @@
 import * as Yup from "yup"; 
 import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 
-let stateList=[];
+export let stateList=[];
 let districtList=[];
 const FILE_SIZE = 512 * 1024 ; // 512 KB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];

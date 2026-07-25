@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -41,12 +41,12 @@ const ProfileSection = () => {
   const { t } = useTranslation();
   const customization = useSelector((state) => state.customization);
   const navigate = useNavigate();
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [selectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   const isAuthenticated = useSelector((state) => state.login.user.isAuthenticated)
     || sessionStorage.getItem('isAuthenticated')
     || localStorage.getItem('isAuthenticated');
-  const [log, setLogout] = useState(0);
+  const [, setLogout] = useState(0);
   const myDecipher = decipherEncryption('skytrack')
   const userData = localStorage.getItem('skytrackCookiesData');
   const data = userData && userData.split("-").map(item => myDecipher(item));
@@ -54,7 +54,7 @@ const ProfileSection = () => {
    * anchorRef is used on different components and specifying one type leads to other components throwing an error
    * */
   const anchorRef = useRef(null);
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         registrations.forEach((registration) => {
@@ -74,14 +74,14 @@ const ProfileSection = () => {
     dispatch(logout());
     setLogout((prev) => prev + 1);
     window.location.href = '/';
-  };
+  }, [dispatch]);
   // const isIdle = useIdle(300000);
   const isIdle = useIdle(28800000);
   useEffect(() => {
     if (isIdle && isAuthenticated) {
       handleLogout();
     }
-  }, [isIdle]);
+  }, [isIdle, isAuthenticated, handleLogout]);
   useEffect(() => {
     if (!isAuthenticated) {
       window.location.href = '/';
