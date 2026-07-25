@@ -490,6 +490,14 @@ const user = {
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
+        {
+          id: "unused-stock",
+          title: "Unused Stock",
+          type: "item",
+          url: "/manufacturer/unused-stock",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
       ]
     },
     {

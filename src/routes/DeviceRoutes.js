@@ -35,6 +35,7 @@ const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../view
 const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
 const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
+const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/UntaggedDeviceStock")));
 
 
 
@@ -184,6 +185,11 @@ const DeviceRoutes = {
     {
       path: "/device/eSimActivation",
       element: <Navigate to="/device/m2m-activation" replace />,
+    },
+    {
+      path: "/manufacturer/unused-stock",
+      element: <UntaggedDeviceStock />,
+      roles: ["devicemanufacture", "dealer", "superadmin", "stateadmin"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };
