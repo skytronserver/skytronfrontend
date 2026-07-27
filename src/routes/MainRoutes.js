@@ -95,6 +95,7 @@ const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import(".
 const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/AIS140DeviceManufacturerRegistrationAdminReview")));
 const DeviceModelTechnicalOnboardingAdminList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingAdminList")));
 
+const HabitualOffenderReport = Loadable(lazy(() => import('../views/reports/HabitualOffenderReport')));
 
 
 const applyPrivateRoute = (route) => ({
@@ -578,6 +579,13 @@ const MainRoutes = {
       element: <OtaCommandHistory />,
       roles: ["superadmin"],
     },
+
+    {
+      path: '/reports/habitual-offender-report',
+      element: <HabitualOffenderReport />,
+      roles: ['superadmin']
+    },
+
   ].map((route) => applyPrivateRoute(route)),
 };
 

@@ -910,6 +910,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin', 'stateadmin', 'dtorto'],
         },
+        {
+          id: 'habitual-offender-report',
+          title: 'Habitual Offender Report',
+          type: 'item',
+          url: '/reports/habitual-offender-report',
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin'],
+        },
         // {
         //   id: "all-holiday-list",
         //   title: "School Holidays",
