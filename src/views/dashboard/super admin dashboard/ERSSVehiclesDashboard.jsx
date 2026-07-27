@@ -150,7 +150,7 @@ const fetchAreaData = async (payload = {}, method = "POST") => {
   try {
     debugger
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard_ERSS/areawise-device-count/",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard_ERSS/areawise-device-count/`,
       {
         method,
         headers: {
@@ -171,7 +171,7 @@ const fetchAreaData = async (payload = {}, method = "POST") => {
 const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
   try {
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard/erss-summary/?state_id=1",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard/erss-summary/?state_id=1`,
       {
         method,
         headers: {

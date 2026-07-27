@@ -70,7 +70,7 @@ const getStatusChipStyles = (mode, status) => {
 const fetchAreaData = async (payload = {}, method = "POST") => {
   try {
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard_SOS/areawise-device-count/",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard_SOS/areawise-device-count/`,
       {
         method,
         headers: {
@@ -91,7 +91,7 @@ const fetchAreaData = async (payload = {}, method = "POST") => {
 const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
   try {
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard/sos-monitoring/?state_id=1",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard/sos-monitoring/?state_id=1`,
       {
         method,
         headers: {

@@ -55,11 +55,18 @@ const NavItem = ({ item, level }) => {
     itemTarget = '_blank';
   }
 
+  // Build the resolved external URL (appending the live oAuthToken when item.tokenParam is true)
+  const resolvedUrl = (() => {
+    if (!item?.external || !item?.tokenParam) return item.url;
+    const token = sessionStorage.getItem('oAuthToken') || localStorage.getItem('oAuthToken') || '';
+    return token ? `${item.url}?token=${token}` : item.url;
+  })();
+
   let listItemProps = {
     component: forwardRef((props, ref) => <Link ref={ref} {...props} to={item.url} target={itemTarget} />)
   };
   if (item?.external) {
-    listItemProps = { component: 'a', href: item.url, target: itemTarget };
+    listItemProps = { component: 'a', href: resolvedUrl, target: itemTarget };
   }
 
   const itemHandler = (id) => {

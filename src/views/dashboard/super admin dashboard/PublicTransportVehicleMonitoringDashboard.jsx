@@ -224,7 +224,7 @@ const [zoom, setZoom] = useState(7);
 const fetchAreaData = async (payload = {}, method = "POST") => {
   try {
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard/areawise-device-count/",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard/areawise-device-count/`,
       {
         method,
         headers: {
@@ -246,7 +246,7 @@ const fetchAreaData = async (payload = {}, method = "POST") => {
 const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
   try {
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard/vehicle-monitoring/",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard/vehicle-monitoring/`,
       {
         method,
         headers: {
