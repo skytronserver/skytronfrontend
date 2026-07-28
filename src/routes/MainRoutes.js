@@ -36,6 +36,7 @@ const AlertLog = Loadable(lazy(() => import("../views/reports/AlertLog")));
 const ActivationLogReport = Loadable(lazy(() => import("../views/reports/ActivationLogReport")));
 const NotAuthorized = Loadable(lazy(() => import("../views/pages/NotAuthorized")));
 const GpsDataLog = Loadable(lazy(() => import("../views/reports/GpsDataLog")));
+const DeviceLoginHistory = Loadable(lazy(() => import("../views/reports/DeviceLoginHistory")));
 const EmergencyDataLogs = Loadable(lazy(() => import("views/reports/EmergencyDataLogs")));
 const ApiDataLog = Loadable(lazy(() => import("../views/reports/ApiDataLog")));
 const CameraFeedsView = Loadable(lazy(() => import("../pages/CameraFeedsView")));
@@ -308,6 +309,11 @@ const MainRoutes = {
     {
       path: '/reports/gps-data-log',
       element: <GpsDataLog />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/reports/device-login-history',
+      element: <DeviceLoginHistory />,
       roles: ['superadmin', 'stateadmin']
     },
     {

@@ -68,7 +68,7 @@ const HabitualOffenderReport = () => {
             });
 
             const rawData = Array.isArray(response.data) ? response.data : (response.data?.devices || response.data?.results || []);
-            
+
             setData(rawData.map((item, index) => {
                 // Convert the breakdown object into a nice string (e.g., "OverSpeed: 10, HarshTurn: 12")
                 let breakdownStr = '';
@@ -78,8 +78,8 @@ const HabitualOffenderReport = () => {
                         .join(', ');
                 }
 
-                return { 
-                    id: item.device_tag_id || item.imei || index, 
+                return {
+                    id: item.device_tag_id || item.imei || index,
                     ...item,
                     last_alert: item.last_alert_at || item.last_alert, // Map the new API field name
                     breakdown: breakdownStr // Replace the object with our formatted string

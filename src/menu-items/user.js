@@ -819,6 +819,15 @@ const user = {
           roles: ['superadmin']
         },
         {
+          id: 'device-login-history',
+          title: 'Device Login History',
+          type: 'item',
+          url: '/reports/device-login-history',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin']
+        },
+        {
           id: 'activation-log-report',
           title: 'Activation Log Report',
           type: 'item',
