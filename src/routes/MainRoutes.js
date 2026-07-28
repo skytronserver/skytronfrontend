@@ -37,6 +37,7 @@ const ActivationLogReport = Loadable(lazy(() => import("../views/reports/Activat
 const NotAuthorized = Loadable(lazy(() => import("../views/pages/NotAuthorized")));
 const GpsDataLog = Loadable(lazy(() => import("../views/reports/GpsDataLog")));
 const DeviceLoginHistory = Loadable(lazy(() => import("../views/reports/DeviceLoginHistory")));
+const DeviceDataHealth = Loadable(lazy(() => import("../views/reports/DeviceDataHealth")));
 const EmergencyDataLogs = Loadable(lazy(() => import("views/reports/EmergencyDataLogs")));
 const ApiDataLog = Loadable(lazy(() => import("../views/reports/ApiDataLog")));
 const CameraFeedsView = Loadable(lazy(() => import("../pages/CameraFeedsView")));
@@ -312,9 +313,14 @@ const MainRoutes = {
       roles: ['superadmin', 'stateadmin']
     },
     {
-      path: '/reports/device-login-history',
+      path: "/reports/device-login-history",
       element: <DeviceLoginHistory />,
-      roles: ['superadmin', 'stateadmin']
+      roles: ["superadmin", "stateadmin", "dealer", "owner", "dto"],
+    },
+    {
+      path: "/reports/device-data-health",
+      element: <DeviceDataHealth />,
+      roles: ["superadmin", "stateadmin", "dealer", "owner", "dto"],
     },
     {
       path: '/reports/activation-log-report',

@@ -828,6 +828,15 @@ const user = {
           roles: ['superadmin', 'stateadmin']
         },
         {
+          id: 'device-data-health',
+          title: 'Device Data Health',
+          type: 'item',
+          url: '/reports/device-data-health',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin', 'dealer', 'owner', 'dto']
+        },
+        {
           id: 'activation-log-report',
           title: 'Activation Log Report',
           type: 'item',
