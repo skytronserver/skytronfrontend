@@ -1,4 +1,3 @@
-import { disable } from "ol/rotationconstraint";
 import * as Yup from "yup";
 import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
 let stateList = [];

@@ -35,10 +35,9 @@ import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
 import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/HomePage";
 import MapComponent from "./vehicleHistoryMap";
-import { none } from "ol/centerconstraint";
 import SearchIcon from "@mui/icons-material/Search"; // Import the search icon
 import FilterListIcon from "@mui/icons-material/FilterList";
-import { keyMapping, iconData, iconStyles, fullText, isoDatePattern } from "../../store/constant";
+import { iconData, fullText, isoDatePattern } from "../../store/constant";
 import { formatDateTime, getRole } from "../../helper"
 import CircularProgress from '@mui/material/CircularProgress';
 import "./tabstyle.css";

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider, Grid, Button, Menu, MenuItem, Collapse, ListItemIcon, Box } from '@mui/material';
-import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, Dashboard as DashboardIcon, ExpandLess, ExpandMore, GetApp as DownloadIcon } from '@mui/icons-material';
+import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemText, Divider, Grid, Button, Menu, MenuItem, Collapse, Box } from '@mui/material';
+import { Home as HomeIcon, Menu as MenuIcon, ImportantDevices as ImportantLinksIcon, KeyboardArrowDown as ArrowDownIcon, ExpandLess, ExpandMore, GetApp as DownloadIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import ashokstambh from "../../assets/images/ashoka-pillar.webp";
 import { Link } from "react-router-dom";
@@ -21,8 +21,8 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const importantLinksOpen = Boolean(anchorEl);
   const [downloadAppAnchorEl, setDownloadAppAnchorEl] = useState(null);
   const downloadAppOpen = Boolean(downloadAppAnchorEl);
-  const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
-  const dashboardOpen = Boolean(dashboardAnchorEl);
+  // const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
+  // const dashboardOpen = Boolean(dashboardAnchorEl);
   const [drawerImportantLinksOpen, setDrawerImportantLinksOpen] = useState(false);
   const [drawerDownloadAppOpen, setDrawerDownloadAppOpen] = useState(false);
 
@@ -52,13 +52,13 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
     setDownloadAppAnchorEl(null);
   };
 
-  const handleDashboardClick = (event) => {
-    setDashboardAnchorEl(event.currentTarget);
-  };
+  // const handleDashboardClick = (event) => {
+  //   setDashboardAnchorEl(event.currentTarget);
+  // };
 
-  const handleDashboardClose = () => {
-    setDashboardAnchorEl(null);
-  };
+  // const handleDashboardClose = () => {
+  //   setDashboardAnchorEl(null);
+  // };
 
   return (
     <div>

@@ -1,10 +1,9 @@
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import React from 'react';
 import { Grid } from "@mui/material";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from '../../services/DeviceModelServices';
 import { useEffect, useState } from 'react';
-import { fetchDeviceModels } from '../../actions/deviceModelActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { approvedModelColumns } from '../../datatables/approvedModelColumns';
 import { Link } from "react-router-dom";

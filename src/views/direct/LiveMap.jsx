@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
     Button,
-    ButtonGroup,
     Tooltip,
     Box,
     IconButton,
@@ -17,7 +16,6 @@ import {
     Alert,
     InputBase,
     Divider,
-    Collapse,
     Switch,
     FormControlLabel
 } from "@mui/material";
@@ -25,7 +23,6 @@ import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import { Vector as VectorSource } from "ol/source";
 import { Vector as VectorLayer } from "ol/layer";
-import { fromLonLat } from "ol/proj";
 import {
     Style,
     Fill,
@@ -43,9 +40,7 @@ import {
     Check as CheckIcon,
     Map as MapIcon,
     Satellite as SatelliteIcon,
-    Public as PublicIcon,
-    Hd as HdIcon,
-    Terrain as TerrainIcon
+    Public as PublicIcon
 } from "@mui/icons-material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, } from "ol/layer";
@@ -53,7 +48,6 @@ import { TileWMS, XYZ, Cluster } from "ol/source";
 import { ZoomSlider, FullScreen, ScaleLine } from "ol/control";
 import {
     Icon,
-    Stroke as OlStroke,
 } from "ol/style";
 import { getAxiosInstance } from "../../services/axiosInstance";
 
@@ -3111,16 +3105,8 @@ const MapComponent = ({
             }
         });
 
-        if (routeInfoOverlayElementRef.current) {
-            const routeInfoOverlay = new Overlay({
-                element: routeInfoOverlayElementRef.current,
-                autoPan: true,
-                positioning: "bottom-center",
-                stopEvent: true,
-            });
-            initialMap.addOverlay(routeInfoOverlay);
-            routeInfoOverlayRef.current = routeInfoOverlay;
-        }
+        // Route Info panel is now a fixed CSS-positioned div (top-right of map container)
+        // No OL Overlay needed — visibility is toggled directly via routeInfoOverlayElementRef
 
         setMap(initialMap);
         setVectorLayer(initialVectorLayer);
@@ -6164,9 +6150,7 @@ ${selectedColumns.map((key) => {
         if (routeInfoOverlayElementRef.current) {
             routeInfoOverlayElementRef.current.style.display = "none";
         }
-        if (routeInfoOverlayRef.current) {
-            routeInfoOverlayRef.current.setPosition(undefined);
-        }
+        // routeInfoOverlay is CSS-positioned; visibility already hidden above
 
     }, [focusEntry?.imei]);   // fires only when the selected vehicle changes
 
@@ -6248,14 +6232,16 @@ ${selectedColumns.map((key) => {
                 lineFeature.setStyle(new Style({ stroke: new Stroke({ color: "#1e40af", width: 5 }) }));
                 routeSource.addFeature(lineFeature);
 
-                // Destination pin
+                // E marker at destination — teardrop pin with "E" label
+                // (No S marker needed — vehicle icon already marks the start)
+                const destSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="34" viewBox="0 0 24 34">
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 8 12 22 12 22S24 20 24 12C24 5.373 18.627 0 12 0z" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
+                  <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="bold" font-family="Roboto,Arial,sans-serif" fill="#fff">E</text>
+                </svg>`;
+                const destIconUrl = `data:image/svg+xml;base64,${window.btoa(destSvg)}`;
                 const destFeature = new Feature({ geometry: new Point([destLon, destLat]) });
                 destFeature.setStyle(new Style({
-                    image: new CircleStyle({
-                        radius: 8,
-                        fill: new Fill({ color: "#dc2626" }),
-                        stroke: new Stroke({ color: "#fff", width: 2 }),
-                    }),
+                    image: new Icon({ anchor: [0.5, 1.0], src: destIconUrl, scale: 1.0 }),
                 }));
                 routeSource.addFeature(destFeature);
 
@@ -6269,12 +6255,16 @@ ${selectedColumns.map((key) => {
                 const distanceM = paths[0]?.distance ?? 0;
                 const distanceKm = distanceM / 1000;
 
-                // ETA based on avg speed of 15 km/h
-                const etaHours = distanceKm / 15;
-                const etaMinutes = Math.round(etaHours * 60);
-                const etaDisplay = etaMinutes < 60
-                    ? `${etaMinutes} min`
-                    : `${Math.floor(etaMinutes / 60)}h ${etaMinutes % 60}min`;
+                // ETA from API response — time is in milliseconds
+                const etaMs = paths[0]?.time ?? 0;
+                const etaTotalSeconds = Math.round(etaMs / 1000);
+                const etaMinutes = Math.floor(etaTotalSeconds / 60);
+                const etaSeconds = etaTotalSeconds % 60;
+                const etaDisplay = etaTotalSeconds < 60
+                    ? `${etaTotalSeconds} sec`
+                    : etaMinutes < 60
+                        ? `${etaMinutes} min ${etaSeconds > 0 ? etaSeconds + ' sec' : ''}`
+                        : `${Math.floor(etaMinutes / 60)}h ${etaMinutes % 60}min`;
 
                 // Show loading state in popup immediately
                 const infoEl = routeInfoOverlayElementRef.current;
@@ -6294,16 +6284,12 @@ ${selectedColumns.map((key) => {
                           <div style="font-weight:700;font-size:13px;color:#111827;">${distanceKm.toFixed(2)} km</div>
                         </div>
                         <div style="text-align:center;">
-                          <div style="font-size:11px;color:#6b7280;">ETA <span style="font-size:9px;">(avg 15 km/h)</span></div>
+                          <div style="font-size:11px;color:#6b7280;">Travel Time</div>
                           <div style="font-weight:700;font-size:13px;color:#111827;">${etaDisplay}</div>
                         </div>
                       </div>
                     </div>`;
-                    // Position popup at midpoint of the route
-                    const midIdx = Math.floor(lineCoords.length / 2);
-                    if (routeInfoOverlayRef.current) {
-                        routeInfoOverlayRef.current.setPosition(lineCoords[midIdx]);
-                    }
+                    // Panel is CSS-positioned — no OL setPosition needed
                 }
 
                 // Fetch source & destination addresses via reverse geocoding
@@ -6335,13 +6321,19 @@ ${selectedColumns.map((key) => {
                         font-size:16px;cursor:pointer;color:#6b7280;line-height:1;
                       ">✕</button>
                       <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:10px;">🧭 Route Info</div>
-                      <div style="margin-bottom:8px;">
-                        <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">📍 Source</div>
-                        <div style="font-size:11px;font-weight:500;color:#111827;line-height:1.4;">${srcAddress}</div>
+                      <div style="margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;">
+                        <div style="min-width:24px;height:24px;border-radius:50%;background:#1e40af;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">S</div>
+                        <div>
+                          <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Start Point</div>
+                          <div style="font-size:11px;font-weight:500;color:#111827;line-height:1.4;">${srcAddress}</div>
+                        </div>
                       </div>
-                      <div style="margin-bottom:10px;">
-                        <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">🏁 Destination</div>
-                        <div style="font-size:11px;font-weight:500;color:#111827;line-height:1.4;">${destAddress}</div>
+                      <div style="margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;">
+                        <div style="min-width:24px;height:24px;border-radius:50%;background:#dc2626;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">E</div>
+                        <div>
+                          <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">End Point</div>
+                          <div style="font-size:11px;font-weight:500;color:#111827;line-height:1.4;">${destAddress}</div>
+                        </div>
                       </div>
                       <div style="display:flex;gap:16px;padding-top:10px;border-top:1px solid #f1f5f9;">
                         <div style="flex:1;text-align:center;background:#eff6ff;border-radius:8px;padding:8px 4px;">
@@ -6349,7 +6341,7 @@ ${selectedColumns.map((key) => {
                           <div style="font-weight:700;font-size:15px;color:#1e40af;">${distanceKm.toFixed(2)} km</div>
                         </div>
                         <div style="flex:1;text-align:center;background:#f0fdf4;border-radius:8px;padding:8px 4px;">
-                          <div style="font-size:10px;color:#16a34a;">ETA <span style="font-size:9px;">(avg 15 km/h)</span></div>
+                          <div style="font-size:10px;color:#16a34a;">Travel Time</div>
                           <div style="font-weight:700;font-size:15px;color:#15803d;">${etaDisplay}</div>
                         </div>
                       </div>
@@ -7882,6 +7874,18 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 >
                     {/* Map div injected by useEffect */}
                 </div>
+                {/* Route Info Panel — anchored to top-right corner of map */}
+                <div
+                    ref={routeInfoOverlayElementRef}
+                    style={{
+                        display: "none",
+                        position: "absolute",
+                        top: "12px",
+                        right: "12px",
+                        zIndex: 1200,
+                        pointerEvents: "auto",
+                    }}
+                />
             </div>
 
             {/* --- Attribution Logos --- */}
@@ -7893,8 +7897,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             <div ref={overlayElement} className="dynamic-overlay">
                 <div id="overlay-content"></div>
             </div>
-            {/* Route Info Popup Overlay (Get Direction result) */}
-            <div ref={routeInfoOverlayElementRef} style={{ display: "none" }} />
+
             <div
                 ref={poiTransitOverlayElement}
                 className="ol-popup"

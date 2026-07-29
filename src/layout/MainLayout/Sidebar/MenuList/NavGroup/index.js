@@ -42,9 +42,8 @@ const NavGroup = ({ item, role, permissions }) => {
   
     switch (menu.type) {
       case 'collapse': {
-        const canView = canViewMenu(menu.id, role, permissions, menu.roles);
         const hasChildren = hasVisibleChildren(menu, role, permissions);
-        return (canView && hasChildren) ? <NavCollapse key={menu.id} menu={menu} level={1} role={role} permissions={permissions} /> : null;
+        return hasChildren ? <NavCollapse key={menu.id} menu={menu} level={1} role={role} permissions={permissions} /> : null;
       }
       case 'item': {
         const canView = canViewMenu(menu.id, role, permissions, menu.roles);

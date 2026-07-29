@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
 import { MuiOtpInput } from "mui-one-time-password-input";
-import { verifyOtp,resendOtp,setError } from "../../../actions/loginActions";
+import { verifyOtp,resendOtp } from "../../../actions/loginActions";
 import { createAxiosInstance } from '../../../services/axiosInstance';
 import MinimalFooter from '../../../ui-component/cards/MinimalFooter';
 import AlertBox from "../../../ui-component/AlertBox";

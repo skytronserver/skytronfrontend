@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Grid, Button, CircularProgress, TextField, MenuItem,
-  Checkbox, FormControlLabel, Switch, Select, FormControl, InputLabel
+  Checkbox, Switch
 } from '@mui/material';
 import MainCard from '../../ui-component/cards/MainCard';
 import DialogComponent from '../../ui-component/DialogComponent';

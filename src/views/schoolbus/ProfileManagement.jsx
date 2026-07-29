@@ -7,7 +7,6 @@ import {
     Tabs,
     Tab,
     Alert,
-    Avatar,
     Dialog,
     DialogTitle,
     DialogContent,

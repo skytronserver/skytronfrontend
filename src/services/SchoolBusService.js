@@ -611,16 +611,23 @@ const api = {
   },
   getHolidays() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/holidays');
+    return http.get('/school/api/admin/holidays/');
   },
   createHoliday(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/holidays', data);
+    return http.post('/school/api/admin/holidays/', data);
   },
   getUnplannedUsageReport() {
     const http = getAxiosInstance();
     return http.get('/api/schoolbus/reports/unplanned-usage');
   },
+  getUnplannedUsage(fromDate, toDate) {
+  const http = getAxiosInstance();
+
+  return http.get(
+    `/school/api/admin/reports/unplanned-movement/?from_datetime=${fromDate}&to_datetime=${toDate}`
+  );
+},
   // getAttendanceReport() {
   //   const http = getAxiosInstance();
   //   return http.get('/api/schoolbus/reports/attendance');
@@ -637,10 +644,15 @@ const api = {
     const http = getAxiosInstance();
     return http.get('/api/schoolbus/reports/traffic');
   },
-  getAlertsFeed() {
-    const http = getAxiosInstance();
-    return http.get('/api/schoolbus/alerts/feed');
-  },
+  getAlertsFeed(alertType = "") {
+  const http = getAxiosInstance();
+
+  const url = alertType
+    ? `/school/api/admin/school/alerts/?alert_type=${alertType}`
+    : `/school/api/admin/school/alerts/`;
+
+  return http.get(url);
+},
   getTaggedVehicles() {
     const http = getAxiosInstance();
     return http.get('school/api/admin/buses/tag/history/');
@@ -705,23 +717,23 @@ const api = {
   },
   getRouteOptions() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/routes/options');
+    return http.get('/school/api/admin/routes/');
   },
   getAssignments() {
     const http = getAxiosInstance();
-    return http.get('/api/schoolbus/assignments');
+    return http.get('/school/api/admin/routes/assignments/');
   },
   assignBus(data) {
     const http = getAxiosInstance();
-    return http.post('/api/schoolbus/assign', data);
+    return http.post('/school/api/admin/routes/assign-bus/', data);
   },
-  reassignBus(busId, data) {
+  reassignBus(bus_id, data) {
     const http = getAxiosInstance();
-    return http.put(`/api/schoolbus/reassign/${busId}`, data);
+    return http.post(`/school/api/admin/routes/${bus_id}/reassign/`, data);
   },
-  untagBus(busId) {
+  untagBus(bus_id) {
     const http = getAxiosInstance();
-    return http.delete(`/api/schoolbus/untag/${busId}`);
+    return http.delete(`/api/admin/routes/${bus_id}/remove-bus/`);
   },
   getParents() {
     const http = getAxiosInstance();
@@ -863,6 +875,29 @@ markDrop(tripId, data) {
     data
   );
 },
+
+approveBusTag(tagId) {
+  const http = getAxiosInstance();
+
+  return http.post(
+    `/school/api/state-admin/bus-tags/${tagId}/decision/`,
+    {
+      decision: "APPROVE"
+    }
+  );
+},
+
+rejectBusTag(tagId, remarks) {
+  const http = getAxiosInstance();
+
+  return http.post(
+    `/school/api/state-admin/bus-tags/${tagId}/decision/`,
+    {
+      decision: "REJECT",
+      remarks
+    }
+  );
+},
 };
 
 const SchoolBusService = {
@@ -949,6 +984,13 @@ const SchoolBusService = {
 
 markDrop: (...args) =>
   api.markDrop(...args),
+getUnplannedUsage: (...args) =>
+    api.getUnplannedUsage(...args),
+approveBusTag: (...args) =>
+  api.approveBusTag(...args),
+
+rejectBusTag: (...args) =>
+  api.rejectBusTag(...args),
 };
 
 export default SchoolBusService;

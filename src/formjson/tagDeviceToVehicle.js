@@ -1,7 +1,7 @@
 import * as Yup from "yup";
 import { goldMobileValidation } from "./validationHelpers";
 let deviceList = [];
-let ownerList = [];
+export let ownerList = [];
 let categoryList = [];
 
 export const taggingInitials = {

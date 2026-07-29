@@ -160,6 +160,16 @@ const updateRequest = (formData) => {
   return http.post("/api/esimActivateReq/update/", formData)
 }
 
+const getUntaggedStockFilter = (data) => {
+  const http = getAxiosInstance();
+  return http.post('/api/devicestock/deviceStockUntaggedFilter/', data);
+};
+
+const softDeleteStock = (stockIds) => {
+  const http = getAxiosInstance();
+  return http.post('/api/devicestock/deviceStockSoftDelete/', { stock_ids: stockIds });
+};
+
 const StockServices = {
   getBulkStocks,
   stockFilter,
@@ -180,7 +190,9 @@ const StockServices = {
   getProviderList,
   simActivationReq,
   getListActivationRequest,
-  updateRequest
+  updateRequest,
+  getUntaggedStockFilter,
+  softDeleteStock,
 };
 
 export default StockServices;

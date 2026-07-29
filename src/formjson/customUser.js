@@ -2,7 +2,6 @@
 // Form field config for Custom User creation/editing — follows the project's FormField pattern.
 import * as Yup from 'yup';
 import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldPinValidation } from './validationHelpers';
-import { indianStates } from './indianState';
 
 const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = ['image/jpg', 'image/jpeg', 'image/png', 'application/pdf'];

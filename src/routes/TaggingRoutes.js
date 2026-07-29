@@ -1,12 +1,8 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
-import { Navigate, useLocation } from "react-router-dom";
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
-import { decipherEncryption } from '../helper';
-import { useSelector } from "react-redux";
-import { canViewRoute } from "../utils/rbacUtils";
 
 // Lazy-loaded components
 const TagDeviceToVehicle = Loadable(lazy(() => import("../views/tagging/TagDeviceToVehicle")));

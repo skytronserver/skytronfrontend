@@ -1,7 +1,5 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
-import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
@@ -13,7 +11,6 @@ import {
   otherUserInitialValues,
   otherUserFormField,
 } from "../formjson/otherUser";
-import { decipherEncryption } from "../helper";
 
 // Lazy-loaded components
 const DynamicForm = Loadable(lazy(() => import("../views/forms/DynamicForm")));

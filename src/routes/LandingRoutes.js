@@ -1,6 +1,9 @@
-import ViewNotice from "../views/landingpage/ViewNotice";
 import LandingLayout from "../layout/LandingLayout";
-import LandingPage from "../views/landingpage/LandingPage";
+import { lazy } from "react";
+import Loadable from "../ui-component/Loadable";
+
+const ViewNotice = Loadable(lazy(() => import("../views/landingpage/ViewNotice")));
+const LandingPage = Loadable(lazy(() => import("../views/landingpage/LandingPage")));
 const LandingRoutes = {
   path: "/landing",
   element: <LandingLayout />,

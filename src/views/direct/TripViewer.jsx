@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
-import HomePageService from "../../services/HomePage";
 import TaggingService from "../../services/TaggingService";
 import { useTranslation } from 'react-i18next';
-import { FormControl, Autocomplete, TextField, Button, Grid, Box, Typography, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Slider, Stack, FormControlLabel, Checkbox, Skeleton, CircularProgress } from '@mui/material';
+import { FormControl, Autocomplete, TextField, Button, Grid, Box, Typography, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Skeleton, CircularProgress } from '@mui/material';
 import { Map, View } from 'ol';
 import { Tile as TileLayer } from 'ol/layer';
 import { TileWMS, XYZ } from 'ol/source';
@@ -19,11 +18,9 @@ import Icon from 'ol/style/Icon';
 import Stroke from 'ol/style/Stroke';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
-import Text from 'ol/style/Text';
 import Overlay from 'ol/Overlay';
 import "ol/ol.css";
 import axios from 'axios';
-import { useTheme } from '@mui/material/styles';
 
 const resolveBhuvanWmsUrl = () => {
   const envUrl = process.env.REACT_APP_BHUVAN_URL || "https://bhuvan-vec1.nrsc.gov.in";

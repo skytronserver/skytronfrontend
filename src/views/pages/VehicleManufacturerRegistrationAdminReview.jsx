@@ -16,7 +16,6 @@ import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { manufacturerColumns } from "../../datatables/rowsColumn";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import UserServices from "../../services/UserServices";
-import { getRole } from "../../helper";
 
 const VehicleManufacturerRegistrationAdminReview = () => {
   const [errorMessage, setErrorMessage] = useState("");

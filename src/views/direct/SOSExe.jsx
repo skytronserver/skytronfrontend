@@ -2,7 +2,6 @@
 import React from 'react';
 // project imports
 import MainCard from '../../ui-component/cards/MainCard';
-import HomePageService from "../../services/HomePage"
 import { useEffect, useState } from 'react';
 // ==============================|| SAMPLE PAGE ||============================== //
 

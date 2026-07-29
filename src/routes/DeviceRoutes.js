@@ -1,14 +1,11 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
-import { useSelector } from "react-redux";
-import { canViewRoute } from "../utils/rbacUtils";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 // project imports
 
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
-import { decipherEncryption } from "../helper";
 
 // Lazy-loaded components
 const DeviceForm = Loadable(lazy(() => import("../views/forms/DeviceForm")));
@@ -38,7 +35,11 @@ const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../view
 const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
 const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
+<<<<<<< HEAD
 const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/ActivationStatusList")));
+=======
+const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/UntaggedDeviceStock")));
+>>>>>>> 84ff2c200eeb1e35f8043a49b92b50f9ba65a068
 
 
 
@@ -193,6 +194,11 @@ const DeviceRoutes = {
     {
       path: "/device/eSimActivation",
       element: <Navigate to="/device/m2m-activation" replace />,
+    },
+    {
+      path: "/manufacturer/unused-stock",
+      element: <UntaggedDeviceStock />,
+      roles: ["devicemanufacture", "dealer", "superadmin", "stateadmin"],
     },
   ].map((route) => applyPrivateRoute(route)),
 };

@@ -15,14 +15,11 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemButton,
   IconButton,
-  Collapse,
   Card,
   CardContent,
   ListItemIcon,
   Switch,
-  FormControlLabel,
   ButtonGroup,
   Tooltip,
   Tabs,
@@ -30,12 +27,12 @@ import {
   Stack,
   Chip
 } from "@mui/material";
-import { ExpandLess, ExpandMore, History, Delete, Route, Navigation, MyLocation, DirectionsCar } from '@mui/icons-material';
+import { History, Delete, Route, Navigation, MyLocation, DirectionsCar } from '@mui/icons-material';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
-import { OSM, TileWMS, XYZ } from "ol/source";
-import { fromLonLat, toLonLat, get as getProjection } from "ol/proj";
+import { TileWMS, XYZ } from "ol/source";
+import { fromLonLat, toLonLat } from "ol/proj";
 import { getDistance } from 'ol/sphere';
 import { register } from 'ol/proj/proj4';
 import proj4 from 'proj4';
@@ -44,7 +41,6 @@ import VectorLayer from "ol/layer/Vector";
 import Point from "ol/geom/Point";
 import Feature from "ol/Feature";
 import LineString from "ol/geom/LineString";
-import Overlay from "ol/Overlay";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
 import Stroke from "ol/style/Stroke";

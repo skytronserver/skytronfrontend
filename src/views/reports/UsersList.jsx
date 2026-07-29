@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import Datatable from '../../datatables/Datatable';
 import { registeredUserColumns } from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
-import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField } from '@mui/material';
+import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 
 const generateDummyManufacturerUsers = () => {
   const dummyUsers = [];

@@ -9,7 +9,6 @@ import {
     DialogContent,
     IconButton,
     Alert,
-    Divider,
     Chip,
     Tooltip
 } from '@mui/material';
@@ -53,7 +52,7 @@ const RouteManagement = () => {
     const selectedRouteObj = routes.find((r) => String(r.id) === String(selectedRoute));
 
     const loadStops = async (routeId) => {
-        debugger
+        // debugger
         if (!routeId) {
             setStops([]);
             return;
@@ -161,7 +160,7 @@ const nextOrder =
                                                 setOpenConfirm(false);
                                                 setError('');
                                                 setLoading(true);
-                                                debugger
+                                                // debugger
                                                 await SchoolBusService.deleteRoute(value);
                                                 const res = await SchoolBusService.getRoutes();
                                                 const list = Array.isArray(res?.data?.data) ? res.data?.data : [];
@@ -224,7 +223,7 @@ const nextOrder =
                                                 setOpenConfirm(false);
                                                 setError('');
                                                 setLoading(true);
-                                                debugger
+                                                // debugger
                                                 await SchoolBusService.deleteStop(value,selectedRoute);
                                                 await loadStops(selectedRoute);
                                                 const rr = await SchoolBusService.getRoutes();
@@ -343,13 +342,13 @@ const nextOrder =
                         initialValues={{ name: '', description: '', status: 'active', route_points: [] }}
                         validationSchema={Yup.object().shape(Object.fromEntries(Object.entries(routeFields(t)).map(([k, v]) => [k, v.validation])))}
                         onSubmit={(values, { setSubmitting, resetForm }) => {
-                            debugger
+                            // debugger
                             setError('');
                             setLoading(true);
                             SchoolBusService.createRoute(values)
                                 .then(() => SchoolBusService.getRoutes())
                                 .then((res) => {
-                                    debugger
+                                    // debugger
                                     const list = Array.isArray(res?.data?.data) ? res.data?.data : [];
                                     setRoutes(list);
                                     if (list.length > 0) setSelectedRoute(list[0]?.id);
@@ -481,7 +480,7 @@ const nextOrder =
                             }
                             setError('');
                             setLoading(true);
-debugger
+// debugger
                             SchoolBusService.updateRoute(editingRoute.id, values)
 
                                 .then(() => SchoolBusService.getRoutes())
@@ -622,7 +621,7 @@ debugger
                                 setSubmitting(false);
                                 return;
                             }
-                            debugger
+                            // debugger
 
                             setError('');
                             setLoading(true);
@@ -693,7 +692,7 @@ debugger
                             }
                             setError('');
                             setLoading(true);
-                            debugger
+                            // debugger
                             SchoolBusService.updateStop(editingStop.id, values)
                                 .then(() => SchoolBusService.getStops(selectedRoute))
                                 .then((res) => {

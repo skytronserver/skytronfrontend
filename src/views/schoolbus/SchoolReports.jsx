@@ -10,6 +10,7 @@ import {
     Stack,
     Snackbar
 } from '@mui/material';
+import TextField from '@mui/material/TextField';
 import { useTheme } from '@mui/material/styles';
 import MainCard from '../../ui-component/cards/MainCard';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
@@ -21,7 +22,8 @@ const SchoolReports = () => {
     const [tabValue, setTabValue] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
+const [fromDate, setFromDate] = useState(null);
+const [toDate, setToDate] = useState(null);
     const [unplanned, setUnplanned] = useState([]);
     const [attendance, setAttendance] = useState([]);
     const [selectedTripId, setSelectedTripId] = useState(null);
@@ -32,6 +34,58 @@ const SchoolReports = () => {
         message: '',
         severity: 'success'
     });
+
+    const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
+
+    return new Date(dateString).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    });
+};
+
+    const fetchUnplannedUsage = async () => {
+  try {
+    const res = await SchoolBusService.getUnplannedUsage(
+      fromDate,
+      toDate
+    );
+
+    setUnplanned(
+      res?.data?.data?.map((item, index) => ({
+        id: index + 1,
+        vehicle_reg_no: item.bus?.vehicle_reg_no,
+        vehicle_make: item.bus?.vehicle_make,
+        vehicle_model: item.bus?.vehicle_model,
+        driver_name: item.driver?.name,
+        driver_phone: item.driver?.phone_no,
+        owner_name: item.owner?.name,
+        status: item.status,
+        is_holiday: item.is_holiday ? "Yes" : "No",
+        duration_seconds: item.duration_seconds,
+        started_at: formatDateTime(
+            item.unplanned_movement_started_at
+        ),
+        stopped_at: formatDateTime(
+            item.unplanned_movement_stopped_at
+        )
+      })) || []
+    );
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+useEffect(() => {
+    if (tabValue === 2) {
+        fetchUnplannedUsage();
+    }
+}, [tabValue]);
 
     useEffect(() => {
         let mounted = true;
@@ -48,7 +102,6 @@ const SchoolReports = () => {
                 // }
 
                 if (t.status === 'fulfilled') {
-                    console.log('Trips:', t.value?.data);
 
                     setTrips(
                         Array.isArray(t.value?.data?.data)
@@ -56,6 +109,7 @@ const SchoolReports = () => {
                             : []
                     );
                 }
+              
 
             })
             .catch((e) => {
@@ -305,12 +359,47 @@ const SchoolReports = () => {
         }
     };
     const unplannedCols = [
-        { name: 'date', label: 'Date' },
-        { name: 'vehicleRegNo', label: 'Vehicle' },
-        { name: 'reason', label: 'Reason' },
-        { name: 'distanceKm', label: 'Distance (KM)' },
-        { name: 'remarks', label: 'Remarks' }
-    ];
+    {
+        name: 'vehicle_reg_no',
+        label: 'Vehicle No'
+    },
+    {
+        name: 'vehicle_make',
+        label: 'Make'
+    },
+    {
+        name: 'vehicle_model',
+        label: 'Model'
+    },
+    {
+        name: 'driver_name',
+        label: 'Driver'
+    },
+    {
+        name: 'driver_phone',
+        label: 'Driver Phone'
+    },
+    {
+        name: 'owner_name',
+        label: 'Owner'
+    },
+    {
+        name: 'is_holiday',
+        label: 'Holiday'
+    },
+    {
+        name: 'duration_seconds',
+        label: 'Duration (Sec)'
+    },
+    {
+        name: 'started_at',
+        label: 'Started At'
+    },
+    {
+        name: 'stopped_at',
+        label: 'Stopped At'
+    }
+];
 
     const attendanceCols = [
         {
@@ -545,14 +634,67 @@ return (
                             </Tabs>
                         </Box>
 
-                        {tabValue === 2 && (
+                        {/* {tabValue === 2 && (
                             <DynamicDatatables
                                 tableTitle="Unplanned Usage"
                                 rows={unplanned}
                                 columns={unplannedCols}
                                 options={{ selectableRows: 'none', filter: true, search: true }}
                             />
-                        )}
+                        )} */}
+                        {tabValue === 2 && (
+    <Grid
+        container
+        spacing={2}
+        sx={{ mb: 2 }}
+    >
+        <Grid item xs={12} md={4}>
+            <TextField
+                fullWidth
+                label="From Date"
+                type="datetime-local"
+                value={fromDate}
+                onChange={(e) =>
+                    setFromDate(e.target.value)
+                }
+                InputLabelProps={{
+                    shrink: true
+                }}
+            />
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+            <TextField
+                fullWidth
+                label="To Date"
+                type="datetime-local"
+                value={toDate}
+                onChange={(e) =>
+                    setToDate(e.target.value)
+                }
+                InputLabelProps={{
+                    shrink: true
+                }}
+            />
+        </Grid>
+
+        <Grid item xs={12} md={2}>
+            <Button
+                fullWidth
+                variant="contained"
+                onClick={fetchUnplannedUsage}
+            >
+                Search
+            </Button>
+        </Grid>
+         <DynamicDatatables
+                                tableTitle="Unplanned Usage"
+                                rows={unplanned}
+                                columns={unplannedCols}
+                                options={{ selectableRows: 'none', filter: true, search: true }}
+                            />
+    </Grid>
+)}
 
                         {tabValue === 0 && (
     attendance.length > 0 ? (

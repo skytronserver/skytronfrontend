@@ -12,7 +12,6 @@ import {
   StatBarChart,
   useVehicleData
 } from './SuperAdminCommon';
-import { BhuvanMapComponent } from 'components/Map';
 import MapComponent from 'views/direct/LiveMap';
 import UserServices from 'services/UserServices';
 

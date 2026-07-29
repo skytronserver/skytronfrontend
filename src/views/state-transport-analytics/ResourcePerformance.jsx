@@ -10,18 +10,13 @@ import {
     Button,
     useTheme,
     CircularProgress,
-    Divider,
-    Paper,
     Avatar,
-    Chip,
-    Rating
+    Chip
 } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import MainCard from 'ui-component/cards/MainCard';
 import {
     IconBus,
-    IconUser,
-    IconCalendarStats,
     IconSearch,
     IconRefresh,
     IconClock,
@@ -37,10 +32,7 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip as RechartsTooltip,
-    Legend,
-    ResponsiveContainer,
-    LineChart,
-    Line
+    ResponsiveContainer
 } from 'recharts';
 import PISService from '../../services/PISServices';
 import SettingService from '../../services/SettingService';

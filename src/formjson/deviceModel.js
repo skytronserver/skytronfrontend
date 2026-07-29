@@ -5,8 +5,8 @@ const SUPPORTED_FORMATS = [
   "image/jpeg",
   "application/pdf",
 ];
-const providerList = []
-const today = new Date().toISOString().split('T')[0];
+export const providerList = []
+export const today = new Date().toISOString().split('T')[0];
 export const deviceModelInitials = {
   eSimProviders: [],
   model_name: "",

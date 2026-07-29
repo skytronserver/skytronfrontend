@@ -9,7 +9,7 @@ import DialogComponent from "../../ui-component/DialogComponent";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import { convertErrorObjectToArray, retriveStateList } from "../../helper";
+import { retriveStateList } from "../../helper";
 import { m2mUserInitialValues, m2mUserFormField } from "../../formjson/M2MUser";
 
 const FILE_SIZE = 512 * 1024; // 512 KB

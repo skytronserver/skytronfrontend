@@ -1,12 +1,7 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
-import { Navigate, useLocation } from 'react-router-dom';
 import Loadable from "../ui-component/Loadable";
 import MainLayout from "../layout/MainLayout";
-import { decipherEncryption } from '../helper';
-import { useSelector } from "react-redux";
-import NotAuthorized from "../views/pages/NotAuthorized";
-import { canViewRoute } from "../utils/rbacUtils";
 
 
 

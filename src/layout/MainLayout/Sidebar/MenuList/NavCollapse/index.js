@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
 // material-ui
@@ -68,9 +68,8 @@ const NavCollapse = ({ menu, level, role, permissions }) => {
     
     switch (item.type) {
       case 'collapse': {
-        const canView = canViewMenu(item.id, role, permissions, item.roles);
         const hasChildren = hasVisibleChildren(item, role, permissions);
-        return (canView && hasChildren) ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role} permissions={permissions} /> : null;
+        return hasChildren ? <NavCollapse key={item.id} menu={item} level={level + 1} role={role} permissions={permissions} /> : null;
       }
       case 'item': {
         const canView = canViewMenu(item.id, role, permissions, item.roles);

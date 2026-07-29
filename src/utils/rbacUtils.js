@@ -51,6 +51,8 @@ export const MENU_MODULE_MAP = {
   'Approve-School':              'sbs_approve_school',
   'create-trip':                 'sbs_create_trip',
   'parent-tracking':             'sbs_parent_tracking',
+  'school-holidays':             'sbs_holidays',
+  'alerts-center':               'sbs_alerts_center',
 
   // ── Test Agency ────────────────────────────────────────────────────────────
   'test-agency-management':      'ta_agency_list',
@@ -237,6 +239,8 @@ export const ROUTE_MODULE_MAP = {
   '/schoolbus/bus-tracking':                                       'sbs_bus_tracking',
   '/schoolbus/create-trip':                                        'sbs_create_trip',
   '/schoolbus/parent-tracking':                                    'sbs_parent_tracking',
+  '/schoolbus/holidays':                                           'sbs_holidays',
+  '/schoolbus/alerts':                                             'sbs_alerts_center',
 
   // Test Agency
   '/new/test-agency':                                              'ta_create_agency',
@@ -525,8 +529,7 @@ export const hasVisibleChildren = (menuItem, role, permissions) => {
     if (child.type === 'item') {
       return canViewMenu(child.id, role, permissions, child.roles || []);
     } else if (child.type === 'collapse' || child.type === 'group') {
-      const canView = canViewMenu(child.id, role, permissions, child.roles || []);
-      return canView && hasVisibleChildren(child, role, permissions);
+      return hasVisibleChildren(child, role, permissions);
     }
     return false;
   });

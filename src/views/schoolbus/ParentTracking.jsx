@@ -6,17 +6,12 @@ import {
     Alert,
     Divider,
     Paper,
-    Tabs,
-    Tab,
     Chip
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import HistoryIcon from '@mui/icons-material/History';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import MainCard from '../../ui-component/cards/MainCard';
-import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { gridSpacing } from '../../store/constant';
 import SchoolBusService from '../../services/SchoolBusService';
 import LiveMap from './ParentLiveMap';

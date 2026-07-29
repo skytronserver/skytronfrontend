@@ -25,7 +25,6 @@ import {
 } from "../../actions/settingAction";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import {
-  frequencyColumns,
   otaColumns,
   firmwareColumns,
 } from "../../datatables/settingColumns";

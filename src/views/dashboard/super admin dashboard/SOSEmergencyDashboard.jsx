@@ -21,10 +21,8 @@ import {
   PageWrapper,
   DashboardCard,
   MetricCard,
-  StatBarChart,
   StatPieChart,
   MonthlyTrendsChart,
-  MonthlyPerformanceChart,
   useSosDashboardData
 } from './SuperAdminCommon';
 import UserServices from 'services/UserServices';

@@ -3,10 +3,10 @@ import { lazy } from "react";
 // project imports
 import Loadable from "../ui-component/Loadable";
 import MinimalLayout from "../layout/MinimalLayout";
-import LoginOtp from "../views/pages/authentication/LoginOtp";
-import ResetPassword from "../views/pages/authentication/ResetPassword";
-import SetPassword from "../views/pages/authentication/SetPassword";
-import ForgotPassword from "../views/pages/authentication/ForgotPassword";
+const LoginOtp = Loadable(lazy(() => import("../views/pages/authentication/LoginOtp")));
+const ResetPassword = Loadable(lazy(() => import("../views/pages/authentication/ResetPassword")));
+const SetPassword = Loadable(lazy(() => import("../views/pages/authentication/SetPassword")));
+const ForgotPassword = Loadable(lazy(() => import("../views/pages/authentication/ForgotPassword")));
 
 // login option 3 routing
 const AuthLogin3 = Loadable(

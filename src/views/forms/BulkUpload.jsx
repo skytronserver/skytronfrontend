@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
-import { filterModelList ,retriveCreatedSimProvider, retriveTechnicalOnboardedModelList} from "../../helper";
+import { retriveCreatedSimProvider, retriveTechnicalOnboardedModelList} from "../../helper";
 
 import { bulkInitials, bulkFormField } from "../../formjson/bulkUpload";
 import StockServices from "../../services/StockServices";

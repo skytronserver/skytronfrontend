@@ -132,7 +132,8 @@ export const busAssignmentFields = (t, buses = [], routes = []) => ({
         name: "busId",
         type: "select",
         label: "Select Bus",
-        options: buses.map(bus => ({ label: `${bus.regNo} - ${bus.driverName}`, value: bus.id })),
+        options: buses.map(bus => ({ label: bus.vehicle_reg_no,
+        value: bus.id })),
         validation: Yup.string().required("Bus selection is required"),
     },
     routeId: {

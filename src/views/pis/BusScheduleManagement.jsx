@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-import { IconEdit, IconPlayerPlay, IconSquareRoundedX, IconCheck } from '@tabler/icons';
+import { IconPlayerPlay, IconSquareRoundedX, IconCheck } from '@tabler/icons';
 import PISService from '../../services/PISServices';
 import { decipherEncryption } from '../../helper';
 

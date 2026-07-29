@@ -3,7 +3,7 @@ import React from "react";
 // project imports
 import  Grid from "@mui/material/Grid";
 import PageHeader from "../../ui-component/cards/PageHeader";
-import { gridSpacing,CUSTOM_BASE_URL } from "../../store/constant";
+import { gridSpacing } from "../../store/constant";
 import Notice from "../../services/Notice";
 import { useEffect, useState } from "react";
 import DynamicDatatables from "../../datatables/DynamicDatatables";

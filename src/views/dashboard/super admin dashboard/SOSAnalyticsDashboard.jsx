@@ -181,7 +181,7 @@ useEffect(() => {
   const fetchAllDashboardData = async () => {
     try {
       const response = await axios.get(
-        "https://api.gromed.in/api/dashboard/sos-analysis/?state_id=1"
+        `${process.env.REACT_APP_BASE_URL}api/dashboard/sos-analysis/?state_id=1`
       );
       const data = response.data;
 console.log(data);

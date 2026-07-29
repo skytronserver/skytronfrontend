@@ -1,16 +1,14 @@
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { canViewRoute } from "../utils/rbacUtils";
-import { SYSTEM_ENV } from "../store/constant";
-import CreateSchool from "views/schoolbus/CreateSchool";
-import ApproveSchool from "views/schoolbus/ApproveSchool";
+import { Navigate } from "react-router-dom";
 
 // project imports
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
-import { decipherEncryption } from "../helper";
+
+const CreateSchool = Loadable(lazy(() => import("views/schoolbus/CreateSchool")));
+const ApproveSchool = Loadable(lazy(() => import("views/schoolbus/ApproveSchool")));
+const SchoolBusApproval = Loadable(lazy(() => import("views/schoolbus/SchoolBusApproval")));
 
 // Lazy-loaded components
 const LiveTracking = Loadable(lazy(() => import("../views/direct/LiveTracking")));
@@ -38,6 +36,8 @@ const AlertLog = Loadable(lazy(() => import("../views/reports/AlertLog")));
 const ActivationLogReport = Loadable(lazy(() => import("../views/reports/ActivationLogReport")));
 const NotAuthorized = Loadable(lazy(() => import("../views/pages/NotAuthorized")));
 const GpsDataLog = Loadable(lazy(() => import("../views/reports/GpsDataLog")));
+const DeviceLoginHistory = Loadable(lazy(() => import("../views/reports/DeviceLoginHistory")));
+const DeviceDataHealth = Loadable(lazy(() => import("../views/reports/DeviceDataHealth")));
 const EmergencyDataLogs = Loadable(lazy(() => import("views/reports/EmergencyDataLogs")));
 const ApiDataLog = Loadable(lazy(() => import("../views/reports/ApiDataLog")));
 const CameraFeedsView = Loadable(lazy(() => import("../pages/CameraFeedsView")));
@@ -97,6 +97,7 @@ const VehicleManufacturerRegistrationAdminReview = Loadable(lazy(() => import(".
 const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => import("../views/pages/AIS140DeviceManufacturerRegistrationAdminReview")));
 const DeviceModelTechnicalOnboardingAdminList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingAdminList")));
 
+const HabitualOffenderReport = Loadable(lazy(() => import('../views/reports/HabitualOffenderReport')));
 
 
 const applyPrivateRoute = (route) => ({
@@ -312,6 +313,16 @@ const MainRoutes = {
       roles: ['superadmin', 'stateadmin']
     },
     {
+      path: "/reports/device-login-history",
+      element: <DeviceLoginHistory />,
+      roles: ["superadmin", "stateadmin", "dealer", "owner", "dto"],
+    },
+    {
+      path: "/reports/device-data-health",
+      element: <DeviceDataHealth />,
+      roles: ["superadmin", "stateadmin", "dealer", "owner", "dto"],
+    },
+    {
       path: '/reports/activation-log-report',
       element: <ActivationLogReport />,
       roles: ['superadmin', 'stateadmin']
@@ -440,7 +451,7 @@ const MainRoutes = {
     {
       path: '/schoolbus/holidays',
       element: <SchoolHolidays />,
-      roles: ['superadmin', 'stateadmin', 'schooladmin']
+      roles: ['schooladmin']
     },
     {
       path: '/schoolbus/alerts',
@@ -461,11 +472,13 @@ const MainRoutes = {
     {
       path: '/schoolbus/Approve-School',
       element: <ApproveSchool />,
+      roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/schoolbus/Approve-School-bus',
+      element: <SchoolBusApproval />,
       roles: ['superadmin']
-    }
-
-
-    ,
+    },
     {
       path: '/schoolbus/onboarding',
       element: <SchoolOnboarding />,
@@ -578,6 +591,13 @@ const MainRoutes = {
       element: <OtaCommandHistory />,
       roles: ["superadmin"],
     },
+
+    {
+      path: '/reports/habitual-offender-report',
+      element: <HabitualOffenderReport />,
+      roles: ['superadmin']
+    },
+
   ].map((route) => applyPrivateRoute(route)),
 };
 

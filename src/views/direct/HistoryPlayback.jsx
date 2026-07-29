@@ -7,8 +7,6 @@ import { dateTimeUpdate } from "../../helper";
 import { FormControl, Autocomplete, TextField, Button, Grid, Typography, Box, CircularProgress, Collapse, IconButton, Tooltip } from '@mui/material';
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useTranslation } from "react-i18next";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
 //const MAX_HISTORY_RANGE_MS = 1000 * 60 * 60 * 24 * 365 * 2; // two years
 const MAX_HISTORY_RANGE_MS = 2 * 60 * 60 * 1000; // 2 Hours
 const HistoryPlayback = () => {

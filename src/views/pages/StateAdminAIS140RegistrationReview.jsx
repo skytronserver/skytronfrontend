@@ -15,8 +15,6 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DynamicDatatables from "../../datatables/DynamicDatatables";
 import { manufacturerColumns } from "../../datatables/rowsColumn";
 import ManufacturerServices from "../../services/ManufacturerServices";
-import UserServices from "../../services/UserServices";
-import { getRole } from "../../helper";
 
 const StateAdminAIS140RegistrationReview = () => {
   const [errorMessage, setErrorMessage] = useState("");

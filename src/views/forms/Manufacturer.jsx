@@ -9,7 +9,7 @@ import DialogComponent from "../../ui-component/DialogComponent";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import { convertErrorObjectToArray, fetchEsimProvider, retriveStateList, retriveCreatedSimProvider } from "../../helper";
+import { retriveStateList, retriveCreatedSimProvider } from "../../helper";
 import { manufacturerInitialValues, manufacturerFormField } from "../../formjson/manufacturer";
 
 const FILE_SIZE = 512 * 1024; // 512 KB

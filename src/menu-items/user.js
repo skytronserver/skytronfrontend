@@ -1,5 +1,4 @@
 // assets
-import { breadcrumbsClasses } from "@mui/material";
 import {
   IconUser,
   IconBrandChrome,
@@ -491,6 +490,14 @@ const user = {
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
+        {
+          id: "unused-stock",
+          title: "Unused Stock",
+          type: "item",
+          url: "/manufacturer/unused-stock",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
       ]
     },
     {
@@ -820,6 +827,24 @@ const user = {
           roles: ['superadmin']
         },
         {
+          id: 'device-login-history',
+          title: 'Device Login History',
+          type: 'item',
+          url: '/reports/device-login-history',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin']
+        },
+        {
+          id: 'device-data-health',
+          title: 'Device Data Health',
+          type: 'item',
+          url: '/reports/device-data-health',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin', 'dealer', 'owner', 'dto']
+        },
+        {
           id: 'activation-log-report',
           title: 'Activation Log Report',
           type: 'item',
@@ -910,6 +935,14 @@ const user = {
           url: '/reports/violation-report',
           breadcrumbs: false,
           roles: ['superadmin', 'stateadmin', 'dtorto'],
+        },
+        {
+          id: 'habitual-offender-report',
+          title: 'Habitual Offender Report',
+          type: 'item',
+          url: '/reports/habitual-offender-report',
+          breadcrumbs: false,
+          roles: ['superadmin', 'stateadmin'],
         },
         // {
         //   id: "all-holiday-list",

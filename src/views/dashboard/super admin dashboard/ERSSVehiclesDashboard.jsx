@@ -1,13 +1,6 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import { alpha } from '@mui/material/styles';
 
@@ -15,7 +8,6 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 
 import BhuvanMapComponent from '../../../components/Map/BhuvanMapComponent';
-import RoadsMapComponent from '../../../components/Map_City_Level/RoadsMapComponent';
 
 import { PageWrapper } from './SuperAdminCommon';
 
@@ -158,7 +150,7 @@ const fetchAreaData = async (payload = {}, method = "POST") => {
   try {
     debugger
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard_ERSS/areawise-device-count/",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard_ERSS/areawise-device-count/`,
       {
         method,
         headers: {
@@ -179,7 +171,7 @@ const fetchAreaData = async (payload = {}, method = "POST") => {
 const fetchDashboardMetrics  = async (payload = {}, method = "POST") => {
   try {
     const res = await fetch(
-      "https://api.gromed.in/api/dashboard/erss-summary/?state_id=1",
+      `${process.env.REACT_APP_BASE_URL}api/dashboard/erss-summary/?state_id=1`,
       {
         method,
         headers: {

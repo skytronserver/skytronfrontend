@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 
 import {
-  ButtonGroup,
   Box,
   Paper,
   IconButton,
@@ -25,9 +24,7 @@ import {
   Divider,
   useTheme,
   alpha,
-  Popover,
   List,
-  ListItem,
   ListItemText,
   ListItemIcon,
   Switch,
@@ -36,7 +33,6 @@ import {
   ListItemButton,
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   LocationOn as LocationOnIcon,
@@ -44,17 +40,8 @@ import {
   Timeline as PolylineIcon,
   Route as RouteIcon,
   Close as CloseIcon,
-  Menu as MenuIcon,
   MyLocation as MyLocationIcon,
-  Layers as LayersIcon,
   Search as SearchIcon,
-  Map as MapIcon,
-  LocationCity as CityIcon,
-  Terrain as TerrainIcon,
-  Satellite as SatelliteIcon,
-  Public as PublicIcon,
-  People as PeopleIcon,
-  List as ListIcon,
 } from '@mui/icons-material';
 import { Draw } from "ol/interaction";
 import Feature from "ol/Feature";
@@ -67,7 +54,6 @@ import "ol/ol.css";
 import POIService from '../../services/POIService';
 import HomePageService from '../../services/HomePage';
 import { getUseOldGeocodingApi, setUseOldGeocodingApi } from '../../services/HomePage';
-import axios from 'axios';
 import BhuvanMapComponent from '../../components/Map/BhuvanMapComponent';
 
 const hexToRgba = (hex, alpha) => {

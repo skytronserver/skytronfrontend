@@ -1,10 +1,9 @@
 import PropTypes from "prop-types";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 
 // material-ui
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, ButtonBase } from "@mui/material";
-import { getRole } from "../../../helper";
 // project imports
 import LogoSection from "../LogoSection";
 import ProfileSection from "./ProfileSection";
@@ -16,7 +15,7 @@ import { IconMenu2 } from "@tabler/icons";
 
 const Header = ({ handleLeftDrawerToggle }) => {
   const theme = useTheme();
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
 
   return (
     <>

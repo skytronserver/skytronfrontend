@@ -10,7 +10,7 @@ import * as Yup from 'yup';
 import DialogComponent from '../../ui-component/DialogComponent';
 import StockServices from '../../services/StockServices';
 import { accessoryInitials, accessoryFormField } from '../../formjson/accessoryForm';
-import { filterModelList, retriveTechnicalOnboardedModelList } from "../../helper";
+import { retriveTechnicalOnboardedModelList } from "../../helper";
 
 
 const currentDate = new Date();

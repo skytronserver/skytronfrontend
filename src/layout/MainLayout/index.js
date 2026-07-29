@@ -90,7 +90,7 @@ const MainLayout = () => {
     message: "",
     type: "info",
   });
-  const [ownerAlertQueue, setOwnerAlertQueue] = useState([]);
+  const [, setOwnerAlertQueue] = useState([]);
   // Handle left drawer
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
   const dispatch = useDispatch();

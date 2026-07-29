@@ -18,7 +18,7 @@ const SUPPORTED_FORMATS = [
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 ];
-const today = new Date().toISOString().split('T')[0];
+export const today = new Date().toISOString().split('T')[0];
 export const m2mUserInitialValues = {
   name: "",
   email: "",

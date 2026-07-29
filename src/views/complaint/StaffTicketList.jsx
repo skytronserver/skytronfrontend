@@ -8,7 +8,6 @@ import {
   Typography,
   IconButton,
   Tooltip,
-  Paper,
   Stack,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";

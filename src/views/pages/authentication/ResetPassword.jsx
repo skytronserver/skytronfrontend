@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import { Grid, Stack, Typography, useMediaQuery, Button, TextField, InputAdornment, IconButton } from "@mui/material";
-import { Navigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import DialogAlert from "../../../ui-component/DialogAlert";
 import CircularProgress from "@mui/material/CircularProgress";

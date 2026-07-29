@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertErrorObjectToArray } from "../../helper";
 import { ownerInitialValues, vehicleOwnerField } from "../../formjson/vehicleOwner";
-import NotAuthorized from "../../views/pages/NotAuthorized";
 import { useParams } from "react-router-dom";
 
 const VehicleOwner = () => {

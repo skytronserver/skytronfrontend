@@ -10,7 +10,7 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import StockServices from "../../services/StockServices";
 import { useNavigate } from "react-router-dom";
 import {deviceInitials,deviceFormField} from "../../formjson/deviceForm";
-import {retriveModelList,retriveCreatedSimProvider,filterModelList,retriveTechnicalOnboardedModelList} from "../../helper";
+import {retriveCreatedSimProvider,retriveTechnicalOnboardedModelList} from "../../helper";
 
 import { useTranslation } from 'react-i18next';
 const currentDate = new Date();

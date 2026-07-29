@@ -119,8 +119,8 @@ export const retriveTechnicalOnboardedModelList = async () => {
       // 1. Get statuses from the correct paths in the JSON
       const requestStatus = String(r?.status || "").trim().toLowerCase();
       const manufacturerStatus = String(r?.manufacturer?.status || "").trim().toLowerCase();
-      const userStatus = String(r?.manufacturer?.users?.[0]?.status || "").trim().toLowerCase();
-      const modelStatus = String(r?.device_model?.status || "").trim().toLowerCase();
+      // const userStatus = String(r?.manufacturer?.users?.[0]?.status || "").trim().toLowerCase();
+      // const modelStatus = String(r?.device_model?.status || "").trim().toLowerCase();
       
       // 2. Determine if this request is officially 'Ready'
       // A model is only ready AFTER State Admin final approval.
