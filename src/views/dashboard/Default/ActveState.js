@@ -539,7 +539,7 @@ const ActiveState = () => {
   useEffect(() => {
     fetchDashboardData();
 
-    if (userRoles == 'esimprovider') {
+    if (userRoles === 'esimprovider') {
       (async () => {
         const response = await UserServices.getESIMProviderDashboard();
         const data = await response.data.data;
@@ -578,7 +578,7 @@ const ActiveState = () => {
       })();
     }
     //for manufacturer
-    if (userRoles == 'devicemanufacture') {
+    if (userRoles === 'devicemanufacture') {
       (async () => {
         const response = await UserServices.getManufacturerDashboard();
         const data = await response.data;
@@ -655,7 +655,7 @@ const ActiveState = () => {
       })();
     }
     //for Dealer
-    if (userRoles == 'dealer') {
+    if (userRoles === 'dealer') {
       (async () => {
         const response = await UserServices.getDealerDashboard();
         const data = await response.data;
@@ -730,6 +730,7 @@ const ActiveState = () => {
         setAvgAcceptance(data.Average_time_to_Accept);
       })()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

@@ -666,6 +666,7 @@ const [snackbar, setSnackbar] = useState({
 
   useEffect(() => {
     fetchMapData(); // Fetch data on prop changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDateTime, endDateTime, vehicleRegistrationNumber, poi, owner, roads, polygon]);
 
   useEffect(() => {
@@ -1603,6 +1604,7 @@ map.renderSync();
     if (isRecording && !isPlaying && sliderValue === maxSliderValue) {
       stopRecording();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, isRecording, sliderValue, maxSliderValue]);
 
   // Handle speed change dynamically
@@ -1621,6 +1623,7 @@ map.renderSync();
     if (mapData.length > 0 && markerRef.current) {
       loadMarkersAndLines(mapData);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapData]);
 
   return (

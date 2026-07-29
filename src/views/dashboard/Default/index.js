@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const isAuthenticated =
     useSelector((state) => state.login.user.isAuthenticated) ||
     sessionStorage.getItem("isAuthenticated") ||

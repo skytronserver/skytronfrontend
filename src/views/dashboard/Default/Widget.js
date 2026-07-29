@@ -40,7 +40,7 @@ const Widget = ({
   iconImage,
   heading,
 }) => {
-  const theme = useTheme();
+  // const theme = useTheme();
   const { t } = useTranslation();
   const labelNew = label.split(",");
   const arr = Object.values(cardValue);

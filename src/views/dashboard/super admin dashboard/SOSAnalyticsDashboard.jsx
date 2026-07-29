@@ -325,6 +325,7 @@ debugger
   };
 
   fetchAllDashboardData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
 
 // ---------------------------------end-------------------------------------------
