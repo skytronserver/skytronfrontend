@@ -35,11 +35,8 @@ const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../view
 const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
 const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
-<<<<<<< HEAD
 const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/ActivationStatusList")));
-=======
 const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/UntaggedDeviceStock")));
->>>>>>> 84ff2c200eeb1e35f8043a49b92b50f9ba65a068
 
 
 
