@@ -7,7 +7,7 @@ import { fromLonLat, toLonLat } from "ol/proj";
 
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-
+import OSM from "ol/source/OSM";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import LineString from "ol/geom/LineString";
@@ -83,7 +83,7 @@ const OpenLayersMap = ({ value = [], onChange }) => {
       layers: [
         new TileLayer({
           source: new XYZ({
-            url: "https://map2.gromed.in/tile/{z}/{x}/{y}.png",
+            url: "https://map2.skytron.in/tile/{z}/{x}/{y}.png",
             maxZoom: 20,
           }),
         }),

@@ -44,8 +44,10 @@ const BusAssignment = () => {
     const [routes, setRoutes] = useState([]);
     const [assignments, setAssignments] = useState([]);
 
-    const resolveBusId = (busRegNo) =>
-        buses.find((b) => String(b.vehicle_reg_no) === String(busRegNo))?.id || '';
+    const resolveBusId = (busNumber) =>
+  buses.find(
+    (b) => String(b.bus_number) === String(busNumber)
+  )?.bus || '';
     const resolveRouteId = (routeName) => routes.find((r) => String(r.route_name) === String(routeName))?.id || '';
 
     useEffect(() => {
@@ -53,14 +55,16 @@ const BusAssignment = () => {
         setError('');
         setLoading(true);
 
-        Promise.all([SchoolBusService.getBuses(), SchoolBusService.getRouteOptions(), SchoolBusService.getAssignments()])
+        Promise.all([SchoolBusService.getAvailableTaggedBuses(), SchoolBusService.getRouteOptions(), SchoolBusService.getAssignments()])
             .then(([bRes, rRes, aRes]) => {
                 if (!mounted) return;
                 setBuses(
-                    Array.isArray(bRes?.data?.data)
-                        ? bRes.data.data
-                        : []
-                );
+  Array.isArray(bRes?.data?.data)
+    ? bRes.data.data.filter(
+        (item) => item.status?.toLowerCase() === "approved"
+      )
+    : []
+);
 
                 setRoutes(
                     Array.isArray(rRes?.data?.data)
@@ -164,7 +168,11 @@ const BusAssignment = () => {
                                                     setLoading(true);
                                                     await SchoolBusService.untagBus(busId);
                                                     const aRes = await SchoolBusService.getAssignments();
-                                                    setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
+                                                    setAssignments(
+  Array.isArray(aRes?.data?.data)
+    ? aRes.data.data
+    : []
+);
                                                 }
                                             });
                                             setOpenConfirm(true);
@@ -301,13 +309,22 @@ const BusAssignment = () => {
                                 if (mode === 'reassign') {
                                     await SchoolBusService.reassignBus(values.busId, { route: values.routeId });
                                 } else {
+                                    console.log("Selected Bus ID:", values.busId);
+console.log("Payload:", {
+    bus: Number(values.busId),
+    route: Number(values.routeId)
+});
                                     await SchoolBusService.assignBus({
                                         bus: Number(values.busId),
                                         route: Number(values.routeId)
                                     });;
                                 }
                                 const aRes = await SchoolBusService.getAssignments();
-                                setAssignments(Array.isArray(aRes?.data) ? aRes.data : []);
+                                setAssignments(
+  Array.isArray(aRes?.data?.data)
+    ? aRes.data.data
+    : []
+);
                                 resetForm();
                                 setOpenAssign(false);
                                 setSelectedAssignment(null);
