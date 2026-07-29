@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button, ButtonGroup, Tooltip, Box, Divider, Paper, Switch, Typography } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
@@ -271,7 +271,7 @@ const BhuvanMapComponent = ({
     const BHUVAN_CROSS_ORIGIN =
         process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true" ? "anonymous" : undefined;
 
-    const createBhuvanSource = (layerName) => {
+    const createBhuvanSource = useCallback((layerName) => {
         const options = {
             url: BHUVAN_WMS_URL,
             params: {
@@ -295,7 +295,7 @@ const BhuvanMapComponent = ({
         }
 
         return new TileWMS(options);
-    };
+    }, [BHUVAN_WMS_URL, BHUVAN_CROSS_ORIGIN]);
 
     const attachTileSourceDebug = (source, label) => {
         if (!source || typeof source.on !== "function") return;
@@ -373,7 +373,7 @@ const BhuvanMapComponent = ({
         return USE_TYPE_COLORS[key] || "#1E88E5";
     };
 
-    const getPoiStyles = (poi) => {
+    const getPoiStyles = useCallback((poi) => {
         const baseColor = getUseTypeColor(poi);
         const fillColor = hexToRgba(baseColor, 0.18);
 
@@ -513,7 +513,7 @@ const BhuvanMapComponent = ({
                     }),
                 ];
         }
-    };
+    }, []);
 
     // Vehicle Icon Styling
     const createIconStyle = (color, vehicleType, labelText) => {
@@ -625,6 +625,7 @@ const BhuvanMapComponent = ({
                 duration: 1000,
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedPoi, selectedPoiLayer, map]);
     const getMarkerLabel = (entry, mode) => {
         if (!entry) return "";
@@ -888,7 +889,7 @@ const BhuvanMapComponent = ({
         return merged;
     };
 
-    const renderVehicleOverlay = (entryData, coordinates, alertType, alertClass, speedValue, selectButtonHtml) => {
+    const renderVehicleOverlay = useCallback((entryData, coordinates, alertType, alertClass, speedValue, selectButtonHtml) => {
         const policeAddressRaw = resolveNearestPoliceAddress(entryData);
         const poiFallback = policeAddressRaw === "-" ? resolveNearestPoliceFromPois(entryData) : null;
         const policeDistanceFallback = resolveNearestPoliceFromPois(entryData);
@@ -1126,7 +1127,8 @@ ${trailerHtml}
 
         dynamicOverlay.setPosition(coordinates);
         dynamicOverlay.getElement().style.display = "block";
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dynamicOverlay]);
 
 
 
@@ -1233,7 +1235,7 @@ ${trailerHtml}
 
 
     // Set the correct icon style based on data conditions and vehicle type
-    const getIconStyle = (data, vehicleType, labelMode) => {
+    const getIconStyle = useCallback((data, vehicleType, labelMode) => {
         const entryTime = new Date(data.entry_time);
         const currentTime = new Date();
         const timeDifference = calculateTimeDifference(entryTime, currentTime);
@@ -1267,7 +1269,7 @@ ${trailerHtml}
 
         const labelText = getMarkerLabel(data, labelMode);
         return createIconStyle(color, iconVehicleType, labelText);
-    };
+    }, []);
 
     // Initialize Normal Map (Bhuvan Layers)
     useEffect(() => {
@@ -1418,6 +1420,7 @@ ${trailerHtml}
                 normalMapRef.current = null;
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapType]);
 
     // Initialize SOI Map (Bhuvan base + skytron overlays)
@@ -2190,6 +2193,7 @@ ${trailerHtml}
             }
         };
         // Intentionally do not depend on soiLayerVisibility to avoid re-init on toggle
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapType, center, zoom, onMapReady]);
 
     useEffect(() => {
@@ -2385,6 +2389,7 @@ ${trailerHtml}
         } catch (error) {
             console.error("Error initializing satellite map:", error);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapType, center, zoom, onMapReady]);
 
     useEffect(() => {
@@ -2534,7 +2539,9 @@ ${trailerHtml}
         } else {
             vectorLayer.getSource().clear();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
+        mapType,
         gpsData,
         policeData,
         map,
@@ -2568,7 +2575,7 @@ ${trailerHtml}
             if (!imei) return;
 
 
-            const newCoord = [data.longitude, data.latitude];
+            let newCoord = [data.longitude, data.latitude];
             // ✅ CHECK INDIA BOUNDARY
             const isValidIndia = isInsideIndia(newCoord[0], newCoord[1]);
 
@@ -2639,7 +2646,7 @@ ${trailerHtml}
             vectorLayer.getSource().addFeature(rawFeature);
             vectorLayer.getSource().addFeature(smoothFeature);
         });
-
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gpsData, vectorLayer]);
     // Render POIs
     useEffect(() => {
@@ -2692,6 +2699,7 @@ ${trailerHtml}
 
             poiVectorLayer.getSource().addFeatures(features);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pois, map, poiVectorLayer]);
 
     // Draw Routes with full path coordinates

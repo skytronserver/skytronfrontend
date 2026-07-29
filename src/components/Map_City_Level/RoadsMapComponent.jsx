@@ -217,7 +217,7 @@ const label =
 
   });
 
-}, [data,level]);
+}, [data, level, erss, onBack, onCityClick, onDistrictClick, onLocalityClick, onZoomChange]);
 
   return (
     <div
