@@ -100,6 +100,7 @@ const UserStatisticsReport = () => {
   // Fetch statistics data on component mount
   useEffect(() => {
     fetchUserStatistics();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUserStatistics = async () => {

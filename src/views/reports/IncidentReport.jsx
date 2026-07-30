@@ -120,6 +120,7 @@ const IncidentReport = () => {
 
     useEffect(() => {
         handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters.page, filters.page_size]);
 
     useEffect(() => {
@@ -174,6 +175,7 @@ const IncidentReport = () => {
     }, 3000); // 3 seconds
 
     return () => clearTimeout(timer);
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [
     filters.vehicle_reg_no,
     filters.registered_by,

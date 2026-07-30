@@ -310,12 +310,14 @@ function TagDeviceToVehicle() {
     })();
     const stepFromQuery = getStepFromQuery();
     setActiveStep(stepFromQuery ?? 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reload]);
 
   useEffect(() => {
     const stepFromQuery = getStepFromQuery();
     if (stepFromQuery === null) return;
     setActiveStep(stepFromQuery);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
 
   useEffect(() => {
@@ -329,6 +331,7 @@ function TagDeviceToVehicle() {
     } else if (activeStep === 7) {
       setResendTimer(180);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStep]);
 
   useEffect(() => {
@@ -346,6 +349,7 @@ function TagDeviceToVehicle() {
         pollingIntervalRef.current = null;
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStep]);
 
   useEffect(() => {

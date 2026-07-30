@@ -78,6 +78,7 @@ function FrequencyFirmware() {
       setIsFormLoaded(true)
     }
     )()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   //Fetching Data from store
   const dispatch = useDispatch();

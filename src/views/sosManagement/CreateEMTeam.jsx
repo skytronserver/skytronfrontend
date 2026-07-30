@@ -112,6 +112,7 @@ const CreateEMTeam = () => {
       }
       setEditPage(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parameter, updatedFormFields.state?.options]);
 
   const navigate = useNavigate();

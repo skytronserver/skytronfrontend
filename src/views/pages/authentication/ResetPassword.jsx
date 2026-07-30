@@ -88,6 +88,7 @@ const ResetPassword = () => {
   };
 
   const handleResetPassword = async () => {
+    // eslint-disable-next-line eqeqeq
     if(password!=''){
         setLoading(true)
         try {

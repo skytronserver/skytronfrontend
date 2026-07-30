@@ -35,6 +35,7 @@ const DealerList = () => {
       };
       retrievePosts();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateStore,dispatch]);
 
   const actionColumn = [

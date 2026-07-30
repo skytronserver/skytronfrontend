@@ -45,6 +45,7 @@ function PermitMaster({ fieldConfig, initialData }) {
 
   useEffect(() => {
     retrivePermitMasterList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const handleClose = () => {

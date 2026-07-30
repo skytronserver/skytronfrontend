@@ -120,6 +120,7 @@ const M2MRegistrationAdminReview = () => {
         setLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadRows]
   );
 
@@ -177,6 +178,7 @@ const M2MRegistrationAdminReview = () => {
         setLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadRows]
   );
 
@@ -271,6 +273,7 @@ const M2MRegistrationAdminReview = () => {
         },
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [acceptedId, handleAccept, handleActionClick, handleReject, handleResend, rows]
   );
 

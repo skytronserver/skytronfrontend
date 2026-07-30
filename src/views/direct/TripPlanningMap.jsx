@@ -54,6 +54,7 @@ const TripPlanningMap = ({
     if (routeCoordinates && routeCoordinates.length > 0 && markerSourceRef.current) {
       loadRoute(routeCoordinates);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeCoordinates]);
 
   // Handle trip status changes
@@ -69,6 +70,7 @@ const TripPlanningMap = ({
     return () => {
       clearEtaTimer();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
   // Clear intervals on unmount

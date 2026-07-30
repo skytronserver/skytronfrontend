@@ -181,6 +181,7 @@ const DeviceHealthReport = () => {
   useEffect(() => {
     fetchDropdownData();
     fetchHealthData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDropdownData = async () => {
@@ -267,6 +268,7 @@ const DeviceHealthReport = () => {
   }, 3000); // 3 sec delay
 
   return () => clearTimeout(timer);
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [
   filters.vehicle_reg_no,
   filters.device_tag_id,

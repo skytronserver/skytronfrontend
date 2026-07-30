@@ -35,5 +35,7 @@ const getUserStatistics=()=>{
     const http = getAxiosInstance();
     return http.get(`/api/Statistics/user_statistics/`)
 }
-export default {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList,getDeviceTagsSearch,getAlertLogFilter,getStatesList,getDeviceHealthStatus,getUserStatistics};
+const showDeviceApi = {getDevice,getDeviceAlert,getDeviceAlertSearch,getActivatedDeviceList,getDeviceTagsSearch,getAlertLogFilter,getStatesList,getDeviceHealthStatus,getUserStatistics};
+
+export default showDeviceApi;
 

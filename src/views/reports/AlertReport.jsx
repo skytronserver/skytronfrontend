@@ -409,6 +409,7 @@ const AlertReport = () => {
   }, 3000); // 3 seconds
 
   return () => clearTimeout(timer);
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [
   filters.type,
   filters.status,
@@ -506,6 +507,7 @@ const AlertReport = () => {
     if (alertData.length > 0 || page > 0) {
       fetchAlertData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   return (

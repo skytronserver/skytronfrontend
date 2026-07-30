@@ -2171,7 +2171,7 @@ const MapComponent = ({
         if (!map || !selectedPoi || !poiVectorLayer) return;
 
         poiVectorLayer.setVisible(true);
- 
+
         const source = poiVectorLayer.getSource();
         source.clear();
 
@@ -5948,8 +5948,8 @@ ${policeInfoRows || policeDetailsRows
         ].join("");
 
         const showSelectedOnly =
-    Array.isArray(selectedColumns) &&
-    selectedColumns.length > 0;
+            Array.isArray(selectedColumns) &&
+            selectedColumns.length > 0;
         overlayContent.innerHTML = `
 <div class="overlay-card">
 <div class="overlay-header">
@@ -5999,24 +5999,23 @@ Selected Fields
 <div class="overlay-section-body">
 
 ${selectedColumns.map((key) => {
-    const label = COLUMN_LABELS[key] || key;
-    const value = getColumnValue(focusEntry, key);
+            const label = COLUMN_LABELS[key] || key;
+            const value = getColumnValue(focusEntry, key);
 
-    return `
+            return `
     <div class="overlay-row">
         <span class="overlay-label">${label}</span>
         <span class="overlay-value">
-            ${
-                value !== null &&
-                value !== undefined &&
-                value !== ""
+            ${value !== null &&
+                    value !== undefined &&
+                    value !== ""
                     ? String(value)
                     : "-"
-            }
+                }
         </span>
     </div>
     `;
-}).join("")}
+        }).join("")}
 
 </div>
 </div>
@@ -6037,6 +6036,7 @@ ${selectedColumns.map((key) => {
 
 </div>
 `;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address, selectedColumns]);
 
     useEffect(() => {
@@ -6181,9 +6181,9 @@ ${selectedColumns.map((key) => {
             const hint = document.getElementById("get-direction-hint");
             if (hint) hint.style.display = "block";
             // CLOSE VEHICLE POPUP IMMEDIATELY
-    if (dynamicOverlay) {
-        dynamicOverlay.setPosition(undefined);
-    }
+            if (dynamicOverlay) {
+                dynamicOverlay.setPosition(undefined);
+            }
         };
 
         container.addEventListener("click", handleGetDirectionClick);
@@ -6660,6 +6660,7 @@ ${selectedColumns.map((key) => {
             hasAutoFittedRef.current = false;
         }
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit]);
 
     useEffect(() => {
@@ -6760,30 +6761,30 @@ ${selectedColumns.map((key) => {
         map.addInteraction(draw);
         setDrawInteraction(draw);
 
-       draw.on("drawend", (event) => {
-    console.log("DRAW END");
+        draw.on("drawend", (event) => {
+            console.log("DRAW END");
 
-    const feature = event.feature;
-    const geometry = feature.getGeometry();
+            const feature = event.feature;
+            const geometry = feature.getGeometry();
 
-    if (geometry.getType() === "Polygon") {
+            if (geometry.getType() === "Polygon") {
 
-        const coordinates =
-            geometry.getCoordinates()[0];
+                const coordinates =
+                    geometry.getCoordinates()[0];
 
-        console.log(
-            "POLYGON COORDS:",
-            coordinates
-        );
+                console.log(
+                    "POLYGON COORDS:",
+                    coordinates
+                );
 
-        if (onPolygonComplete) {
-            onPolygonComplete(coordinates);
-        }
-    }
+                if (onPolygonComplete) {
+                    onPolygonComplete(coordinates);
+                }
+            }
 
-    map.removeInteraction(draw);
-    setDrawInteraction(null);
-});
+            map.removeInteraction(draw);
+            setDrawInteraction(null);
+        });
     };
 
     // const clearPolygon = () => {
@@ -6878,6 +6879,7 @@ ${selectedColumns.map((key) => {
         // - Gromed geocode: { lat, lon, address }
         let lat = result.latitude || result.lat;
         let lng = result.longitude || result.lng || result.lon;
+// eslint-disable-next-line no-mixed-operators
 
         // If lat/lng are missing, try to fetch them using eLoc
         if (!lat || !lng && result.eLoc) {
@@ -7909,137 +7911,137 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 ref={poiTransitOverlayElement}
                 className="ol-popup"
             >
-         {popupType === "poi" && selectedPoiData && (
-    <div 
-        style={{
-            width: "280px",
-            background: "#fff",
-            borderRadius: "6px",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-            padding: "12px",
-            position: "relative",
-            fontFamily: "Arial, sans-serif",
-            margin:"55px"
-        }}
-    >
-        {/* Close Button */}
-        <div
-            onClick={() => {
-                setSelectedPoiData(null);
-                setPopupType(null);
-            }}
-            style={{
-                position: "absolute",
-                top: "8px",
-                right: "10px",
-                cursor: "pointer",
-                color: "#777",
-                fontSize: "18px",
-                fontWeight: "bold",
-            }}
-        >
-            ×
-        </div>
+                {popupType === "poi" && selectedPoiData && (
+                    <div
+                        style={{
+                            width: "280px",
+                            background: "#fff",
+                            borderRadius: "6px",
+                            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+                            padding: "12px",
+                            position: "relative",
+                            fontFamily: "Arial, sans-serif",
+                            margin: "55px"
+                        }}
+                    >
+                        {/* Close Button */}
+                        <div
+                            onClick={() => {
+                                setSelectedPoiData(null);
+                                setPopupType(null);
+                            }}
+                            style={{
+                                position: "absolute",
+                                top: "8px",
+                                right: "10px",
+                                cursor: "pointer",
+                                color: "#777",
+                                fontSize: "18px",
+                                fontWeight: "bold",
+                            }}
+                        >
+                            ×
+                        </div>
 
-        {/* POI Name */}
-        <div
-            style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "#4a5568",
-                marginBottom: "4px",
-            }}
-        >
-            {selectedPoiData?.name || "-"}
-        </div>
+                        {/* POI Name */}
+                        <div
+                            style={{
+                                fontSize: "18px",
+                                fontWeight: "600",
+                                color: "#4a5568",
+                                marginBottom: "4px",
+                            }}
+                        >
+                            {selectedPoiData?.name || "-"}
+                        </div>
 
-        {/* POI Type / Subtitle */}
-        <div
-            style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                color: "#718096",
-                marginBottom: "4px",
-            }}
-        >
-            {selectedPoiData?.area || "-"}
-        </div>
+                        {/* POI Type / Subtitle */}
+                        <div
+                            style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#718096",
+                                marginBottom: "4px",
+                            }}
+                        >
+                            {selectedPoiData?.area || "-"}
+                        </div>
 
-        {/* Address */}
-        <div
-            style={{
-                fontSize: "13px",
-                color: "#6b7280",
-                lineHeight: "1.4",
-                marginBottom: "8px",
-            }}
-        >
-            {selectedPoiData?.address || "-"}
-        </div>
+                        {/* Address */}
+                        <div
+                            style={{
+                                fontSize: "13px",
+                                color: "#6b7280",
+                                lineHeight: "1.4",
+                                marginBottom: "8px",
+                            }}
+                        >
+                            {selectedPoiData?.address || "-"}
+                        </div>
 
-        {/* Phone */}
-        <div
-            style={{
-                fontSize: "13px",
-                color: "#4b5563",
-                marginBottom: "10px",
-            }}
-        >
-            <strong>Phone:</strong>{" "}
-            {selectedPoiData?.phone || "-"}
-        </div>
-        <div
-            style={{
-                fontSize: "13px",
-                color: "#4b5563",
-                marginBottom: "10px",
-            }}
-        >
-            <strong>Speed Limit:</strong>{" "}
-            {selectedPoiData?.speed_limit || "-"}
-        </div>
+                        {/* Phone */}
+                        <div
+                            style={{
+                                fontSize: "13px",
+                                color: "#4b5563",
+                                marginBottom: "10px",
+                            }}
+                        >
+                            <strong>Phone:</strong>{" "}
+                            {selectedPoiData?.phone || "-"}
+                        </div>
+                        <div
+                            style={{
+                                fontSize: "13px",
+                                color: "#4b5563",
+                                marginBottom: "10px",
+                            }}
+                        >
+                            <strong>Speed Limit:</strong>{" "}
+                            {selectedPoiData?.speed_limit || "-"}
+                        </div>
 
-        {/* Tags */}
-        <div
-            style={{
-                display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
-            }}
-        >
-            {/* School Tag */}
-            <span
-                style={{
-                    background: "#2196f3",
-                    color: "#fff",
-                    padding: "4px 10px",
-                    borderRadius: "20px",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                }}
-            >
-                {selectedPoiData?.use_type || "POI"}
-            </span>
+                        {/* Tags */}
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: "8px",
+                                flexWrap: "wrap",
+                            }}
+                        >
+                            {/* School Tag */}
+                            <span
+                                style={{
+                                    background: "#2196f3",
+                                    color: "#fff",
+                                    padding: "4px 10px",
+                                    borderRadius: "20px",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                }}
+                            >
+                                {selectedPoiData?.use_type || "POI"}
+                            </span>
 
-            {/* Active Tag */}
-            <span
-                style={{
-                    background:
-                        selectedPoiData?.status === "Active"
-                            ? "#22c55e"
-                            : "#ef4444",
-                    color: "#fff",
-                    padding: "4px 10px",
-                    borderRadius: "20px",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                }}
-            >
-                {selectedPoiData?.status || "Inactive"}
-            </span>
-        </div>
-    </div>
-)}
+                            {/* Active Tag */}
+                            <span
+                                style={{
+                                    background:
+                                        selectedPoiData?.status === "Active"
+                                            ? "#22c55e"
+                                            : "#ef4444",
+                                    color: "#fff",
+                                    padding: "4px 10px",
+                                    borderRadius: "20px",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                }}
+                            >
+                                {selectedPoiData?.status || "Inactive"}
+                            </span>
+                        </div>
+                    </div>
+                )}
 
                 {popupType === "transit" &&
                     selectedTransitData && (

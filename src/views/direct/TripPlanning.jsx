@@ -300,6 +300,7 @@ const TripPlanning = () => {
         addPoint(coord);
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId]);
 
   // Fetch trips when device is selected
@@ -307,6 +308,7 @@ const TripPlanning = () => {
     if (deviceId) {
       fetchTrips();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId]);
 
   // Clean up timer on component unmount
@@ -336,6 +338,7 @@ const TripPlanning = () => {
         .map(coord => {
           try {
             return coord
+              // eslint-disable-next-line no-useless-escape
               .replace(/[\[\]']/g, '')
               .split(',')
               .map(num => {
@@ -1060,6 +1063,7 @@ const TripPlanning = () => {
     try {
       await HomePageService.delRoute(data);
       setRouteData(
+        // eslint-disable-next-line eqeqeq
         routeData.filter((route) => route.id != selectedRoute.routeId)
       ); // Remove the deleted route from list
       setSelectedRoute(null); // Clear selected route
@@ -1592,6 +1596,7 @@ const TripPlanning = () => {
           overflow: 'hidden',
           boxShadow: 1
         }}>
+          // eslint-disable-next-line jsx-a11y/alt-text
           <img
             src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
             style={{

@@ -45,7 +45,9 @@ const getDeviceOnboardingDashboard = () => {
 };
 
 
-export default {
+const publicApi = {
   getDeviceHealthStatusPublic,
   getDeviceOnboardingDashboard
 };
+
+export default publicApi;

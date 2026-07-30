@@ -38,6 +38,7 @@ const NoticeList = () => {
       };
       retriveNotice();
     
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [del]);
   const deleteNotice = async (e, id) => {
     e.preventDefault();

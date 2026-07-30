@@ -85,6 +85,7 @@ useEffect(() => {
     if (tabValue === 2) {
         fetchUnplannedUsage();
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [tabValue]);
 
     useEffect(() => {

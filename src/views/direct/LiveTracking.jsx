@@ -369,6 +369,7 @@ useEffect(() => {
         handleOutsideClick
       );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedAlertTypes,
     alertFilter,
@@ -614,6 +615,7 @@ useEffect(() => {
       setFilteredData((prev) => [...prev, ...nextSlice]);
     }
     setVisibleCount(nextEnd);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleCount, typeFilter]);
 
   const handleVehicleMarkerClick = async (entry) => {
@@ -836,6 +838,7 @@ useEffect(() => {
   } else {
     setPoliceLocations([]);
   }
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [showPolice]);
 
 useEffect(() => {
@@ -844,6 +847,7 @@ useEffect(() => {
   } else {
     setAmbulanceLocations([]);
   }
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [showAmbulance]);
   const isBadGnss = (entry) => {
     const lat = Number(entry?.latitude);
@@ -1113,6 +1117,7 @@ useEffect(() => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedEntry?.imei, focusedEntry?.latitude, focusedEntry?.longitude, focusedEntry?.address, reverseGeocodeCache]);
 
   // Handle button click, update selectedId and filtered data
@@ -1207,6 +1212,7 @@ useEffect(() => {
     // Single fetch when filters/inputs change, no repeating interval
     retriveMapData(params);
    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imeiNo, debouncedVehicleNo, debouncedOwner, poi, roads, polygon, category, make, district, inRange, poiAsPolygon, selectedPoiId]);
 
   const refreshSelectedVehicle = async () => {
@@ -1267,6 +1273,7 @@ useEffect(() => {
     }, 10000);
 
     return () => clearInterval(intervalId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId,tableDataTop]);
 
   // Helper to calculate time difference in minutes

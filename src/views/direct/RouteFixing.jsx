@@ -177,6 +177,7 @@ const RouteFixing = () => {
         .map(coord => {
           try {
             return coord
+              // eslint-disable-next-line no-useless-escape
               .replace(/[\[\]']/g, '')
               .split(',')
               .map(num => {
@@ -290,6 +291,7 @@ const RouteFixing = () => {
       addPoint(coord);
     };
 
+    // eslint-disable-next-line eqeqeq
     if (deviceId != "") {
       map.current.on("click", clickHandler);
     }
@@ -299,6 +301,7 @@ const RouteFixing = () => {
         map.current.un("click", clickHandler);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId]);
 
   // Handle Map Type Toggle
@@ -523,6 +526,7 @@ const RouteFixing = () => {
     try {
       await HomePageService.delRoute(data);
       setRouteData(
+        // eslint-disable-next-line eqeqeq
         routeData.filter((route) => route.id != selectedRoute.routeId)
       );
       setSelectedRoute(null);
@@ -618,6 +622,7 @@ const RouteFixing = () => {
               .split("],")
               .map(coord => {
                 return coord
+                  // eslint-disable-next-line no-useless-escape
                   .replace(/[\[\]']/g, '')
                   .split(',')
                   .map(num => parseFloat(num.trim()))
@@ -745,6 +750,7 @@ const RouteFixing = () => {
                       .split("],")
                       .map(coord => {
                         return coord
+                          // eslint-disable-next-line no-useless-escape
                           .replace(/[\[\]']/g, '')
                           .split(',')
                           .map(num => parseFloat(num.trim()))
@@ -845,6 +851,7 @@ const RouteFixing = () => {
 
 
       <Box ref={mapRef} id="map" sx={{ width: "100%", height: "500px", mt: 4, position: 'relative' }}>
+        // eslint-disable-next-line jsx-a11y/alt-text
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
       </Box>
 

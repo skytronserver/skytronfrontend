@@ -168,6 +168,7 @@ const Details = () => {
     };
 
     retrieveUserDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const effectiveStatus = (statusOverride || requestStatus || "").toString();

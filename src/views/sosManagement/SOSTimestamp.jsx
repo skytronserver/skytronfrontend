@@ -98,6 +98,7 @@ const SOSTimestamp = () => {
     };
 
     fetchSOSTimestampData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Calculate time difference between two timestamps

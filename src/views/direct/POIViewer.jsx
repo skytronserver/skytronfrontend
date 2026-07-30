@@ -621,6 +621,7 @@ const POIViewer = () => {
 
   useEffect(() => {
     fetchPOIs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getPoiStyles = (poi) => {
@@ -875,6 +876,7 @@ const POIViewer = () => {
     }
 
     console.log('[POI][useEffect] Total features in source:', source.getFeatures().length);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pois, showAllPois]);
 
   useEffect(() => {
@@ -964,6 +966,7 @@ const POIViewer = () => {
       }
       drawInteractionRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drawingMode]);
 
   const handleEditClick = (poi) => {
@@ -1564,6 +1567,7 @@ const POIViewer = () => {
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
     handleReverseGeocode(lat, lng);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPoi, popoverOpen]);
 
   const getPoiIcon = (markType) => {

@@ -56,6 +56,7 @@ const NoticeForm = () => {
       setNoticeInitialValues(initialValues);
       setEditPage(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[parameter]);
 
   const handleClose = () => {

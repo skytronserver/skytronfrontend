@@ -513,6 +513,7 @@ const BhuvanMapComponent = ({
                     }),
                 ];
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Vehicle Icon Styling

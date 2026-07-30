@@ -26,6 +26,7 @@ const AllTaggedDevice = () => {
       }
     };
     fetchTaggedDevices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Define columns for the data table

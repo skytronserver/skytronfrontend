@@ -39,6 +39,7 @@ function VehicleCategory({ fieldConfig, initialData }) {
 
   useEffect(() => {
     retriveVehicleList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const handleClose = () => {

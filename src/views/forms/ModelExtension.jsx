@@ -110,6 +110,7 @@ const ModelExtension = ({ formTitle }) => {
 
   const handleModelChange = (event, formik) => {
     const fieldName = event.target.name;
+    // eslint-disable-next-line eqeqeq
     if (fieldName == "device_model") {
       (async () => {
         const getDetailsOf = {

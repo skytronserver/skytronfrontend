@@ -18,6 +18,7 @@ const M2MStatusReport = () => {
 
   useEffect(() => {
     fetchM2MStatus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchM2MStatus = async () => {

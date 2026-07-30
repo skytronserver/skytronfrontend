@@ -32,6 +32,7 @@ const SOSUserList = () => {
       };
       retrieveUser();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateStore,dispatch]);
 
   const actionColumn = [

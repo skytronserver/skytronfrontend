@@ -315,6 +315,7 @@ const SchoolBusTracking = () => {
       setFilteredData((prev) => [...prev, ...nextSlice]);
     }
     setVisibleCount(nextEnd);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleCount, typeFilter]);
 
   const handleVehicleMarkerClick = async (entry) => {
@@ -868,6 +869,7 @@ buses.forEach((bus) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedEntry?.imei, focusedEntry?.latitude, focusedEntry?.longitude, focusedEntry?.address, reverseGeocodeCache]);
 
   // Handle button click, update selectedId and filtered data
@@ -1032,6 +1034,7 @@ buses.forEach((bus) => {
     }, 10000);
 
     return () => clearInterval(intervalId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, tableDataTop]);
 
   // Helper to calculate time difference in minutes

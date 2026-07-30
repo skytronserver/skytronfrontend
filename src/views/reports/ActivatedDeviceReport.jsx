@@ -277,6 +277,7 @@ const ActivatedDeviceReport = () => {
 
   useEffect(() => {
     fetchActivatedDevices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
   const fetchActivatedDevices = async () => {

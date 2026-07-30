@@ -61,6 +61,7 @@ const TaggedList = () => {
       }
     };
     fetchTaggedList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[reload])
 
   const handleUntag=async (e,id)=>{

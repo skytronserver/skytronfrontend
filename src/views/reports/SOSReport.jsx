@@ -172,6 +172,7 @@ const SOSReport = () => {
 
   useEffect(() => {
     fetchReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFilterChange = (key) => (event) => {

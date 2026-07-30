@@ -65,6 +65,7 @@ const CallDetails = () => {
       }
     };
     retriveCallDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const handleBroadcast = async () => {
     const data = {

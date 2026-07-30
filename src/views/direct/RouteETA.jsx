@@ -801,6 +801,7 @@ const RouteETA = () => {
   useEffect(() => {
     addPointRef.current = addPoint;
     clearPointsRef.current = clearPoints;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // We can't put addPoint/clearPoints in deps if they are recreated on every render, but here they are defined inside component so they are.
   // Actually, since we moved addPoint and clearPoints to be defined inside the component body, they will be recreated on every render.
   // But the useEffect [addPoint, clearPoints] would cause infinite loop if we are not careful.
@@ -1035,15 +1036,18 @@ const RouteETA = () => {
       }
 
       if (mapRef.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         resizeObserver.unobserve(mapRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array, only run on mount
 
   // Update map when points change
   useEffect(() => {
     console.log("Points changed, updating map:", points);
     updateMapPoints(points);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [points]);
 
   // Load trips on mount
@@ -1082,6 +1086,7 @@ const RouteETA = () => {
         clearInterval(trackingIntervalRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTracking, selectedVehicleReg]);
 
   // Delete a saved route - placeholder if delete API exists

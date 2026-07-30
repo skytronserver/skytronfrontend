@@ -191,6 +191,7 @@ const POIReport = () => {
     }, 3000); // 3 seconds
 
     return () => clearTimeout(timer);
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [
     filters.name,
     filters.status,

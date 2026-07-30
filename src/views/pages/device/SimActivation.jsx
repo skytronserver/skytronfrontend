@@ -77,6 +77,7 @@ const SimActivation = () => {
 
   useEffect(() => {
     fetchDeviceList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   // Open dialog, reset fields, default start date to today

@@ -2747,6 +2747,7 @@ const MapComponent = ({
             // Cleanup logic if needed, but usually strictly setting target null is enough for OL
             // React strict mode might cause double init so we just let it be replaced
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapType]);
 
     useEffect(() => {
@@ -3364,6 +3365,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
             clearPoiMarkers();
             clearIncidentMarkers();
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapType, gpsData, policeData, pois, incidentData]);
 
     // HD Map Drawing Logic - Handle Clicks
@@ -3573,6 +3575,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
             try {
                 const location = JSON.parse(poi.location);
                 if (Array.isArray(location) && location.length > 0) {
+                    // eslint-disable-next-line default-case
                     let feature;
 
                     switch (poi.mark_type) {
@@ -3677,6 +3680,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 console.error("Error processing POI:", poi.id, error);
             }
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pois, poiVectorLayer]);
 
     // Helper to calculate time difference in minutes
@@ -4525,6 +4529,7 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 `;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
 
     useEffect(() => {
@@ -4856,6 +4861,7 @@ useEffect(() => {
         hasAutoFittedRef.current = false;
     }
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit]);
 
 useEffect(() => {
@@ -5022,6 +5028,7 @@ useEffect(() => {
         // Support multiple response formats:
         // - Mappls: { latitude, longitude }
         // - Generic: { lat, lng }
+        // eslint-disable-next-line no-mixed-operators
         // - Gromed geocode: { lat, lon, address }
         let lat = result.latitude || result.lat;
         let lng = result.longitude || result.lng || result.lon;

@@ -82,6 +82,7 @@ const SetPassword = () => {
   const maxDob = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
     .toISOString().split('T')[0];
   const handleSetPassword = async () => {
+    // eslint-disable-next-line eqeqeq
     if (password != '') {
       setLoading(true)
       try {

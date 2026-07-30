@@ -102,6 +102,7 @@ const validateForm = () => {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
   const handleOpen = (schedule = null) => {

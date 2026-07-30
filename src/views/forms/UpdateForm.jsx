@@ -108,6 +108,7 @@ const UpdateForm = ({ fieldConfig, initialData, formTitle }) => {
     const data = fieldValue;
     updateObjectValues(data, users, excludedKeys);
     setFieldValue({ ...fieldValue, ...data });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
   return (
     <>

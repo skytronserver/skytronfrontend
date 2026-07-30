@@ -125,10 +125,12 @@ const HealthPacketLog = () => {
 
   useEffect(() => {
     getHealthPackets();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     getHealthPackets(searchQuery);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offlineFilter]);
 
   const options = {

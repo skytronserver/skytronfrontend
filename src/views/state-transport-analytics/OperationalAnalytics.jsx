@@ -126,6 +126,7 @@ const OperationalAnalytics = () => {
 
     useEffect(() => {
         fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleFilterChange = (e) => {

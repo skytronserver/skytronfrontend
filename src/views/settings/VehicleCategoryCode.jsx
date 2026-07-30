@@ -46,6 +46,7 @@ function VehicleCategoryCode({ fieldConfig, initialData }) {
 
   useEffect(() => {
     retriveVehicleCategoryCodeList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const handleClose = () => {

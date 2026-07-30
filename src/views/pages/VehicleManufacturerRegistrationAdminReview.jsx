@@ -142,6 +142,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
         setLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadRows]
   );
 
@@ -204,6 +205,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
         setLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadRows, statusOverrides]
   );
 
@@ -302,6 +304,7 @@ const VehicleManufacturerRegistrationAdminReview = () => {
         },
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [allowLoginId, handleAllowLogin, handleReject, handleResend, rows]
   );
 

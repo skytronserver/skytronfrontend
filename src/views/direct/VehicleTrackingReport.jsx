@@ -166,10 +166,12 @@ export default function VehicleTrackingReport() {
     fetchVehicles();
 
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     fetchVehicles();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     owner,
     category,

@@ -208,10 +208,12 @@ export const buildSecureIncidentMediaHtml = async (filePath, options = {}) => {
   }
 };
 
-export default {
+const incidentImageLoader = {
   fetchSecureIncidentMedia,
   createMediaUrl,
   isVideoFile,
   renderSecureIncidentMedia,
   buildSecureIncidentMediaHtml,
 };
+
+export default incidentImageLoader;

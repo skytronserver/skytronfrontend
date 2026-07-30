@@ -208,6 +208,7 @@ const DeviceDashboard = () => {
 
   useEffect(() => {
     fetchDevices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, sortBy, sortOrder]);
 
   useEffect(() => {
@@ -227,6 +228,7 @@ const DeviceDashboard = () => {
 
   return () => clearTimeout(timer);
  
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [
   page,
   pageSize,

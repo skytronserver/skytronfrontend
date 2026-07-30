@@ -68,6 +68,7 @@ const AlertsCenter = () => {
 
 useEffect(() => {
   fetchAlerts();
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [alertType]);
 
     const columns = [

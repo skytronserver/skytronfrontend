@@ -228,6 +228,7 @@ const WhitelistRequests = () => {
     } else {
       fetchActiveWhitelists();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, reqPage, reqRowsPerPage, reqTypeFilter, reqStatusFilter, activePage, activeRowsPerPage, activeTypeFilter, activeStockIdFilter, activeProviderIdFilter]);
 
   // Load providers once on mount
@@ -243,6 +244,7 @@ const WhitelistRequests = () => {
       setAvailableDevices([]);
       setSelectedDevices([]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProvider, deviceSelectionMode]);
 
   // ----------------------------------------------------

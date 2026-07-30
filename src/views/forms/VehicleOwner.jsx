@@ -58,6 +58,7 @@ const VehicleOwner = () => {
       setVehicleOwnerInitialValues(ownerInitialValues);
       setEditPage(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parameter]);
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);

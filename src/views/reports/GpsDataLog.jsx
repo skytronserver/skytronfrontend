@@ -99,10 +99,12 @@ const gpsDataColumns = [
     };
     useEffect(() => {
         getGpsData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
     useEffect(() => {
         getGpsData(searchQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [offlineFilter]);
     
     const options = {

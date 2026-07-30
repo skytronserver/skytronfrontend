@@ -56,6 +56,7 @@ const ConfigureDevice = ({ status }) => {
       setDeviceList(arrUniq);
     };
     fetchAvailableDevice();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadAgain]);
   const handleDeviceChange = (e) => {
     setDeviceId(e.target.value);

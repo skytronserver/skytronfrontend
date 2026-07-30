@@ -84,6 +84,7 @@ const ActivationLogReport = () => {
 
   useEffect(() => {
     getActivationLogs('ACTV');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const options = {

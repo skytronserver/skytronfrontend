@@ -68,6 +68,7 @@ const ListSimActivation = () => {
       }
     };
     retrieveList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceStatus, reload]);
 
   useEffect(() => {

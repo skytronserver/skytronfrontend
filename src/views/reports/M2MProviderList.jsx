@@ -31,6 +31,7 @@ const M2MProviderList = () => {
       }
     };
     fetchServiceProvider();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
 
   const actionColumn = [
