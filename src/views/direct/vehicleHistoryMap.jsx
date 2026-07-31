@@ -1,4 +1,5 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable no-unreachable */
+/* eslint-disable no-unused-vars, no-unreachable */
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
@@ -448,56 +449,7 @@ const resolveEntrySpeedValue = (entry) => {
     return Number.isFinite(num) ? num : 0;
 };
 
-const MAPPLS_TOKEN_ENV_KEYS = [
-    "REACT_APP_MAPPLS_TOKEN",
-    "REACT_APP_MAPPLS_REST_KEY",
-    "REACT_APP_MAPPLS_MAP_KEY",
-    "REACT_APP_MAPPLS_API_KEY",
-];
 
-const DEFAULT_HD_CENTER = { lat: 26.1445, lng: 91.7362 };
-
-const resolveMapplsToken = () => {
-    if (typeof process !== "undefined" && process?.env) {
-        for (const key of MAPPLS_TOKEN_ENV_KEYS) {
-            const value = process.env[key];
-            if (value) {
-                return value;
-            }
-        }
-    }
-
-    if (typeof document !== "undefined") {
-        const scripts = Array.from(document.getElementsByTagName("script"));
-        const sdkScript = scripts.find((script) =>
-            script.src && (
-                script.src.includes("mappls.com/advancedmaps/api/") ||
-                script.src.includes("mappls.com/map/sdk/")
-            )
-        );
-
-        if (sdkScript) {
-            // Try legacy path-based token
-            const match = sdkScript.src.match(/api\/([^/]+)\/map_sdk/i);
-            if (match && match[1]) {
-                return match[1];
-            }
-
-            // Try query param based token (new SDK)
-            try {
-                const url = new URL(sdkScript.src);
-                const accessToken = url.searchParams.get("access_token");
-                if (accessToken) return accessToken;
-            } catch (e) {
-                // Fallback regex if URL parsing fails
-                const tokenMatch = sdkScript.src.match(/[?&]access_token=([^&]+)/);
-                if (tokenMatch && tokenMatch[1]) return tokenMatch[1];
-            }
-        }
-    }
-
-    return null;
-};
 
 const findFirstValidLatLng = (entries) => {
     if (!Array.isArray(entries)) return null;
@@ -520,7 +472,7 @@ const findFirstValidLatLng = (entries) => {
 const setMapCenterSafely = (mapInstance, lat, lng) => {
     if (!mapInstance || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-    // Mappls prefers object format {lat, lng}, but we try both formats
+    // LegacyMap prefers object format {lat, lng}, but we try both formats
     try {
         if (typeof mapInstance.setCenter === "function") {
             mapInstance.setCenter([lng, lat]);
@@ -536,7 +488,7 @@ const setMapCenterSafely = (mapInstance, lat, lng) => {
                 return;
             } catch (tertiaryError) {
                 console.warn(
-                    "Unable to update Mappls map center",
+                    "Unable to update LegacyMap map center",
                     primaryError,
                     secondaryError,
                     tertiaryError
@@ -552,19 +504,19 @@ const setMapCenterSafely = (mapInstance, lat, lng) => {
     }
 };
 
-const MAPPLS_HD_POPUP_STYLE_ID = "mappls-hd-popup-styles";
+const LEGACYMAP_HD_POPUP_STYLE_ID = "legacyMap-hd-popup-styles";
 
-const ensureHdPopupStyles = () => {
+const ensureHdPopupStyles = () => { return; 
     if (typeof document === "undefined") return;
 
-    if (document.getElementById(MAPPLS_HD_POPUP_STYLE_ID)) {
+    if (document.getElementById(LEGACYMAP_HD_POPUP_STYLE_ID)) {
         return;
     }
 
     const styleElement = document.createElement("style");
-    styleElement.id = MAPPLS_HD_POPUP_STYLE_ID;
+    styleElement.id = LEGACYMAP_HD_POPUP_STYLE_ID;
     styleElement.textContent = `
-.mappls-hd-popup-card {
+.legacyMap-hd-popup-card {
 background-color: #ffffff;
 border-radius: 10px;
 padding: 8px 10px;
@@ -578,28 +530,28 @@ color: #1f2933;
 }
 
 /*
-Mappls HD marker label positioning:
+LegacyMap HD marker label positioning:
 Their SDK renders a marker container with an icon + a separate label element.
 Default placement varies (often label below icon). We normalize to label ABOVE icon.
 This is best-effort across SDK versions by targeting common class names.
 */
-.mappls-marker,
-.mappls-marker-container,
-.mappls-marker-container > div {
+.legacyMap-marker,
+.legacyMap-marker-container,
+.legacyMap-marker-container > div {
 display: flex !important;
 flex-direction: column !important;
 align-items: center !important;
 }
 
-.mappls-marker-label,
-.mappls-marker-text,
-.mappls-label {
+.legacyMap-marker-label,
+.legacyMap-marker-text,
+.legacyMap-label {
 order: -1 !important;
 margin: 0 0 4px 0 !important;
 white-space: nowrap !important;
 }
 
-.mappls-hd-popup-header {
+.legacyMap-hd-popup-header {
 display: flex;
 align-items: center;
 justify-content: space-between;
@@ -607,7 +559,7 @@ margin-bottom: 6px;
 gap: 8px;
 }
 
-.mappls-hd-popup-title {
+.legacyMap-hd-popup-title {
 font-weight: 600;
 font-size: 13px;
 color: #111827;
@@ -616,7 +568,7 @@ overflow: hidden;
 text-overflow: ellipsis;
 }
 
-.mappls-hd-popup-pill {
+.legacyMap-hd-popup-pill {
 padding: 2px 8px;
 border-radius: 999px;
 font-size: 10px;
@@ -626,25 +578,25 @@ text-transform: uppercase;
 border: 1px solid transparent;
 }
 
-.mappls-hd-popup-pill--normal {
+.legacyMap-hd-popup-pill--normal {
 background-color: #ecfdf3;
 color: #15803d;
 border-color: #bbf7d0;
 }
 
-.mappls-hd-popup-pill--offline {
+.legacyMap-hd-popup-pill--offline {
 background-color: #f3f4f6;
 color: #4b5563;
 border-color: #d1d5db;
 }
 
-.mappls-hd-popup-pill--alert {
+.legacyMap-hd-popup-pill--alert {
 background-color: #fef2f2;
 color: #b91c1c;
 border-color: #fecaca;
 }
 
-.mappls-hd-popup-body {
+.legacyMap-hd-popup-body {
 border-top: 1px solid #f1f5f9;
 padding-top: 6px;
 margin-top: 4px;
@@ -652,19 +604,19 @@ display: grid;
 row-gap: 4px;
 }
 
-.mappls-hd-popup-row {
+.legacyMap-hd-popup-row {
 display: flex;
 justify-content: space-between;
 align-items: baseline;
 gap: 8px;
 }
 
-.mappls-hd-popup-label {
+.legacyMap-hd-popup-label {
 font-size: 11px;
 color: #6b7280;
 }
 
-.mappls-hd-popup-value {
+.legacyMap-hd-popup-value {
 font-size: 11px;
 font-weight: 500;
 color: #111827;
@@ -887,10 +839,10 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
     const normalizedAlertType = String(alertType).trim().toUpperCase();
     const alertClass =
         normalizedAlertType === "OFFLINE"
-            ? "mappls-hd-popup-pill--offline"
+            ? "legacyMap-hd-popup-pill--offline"
             : (normalizedAlertType === "NR" || normalizedAlertType === "NORMAL")
-                ? "mappls-hd-popup-pill--normal"
-                : "mappls-hd-popup-pill--alert";
+                ? "legacyMap-hd-popup-pill--normal"
+                : "legacyMap-hd-popup-pill--alert";
 
     const speedValue =
         typeof entry?.speed === "number" && entry.speed > 2
@@ -917,40 +869,40 @@ const buildHdPopupHtml = (entry, markerLabelMode = "vehicle") => {
 
     const policeRows = [
         nearestStationValue
-            ? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Nearest Police Station</span><span class="mappls-hd-popup-value">${nearestStationValue}</span></div>`
+            ? `<div class="legacyMap-hd-popup-row"><span class="legacyMap-hd-popup-label">Nearest Police Station</span><span class="legacyMap-hd-popup-value">${nearestStationValue}</span></div>`
             : "",
         policeContactValue
-            ? `<div class="mappls-hd-popup-row"><span class="mappls-hd-popup-label">Police Contact</span><span class="mappls-hd-popup-value">${policeContactValue}</span></div>`
+            ? `<div class="legacyMap-hd-popup-row"><span class="legacyMap-hd-popup-label">Police Contact</span><span class="legacyMap-hd-popup-value">${policeContactValue}</span></div>`
             : "",
     ].join("");
 
     return `
-< div class="mappls-hd-popup-card" >
-<div class="mappls-hd-popup-header">
-<div class="mappls-hd-popup-title">${displayLabel}</div>
-<div class="mappls-hd-popup-pill ${alertClass}">${alertType}</div>
+< div class="legacyMap-hd-popup-card" >
+<div class="legacyMap-hd-popup-header">
+<div class="legacyMap-hd-popup-title">${displayLabel}</div>
+<div class="legacyMap-hd-popup-pill ${alertClass}">${alertType}</div>
 </div>
-<div class="mappls-hd-popup-body">
-<div class="mappls-hd-popup-row">
-<span class="mappls-hd-popup-label">Date</span>
-<span class="mappls-hd-popup-value">${dateValue}</span>
+<div class="legacyMap-hd-popup-body">
+<div class="legacyMap-hd-popup-row">
+<span class="legacyMap-hd-popup-label">Date</span>
+<span class="legacyMap-hd-popup-value">${dateValue}</span>
 </div>
-<div class="mappls-hd-popup-row">
-<span class="mappls-hd-popup-label">Time</span>
-<span class="mappls-hd-popup-value">${timeValue}</span>
+<div class="legacyMap-hd-popup-row">
+<span class="legacyMap-hd-popup-label">Time</span>
+<span class="legacyMap-hd-popup-value">${timeValue}</span>
 </div>
-<div class="mappls-hd-popup-row">
-<span class="mappls-hd-popup-label">Address</span>
-<span class="mappls-hd-popup-value">${addressValue}</span>
+<div class="legacyMap-hd-popup-row">
+<span class="legacyMap-hd-popup-label">Address</span>
+<span class="legacyMap-hd-popup-value">${addressValue}</span>
 </div>
 ${policeRows}
-        <div class="mappls-hd-popup-row">
-<span class="mappls-hd-popup-label">Category</span>
-<span class="mappls-hd-popup-value">${categoryValue}</span>
+        <div class="legacyMap-hd-popup-row">
+<span class="legacyMap-hd-popup-label">Category</span>
+<span class="legacyMap-hd-popup-value">${categoryValue}</span>
 </div>
-<div class="mappls-hd-popup-row">
-<span class="mappls-hd-popup-label">Battery</span>
-<span class="mappls-hd-popup-value">${batteryValue}</span>
+<div class="legacyMap-hd-popup-row">
+<span class="legacyMap-hd-popup-label">Battery</span>
+<span class="legacyMap-hd-popup-value">${batteryValue}</span>
 </div>
 </div>
 </div >
@@ -2391,22 +2343,22 @@ const MapComponent = ({
 
     // Map type state for 3-layer system
     const [mapType, setMapType] = useState("normal"); // 'normal', 'satellite', 'hd'
-    const mapplsMapRef = useRef(null);
+    const legacyMapMapRef = useRef(null);
     const olMapRef = useRef(null);
     const normalMapRef = useRef(null);
     const olWasDraggingRef = useRef(false);
     const normalMapContainerRef = useRef(null);
     const satelliteMapContainerRef = useRef(null);
     const soiMapContainerRef = useRef(null);
-    const hdMapContainerRef = useRef(null); // Mappls SDK Refs
+    const hdMapContainerRef = useRef(null); // LegacyMap SDK Refs
     const hdMapInnerRef = useRef(null);
     const hdVehicleMarkersRef = useRef([]); // Store vehicle markers for HD map
     const hdPoiMarkersRef = useRef([]); // Store POI markers for HD map
     const hdIncidentMarkersRef = useRef([]); // Store incident markers for HD map
-    const mapplsInstanceRef = useRef(null);
-    const mapplsInitializedRef = useRef(false);
-    const mapplsInitInProgressRef = useRef(false);
-    const mapplsLibraryPollRef = useRef(null);
+    const legacyMapInstanceRef = useRef(null);
+    const legacyMapInitializedRef = useRef(false);
+    const legacyMapInitInProgressRef = useRef(false);
+    const legacyMapLibraryPollRef = useRef(null);
     const hdMapContainerIdRef = useRef(null);
 
     // HD Map Drawing State & Refs
@@ -2529,7 +2481,7 @@ const MapComponent = ({
     const [geoSearchLoading, setGeoSearchLoading] = useState(false);
     const [useOldGeocodingApi, setUseOldGeocodingApiState] = useState(getUseOldGeocodingApi());
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-    const MAPPLS_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
+    const LEGACYMAP_GEOCODING_TOKEN = "hbetrqpnyaoqssztkakwzjjmoxkowalvbwus";
     const theme = useTheme();
 
     const USE_TYPE_COLORS = {
@@ -4295,16 +4247,16 @@ const MapComponent = ({
         layers.bhuvanArunachal?.setVisible?.(!!soiLayerVisibility.bhuvanArunachal);
     }, [soiLayerVisibility]);
 
-    // Initialize HD Map (Mappls)
+    // Initialize HD Map (LegacyMap)
     useEffect(() => {
-        if (mapType !== "hd" || !hdMapContainerRef.current) return;
+        return; if(false || !hdMapContainerRef.current) return;
 
         let isMounted = true;
 
         const cleanup = () => {
-            if (mapplsLibraryPollRef.current) {
-                clearInterval(mapplsLibraryPollRef.current);
-                mapplsLibraryPollRef.current = null;
+            if (legacyMapLibraryPollRef.current) {
+                clearInterval(legacyMapLibraryPollRef.current);
+                legacyMapLibraryPollRef.current = null;
             }
 
             // Clear all markers first
@@ -4320,10 +4272,10 @@ const MapComponent = ({
             });
 
             // Try to remove/destroy the map instance
-            if (mapplsMapRef.current) {
+            if (legacyMapMapRef.current) {
                 try {
-                    if (typeof mapplsMapRef.current.remove === "function") {
-                        mapplsMapRef.current.remove();
+                    if (typeof legacyMapMapRef.current.remove === "function") {
+                        legacyMapMapRef.current.remove();
                     }
                 } catch (e) {
                     console.warn("Error removing HD map:", e);
@@ -4335,7 +4287,7 @@ const MapComponent = ({
             }
 
             hdMapContainerIdRef.current = null;
-            mapplsMapRef.current = null;
+            legacyMapMapRef.current = null;
             hdVehicleMarkersRef.current = [];
             hdPoiMarkersRef.current = [];
         };
@@ -4343,19 +4295,19 @@ const MapComponent = ({
         const instantiateHdMap = () => {
             if (!isMounted || !hdMapInnerRef.current) return;
 
-            const mapplsInstance = mapplsInstanceRef.current;
-            if (!mapplsInstance || typeof mapplsInstance.Map !== "function") {
-                console.error("Mappls instance is not ready or Map method unavailable");
+            const legacyMapInstance = legacyMapInstanceRef.current;
+            if (!legacyMapInstance || typeof legacyMapInstance.Map !== "function") {
+                console.error("LegacyMap instance is not ready or Map method unavailable");
                 return;
             }
 
             // If map already exists, don't reset it - just return
-            if (mapplsMapRef.current) {
+            if (legacyMapMapRef.current) {
                 return;
             }
 
             // Use fixed Guwahati center like normal map, not dynamic GPS data
-            const initialCenter = DEFAULT_HD_CENTER;
+            const initialCenter = { lat: 26.1445, lng: 91.7362 };
 
             const hostElement = hdMapInnerRef.current;
             if (!hostElement) return;
@@ -4364,7 +4316,7 @@ const MapComponent = ({
             const mapElement = document.createElement("div");
             mapElement.style.width = "100%";
             mapElement.style.height = "100%";
-            const containerId = `mappls-hd-map-${Date.now()}`;
+            const containerId = `legacyMap-hd-map-${Date.now()}`;
             mapElement.id = containerId;
             hdMapContainerIdRef.current = containerId;
             hostElement.appendChild(mapElement);
@@ -4373,7 +4325,7 @@ const MapComponent = ({
                 const centerToUse = { lng: 91.7362, lat: 26.1445 };
                 console.log('Creating HD map with center:', centerToUse);
 
-                const hdMap = mapplsInstance.Map({
+                const hdMap = legacyMapInstance.Map({
                     id: containerId,
                     properties: {
                         center: [26.1445, 91.7362], // Guwahati - [lat, lng] array format
@@ -4397,7 +4349,7 @@ const MapComponent = ({
 
                 console.log('HD map created, instance:', hdMap);
 
-                // Mappls ignores center in properties, set it explicitly
+                // LegacyMap ignores center in properties, set it explicitly
                 const guwahatiCenter = { lng: 91.7362, lat: 26.1445 };
 
                 if (typeof hdMap.setCenter === 'function') {
@@ -4416,26 +4368,26 @@ const MapComponent = ({
                     }
                 }, 100);
 
-                mapplsMapRef.current = hdMap;
+                legacyMapMapRef.current = hdMap;
 
-                // Hide Mappls controls using CSS after map loads
+                // Hide LegacyMap controls using CSS after map loads
                 setTimeout(() => {
                     try {
                         const mapContainer = document.getElementById(containerId);
                         if (mapContainer) {
-                            // Hide all Mappls control elements
+                            // Hide all LegacyMap control elements
                             const style = document.createElement('style');
-                            style.id = 'mappls-controls-hide';
+                            style.id = 'legacyMap-controls-hide';
                             style.textContent = `
-#${containerId} .mappls-ctrl-zoom,
-#${containerId} .mappls-ctrl-fullscreen,
-#${containerId} .mappls-ctrl-rotate,
-#${containerId} .mappls-ctrl-scale,
-#${containerId} .mappls-ctrl-geolocate,
-#${containerId} .mappls-ctrl-attrib,
-#${containerId} .mappls-ctrl-logo,
-#${containerId} .mappls-attrib,
-#${containerId} .mappls-logo,
+#${containerId} .legacyMap-ctrl-zoom,
+#${containerId} .legacyMap-ctrl-fullscreen,
+#${containerId} .legacyMap-ctrl-rotate,
+#${containerId} .legacyMap-ctrl-scale,
+#${containerId} .legacyMap-ctrl-geolocate,
+#${containerId} .legacyMap-ctrl-attrib,
+#${containerId} .legacyMap-ctrl-logo,
+#${containerId} .legacyMap-attrib,
+#${containerId} .legacyMap-logo,
 #${containerId} .mapboxgl-ctrl-zoom-in,
 #${containerId} .mapboxgl-ctrl-zoom-out,
 #${containerId} .mapboxgl-ctrl-compass,
@@ -4450,93 +4402,93 @@ display: none !important;
 }
 `;
                             // Remove existing style if present
-                            const existingStyle = document.getElementById('mappls-controls-hide');
+                            const existingStyle = document.getElementById('legacyMap-controls-hide');
                             if (existingStyle) {
                                 existingStyle.remove();
                             }
                             document.head.appendChild(style);
                         }
                     } catch (error) {
-                        console.warn('Could not hide Mappls controls:', error);
+                        console.warn('Could not hide LegacyMap controls:', error);
                     }
                 }, 500);
 
                 // Map will use the initial center set in properties above
                 // Don't reset on load event to preserve user's zoom/pan
             } catch (error) {
-                console.error("Failed to create Mappls HD map instance", error);
+                console.error("Failed to create LegacyMap HD map instance", error);
             }
         };
 
-        const ensureMapplsInitialized = () => {
+        const ensureLegacyMapInitialized = () => { return; 
             if (!isMounted) return;
 
-            if (!mapplsInstanceRef.current) {
+            if (!legacyMapInstanceRef.current) {
                 try {
                     let instanceCandidate = null;
 
-                    if (typeof window.mappls === "function") {
+                    if (typeof window.legacyMap === "function") {
                         try {
-                            instanceCandidate = new window.mappls();
+                            instanceCandidate = new window.legacyMap();
                         } catch (ctorError) {
-                            instanceCandidate = window.mappls();
+                            instanceCandidate = window.legacyMap();
                         }
-                    } else if (window.mappls) {
-                        instanceCandidate = window.mappls;
+                    } else if (false && window.legacyMap) {
+                        instanceCandidate = window.legacyMap;
                     }
 
                     if (!instanceCandidate) {
-                        throw new Error("Mappls SDK instance could not be created");
+                        throw new Error("LegacyMap SDK instance could not be created");
                     }
 
-                    mapplsInstanceRef.current = instanceCandidate;
+                    legacyMapInstanceRef.current = instanceCandidate;
                 } catch (error) {
-                    console.error("Unable to instantiate Mappls SDK", error);
+                    console.error("Unable to instantiate LegacyMap SDK", error);
                     return;
                 }
             }
 
-            const mapplsInstance = mapplsInstanceRef.current;
-            const initializeFn = mapplsInstance?.initialize;
+            const legacyMapInstance = legacyMapInstanceRef.current;
+            const initializeFn = legacyMapInstance?.initialize;
 
-            if (mapplsInitializedRef.current) {
+            if (legacyMapInitializedRef.current) {
                 instantiateHdMap();
                 return;
             }
 
-            if (mapplsInitInProgressRef.current) {
+            if (legacyMapInitInProgressRef.current) {
                 return;
             }
 
-            const token = resolveMapplsToken();
+            const token = null;
 
             if (!token) {
                 console.error(
-                    "Mappls SDK token not found. Set REACT_APP_MAPPLS_TOKEN or include key in script URL."
+                    "LegacyMap SDK token not found. Set REACT_APP_LEGACYMAP_TOKEN or include key in script URL."
                 );
                 return;
             }
 
             const markReady = () => {
                 if (!isMounted) return;
-                mapplsInitInProgressRef.current = false;
-                mapplsInitializedRef.current = true;
+                legacyMapInitInProgressRef.current = false;
+                legacyMapInitializedRef.current = true;
                 instantiateHdMap();
             };
 
             if (typeof initializeFn === "function") {
-                mapplsInitInProgressRef.current = true;
+                legacyMapInitInProgressRef.current = true;
 
                 try {
                     initializeFn.call(
-                        mapplsInstance,
+                        legacyMapInstance,
                         token,
                         { map: true, plugins: ["marker"] },
                         markReady
                     );
                 } catch (error) {
-                    mapplsInitInProgressRef.current = false;
-                    console.error("Failed to initialize Mappls SDK", error);
+                    legacyMapInitInProgressRef.current = false;
+                    console.error("Failed to initialize LegacyMap SDK", error);
                 }
 
                 return;
@@ -4546,14 +4498,14 @@ display: none !important;
             markReady();
         };
 
-        if (window.mappls) {
-            ensureMapplsInitialized();
+        if (false && window.legacyMap) {
+            ensureLegacyMapInitialized();
         } else {
-            mapplsLibraryPollRef.current = setInterval(() => {
-                if (window.mappls) {
-                    clearInterval(mapplsLibraryPollRef.current);
-                    mapplsLibraryPollRef.current = null;
-                    ensureMapplsInitialized();
+            legacyMapLibraryPollRef.current = setInterval(() => {
+                if (false && window.legacyMap) {
+                    clearInterval(legacyMapLibraryPollRef.current);
+                    legacyMapLibraryPollRef.current = null;
+                    ensureLegacyMapInitialized();
                 }
             }, 400);
         }
@@ -4566,18 +4518,18 @@ display: none !important;
 
     // Plot vehicles and POIs on HD map
     useEffect(() => {
-        if (mapType !== "hd" || !mapplsMapRef.current) return;
+        return; if(false || !legacyMapMapRef.current) return;
 
-        const hdMap = mapplsMapRef.current;
-        const mapplsInstance = mapplsInstanceRef.current;
+        const hdMap = legacyMapMapRef.current;
+        const legacyMapInstance = legacyMapInstanceRef.current;
 
         const markerFactoryAvailable =
-            typeof mapplsInstance?.marker === "function" ||
-            typeof window.mappls?.Marker === "function";
+            typeof legacyMapInstance?.marker === "function" ||
+            typeof window.legacyMap?.Marker === "function";
 
-        if (!mapplsInstance || !markerFactoryAvailable) {
+        if (!legacyMapInstance || !markerFactoryAvailable) {
             console.warn(
-                "Mappls marker plugin not ready. Skipping HD markers render for now."
+                "LegacyMap marker plugin not ready. Skipping HD markers render for now."
             );
             return;
         }
@@ -4616,22 +4568,22 @@ display: none !important;
         };
 
         const createMarker = (options) => {
-            const markerFactory = mapplsInstance?.marker;
+            const markerFactory = legacyMapInstance?.marker;
 
             try {
                 if (typeof markerFactory === "function") {
-                    return markerFactory.call(mapplsInstance, options);
+                    return markerFactory.call(legacyMapInstance, options);
                 }
 
-                if (typeof window.mappls?.Marker === "function") {
+                if (typeof window.legacyMap?.Marker === "function") {
                     try {
-                        return new window.mappls.Marker(options);
+                        return new window.legacyMap.Marker(options);
                     } catch (ctorError) {
-                        return window.mappls.Marker(options);
+                        return window.legacyMap.Marker(options);
                     }
                 }
             } catch (error) {
-                console.error("Failed to create Mappls marker", { options, error });
+                console.error("Failed to create LegacyMap marker", { options, error });
             }
 
             return null;
@@ -4868,9 +4820,9 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
     // HD Map Drawing Logic - Handle Clicks
     useEffect(() => {
-        if (mapType !== 'hd' || !mapplsMapRef.current) return;
+        return; if(false || !legacyMapMapRef.current) return;
 
-        const hdMap = mapplsMapRef.current;
+        const hdMap = legacyMapMapRef.current;
 
         // Manage Cursor with CSS Class
         if (hdMapContainerIdRef.current) {
@@ -4913,8 +4865,8 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
     // HD Map Drawing Logic - Visualization
     useEffect(() => {
-        if (mapType !== 'hd' || !mapplsMapRef.current) return;
-        const hdMap = mapplsMapRef.current;
+        return; if(false || !legacyMapMapRef.current) return;
+        const hdMap = legacyMapMapRef.current;
 
         // Cleanup temp poly
         if (tempPolyRef.current) {
@@ -4943,8 +4895,8 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 const iconUrl = `data:image/svg+xml;base64,${window.btoa(dotSvg)}`;
 
                 try {
-                    if (window.mappls && window.mappls.Marker) {
-                        const marker = new window.mappls.Marker({
+                    if (window.legacyMap && window.legacyMap.Marker) {
+                        const marker = new window.legacyMap.Marker({
                             map: hdMap,
                             position: pt,
                             icon: iconUrl,
@@ -4960,8 +4912,8 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
             if (drawingPoints.length > 1) {
                 try {
-                    if (window.mappls && window.mappls.Polyline) {
-                        const tempPoly = new window.mappls.Polyline({
+                    if (window.legacyMap && window.legacyMap.Polyline) {
+                        const tempPoly = new window.legacyMap.Polyline({
                             map: hdMap,
                             paths: paths,
                             strokeColor: '#333333',
@@ -5023,7 +4975,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
             // but simplistic approach is fine.
 
             // Let's create a closed polygon visualization for persistency until cleared
-            if (mapplsMapRef.current && window.mappls && window.mappls.Polygon) {
+            if (legacyMapMapRef.current && window.legacyMap && window.legacyMap.Polygon) {
                 // Clear temp lines/dots
                 if (tempPolyRef.current) try { tempPolyRef.current.remove(); } catch (e) { }
                 tempMarkersRef.current.forEach(m => { try { m.remove(); } catch (e) { } });
@@ -5032,8 +4984,8 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 // Draw closed polygon
                 const paths = drawingPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
                 try {
-                    const finalPoly = new window.mappls.Polygon({
-                        map: mapplsMapRef.current,
+                    const finalPoly = new window.legacyMap.Polygon({
+                        map: legacyMapMapRef.current,
                         paths: paths,
                         fillColor: 'rgba(255, 255, 255, 0.2)',
                         strokeColor: '#ffcc33',
@@ -6469,7 +6421,7 @@ ${selectedColumns.map((key) => {
 
 
     // useEffect(() => {
-    //     if (!map || !vectorLayer || mapType === 'hd') return;
+    //     if (!map || !vectorLayer || false /* LegacyMap disabled */) return;
 
     //     const vectorSource = vectorLayer.getSource().getSource();
     //     const allMarkers = [...gpsData, ...policeData];
@@ -6550,7 +6502,7 @@ ${selectedColumns.map((key) => {
 
 
     useEffect(() => {
-        if (!map || !vectorLayer || mapType === 'hd') return;
+        if (!map || !vectorLayer || false /* LegacyMap disabled */) return;
 
         const vectorSource = vectorLayer.getSource().getSource();
         const allMarkers = [...gpsData, ...policeData];
@@ -6669,12 +6621,12 @@ ${selectedColumns.map((key) => {
                 .animate({ center: [longitude, latitude], zoom: 16, duration: 500 });
         }
 
-        // Handle HD Mappls map
-        if (mapType === "hd" && mapplsMapRef.current) {
-            const hdMap = mapplsMapRef.current;
+        // Handle HD LegacyMap map
+        if (false && false /* LegacyMap disabled */ && legacyMapMapRef.current) {
+            const hdMap = legacyMapMapRef.current;
 
             // Try to pan to the location
-            // Note: Mappls expects object format {lat, lng}
+            // Note: LegacyMap expects object format {lat, lng}
             try {
                 if (typeof hdMap.setCenter === "function") {
                     hdMap.setCenter({ lat: latitude, lng: longitude });
@@ -6808,7 +6760,7 @@ ${selectedColumns.map((key) => {
 
         try {
             setGeoSearchLoading(true);
-            // const url = `/mappls/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${MAPPLS_GEOCODING_TOKEN}`;
+            // const url = `/legacyMap/search/address/geocode?address=${encodeURIComponent(geoSearchQuery)}&access_token=${LEGACYMAP_GEOCODING_TOKEN}`;
             const response = await HomePageService.getGeocode(geoSearchQuery, 5);
 
             if (response.status === 200) {
@@ -6862,7 +6814,7 @@ ${selectedColumns.map((key) => {
 
         // Support multiple response formats:
         // eslint-disable-next-line no-mixed-operators
-        // - Mappls: { latitude, longitude }
+        // - LegacyMap: { latitude, longitude }
         // - Generic: { lat, lng }
         // - Gromed geocode: { lat, lon, address }
         let lat = result.latitude || result.lat;
@@ -6871,7 +6823,7 @@ ${selectedColumns.map((key) => {
         // If lat/lng are missing, try to fetch them using eLoc
         if ((!lat || !lng) && result.eLoc) {
             try {
-                const url = `https://place.mappls.com/O2O/entity/place-details/${result.eLoc}?access_token=${MAPPLS_GEOCODING_TOKEN}`;
+                const url = `https://place.legacyMap.com/O2O/entity/place-details/${result.eLoc}?access_token=${LEGACYMAP_GEOCODING_TOKEN}`;
                 console.log('Fetching detailed place info for eLoc:', result.eLoc);
                 const response = await axios.get(url);
                 if (response.status === 200 && response.data) {
@@ -6888,9 +6840,9 @@ ${selectedColumns.map((key) => {
             const latNum = parseFloat(lat);
             const lngNum = parseFloat(lng);
 
-            // Handle HD Map (Mappls)
-            if (mapType === "hd" && mapplsMapRef.current) {
-                const hdMap = mapplsMapRef.current;
+            // Handle HD Map (LegacyMap)
+            if (false && false /* LegacyMap disabled */ && legacyMapMapRef.current) {
+                const hdMap = legacyMapMapRef.current;
                 const pos = { lat: latNum, lng: lngNum };
 
                 try {
@@ -6910,9 +6862,9 @@ ${selectedColumns.map((key) => {
                     }
 
                     // Add marker at the searched location
-                    if (window.mappls && window.mappls.Marker) {
+                    if (window.legacyMap && window.legacyMap.Marker) {
                         const iconUrl = getPoiMarkerIcon('#FF0000');
-                        const marker = new window.mappls.Marker({
+                        const marker = new window.legacyMap.Marker({
                             map: hdMap,
                             position: pos,
                             icon: iconUrl,
@@ -7041,14 +6993,14 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
         }
     }, [showIncidents, incidentVectorLayer]);
 
-    // Handle Layer Visibility Toggles (Mappls HD)
+    // Handle Layer Visibility Toggles (LegacyMap HD)
     useEffect(() => {
         // Toggle Vehicle Markers
         if (hdVehicleMarkersRef.current) {
             hdVehicleMarkersRef.current.forEach(marker => {
                 try {
                     if (showVehicles) {
-                        if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
+                        if (!marker.getMap()) marker.addTo(legacyMapMapRef.current);
                     } else {
                         marker.remove();
                     }
@@ -7061,7 +7013,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             hdPoiMarkersRef.current.forEach(marker => {
                 try {
                     if (showPois) {
-                        if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
+                        if (!marker.getMap()) marker.addTo(legacyMapMapRef.current);
                     } else {
                         marker.remove();
                     }
@@ -7073,7 +7025,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             hdIncidentMarkersRef.current.forEach(marker => {
                 try {
                     if (showIncidents) {
-                        if (!marker.getMap()) marker.addTo(mapplsMapRef.current);
+                        if (!marker.getMap()) marker.addTo(legacyMapMapRef.current);
                     } else {
                         marker.remove();
                     }
@@ -7253,7 +7205,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                                 {[
                                     { id: 'normal', label: 'Normal', icon: <MapIcon /> },
                                     { id: 'satellite', label: 'Satellite', icon: <SatelliteIcon /> },
-                                    // { id: 'hd', label: 'Mappls HD', icon: <HdIcon /> },
+                                    // { id: 'hd', label: 'LegacyMap HD', icon: <HdIcon /> },
                                     { id: 'soi', label: 'SOI', icon: <PublicIcon /> }
                                 ].map((type) => (
                                     <Tooltip key={type.id} title={type.label} arrow>
@@ -7770,7 +7722,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                     >
                         <Tooltip title={drawingMode === 'polygon' || drawInteraction ? "Drawing Active" : "Draw Polygon"} placement="left">
                             <IconButton
-                                onClick={mapType === 'hd' ? startHdDrawing : startDrawing}
+                                onClick={false /* LegacyMap disabled */ ? startHdDrawing : startDrawing}
                                 color={(drawingMode === 'polygon' || drawInteraction) ? "secondary" : "default"}
                                 sx={{
                                     borderRadius: '8px',
@@ -7784,7 +7736,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                         {/* Clear Button - Show only if something is drawn or drawing */}
                         <Tooltip title="Clear Map" placement="left">
                             <IconButton
-                                onClick={mapType === 'hd' ? clearHdDrawing : clearPolygon}
+                                onClick={false /* LegacyMap disabled */ ? clearHdDrawing : clearPolygon}
                                 color="error"
                                 size="small"
                                 sx={{ borderRadius: '8px' }}
@@ -7811,7 +7763,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                         variant="contained"
                         color="success"
                         startIcon={<CheckIcon />}
-                        onClick={mapType === 'hd' ? finishHdDrawing : () => { /* OpenLayers handles finish automatically on double click usually, but we can add manual finish if customization allows */ }}
+                        onClick={false /* LegacyMap disabled */ ? finishHdDrawing : () => { /* OpenLayers handles finish automatically on double click usually, but we can add manual finish if customization allows */ }}
                         sx={{
                             borderRadius: '24px',
                             px: 3,
@@ -7852,8 +7804,8 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                     ref={hdMapContainerRef}
                     style={{
                         width: "100%", height: "100%", position: "absolute", top: 0, left: 0,
-                        visibility: mapType === "hd" ? "visible" : "hidden",
-                        zIndex: mapType === "hd" ? 1 : 0
+                        visibility: false /* LegacyMap disabled */ ? "visible" : "hidden",
+                        zIndex: false /* LegacyMap disabled */ ? 1 : 0
                     }}
                 >
                     <div ref={hdMapInnerRef} style={{ width: "100%", height: "100%", position: "absolute" }} />

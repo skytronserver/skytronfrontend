@@ -1137,7 +1137,7 @@ const POIViewer = () => {
     setDrawingPoints([]);
 
     // Clear any temporary drawing state if needed
-    // For Mappls, 'point' mode is handled by map click listener
+    // For legacyMap, 'point' mode is handled by map click listener
     // ensure other modes don't break things
   };
 
@@ -1171,7 +1171,7 @@ const POIViewer = () => {
 
   // Add route vector layer
   useEffect(() => {
-    // Route layer logic for Mappls would go here
+    // Route layer logic for legacyMap would go here
   }, []);
 
   const fetchRoute = async (points) => {
@@ -1216,7 +1216,7 @@ const POIViewer = () => {
       }
 
       // Display the route
-      // displayRoute(coordinates); // Mappls route display pending implementation
+      // displayRoute(coordinates); // legacyMap route display pending implementation
 
       // Update form data with the route coordinates
       setFormData(prev => ({
