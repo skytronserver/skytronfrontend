@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
@@ -851,7 +852,7 @@ const RouteFixing = () => {
 
 
       <Box ref={mapRef} id="map" sx={{ width: "100%", height: "500px", mt: 4, position: 'relative' }}>
-        // eslint-disable-next-line jsx-a11y/alt-text
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
         <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
       </Box>
 

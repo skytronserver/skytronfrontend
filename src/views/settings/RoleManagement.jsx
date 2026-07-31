@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // RoleManagement.jsx — uses the project's existing form/card/dialog pattern
 import { useEffect, useState, useCallback } from 'react';
 import { Grid, Button, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';

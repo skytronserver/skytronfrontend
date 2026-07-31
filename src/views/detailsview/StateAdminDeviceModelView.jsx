@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* package import sections */
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";

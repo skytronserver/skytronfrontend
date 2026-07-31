@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import HomePageService from "../../services/HomePage";

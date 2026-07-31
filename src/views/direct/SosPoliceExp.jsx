@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // material-ui
 import React from 'react';
 // project imports

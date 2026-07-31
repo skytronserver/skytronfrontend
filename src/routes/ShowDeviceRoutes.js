@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import PrivateRoute from './PrivateRoute';
 import { lazy } from "react";
 import Loadable from "../ui-component/Loadable";

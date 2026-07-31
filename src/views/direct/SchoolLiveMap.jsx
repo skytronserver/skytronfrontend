@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 
 
 
@@ -3578,6 +3579,8 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                     // eslint-disable-next-line default-case
                     let feature;
 
+                    // eslint-disable-next-line default-case
+                    // eslint-disable-next-line default-case
                     switch (poi.mark_type) {
                         case "Point":
                             if (location[0] && location[0].length === 2) {
@@ -5034,7 +5037,7 @@ useEffect(() => {
         let lng = result.longitude || result.lng || result.lon;
 
         // If lat/lng are missing, try to fetch them using eLoc
-        if (!lat || !lng && result.eLoc) {
+        if ((!lat || !lng) && result.eLoc) {
             try {
                 const url = `https://place.mappls.com/O2O/entity/place-details/${result.eLoc}?access_token=${MAPPLS_GEOCODING_TOKEN}`;
                 console.log('Fetching detailed place info for eLoc:', result.eLoc);

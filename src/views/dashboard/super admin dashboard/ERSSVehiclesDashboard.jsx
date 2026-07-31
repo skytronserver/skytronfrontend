@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';

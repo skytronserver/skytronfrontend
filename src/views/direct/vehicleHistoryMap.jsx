@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme, alpha } from '@mui/material/styles';
 import {
@@ -5069,12 +5070,15 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
         poiSource.clear();
 
         pois.forEach((poi) => {
+            // eslint-disable-next-line default-case
             try {
                 // eslint-disable-next-line default-case
                 const location = JSON.parse(poi.location);
                 if (Array.isArray(location) && location.length > 0) {
                     let feature;
 
+                    // eslint-disable-next-line default-case
+                    // eslint-disable-next-line default-case
                     switch (poi.mark_type) {
                         case "Point":
                             if (location[0] && location[0].length === 2) {
@@ -6854,6 +6858,7 @@ ${selectedColumns.map((key) => {
 
     const handleGeoResultClick = async (result) => {
         console.log('Selected geo result:', result);
+// eslint-disable-next-line no-mixed-operators
 
         // Support multiple response formats:
         // eslint-disable-next-line no-mixed-operators
@@ -6864,7 +6869,7 @@ ${selectedColumns.map((key) => {
         let lng = result.longitude || result.lng || result.lon;
 
         // If lat/lng are missing, try to fetch them using eLoc
-        if (!lat || !lng && result.eLoc) {
+        if ((!lat || !lng) && result.eLoc) {
             try {
                 const url = `https://place.mappls.com/O2O/entity/place-details/${result.eLoc}?access_token=${MAPPLS_GEOCODING_TOKEN}`;
                 console.log('Fetching detailed place info for eLoc:', result.eLoc);

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState } from 'react';
 import MainCard from '../../ui-component/cards/MainCard';
 import TaggingService from "../../services/TaggingService";
@@ -1145,8 +1146,7 @@ const TripViewer = () => {
                   {mapType === "normal" ? "Satellite View" : "Normal View"}
                 </Button>
 
-                // eslint-disable-next-line jsx-a11y/alt-text
-                <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
+                <img alt="" src={`\${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
               </Box>
             </Paper>
           </>

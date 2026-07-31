@@ -83,6 +83,7 @@ const SetPassword = () => {
     .toISOString().split('T')[0];
   const handleSetPassword = async () => {
     // eslint-disable-next-line eqeqeq
+    // eslint-disable-next-line eqeqeq
     if (password != '') {
       setLoading(true)
       try {

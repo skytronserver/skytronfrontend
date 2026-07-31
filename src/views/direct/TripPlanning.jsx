@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from "react";
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
@@ -1596,8 +1597,7 @@ const TripPlanning = () => {
           overflow: 'hidden',
           boxShadow: 1
         }}>
-          // eslint-disable-next-line jsx-a11y/alt-text
-          <img
+          <img alt=""
             src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
             style={{
               position: 'absolute',

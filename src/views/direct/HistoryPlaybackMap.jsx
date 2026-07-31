@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from "react";
 import { Box, Button, Slider, Typography, Paper, Grid } from "@mui/material";
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';

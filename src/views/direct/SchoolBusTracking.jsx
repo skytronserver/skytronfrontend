@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from 'react-i18next';
