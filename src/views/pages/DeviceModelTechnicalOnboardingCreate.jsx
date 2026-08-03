@@ -4,17 +4,31 @@ import {
   Autocomplete,
   Box,
   Button,
+  Card,
+  CardContent,
   Chip,
   CircularProgress,
   Divider,
+  FormControl,
   Grid,
   IconButton,
   InputAdornment,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Step,
+  Tab,
+  Tabs,
   StepLabel,
   Stepper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -31,7 +45,10 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import SimCardIcon from "@mui/icons-material/SimCard";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import DeviceModelServices from "../../services/DeviceModelServices";
+import DeviceDataHealthService from "../../services/DeviceDataHealth";
 
 /* ─────────────────────────────────────── constants ─── */
 
@@ -40,6 +57,7 @@ const STEPS = [
   { label: "Manufacturer Onboarding" },
   { label: "Required Documents" },
   { label: "VLTD Devices" },
+  { label: "Device Data Health" },
 ];
 
 const emptyTestDevice = () => ({
@@ -117,6 +135,25 @@ const PdfUploadCard = ({ label, icon: Icon, file, onChange, error }) => (
 
 /* ═══════════════════════════════════════════════════ */
 
+/* ── health helpers ── */
+const getHealthCardColor = (status) => {
+  if (!status) return "#9e9e9e";
+  const s = status.toLowerCase();
+  if (s.includes("invalid") || s.includes("error")) return "#ef4444";
+  if (s.includes("available") && !s.includes("not")) return "#22c55e";
+  return "#f59e0b";
+};
+
+const formatHealthTime = (ts) => {
+  if (!ts || ts === "—") return "—";
+  try {
+    const d = new Date(ts);
+    return isNaN(d.getTime()) ? ts : d.toLocaleString();
+  } catch {
+    return ts;
+  }
+};
+
 const DeviceModelTechnicalOnboardingCreate = () => {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -129,6 +166,16 @@ const DeviceModelTechnicalOnboardingCreate = () => {
   const [testDevices, setTestDevices] = useState(
     Array.from({ length: 5 }, emptyTestDevice)
   );
+
+  /* ── device data health state ── */
+  const [healthProtocol, setHealthProtocol] = useState("");
+  const [healthFormats, setHealthFormats] = useState([]);
+  const [healthLookbackDays, setHealthLookbackDays] = useState(3);
+  const [deviceHealthResults, setDeviceHealthResults] = useState([]); // array per device
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [healthFetched, setHealthFetched] = useState(false);
+  const [activeHealthTab, setActiveHealthTab] = useState(0);
+  const [imeiSearch, setImeiSearch] = useState("");
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -188,6 +235,69 @@ const DeviceModelTechnicalOnboardingCreate = () => {
       isMounted = false;
     };
   }, []);
+
+  /* ── load protocol formats for health step ── */
+  useEffect(() => {
+    let isMounted = true;
+    const loadFormats = async () => {
+      try {
+        const res = await DeviceDataHealthService.getFormats();
+        let formatList = [];
+        if (res.data?.options && Array.isArray(res.data.options)) {
+          formatList = res.data.options;
+        } else if (res.data && typeof res.data === "object") {
+          const obj = res.data.data ? res.data.data : res.data;
+          formatList = Object.entries(obj).map(([k, v]) => ({ value: k, label: v }));
+        }
+        if (formatList.length === 0) {
+          formatList = [
+            { value: "ARAI_2025", label: "ARAI (current)" },
+            { value: "Amendment3", label: "Amendment 3" },
+          ];
+        }
+        if (isMounted) {
+          setHealthFormats(formatList);
+          setHealthProtocol(formatList[0].value);
+        }
+      } catch {
+        const fallback = [
+          { value: "ARAI_2025", label: "ARAI (current)" },
+          { value: "Amendment3", label: "Amendment 3" },
+        ];
+        if (isMounted) {
+          setHealthFormats(fallback);
+          setHealthProtocol(fallback[0].value);
+        }
+      }
+    };
+    loadFormats();
+    return () => { isMounted = false; };
+  }, []);
+
+  /* ── fetch health for all devices ── */
+  const fetchAllDeviceHealth = async () => {
+    setHealthLoading(true);
+    setHealthFetched(false);
+    const results = await Promise.all(
+      testDevices.map(async (device) => {
+        const imei = String(device.imei || "").trim();
+        if (!imei) return { imei: "—", error: "No IMEI", data: null };
+        try {
+          const res = await DeviceDataHealthService.getHealthData(imei, healthProtocol, healthLookbackDays);
+          return { imei, error: null, data: res.data };
+        } catch (err) {
+          return {
+            imei,
+            error: err?.response?.data?.detail || err?.message || "Failed to fetch",
+            data: null,
+          };
+        }
+      })
+    );
+    setDeviceHealthResults(results);
+    setHealthLoading(false);
+    setHealthFetched(true);
+  };
 
   const canRemoveTestDevice = useMemo(() => testDevices.length > 5, [testDevices.length]);
 
@@ -251,9 +361,16 @@ const DeviceModelTechnicalOnboardingCreate = () => {
   };
 
   /* ── navigation ── */
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!validateStep(activeStep)) {
       showAlert("error", "Please fix all errors before continuing.");
+      return;
+    }
+    // When moving from Step 3 (VLTD Devices) to Step 4 (Device Data Health), auto-fetch
+    if (activeStep === 3) {
+      setActiveStep((s) => s + 1);
+      // Fetch health after navigating to step 4
+      setTimeout(() => fetchAllDeviceHealth(), 100);
       return;
     }
     setActiveStep((s) => s + 1);
@@ -272,15 +389,14 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     setTestDevices(Array.from({ length: 5 }, emptyTestDevice));
     setFieldErrors({});
     setActiveStep(0);
+    setDeviceHealthResults([]);
+    setHealthFetched(false);
+    setActiveHealthTab(0);
+    setImeiSearch("");
   };
 
   /* ── submit ── */
   const handleSubmit = async () => {
-    if (!validateStep(3)) {
-      showAlert("error", "Please fix all errors before submitting.");
-      return;
-    }
-
     const formData = new FormData();
     formData.append("device_model_id", deviceModelId);
     formData.append("user_manual_pdf", userManualPdf);
@@ -634,6 +750,279 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
             </Stack>
           </SectionBlock>
         );
+
+      /* ── Step 4: Device Data Health ── */
+      case 4: {
+        // Derive which tab to show based on IMEI search
+        const searchedTabIdx = imeiSearch.trim()
+          ? deviceHealthResults.findIndex((r) =>
+              r.imei.toLowerCase().includes(imeiSearch.trim().toLowerCase())
+            )
+          : -1;
+        const displayTabIdx = searchedTabIdx >= 0 ? searchedTabIdx : activeHealthTab;
+
+        const activeResult = healthFetched ? deviceHealthResults[displayTabIdx] : null;
+        const activeDevice = testDevices[displayTabIdx];
+
+        // Parse categories & alerts for the active tab
+        let categoriesArray = [];
+        let alertsArray = [];
+        if (activeResult?.data) {
+          const cats =
+            activeResult.data.categories ||
+            activeResult.data.summary ||
+            activeResult.data.packet_categories ||
+            activeResult.data.data;
+          if (Array.isArray(cats)) {
+            categoriesArray = cats;
+          } else if (cats && typeof cats === "object") {
+            categoriesArray = Object.entries(cats).map(([key, val]) => ({
+              name: key,
+              ...(typeof val === "object" ? val : { status: val }),
+            }));
+          }
+          const alts =
+            activeResult.data.alerts ||
+            activeResult.data.reference ||
+            activeResult.data.alert_reference;
+          if (Array.isArray(alts)) alertsArray = alts;
+          else if (alts && typeof alts === "object") alertsArray = Object.values(alts);
+        }
+
+        return (
+          <SectionBlock
+            label="Device Data Health"
+            description="Review live data health for all registered VLTD devices before submitting."
+            action={
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                  <InputLabel>Protocol Format</InputLabel>
+                  <Select
+                    value={healthProtocol}
+                    label="Protocol Format"
+                    onChange={(e) => { setHealthProtocol(e.target.value); setHealthFetched(false); }}
+                  >
+                    {healthFormats.map((f, i) => (
+                      <MenuItem key={i} value={f.value}>{f.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+                  size="small"
+                  label="Lookback days"
+                  type="number"
+                  value={healthLookbackDays}
+                  onChange={(e) => { setHealthLookbackDays(e.target.value); setHealthFetched(false); }}
+                  sx={{ width: 110 }}
+                  inputProps={{ min: 1, max: 30 }}
+                />
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={healthLoading ? <CircularProgress size={14} /> : <RefreshIcon />}
+                  onClick={fetchAllDeviceHealth}
+                  disabled={healthLoading}
+                >
+                  {healthLoading ? "Checking…" : healthFetched ? "Re-check" : "Check Health"}
+                </Button>
+              </Stack>
+            }
+          >
+            {/* IMEI Search bar */}
+            <Box mb={2}>
+              <TextField
+                size="small"
+                placeholder="Search by IMEI…"
+                value={imeiSearch}
+                onChange={(e) => setImeiSearch(e.target.value)}
+                sx={{ width: 260 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SimCardIcon fontSize="small" color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: imeiSearch ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={() => setImeiSearch("")}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                }}
+              />
+              {imeiSearch && searchedTabIdx === -1 && (
+                <Typography variant="caption" color="error" ml={1}>
+                  No device found with IMEI "{imeiSearch}"
+                </Typography>
+              )}
+            </Box>
+
+            {!healthFetched && !healthLoading && (
+              <Alert severity="info" icon={<HealthAndSafetyIcon />}>
+                Click <strong>Check Health</strong> above to fetch live data health for all {testDevices.length} VLTD devices.
+              </Alert>
+            )}
+            {healthLoading && (
+              <Box display="flex" alignItems="center" gap={2} py={4} justifyContent="center">
+                <CircularProgress size={32} />
+                <Typography color="text.secondary">Fetching health data for {testDevices.length} devices…</Typography>
+              </Box>
+            )}
+
+            {healthFetched && !healthLoading && (
+              <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+                {/* ── Device Tabs ── */}
+                <Tabs
+                  value={displayTabIdx}
+                  onChange={(_, val) => { setActiveHealthTab(val); setImeiSearch(""); }}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{
+                    borderBottom: 1,
+                    borderColor: "divider",
+                    bgcolor: "grey.50",
+                    minHeight: 44,
+                  }}
+                >
+                  {deviceHealthResults.map((result, idx) => (
+                    <Tab
+                      key={idx}
+                      value={idx}
+                      label={
+                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: "50%",
+                              bgcolor: result.error ? "error.main" : "primary.main",
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>
+                            Device {idx + 1}
+                          </span>
+                        </Stack>
+                      }
+                      sx={{ minHeight: 44, px: 2, py: 0 }}
+                    />
+                  ))}
+                </Tabs>
+
+                {/* ── Active Device Content ── */}
+                <Box sx={{ p: 2 }}>
+                  {/* Device info row */}
+                  <Stack direction="row" alignItems="center" spacing={1} mb={2} flexWrap="wrap">
+                    <HealthAndSafetyIcon color={activeResult?.error ? "error" : "primary"} fontSize="small" />
+                    <Typography variant="subtitle2" fontWeight={700}>
+                      Device {displayTabIdx + 1} — IMEI: {activeResult?.imei}
+                    </Typography>
+                    {activeDevice?.device_serial_no && (
+                      <Chip label={`SN: ${activeDevice.device_serial_no}`} size="small" variant="outlined" />
+                    )}
+                    {activeResult?.error ? (
+                      <Chip label="Error" size="small" color="error" />
+                    ) : (
+                      <Chip label="Health fetched" size="small" color="success" />
+                    )}
+                  </Stack>
+
+                  {activeResult?.error ? (
+                    <Alert severity="error">{activeResult.error}</Alert>
+                  ) : (
+                    <Stack spacing={2}>
+                      {activeResult?.data && (
+                        <Typography variant="caption" color="text.secondary">
+                          Checked at {new Date().toLocaleString()} — Server format:{" "}
+                          {activeResult.data.current_server_format || activeResult.data.server_format || healthProtocol}
+                        </Typography>
+                      )}
+
+                      {/* Packet categories */}
+                      {categoriesArray.length > 0 && (
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight={700} mb={1}>Packet Categories</Typography>
+                          <Grid container spacing={1.5}>
+                            {categoriesArray.map((cat, cIdx) => (
+                              <Grid item xs={6} sm={4} md={2.4} key={cIdx}>
+                                <Card sx={{ bgcolor: getHealthCardColor(cat.status), color: "white", minHeight: 90 }}>
+                                  <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
+                                    <Typography variant="caption" fontWeight={700} textTransform="uppercase" display="block" color="inherit">
+                                      {cat.name || `Cat ${cIdx + 1}`}
+                                    </Typography>
+                                    <Divider sx={{ borderColor: "rgba(255,255,255,0.3)", my: 0.5 }} />
+                                    <Typography variant="caption" display="block" color="inherit" sx={{ opacity: 0.85 }}>
+                                      {formatHealthTime(cat.time || cat.last_seen || cat.timestamp)}
+                                    </Typography>
+                                    <Typography variant="body2" fontWeight={600} color="inherit" sx={{ fontSize: "0.7rem" }}>
+                                      {(cat.status || "unknown").replace(/_/g, " ")}
+                                    </Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </Box>
+                      )}
+
+                      {/* Alert table */}
+                      {alertsArray.length > 0 && (
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight={700} mb={1}>Alert / Packet Type Reference</Typography>
+                          <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                              <TableHead sx={{ bgcolor: "grey.50" }}>
+                                <TableRow>
+                                  <TableCell sx={{ fontWeight: 600 }}>Packet Type</TableCell>
+                                  <TableCell sx={{ fontWeight: 600 }}>Alert ID</TableCell>
+                                  <TableCell sx={{ fontWeight: 600 }}>Trigger</TableCell>
+                                  <TableCell sx={{ fontWeight: 600 }}>Available</TableCell>
+                                  <TableCell sx={{ fontWeight: 600 }}>Last Seen</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {alertsArray.map((row, rIdx) => {
+                                  const isAvail =
+                                    row.available === true ||
+                                    row.available === "available" ||
+                                    row.status === "available";
+                                  return (
+                                    <TableRow key={rIdx}>
+                                      <TableCell>{row.packet_type || row.packetType || "—"}</TableCell>
+                                      <TableCell>{row.alert_id || row.alertId || "—"}</TableCell>
+                                      <TableCell>{row.trigger || row.description || "—"}</TableCell>
+                                      <TableCell>
+                                        <Chip
+                                          label={isAvail ? "available" : "not available"}
+                                          size="small"
+                                          sx={{
+                                            bgcolor: isAvail ? "#22c55e" : "#f59e0b",
+                                            color: "white", fontWeight: 600, fontSize: 10, height: 18,
+                                          }}
+                                        />
+                                      </TableCell>
+                                      <TableCell>{formatHealthTime(row.last_seen || row.lastSeen)}</TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Box>
+                      )}
+
+                      {categoriesArray.length === 0 && alertsArray.length === 0 && (
+                        <Alert severity="warning">No detailed health data available for this device.</Alert>
+                      )}
+                    </Stack>
+                  )}
+                </Box>
+              </Paper>
+            )}
+          </SectionBlock>
+        );
+      }
 
       default:
         return null;

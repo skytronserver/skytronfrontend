@@ -54,6 +54,7 @@ import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import { openFile, getRole } from "../../helper";
+import DeviceDataHealthService from "../../services/DeviceDataHealth";
 
 /* ─── helpers ─── */
 const formatDateTime = (value) => {
@@ -135,9 +136,89 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
 
+    // Health validation states
+    const [healthChecking, setHealthChecking] = useState(false);
+    const [allGreen, setAllGreen] = useState(false);
+    const [healthCheckError, setHealthCheckError] = useState("");
+
+    const demoDevices = useMemo(() => {
+        if (!row?.demo_devices) return [];
+        if (Array.isArray(row.demo_devices)) return row.demo_devices;
+        try { return JSON.parse(row.demo_devices); } catch { return []; }
+    }, [row?.demo_devices]);
+
     useEffect(() => {
-        if (open) { setEvalDatetime(toDatetimeLocalValue(new Date())); setError(""); }
+        if (open) { 
+            setEvalDatetime(toDatetimeLocalValue(new Date())); 
+            setError(""); 
+            setHealthChecking(false);
+            setAllGreen(false);
+            setHealthCheckError("");
+        }
     }, [open]);
+
+    /* check device health on open */
+    useEffect(() => {
+        if (open && demoDevices.length > 0) {
+            let isMounted = true;
+            const checkHealth = async () => {
+                setHealthChecking(true);
+                setHealthCheckError("");
+                setAllGreen(false);
+                try {
+                    let allDevicesGreen = true;
+                    for (const device of demoDevices) {
+                        const imei = String(device.imei || "").trim();
+                        if (!imei) {
+                            allDevicesGreen = false;
+                            break;
+                        }
+                        const res = await DeviceDataHealthService.getHealthData(imei, "ARAI_2025", 3);
+                        const resultData = res.data;
+                        
+                        let categoriesArray = [];
+                        if (resultData) {
+                            const cats = resultData.categories || resultData.summary || resultData.packet_categories || resultData.data;
+                            if (Array.isArray(cats)) {
+                                categoriesArray = cats;
+                            } else if (cats && typeof cats === "object") {
+                                categoriesArray = Object.entries(cats).map(([key, val]) => ({
+                                    name: key,
+                                    ...(typeof val === "object" ? val : { status: val }),
+                                }));
+                            }
+                        }
+                        
+                        if (categoriesArray.length === 0) {
+                            allDevicesGreen = false;
+                            break;
+                        }
+                        
+                        const deviceAllGreen = categoriesArray.every(cat => cat.status === "available");
+                        if (!deviceAllGreen) {
+                            allDevicesGreen = false;
+                            break;
+                        }
+                    }
+                    if (isMounted) {
+                        setAllGreen(allDevicesGreen);
+                        if (!allDevicesGreen) {
+                            setHealthCheckError("All devices must have green health status (all packet categories available) before you can Confirm Testing.");
+                        }
+                    }
+                } catch (err) {
+                    if (isMounted) {
+                        setAllGreen(false);
+                        setHealthCheckError("Failed to verify device health statuses or devices have invalid health. Testing cannot be confirmed.");
+                    }
+                } finally {
+                    if (isMounted) setHealthChecking(false);
+                }
+            };
+            checkHealth();
+            return () => { isMounted = false; };
+        }
+    }, [open, demoDevices]);
 
     const handleConfirm = async () => {
         setError(""); 
@@ -218,13 +299,22 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
                             }
                         />
                     </Box>
+                    {healthChecking && (
+                        <Stack direction="row" spacing={1} alignItems="center" mt={1}>
+                            <CircularProgress size={16} />
+                            <Typography variant="caption" color="text.secondary">Validating device data health requirements before starting evaluation…</Typography>
+                        </Stack>
+                    )}
+                    {!healthChecking && healthCheckError && (
+                        <Alert severity="error">{healthCheckError}</Alert>
+                    )}
                     {error && <Alert severity="error">{error}</Alert>}
                 </Stack>
             </DialogContent>
             <DialogActions sx={{ px: 3, py: 2 }}>
                 <Button onClick={onClose} disabled={submitting} variant="outlined">Cancel</Button>
                 <Button
-                    onClick={handleConfirm} disabled={submitting} variant="contained" color="info"
+                    onClick={handleConfirm} disabled={submitting || healthChecking || !allGreen} variant="contained" color="info"
                     startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <PlayCircleOutlineIcon />}
                 >
                     {submitting ? "Confirming…" : "Confirm Testing"}
@@ -246,6 +336,17 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const [apiError, setApiError] = useState("");
     const fileInputRef = useRef(null);
 
+    // Health validation states
+    const [healthChecking, setHealthChecking] = useState(false);
+    const [allGreen, setAllGreen] = useState(false);
+    const [healthCheckError, setHealthCheckError] = useState("");
+
+    const demoDevices = useMemo(() => {
+        if (!row?.demo_devices) return [];
+        if (Array.isArray(row.demo_devices)) return row.demo_devices;
+        try { return JSON.parse(row.demo_devices); } catch { return []; }
+    }, [row?.demo_devices]);
+
     /* reset every time the dialog opens */
     useEffect(() => {
         if (open) {
@@ -254,8 +355,76 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             setReportPdf(null);
             setFieldErrors({});
             setApiError("");
+            setHealthChecking(false);
+            setAllGreen(false);
+            setHealthCheckError("");
         }
     }, [open]);
+
+    /* check device health on open */
+    useEffect(() => {
+        if (open && demoDevices.length > 0) {
+            let isMounted = true;
+            const checkHealth = async () => {
+                setHealthChecking(true);
+                setHealthCheckError("");
+                setAllGreen(false);
+                try {
+                    let allDevicesGreen = true;
+                    for (const device of demoDevices) {
+                        const imei = String(device.imei || "").trim();
+                        if (!imei) {
+                            allDevicesGreen = false;
+                            break;
+                        }
+                        const res = await DeviceDataHealthService.getHealthData(imei, "ARAI_2025", 3);
+                        const resultData = res.data;
+                        
+                        let categoriesArray = [];
+                        if (resultData) {
+                            const cats = resultData.categories || resultData.summary || resultData.packet_categories || resultData.data;
+                            if (Array.isArray(cats)) {
+                                categoriesArray = cats;
+                            } else if (cats && typeof cats === "object") {
+                                categoriesArray = Object.entries(cats).map(([key, val]) => ({
+                                    name: key,
+                                    ...(typeof val === "object" ? val : { status: val }),
+                                }));
+                            }
+                        }
+                        
+                        if (categoriesArray.length === 0) {
+                            allDevicesGreen = false;
+                            break;
+                        }
+                        
+                        const deviceAllGreen = categoriesArray.every(cat => cat.status === "available");
+                        if (!deviceAllGreen) {
+                            allDevicesGreen = false;
+                            break;
+                        }
+                    }
+                    if (isMounted) {
+                        setAllGreen(allDevicesGreen);
+                        if (!allDevicesGreen) {
+                            setHealthCheckError("All devices must have green health status (all packet categories available) before you can Accept this request.");
+                            setStatus("technically_not_compatible"); // Force to reject mode
+                        }
+                    }
+                } catch (err) {
+                    if (isMounted) {
+                        setAllGreen(false);
+                        setHealthCheckError("Failed to verify device health statuses or devices have invalid health. Acceptance is disabled.");
+                        setStatus("technically_not_compatible");
+                    }
+                } finally {
+                    if (isMounted) setHealthChecking(false);
+                }
+            };
+            checkHealth();
+            return () => { isMounted = false; };
+        }
+    }, [open, demoDevices]);
 
     const validate = () => {
         const errs = {};
@@ -339,6 +508,19 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         <FormLabel sx={{ fontWeight: 700, mb: 0.5, color: "text.primary" }}>
                             Decision *
                         </FormLabel>
+
+                        {healthChecking && (
+                            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+                                <CircularProgress size={14} />
+                                <Typography variant="caption" color="text.secondary">Validating device data health requirements…</Typography>
+                            </Stack>
+                        )}
+                        {!healthChecking && healthCheckError && (
+                            <Alert severity="error" sx={{ mb: 1, py: 0 }}>
+                                <Typography variant="caption">{healthCheckError}</Typography>
+                            </Alert>
+                        )}
+
                         <RadioGroup
                             row
                             value={status}
@@ -347,10 +529,11 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             <FormControlLabel
                                 value="technically_compatible"
                                 control={<Radio color="success" />}
+                                disabled={healthChecking || !allGreen}
                                 label={
                                     <Stack direction="row" alignItems="center" spacing={0.5}>
                                         <CheckCircleIcon color="success" fontSize="small" />
-                                        <Typography variant="body2" fontWeight={600} color="success.main">Accept</Typography>
+                                        <Typography variant="body2" fontWeight={600} color={healthChecking || !allGreen ? "text.disabled" : "success.main"}>Accept</Typography>
                                     </Stack>
                                 }
                             />
@@ -475,7 +658,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 <Button onClick={onClose} disabled={submitting} variant="outlined">Cancel</Button>
                 <Button
                     onClick={handleConfirm}
-                    disabled={submitting}
+                    disabled={submitting || (isAccepting && (healthChecking || !allGreen))}
                     variant="contained"
                     color={isAccepting ? "success" : "error"}
                     startIcon={
