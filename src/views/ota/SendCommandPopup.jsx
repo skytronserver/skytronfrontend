@@ -185,7 +185,7 @@ const SendCommandPopup = ({ open, handleClose }) => {
                 <MenuItem value="registration">Registration No</MenuItem>
                 <MenuItem value="owner">Owner Name</MenuItem>
                 <MenuItem value="imei">IMEI</MenuItem>
-                <MenuItem value="dealer_name">Dealer Name</MenuItem>
+                <MenuItem value="dealer_name">Dealer RFC(Retro Fitment Center) Name</MenuItem>
                 <MenuItem value="manufacturer_name">Manufacturer Name</MenuItem>
                 <MenuItem value="district">District</MenuItem>
               </Select>

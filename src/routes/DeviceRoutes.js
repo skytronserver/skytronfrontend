@@ -38,8 +38,7 @@ const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/Whiteli
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
 const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/ActivationStatusList")));
 const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/UntaggedDeviceStock")));
-
-
+const M2MApiConfig = Loadable(lazy(() => import("../views/forms/M2MApiConfig")));
 
 const applyPrivateRoute = (route) => ({
   ...route,
@@ -128,6 +127,11 @@ const DeviceRoutes = {
     {
       path: "/device/activation-request/:deviceStatus",
       element: <ListSimActivation />,
+      roles: ["esimprovider"],
+    },
+    {
+      path: "/device/api-config",
+      element: <M2MApiConfig />,
       roles: ["esimprovider"],
     },
     {

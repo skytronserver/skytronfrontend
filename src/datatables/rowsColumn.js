@@ -282,6 +282,7 @@ export const registeredUserColumns = [
       renderValue: (val) => {
         if (val === 'superadmin') return 'System Admin';
         if (val === 'esimprovider') return 'M2M Provider';
+        if (val === 'dealer') return 'Dealer RFC(Retro Fitment Center)';
         return val;
       }
     },
@@ -289,12 +290,14 @@ export const registeredUserColumns = [
       render: (v) => {
         if (v === 'superadmin') return 'System Admin';
         if (v === 'esimprovider') return 'M2M Provider';
+        if (v === 'dealer') return 'Dealer RFC(Retro Fitment Center)';
         return v;
       }
     },
     customBodyRender: (value) => {
       if (value === 'superadmin') return <p>System Admin</p>;
       if (value === 'esimprovider') return <p>M2M Provider</p>;
+      if (value === 'dealer') return <p>Dealer RFC(Retro Fitment Center)</p>;
       return <p>{value}</p>;
     } 
   } },

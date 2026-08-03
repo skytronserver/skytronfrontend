@@ -350,7 +350,7 @@ const Details = () => {
 
   const role = {
     devicemanufacture: 'Manufacturer',
-    dealer: 'Dealer',
+    dealer: 'Dealer RFC(Retro Fitment Center)',
     stateadmin: 'State Admin',
     sosadmin: 'SOS Admin',
     SystemAdmin: 'System Admin',

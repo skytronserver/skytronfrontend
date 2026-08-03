@@ -2516,7 +2516,7 @@ const POIViewer = () => {
                 <MenuItem value="Point_of_Interest">Point of Interest</MenuItem>
                 <MenuItem value="Other">Other</MenuItem>
                 <MenuItem value="Personal">Personal</MenuItem>
-                <MenuItem value="dealer">Dealer</MenuItem>
+                <MenuItem value="dealer">Dealer RFC(Retro Fitment Center)</MenuItem>
                 <MenuItem value="prohibited_area">Unauthorized Stop</MenuItem>
                 <MenuItem value="Prohibited_Area">Prohibited Area</MenuItem>
                 <MenuItem value="no_entry">No Entry</MenuItem>

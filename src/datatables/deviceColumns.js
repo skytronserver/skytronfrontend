@@ -213,7 +213,7 @@ export const availableForSalesColumn = [
   },
   {
     name: "dealer",
-    label: "Dealer",
+    label: "Dealer RFC(Retro Fitment Center)",
     options: {
       filter: true,
       sort: false,

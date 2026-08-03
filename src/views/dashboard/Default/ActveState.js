@@ -767,7 +767,7 @@ const ActiveState = () => {
     'userStats.sosAdmin': 'SOS Admin',
     'userStats.m2mServiceProvider': 'M2M Service Provider',
     'userStats.manufacturer': 'Manufacturer',
-    'userStats.dealer': 'Dealer',
+    'userStats.dealer': 'Dealer RFC(Retro Fitment Center)',
     'userStats.vehicleOwner': 'Vehicle Owner',
     'fitmentStats.devicesFitted': 'Devices Fitted',
     'fitmentStats.onlineDevice': 'Online Device',
@@ -1327,7 +1327,7 @@ const ActiveState = () => {
         { name: 'SOS Admin', value: userInfoForAdmin.sosAdmin || 0 },
         { name: 'M2M Service Provider', value: userInfoForAdmin.m2mServiceProvider || 0 },
         { name: 'Manufacturer', value: userInfoForAdmin.manufacturer || 0 },
-        { name: 'Dealer', value: userInfoForAdmin.dealer || 0 },
+        { name: 'Dealer RFC(Retro Fitment Center)', value: userInfoForAdmin.dealer || 0 },
         { name: 'Vehicle Owner', value: userInfoForAdmin.vehicleOwner || 0 }
       ];
 
@@ -3169,7 +3169,7 @@ const ActiveState = () => {
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
-                label="DTO, M2M Service Provider, Manufacturer, Dealer, Vehicle Owner"
+                label="DTO, M2M Service Provider, Manufacturer, Dealer RFC(Retro Fitment Center), Vehicle Owner"
                 cardValue={userInfo}
                 iconImage={User}
                 heading={t('dashboard.headings.userInfo')}

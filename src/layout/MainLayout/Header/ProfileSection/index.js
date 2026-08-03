@@ -194,6 +194,8 @@ const ProfileSection = () => {
                               ? 'System Admin'
                               : data[1] === 'devicemanufacture'
                               ? 'Manufacturer'
+                              : data[1] === 'dealer'
+                              ? 'Dealer RFC(Retro Fitment Center)'
                               : data[1]}
                           </span>
                         )}

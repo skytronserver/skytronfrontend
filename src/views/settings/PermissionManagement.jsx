@@ -16,7 +16,7 @@ const DATA_SCOPES = [
   { value: 'state',        label: 'State' },
   { value: 'manufacturer', label: 'Manufacturer' },
   { value: 'district',     label: 'District' },
-  { value: 'dealer',       label: 'Dealer' },
+  { value: 'dealer',       label: 'Dealer RFC(Retro Fitment Center)' },
   { value: 'owner',        label: 'Owner' },
   { value: 'self',         label: 'Self' },
   { value: 'none',         label: 'None' },

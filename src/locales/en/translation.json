@@ -988,7 +988,7 @@
   "assignDeviceForm": {
     "title": "Assign Device to Retailer",
     "fields": {
-      "dealer": "Dealer",
+      "dealer": "Dealer RFC(Retro Fitment Center)",
       "device": "Device",
       "deviceText": "Device",
       "shippingRemark": "Shipping Remarks"
@@ -1251,8 +1251,8 @@
     "serviceProviderTitle": "M2M Service Provider"
   },
   "dealer": {
-    "reportTitle": "Dealer Report",
-    "listTitle": "Dealer List"
+    "reportTitle": "Dealer RFC(Retro Fitment Center) Report",
+    "listTitle": "Dealer RFC(Retro Fitment Center) List"
   },
   "deviceModel": {
     "awaitingApprovalTitle": "Awaiting For Approval",
@@ -1686,7 +1686,7 @@
   "bulkDeviceAssign": {
     "title": "Bulk Device Assignment",
     "fields": {
-      "dealer": "Select Dealer",
+      "dealer": "Select Dealer RFC(Retro Fitment Center)",
       "excelFile": "Upload Csv File"
     },
     "validation": {

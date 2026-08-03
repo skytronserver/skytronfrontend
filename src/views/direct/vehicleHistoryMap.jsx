@@ -754,7 +754,7 @@ const COLUMN_LABELS = {
     owner_mobile: "Owner Mobile",
     owner_role: "Owner Role",
     device_id: "Device ID",
-    dealer_name: "Dealer Name",
+    dealer_name: "Dealer RFC(Retro Fitment Center) Name",
     manufacturer_name: "Manufacturer Name",
     tag_status: "Tag Status",
     tagged_date: "Tagged Date",

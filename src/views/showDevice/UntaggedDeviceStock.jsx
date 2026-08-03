@@ -47,7 +47,7 @@ const COLUMNS = [
   { key: 'stock_status',     label: 'Stock Status', chip: true },
   { key: 'upload_batch',     label: 'Batch ID' },
   { key: 'model',            label: 'Model',        nested: 'model_name' },
-  { key: 'dealer',           label: 'Dealer',       nested: 'company_name', fallback: 'Unassigned' },
+  { key: 'dealer',           label: 'Dealer RFC(Retro Fitment Center)',       nested: 'company_name', fallback: 'Unassigned' },
   { key: 'created_by',       label: 'Created By',   nested: 'name' },
   { key: 'created',          label: 'Created',      date: true },
 ];

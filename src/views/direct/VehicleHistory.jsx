@@ -201,7 +201,7 @@ const [loading, setLoading] = useState(false);
     
       // Device Details
       { key: "device_id", label: "Device ID" },
-      { key: "dealer_name", label: "Dealer Name" },
+      { key: "dealer_name", label: "Dealer RFC(Retro Fitment Center) Name" },
       { key: "manufacturer_name", label: "Manufacturer Name" },
     
       // Status

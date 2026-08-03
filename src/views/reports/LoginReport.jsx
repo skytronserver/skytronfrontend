@@ -230,7 +230,7 @@ const LoginReport = () => {
                   <MenuItem value="superadmin">Super Admin</MenuItem>
                   <MenuItem value="stateadmin">State Admin</MenuItem>
                   <MenuItem value="schooladmin">School Admin</MenuItem>
-                  <MenuItem value="dealer">Dealer</MenuItem>
+                  <MenuItem value="dealer">Dealer RFC(Retro Fitment Center)</MenuItem>
                   <MenuItem value="devicemanufacture">Manufacturer</MenuItem>
                   <MenuItem value="sosadmin">SOS Admin</MenuItem>
                   <MenuItem value="dtorto">DTO</MenuItem>

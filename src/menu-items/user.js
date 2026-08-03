@@ -87,7 +87,7 @@ const user = {
         },
         {
           id: "dealer-account",
-          title: "Dealer Account",
+          title: "Dealer RFC(Retro Fitment Center) Account",
           type: "item",
           url: "/user/newDealerAccount",
           breadcrumbs: false,
@@ -325,10 +325,19 @@ const user = {
     },
     {
       id: "provider-device-list-valid",
-      title: "Accepted",
+      title: "Accepted requests",
       type: "item",
       url: "/device/activation-request/valid",
       icon: icons.IconChecks,
+      breadcrumbs: false,
+      roles: ["esimprovider"],
+    },
+    {
+      id: "provider-api-config",
+      title: "API Config",
+      type: "item",
+      url: "/device/api-config",
+      icon: icons.IconReport,
       breadcrumbs: false,
       roles: ["esimprovider"],
     },
@@ -707,7 +716,7 @@ const user = {
         },
         {
           id: "dealer-list",
-          title: "Dealers",
+          title: "Dealers RFC(Retro Fitment Center)",
           type: "item",
           url: "/user/dealerList",
           breadcrumbs: false,

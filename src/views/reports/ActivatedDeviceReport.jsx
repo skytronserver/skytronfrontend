@@ -237,13 +237,13 @@ const ActivatedDeviceReport = () => {
     },
     { 
       field: 'dealer_name', 
-      headerName: 'Dealer Name', 
+      headerName: 'Dealer RFC(Retro Fitment Center) Name', 
       minWidth: 180,
       flex: 1 
     },
     { 
       field: 'dealer_user_name', 
-      headerName: 'Dealer User Name', 
+      headerName: 'Dealer RFC(Retro Fitment Center) User Name', 
       minWidth: 180,
       flex: 1 
     },

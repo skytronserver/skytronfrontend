@@ -474,7 +474,7 @@ export const retriveDealerList = async () => {
   try {
     const res = await DealerServices.dealerList();
     if (res.data.length === 0) {
-      return [{ value: '', label: 'No Approved Dealer' }]
+      return [{ value: '', label: 'No Approved Dealer RFC(Retro Fitment Center)' }]
     }
     const filtered = res.data.filter((item) => item.users[0].status === 'active');
     const arrayList = filtered.map(dealer => ({

@@ -107,7 +107,7 @@ const DeviceDashboard = () => {
   // ----------------------------------------------------
   const ACTIVATION_STATUSES = [
     { value: 'NotAssigned', label: 'Not Assigned' },
-    { value: 'In_transit_to_dealer', label: 'In Transit to Dealer' },
+    { value: 'In_transit_to_dealer', label: 'In Transit to Dealer RFC(Retro Fitment Center)' },
     { value: 'Available_for_fitting', label: 'Available for Fitting' },
     { value: 'Fitted', label: 'Fitted' },
     { value: 'ESIM_Active_Req_Sent', label: 'eSIM Activation Req Sent' },
@@ -703,7 +703,7 @@ const DeviceDashboard = () => {
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="textSecondary">Assigned Dealer Name</Typography>
+                  <Typography variant="caption" color="textSecondary">Assigned Dealer RFC(Retro Fitment Center) Name</Typography>
                   <Typography variant="body1">
                     {selectedDevice.dealer_name || 'N/A'}
                   </Typography>
