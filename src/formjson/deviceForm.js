@@ -7,13 +7,14 @@ const formattedDate = currentDate.toISOString().split('T')[0];
 export const deviceInitials = {
     imei:"",
     model:"",
+    device_esn:"",
+    iccid:"",
+    /*
     test_agency:"",
     tac_no:"",
     tac_validity:"",
     cop_no:"",
     cop_validity:"",
-    device_esn:"",
-    iccid:"",
     iccid2:"",
     telecom_provider1:"",
     telecom_provider2:"",
@@ -22,6 +23,7 @@ export const deviceInitials = {
     esim_validity:formattedDate,
     esim_provider:[],
     remarks:"",
+    */
 };
 export const deviceFormField = {
   imei: {
@@ -39,18 +41,27 @@ export const deviceFormField = {
     validation: Yup.string().required("deviceForm.validation.modelRequired"),
     options: modelList,
   },
+  device_esn: {
+    name: "device_esn",
+    type: "text",
+    label: "deviceForm.fields.device_esn",
+    validation: Yup.string().required("deviceForm.validation.deviceEsnRequired"),
+  },
+  iccid: {
+    name: "iccid",
+    type: "text",
+    label: "deviceForm.fields.iccid",
+    validation: Yup.string()
+      .matches(/^[0-9]{19,20}$/,"ICCID must be 19 or 20 digits")
+      .required("deviceForm.validation.iccidRequired")
+  },
+  /*
   test_agency: {
     name: "test_agency",
     type: "text",
     label: "deviceForm.fields.test_agency",
     disabled:true,
     validation: Yup.string(),
-  },
-  device_esn: {
-    name: "device_esn",
-    type: "text",
-    label: "deviceForm.fields.device_esn",
-    validation: Yup.string().required("deviceForm.validation.deviceEsnRequired"),
   },
   esim_validity: {
     name:"esim_validity",
@@ -92,15 +103,6 @@ export const deviceFormField = {
     label: "deviceForm.fields.cop_validity",
     disabled:true,
     validation: Yup.string(),
-  },
-  
-  iccid: {
-    name: "iccid",
-    type: "text",
-    label: "deviceForm.fields.iccid",
-    validation: Yup.string()
-      .matches(/^[0-9]{19,20}$/,"ICCID must be 19 or 20 digits")
-      .required("deviceForm.validation.iccidRequired")
   },
   iccid2: {
     name: "iccid2",
@@ -166,4 +168,5 @@ export const deviceFormField = {
     label: "deviceForm.fields.remarks",
     validation: Yup.string(),
   },
+  */
 };

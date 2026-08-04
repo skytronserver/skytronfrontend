@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
 import { Formik } from "formik";
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,16 +34,16 @@ import AutoHideAlert from "../../ui-component/AutoHideAlert";
 import DisplayTable from "../../ui-component/DisplayTable";
 import MapComponent from "views/direct/LiveMap";
 import { useLocation } from "react-router-dom";
+import DeviceDataHealth from "../reports/DeviceDataHealth";
 
 const steps = [
   { label: "tagDeviceForm.steps.otCommandConfiguration", name: "Step 1" },
   { label: "tagDeviceForm.steps.tagDevice", name: "Step 2" },
   { label: "tagDeviceForm.steps.readyForActivation", name: "Step 3" },
   { label: "tagDeviceForm.steps.dealerVerification", name: "Step 4" },
-  { label: "tagDeviceForm.steps.sosButtonPress", name: "Step 5" },
-  { label: "tagDeviceForm.steps.activateSosInApp", name: "Step 6" },
-  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 7" },
-  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 8" },
+  { label: "Device Data Health", name: "Step 5" },
+  { label: "tagDeviceForm.steps.confirmLocation", name: "Step 6" },
+  { label: "tagDeviceForm.steps.ownerOtpConfirmation", name: "Step 7" },
 ];
 
 const rawOtCommands = [
@@ -74,10 +75,7 @@ function TagDeviceToVehicle() {
   const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
   const [deviceId, setDeviceId] = useState("");
   const [activeStep, setActiveStep] = useState(0);
-  const [deviceSosAlertReceived, setDeviceSosAlertReceived] = useState(false);
-  const [appSosAlertReceived, setAppSosAlertReceived] = useState(false);
-  const [deviceSosAlertStopped, setDeviceSosAlertStopped] = useState(false);
-  const [appSosAlertStopped, setAppSosAlertStopped] = useState(false);
+
   const [htmlContent, setHtmlContent] = useState({ data: [] });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [step9EnteredAt, setStep9EnteredAt] = useState(null);
@@ -85,8 +83,7 @@ function TagDeviceToVehicle() {
   const [reload, setReload] = useState(false);
   const [getMap, setGetMap] = useState({ imei: "", regno: "" });
   const [finalOwnerOtpSent, setFinalOwnerOtpSent] = useState(true);
-  const deviceSosEnteredAtRef = useRef(null);
-  const appSosEnteredAtRef = useRef(null);
+
   const mapStepEnteredAtRef = useRef(null);
   const [loading, setLoading] = useState({
     loader: false,
@@ -102,6 +99,8 @@ function TagDeviceToVehicle() {
   // Sub-phase: when with_trailer, RFID must be verified before showing the map
   const [rfidVerified, setRfidVerified] = useState(false);
   const [activationCommandSent, setActivationCommandSent] = useState(false);
+  const [vahanForm, setVahanForm] = useState({ imei: "", regNo: "", ownerNo: "" });
+  const [vahanFormError, setVahanFormError] = useState("");
 
   const getStepFromQuery = () => {
     try {
@@ -329,18 +328,14 @@ function TagDeviceToVehicle() {
         handleResendOtp("dealer");
       }
       setResendTimer(180);
-    } else if (activeStep === 7) {
+    } else if (activeStep === 6) {
       setResendTimer(180);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStep]);
 
   useEffect(() => {
-    if (activeStep === 4) {
-      if (!deviceSosEnteredAtRef.current) deviceSosEnteredAtRef.current = new Date();
-    } else if (activeStep === 5) {
-      if (!appSosEnteredAtRef.current) appSosEnteredAtRef.current = new Date();
-    } else if (activeStep === 6) {
+    if (activeStep === 5) {
       if (!mapStepEnteredAtRef.current) mapStepEnteredAtRef.current = new Date();
       setStep9EnteredAt(new Date());
       retriveMapData();
@@ -352,72 +347,6 @@ function TagDeviceToVehicle() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStep]);
-
-  useEffect(() => {
-    if (activeStep !== 4 && activeStep !== 5) return;
-
-    const enteredAt = (activeStep === 4 ? deviceSosEnteredAtRef.current : appSosEnteredAtRef.current) || new Date();
-    const alreadyStopped = activeStep === 4 ? deviceSosAlertStopped : appSosAlertStopped;
-    if (alreadyStopped) return;
-
-    const baseUrl = (process.env.REACT_APP_BASE_URL || "").replace(/\/+$/, "");
-    const emergencyLogUrl = baseUrl
-      ? `${baseUrl}/api/gps-em-data-log-table/`
-      : "/api/gps-em-data-log-table/";
-
-    const poll = async () => {
-      try {
-        const registrationNo = ownerDetails?.vehicle_reg_no || getMap?.regno || "";
-        const searchValue = (activeStep === 5 && registrationNo) ? `SOS_PUB_${registrationNo}` : (ownerDetails?.IMEI || getMap?.imei || "");
-
-        const res = await axios.get(emergencyLogUrl, { params: { search: searchValue } });
-        const dataString = res?.data?.data;
-        if (!dataString) return;
-        const parsed = JSON.parse(dataString);
-        if (!Array.isArray(parsed) || parsed.length === 0) return;
-
-        const latestItem = parsed[0];
-        const fields = latestItem?.fields || latestItem;
-        let ts = fields?.timestamp || fields?.entry_time || "";
-        if (!ts) return;
-
-        if (ts && !ts.endsWith("Z") && !ts.includes("+")) {
-          ts = ts.replace(" ", "T") + "Z";
-        }
-        const logTime = new Date(ts).getTime();
-        const now = Date.now();
-        const fiveMinutesAgo = now - 5 * 60 * 1000;
-        // Strict "After Entry" logic: No buffer, must be >= the exact second you reached the step.
-        const entryTime = enteredAt.getTime();
-        const hasNew = logTime >= entryTime && logTime >= fiveMinutesAgo;
-
-        if (hasNew) {
-          if (activeStep === 4) setDeviceSosAlertReceived(true);
-          else if (activeStep === 5) setAppSosAlertReceived(true);
-
-          const fifteenSecondsAgo = now - 15 * 1000;
-          if (logTime < fifteenSecondsAgo) {
-            if (activeStep === 4) setDeviceSosAlertStopped(true);
-            else if (activeStep === 5) setAppSosAlertStopped(true);
-          }
-        }
-      } catch (error) {
-        console.error("SOS Polling error:", error);
-      }
-    };
-
-    poll();
-    const intervalId = setInterval(poll, 5000);
-    // Timeout polling after 5 minutes
-    const timeoutId = setTimeout(() => {
-        clearInterval(intervalId);
-    }, 5 * 60 * 1000);
-
-    return () => {
-        clearInterval(intervalId);
-        clearTimeout(timeoutId);
-    };
-  }, [activeStep, deviceSosAlertStopped, appSosAlertStopped, ownerDetails?.IMEI, getMap?.imei, ownerDetails?.vehicle_reg_no, getMap?.regno]);
 
 
   const handleDealerOtp = (otp) => {
@@ -533,6 +462,11 @@ function TagDeviceToVehicle() {
         regno: vehicle.vehicle_reg_no,
         imei: device.imei,
       }));
+      setVahanForm({
+        imei: device.imei || "",
+        regNo: vehicle.vehicle_reg_no || "",
+        ownerNo: owner.mobile || ""
+      });
       setOwnerDetails((prev) => ({
         ...prev,
         name: owner.name,
@@ -809,8 +743,11 @@ function TagDeviceToVehicle() {
             <CircularProgress className="circular-progress" size={50} />
           </div>
         )}
-        <Grid item xs={12} style={{ width: "100%" }}>
-          <CustomStepper activeStep={activeStep} label={false} steps={steps.map(step => ({ ...step, label: t(step.label) }))} />
+        <Grid item xs={12} style={{ width: "100%", display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ flexGrow: 1, overflowX: "auto" }}>
+            <CustomStepper activeStep={activeStep} label={false} steps={steps.map(step => ({ ...step, label: t(step.label) }))} />
+          </div>
+
         </Grid>
         <Grid
           item
@@ -1109,125 +1046,174 @@ function TagDeviceToVehicle() {
             )}
             {/* Step 3: Ready for Activation / Vahan (Original Step 5) */}
             {activeStep === 2 && (() => {
-              // Fields to compare between ownerDetails and vahanDetails
-              // Format: { ownerKey, vahanKey, label }
-              const comparablePairs = [
-                { ownerKey: 'device_ESN',      vahanKey: 'device_serial_no' },
-                { ownerKey: 'ICCID',           vahanKey: 'ICCID' },
-                { ownerKey: 'IMEI',            vahanKey: 'IMEI' },
-                { ownerKey: 'vehicle_reg_no',  vahanKey: 'vehicle_reg_no' },
-                { ownerKey: 'vehicle_make',    vahanKey: 'vehicle_make' },
-                { ownerKey: 'vehicle_model',   vahanKey: 'vehicle_model' },
-                { ownerKey: 'engine_no',       vahanKey: 'engine_no' },
-                { ownerKey: 'chassis_no',      vahanKey: 'chassis_no' },
-              ];
-
-              // Build highlight maps for both tables
-              const ownerHighlights = {};
-              const vahanHighlights = {};
-              let hasMismatch = false;
-
-              comparablePairs.forEach(({ ownerKey, vahanKey }) => {
-                const ownerVal = (ownerDetails[ownerKey] || '').toString().trim().toLowerCase();
-                const vahanVal = (vahanDetails[vahanKey] || '').toString().trim().toLowerCase();
-                // Only compare if both sides have data
-                if (ownerVal && vahanVal) {
-                  const isMatch = ownerVal === vahanVal;
-                  ownerHighlights[ownerKey] = isMatch ? 'match' : 'mismatch';
-                  vahanHighlights[vahanKey] = isMatch ? 'match' : 'mismatch';
-                  if (!isMatch) hasMismatch = true;
+              const handleVahanSubmit = () => {
+                if (!vahanDetails.IMEI || !ownerDetails.mobile) {
+                  setVahanFormError("Vahan data or Owner data not loaded yet. Please wait or check your previous steps.");
+                  return;
                 }
-              });
+                
+                const comparablePairs = [
+                  { ownerKey: 'device_ESN',      vahanKey: 'device_serial_no', label: 'Device Serial No' },
+                  { ownerKey: 'ICCID',           vahanKey: 'ICCID', label: 'ICCID' },
+                  { ownerKey: 'IMEI',            vahanKey: 'IMEI', label: 'IMEI' },
+                  { ownerKey: 'vehicle_reg_no',  vahanKey: 'vehicle_reg_no', label: 'Registration No' },
+                  { ownerKey: 'vehicle_make',    vahanKey: 'vehicle_make', label: 'Vehicle Make' },
+                  { ownerKey: 'vehicle_model',   vahanKey: 'vehicle_model', label: 'Vehicle Model' },
+                  { ownerKey: 'engine_no',       vahanKey: 'engine_no', label: 'Engine No' },
+                  { ownerKey: 'chassis_no',      vahanKey: 'chassis_no', label: 'Chassis No' },
+                ];
 
-              const canProceed = vahanDetails.IMEI && !hasMismatch;
+                let hasMismatch = false;
+                let mismatchedFields = [];
+
+                comparablePairs.forEach(({ ownerKey, vahanKey, label }) => {
+                  const ownerVal = (ownerDetails[ownerKey] || '').toString().trim().toLowerCase();
+                  const vahanVal = (vahanDetails[vahanKey] || '').toString().trim().toLowerCase();
+                  // Enforce strict matching: if either side has data, they must be identical
+                  if (ownerVal !== vahanVal) {
+                    // Ignore if both are completely empty
+                    if (ownerVal !== '' || vahanVal !== '') {
+                      hasMismatch = true;
+                      mismatchedFields.push(label);
+                    }
+                  }
+                });
+
+                if (hasMismatch) {
+                  setVahanFormError(`Mismatched fields: ${mismatchedFields.join(', ')}. Please resolve before proceeding.`);
+                  return;
+                }
+
+                setVahanFormError("");
+                setActiveStep((prev) => prev + 1);
+              };
 
               return (
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
-                    {!vahanDetails.IMEI && !loading.loader && (
-                      <Typography color="error">
-                        Failed to fetch VAHAN data. Please ensure the device is correctly tagged or try again.
+                    <Typography variant="h4" sx={{ mb: 2 }}>
+                      Vahan Verification
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 3 }}>
+                      Please review the details below to verify against Vahan data.
+                    </Typography>
+
+                    {vahanFormError && (
+                      <Typography color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
+                        {vahanFormError}
                       </Typography>
                     )}
-                    {vahanDetails.IMEI && hasMismatch && (
-                      <Typography color="error" sx={{ fontWeight: 600, mb: 1 }}>
-                        ⚠️ Some fields do not match between Skytron and Vahan data. Please resolve the mismatches before proceeding.
-                      </Typography>
-                    )}
-                    {vahanDetails.IMEI && !hasMismatch && (
-                      <Typography sx={{ color: '#2e7d32', fontWeight: 600, mb: 1 }}>
-                        ✅ All comparable fields match. You can proceed.
-                      </Typography>
-                    )}
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Grid container spacing={1}>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          borderRadius: '8px 0 0 8px',
-                          border: '1px solid #f0f0f0',
-                          backgroundColor: 'white'
-                        }}
-                      >
-                        <DisplayTable
-                          values={ownerDetails}
-                          title="Details as in Skytron VLTD Backend"
-                          highlights={ownerHighlights}
+
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Device IMEI No"
+                          value={vahanDetails?.IMEI || ""}
+                          InputProps={{ readOnly: true }}
                         />
                       </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          borderRadius: '0 8px 8px 0',
-                          border: '1px solid #f0f0f0',
-                          backgroundColor: 'white'
-                        }}
-                      >
-                        <DisplayTable
-                          values={vahanDetails}
-                          title="Details as in Vahan"
-                          highlights={vahanHighlights}
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Vehicle Registration No"
+                          value={vahanDetails?.vehicle_reg_no || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Vehicle Owner Name"
+                          value={vahanDetails?.owner_name || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Engine No"
+                          value={vahanDetails?.engine_no || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Chassis No"
+                          value={vahanDetails?.chassis_no || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Vehicle Make"
+                          value={vahanDetails?.vehicle_make || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Vehicle Model"
+                          value={vahanDetails?.vehicle_model || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Vehicle Type"
+                          value={vahanDetails?.vehicle_class || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Date of Registration"
+                          value={vahanDetails?.date_of_registration || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Device Serial No"
+                          value={vahanDetails?.device_serial_no || ""}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="ICCID"
+                          value={vahanDetails?.ICCID || ""}
+                          InputProps={{ readOnly: true }}
                         />
                       </Grid>
                     </Grid>
                   </Grid>
 
-                  <Grid item xs={12}>
-                    <br />
-                    <Typography align="right" sx={{ mt: 2 }}>
-                      {loading.loader ? (
-                        <CircularProgress size={24} />
-                      ) : (
-                        <>
-                          {!vahanDetails.IMEI && (
-                            <Button
-                              color="secondary"
-                              type="button"
-                              variant="outlined"
-                              onClick={getVahanDetail}
-                              sx={{ ml: 1 }}
-                            >
-                              Retry Fetching Data
-                            </Button>
-                          )}
-                          {vahanDetails.IMEI && (
-                            <Button
-                              color="primary"
-                              type="button"
-                              variant="contained"
-                              disabled={!canProceed}
-                              onClick={() => setActiveStep((prev) => prev + 1)}
-                              title={hasMismatch ? 'Fix mismatched fields before proceeding' : ''}
-                            >
-                              Next
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </Typography>
+                  <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 2 }}>
+                    {!vahanDetails.IMEI && (
+                      <Button
+                        color="secondary"
+                        variant="outlined"
+                        onClick={getVahanDetail}
+                        disabled={loading.loader}
+                      >
+                        {loading.loader ? "Fetching..." : "Retry Fetching Data"}
+                      </Button>
+                    )}
+                    <Button
+                      color="primary"
+                      variant="contained"
+                      onClick={handleVahanSubmit}
+                    >
+                      Verify and Next
+                    </Button>
                   </Grid>
                 </Grid>
               );
@@ -1283,144 +1269,26 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 5: SOS Button Press (Original Step 9) */}
+            {/* Step 5: Device Data Health */}
             {activeStep === 4 && (
-              <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
-                <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
-                  <Typography variant="body1" align="center" color="textSecondary">
-                    {deviceSosAlertStopped
-                      ? "SOS Alert confirmed."
-                      : deviceSosAlertReceived
-                        ? "SOS Alert received."
-                        : t("tagDeviceForm.messages.sosButtonInstruction")}
-                  </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <DeviceDataHealth initialImei={ownerDetails?.IMEI || getMap?.imei || ""} isTagging={true} />
                 </Grid>
-                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
+                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                   <Button
+                    color="primary"
                     variant="contained"
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: '50%',
-                      fontSize: '1.2rem',
-                      fontWeight: 'bold',
-                      color: 'white',
-                      backgroundColor: deviceSosAlertStopped 
-                        ? '#4caf50' 
-                        : deviceSosAlertReceived 
-                          ? '#81c784' 
-                          : '#f44336',
-                      boxShadow: deviceSosAlertStopped || deviceSosAlertReceived
-                        ? '0 8px 16px rgba(76,175,80,0.3)'
-                        : '0 8px 16px rgba(244,67,54,0.3)',
-                      '&:hover': {
-                        backgroundColor: deviceSosAlertStopped 
-                          ? '#388e3c'
-                          : deviceSosAlertReceived
-                            ? '#66bb6a'
-                            : '#d32f2f',
-                        boxShadow: deviceSosAlertStopped || deviceSosAlertReceived
-                          ? '0 10px 20px rgba(76,175,80,0.4)'
-                          : '0 10px 20px rgba(244,67,54,0.4)',
-                      }
-                    }}
+                    onClick={() => setActiveStep((prev) => prev + 1)}
                   >
-                    SOS
+                    Next
                   </Button>
                 </Grid>
-                {deviceSosAlertReceived && !deviceSosAlertStopped && (
-                  <Grid item xs={12} sx={{ mt: 1 }}>
-                    <Typography variant="body2" align="center" color="textSecondary">
-                      Waiting for confirmation...
-                    </Typography>
-                  </Grid>
-                )}
-                {deviceSosAlertReceived && (
-                  <Grid item xs={12} sx={{ mt: 2 }} style={{ display: 'flex', justifyContent: 'center' }}>
-                    <Button
-                      color={deviceSosAlertStopped ? "primary" : "inherit"}
-                      disabled={!deviceSosAlertStopped}
-                      type="button"
-                      variant="contained"
-                      onClick={() => setActiveStep((prev) => prev + 1)}
-                    >
-                      {t("common.next", "Next")}
-                    </Button>
-                  </Grid>
-                )}
               </Grid>
             )}
 
-            {/* Step 6: Activate SOS in App (Original Step 10) */}
+            {/* Step 6: Confirm Location / Map — with RFID sub-phase if with_trailer */}
             {activeStep === 5 && (
-              <Grid container spacing={2} justifyContent="center" alignItems="center" direction="column">
-                <Grid item xs={12} sx={{ mb: 4, mt: 4 }}>
-                  <Typography variant="body1" align="center" color="textSecondary">
-                    {appSosAlertStopped
-                      ? "SOS Alert confirmed."
-                      : appSosAlertReceived
-                        ? "SOS Alert received."
-                        : t("tagDeviceForm.messages.sosActivateInstruction")}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button
-                    variant="contained"
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: '50%',
-                      fontSize: '1.2rem',
-                      fontWeight: 'bold',
-                      color: 'white',
-                      backgroundColor: appSosAlertStopped 
-                        ? '#4caf50' 
-                        : appSosAlertReceived 
-                          ? '#81c784' 
-                          : '#f44336',
-                      boxShadow: appSosAlertStopped || appSosAlertReceived
-                        ? '0 8px 16px rgba(76,175,80,0.3)'
-                        : '0 8px 16px rgba(244,67,54,0.3)',
-                      '&:hover': {
-                        backgroundColor: appSosAlertStopped 
-                          ? '#388e3c'
-                          : appSosAlertReceived
-                            ? '#66bb6a'
-                            : '#d32f2f',
-                        boxShadow: appSosAlertStopped || appSosAlertReceived
-                          ? '0 10px 20px rgba(76,175,80,0.4)'
-                          : '0 10px 20px rgba(244,67,54,0.4)',
-                      }
-                    }}
-                  >
-                    SOS
-                  </Button>
-                </Grid>
-                {appSosAlertReceived && !appSosAlertStopped && (
-                  <Grid item xs={12} sx={{ mt: 1 }}>
-                    <Typography variant="body2" align="center" color="textSecondary">
-                      Waiting for confirmation...
-                    </Typography>
-                  </Grid>
-                )}
-                {appSosAlertReceived && (
-                  <Grid item xs={12} sx={{ mt: 2 }} style={{ display: 'flex', justifyContent: 'center' }}>
-                    <Button
-                      color={appSosAlertStopped ? "primary" : "inherit"}
-                      disabled={!appSosAlertStopped}
-                      type="button"
-                      variant="contained"
-                      onClick={() => setActiveStep((prev) => prev + 1)}
-                    >
-                      {t("common.next", "Next")}
-                    </Button>
-                  </Grid>
-                )}
-              </Grid>
-            )}
-
-            {/* Step 7: Confirm Location / Map — with RFID sub-phase if with_trailer */}
-            {activeStep === 6 && (
               <Grid container spacing={2}>
                 {/* RFID Verification sub-phase — shown first when with_trailer and not yet verified */}
                 {trailerType === "with_trailer" && !rfidVerified ? (
@@ -1500,8 +1368,8 @@ function TagDeviceToVehicle() {
               </Grid>
             )}
 
-            {/* Step 8: Final Owner OTP */}
-            {activeStep === 7 && (
+            {/* Step 7: Final Owner OTP */}
+            {activeStep === 6 && (
               <Grid container spacing={2}>
                 {!finalOwnerOtpSent ? (
                   /* Phase 1 — show SMS activation instructions + Check Activation Status button */

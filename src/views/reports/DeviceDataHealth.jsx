@@ -8,9 +8,9 @@ import MainCard from '../../ui-component/cards/MainCard';
 import { gridSpacing } from '../../store/constant';
 import DeviceDataHealthService from '../../services/DeviceDataHealth';
 
-const DeviceDataHealth = () => {
+const DeviceDataHealth = ({ initialImei = '', isTagging = false }) => {
   // State
-  const [imei, setImei] = useState('');
+  const [imei, setImei] = useState(initialImei);
   const [protocol, setProtocol] = useState('');
   const [formats, setFormats] = useState([]);
   const [lookbackDays, setLookbackDays] = useState(3);
@@ -22,6 +22,20 @@ const DeviceDataHealth = () => {
   useEffect(() => {
     fetchFormats();
   }, []);
+
+  useEffect(() => {
+    if (initialImei) {
+      setImei(initialImei);
+    }
+  }, [initialImei]);
+
+  // Auto-check for tagging when protocol is set
+  useEffect(() => {
+    if (isTagging && imei && protocol && !healthData) {
+      handleCheck();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTagging, imei, protocol]);
 
   const fetchFormats = async () => {
     try {
@@ -137,13 +151,19 @@ const DeviceDataHealth = () => {
             <CardContent>
               {/* Check Row */}
               <Box display="flex" alignItems="center" gap={2}>
-                <TextField 
-                  size="small" 
-                  label="IMEI" 
-                  value={imei}
-                  onChange={(e) => setImei(e.target.value)}
-                  sx={{ width: 200 }}
-                />
+                {isTagging ? (
+                  <Typography variant="h5" sx={{ minWidth: 200 }}>
+                    <strong>IMEI:</strong> {imei || 'Not Available (Skipped)'}
+                  </Typography>
+                ) : (
+                  <TextField 
+                    size="small" 
+                    label="IMEI" 
+                    value={imei}
+                    onChange={(e) => setImei(e.target.value)}
+                    sx={{ width: 200 }}
+                  />
+                )}
                 <FormControl size="small" sx={{ minWidth: 200 }}>
                   <InputLabel>Protocol format</InputLabel>
                   <Select
