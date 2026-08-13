@@ -1,64 +1,89 @@
 /* eslint-disable no-unused-vars */
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as Yup from "yup";
-import { Grid, Button, Box, Paper, Typography, Chip, Divider } from "@mui/material";
-import { Download, Print, Visibility, CheckCircle, LocalShipping, Phone, CalendarToday, Person, Settings } from "@mui/icons-material";
-// project imports
+import { Grid, Button, Box, Paper, Typography } from "@mui/material";
+import { Download, Print, Visibility } from "@mui/icons-material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
 import FormField from "../../ui-component/CustomTextField";
 import { uploadReceiptInitials, uploadReceiptFormFields } from "../../formjson/uploadReceipt";
-import { useState, useEffect, useRef } from "react";
 import TaggingService from "../../services/TaggingService";
 import { fetchTaggedList } from "../../helper";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { jsPDF } from "jspdf";
-import skytronLogo from "../../assets/images/skytron-logo4.png";
+import { QRCodeSVG, QRCodeCanvas } from "qrcode.react";
 
+// ─────────────────────────────────────────────
+// Utilities
+// ─────────────────────────────────────────────
 const formatICCID = (val) => {
   if (!val) return "";
   const str = String(val);
-  if (str.toLowerCase().includes('e')) {
-    try {
-      return Number(val).toLocaleString('en-US', { useGrouping: false });
-    } catch (e) {
-      return str;
-    }
+  if (str.toLowerCase().includes("e")) {
+    try { return Number(val).toLocaleString("en-US", { useGrouping: false }); }
+    catch (e) { return str; }
   }
   return str;
 };
 
+const formatDate = (val) => {
+  if (!val) return "";
+  try {
+    const d = new Date(val);
+    if (isNaN(d)) return val;
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+  } catch (e) { return val; }
+};
+
+
+
+// ─────────────────────────────────────────────
+// Shared style constants – Times New Roman like the original
+// ─────────────────────────────────────────────
+const F = "'Times New Roman', Times, serif";
+const FS = "14px";
+const LH = 1.8;
+
+const T = ({ children, sx = {}, bold = false }) => (
+  <Typography
+    component="p"
+    sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, fontWeight: bold ? 700 : 400, color: "#000", ...sx }}
+  >
+    {children}
+  </Typography>
+);
+
+// ─────────────────────────────────────────────
+const buildRows = (d) => [
+  { label: "VLTD Serial No", value: `;${d.deviceSerialNo}` },
+  { label: "VLTD IMEI No", value: d.vltdImei },
+  { label: "VLTD/E-SIM ICCID", value: formatICCID(d.iccid) },
+  { label: "Primary MSISDN/E-SIM Primary Mobile Number", value: d.primaryMsisdn },
+  { label: "Fallback MSISDN/E-SIM Secondery Mobile Number", value: d.fallbackMsisdn },
+  { label: "ICCID/E-SIM Valid Upto", value: d.esimValidUpto },
+  { label: "No of EMG Button Installed", value: d.noOfEmgButtons },
+];
+
+// ─────────────────────────────────────────────
 const UploadReceipt = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(uploadReceiptFormFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [certificateData, setCertificateData] = useState(null);
-  const certificateRef = useRef(null);
+  const qrCanvasRef = useRef(null);
 
   useEffect(() => {
     (async () => {
-      const filter = {
-        is_tagged: "True",
-      }
-      const tagged_list = await fetchTaggedList(filter);
-      setUpdatedFormField((prevConfig) => ({
-        ...prevConfig,
-        device_id: {
-          ...prevConfig.device_id,
-          options: tagged_list,
-        },
-      }));
+      const tagged_list = await fetchTaggedList({ is_tagged: "True" });
+      setUpdatedFormField((p) => ({ ...p, device_id: { ...p.device_id, options: tagged_list } }));
       setIsFormLoaded(true);
     })();
   }, []);
 
   const handleFileChange = (event, formik) => {
-    const selectedFile = event.target.files[0];
-    const fieldName = event.target.name;
-    if (selectedFile) {
-      formik.setFieldValue(fieldName, selectedFile);
-    }
+    const f = event.target.files[0];
+    if (f) formik.setFieldValue(event.target.name, f);
   };
 
   const validationSchema = Yup.object(
@@ -68,273 +93,226 @@ const UploadReceipt = () => {
     }, {})
   );
 
-  const handleDownloadPdf = async () => {
-    if (!certificateData) {
-      alert("Please view the certificate first by clicking 'View Certificate'.");
-      return;
-    }
-
-    const pdf = new jsPDF();
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    const img = new Image();
-    img.src = skytronLogo;
-
-    const generatePdf = () => {
-      try {
-        const margin = 10;
-        const imgWidth = pageWidth - margin * 2;
-        const imgHeight = (img.height * imgWidth) / img.width;
-
-        try {
-          pdf.addImage(img, "PNG", margin, (pageHeight - imgHeight) / 2, imgWidth, imgHeight, undefined, "FAST");
-        } catch (e) {
-        }
-
-        pdf.setFontSize(18);
-        pdf.text("ASSAM STATE VLTD BACKEND", pageWidth / 2, 30, { align: "center" });
-        pdf.setFontSize(14);
-        pdf.text("VLTD TAGGING & ACTIVATION CERTIFICATE", pageWidth / 2, 42, { align: "center" });
-
-        pdf.setFontSize(12);
-        let y = 60;
-        const fields = [
-          { label: "VLTD Tagging & Activation Date", value: certificateData.taggingActivationDate },
-          { label: "Vehicle Owner Name", value: certificateData.vehicleOwnerName },
-          { label: "Vehicle Registration Number", value: certificateData.vehicleRegNo },
-          { label: "Engine Number", value: certificateData.engineNo },
-          { label: "Chassis Number", value: certificateData.chassisNo },
-          { label: "Vehicle Model", value: certificateData.vehicleModel },
-          { label: "Vehicle Type", value: certificateData.vehicleCategory },
-          { label: "Vehicle Category Code", value: certificateData.categoryCode },
-          { label: "VLTD Make", value: certificateData.vltdMake },
-          { label: "VLTD Model", value: certificateData.vltdModel },
-          { label: "VLTD IMEI Number", value: certificateData.vltdImei },
-          { label: "M2M ICCID Number", value: certificateData.esimIccid },
-          { label: "M2M ICCID Number 2", value: certificateData.esimIccid2 },
-          { label: "M2M Validity", value: certificateData.esimValidity },
-        ];
-
-        fields.forEach((field) => {
-          pdf.text(`${field.label}: ${field.value || "__________"}`, 20, y);
-          y += 10;
-        });
-
-        y += 10;
-        pdf.setFontSize(10);
-        pdf.text("Note:", 20, y);
-        y += 8;
-        const note = "This certificate is system-generated from the SkyTron platform and does not require any physical signature or stamp.";
-        const lines = pdf.splitTextToSize(note, pageWidth - 40);
-        lines.forEach((line) => {
-          pdf.text(line, 20, y);
-          y += 6;
-        });
-
-        y += 12;
-        pdf.text("**********************", pageWidth / 2, y, { align: "center" });
-
-        pdf.save("VLTD_Tagging_Activation_Certificate.pdf");
-      } catch (error) {
-        pdf.save("VLTD_Tagging_Activation_Certificate.pdf");
-      }
-    };
-
-    if (img.complete) {
-      generatePdf();
-    } else {
-      img.onload = generatePdf;
-      img.onerror = generatePdf;
-    }
-  };
-
+  // ─── Load data ───────────────────────────────────────────────
   const loadCertificatePreview = async (values) => {
     try {
       setLoading(true);
-      const deviceData = { device_id: values.device_id };
-      const response = await TaggingService.vahanVerificationApi(deviceData);
+      const response = await TaggingService.vahanVerificationApi({ device_id: values.device_id });
 
       const device = response?.data?.Skytrack_data?.device || response?.Skytrack_data?.device;
       const owner = response?.data?.Skytrack_data?.vehicle_owner?.users?.[0] || response?.Skytrack_data?.vehicle_owner?.users?.[0];
       const vehicle = response?.data?.Skytrack_data || response?.Skytrack_data;
-      const rawVahanData = response?.data?.vahan_data ?? response?.vahan_data;
+      const rawVahan = response?.data?.vahan_data ?? response?.vahan_data;
 
-      let vahanPayload = rawVahanData;
-      if (rawVahanData && typeof rawVahanData === "string") {
-        try {
-          vahanPayload = JSON.parse(rawVahanData);
-        } catch (e) {
-          console.error("Failed to parse vahan_data string", e);
-        }
+      let vahanPayload = rawVahan;
+      if (rawVahan && typeof rawVahan === "string") {
+        try { vahanPayload = JSON.parse(rawVahan); } catch (e) { console.error(e); }
       }
+      const vd = vahanPayload?.VltdDetailsDobj || response?.data?.VltdDetailsDobj || response?.VltdDetailsDobj;
 
-      const vahanData = vahanPayload?.VltdDetailsDobj || response?.data?.VltdDetailsDobj || response?.VltdDetailsDobj;
+      const certNo = vd?.certNo || device?.cert_no || "";
+      const imei = device?.imei || vd?.imeiNo || "";
+      const serialNo = device?.serial_no || vd?.deviceSerialno || "";
+      const chassisNo = vehicle?.chassis_no || vd?.chassisNo || "";
+      const activationDate = formatDate(vd?.activationDate || vehicle?.activation_date || new Date());
+      // QR encodes all key certificate fields — unique per device
+      const qrData = `Sr No:${serialNo}\nIMEI:${imei}\nChassis No:${chassisNo}\nCertificate No:${certNo || ""}\nActivation Date:${activationDate}`;
 
       setCertificateData({
-        taggingActivationDate: vahanData?.dateOfRegistration || "",
-        vehicleOwnerName: vahanData?.ownerName || owner?.name || "",
-        vehicleRegNo: vehicle?.vehicle_reg_no || vahanData?.regnNo || "",
-        engineNo: vehicle?.engine_no || vahanData?.engineNo || "",
-        chassisNo: vehicle?.chassis_no || vahanData?.chassisNo || "",
-        vehicleModel: vehicle?.vehicle_model || vahanData?.modelName || "",
-        vehicleCategory: vehicle?.category || vahanData?.vehClass || "",
-        categoryCode: vehicle?.category_code_info?.category_code || vehicle?.category_code?.category_code || "",
-        vltdMake: vehicle?.vehicle_make || vahanData?.makerName || "",
-        vltdModel: device?.model || vahanData?.deviceSerialno || "",
-        vltdImei: device?.imei || vahanData?.imeiNo || "",
-        esimIccid: device?.iccid || vahanData?.iccId || "",
-        esimIccid2: formatICCID(device?.iccid2),
-        esimValidity: device?.esim_validity || "",
+        certNo: certNo || "",
+        activationDate: formatDate(vd?.activationDate || vehicle?.activation_date || new Date()),
+        vehicleOwnerName: vd?.ownerName || owner?.name || "",
+        vehicleRegNo: vehicle?.vehicle_reg_no || vd?.regnNo || "",
+        engineNo: vehicle?.engine_no || vd?.engineNo || "",
+        chassisNo: vehicle?.chassis_no || vd?.chassisNo || "",
+        vehicleClass: vehicle?.vehicle_class || vd?.vehClass || "",
+        vehicleModel: vehicle?.vehicle_model || vd?.modelName || "",
+        deviceSerialNo: serialNo,
+        vltdMake: vehicle?.device_manufacturer_name || vd?.makerName || "",
+        vltdModel: device?.model || vd?.modelName || "",
+        vltdImei: imei,
+        iccid: device?.iccid || vd?.iccId || "",
+        primaryMsisdn: device?.primary_msisdn || vd?.primaryMsisdn || "",
+        fallbackMsisdn: device?.fallback_msisdn || vd?.fallbackMsisdn || "",
+        esimValidUpto: formatDate(device?.esim_validity || vd?.esimValidUpto || ""),
+        noOfEmgButtons: vd?.noOfEmgButtons || device?.no_of_emg_buttons || "",
+        fitmentCenterName: response?.data?.fitment_center_name || vd?.fitmentCenterName || "",
+        fitmentCenterAddress: response?.data?.fitment_center_address || vd?.fitmentCenterAddress || "",
+        registeringOffice: vehicle?.rto_name || vd?.registeringOffice || "",
+        qrData,
       });
-    } catch (error) {
-      console.error("Error loading certificate preview", error?.message);
+    } catch (err) {
+      console.error("Certificate load error", err?.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePrintCertificate = () => {
-    if (!certificateData) {
-      alert("Please view the certificate first by clicking 'View Certificate'.");
-      return;
-    }
-    const printWindow = window.open("", "_blank", "width=800,height=1000");
-    if (!printWindow) return;
+  // ─── PDF ─────────────────────────────────────────────────────
+  const handleDownloadPdf = async () => {
+    if (!certificateData) { alert("Please view the certificate first."); return; }
+    const d = certificateData;
+    const pdf = new jsPDF({ unit: "mm", format: "a4" });
+    const pw = pdf.internal.pageSize.getWidth();
+    const margin = 18;
+    const usable = pw - margin * 2;
+    let y = 16;
 
-    const fields = [
-      { label: "VLTD Tagging & Activation Date", value: certificateData.taggingActivationDate },
-      { label: "Vehicle Owner Name", value: certificateData.vehicleOwnerName },
-      { label: "Vehicle Registration Number", value: certificateData.vehicleRegNo },
-      { label: "Engine Number", value: certificateData.engineNo },
-      { label: "Chassis Number", value: certificateData.chassisNo },
-      { label: "Vehicle Model", value: certificateData.vehicleModel },
-      { label: "Vehicle Type", value: certificateData.vehicleCategory },
-      { label: "Vehicle Category Code", value: certificateData.categoryCode },
-      { label: "VLTD Make", value: certificateData.vltdMake },
-      { label: "VLTD Model", value: certificateData.vltdModel },
-      { label: "VLTD IMEI Number", value: certificateData.vltdImei },
-      { label: "eSIM ICCID Number", value: certificateData.esimIccid },
-      { label: "eSIM Validity", value: certificateData.esimValidity },
-    ];
+    const B = (on) => pdf.setFont("times", on ? "bold" : "normal");
+    const Sz = (n) => pdf.setFontSize(n);
+    const L = (txt, x, yy, opts = {}) => pdf.text(txt, x, yy, opts);
+    const Wrap = (txt, x, yy, w) => {
+      const lines = pdf.splitTextToSize(txt, w);
+      lines.forEach((l) => { pdf.text(l, x, yy); yy += 6; });
+      return yy;
+    };
 
-    const fieldRows = fields.map(f => `<div style="margin-bottom:8px;font-size:14px;">${f.label}: ${f.value || "__________"}</div>`).join("");
+    // Header
+    Sz(16); B(true);
+    L("VLTD ACTIVATION CERTIFICATE", pw / 2, y, { align: "center" }); y += 6;
+    Sz(9); B(false);
+    L("(Generated Online in https://vlts.rajasthan.gov.in)", pw / 2, y, { align: "center" }); y += 3;
 
-    const logoUrl = window.location.origin + skytronLogo;
-
-    const printHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Certificate</title>
-  <style>
-    @media print {
-      @page { margin: 20px; }
-      body { 
-        font-family: Arial, sans-serif; 
-        padding: 20px; 
-        background-image: url('${logoUrl}');
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
+    // QR from canvas ref
+    try {
+      const canvas = qrCanvasRef.current?.querySelector("canvas");
+      if (canvas) {
+        const qrDataUrl = canvas.toDataURL("image/png");
+        pdf.addImage(qrDataUrl, "PNG", pw - margin - 35, y + 2, 35, 35);
       }
-    }
-    body { 
-      font-family: Arial, sans-serif; 
-      padding: 40px; 
-      background-image: url('${logoUrl}');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
-    }
-    .certificate-container { max-width: 800px; margin: 0 auto; }
-    .certificate-title { text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 8px; }
-    .certificate-subtitle { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 32px; }
-    .certificate-field { margin-bottom: 8px; font-size: 14px; }
-    .certificate-note { margin-top: 32px; font-size: 12px; }
-    .certificate-footer { margin-top: 40px; text-align: center; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="certificate-container">
-    <h2 class="certificate-title">ASSAM STATE VLTD BACKEND</h2>
-    <h3 class="certificate-subtitle">VLTD TAGGING &amp; ACTIVATION CERTIFICATE</h3>
-    <div>
-      ${fieldRows}
-      <div class="certificate-note" style="margin-top:32px;">Note:</div>
-      <div class="certificate-note" style="margin-top:8px;">
-        This certificate is system-generated from the SkyTron platform and does not require any physical signature or stamp.
-      </div>
-      <div class="certificate-footer" style="margin-top:40px;text-align:center;">**********************</div>
-    </div>
-  </div>
-</body>
-</html>`;
+    } catch (_) { }
 
-    printWindow.document.open();
-    printWindow.document.write(printHtml);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    y += 14;
+    // To
+    Sz(11); B(false);
+    L("To,", margin, y); y += 5;
+    L("The Registering Authority", margin, y); y += 5;
+    L("State Transport Department, Govt. of Rajasthan", margin, y); y += 24;
+
+    // Cert No & Date
+    Sz(10);
+    L("VLTD Certificate No: ", margin, y);
+    B(true); L(d.certNo, margin + pdf.getTextWidth("VLTD Certificate No: "), y); B(false);
+    const dl = "VLTD Activation Date (In https://vlts.rajasthan.gov.in): ";
+    const dx = pw / 2;
+    L(dl, dx, y);
+    B(true); L(d.activationDate, dx + pdf.getTextWidth(dl), y); B(false);
+    y += 12;
+
+    // Subject
+    Sz(11); B(true);
+    y = Wrap(`Subject:   VLTD Serial No: ${d.deviceSerialNo} in the vehicle having chassis no: ${d.chassisNo} in the portal (https://vlts.rajasthan.gov.in), State Transport Department, Govt. of Rajasthan.`, margin, y, usable);
+    B(false); y += 5;
+    L("Dear Sir,", margin, y); y += 10;
+
+    y = Wrap(`This is to inform you that VLTD serial number: ${d.deviceSerialNo}, model number: ${d.vltdModel} of VLTD manufacturer ${d.vltdMake}, has been activated on vehicle having chasis number: ${d.chassisNo} , engine number: ${d.engineNo} ,vehicle registration number: ${d.vehicleRegNo} and vehicle class: ${d.vehicleClass}`, margin, y, usable);
+    y += 14;
+
+    L("The details of VLTD shown blow:", margin, y); y += 8;
+    buildRows(d).forEach(({ label, value }) => {
+      B(false); L(`${label}: `, margin, y);
+      B(true); L(value || "", margin + pdf.getTextWidth(`${label}: `), y);
+      y += 6;
+    });
+    y += 14;
+
+    B(true); L("Thanking You", margin, y); y += 16;
+    L("(Name & Address of Retro Fitment Center)", margin, y); y += 6;
+    L(d.fitmentCenterName, margin, y); y += 6;
+    B(false);
+    if (d.fitmentCenterAddress) { y = Wrap(d.fitmentCenterAddress, margin, y, usable); }
+    y += 6;
+    B(true); L(`Registering Office: ${d.registeringOffice}`, margin, y);
+
+    pdf.save("VLTD_Activation_Certificate.pdf");
   };
 
+  // ─── Print ───────────────────────────────────────────────────
+  const handlePrintCertificate = () => {
+    if (!certificateData) { alert("Please view the certificate first."); return; }
+    const d = certificateData;
+    const rows = buildRows(d).map((r) => `<p class="dr">${r.label}: <strong>${r.value || ""}</strong></p>`).join("");
+    const qrDataUrl = (() => {
+      try {
+        const canvas = qrCanvasRef.current?.querySelector("canvas");
+        if (canvas) return canvas.toDataURL("image/png");
+      } catch (_) { }
+      return "";
+    })();
+
+    const html = `<!DOCTYPE html>
+<html><head><title>VLTD Activation Certificate</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Times New Roman',Times,serif;padding:52px 58px;color:#000;font-size:14px;line-height:1.8}
+  .hdr{text-align:center;margin-bottom:36px}
+  .hdr h1{font-size:20px;font-weight:bold;letter-spacing:.5px}
+  .hdr sub{font-size:12px;font-style:normal}
+  .top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px}
+  .meta{display:flex;justify-content:space-between;margin-bottom:20px}
+  p{margin-bottom:12px}
+  .dr{margin-bottom:5px}
+  .gap{margin-top:24px;margin-bottom:12px}
+  .gap2{margin-top:32px}
+  @media print{@page{margin:18px}body{padding:20px}}
+</style></head><body>
+<div class="hdr"><h1>VLTD ACTIVATION CERTIFICATE</h1><p><sub>(Generated Online in https://vlts.rajasthan.gov.in)</sub></p></div>
+<div class="top-row">
+  <div>
+    <p>To,<br/>The Registering Authority<br/>State Transport Department, Govt. of Rajasthan</p>
+  </div>
+  ${qrDataUrl ? `<div><img src="${qrDataUrl}" width="148" height="148" alt="QR"/></div>` : ""}
+</div>
+<div class="meta">
+  <span>VLTD Certificate No: <strong>${d.certNo}</strong></span>
+  <span>VLTD Activation Date (In https://vlts.rajasthan.gov.in): <strong>${d.activationDate}</strong></span>
+</div>
+<p><strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No: <strong>${d.deviceSerialNo}</strong> in the vehicle having chassis no: <strong>${d.chassisNo}</strong> in the portal (https://vlts.rajasthan.gov.in), State Transport Department, Govt. of Rajasthan.</p>
+<p>Dear Sir,</p>
+<p>This is to inform you that VLTD serial number: <strong>${d.deviceSerialNo}</strong>, model number: <strong>${d.vltdModel}</strong> of VLTD manufacturer <strong>${d.vltdMake}</strong>, has been activated on vehicle having chasis number: <strong>${d.chassisNo}</strong> , engine number: <strong>${d.engineNo}</strong> ,vehicle registration number: <strong>${d.vehicleRegNo}</strong> and vehicle class: <strong>${d.vehicleClass}</strong></p>
+<p class="gap">The details of VLTD shown blow:</p>
+<br/>
+${rows}
+<p class="gap2"><strong>Thanking You</strong></p>
+<br/><br/>
+<p><strong>(Name &amp; Address of Retro Fitment Center)</strong><br/><strong>${d.fitmentCenterName}</strong><br/><strong>${d.fitmentCenterAddress || ""}</strong></p>
+<p><strong>Registering Office: ${d.registeringOffice}</strong></p>
+</body></html>`;
+    const w = window.open("", "_blank", "width=900,height=1200");
+    if (!w) return;
+    w.document.open(); w.document.write(html); w.document.close();
+    w.focus(); setTimeout(() => { w.print(); w.close(); }, 300);
+  };
+
+  // ─── Render ──────────────────────────────────────────────────
   return (
-    <MainCard title={t('uploadReceipt.title')}>
+    <MainCard title={t("uploadReceipt.title")}>
       {isFormLoaded && (
-        <Formik
-          initialValues={uploadReceiptInitials}
-          validationSchema={validationSchema}
-          onSubmit={() => { }}
-          enableReinitialize
-        >
+        <Formik initialValues={uploadReceiptInitials} validationSchema={validationSchema} onSubmit={() => { }} enableReinitialize>
           {(formik) => (
             <form onSubmit={(e) => e.preventDefault()}>
               <Grid container spacing={2} className="form-controller">
                 {Object.keys(updatedFormFields).map((field) => (
                   <Grid key={field} item md={4} sm={12} xs={12}>
-                    <FormField
-                      fieldConfig={updatedFormFields[field]}
-                      formik={formik}
-                      handleFileChange={handleFileChange}
-                    />
+                    <FormField fieldConfig={updatedFormFields[field]} formik={formik} handleFileChange={handleFileChange} />
                   </Grid>
                 ))}
-                <Grid item xs={12} style={{ marginTop: "20px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                  <Button
-                    type="button"
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<Visibility />}
+                <Grid item xs={12} sx={{ mt: 2.5, display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                  <Button variant="outlined" color="primary" startIcon={<Visibility />}
                     disabled={loading || !formik.values.device_id}
                     onClick={() => loadCertificatePreview(formik.values)}
-                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-                  >
+                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
                     View Certificate
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outlined"
-                    color="secondary"
-                    startIcon={<Print />}
-                    disabled={loading || !certificateData}
-                    onClick={handlePrintCertificate}
-                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-                  >
+                  <Button variant="outlined" color="secondary" startIcon={<Print />}
+                    disabled={loading || !certificateData} onClick={handlePrintCertificate}
+                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
                     Print
                   </Button>
-                  <Button
-                    type="button"
-                    variant="contained"
-                    color="primary"
-                    startIcon={<Download />}
-                    disabled={loading || !certificateData}
-                    onClick={handleDownloadPdf}
-                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-                  >
-                    {t('common.download', { defaultValue: 'Download PDF' })}
+                  <Button variant="contained" color="primary" startIcon={<Download />}
+                    disabled={loading || !certificateData} onClick={handleDownloadPdf}
+                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
+                    {t("common.download", { defaultValue: "Download PDF" })}
                   </Button>
                 </Grid>
               </Grid>
@@ -342,263 +320,119 @@ const UploadReceipt = () => {
           )}
         </Formik>
       )}
+
+      {/* ─── Certificate Preview ─── */}
       {certificateData && (
-        <Grid container justifyContent="center" style={{ marginTop: "32px" }}>
-          <Grid item xs={12} md={11} lg={9}>
-            <Paper
-              elevation={8}
-              sx={{
-                background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-                borderRadius: 4,
-                overflow: 'hidden',
-                position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '8px',
-                  background: 'linear-gradient(90deg, #1976d2 0%, #2196f3 50%, #42a5f5 100%)',
-                }
-              }}
-            >
-              <Box sx={{ p: 4, position: 'relative' }}>
-                {/* Header Section */}
-                <Box sx={{ textAlign: 'center', mb: 4 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                    <CheckCircle sx={{ color: '#1976d2', fontSize: 32, mr: 1 }} />
-                    <Typography variant="h4" sx={{
-                      fontWeight: 700,
-                      color: '#1565c0',
-                      letterSpacing: 1,
-                      textTransform: 'uppercase'
-                    }}>
-                      Assam State VLTD Backend
-                    </Typography>
+        <Grid container justifyContent="center" sx={{ mt: 4 }}>
+          <Grid item xs={12} md={10} lg={9}>
+            <Paper elevation={2} sx={{ background: "#fff", border: "1px solid #ccc", borderRadius: "4px" }}>
+
+              {/* Printable area */}
+              <Box sx={{ p: "52px 58px", fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+
+                {/* ── HEADER ── */}
+                <Box sx={{ textAlign: "center", mb: "36px" }}>
+                  <Typography sx={{ fontFamily: F, fontSize: "20px", fontWeight: 700, letterSpacing: ".5px", color: "#000" }}>
+                    VLTD ACTIVATION CERTIFICATE
+                  </Typography>
+                  <Typography sx={{ fontFamily: F, fontSize: "12px", color: "#000" }}>
+                    (Generated Online in https://vlts.rajasthan.gov.in)
+                  </Typography>
+                </Box>
+
+                {/* ── TO + QR ── */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: "36px" }}>
+                  <Box>
+                    <T>To,</T>
+                    <T>The Registering Authority</T>
+                    <T>State Transport Department, Govt. of Rajasthan</T>
                   </Box>
-                  <Divider sx={{ mb: 2, bgcolor: '#1976d2' }} />
-                  <Typography variant="h5" sx={{
-                    fontWeight: 600,
-                    color: '#424242',
-                    letterSpacing: 0.5
-                  }}>
-                    VLTD Tagging & Activation Certificate
-                  </Typography>
-                  <Chip
-                    label="Official Document"
-                    color="primary"
-                    size="small"
-                    sx={{ mt: 1 }}
-                  />
-                </Box>
-
-                {/* Certificate Content */}
-                <Box sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  borderRadius: 3,
-                  p: 3,
-                  mb: 3,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <CalendarToday sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            TAGGING & ACTIVATION DATE
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.taggingActivationDate || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Person sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VEHICLE OWNER NAME
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.vehicleOwnerName || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <LocalShipping sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VEHICLE REGISTRATION NUMBER
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.vehicleRegNo || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Settings sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            ENGINE NUMBER
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.engineNo || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <LocalShipping sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            CHASSIS NUMBER
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.chassisNo || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Settings sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VEHICLE MODEL
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.vehicleModel || "__________"}
-                        </Typography>
-                      </Box>
-                    </Grid>
-
-                    <Grid item xs={12} md={6}>
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <LocalShipping sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VEHICLE TYPE
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.vehicleCategory || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <LocalShipping sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VEHICLE CATEGORY CODE
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.categoryCode || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Settings sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VLTD MAKE
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.vltdMake || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Settings sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VLTD MODEL
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.vltdModel || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Settings sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            VLTD IMEI NUMBER
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.vltdImei || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Phone sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            M2M ICCID NUMBER
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.esimIccid || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Phone sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            M2M ICCID NUMBER 2
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.esimIccid2 || "__________"}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <CalendarToday sx={{ color: '#1976d2', fontSize: 20, mr: 1 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#666' }}>
-                            M2M VALIDITY
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500, ml: 3 }}>
-                          {certificateData.esimValidity || "__________"}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Box>
-
-                {/* Footer Section */}
-                <Box sx={{
-                  backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                  borderRadius: 2,
-                  p: 2,
-                  textAlign: 'center'
-                }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
-                    Note:
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#666', fontSize: '0.875rem' }}>
-                    This certificate is system-generated from the SkyTron platform and does not require any physical signature or stamp.
-                  </Typography>
-                  <Box sx={{ mt: 2, mb: 1 }}>
-                    <Typography variant="body2" sx={{
-                      letterSpacing: 2,
-                      color: '#1976d2',
-                      fontWeight: 600
-                    }}>
-                      **********************
-                    </Typography>
+                  <Box sx={{ flexShrink: 0, ml: 2 }}>
+                    {/* Visible QR */}
+                    <QRCodeSVG
+                      value={certificateData.qrData || "VLTD-CERTIFICATE"}
+                      size={148}
+                      level="M"
+                      includeMargin={false}
+                    />
+                    {/* Hidden canvas QR — used only for PDF extraction */}
+                    <Box ref={qrCanvasRef} sx={{ display: "none" }}>
+                      <QRCodeCanvas
+                        value={certificateData.qrData || "VLTD-CERTIFICATE"}
+                        size={200}
+                        level="M"
+                        includeMargin={false}
+                      />
+                    </Box>
                   </Box>
                 </Box>
+
+                {/* ── CERT NO & DATE ── */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1, mb: "20px" }}>
+                  <Typography sx={{ fontFamily: F, fontSize: FS, color: "#000" }}>
+                    VLTD Certificate No: <strong>{certificateData.certNo}</strong>
+                  </Typography>
+                  <Typography sx={{ fontFamily: F, fontSize: FS, color: "#000" }}>
+                    VLTD Activation Date (In https://vlts.rajasthan.gov.in):{" "}
+                    <strong>{certificateData.activationDate}</strong>
+                  </Typography>
+                </Box>
+
+                {/* ── SUBJECT ── */}
+                <Box sx={{ mb: "12px" }}>
+                  <Typography component="p" sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+                    <strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No:{" "}
+                    <strong>{certificateData.deviceSerialNo}</strong> in the vehicle having chassis no:{" "}
+                    <strong>{certificateData.chassisNo}</strong> in the portal (https://vlts.rajasthan.gov.in),
+                    State Transport Department, Govt. of Rajasthan.
+                  </Typography>
+                </Box>
+
+                {/* ── DEAR SIR ── */}
+                <T sx={{ mb: "12px" }}>Dear Sir,</T>
+
+                {/* ── BODY ── */}
+                <Box sx={{ mb: "32px" }}>
+                  <Typography component="p" sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+                    This is to inform you that VLTD serial number:{" "}
+                    <strong>{certificateData.deviceSerialNo}</strong>, model number:{" "}
+                    <strong>{certificateData.vltdModel}</strong> of VLTD manufacturer{" "}
+                    <strong>{certificateData.vltdMake}</strong>, has been activated on vehicle having chasis number:{" "}
+                    <strong>{certificateData.chassisNo}</strong> , engine number:{" "}
+                    <strong>{certificateData.engineNo}</strong> ,vehicle registration number:{" "}
+                    <strong>{certificateData.vehicleRegNo}</strong> and vehicle class:{" "}
+                    <strong>{certificateData.vehicleClass}</strong>
+                  </Typography>
+                </Box>
+
+                {/* ── DETAILS LIST ── */}
+                <T sx={{ mb: "14px" }}>The details of VLTD shown blow:</T>
+                <Box sx={{ mb: "32px" }}>
+                  {buildRows(certificateData).map(({ label, value }) => (
+                    <Typography key={label} component="p"
+                      sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, mb: "4px", color: "#000" }}>
+                      {label}: <strong>{value || ""}</strong>
+                    </Typography>
+                  ))}
+                </Box>
+
+                {/* ── THANKING YOU ── */}
+                <T bold sx={{ mb: "32px" }}>Thanking You</T>
+
+                {/* ── FITMENT CENTER ── */}
+                <Box sx={{ mt: "8px" }}>
+                  <T bold>(Name &amp; Address of Retro Fitment Center)</T>
+                  <T bold>{certificateData.fitmentCenterName}</T>
+                  {certificateData.fitmentCenterAddress && (
+                    <T bold>{certificateData.fitmentCenterAddress}</T>
+                  )}
+                </Box>
+
+                {/* ── REGISTERING OFFICE ── */}
+                <Box sx={{ mt: "16px" }}>
+                  <T bold>Registering Office: {certificateData.registeringOffice}</T>
+                </Box>
+
               </Box>
             </Paper>
           </Grid>
