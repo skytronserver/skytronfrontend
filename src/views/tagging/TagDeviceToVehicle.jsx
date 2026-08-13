@@ -33,13 +33,14 @@ import CustomStepper from "../../ui-component/CustomStepper";
 import AutoHideAlert from "../../ui-component/AutoHideAlert";
 import DisplayTable from "../../ui-component/DisplayTable";
 import MapComponent from "views/direct/LiveMap";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DeviceDataHealth from "../reports/DeviceDataHealth";
+import ActivationCertificatePreview from "./ActivationCertificatePreview";
 
 const steps = [
   { label: "tagDeviceForm.steps.otCommandConfiguration", name: "Step 1" },
   { label: "tagDeviceForm.steps.tagDevice", name: "Step 2" },
-  { label: "tagDeviceForm.steps.readyForActivation", name: "Step 3" },
+  { label: "M2M Data", name: "Step 3" },
   { label: "tagDeviceForm.steps.dealerVerification", name: "Step 4" },
   { label: "Device Data Health", name: "Step 5" },
   { label: "tagDeviceForm.steps.confirmLocation", name: "Step 6" },
@@ -72,6 +73,7 @@ const formattedOtCommands = rawOtCommands;
 function TagDeviceToVehicle() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const [updatedFormFields, setUpdatedFormField] = useState(taggingFields);
   const [deviceId, setDeviceId] = useState("");
   const [activeStep, setActiveStep] = useState(0);
@@ -101,6 +103,9 @@ function TagDeviceToVehicle() {
   const [activationCommandSent, setActivationCommandSent] = useState(false);
   const [vahanForm, setVahanForm] = useState({ imei: "", regNo: "", ownerNo: "" });
   const [vahanFormError, setVahanFormError] = useState("");
+  const [m2mData, setM2mData] = useState(null);
+  const [m2mLoading, setM2mLoading] = useState(false);
+  const [m2mError, setM2mError] = useState("");
 
   const getStepFromQuery = () => {
     try {
@@ -322,7 +327,7 @@ function TagDeviceToVehicle() {
 
   useEffect(() => {
     if (activeStep === 2) {
-      getVahanDetail();
+      fetchM2MData();
     } else if (activeStep === 3) {
       if (deviceId) {
         handleResendOtp("dealer");
@@ -437,6 +442,24 @@ function TagDeviceToVehicle() {
       setLoading((prev) => ({ ...prev, loader: false }));
     }
   };
+  const fetchM2MData = async () => {
+    setM2mLoading(true);
+    setM2mError("");
+    try {
+      // TODO: Replace with actual M2M API call when backend is ready
+      // const response = await TaggingService.getM2MData({ device_id: deviceId });
+      // setM2mData(response?.data);
+      //
+      // For now, show placeholder with device data we already have
+      setM2mData(null); // will be populated from API
+    } catch (error) {
+      console.error("Error fetching M2M data:", error);
+      setM2mError("Failed to fetch M2M data. Please retry.");
+    } finally {
+      setM2mLoading(false);
+    }
+  };
+
   const getVahanDetail = async () => {
     setLoading((prev) => ({ ...prev, loader: true }));
     const deviceData = {
@@ -628,33 +651,12 @@ function TagDeviceToVehicle() {
     setSubmitting(true);
     setLoading((prev) => ({ ...prev, loader: true }));
     try {
-      const isNewVehicle = values?.vehicle_type === "new";
-      const suffix = isNewVehicle ? (values?.owner_id || "") : (values?.vehicle_number || "");
-      const vehicleRegNo = `${values.district_code || ""}${suffix}`;
-
-      const apiValues = {
-        ...values,
-        temp_reg: isNewVehicle,
-        vehicle_reg_no: vehicleRegNo,
-      };
-      delete apiValues.vehicle_type;
-      delete apiValues.owner_id;
-      delete apiValues.district_code;
-      delete apiValues.vehicle_number;
-      // Remove trailer_id from API payload if without trailer
-      if (values.with_trailer !== "true") {
-        delete apiValues.trailer_id;
-      }
+      const apiValues = { ...values };
 
       const response = await TaggingService.tagDeviceToVehicle(apiValues);
       resetForm(taggingInitials);
       const newDeviceId = response?.data?.data?.device;
       setDeviceId(newDeviceId);
-
-      // Store trailer and rfid info
-      setTrailerType(values.with_trailer === "true" ? "with_trailer" : "without_trailer");
-      setRfidNo(values.trailer_id || "");
-      setRfidVerified(false); // reset so RFID sub-phase shows fresh on step 6
 
       // Mark device as fitted after tagging
       if (newDeviceId) {
@@ -852,6 +854,11 @@ function TagDeviceToVehicle() {
                     </Button>
                   )}
                 </Grid>
+                
+                {/* Render Certificate Preview Below Actions */}
+                <Grid item xs={12} sx={{ width: '100%', mt: 4 }}>
+                  <ActivationCertificatePreview deviceId={deviceId} />
+                </Grid>
               </Grid>
             ) : (
               <React.Fragment>
@@ -893,7 +900,7 @@ function TagDeviceToVehicle() {
                   </ul>
                 </Grid>
                 <Grid item xs={12} md={5}>
-                  <Typography>
+                  <div style={{ display: 'flex', gap: '16px' }}>
                     <Button
                       color="primary"
                       type="button"
@@ -902,7 +909,14 @@ function TagDeviceToVehicle() {
                     >
                       {t("common.continue", "Continue")}
                     </Button>
-                  </Typography>
+                    <Button
+                      color="secondary"
+                      variant="outlined"
+                      onClick={() => setActiveStep((prev) => prev + 1)}
+                    >
+                      Skip
+                    </Button>
+                  </div>
                 </Grid>
               </Grid>
             )}
@@ -917,119 +931,29 @@ function TagDeviceToVehicle() {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Grid container spacing={2} className="form-controller">
-                      {Object.keys(updatedFormFields).map((field) => {
-                        const isNewVehicle = formik?.values?.vehicle_type === "new";
-                        const isWithTrailer = formik?.values?.with_trailer === "true";
-                        if (field === "vehicle_reg_no") return null;
-                        if (field === "state_code") return null;
-                        // Hide trailer_id if without trailer
-                        if (field === "trailer_id" && !isWithTrailer) return null;
-                        if (field === "district_code") {
-                          return (
-                            <Grid key="vehicle_reg_group" item md={6} sm={12} xs={12}>
-                              <Grid container spacing={1} alignItems="flex-end">
-                                <Grid item xs={3}>
-                                  <FormField
-                                    fieldConfig={updatedFormFields["state_code"]}
-                                    formik={formik}
-                                  />
-                                </Grid>
-                                <Grid item xs={4}>
-                                  <FormField
-                                    fieldConfig={updatedFormFields["district_code"]}
-                                    formik={formik}
-                                    handleOptionChange={handleDistrictCodeChange}
-                                  />
-                                </Grid>
-                                <Grid item xs={5}>
-                                  {isNewVehicle ? (
-                                    <FormField
-                                      fieldConfig={{
-                                        ...updatedFormFields["owner_id"],
-                                        label: "Temporary ID (autofill)",
-                                      }}
-                                      formik={formik}
-                                    />
-                                  ) : (
-                                    <FormField
-                                      fieldConfig={updatedFormFields["vehicle_number"]}
-                                      formik={formik}
-                                      onChange={(e) => {
-                                        let value = e.target.value.toUpperCase();
-                                        formik.setFieldValue("vehicle_number", value);
-                                      }}
-                                    />
-                                  )}
-                                </Grid>
-                              </Grid>
-                            </Grid>
-                          );
-                        }
-                        if (field === "vehicle_number") return null;
-                        if (field === "owner_id") return null;
-
-                        return (
-                          <Grid key={field} item md={6} sm={12} xs={12}>
-                            <FormField
-                              fieldConfig={{
-                                ...updatedFormFields[field],
-                                label: field === "rcFile" && isNewVehicle ? "Upload vehicle purchase document" : t(updatedFormFields[field].label),
-                                // Make trailer_id required when with_trailer
-                                required: field === "trailer_id" ? isWithTrailer : updatedFormFields[field].required,
-                              }}
-                              formik={formik}
-                              handleFileChange={handleFileChange}
-                              onChange={
-                                field === "chassis_no"
-                                  ? (e) => {
-                                      let value = (e?.target?.value ?? "").toUpperCase();
-                                      formik.setFieldValue("chassis_no", value);
-                                      if (formik?.values?.vehicle_type === "new") {
-                                        const lastThree = value.length >= 3 ? value.slice(-3) : value;
-                                        formik.setFieldValue("owner_id", `TMP${lastThree}`);
-                                      }
-                                    }
-                                  : field === "engine_no"
-                                  ? (e) => {
-                                      let value = (e?.target?.value ?? "").toUpperCase();
-                                      formik.setFieldValue("engine_no", value);
-                                    }
-                                  : undefined
-                              }
-                              handleOptionChange={
-                                field === "vehicle_type"
-                                  ? async (e) => {
-                                      const value = e?.target?.value;
-                                      formik.setFieldValue("vehicle_type", value);
-                                      formik.setFieldValue("device", "");
-                                      if (value === "new") {
-                                        formik.setFieldValue("vehicle_number", "");
-                                        const chassisValue = formik?.values?.chassis_no ?? "";
-                                        const lastThree = chassisValue.length >= 3 ? chassisValue.slice(-3) : chassisValue;
-                                        formik.setFieldValue("owner_id", `TMP${lastThree}`);
-                                        // Load new-vehicle IMEI list (Available_for_fitting)
-                                        const newDeviceList = await fetchDeviceListForTagging();
-                                        setUpdatedFormField((prev) => ({
-                                          ...prev,
-                                          device: { ...prev.device, options: Array.isArray(newDeviceList) ? newDeviceList : [] },
-                                        }));
-                                      } else {
-                                        formik.setFieldValue("owner_id", "");
-                                        // Load old-vehicle IMEI list (Fitted)
-                                        const oldDeviceList = await fetchDeviceListForOldVehicle();
-                                        setUpdatedFormField((prev) => ({
-                                          ...prev,
-                                          device: { ...prev.device, options: Array.isArray(oldDeviceList) ? oldDeviceList : [] },
-                                        }));
-                                      }
-                                    }
-                                  : undefined
-                              }
-                            />
-                          </Grid>
-                        );
-                      })}
-                      <Grid item xs={12} className="grid-item-button-div">
+                      {Object.keys(updatedFormFields).map((field) => (
+                        <Grid key={field} item md={6} sm={12} xs={12}>
+                          <FormField
+                            fieldConfig={{
+                              ...updatedFormFields[field],
+                              label: t(updatedFormFields[field].label) || updatedFormFields[field].label,
+                            }}
+                            formik={formik}
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              formik.setFieldValue(field, value);
+                            }}
+                          />
+                        </Grid>
+                      ))}
+                      <Grid item xs={12} className="grid-item-button-div" style={{ display: 'flex', gap: '16px', justifyContent: 'flex-start' }}>
+                        <Button
+                          color="secondary"
+                          variant="outlined"
+                          onClick={() => setActiveStep((prev) => prev + 1)}
+                        >
+                          Skip
+                        </Button>
                         <Button
                           type="submit"
                           variant="contained"
@@ -1044,181 +968,109 @@ function TagDeviceToVehicle() {
                 )}
               </Formik>
             )}
-            {/* Step 3: Ready for Activation / Vahan (Original Step 5) */}
+            {/* Step 3: M2M Data */}
             {activeStep === 2 && (() => {
-              const handleVahanSubmit = () => {
-                if (!vahanDetails.IMEI || !ownerDetails.mobile) {
-                  setVahanFormError("Vahan data or Owner data not loaded yet. Please wait or check your previous steps.");
-                  return;
-                }
-                
-                const comparablePairs = [
-                  { ownerKey: 'device_ESN',      vahanKey: 'device_serial_no', label: 'Device Serial No' },
-                  { ownerKey: 'ICCID',           vahanKey: 'ICCID', label: 'ICCID' },
-                  { ownerKey: 'IMEI',            vahanKey: 'IMEI', label: 'IMEI' },
-                  { ownerKey: 'vehicle_reg_no',  vahanKey: 'vehicle_reg_no', label: 'Registration No' },
-                  { ownerKey: 'vehicle_make',    vahanKey: 'vehicle_make', label: 'Vehicle Make' },
-                  { ownerKey: 'vehicle_model',   vahanKey: 'vehicle_model', label: 'Vehicle Model' },
-                  { ownerKey: 'engine_no',       vahanKey: 'engine_no', label: 'Engine No' },
-                  { ownerKey: 'chassis_no',      vahanKey: 'chassis_no', label: 'Chassis No' },
-                ];
-
-                let hasMismatch = false;
-                let mismatchedFields = [];
-
-                comparablePairs.forEach(({ ownerKey, vahanKey, label }) => {
-                  const ownerVal = (ownerDetails[ownerKey] || '').toString().trim().toLowerCase();
-                  const vahanVal = (vahanDetails[vahanKey] || '').toString().trim().toLowerCase();
-                  // Enforce strict matching: if either side has data, they must be identical
-                  if (ownerVal !== vahanVal) {
-                    // Ignore if both are completely empty
-                    if (ownerVal !== '' || vahanVal !== '') {
-                      hasMismatch = true;
-                      mismatchedFields.push(label);
-                    }
-                  }
-                });
-
-                if (hasMismatch) {
-                  setVahanFormError(`Mismatched fields: ${mismatchedFields.join(', ')}. Please resolve before proceeding.`);
-                  return;
-                }
-
-                setVahanFormError("");
-                setActiveStep((prev) => prev + 1);
-              };
+              const m2mFields = [
+                { label: "ICCID",               key: "iccid" },
+                { label: "IMEI",                key: "imei" },
+                { label: "M2M Number (MSISDN)", key: "msisdn" },
+              ];
 
               return (
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
-                    <Typography variant="h4" sx={{ mb: 2 }}>
-                      Vahan Verification
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                      SIM / M2M connectivity details fetched for this device.
                     </Typography>
-                    <Typography variant="body1" sx={{ mb: 3 }}>
-                      Please review the details below to verify against Vahan data.
-                    </Typography>
-
-                    {vahanFormError && (
-                      <Typography color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
-                        {vahanFormError}
-                      </Typography>
-                    )}
-
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Device IMEI No"
-                          value={vahanDetails?.IMEI || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Vehicle Registration No"
-                          value={vahanDetails?.vehicle_reg_no || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Vehicle Owner Name"
-                          value={vahanDetails?.owner_name || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Engine No"
-                          value={vahanDetails?.engine_no || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Chassis No"
-                          value={vahanDetails?.chassis_no || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Vehicle Make"
-                          value={vahanDetails?.vehicle_make || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Vehicle Model"
-                          value={vahanDetails?.vehicle_model || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Vehicle Type"
-                          value={vahanDetails?.vehicle_class || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Date of Registration"
-                          value={vahanDetails?.date_of_registration || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Device Serial No"
-                          value={vahanDetails?.device_serial_no || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="ICCID"
-                          value={vahanDetails?.ICCID || ""}
-                          InputProps={{ readOnly: true }}
-                        />
-                      </Grid>
-                    </Grid>
                   </Grid>
 
-                  <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 2 }}>
-                    {!vahanDetails.IMEI && (
+                  {m2mLoading && (
+                    <Grid item xs={12} sx={{ textAlign: "center", py: 4 }}>
+                      <CircularProgress size={36} />
+                      <Typography variant="body2" sx={{ mt: 1.5 }} color="textSecondary">
+                        Fetching M2M data…
+                      </Typography>
+                    </Grid>
+                  )}
+
+                  {m2mError && !m2mLoading && (
+                    <Grid item xs={12}>
+                      <Typography color="error" sx={{ mb: 1 }}>{m2mError}</Typography>
                       <Button
-                        color="secondary"
                         variant="outlined"
-                        onClick={getVahanDetail}
-                        disabled={loading.loader}
+                        color="secondary"
+                        onClick={fetchM2MData}
                       >
-                        {loading.loader ? "Fetching..." : "Retry Fetching Data"}
+                        Retry
                       </Button>
-                    )}
+                    </Grid>
+                  )}
+
+                  {!m2mLoading && !m2mError && (
+                    <>
+                      {/* Info banner while backend is in progress */}
+                      {!m2mData && (
+                        <Grid item xs={12}>
+                          <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                            backgroundColor: "#fff8e1",
+                            border: "1px solid #ffe082",
+                            borderRadius: "8px",
+                            padding: "12px 16px",
+                            marginBottom: "8px",
+                          }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#f59e0b"/>
+                            </svg>
+                            <Typography variant="body2" sx={{ color: "#92400e" }}>
+                              M2M backend integration is in progress. Data fields are shown below and will be populated once the API is live.
+                            </Typography>
+                          </div>
+                        </Grid>
+                      )}
+
+                      {/* M2M data fields */}
+                      {m2mFields.map(({ label, key }) => (
+                        <Grid key={key} item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label={label}
+                            value={m2mData?.[key] || "—"}
+                            InputProps={{ readOnly: true }}
+                            sx={{
+                              "& .MuiInputBase-input": {
+                                color: m2mData?.[key] ? "inherit" : "#aaa",
+                                fontStyle: m2mData?.[key] ? "normal" : "italic",
+                              }
+                            }}
+                          />
+                        </Grid>
+                      ))}
+                    </>
+                  )}
+
+                  <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 2 }}>
+                    <Button
+                      color="secondary"
+                      variant="outlined"
+                      onClick={() => setActiveStep((prev) => prev + 1)}
+                    >
+                      Skip
+                    </Button>
                     <Button
                       color="primary"
                       variant="contained"
-                      onClick={handleVahanSubmit}
+                      onClick={() => setActiveStep((prev) => prev + 1)}
+                      disabled={m2mLoading}
                     >
-                      Verify and Next
+                      Confirm &amp; Next
                     </Button>
                   </Grid>
                 </Grid>
               );
             })()}
-
 
             {/* Step 4: Dealer Verification (Original Step 2) */}
             {activeStep === 3 && (
@@ -1245,6 +1097,15 @@ function TagDeviceToVehicle() {
                           onClick={() => handleOtpSubmit("dealer")}
                         >
                           {t("common.Confirm")}
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        <Button
+                          color="secondary"
+                          variant="outlined"
+                          onClick={() => setActiveStep((prev) => prev + 1)}
+                        >
+                          Skip
                         </Button>
                       </Grid>
                       <Grid item>
@@ -1275,7 +1136,14 @@ function TagDeviceToVehicle() {
                 <Grid item xs={12}>
                   <DeviceDataHealth initialImei={ownerDetails?.IMEI || getMap?.imei || ""} isTagging={true} />
                 </Grid>
-                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '16px' }}>
+                  <Button
+                    color="secondary"
+                    variant="outlined"
+                    onClick={() => setActiveStep((prev) => prev + 1)}
+                  >
+                    Skip
+                  </Button>
                   <Button
                     color="primary"
                     variant="contained"
@@ -1343,7 +1211,7 @@ function TagDeviceToVehicle() {
                       <Typography>Confirm the vehicle location on the map and request OTP for final verification.</Typography>
                     </Grid>
                     <Grid item xs={12} md={5}>
-                      <Typography>
+                      <div style={{ display: 'flex', gap: '16px' }}>
                         <Button
                           color="primary"
                           type="submit"
@@ -1353,7 +1221,14 @@ function TagDeviceToVehicle() {
                         >
                           {t("common.confirmLocation", "Confirm Location")}
                         </Button>
-                      </Typography>
+                        <Button
+                          color="secondary"
+                          variant="outlined"
+                          onClick={() => setActiveStep((prev) => prev + 1)}
+                        >
+                          Skip
+                        </Button>
+                      </div>
                     </Grid>
                     <Grid item xs={12}>
                       <MapComponent
@@ -1401,7 +1276,7 @@ function TagDeviceToVehicle() {
                         is successfully received at <strong>7635975659</strong>.
                       </Typography>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid item xs={12} style={{ display: 'flex', gap: '16px' }}>
                       <Button
                         color="primary"
                         variant="contained"
@@ -1409,6 +1284,13 @@ function TagDeviceToVehicle() {
                         disabled={loading.loader}
                       >
                         Check Activation Status
+                      </Button>
+                      <Button
+                        color="secondary"
+                        variant="outlined"
+                        onClick={() => setActiveStep((prev) => prev + 1)}
+                      >
+                        Skip
                       </Button>
                     </Grid>
                   </>
@@ -1437,6 +1319,15 @@ function TagDeviceToVehicle() {
                               onClick={() => handleOtpSubmit("finalOwner")}
                             >
                               Submit
+                            </Button>
+                          </Grid>
+                          <Grid item>
+                            <Button
+                              color="secondary"
+                              variant="outlined"
+                              onClick={() => setActiveStep((prev) => prev + 1)}
+                            >
+                              Skip
                             </Button>
                           </Grid>
                           <Grid item>
