@@ -10,7 +10,8 @@ import SettingRoutes from './SettingRoutes';
 import HomeRoutes from './HomeRoutes';
 import LandingRoutes from './LandingRoutes';
 import AccessoriesRoutes from './accessoriesRoute';
+import ManufacturerRoutes from './ManufacturerRoutes';
 // import Home from 'layout/MainLayout/Header/Home';
 export default function ThemeRoutes() {
-  return useRoutes([HomeRoutes,LandingRoutes,MainRoutes, AuthenticationRoutes,UserRoutes,DeviceRoutes,SettingRoutes,TaggingRoutes,AccessoriesRoutes]);
+  return useRoutes([HomeRoutes,LandingRoutes,MainRoutes, AuthenticationRoutes,UserRoutes,DeviceRoutes,SettingRoutes,TaggingRoutes,AccessoriesRoutes, ManufacturerRoutes]);
 }

@@ -423,6 +423,14 @@ const user = {
           url: "/deviceModel/extension",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
+        },
+        {
+          id: "manufacturer-models",
+          title: "Model List",
+          type: "item",
+          url: "/manufacturer/models",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
         }
       ]
     },
@@ -433,6 +441,14 @@ const user = {
       icon: icons.IconChecks,
       roles: ["devicemanufacture"],
       children: [
+        {
+          id: "manufacturer-onboarding-dashboard",
+          title: "Onboarding Dashboard",
+          type: "item",
+          url: "/manufacturer/onboarding-dashboard",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
         {
           id: "manufacturer-technical-onboarding-create",
           title: "New Request",
@@ -449,6 +465,22 @@ const user = {
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
+        {
+          id: "manufacturer-notifications",
+          title: "Notifications",
+          type: "item",
+          url: "/manufacturer/notifications",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        },
+        {
+          id: "manufacturer-organization",
+          title: "Organization / Users",
+          type: "item",
+          url: "/manufacturer/organization",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
+        }
       ],
     },
     // {
