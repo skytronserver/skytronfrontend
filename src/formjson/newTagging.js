@@ -6,6 +6,40 @@ const mobileValidation = (fieldName) =>
     .required(`${fieldName} is required`)
     .matches(/^[0-9]{10}$/, `${fieldName} must be exactly 10 digits`);
 
+    
+// RC file validation
+const rcFileValidation = Yup.mixed()
+  .required("RC File is required")
+  .test(
+    "fileSize",
+    "RC File size must not exceed 1 MB",
+    (file) => {
+      if (!file) return true;
+      return file.size <= 1024 * 1024;
+    }
+  )
+  .test(
+    "fileType",
+    "Only PDF, PNG, JPG, XLS or XLSX files are allowed",
+    (file) => {
+      if (!file) return true;
+
+      const allowedExtensions = [
+        ".pdf",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".xls",
+        ".xlsx",
+      ];
+
+      const fileName = file.name?.toLowerCase() || "";
+
+      return allowedExtensions.some((extension) =>
+        fileName.endsWith(extension)
+      );
+    }
+  );
 export const newTaggingInitials = {
   manufacturer_id: "",
   model_id: "",
@@ -13,6 +47,7 @@ export const newTaggingInitials = {
   imei: "",
   iccid: "",
   owner_no: "",
+  rc_file: null,
 };
 
 export const newTaggingFields = {
@@ -60,5 +95,13 @@ export const newTaggingFields = {
     label: "Owner Mobile Number",
     required: true,
     validation: mobileValidation("Owner Mobile Number"),
+  },
+  rc_file: {
+    name: "rc_file",
+    type: "file",
+    label: "RC File",
+    required: true,
+    accept: ".pdf,.png,.jpg,.jpeg,.xls,.xlsx",
+    validation: rcFileValidation,
   },
 };

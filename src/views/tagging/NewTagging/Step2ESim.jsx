@@ -123,11 +123,40 @@ export default function Step2ESim({ entryId, vahanDateOfRegistration, onSuccess,
         setAlert({ open: true, type: 'warning', message: 'eSIM check failed. See details below.' });
       }
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.response?.data?.error
-        || Object.values(err?.response?.data || {}).flat().join(' ')
-        || 'eSIM check failed. Please retry.';
-      setCheckResult({ ok: false, message: msg });
-      setAlert({ open: true, type: 'error', message: msg });
+      const responseData = err?.response?.data;
+
+  let msg = "eSIM check failed. Please retry.";
+
+  if (typeof responseData === "string") {
+    if (responseData.includes("Field 'id' expected a number")) {
+      msg = "Invalid device ID. A numeric ID is required.";
+    } else if (responseData.includes("ValueError")) {
+      msg = "Server validation error occurred while checking eSIM.";
+    } else {
+      msg = "Server returned an unexpected error.";
+    }
+  } else {
+    msg =
+      responseData?.detail ||
+      responseData?.error ||
+      responseData?.message ||
+      Object.values(responseData || {})
+        .flat()
+        .join(" ") ||
+      msg;
+  }
+
+  setCheckResult({
+    ok: false,
+    message: msg,
+  });
+
+  setAlert({
+    open: true,
+    type: "error",
+    message: msg,
+  });
+
     } finally {
       setLoading(false);
     }
