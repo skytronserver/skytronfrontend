@@ -12,15 +12,69 @@ import NewTaggingService from '../../../services/NewTaggingService';
 
 // ─── packet definitions ───────────────────────────────────────────────────────
 const PACKETS = [
-  { key: 'login',           label: 'Login Packet',          icon: WifiTethering,  source: 'GPSDataLog',    color: '#7c3aed' },
-  { key: 'health',          label: 'Health Packet',         icon: AccessTime,     source: 'GPSDataLog',    color: '#0891b2' },
-  { key: 'pvt',             label: 'PVT Packet',            icon: GpsFixed,       source: 'GPSDataLog',    color: '#059669' },
-  { key: 'emergency_start', label: 'Emergency Start',       icon: Sos,            source: 'GPSDataLog',    color: '#d97706' },
-  { key: 'ble_emergency',   label: 'BLE Emergency Start',   icon: Sos,            source: 'GPSDataLog',    color: '#b45309' },
-  { key: 'emergency_stop',  label: 'Emergency Stop',        icon: Cancel,         source: 'GPSDataLog',    color: '#6b7280' },
-  { key: 'sos_start',       label: 'SOS Start',             icon: Sos,            source: 'GPSemDataLog',  color: '#dc2626' },
-  { key: 'sos_start_ble',   label: 'SOS Start BLE',         icon: Sos,            source: 'GPSemDataLog',  color: '#991b1b' },
-  { key: 'sos_stop',        label: 'SOS Stop',              icon: Cancel,         source: 'GPSemDataLog',  color: '#374151' },
+  {
+    key: 'login_packet',
+    label: 'Login Packet',
+    icon: WifiTethering,
+    source: 'GPSDataLog',
+    color: '#7c3aed',
+  },
+  {
+    key: 'health_packet',
+    label: 'Health Packet',
+    icon: AccessTime,
+    source: 'GPSDataLog',
+    color: '#0891b2',
+  },
+  {
+    key: 'pvt_packet',
+    label: 'PVT Packet',
+    icon: GpsFixed,
+    source: 'GPSDataLog',
+    color: '#059669',
+  },
+  {
+    key: 'emergency_start',
+    label: 'Emergency Start',
+    icon: Sos,
+    source: 'GPSDataLog',
+    color: '#d97706',
+  },
+  {
+    key: 'ble_emergency_start',
+    label: 'BLE Emergency Start',
+    icon: Sos,
+    source: 'GPSDataLog',
+    color: '#b45309',
+  },
+  {
+    key: 'emergency_stop',
+    label: 'Emergency Stop',
+    icon: Cancel,
+    source: 'GPSDataLog',
+    color: '#6b7280',
+  },
+  {
+    key: 'sos_start',
+    label: 'SOS Start',
+    icon: Sos,
+    source: 'GPSemDataLog',
+    color: '#dc2626',
+  },
+  {
+    key: 'sos_start_ble',
+    label: 'SOS Start BLE',
+    icon: Sos,
+    source: 'GPSemDataLog',
+    color: '#991b1b',
+  },
+  {
+    key: 'sos_stop',
+    label: 'SOS Stop',
+    icon: Cancel,
+    source: 'GPSemDataLog',
+    color: '#374151',
+  },
 ];
 
 // ─── status badge ────────────────────────────────────────────────────────────
@@ -64,9 +118,9 @@ const PacketRow = ({ packet, data, isPvt }) => {
           </Typography>
         )}
 
-        {data?.raw && (
+        {data?.raw_data && (
           <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', color: '#64748b', mt: 0.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
-            {String(data.raw).substring(0, 80)}{String(data.raw).length > 80 ? '…' : ''}
+            {String(data.raw_data).substring(0, 80)}{String(data.raw_data).length > 80 ? '…' : ''}
           </Typography>
         )}
 
@@ -90,26 +144,72 @@ export default function Step4GpsHealth({ entryId, onSuccess, setAlert }) {
   const [checked, setChecked] = useState(false);
 
   const runCheck = async () => {
-    setLoading(true);
-    try {
-      const res = await NewTaggingService.checkGpsPackets(entryId);
-      setPackets(res?.data?.packets || res?.data || {});
-      setChecked(true);
-      const allOk = PACKETS.every((p) => res?.data?.packets?.[p.key]?.received !== false);
+  if (!entryId) {
+    setAlert({
+      open: true,
+      type: 'error',
+      message: 'Entry ID is missing. Cannot check GPS packets.',
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await NewTaggingService.checkGpsPackets(entryId);
+
+    const responseData = res?.data;
+    const data = responseData?.data;
+
+    const packetData = data?.packets || {};
+
+
+    setPackets(packetData);
+    setChecked(true);
+
+    const allReceived = data?.all_received === true;
+
+    if (allReceived && responseData?.status === 'success') {
       setAlert({
         open: true,
-        type: allOk ? 'success' : 'warning',
-        message: allOk ? 'All GPS packets verified successfully.' : 'Some packets are missing or stale — review the table below.',
+        type: 'success',
+        message:
+          responseData?.message ||
+          'All GPS packets verified successfully.',
       });
-    } catch (err) {
-      const msg = err?.response?.data?.detail || err?.response?.data?.error || 'GPS packet check failed.';
-      setAlert({ open: true, type: 'error', message: msg });
-    } finally {
-      setLoading(false);
+    } else {
+      setAlert({
+        open: true,
+        type: 'warning',
+        message:
+          responseData?.message ||
+          'Some GPS packets are missing or stale — review the table below.',
+      });
     }
-  };
+  } catch (err) {
+    console.error('STEP 4 API ERROR:', err);
 
-  const allPassed = checked && PACKETS.every((p) => packets?.[p.key]?.received !== false);
+    const msg =
+      err?.response?.data?.detail ||
+      err?.response?.data?.error ||
+      err?.response?.data?.message ||
+      'GPS packet check failed.';
+
+    setAlert({
+      open: true,
+      type: 'error',
+      message: msg,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const allPassed =
+  checked &&
+  PACKETS.every(
+    (p) => packets?.[p.key]?.received === true
+  );
   const passCount = checked ? PACKETS.filter((p) => packets?.[p.key]?.received === true).length : 0;
 
   return (
@@ -162,7 +262,7 @@ export default function Step4GpsHealth({ entryId, onSuccess, setAlert }) {
       {checked && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {PACKETS.map((p) => (
-            <PacketRow key={p.key} packet={p} data={packets?.[p.key]} isPvt={p.key === 'pvt'} />
+            <PacketRow key={p.key} packet={p} data={packets?.[p.key]} isPvt={p.key === 'pvt_packet'} />
           ))}
         </Box>
       )}

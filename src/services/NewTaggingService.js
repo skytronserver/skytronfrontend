@@ -52,7 +52,7 @@ const verifyOwnerOtp = (id, otp) => {
  */
 const getMyEntries = (params = {}) => {
   const http = getAxiosInstance();
-  return http.get('/api/tag/v2/my-entries/', { params });
+  return http.get('/api/device-tagging/my-entries/', { params });
 };
 
 /** GET manufacturer → model → eSIM provider tree for Step 1 dropdowns */

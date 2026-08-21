@@ -97,7 +97,13 @@ export default function Step2ESim({ entryId, vahanDateOfRegistration, onSuccess,
   const [validityResult, setValidityResult] = useState(null);
 
   useEffect(() => {
-    if (entryId) runCheck();
+    if (!entryId) {
+      console.log("Step2ESim: entryId is missing:", entryId);
+      return;
+    }
+
+    runCheck();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryId]);
 
@@ -107,55 +113,88 @@ export default function Step2ESim({ entryId, vahanDateOfRegistration, onSuccess,
     setCheckResult(null);
     try {
       const res = await NewTaggingService.checkESim(entryId);
-      const d = res?.data?.sim || res?.data;
-      setSimData(d);
 
-      // frontend-side validity validation
-      const vr = calcValidityResult(d, vahanDateOfRegistration);
+      const responseData = res?.data;
+      const esimData = responseData?.data?.esim;
+
+
+      if (!esimData) {
+        throw new Error("eSIM data was not returned by Step 2 API.");
+      }
+
+      setSimData(esimData);
+
+      // Frontend-side validity validation
+      const vr = calcValidityResult(
+        {
+          expiredOn: esimData.expiry_date,
+        },
+        vahanDateOfRegistration
+      );
+
       setValidityResult(vr);
 
-      const passed = res?.data?.passed ?? vr?.ok ?? true;
-      setCheckResult({ ok: passed, message: res?.data?.message || (passed ? 'SIM check passed.' : 'SIM validity check failed.') });
+      // Step 2 API itself was successful
+      const passed = responseData?.status === "success";
+
+      setCheckResult({
+        ok: passed,
+        message:
+          responseData?.message ||
+          (passed
+            ? "SIM check passed."
+            : "SIM validity check failed."),
+      });
 
       if (passed) {
-        setAlert({ open: true, type: 'success', message: 'eSIM check passed. OTP will be sent to your registered number.' });
+        setAlert({
+          open: true,
+          type: "success",
+          message:
+            responseData?.message ||
+            "eSIM check passed. OTP will be sent to your registered number.",
+        });
       } else {
-        setAlert({ open: true, type: 'warning', message: 'eSIM check failed. See details below.' });
+        setAlert({
+          open: true,
+          type: "warning",
+          message: "eSIM check failed. See details below.",
+        });
       }
     } catch (err) {
       const responseData = err?.response?.data;
 
-  let msg = "eSIM check failed. Please retry.";
+      let msg = "eSIM check failed. Please retry.";
 
-  if (typeof responseData === "string") {
-    if (responseData.includes("Field 'id' expected a number")) {
-      msg = "Invalid device ID. A numeric ID is required.";
-    } else if (responseData.includes("ValueError")) {
-      msg = "Server validation error occurred while checking eSIM.";
-    } else {
-      msg = "Server returned an unexpected error.";
-    }
-  } else {
-    msg =
-      responseData?.detail ||
-      responseData?.error ||
-      responseData?.message ||
-      Object.values(responseData || {})
-        .flat()
-        .join(" ") ||
-      msg;
-  }
+      if (typeof responseData === "string") {
+        if (responseData.includes("Field 'id' expected a number")) {
+          msg = "Invalid device ID. A numeric ID is required.";
+        } else if (responseData.includes("ValueError")) {
+          msg = "Server validation error occurred while checking eSIM.";
+        } else {
+          msg = "Server returned an unexpected error.";
+        }
+      } else {
+        msg =
+          responseData?.detail ||
+          responseData?.error ||
+          responseData?.message ||
+          Object.values(responseData || {})
+            .flat()
+            .join(" ") ||
+          msg;
+      }
 
-  setCheckResult({
-    ok: false,
-    message: msg,
-  });
+      setCheckResult({
+        ok: false,
+        message: msg,
+      });
 
-  setAlert({
-    open: true,
-    type: "error",
-    message: msg,
-  });
+      setAlert({
+        open: true,
+        type: "error",
+        message: msg,
+      });
 
     } finally {
       setLoading(false);
@@ -220,30 +259,30 @@ export default function Step2ESim({ entryId, vahanDateOfRegistration, onSuccess,
               <Typography variant="caption" sx={{ color: '#bae6fd' }}>ICCID: {simData.iccid || simData.iccId || '—'}</Typography>
             </Box>
             <Box sx={{ ml: 'auto' }}>
-              <StatusBadge ok={simData.cardStatus === 'Active'} label={simData.cardStatus || '—'} />
+              <StatusBadge ok={simData.card_status === 'Active'} label={simData.card_status || '—'} />
             </Box>
           </Box>
 
           <Box sx={{ p: 2.5 }}>
             <Grid container spacing={2.5}>
               {/* Dates row */}
-              <Grid item xs={12} sm={6} md={3}><InfoCell label="Card State" value={simData.cardState} /></Grid>
-              <Grid item xs={12} sm={6} md={3}><InfoCell label="Activate On" value={formatDate(simData.activateOn)} /></Grid>
+              <Grid item xs={12} sm={6} md={3}><InfoCell label="Card State" value={simData.card_state} /></Grid>
+              <Grid item xs={12} sm={6} md={3}><InfoCell label="Activate On" value={formatDate(simData.activation_date)} /></Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Box>
                   <Typography variant="caption" sx={{ color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.68rem' }}>
                     Expires On
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatDate(simData.expiredOn)}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatDate(simData.expiry_date)}</Typography>
                     {validityResult && (
                       <StatusBadge ok={validityResult.ok} label={validityResult.ok ? `≥${validityResult.minYears}yr ✓` : `<${validityResult.minYears}yr ✗`} />
                     )}
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}><InfoCell label="Data Usage" value={simData.dataUsage ? `${simData.dataUsage} MB` : '—'} /></Grid>
-              <Grid item xs={12} sm={6} md={3}><InfoCell label="Data Usage Date" value={formatDate(simData.dataUsageDate)} /></Grid>
+              <Grid item xs={12} sm={6} md={3}><InfoCell label="Data Usage" value={simData.data_usage ? `${simData.data_usage} MB` : '—'} /></Grid>
+              <Grid item xs={12} sm={6} md={3}><InfoCell label="Data Usage Date" value={formatDate(simData.data_usage_date)} /></Grid>
             </Grid>
 
             <Divider sx={{ my: 2.5 }} />
@@ -251,10 +290,15 @@ export default function Step2ESim({ entryId, vahanDateOfRegistration, onSuccess,
             {/* TSP blocks */}
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TSPBlock label="Primary" tsp={simData.primaryTSP} msisdn={simData.primaryMSISDN} status={simData.primaryStatus} />
+                <TSPBlock
+                  label="Primary"
+                  tsp={simData.primary_tsp}
+                  msisdn={simData.primary_msisdn}
+                  status={simData.primary_status}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TSPBlock label="Fallback" tsp={simData.fallbackTSP} msisdn={simData.fallbackMSISDN} status={simData.fallbackStatus} />
+                <TSPBlock label="Fallback" tsp={simData.fallback_tsp} msisdn={simData.fallback_msisdn} status={simData.fallback_status} />
               </Grid>
             </Grid>
           </Box>

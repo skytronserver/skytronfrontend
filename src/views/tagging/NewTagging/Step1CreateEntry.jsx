@@ -89,66 +89,66 @@ const VahanSummary = ({ vahan }) => {
 export default function Step1CreateEntry({ onSuccess, setAlert }) {
   const [manufacturerTree, setManufacturerTree] = useState([]);
   const [treeLoading, setTreeLoading] = useState(true);
-  
+
   const [updatedFormFields, setUpdatedFormFields] = useState(newTaggingFields);
   const [vahanData, setVahanData] = useState(null);
-const [deviceModels, setDeviceModels] = useState([]);
-const [selectedModelProviders, setSelectedModelProviders] = useState([]);
+  const [deviceModels, setDeviceModels] = useState([]);
+  const [selectedModelProviders, setSelectedModelProviders] = useState([]);
   useEffect(() => {
-  (async () => {
-    try {
-      const res = await NewTaggingService.getManufacturerTree();
+    (async () => {
+      try {
+        const res = await NewTaggingService.getManufacturerTree();
 
-      const data = res?.data?.data;
+        const data = res?.data?.data;
 
-      const manufacturer = data?.manufacturer;
-      const models = data?.device_models || [];
+        const manufacturer = data?.manufacturer;
+        const models = data?.device_models || [];
 
-      setDeviceModels(models);
+        setDeviceModels(models);
 
-      const manufacturerOptions = manufacturer
-        ? [
+        const manufacturerOptions = manufacturer
+          ? [
             {
               label: manufacturer.company_name,
               value: String(manufacturer.id),
             },
           ]
-        : [];
+          : [];
 
-      setUpdatedFormFields((prev) => ({
-        ...prev,
+        setUpdatedFormFields((prev) => ({
+          ...prev,
 
-        manufacturer_id: {
-          ...prev.manufacturer_id,
-          options: manufacturerOptions,
-          disabled: false,
-        },
+          manufacturer_id: {
+            ...prev.manufacturer_id,
+            options: manufacturerOptions,
+            disabled: false,
+          },
 
-        model_id: {
-          ...prev.model_id,
-          options: [],
-          disabled: true,
-        },
+          model_id: {
+            ...prev.model_id,
+            options: [],
+            disabled: true,
+          },
 
-        esim_provider_id: {
-          ...prev.esim_provider_id,
-          options: [],
-          disabled: true,
-        },
-      }));
-    } catch (error) {
-      console.error("Manufacturer API Error:", error);
+          esim_provider_id: {
+            ...prev.esim_provider_id,
+            options: [],
+            disabled: true,
+          },
+        }));
+      } catch (error) {
+        console.error("Manufacturer API Error:", error);
 
-      setAlert({
-        open: true,
-        type: "error",
-        message: "Failed to load manufacturer list.",
-      });
-    } finally {
-      setTreeLoading(false);
-    }
-  })();
-}, [setAlert]);
+        setAlert({
+          open: true,
+          type: "error",
+          message: "Failed to load manufacturer list.",
+        });
+      } finally {
+        setTreeLoading(false);
+      }
+    })();
+  }, [setAlert]);
 
   const validationSchema = Yup.object().shape(
     Object.keys(newTaggingFields).reduce((acc, key) => {
@@ -158,139 +158,138 @@ const [selectedModelProviders, setSelectedModelProviders] = useState([]);
   );
 
   const handleFieldChange = (field, event, formik) => {
-  const value = event?.target?.value;
+    const value = event?.target?.value;
 
-  console.log("FIELD:", field);
-  console.log("VALUE:", value);
+    console.log("FIELD:", field);
+    console.log("VALUE:", value);
 
-  formik.setFieldValue(field, value);
+    formik.setFieldValue(field, value);
 
-  // ============================================================
-  // MANUFACTURER
-  // ============================================================
-  if (field === "manufacturer_id") {
-    formik.setFieldValue("model_id", "");
-    formik.setFieldValue("esim_provider_id", "");
+    // ============================================================
+    // MANUFACTURER
+    // ============================================================
+    if (field === "manufacturer_id") {
+      formik.setFieldValue("model_id", "");
+      formik.setFieldValue("esim_provider_id", "");
 
-    // Models are already available from manufacturer API
-    const modelOptions = deviceModels.map((model) => ({
-      label: model.model_name,
-      value: String(model.id),
-    }));
+      // Models are already available from manufacturer API
+      const modelOptions = deviceModels.map((model) => ({
+        label: model.model_name,
+        value: String(model.id),
+      }));
 
-    console.log("MODEL OPTIONS:", modelOptions);
+      console.log("MODEL OPTIONS:", modelOptions);
 
-    setUpdatedFormFields((prev) => ({
-      ...prev,
+      setUpdatedFormFields((prev) => ({
+        ...prev,
 
-      model_id: {
-        ...prev.model_id,
-        options: modelOptions,
-        disabled: false,
-      },
+        model_id: {
+          ...prev.model_id,
+          options: modelOptions,
+          disabled: false,
+        },
 
-      esim_provider_id: {
-        ...prev.esim_provider_id,
-        options: [],
-        disabled: true,
-      },
-    }));
+        esim_provider_id: {
+          ...prev.esim_provider_id,
+          options: [],
+          disabled: true,
+        },
+      }));
 
-    return;
-  }
-
-  // ============================================================
-  // MODEL
-  // ============================================================
-  if (field === "model_id") {
-    formik.setFieldValue("esim_provider_id", "");
-
-    const selectedModel = deviceModels.find(
-      (model) => String(model.id) === String(value)
-    );
-
-    console.log("SELECTED MODEL:", selectedModel);
-
-    const providers = selectedModel?.esim_providers || [];
-
-    const providerOptions = providers.map((provider) => ({
-      label: provider.company_name,
-      value: String(provider.id),
-    }));
-
-    console.log("ESIM PROVIDER OPTIONS:", providerOptions);
-
-    setSelectedModelProviders(providers);
-
-    setUpdatedFormFields((prev) => ({
-      ...prev,
-
-      esim_provider_id: {
-        ...prev.esim_provider_id,
-        options: providerOptions,
-        disabled: providerOptions.length === 0,
-      },
-    }));
-
-    return;
-  }
-};
-
- const handleSubmit = async (values, { setSubmitting }) => {
-  try {
-    const formData = new FormData();
-
-    formData.append("manufacturer_id", String(values.manufacturer_id));
-    formData.append("model_id", String(values.model_id));
-    formData.append("esim_provider_id", String(values.esim_provider_id));
-    formData.append("imei", String(values.imei));
-    formData.append("iccid", String(values.iccid));
-    formData.append("owner_phone_number", String(values.owner_no));
-if (values.rc_file) {
-  formData.append("rc_file", values.rc_file);
-}
-    console.log("STEP 1 FORMDATA:");
-
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
+      return;
     }
 
-    const res = await NewTaggingService.createEntry(formData);
+    // ============================================================
+    // MODEL
+    // ============================================================
+    if (field === "model_id") {
+      formik.setFieldValue("esim_provider_id", "");
 
-    const data = res?.data;
+      const selectedModel = deviceModels.find(
+        (model) => String(model.id) === String(value)
+      );
 
-    setVahanData(data?.vahan || null);
+      console.log("SELECTED MODEL:", selectedModel);
 
-    setAlert({
-      open: true,
-      type: "success",
-      message: "Entry created successfully. Vahan data retrieved.",
-    });
+      const providers = selectedModel?.esim_providers || [];
 
-    onSuccess({
-      id: data?.id,
-      vahan: data?.vahan,
-    });
-  } catch (err) {
-    console.error("Step 1 API Error:", err);
+      const providerOptions = providers.map((provider) => ({
+        label: provider.company_name,
+        value: String(provider.id),
+      }));
 
-    const msg =
-      err?.response?.data?.detail ||
-      err?.response?.data?.error ||
-      Object.values(err?.response?.data || {})
-        .flat()
-        .join(" ") ||
-      "Something went wrong. Please try again.";
+      console.log("ESIM PROVIDER OPTIONS:", providerOptions);
 
-    setAlert({
-      open: true,
-      type: "error",
-      message: msg,
-    });
-  } finally {
-    setSubmitting(false);
-  }
-};
+      setSelectedModelProviders(providers);
+
+      setUpdatedFormFields((prev) => ({
+        ...prev,
+
+        esim_provider_id: {
+          ...prev.esim_provider_id,
+          options: providerOptions,
+          disabled: providerOptions.length === 0,
+        },
+      }));
+
+      return;
+    }
+  };
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    try {
+      const formData = new FormData();
+
+      formData.append("manufacturer_id", String(values.manufacturer_id));
+      formData.append("model_id", String(values.model_id));
+      formData.append("esim_provider_id", String(values.esim_provider_id));
+      formData.append("imei", String(values.imei));
+      formData.append("iccid", String(values.iccid));
+      formData.append("owner_phone_number", String(values.owner_no));
+      if (values.rc_file) {
+        formData.append("rc_file", values.rc_file);
+      }
+
+      for (const [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
+      const res = await NewTaggingService.createEntry(formData);
+
+      const data = res?.data?.data;
+
+      setVahanData(data?.vahan || null);
+
+      setAlert({
+        open: true,
+        type: "success",
+        message: "Entry created successfully. Vahan data retrieved.",
+      });
+
+      onSuccess({
+        id: data?.id,
+        vahan: data?.vahan,
+      });
+    } catch (err) {
+      console.error("Step 1 API Error:", err);
+
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        Object.values(err?.response?.data || {})
+          .flat()
+          .join(" ") ||
+        "Something went wrong. Please try again.";
+
+      setAlert({
+        open: true,
+        type: "error",
+        message: msg,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Box>
