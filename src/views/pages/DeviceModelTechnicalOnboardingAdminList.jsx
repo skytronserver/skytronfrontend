@@ -4,6 +4,7 @@ import {
     Alert,
     Box,
     Button,
+    Checkbox,
     Chip,
     CircularProgress,
     Collapse,
@@ -33,6 +34,13 @@ import {
     TextField,
     Tooltip,
     Typography,
+    Stepper,
+    Step,
+    StepLabel,
+    StepContent,
+    Tabs,
+    Tab,
+    LinearProgress,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -136,11 +144,6 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
 
-    // Health validation states
-    const [healthChecking, setHealthChecking] = useState(false);
-    const [allGreen, setAllGreen] = useState(false);
-    const [healthCheckError, setHealthCheckError] = useState("");
-
     const demoDevices = useMemo(() => {
         if (!row?.demo_devices) return [];
         if (Array.isArray(row.demo_devices)) return row.demo_devices;
@@ -151,75 +154,8 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
         if (open) { 
             setEvalDatetime(toDatetimeLocalValue(new Date())); 
             setError(""); 
-            setHealthChecking(false);
-            setAllGreen(false);
-            setHealthCheckError("");
         }
     }, [open]);
-
-    /* check device health on open */
-    useEffect(() => {
-        if (open && demoDevices.length > 0) {
-            let isMounted = true;
-            const checkHealth = async () => {
-                setHealthChecking(true);
-                setHealthCheckError("");
-                setAllGreen(false);
-                try {
-                    let allDevicesGreen = true;
-                    for (const device of demoDevices) {
-                        const imei = String(device.imei || "").trim();
-                        if (!imei) {
-                            allDevicesGreen = false;
-                            break;
-                        }
-                        const res = await DeviceDataHealthService.getHealthData(imei, "ARAI_2025", 3);
-                        const resultData = res.data;
-                        
-                        let categoriesArray = [];
-                        if (resultData) {
-                            const cats = resultData.categories || resultData.summary || resultData.packet_categories || resultData.data;
-                            if (Array.isArray(cats)) {
-                                categoriesArray = cats;
-                            } else if (cats && typeof cats === "object") {
-                                categoriesArray = Object.entries(cats).map(([key, val]) => ({
-                                    name: key,
-                                    ...(typeof val === "object" ? val : { status: val }),
-                                }));
-                            }
-                        }
-                        
-                        if (categoriesArray.length === 0) {
-                            allDevicesGreen = false;
-                            break;
-                        }
-                        
-                        const deviceAllGreen = categoriesArray.every(cat => cat.status === "available");
-                        if (!deviceAllGreen) {
-                            allDevicesGreen = false;
-                            break;
-                        }
-                    }
-                    if (isMounted) {
-                        setAllGreen(allDevicesGreen);
-                        if (!allDevicesGreen) {
-                            setHealthCheckError("All devices must have green health status (all packet categories available) before you can Confirm Testing.");
-                        }
-                    }
-                } catch (err) {
-                    if (isMounted) {
-                        setAllGreen(false);
-                        setHealthCheckError("Failed to verify device health statuses or devices have invalid health. Testing cannot be confirmed.");
-                    }
-                } finally {
-                    if (isMounted) setHealthChecking(false);
-                }
-            };
-            checkHealth();
-            return () => { isMounted = false; };
-        }
-    }, [open, demoDevices]);
-
     const handleConfirm = async () => {
         setError(""); 
         if (!evalDatetime) {
@@ -256,7 +192,7 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
             <DialogTitle>
                 <Stack direction="row" alignItems="center" spacing={1}>
                     <PlayCircleOutlineIcon color="info" />
-                    <Typography variant="h5" fontWeight={700}>Confirm Testing</Typography>
+                    <Typography variant="h5" fontWeight={700}>Start Testing</Typography>
                 </Stack>
             </DialogTitle>
             <DialogContent dividers>
@@ -299,25 +235,16 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
                             }
                         />
                     </Box>
-                    {healthChecking && (
-                        <Stack direction="row" spacing={1} alignItems="center" mt={1}>
-                            <CircularProgress size={16} />
-                            <Typography variant="caption" color="text.secondary">Validating device data health requirements before starting evaluation…</Typography>
-                        </Stack>
-                    )}
-                    {!healthChecking && healthCheckError && (
-                        <Alert severity="error">{healthCheckError}</Alert>
-                    )}
                     {error && <Alert severity="error">{error}</Alert>}
                 </Stack>
             </DialogContent>
             <DialogActions sx={{ px: 3, py: 2 }}>
                 <Button onClick={onClose} disabled={submitting} variant="outlined">Cancel</Button>
                 <Button
-                    onClick={handleConfirm} disabled={submitting || healthChecking || !allGreen} variant="contained" color="info"
+                    onClick={handleConfirm} disabled={submitting} variant="contained" color="info"
                     startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <PlayCircleOutlineIcon />}
                 >
-                    {submitting ? "Confirming…" : "Confirm Testing"}
+                    {submitting ? "Starting…" : "Start Testing"}
                 </Button>
             </DialogActions>
         </Dialog>
@@ -336,10 +263,17 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const [apiError, setApiError] = useState("");
     const fileInputRef = useRef(null);
 
-    // Health validation states
-    const [healthChecking, setHealthChecking] = useState(false);
-    const [allGreen, setAllGreen] = useState(false);
-    const [healthCheckError, setHealthCheckError] = useState("");
+    // Checklist states
+    const [activeTestStep, setActiveTestStep] = useState(0);
+    
+    const TEST_STEPS = useMemo(() => [
+        { key: "document", label: "Document Verification (User Manual, Commands)", description: "Review the submitted user manual, installation guide, and SMS commands documentation for completeness and clarity. Ensure all required commands are documented." },
+        { key: "functional", label: "Device Functional Test (Hardware Check)", description: "Power on the device and perform a visual and functional hardware inspection. Check LED indicators, wiring harness, and overall build quality." },
+        { key: "protocol", label: "Protocol Compliance (AIS-140 standard)", description: "Connect the device to the test server and verify that it sends data packets according to the AIS-140 standard protocol." },
+        { key: "battery", label: "Internal Battery & Backup Test", description: "Disconnect the main power source and verify that the device continues to operate on its internal battery for the required minimum duration, while sending the appropriate power-disconnect alerts." },
+    ], []);
+    
+    const allTestsCompleted = activeTestStep >= TEST_STEPS.length;
 
     const demoDevices = useMemo(() => {
         if (!row?.demo_devices) return [];
@@ -355,76 +289,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             setReportPdf(null);
             setFieldErrors({});
             setApiError("");
-            setHealthChecking(false);
-            setAllGreen(false);
-            setHealthCheckError("");
+            setActiveTestStep(0);
         }
     }, [open]);
 
-    /* check device health on open */
-    useEffect(() => {
-        if (open && demoDevices.length > 0) {
-            let isMounted = true;
-            const checkHealth = async () => {
-                setHealthChecking(true);
-                setHealthCheckError("");
-                setAllGreen(false);
-                try {
-                    let allDevicesGreen = true;
-                    for (const device of demoDevices) {
-                        const imei = String(device.imei || "").trim();
-                        if (!imei) {
-                            allDevicesGreen = false;
-                            break;
-                        }
-                        const res = await DeviceDataHealthService.getHealthData(imei, "ARAI_2025", 3);
-                        const resultData = res.data;
-                        
-                        let categoriesArray = [];
-                        if (resultData) {
-                            const cats = resultData.categories || resultData.summary || resultData.packet_categories || resultData.data;
-                            if (Array.isArray(cats)) {
-                                categoriesArray = cats;
-                            } else if (cats && typeof cats === "object") {
-                                categoriesArray = Object.entries(cats).map(([key, val]) => ({
-                                    name: key,
-                                    ...(typeof val === "object" ? val : { status: val }),
-                                }));
-                            }
-                        }
-                        
-                        if (categoriesArray.length === 0) {
-                            allDevicesGreen = false;
-                            break;
-                        }
-                        
-                        const deviceAllGreen = categoriesArray.every(cat => cat.status === "available");
-                        if (!deviceAllGreen) {
-                            allDevicesGreen = false;
-                            break;
-                        }
-                    }
-                    if (isMounted) {
-                        setAllGreen(allDevicesGreen);
-                        if (!allDevicesGreen) {
-                            setHealthCheckError("All devices must have green health status (all packet categories available) before you can Accept this request.");
-                            setStatus("technically_not_compatible"); // Force to reject mode
-                        }
-                    }
-                } catch (err) {
-                    if (isMounted) {
-                        setAllGreen(false);
-                        setHealthCheckError("Failed to verify device health statuses or devices have invalid health. Acceptance is disabled.");
-                        setStatus("technically_not_compatible");
-                    }
-                } finally {
-                    if (isMounted) setHealthChecking(false);
-                }
-            };
-            checkHealth();
-            return () => { isMounted = false; };
-        }
-    }, [open, demoDevices]);
 
     const validate = () => {
         const errs = {};
@@ -470,14 +338,14 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const isAccepting = status === "technically_compatible";
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
             <DialogTitle sx={{ pb: 1 }}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                     <GavelIcon color="primary" />
-                    <Typography variant="h5" fontWeight={700}>Finalize Onboarding Request</Typography>
+                    <Typography variant="h5" fontWeight={700}>Complete Testing &amp; Finalize</Typography>
                 </Stack>
                 <Typography variant="caption" color="text.secondary">
-                    This action is irreversible. Fill in all required fields before confirming.
+                    Please complete all testing steps below before uploading the report and finalizing.
                 </Typography>
             </DialogTitle>
 
@@ -503,37 +371,86 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
                     <Divider />
 
-                    {/* ── Decision: Accept / Reject ── */}
-                    <FormControl error={!!fieldErrors.status}>
-                        <FormLabel sx={{ fontWeight: 700, mb: 0.5, color: "text.primary" }}>
-                            Decision *
-                        </FormLabel>
+                    {/* ── Testing Checklist ── */}
+                    <Box>
+                        <Typography variant="subtitle2" fontWeight={700} mb={1}>
+                            Pre-requisite Testing Checklist
+                        </Typography>
+                        <Paper variant="outlined" sx={{ borderRadius: 2, p: 2 }}>
+                            <Stepper activeStep={activeTestStep} orientation="vertical">
+                                {TEST_STEPS.map((test, index) => (
+                                    <Step key={test.key}>
+                                        <StepLabel 
+                                            optional={
+                                                index === TEST_STEPS.length - 1 ? (
+                                                    <Typography variant="caption">Last step</Typography>
+                                                ) : null
+                                            }
+                                        >
+                                            <Typography sx={{ fontWeight: activeTestStep === index ? 700 : 400 }}>
+                                                {test.label}
+                                            </Typography>
+                                        </StepLabel>
+                                        <StepContent>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                                {test.description}
+                                            </Typography>
+                                            <Box sx={{ mb: 2 }}>
+                                                <div>
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={() => setActiveTestStep(prev => prev + 1)}
+                                                        sx={{ mt: 1, mr: 1 }}
+                                                        size="small"
+                                                    >
+                                                        {index === TEST_STEPS.length - 1 ? 'Finish Checklist' : 'Complete Step & Continue'}
+                                                    </Button>
+                                                    <Button
+                                                        disabled={index === 0}
+                                                        onClick={() => setActiveTestStep(prev => prev - 1)}
+                                                        sx={{ mt: 1, mr: 1 }}
+                                                        size="small"
+                                                    >
+                                                        Back
+                                                    </Button>
+                                                </div>
+                                            </Box>
+                                        </StepContent>
+                                    </Step>
+                                ))}
+                            </Stepper>
+                            {allTestsCompleted && (
+                                <Paper square elevation={0} sx={{ p: 2, bgcolor: "success.50", mt: 2, borderRadius: 1 }}>
+                                    <Typography variant="subtitle2" color="success.dark">All pre-requisite tests completed.</Typography>
+                                    <Typography variant="caption" color="success.main">You can now proceed to finalize the report below.</Typography>
+                                </Paper>
+                            )}
+                        </Paper>
+                    </Box>
 
-                        {healthChecking && (
-                            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-                                <CircularProgress size={14} />
-                                <Typography variant="caption" color="text.secondary">Validating device data health requirements…</Typography>
-                            </Stack>
-                        )}
-                        {!healthChecking && healthCheckError && (
-                            <Alert severity="error" sx={{ mb: 1, py: 0 }}>
-                                <Typography variant="caption">{healthCheckError}</Typography>
-                            </Alert>
-                        )}
+                    <Divider />
 
-                        <RadioGroup
-                            row
-                            value={status}
-                            onChange={(e) => setStatus(e.target.value)}
-                        >
+                    {/* ── Finalize Section (Disabled until checklist is done) ── */}
+                    <Box sx={{ opacity: allTestsCompleted ? 1 : 0.5, pointerEvents: allTestsCompleted ? "auto" : "none", transition: "opacity 0.3s" }}>
+                        <Stack spacing={2.5}>
+                            {/* ── Decision: Accept / Reject ── */}
+                            <FormControl error={!!fieldErrors.status}>
+                                <FormLabel sx={{ fontWeight: 700, mb: 0.5, color: "text.primary" }}>
+                                    Decision *
+                                </FormLabel>
+
+                                <RadioGroup
+                                    row
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                >
                             <FormControlLabel
                                 value="technically_compatible"
                                 control={<Radio color="success" />}
-                                disabled={healthChecking || !allGreen}
                                 label={
                                     <Stack direction="row" alignItems="center" spacing={0.5}>
                                         <CheckCircleIcon color="success" fontSize="small" />
-                                        <Typography variant="body2" fontWeight={600} color={healthChecking || !allGreen ? "text.disabled" : "success.main"}>Accept</Typography>
+                                        <Typography variant="body2" fontWeight={600} color="success.main">Accept</Typography>
                                     </Stack>
                                 }
                             />
@@ -649,16 +566,18 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         )}
                     </Box>
 
-                    {/* ── API error ── */}
-                    {apiError && <Alert severity="error">{apiError}</Alert>}
-                </Stack>
-            </DialogContent>
+                                {/* ── API error ── */}
+                                {apiError && <Alert severity="error">{apiError}</Alert>}
+                            </Stack>
+                        </Box>
+                    </Stack>
+                </DialogContent>
 
             <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
                 <Button onClick={onClose} disabled={submitting} variant="outlined">Cancel</Button>
                 <Button
                     onClick={handleConfirm}
-                    disabled={submitting || (isAccepting && (healthChecking || !allGreen))}
+                    disabled={submitting || !allTestsCompleted}
                     variant="contained"
                     color={isAccepting ? "success" : "error"}
                     startIcon={
@@ -755,26 +674,26 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                 <TableCell sx={{ py: 1 }} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
                         {isSubmitted && !isStateAdmin && (
-                            <Tooltip title="Confirm Testing">
+                            <Tooltip title="Start Testing">
                                 <Button
                                     size="small" variant="contained" color="info"
                                     startIcon={<PlayCircleOutlineIcon fontSize="small" />}
                                     onClick={() => onMarkOngoing(row)}
                                     sx={{ whiteSpace: "nowrap", fontSize: "0.72rem" }}
                                 >
-                                    Confirm Testing
+                                    Start Testing
                                 </Button>
                             </Tooltip>
                         )}
                         {isOngoingEval && !isStateAdmin && (
-                            <Tooltip title="Finalize — Accept or Reject this request">
+                            <Tooltip title="Complete Testing & Finalize">
                                 <Button
                                     size="small" variant="contained" color="primary"
                                     startIcon={<GavelIcon fontSize="small" />}
                                     onClick={() => onFinalize(row)}
                                     sx={{ whiteSpace: "nowrap", fontSize: "0.72rem" }}
                                 >
-                                    Finalize
+                                    Complete Testing &amp; Finalize
                                 </Button>
                             </Tooltip>
                         )}
@@ -977,6 +896,88 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
     );
 };
 
+/* ═══════════════════════════════════════════════════
+   TRACKER ROW
+═══════════════════════════════════════════════════ */
+const TrackerRow = ({ row, onMarkOngoing, onFinalize }) => {
+    const userRole = getRole();
+    const isStateAdmin = userRole === "stateadmin";
+    const manufacturerName = useMemo(() => resolveManufacturer(row), [row]);
+    const statusKey = String(row.status ?? "").trim().toLowerCase();
+    
+    const demoDevices = useMemo(() => {
+        if (!row.demo_devices) return [];
+        if (Array.isArray(row.demo_devices)) return row.demo_devices;
+        try { return JSON.parse(row.demo_devices); } catch { return []; }
+    }, [row.demo_devices]);
+    
+    // Map status to steps
+    let activeStep = 0;
+    if (statusKey === "submitted") activeStep = 1; // Step 1 complete
+    else if (statusKey === "ongoing_evaluation") activeStep = 3; // Step 3 complete (in progress on 4)
+    else if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved") activeStep = 5; // All complete
+    else if (statusKey === "technically_not_compatible" || statusKey === "rejected") activeStep = 2; // Failed early
+
+    const STEPS = ["Submitted", "Document Check", "Functional Check", "Protocol Check", "Final Review"];
+
+    return (
+        <TableRow hover sx={{ "& > *": { borderBottom: "unset" } }}>
+            <TableCell sx={{ fontWeight: 600 }}>{manufacturerName}</TableCell>
+            <TableCell>{row.device_model?.model_name || row.device_model_name || "—"}</TableCell>
+            <TableCell>
+                {demoDevices.length > 0 ? (
+                    <Tooltip title={demoDevices.map(d => d.imei).join(", ")}>
+                        <Typography variant="body2">
+                            {demoDevices[0]?.imei} {demoDevices.length > 1 && <Typography component="span" variant="caption" color="primary" sx={{ cursor: 'pointer', ml: 0.5, fontWeight: 700 }}>(+{demoDevices.length - 1})</Typography>}
+                        </Typography>
+                    </Tooltip>
+                ) : "—"}
+            </TableCell>
+            <TableCell>{formatDateTime(row.request_datetime || row.created_at || row.created)}</TableCell>
+            <TableCell>
+                <Stack spacing={1} sx={{ minWidth: 200, py: 1 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="body2" fontWeight={600}>
+                            {activeStep} / {STEPS.length} Completed
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                            {Math.round((activeStep / STEPS.length) * 100)}%
+                        </Typography>
+                    </Stack>
+                    <LinearProgress 
+                        variant="determinate" 
+                        value={(activeStep / STEPS.length) * 100} 
+                        color={statusKey === "technically_not_compatible" || statusKey === "rejected" ? "error" : activeStep === STEPS.length ? "success" : "primary"}
+                        sx={{ height: 6, borderRadius: 3 }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                        {activeStep < STEPS.length 
+                            ? (statusKey === "technically_not_compatible" || statusKey === "rejected" 
+                                ? `Failed at: ${STEPS[activeStep]}`
+                                : `Pending: ${STEPS[activeStep]}`)
+                            : "All steps completed successfully"}
+                    </Typography>
+                </Stack>
+            </TableCell>
+            <TableCell>
+                {STATUS_CONFIG[statusKey] ? (
+                    <Chip label={STATUS_CONFIG[statusKey].label} color={STATUS_CONFIG[statusKey].color} size="small" variant="filled" sx={{ fontWeight: 600 }} />
+                ) : (
+                    <Chip label={row.status} size="small" variant="outlined" />
+                )}
+            </TableCell>
+            <TableCell>
+                {!isStateAdmin && statusKey === "submitted" && (
+                    <Button variant="contained" color="info" size="small" onClick={() => onMarkOngoing(row)}>Start Testing</Button>
+                )}
+                {!isStateAdmin && statusKey === "ongoing_evaluation" && (
+                    <Button variant="contained" color="secondary" size="small" onClick={() => onFinalize(row)}>Resume</Button>
+                )}
+            </TableCell>
+        </TableRow>
+    );
+};
+
 /* ─── summary stat card ─── */
 const StatCard = ({ label, value, color }) => (
     <Paper variant="outlined" sx={{
@@ -1000,6 +1001,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [currentTab, setCurrentTab] = useState(0);
 
     /* dialog state */
     const [ongoingDialog, setOngoingDialog] = useState({ open: false, row: null });
@@ -1202,6 +1204,13 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             </Stack>
                         )}
 
+                        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+                            <Tabs value={currentTab} onChange={(e, val) => setCurrentTab(val)} aria-label="admin view tabs">
+                                <Tab label="Request List" sx={{ fontWeight: 600 }} />
+                                <Tab label="Progress Tracker" sx={{ fontWeight: 600 }} />
+                            </Tabs>
+                        </Box>
+
                         {/* ── Search ── */}
                         {rows.length > 0 && (
                             <Box mb={2} maxWidth={420}>
@@ -1234,30 +1243,58 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             <Alert severity="info">No results match your search query.</Alert>
                         ) : (
                             <>
-                                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ bgcolor: "primary.main" }}>
-                                                <TableCell sx={{ width: 40 }} />
-                                                <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
-                                                <TableCell sx={{ color: "white", fontWeight: 700 }}>Manufacturer</TableCell>
-                                                <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
-                                                {!isStateAdmin && <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>}
-                                                <TableCell sx={{ color: "white", fontWeight: 700 }}>Actions</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {paginatedRows.map((row, idx) => (
-                                                <RequestRow
-                                                    key={row.id ?? idx}
-                                                    row={row}
-                                                    onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
-                                                    onFinalize={(r) => setFinalizeDialog({ open: true, row: r })} onStateApprove={handleStateApprove}
-                                                />
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                {currentTab === 0 ? (
+                                    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow sx={{ bgcolor: "primary.main" }}>
+                                                    <TableCell sx={{ width: 40 }} />
+                                                    <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
+                                                    <TableCell sx={{ color: "white", fontWeight: 700 }}>Manufacturer</TableCell>
+                                                    <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
+                                                    {!isStateAdmin && <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>}
+                                                    <TableCell sx={{ color: "white", fontWeight: 700 }}>Actions</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {paginatedRows.map((row, idx) => (
+                                                    <RequestRow
+                                                        key={row.id ?? idx}
+                                                        row={row}
+                                                        onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
+                                                        onFinalize={(r) => setFinalizeDialog({ open: true, row: r })} onStateApprove={handleStateApprove}
+                                                    />
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                ) : (
+                                    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow sx={{ bgcolor: "grey.100" }}>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Manufacturer</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Device Model</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>IMEI(s)</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Submitted Date</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>STEPS</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {paginatedRows.map((row, idx) => (
+                                                    <TrackerRow
+                                                        key={row.id ?? idx}
+                                                        row={row}
+                                                        onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
+                                                        onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
+                                                    />
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                )}
 
                                 <TablePagination
                                     component="div"

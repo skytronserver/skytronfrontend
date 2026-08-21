@@ -57,7 +57,7 @@ const STEPS = [
   { label: "Manufacturer Onboarding" },
   { label: "Required Documents" },
   { label: "VLTD Devices" },
-  { label: "Device Data Health" },
+  { label: "Dispatch & Declaration" },
 ];
 
 const emptyTestDevice = () => ({
@@ -67,6 +67,8 @@ const emptyTestDevice = () => ({
   ccid2: "",
   msisdn1: "",
   msisdn2: "",
+  imsi: "",
+  firmware: "",
 });
 
 const TEST_DEVICE_FIELDS = [
@@ -76,6 +78,8 @@ const TEST_DEVICE_FIELDS = [
   { key: "ccid2", label: "ICCID 2", placeholder: "19 or 20-digit ICCID", maxLength: 20 },
   { key: "msisdn1", label: "MSISDN 1", placeholder: "e.g. 919876543210", maxLength: 15 },
   { key: "msisdn2", label: "MSISDN 2", placeholder: "e.g. 919876543211", maxLength: 15 },
+  { key: "imsi", label: "IMSI", placeholder: "15-digit IMSI", maxLength: 15 },
+  { key: "firmware", label: "Firmware Version", placeholder: "e.g. v1.0.0" },
 ];
 
 /* ── reusable PDF upload card ── */
@@ -166,6 +170,14 @@ const DeviceModelTechnicalOnboardingCreate = () => {
   const [testDevices, setTestDevices] = useState(
     Array.from({ length: 5 }, emptyTestDevice)
   );
+
+  /* ── dispatch & declaration state ── */
+  const [courierName, setCourierName] = useState("");
+  const [awbNumber, setAwbNumber] = useState("");
+  const [dispatchDate, setDispatchDate] = useState("");
+  const [packageDetails, setPackageDetails] = useState("");
+  const [senderContact, setSenderContact] = useState("");
+  const [declarationAccepted, setDeclarationAccepted] = useState(false);
 
   /* ── device data health state ── */
   const [healthProtocol, setHealthProtocol] = useState("");
@@ -351,9 +363,20 @@ const DeviceModelTechnicalOnboardingCreate = () => {
             if ((key === "ccid1" || key === "ccid2") && val.length !== 19 && val.length !== 20) {
               errors[`device_${i}_${key}`] = "ICCID must be 19 or 20 digits";
             }
+            if (key === "imsi" && val.length !== 15) {
+              errors[`device_${i}_${key}`] = "IMSI must be 15 digits";
+            }
           }
         });
       });
+    }
+    if (step === 4) {
+      if (!courierName) errors.courierName = "Required";
+      if (!awbNumber) errors.awbNumber = "Required";
+      if (!dispatchDate) errors.dispatchDate = "Required";
+      if (!packageDetails) errors.packageDetails = "Required";
+      if (!senderContact) errors.senderContact = "Required";
+      if (!declarationAccepted) errors.declarationAccepted = "You must accept the declaration";
     }
 
     setFieldErrors(errors);
@@ -364,13 +387,6 @@ const DeviceModelTechnicalOnboardingCreate = () => {
   const handleNext = async () => {
     if (!validateStep(activeStep)) {
       showAlert("error", "Please fix all errors before continuing.");
-      return;
-    }
-    // When moving from Step 3 (VLTD Devices) to Step 4 (Device Data Health), auto-fetch
-    if (activeStep === 3) {
-      setActiveStep((s) => s + 1);
-      // Fetch health after navigating to step 4
-      setTimeout(() => fetchAllDeviceHealth(), 100);
       return;
     }
     setActiveStep((s) => s + 1);
@@ -387,6 +403,12 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     setUserManualPdf(null);
     setOtCommandListPdf(null);
     setTestDevices(Array.from({ length: 5 }, emptyTestDevice));
+    setCourierName("");
+    setAwbNumber("");
+    setDispatchDate("");
+    setPackageDetails("");
+    setSenderContact("");
+    setDeclarationAccepted(false);
     setFieldErrors({});
     setActiveStep(0);
     setDeviceHealthResults([]);
@@ -402,6 +424,12 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     formData.append("user_manual_pdf", userManualPdf);
     formData.append("ot_command_list_pdf", otCommandListPdf);
     formData.append("demo_devices", JSON.stringify(testDevices));
+    formData.append("courier_name", courierName);
+    formData.append("awb_number", awbNumber);
+    formData.append("dispatch_date", dispatchDate);
+    formData.append("package_details", packageDetails);
+    formData.append("sender_contact", senderContact);
+    formData.append("declaration_accepted", declarationAccepted);
 
     setSubmitting(true);
     try {
@@ -751,278 +779,112 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
           </SectionBlock>
         );
 
-      /* ── Step 4: Device Data Health ── */
-      case 4: {
-        // Derive which tab to show based on IMEI search
-        const searchedTabIdx = imeiSearch.trim()
-          ? deviceHealthResults.findIndex((r) =>
-              r.imei.toLowerCase().includes(imeiSearch.trim().toLowerCase())
-            )
-          : -1;
-        const displayTabIdx = searchedTabIdx >= 0 ? searchedTabIdx : activeHealthTab;
-
-        const activeResult = healthFetched ? deviceHealthResults[displayTabIdx] : null;
-        const activeDevice = testDevices[displayTabIdx];
-
-        // Parse categories & alerts for the active tab
-        let categoriesArray = [];
-        let alertsArray = [];
-        if (activeResult?.data) {
-          const cats =
-            activeResult.data.categories ||
-            activeResult.data.summary ||
-            activeResult.data.packet_categories ||
-            activeResult.data.data;
-          if (Array.isArray(cats)) {
-            categoriesArray = cats;
-          } else if (cats && typeof cats === "object") {
-            categoriesArray = Object.entries(cats).map(([key, val]) => ({
-              name: key,
-              ...(typeof val === "object" ? val : { status: val }),
-            }));
-          }
-          const alts =
-            activeResult.data.alerts ||
-            activeResult.data.reference ||
-            activeResult.data.alert_reference;
-          if (Array.isArray(alts)) alertsArray = alts;
-          else if (alts && typeof alts === "object") alertsArray = Object.values(alts);
-        }
-
+      /* ── Step 4: Dispatch & Declaration ── */
+      case 4:
         return (
           <SectionBlock
-            label="Device Data Health"
-            description="Review live data health for all registered VLTD devices before submitting."
-            action={
-              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                <FormControl size="small" sx={{ minWidth: 160 }}>
-                  <InputLabel>Protocol Format</InputLabel>
-                  <Select
-                    value={healthProtocol}
-                    label="Protocol Format"
-                    onChange={(e) => { setHealthProtocol(e.target.value); setHealthFetched(false); }}
-                  >
-                    {healthFormats.map((f, i) => (
-                      <MenuItem key={i} value={f.value}>{f.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
-                  size="small"
-                  label="Lookback days"
-                  type="number"
-                  value={healthLookbackDays}
-                  onChange={(e) => { setHealthLookbackDays(e.target.value); setHealthFetched(false); }}
-                  sx={{ width: 110 }}
-                  inputProps={{ min: 1, max: 30 }}
-                />
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={healthLoading ? <CircularProgress size={14} /> : <RefreshIcon />}
-                  onClick={fetchAllDeviceHealth}
-                  disabled={healthLoading}
-                >
-                  {healthLoading ? "Checking…" : healthFetched ? "Re-check" : "Check Health"}
-                </Button>
-              </Stack>
-            }
+            label="Dispatch & Declaration"
+            description="Enter dispatch details of the test devices and submit your declaration."
           >
-            {/* IMEI Search bar */}
-            <Box mb={2}>
-              <TextField
-                size="small"
-                placeholder="Search by IMEI…"
-                value={imeiSearch}
-                onChange={(e) => setImeiSearch(e.target.value)}
-                sx={{ width: 260 }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SimCardIcon fontSize="small" color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: imeiSearch ? (
-                    <InputAdornment position="end">
-                      <IconButton size="small" onClick={() => setImeiSearch("")}>
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  ) : null,
-                }}
-              />
-              {imeiSearch && searchedTabIdx === -1 && (
-                <Typography variant="caption" color="error" ml={1}>
-                  No device found with IMEI "{imeiSearch}"
-                </Typography>
-              )}
-            </Box>
-
-            {!healthFetched && !healthLoading && (
-              <Alert severity="info" icon={<HealthAndSafetyIcon />}>
-                Click <strong>Check Health</strong> above to fetch live data health for all {testDevices.length} VLTD devices.
-              </Alert>
-            )}
-            {healthLoading && (
-              <Box display="flex" alignItems="center" gap={2} py={4} justifyContent="center">
-                <CircularProgress size={32} />
-                <Typography color="text.secondary">Fetching health data for {testDevices.length} devices…</Typography>
-              </Box>
-            )}
-
-            {healthFetched && !healthLoading && (
-              <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
-                {/* ── Device Tabs ── */}
-                <Tabs
-                  value={displayTabIdx}
-                  onChange={(_, val) => { setActiveHealthTab(val); setImeiSearch(""); }}
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  sx={{
-                    borderBottom: 1,
-                    borderColor: "divider",
-                    bgcolor: "grey.50",
-                    minHeight: 44,
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Dispatch Courier Name"
+                  value={courierName}
+                  onChange={(e) => {
+                    setCourierName(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, courierName: undefined }));
                   }}
-                >
-                  {deviceHealthResults.map((result, idx) => (
-                    <Tab
-                      key={idx}
-                      value={idx}
-                      label={
-                        <Stack direction="row" alignItems="center" spacing={0.5}>
-                          <Box
-                            sx={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: "50%",
-                              bgcolor: result.error ? "error.main" : "primary.main",
-                              flexShrink: 0,
-                            }}
-                          />
-                          <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>
-                            Device {idx + 1}
-                          </span>
-                        </Stack>
-                      }
-                      sx={{ minHeight: 44, px: 2, py: 0 }}
+                  error={!!fieldErrors.courierName}
+                  helperText={fieldErrors.courierName}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="AWB Number"
+                  value={awbNumber}
+                  onChange={(e) => {
+                    setAwbNumber(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, awbNumber: undefined }));
+                  }}
+                  error={!!fieldErrors.awbNumber}
+                  helperText={fieldErrors.awbNumber}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Dispatch Date"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  value={dispatchDate}
+                  onChange={(e) => {
+                    setDispatchDate(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, dispatchDate: undefined }));
+                  }}
+                  error={!!fieldErrors.dispatchDate}
+                  helperText={fieldErrors.dispatchDate}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Sender Contact"
+                  value={senderContact}
+                  onChange={(e) => {
+                    setSenderContact(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, senderContact: undefined }));
+                  }}
+                  error={!!fieldErrors.senderContact}
+                  helperText={fieldErrors.senderContact}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Package Details"
+                  value={packageDetails}
+                  onChange={(e) => {
+                    setPackageDetails(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, packageDetails: undefined }));
+                  }}
+                  error={!!fieldErrors.packageDetails}
+                  helperText={fieldErrors.packageDetails}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: "grey.50" }}>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <input
+                      type="checkbox"
+                      id="declaration"
+                      checked={declarationAccepted}
+                      onChange={(e) => {
+                        setDeclarationAccepted(e.target.checked);
+                        setFieldErrors((prev) => ({ ...prev, declarationAccepted: undefined }));
+                      }}
+                      style={{ width: 24, height: 24, cursor: "pointer" }}
                     />
-                  ))}
-                </Tabs>
-
-                {/* ── Active Device Content ── */}
-                <Box sx={{ p: 2 }}>
-                  {/* Device info row */}
-                  <Stack direction="row" alignItems="center" spacing={1} mb={2} flexWrap="wrap">
-                    <HealthAndSafetyIcon color={activeResult?.error ? "error" : "primary"} fontSize="small" />
-                    <Typography variant="subtitle2" fontWeight={700}>
-                      Device {displayTabIdx + 1} — IMEI: {activeResult?.imei}
-                    </Typography>
-                    {activeDevice?.device_serial_no && (
-                      <Chip label={`SN: ${activeDevice.device_serial_no}`} size="small" variant="outlined" />
-                    )}
-                    {activeResult?.error ? (
-                      <Chip label="Error" size="small" color="error" />
-                    ) : (
-                      <Chip label="Health fetched" size="small" color="success" />
-                    )}
-                  </Stack>
-
-                  {activeResult?.error ? (
-                    <Alert severity="error">{activeResult.error}</Alert>
-                  ) : (
-                    <Stack spacing={2}>
-                      {activeResult?.data && (
-                        <Typography variant="caption" color="text.secondary">
-                          Checked at {new Date().toLocaleString()} — Server format:{" "}
-                          {activeResult.data.current_server_format || activeResult.data.server_format || healthProtocol}
+                    <Box>
+                      <Typography variant="body1" fontWeight={600} component="label" htmlFor="declaration" sx={{ cursor: "pointer" }}>
+                        I declare that the information provided above is true and correct to the best of my knowledge.
+                      </Typography>
+                      {fieldErrors.declarationAccepted && (
+                        <Typography variant="caption" color="error" display="block">
+                          {fieldErrors.declarationAccepted}
                         </Typography>
                       )}
-
-                      {/* Packet categories */}
-                      {categoriesArray.length > 0 && (
-                        <Box>
-                          <Typography variant="subtitle2" fontWeight={700} mb={1}>Packet Categories</Typography>
-                          <Grid container spacing={1.5}>
-                            {categoriesArray.map((cat, cIdx) => (
-                              <Grid item xs={6} sm={4} md={2.4} key={cIdx}>
-                                <Card sx={{ bgcolor: getHealthCardColor(cat.status), color: "white", minHeight: 90 }}>
-                                  <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-                                    <Typography variant="caption" fontWeight={700} textTransform="uppercase" display="block" color="inherit">
-                                      {cat.name || `Cat ${cIdx + 1}`}
-                                    </Typography>
-                                    <Divider sx={{ borderColor: "rgba(255,255,255,0.3)", my: 0.5 }} />
-                                    <Typography variant="caption" display="block" color="inherit" sx={{ opacity: 0.85 }}>
-                                      {formatHealthTime(cat.time || cat.last_seen || cat.timestamp)}
-                                    </Typography>
-                                    <Typography variant="body2" fontWeight={600} color="inherit" sx={{ fontSize: "0.7rem" }}>
-                                      {(cat.status || "unknown").replace(/_/g, " ")}
-                                    </Typography>
-                                  </CardContent>
-                                </Card>
-                              </Grid>
-                            ))}
-                          </Grid>
-                        </Box>
-                      )}
-
-                      {/* Alert table */}
-                      {alertsArray.length > 0 && (
-                        <Box>
-                          <Typography variant="subtitle2" fontWeight={700} mb={1}>Alert / Packet Type Reference</Typography>
-                          <TableContainer component={Paper} variant="outlined">
-                            <Table size="small">
-                              <TableHead sx={{ bgcolor: "grey.50" }}>
-                                <TableRow>
-                                  <TableCell sx={{ fontWeight: 600 }}>Packet Type</TableCell>
-                                  <TableCell sx={{ fontWeight: 600 }}>Alert ID</TableCell>
-                                  <TableCell sx={{ fontWeight: 600 }}>Trigger</TableCell>
-                                  <TableCell sx={{ fontWeight: 600 }}>Available</TableCell>
-                                  <TableCell sx={{ fontWeight: 600 }}>Last Seen</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {alertsArray.map((row, rIdx) => {
-                                  const isAvail =
-                                    row.available === true ||
-                                    row.available === "available" ||
-                                    row.status === "available";
-                                  return (
-                                    <TableRow key={rIdx}>
-                                      <TableCell>{row.packet_type || row.packetType || "—"}</TableCell>
-                                      <TableCell>{row.alert_id || row.alertId || "—"}</TableCell>
-                                      <TableCell>{row.trigger || row.description || "—"}</TableCell>
-                                      <TableCell>
-                                        <Chip
-                                          label={isAvail ? "available" : "not available"}
-                                          size="small"
-                                          sx={{
-                                            bgcolor: isAvail ? "#22c55e" : "#f59e0b",
-                                            color: "white", fontWeight: 600, fontSize: 10, height: 18,
-                                          }}
-                                        />
-                                      </TableCell>
-                                      <TableCell>{formatHealthTime(row.last_seen || row.lastSeen)}</TableCell>
-                                    </TableRow>
-                                  );
-                                })}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </Box>
-                      )}
-
-                      {categoriesArray.length === 0 && alertsArray.length === 0 && (
-                        <Alert severity="warning">No detailed health data available for this device.</Alert>
-                      )}
-                    </Stack>
-                  )}
-                </Box>
-              </Paper>
-            )}
+                    </Box>
+                  </Stack>
+                </Paper>
+              </Grid>
+            </Grid>
           </SectionBlock>
         );
-      }
 
       default:
         return null;

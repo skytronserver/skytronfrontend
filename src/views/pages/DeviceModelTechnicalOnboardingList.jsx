@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Alert,
     Box,
+    Button,
     Chip,
     CircularProgress,
     Collapse,
@@ -19,6 +21,11 @@ import {
     TableRow,
     Tooltip,
     Typography,
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -101,6 +108,7 @@ const StatusChip = ({ status }) => {
 /* ─── collapsible row ─── */
 const RequestRow = ({ row, index }) => {
     const [open, setOpen] = useState(false);
+    const navigate = useNavigate();
 
     const demoDevices = useMemo(() => {
         if (!row.demo_devices) return [];
@@ -138,6 +146,18 @@ const RequestRow = ({ row, index }) => {
                 {/* status */}
                 <TableCell sx={{ py: 1 }}>
                     <StatusChip status={row.status} />
+                </TableCell>
+                
+                {/* action required / progress */}
+                <TableCell sx={{ py: 1 }}>
+                    {(() => {
+                        const s = String(row.status ?? "").trim().toLowerCase();
+                        if (s === "pending" || s === "submitted") return <Typography variant="caption" color="text.secondary">Wait for review</Typography>;
+                        if (s === "ongoing_evaluation" || s === "processing") return <Typography variant="caption" color="info.main">Testing in progress</Typography>;
+                        if (s === "rejected" || s === "stateadminrejected" || s === "technically_not_compatible") return <Typography variant="caption" color="error.main" fontWeight="bold">Submit new request</Typography>;
+                        if (s === "approved" || s === "stateadminapproved" || s === "technically_compatible" || s === "accepted") return <Typography variant="caption" color="success.main">Download final report</Typography>;
+                        return <Typography variant="caption" color="text.secondary">—</Typography>;
+                    })()}
                 </TableCell>
 
                 {/* evaluation datetime */}
@@ -347,6 +367,16 @@ const RequestRow = ({ row, index }) => {
                                         </Paper>
                                     </Grid>
                                 )}
+                                
+                                <Grid item xs={12} display="flex" justifyContent="flex-end" mt={2}>
+                                    <Button 
+                                        variant="contained" 
+                                        color="primary" 
+                                        onClick={() => navigate(`/manufacturer/technical-onboarding/detail/${row.id}`)}
+                                    >
+                                        View Full Status / Detail
+                                    </Button>
+                                </Grid>
                             </Grid>
                         </Box>
                     </Collapse>
@@ -364,6 +394,11 @@ const DeviceModelTechnicalOnboardingList = () => {
     const [error, setError] = useState("");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    // Filters
+    const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+    const [dateFilter, setDateFilter] = useState("");
 
     const loadData = useCallback(async () => {
         setError("");
@@ -396,9 +431,34 @@ const DeviceModelTechnicalOnboardingList = () => {
         loadData();
     }, [loadData]);
 
+    const filteredRows = useMemo(() => {
+        return rows.filter((r) => {
+            let match = true;
+            // Search Query: Request ID, Model Name, TAC
+            if (searchQuery.trim()) {
+                const q = searchQuery.toLowerCase();
+                const idStr = String(r.id || "").toLowerCase();
+                const modelStr = String(r.device_model?.model_name || r.device_model_name || "").toLowerCase();
+                const tacStr = String(r.device_model?.tac_no || "").toLowerCase();
+                if (!idStr.includes(q) && !modelStr.includes(q) && !tacStr.includes(q)) match = false;
+            }
+            // Status filter
+            if (statusFilter) {
+                const s = String(r.status ?? "").trim().toLowerCase();
+                if (s !== statusFilter.toLowerCase()) match = false;
+            }
+            // Date filter
+            if (dateFilter) {
+                const rowDate = new Date(r.request_datetime || r.created_at || r.created).toISOString().split('T')[0];
+                if (rowDate !== dateFilter) match = false;
+            }
+            return match;
+        });
+    }, [rows, searchQuery, statusFilter, dateFilter]);
+
     const paginatedRows = useMemo(
-        () => rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-        [rows, page, rowsPerPage]
+        () => filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+        [filteredRows, page, rowsPerPage]
     );
 
     return (
@@ -432,6 +492,47 @@ const DeviceModelTechnicalOnboardingList = () => {
                         View the status of all technical onboarding requests you have submitted. Click a row to see full details, documents, and any compatibility test findings.
                     </Typography>
 
+                    {/* Filter Bar */}
+                    <Box sx={{ mb: 3, p: 2, bgcolor: "grey.50", borderRadius: 2 }}>
+                        <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="Search (ID, Model, TAC)"
+                                    value={searchQuery}
+                                    onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        label="Status"
+                                        value={statusFilter}
+                                        onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+                                    >
+                                        <MenuItem value=""><em>All Statuses</em></MenuItem>
+                                        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                            <MenuItem key={key} value={key}>{cfg.label}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    type="date"
+                                    label="Date"
+                                    InputLabelProps={{ shrink: true }}
+                                    value={dateFilter}
+                                    onChange={(e) => { setDateFilter(e.target.value); setPage(0); }}
+                                />
+                            </Grid>
+                        </Grid>
+                    </Box>
+
                     {error && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {error}
@@ -458,22 +559,31 @@ const DeviceModelTechnicalOnboardingList = () => {
                                             <TableCell sx={{ width: 40 }} />
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>
+                                            <TableCell sx={{ color: "white", fontWeight: 700 }}>Action Required</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Evaluation</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Report</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {paginatedRows.map((row, idx) => (
-                                            <RequestRow key={row.id ?? idx} row={row} index={idx} />
-                                        ))}
+                                        {paginatedRows.length > 0 ? (
+                                            paginatedRows.map((row, idx) => (
+                                                <RequestRow key={row.id ?? idx} row={row} index={idx} />
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                                                    <Typography variant="body2" color="text.secondary">No matching requests found for these filters.</Typography>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
                                     </TableBody>
                                 </Table>
                             </TableContainer>
 
                             <TablePagination
                                 component="div"
-                                count={rows.length}
+                                count={filteredRows.length}
                                 page={page}
                                 onPageChange={(_, newPage) => setPage(newPage)}
                                 rowsPerPage={rowsPerPage}

@@ -34,6 +34,7 @@ const M2MStatusReport = Loadable(lazy(() => import("../views/reports/M2MStatusRe
 const ManufacturerOnboarding = Loadable(lazy(() => import("../views/pages/ManufacturerOnboarding")));
 const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingCreate")));
 const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
+const DeviceModelTechnicalOnboardingDetail = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingDetail")));
 const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
 const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/ActivationStatusList")));
@@ -62,6 +63,11 @@ const DeviceRoutes = {
     {
       path: "/manufacturer/technical-onboarding/list",
       element: <DeviceModelTechnicalOnboardingList />,
+      roles: ["devicemanufacture"],
+    },
+    {
+      path: "/manufacturer/technical-onboarding/detail/:id",
+      element: <DeviceModelTechnicalOnboardingDetail />,
       roles: ["devicemanufacture"],
     },
     {
