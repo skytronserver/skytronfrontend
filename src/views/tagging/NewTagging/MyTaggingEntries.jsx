@@ -146,7 +146,7 @@ const FILTERS = [
   { value: 'all', label: 'All' },
   { value: '2', label: 'eSIM pending' },
   { value: '3', label: 'Dealer OTP pending' },
-  { value: '4', label: 'GPS pending' },
+  { value: '4', label: 'Tracking pending' },
   { value: '5', label: 'Owner OTP pending' },
   { value: 'done', label: 'Completed' },
 ];

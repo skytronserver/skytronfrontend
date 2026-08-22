@@ -26,7 +26,7 @@ const SuccessScreen = ({ onFinish }) => (
     </Box>
 
     <Typography variant="h3" sx={{ fontWeight: 800, color: '#1a1a2e', mb: 1 }}>
-      Tagging Complete!
+      Tagging and Activation Complete!
     </Typography>
     <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 360, margin: '0 auto 32px' }}>
       Owner OTP verified. <strong>DeviceStock</strong> and <strong>DeviceTag</strong> records have been created successfully.

@@ -25,7 +25,7 @@ const STEPS = [
   { label: 'Vehicle & Vahan',    icon: DirectionsCar,  color: '#7c3aed' },
   { label: 'eSIM / M2M Check',   icon: SimCard,        color: '#0891b2' },
   { label: 'Dealer OTP',         icon: LockOutlined,   color: '#d97706' },
-  { label: 'GPS Packets',        icon: SatelliteAlt,   color: '#059669' },
+  { label: 'Tagging Packets',        icon: SatelliteAlt,   color: '#059669' },
   { label: 'Owner OTP',          icon: EmojiEvents,    color: '#dc2626' },
 ];
 
