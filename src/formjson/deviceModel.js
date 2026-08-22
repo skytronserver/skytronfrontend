@@ -23,6 +23,7 @@ export const deviceModelInitials = {
   agency_pincode: "",
   api_url: "",
   token: "",
+  whitelisted_ip: "",
 };
 export const deviceModelFormField = {
   eSimProviders: {
@@ -165,5 +166,12 @@ export const deviceModelFormField = {
     multiline: true,
     rows: 3,
     validation: Yup.string().max(500, "Token can be at most 500 characters").nullable(),
+  },
+  whitelisted_ip: {
+    name: "whitelisted_ip",
+    type: "text",
+    label: "Whitelisted IP/URL",
+    placeholder: "e.g., 192.168.1.1 or https://example.com",
+    validation: Yup.string().required("Whitelisted IP/URL is required"),
   },
 };

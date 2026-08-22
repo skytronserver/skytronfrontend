@@ -71,6 +71,11 @@ const listManufacturerTechnicalOnboardingRequests = (data = {}) => {
   return http.post("/api/devicemodel/technical-onboarding/manufacturer/list/", data);
 };
 
+const updateCourierTracking = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/manufacturer/courier-tracking/", data);
+};
+
 const listSuperadminTechnicalOnboardingRequests = (data = {}) => {
   const http = getAxiosInstance();
   return http.post("/api/devicemodel/technical-onboarding/superadmin/list/", data);
@@ -79,6 +84,16 @@ const listSuperadminTechnicalOnboardingRequests = (data = {}) => {
 const markTechnicalOnboardingOngoing = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/devicemodel/technical-onboarding/superadmin/mark-ongoing/", data);
+};
+
+const markTechnicalOnboardingDevicesReceived = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/mark-received/", data);
+};
+
+const saveTechnicalOnboardingProgress = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/save-progress/", data);
 };
 
 const finalizeTechnicalOnboardingRequest = (formData) => {
@@ -104,8 +119,11 @@ const DeviceModelServices = {
   createTechnicalOnboardingRequest,
   listManufacturerTechnicalOnboardingRequests,
   listSuperadminTechnicalOnboardingRequests,
+  markTechnicalOnboardingDevicesReceived,
+  saveTechnicalOnboardingProgress,
   markTechnicalOnboardingOngoing,
   finalizeTechnicalOnboardingRequest,
+  updateCourierTracking,
 };
 
 export default DeviceModelServices;

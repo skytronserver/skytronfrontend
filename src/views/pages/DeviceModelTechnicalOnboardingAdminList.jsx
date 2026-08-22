@@ -261,19 +261,54 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const [fieldErrors, setFieldErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [apiError, setApiError] = useState("");
-    const fileInputRef = useRef(null);
 
     // Checklist states
-    const [activeTestStep, setActiveTestStep] = useState(0);
+    const [activeTestId, setActiveTestId] = useState(1);
+    const [deviceTestResults, setDeviceTestResults] = useState({});
     
-    const TEST_STEPS = useMemo(() => [
-        { key: "document", label: "Document Verification (User Manual, Commands)", description: "Review the submitted user manual, installation guide, and SMS commands documentation for completeness and clarity. Ensure all required commands are documented." },
-        { key: "functional", label: "Device Functional Test (Hardware Check)", description: "Power on the device and perform a visual and functional hardware inspection. Check LED indicators, wiring harness, and overall build quality." },
-        { key: "protocol", label: "Protocol Compliance (AIS-140 standard)", description: "Connect the device to the test server and verify that it sends data packets according to the AIS-140 standard protocol." },
-        { key: "battery", label: "Internal Battery & Backup Test", description: "Disconnect the main power source and verify that the device continues to operate on its internal battery for the required minimum duration, while sending the appropriate power-disconnect alerts." },
+    const TEST_BOARD_STEPS = useMemo(() => [
+        { id: 1, title: "SOS button -> Emergency Server (5s cadence)", desc: "Verify that, after pressing the physical SOS button, the emergency packet is sent to the Emergency Server at a frequency of one packet every 5 seconds.", source: "gpsem" },
+        { id: 2, title: "BLE SOS -> Emergency Server (5s cadence)", desc: "Verify that, after initiating SOS from the BLE mobile application, the BLE emergency packet is sent to the Emergency Server at a frequency of one packet every 5 seconds.", source: "manual" },
+        { id: 3, title: "SOS button -> Tracking Server (Start + NR SOS=1)", desc: "Verify that, after pressing the physical SOS button, an Emergency Start packet is sent to the Tracking Server, followed by NR packets with SOS = 1 at a frequency of one packet every 5 seconds.", source: "manual" },
+        { id: 4, title: "BLE SOS -> Tracking Server (Start + NR SOS=1)", desc: "Verify that, after initiating SOS from the BLE mobile application, a BLE Emergency Start packet is sent to the Tracking Server, followed by NR packets with SOS = 1 at a frequency of one packet every 5 seconds.", source: "manual" },
+        { id: 5, title: "SOS Stop on both servers", desc: "Verify that SOS is stopped on both the Emergency Server and Tracking Server after the SOS Stop command is sent from the server.", source: "gpsem" },
+        { id: 6, title: "FOTA upgrade A -> B", desc: "Perform the FOTA upgrade test by upgrading the device firmware from Version A to Version B.", source: "manual" },
+        { id: 7, title: "Internal battery voltage (3 levels)", desc: "Verify the internal battery voltage measurement at three different voltage levels.", source: "manual" },
+        { id: 8, title: "External battery/supply voltage (3 levels)", desc: "Verify the external battery/supply voltage measurement at three different voltage levels.", source: "manual" },
+        { id: 9, title: "Ignition ON/OFF status", desc: "Verify the ignition switch ON and OFF status.", source: "manual" },
+        { id: 10, title: "Harsh-braking event trigger", desc: "Verify the harsh-braking event at the configured speed/threshold (X km/h), including trigger accuracy, false-positive testing and false-negative testing.", source: "manual" },
+        { id: 11, title: "Harsh-acceleration event trigger", desc: "Verify the harsh-acceleration event at the configured speed/threshold (X km/h), including trigger accuracy, false-positive testing and false-negative testing.", source: "manual" },
+        { id: 12, title: "Rough-turning event trigger", desc: "Verify the rough-turning event at the configured speed/threshold (X km/h), including trigger accuracy, false-positive testing and false-negative testing.", source: "manual" },
+        { id: 13, title: "Tilt-event trigger", desc: "Verify the tilt-event trigger.", source: "manual" },
+        { id: 14, title: "GPS speed accuracy", desc: "Verify GPS speed accuracy against a standard/reference device. The deviation must be within the specified tolerance of X%.", source: "manual" },
+        { id: 15, title: "Geofence entry/exit accuracy", desc: "Verify geofence entry and exit accuracy. The location deviation must be within 50 metres.", source: "manual" },
+        { id: 16, title: "External power disconnection detection", desc: "Verify detection and reporting of external power disconnection.", source: "manual" },
+        { id: 17, title: "SOS harness disconnection trigger", desc: "Verify the SOS harness disconnection trigger and corresponding alert.", source: "manual" },
+        { id: 18, title: "Device-box tamper alert (optional)", desc: "Verify the device-box tamper alert, where supported. This test is optional.", source: "manual" },
+        { id: 19, title: "History-data storage & transmission (Faraday box)", desc: "Verify history-data storage and transmission by placing the device inside a Faraday box to simulate loss of network and/or GPS signals.", source: "manual" },
+        { id: 20, title: "A-GPS via primary SIM/profile", desc: "Verify A-GPS operation using the primary SIM/profile. The device must obtain and report cell-tower data according to the available standard/reference location data.", source: "manual" },
+        { id: 21, title: "A-GPS via secondary SIM/profile", desc: "Verify A-GPS operation using the secondary SIM/profile. The device must obtain and report cell-tower data according to the available standard/reference location data.", source: "manual" },
+        { id: 22, title: "Satellite/GPS signal loss and recovery", desc: "Verify satellite/GPS signal loss and automatic recovery. The device must recover automatically after signal restoration without any manual intervention.", source: "manual" },
+        { id: 23, title: "eSIM switch: primary -> secondary", desc: "Verify eSIM profile switching from the primary profile to the secondary profile.", source: "manual" },
+        { id: 24, title: "eSIM switch: secondary -> primary", desc: "Verify eSIM profile switching from the secondary profile to the primary profile.", source: "manual" },
+        { id: 25, title: "Login packet protocol validation", desc: "Validate the Login packet protocol, including the correctness of every individual data field.", source: "gps" },
+        { id: 26, title: "Health packet protocol validation", desc: "Validate the Health packet protocol, including the correctness of every individual data field.", source: "gps" },
+        { id: 27, title: "Emergency Start packet protocol validation", desc: "Validate the Emergency Start packet protocol on both the Emergency Server and Tracking Server, including the correctness of every individual data field.", source: "manual" },
+        { id: 28, title: "BLE Emergency packet protocol validation", desc: "Validate the BLE Emergency packet protocol on both the Emergency Server and Tracking Server, including the correctness of every individual data field.", source: "manual" },
+        { id: 29, title: "Tracking/NR packet protocol validation", desc: "Validate the Tracking/NR packet protocol, including the correctness of every individual data field.", source: "gps" },
+        { id: 30, title: "Emergency Stop packet protocol validation", desc: "Validate the Emergency Stop packet protocol on both the Emergency Server and Tracking Server, including the correctness of every individual data field.", source: "manual" },
+        { id: 31, title: "“Main Battery Disconnected” alert", desc: "Verify the “Main Battery Disconnected” alert.", source: "manual" },
+        { id: 32, title: "“Low Battery” alert", desc: "Verify the “Low Battery” alert.", source: "manual" },
+        { id: 33, title: "“Low Battery Removed/Cleared” alert", desc: "Verify the “Low Battery Removed/Cleared” alert.", source: "manual" },
+        { id: 34, title: "“Main Battery Reconnected” alert", desc: "Verify the “Main Battery Reconnected” alert.", source: "manual" },
+        { id: 35, title: "“Ignition ON” alert", desc: "Verify the “Ignition ON” alert.", source: "manual" },
+        { id: 36, title: "“Ignition OFF” alert", desc: "Verify the “Ignition OFF” alert.", source: "manual" },
+        { id: 37, title: "OT Reboot command + ack", desc: "Verify the OT Reboot command and its acknowledgement/reply.", source: "ota_command" },
+        { id: 38, title: "OT set vehicle registration number + ack", desc: "Verify the OT command for setting the vehicle registration number and its acknowledgement/reply.", source: "ota_command" },
+        { id: 39, title: "Activation command + reply", desc: "Verify the Activation command and the corresponding reply.", source: "activation_command" }
     ], []);
     
-    const allTestsCompleted = activeTestStep >= TEST_STEPS.length;
+    const allTestsCompleted = activeTestId > TEST_BOARD_STEPS.length;
 
     const demoDevices = useMemo(() => {
         if (!row?.demo_devices) return [];
@@ -281,7 +316,6 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         try { return JSON.parse(row.demo_devices); } catch { return []; }
     }, [row?.demo_devices]);
 
-    /* reset every time the dialog opens */
     useEffect(() => {
         if (open) {
             setStatus("technically_compatible");
@@ -289,17 +323,15 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             setReportPdf(null);
             setFieldErrors({});
             setApiError("");
-            setActiveTestStep(0);
+            setActiveTestId(1);
+            setDeviceTestResults({});
         }
     }, [open]);
 
-
     const validate = () => {
         const errs = {};
-        if (!finalComment.trim()) errs.finalComment = "Final comment is required.";
-        if (!reportPdf) errs.reportPdf = "Compatibility report PDF is required.";
-        else if (reportPdf.type !== "application/pdf")
-            errs.reportPdf = "Only PDF files are accepted.";
+        if (!finalComment.trim()) errs.finalComment = "Comment is required.";
+        if (!reportPdf) errs.reportPdf = "Report PDF is required.";
         setFieldErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -308,8 +340,6 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         const file = e.target.files?.[0] || null;
         setReportPdf(file);
         setFieldErrors((prev) => { const c = { ...prev }; delete c.reportPdf; return c; });
-        /* reset input so the same file can be re-selected after removal */
-        e.target.value = "";
     };
 
     const handleConfirm = async () => {
@@ -321,6 +351,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             fd.append("status", status);
             fd.append("final_comment", finalComment.trim());
             fd.append("compatibility_report_pdf", reportPdf);
+            fd.append("device_test_results", JSON.stringify(deviceTestResults));
             await DeviceModelServices.finalizeTechnicalOnboardingRequest(fd);
             onSuccess(row.id, status);
         } catch (err) {
@@ -335,26 +366,27 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         ? (row.device_model?.model_name || row.device_model_name || `ID ${row.device_model_id ?? row.device_model ?? ""}`)
         : "";
 
-    const isAccepting = status === "technically_compatible";
+    const imeis = Array.from({ length: 5 }, (_, i) => demoDevices[i]?.imei || `Device ${i + 1}`);
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-            <DialogTitle sx={{ pb: 1 }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                    <GavelIcon color="primary" />
-                    <Typography variant="h5" fontWeight={700}>Complete Testing &amp; Finalize</Typography>
-                </Stack>
+        <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
+            <DialogTitle sx={{ pb: 1, borderBottom: '1px solid #eee', bgcolor: '#fff' }}>
+                <Typography variant="h6" fontWeight={700} color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2L20 8L14 14M20 8H4M10 22L4 16L10 10M4 16H20" stroke="#1976d2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Complete Testing & Finalize
+                </Typography>
                 <Typography variant="caption" color="text.secondary">
                     Please complete all testing steps below before uploading the report and finalizing.
                 </Typography>
             </DialogTitle>
 
-            <DialogContent dividers>
-                <Stack spacing={2.5}>
-
-                    {/* ── Request summary ── */}
-                    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, bgcolor: "grey.50" }}>
-                        <Grid container rowSpacing={0.5} columnSpacing={2}>
+            <DialogContent sx={{ p: 0, bgcolor: '#f5f7fa' }}>
+                <Box p={3}>
+                    {/* Top Block */}
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 3, bgcolor: '#f9fbfd', borderColor: '#e0e0e0' }}>
+                        <Grid container rowSpacing={1} columnSpacing={2}>
                             {[
                                 ["Request ID", row?.id],
                                 ["Manufacturer", mfrName],
@@ -362,235 +394,128 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                 ["Current Status", row?.status],
                             ].map(([lbl, val]) => val ? (
                                 <React.Fragment key={lbl}>
-                                    <Grid item xs={5}><Typography variant="caption" color="text.secondary">{lbl}</Typography></Grid>
-                                    <Grid item xs={7}><Typography variant="caption" fontWeight={600}>{val}</Typography></Grid>
+                                    <Grid item xs={3} md={2}><Typography variant="body2" color="text.secondary">{lbl}</Typography></Grid>
+                                    <Grid item xs={9} md={10}><Typography variant="body2" fontWeight={600} color="text.primary">{val}</Typography></Grid>
                                 </React.Fragment>
                             ) : null)}
                         </Grid>
                     </Paper>
 
-                    <Divider />
-
-                    {/* ── Testing Checklist ── */}
-                    <Box>
-                        <Typography variant="subtitle2" fontWeight={700} mb={1}>
-                            Pre-requisite Testing Checklist
+                    {/* Test Board */}
+                    <Box bgcolor="white" p={3} borderRadius={2} border="1px solid #e0e0e0">
+                        <Typography variant="subtitle1" fontWeight={700} mb={1}>
+                            Test Board — Request {row?.id} {row?.status}
                         </Typography>
-                        <Paper variant="outlined" sx={{ borderRadius: 2, p: 2 }}>
-                            <Stepper activeStep={activeTestStep} orientation="vertical">
-                                {TEST_STEPS.map((test, index) => (
-                                    <Step key={test.key}>
-                                        <StepLabel 
-                                            optional={
-                                                index === TEST_STEPS.length - 1 ? (
-                                                    <Typography variant="caption">Last step</Typography>
-                                                ) : null
-                                            }
-                                        >
-                                            <Typography sx={{ fontWeight: activeTestStep === index ? 700 : 400 }}>
-                                                {test.label}
-                                            </Typography>
-                                        </StepLabel>
-                                        <StepContent>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                {test.description}
-                                            </Typography>
-                                            <Box sx={{ mb: 2 }}>
-                                                <div>
-                                                    <Button
-                                                        variant="contained"
-                                                        onClick={() => setActiveTestStep(prev => prev + 1)}
-                                                        sx={{ mt: 1, mr: 1 }}
-                                                        size="small"
-                                                    >
-                                                        {index === TEST_STEPS.length - 1 ? 'Finish Checklist' : 'Complete Step & Continue'}
-                                                    </Button>
-                                                    <Button
-                                                        disabled={index === 0}
-                                                        onClick={() => setActiveTestStep(prev => prev - 1)}
-                                                        sx={{ mt: 1, mr: 1 }}
-                                                        size="small"
-                                                    >
-                                                        Back
-                                                    </Button>
-                                                </div>
-                                            </Box>
-                                        </StepContent>
-                                    </Step>
-                                ))}
-                            </Stepper>
-                            {allTestsCompleted && (
-                                <Paper square elevation={0} sx={{ p: 2, bgcolor: "success.50", mt: 2, borderRadius: 1 }}>
-                                    <Typography variant="subtitle2" color="success.dark">All pre-requisite tests completed.</Typography>
-                                    <Typography variant="caption" color="success.main">You can now proceed to finalize the report below.</Typography>
-                                </Paper>
-                            )}
-                        </Paper>
-                    </Box>
-
-                    <Divider />
-
-                    {/* ── Finalize Section (Disabled until checklist is done) ── */}
-                    <Box sx={{ opacity: allTestsCompleted ? 1 : 0.5, pointerEvents: allTestsCompleted ? "auto" : "none", transition: "opacity 0.3s" }}>
-                        <Stack spacing={2.5}>
-                            {/* ── Decision: Accept / Reject ── */}
-                            <FormControl error={!!fieldErrors.status}>
-                                <FormLabel sx={{ fontWeight: 700, mb: 0.5, color: "text.primary" }}>
-                                    Decision *
-                                </FormLabel>
-
-                                <RadioGroup
-                                    row
-                                    value={status}
-                                    onChange={(e) => setStatus(e.target.value)}
-                                >
-                            <FormControlLabel
-                                value="technically_compatible"
-                                control={<Radio color="success" />}
-                                label={
-                                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                                        <CheckCircleIcon color="success" fontSize="small" />
-                                        <Typography variant="body2" fontWeight={600} color="success.main">Accept</Typography>
-                                    </Stack>
-                                }
-                            />
-                            <FormControlLabel
-                                value="technically_not_compatible"
-                                control={<Radio color="error" />}
-                                label={
-                                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                                        <CancelIcon color="error" fontSize="small" />
-                                        <Typography variant="body2" fontWeight={600} color="error.main">Reject</Typography>
-                                    </Stack>
-                                }
-                            />
-                        </RadioGroup>
-                    </FormControl>
-
-                    {/* decision context callout */}
-                    <Alert
-                        severity={isAccepting ? "success" : "error"}
-                        icon={isAccepting ? <CheckCircleIcon /> : <CancelIcon />}
-                        sx={{ py: 0.5 }}
-                    >
-                        <Typography variant="caption">
-                            {isAccepting
-                                ? "Accepting will mark the device model as technically onboarded."
-                                : "Rejecting will close this request. The manufacturer may need to resubmit."}
+                        <Typography variant="body2" color="text.secondary" mb={2}>
+                            Currently unlocked test: #{activeTestId <= TEST_BOARD_STEPS.length ? activeTestId : 'All completed'}
                         </Typography>
-                    </Alert>
 
-                    {/* ── Final Comment ── */}
-                    <TextField
-                        fullWidth
-                        multiline
-                        minRows={3}
-                        maxRows={6}
-                        label="Final Compatibility Test Findings *"
-                        placeholder="Describe the evaluation outcome, findings, or reason for rejection…"
-                        value={finalComment}
-                        onChange={(e) => {
-                            setFinalComment(e.target.value);
-                            setFieldErrors((p) => { const c = { ...p }; delete c.finalComment; return c; });
-                        }}
-                        error={!!fieldErrors.finalComment}
-                        helperText={fieldErrors.finalComment || `${finalComment.length} characters`}
-                        inputProps={{ maxLength: 2000 }}
-                    />
+                        <TableContainer sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
+                            <Table size="small">
+                                <TableHead sx={{ bgcolor: '#f9fafb' }}>
+                                    <TableRow>
+                                        <TableCell sx={{ width: 40 }}><b>#</b></TableCell>
+                                        <TableCell sx={{ minWidth: 250 }}><b>Test</b></TableCell>
+                                        {imeis.map((imei, idx) => (
+                                            <TableCell key={idx} align="center" sx={{ width: 120 }}><b>IMEI {idx + 1}</b></TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {TEST_BOARD_STEPS.map((step) => {
+                                        const isUnlocked = step.id === activeTestId;
+                                        const isCompleted = step.id < activeTestId;
+                                        return (
+                                            <TableRow key={step.id}>
+                                                <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{step.id}</TableCell>
+                                                <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>
+                                                    <Typography variant="body2" fontWeight={600} color="text.primary">{step.title}</Typography>
+                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>{step.desc}</Typography>
+                                                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>source: {step.source}</Typography>
+                                                </TableCell>
+                                                {imeis.map((_, idx) => (
+                                                    <TableCell key={idx} align="center" sx={{ verticalAlign: 'top', pt: 2, borderLeft: '1px solid #f0f0f0' }}>
+                                                        {isCompleted ? (
+                                                            <>
+                                                                <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
+                                                                <Typography variant="caption" display="block" color="text.secondary">Done</Typography>
+                                                            </>
+                                                        ) : isUnlocked ? (
+                                                            <>
+                                                                <Chip label="incomplete" size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }} />
+                                                                <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', '&:hover': { bgcolor: '#283593' } }} onClick={() => {
+                                                                    // Advance step on any start click for mockup
+                                                                    if (idx === 4) setActiveTestId(s => s + 1);
+                                                                }}>Start</Button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Chip label="not_started" size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#f5f5f5', color: '#757575', borderRadius: 1 }} />
+                                                                <Typography variant="caption" color="text.secondary" display="block">locked</Typography>
+                                                            </>
+                                                        )}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
 
-                    {/* ── Compatibility Report PDF ── */}
-                    <Box>
-                        <Typography variant="subtitle2" fontWeight={700} mb={0.5}>
-                            Compatibility Report PDF *
-                        </Typography>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="application/pdf"
-                            hidden
-                            onChange={handleFileChange}
-                        />
-                        <Paper
-                            variant="outlined"
-                            component="label"
-                            onClick={() => fileInputRef.current?.click()}
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 2,
-                                p: 2,
-                                cursor: "pointer",
-                                borderRadius: 2,
-                                borderStyle: "dashed",
-                                borderColor: fieldErrors.reportPdf
-                                    ? "error.main"
-                                    : reportPdf
-                                        ? "success.main"
-                                        : "divider",
-                                bgcolor: reportPdf ? "success.50" : "background.paper",
-                                transition: "all 0.2s ease",
-                                "&:hover": { borderColor: "primary.main", bgcolor: "primary.50" },
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: 44, height: 44, borderRadius: "50%",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    bgcolor: reportPdf ? "success.main" : "grey.100",
-                                    color: reportPdf ? "white" : "text.secondary",
-                                    flexShrink: 0, transition: "all 0.2s ease",
-                                }}
-                            >
-                                {reportPdf ? <CheckCircleIcon /> : <UploadFileIcon />}
+                        {/* Finalize Form */}
+                        <Box mt={3} pt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography variant="subtitle2" fontWeight={700}>
+                                Finalize
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                                <Box sx={{ flex: 1, maxWidth: 250 }}>
+                                    <Typography variant="caption" display="block" mb={0.5}>Compatibility Report PDF</Typography>
+                                    <input type="file" accept="application/pdf" onChange={handleFileChange} style={{ fontSize: '13px', width: '100%' }} />
+                                    {fieldErrors.reportPdf && <Typography color="error" variant="caption" display="block">{fieldErrors.reportPdf}</Typography>}
+                                </Box>
+                                <Box sx={{ flex: 1, maxWidth: 200 }}>
+                                    <Typography variant="caption" display="block" mb={0.5}>Decision</Typography>
+                                    <select 
+                                        value={status} 
+                                        onChange={(e) => setStatus(e.target.value)} 
+                                        style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', background: '#fff' }}
+                                    >
+                                        <option value="technically_compatible">Technically Compatible</option>
+                                        <option value="technically_not_compatible">Technically Not Compatible</option>
+                                    </select>
+                                </Box>
+                                <Box sx={{ flex: 2 }}>
+                                    <Typography variant="caption" display="block" mb={0.5}>Comment</Typography>
+                                    <textarea 
+                                        value={finalComment} 
+                                        onChange={(e) => {
+                                            setFinalComment(e.target.value);
+                                            setFieldErrors((p) => { const c = { ...p }; delete c.finalComment; return c; });
+                                        }} 
+                                        rows={2}
+                                        style={{ width: '100%', padding: '6px', borderRadius: '4px', border: fieldErrors.finalComment ? '1px solid red' : '1px solid #ccc', fontSize: '14px', fontFamily: 'inherit', resize: 'vertical', background: '#fff' }}
+                                    />
+                                    {fieldErrors.finalComment && <Typography color="error" variant="caption" display="block">{fieldErrors.finalComment}</Typography>}
+                                </Box>
                             </Box>
-                            <Box flex={1} minWidth={0}>
-                                <Typography variant="subtitle2" fontWeight={600} noWrap>
-                                    {reportPdf ? reportPdf.name : "Compatibility Report (PDF)"}
-                                </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color={reportPdf ? "success.main" : fieldErrors.reportPdf ? "error" : "text.secondary"}
-                                    noWrap display="block"
+                            
+                            <Box mt={1}>
+                                <Button 
+                                    variant="contained"
+                                    disableElevation
+                                    disabled={submitting}
+                                    onClick={handleConfirm}
+                                    sx={{ bgcolor: '#b0bec5', color: '#fff', '&:not(:disabled)': { bgcolor: '#0d1b2a' } }}
                                 >
-                                    {reportPdf
-                                        ? `${(reportPdf.size / 1024).toFixed(1)} KB — click to change`
-                                        : fieldErrors.reportPdf
-                                            ? fieldErrors.reportPdf
-                                            : "Click to upload PDF — max 10 MB"}
-                                </Typography>
+                                    {submitting ? "Finalizing..." : "Finalize Onboarding"}
+                                </Button>
                             </Box>
-                            <UploadFileIcon sx={{ color: reportPdf ? "success.main" : "text.disabled", flexShrink: 0 }} />
-                        </Paper>
-                        {fieldErrors.reportPdf && (
-                            <FormHelperText error>{fieldErrors.reportPdf}</FormHelperText>
-                        )}
-                    </Box>
-
-                                {/* ── API error ── */}
-                                {apiError && <Alert severity="error">{apiError}</Alert>}
-                            </Stack>
+                            {apiError && <Alert severity="error" sx={{ mt: 2 }}>{apiError}</Alert>}
                         </Box>
-                    </Stack>
-                </DialogContent>
-
-            <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-                <Button onClick={onClose} disabled={submitting} variant="outlined">Cancel</Button>
-                <Button
-                    onClick={handleConfirm}
-                    disabled={submitting || !allTestsCompleted}
-                    variant="contained"
-                    color={isAccepting ? "success" : "error"}
-                    startIcon={
-                        submitting
-                            ? <CircularProgress size={16} color="inherit" />
-                            : isAccepting ? <CheckCircleIcon /> : <CancelIcon />
-                    }
-                >
-                    {submitting
-                        ? "Submitting…"
-                        : isAccepting ? "Confirm — Accept" : "Confirm — Reject"}
-                </Button>
-            </DialogActions>
+                    </Box>
+                </Box>
+            </DialogContent>
         </Dialog>
     );
 };
@@ -598,7 +523,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 /* ═══════════════════════════════════════════════════
    COLLAPSIBLE TABLE ROW
 ═══════════════════════════════════════════════════ */
-const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
+const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApprove }) => {
     const [open, setOpen] = useState(false);
     const userRole = getRole();
     const isStateAdmin = userRole === "stateadmin";
@@ -673,7 +598,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
                 {/* actions */}
                 <TableCell sx={{ py: 1 }} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
-                        {isSubmitted && !isStateAdmin && (
+                        {(isSubmitted || statusKey === "devices_received") && !isStateAdmin && (
                             <Tooltip title="Start Testing">
                                 <Button
                                     size="small" variant="contained" color="info"
@@ -899,7 +824,7 @@ const RequestRow = ({ row, onMarkOngoing, onFinalize, onStateApprove }) => {
 /* ═══════════════════════════════════════════════════
    TRACKER ROW
 ═══════════════════════════════════════════════════ */
-const TrackerRow = ({ row, onMarkOngoing, onFinalize }) => {
+const TrackerRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize }) => {
     const userRole = getRole();
     const isStateAdmin = userRole === "stateadmin";
     const manufacturerName = useMemo(() => resolveManufacturer(row), [row]);
@@ -968,6 +893,9 @@ const TrackerRow = ({ row, onMarkOngoing, onFinalize }) => {
             </TableCell>
             <TableCell>
                 {!isStateAdmin && statusKey === "submitted" && (
+                    <Button variant="contained" color="secondary" size="small" onClick={() => onMarkReceived(row)}>Mark Received</Button>
+                )}
+                {!isStateAdmin && statusKey === "devices_received" && (
                     <Button variant="contained" color="info" size="small" onClick={() => onMarkOngoing(row)}>Start Testing</Button>
                 )}
                 {!isStateAdmin && statusKey === "ongoing_evaluation" && (
@@ -1104,6 +1032,19 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
             text: `Request #${id} has been ${decision === "technically_compatible" ? "marked as Compatible ✓" : "marked as Not Compatible"}.`,
         });
     }, [loadData]);
+
+    const handleMarkReceived = async (row) => {
+        if (!window.confirm("Confirm that you have physically received all 5 VLTD devices for this request?")) return;
+        setLoading(true);
+        try {
+            await DeviceModelServices.markTechnicalOnboardingDevicesReceived({ onboarding_request_id: row.id });
+            setActionMsg({ type: "success", text: `Request #${row.id} marked as devices received.` });
+            loadData();
+        } catch (err) {
+            setActionMsg({ type: "error", text: extractError(err) });
+            setLoading(false);
+        }
+    };
 
     /* ── search ── */
     const filteredRows = useMemo(() => {
@@ -1261,6 +1202,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                                                     <RequestRow
                                                         key={row.id ?? idx}
                                                         row={row}
+                                                        onMarkReceived={handleMarkReceived}
                                                         onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
                                                         onFinalize={(r) => setFinalizeDialog({ open: true, row: r })} onStateApprove={handleStateApprove}
                                                     />
@@ -1287,6 +1229,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                                                     <TrackerRow
                                                         key={row.id ?? idx}
                                                         row={row}
+                                                        onMarkReceived={handleMarkReceived}
                                                         onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
                                                         onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
                                                     />

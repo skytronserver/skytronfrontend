@@ -57,7 +57,7 @@ const STEPS = [
   { label: "Manufacturer Onboarding" },
   { label: "Required Documents" },
   { label: "VLTD Devices" },
-  { label: "Dispatch & Declaration" },
+  { label: "Courier Tracking" },
 ];
 
 const emptyTestDevice = () => ({
@@ -67,8 +67,6 @@ const emptyTestDevice = () => ({
   ccid2: "",
   msisdn1: "",
   msisdn2: "",
-  imsi: "",
-  firmware: "",
 });
 
 const TEST_DEVICE_FIELDS = [
@@ -78,8 +76,6 @@ const TEST_DEVICE_FIELDS = [
   { key: "ccid2", label: "ICCID 2", placeholder: "19 or 20-digit ICCID", maxLength: 20 },
   { key: "msisdn1", label: "MSISDN 1", placeholder: "e.g. 919876543210", maxLength: 15 },
   { key: "msisdn2", label: "MSISDN 2", placeholder: "e.g. 919876543211", maxLength: 15 },
-  { key: "imsi", label: "IMSI", placeholder: "15-digit IMSI", maxLength: 15 },
-  { key: "firmware", label: "Firmware Version", placeholder: "e.g. v1.0.0" },
 ];
 
 /* ── reusable PDF upload card ── */
@@ -171,13 +167,11 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     Array.from({ length: 5 }, emptyTestDevice)
   );
 
-  /* ── dispatch & declaration state ── */
+  /* ── courier tracking state ── */
+  const [onboardingRequestId, setOnboardingRequestId] = useState("");
   const [courierName, setCourierName] = useState("");
-  const [awbNumber, setAwbNumber] = useState("");
-  const [dispatchDate, setDispatchDate] = useState("");
-  const [packageDetails, setPackageDetails] = useState("");
-  const [senderContact, setSenderContact] = useState("");
-  const [declarationAccepted, setDeclarationAccepted] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [shippedDate, setShippedDate] = useState("");
 
   /* ── device data health state ── */
   const [healthProtocol, setHealthProtocol] = useState("");
@@ -363,20 +357,15 @@ const DeviceModelTechnicalOnboardingCreate = () => {
             if ((key === "ccid1" || key === "ccid2") && val.length !== 19 && val.length !== 20) {
               errors[`device_${i}_${key}`] = "ICCID must be 19 or 20 digits";
             }
-            if (key === "imsi" && val.length !== 15) {
-              errors[`device_${i}_${key}`] = "IMSI must be 15 digits";
-            }
           }
         });
       });
     }
     if (step === 4) {
+      if (!onboardingRequestId) errors.onboardingRequestId = "Required";
       if (!courierName) errors.courierName = "Required";
-      if (!awbNumber) errors.awbNumber = "Required";
-      if (!dispatchDate) errors.dispatchDate = "Required";
-      if (!packageDetails) errors.packageDetails = "Required";
-      if (!senderContact) errors.senderContact = "Required";
-      if (!declarationAccepted) errors.declarationAccepted = "You must accept the declaration";
+      if (!trackingNumber) errors.trackingNumber = "Required";
+      if (!shippedDate) errors.shippedDate = "Required";
     }
 
     setFieldErrors(errors);
@@ -384,7 +373,39 @@ const DeviceModelTechnicalOnboardingCreate = () => {
   };
 
   /* ── navigation ── */
-  const handleNext = async () => {
+  const handleCreateRequest = async () => {
+    if (!validateStep(3)) {
+      showAlert("error", "Please fix all errors before continuing.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("device_model_id", deviceModelId);
+    formData.append("user_manual_pdf", userManualPdf);
+    formData.append("ot_command_list_pdf", otCommandListPdf);
+    formData.append("demo_devices", JSON.stringify(testDevices));
+
+    setSubmitting(true);
+    try {
+      const response = await DeviceModelServices.createTechnicalOnboardingRequest(formData);
+      if (response?.data?.id || response?.id) {
+        setOnboardingRequestId(response?.data?.id || response?.id);
+      }
+      showAlert("success", "Technical onboarding request created successfully! You can now click Next to proceed to Courier Tracking.");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
+        (typeof err?.response?.data === "string" ? err.response.data : null) ||
+        err?.message ||
+        "Failed to submit technical onboarding request.";
+      showAlert("error", msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleNext = () => {
     if (!validateStep(activeStep)) {
       showAlert("error", "Please fix all errors before continuing.");
       return;
@@ -403,12 +424,10 @@ const DeviceModelTechnicalOnboardingCreate = () => {
     setUserManualPdf(null);
     setOtCommandListPdf(null);
     setTestDevices(Array.from({ length: 5 }, emptyTestDevice));
+    setOnboardingRequestId("");
     setCourierName("");
-    setAwbNumber("");
-    setDispatchDate("");
-    setPackageDetails("");
-    setSenderContact("");
-    setDeclarationAccepted(false);
+    setTrackingNumber("");
+    setShippedDate("");
     setFieldErrors({});
     setActiveStep(0);
     setDeviceHealthResults([]);
@@ -419,22 +438,22 @@ const DeviceModelTechnicalOnboardingCreate = () => {
 
   /* ── submit ── */
   const handleSubmit = async () => {
-    const formData = new FormData();
-    formData.append("device_model_id", deviceModelId);
-    formData.append("user_manual_pdf", userManualPdf);
-    formData.append("ot_command_list_pdf", otCommandListPdf);
-    formData.append("demo_devices", JSON.stringify(testDevices));
-    formData.append("courier_name", courierName);
-    formData.append("awb_number", awbNumber);
-    formData.append("dispatch_date", dispatchDate);
-    formData.append("package_details", packageDetails);
-    formData.append("sender_contact", senderContact);
-    formData.append("declaration_accepted", declarationAccepted);
+    if (!validateStep(4)) {
+      showAlert("error", "Please fix all errors before continuing.");
+      return;
+    }
+
+    const payload = {
+      onboarding_request_id: onboardingRequestId,
+      courier_name: courierName,
+      courier_tracking_number: trackingNumber,
+      courier_shipped_date: shippedDate,
+    };
 
     setSubmitting(true);
     try {
-      await DeviceModelServices.createTechnicalOnboardingRequest(formData);
-      showAlert("success", "Technical onboarding request submitted successfully!");
+      await DeviceModelServices.updateCourierTracking(payload);
+      showAlert("success", "Courier tracking details updated successfully!");
       resetForm();
     } catch (err) {
       const msg =
@@ -779,18 +798,32 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
           </SectionBlock>
         );
 
-      /* ── Step 4: Dispatch & Declaration ── */
+      /* ── Step 4: Courier Tracking ── */
       case 4:
         return (
           <SectionBlock
-            label="Dispatch & Declaration"
-            description="Enter dispatch details of the test devices and submit your declaration."
+            label="Courier Tracking"
+            description="Enter the courier tracking details for the test devices."
           >
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
-                  label="Dispatch Courier Name"
+                  label="Onboarding Request ID"
+                  value={onboardingRequestId}
+                  onChange={(e) => {
+                    setOnboardingRequestId(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, onboardingRequestId: undefined }));
+                  }}
+                  error={!!fieldErrors.onboardingRequestId}
+                  helperText={fieldErrors.onboardingRequestId}
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Courier Name"
                   value={courierName}
                   onChange={(e) => {
                     setCourierName(e.target.value);
@@ -798,89 +831,38 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
                   }}
                   error={!!fieldErrors.courierName}
                   helperText={fieldErrors.courierName}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
-                  label="AWB Number"
-                  value={awbNumber}
+                  label="Tracking Number"
+                  value={trackingNumber}
                   onChange={(e) => {
-                    setAwbNumber(e.target.value);
-                    setFieldErrors((prev) => ({ ...prev, awbNumber: undefined }));
+                    setTrackingNumber(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, trackingNumber: undefined }));
                   }}
-                  error={!!fieldErrors.awbNumber}
-                  helperText={fieldErrors.awbNumber}
+                  error={!!fieldErrors.trackingNumber}
+                  helperText={fieldErrors.trackingNumber}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
-                  label="Dispatch Date"
+                  label="Shipped Date"
                   type="date"
                   InputLabelProps={{ shrink: true }}
-                  value={dispatchDate}
+                  value={shippedDate}
                   onChange={(e) => {
-                    setDispatchDate(e.target.value);
-                    setFieldErrors((prev) => ({ ...prev, dispatchDate: undefined }));
+                    setShippedDate(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, shippedDate: undefined }));
                   }}
-                  error={!!fieldErrors.dispatchDate}
-                  helperText={fieldErrors.dispatchDate}
+                  error={!!fieldErrors.shippedDate}
+                  helperText={fieldErrors.shippedDate}
+                  size="small"
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Sender Contact"
-                  value={senderContact}
-                  onChange={(e) => {
-                    setSenderContact(e.target.value);
-                    setFieldErrors((prev) => ({ ...prev, senderContact: undefined }));
-                  }}
-                  error={!!fieldErrors.senderContact}
-                  helperText={fieldErrors.senderContact}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Package Details"
-                  value={packageDetails}
-                  onChange={(e) => {
-                    setPackageDetails(e.target.value);
-                    setFieldErrors((prev) => ({ ...prev, packageDetails: undefined }));
-                  }}
-                  error={!!fieldErrors.packageDetails}
-                  helperText={fieldErrors.packageDetails}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: "grey.50" }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <input
-                      type="checkbox"
-                      id="declaration"
-                      checked={declarationAccepted}
-                      onChange={(e) => {
-                        setDeclarationAccepted(e.target.checked);
-                        setFieldErrors((prev) => ({ ...prev, declarationAccepted: undefined }));
-                      }}
-                      style={{ width: 24, height: 24, cursor: "pointer" }}
-                    />
-                    <Box>
-                      <Typography variant="body1" fontWeight={600} component="label" htmlFor="declaration" sx={{ cursor: "pointer" }}>
-                        I declare that the information provided above is true and correct to the best of my knowledge.
-                      </Typography>
-                      {fieldErrors.declarationAccepted && (
-                        <Typography variant="caption" color="error" display="block">
-                          {fieldErrors.declarationAccepted}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Stack>
-                </Paper>
               </Grid>
             </Grid>
           </SectionBlock>
@@ -969,14 +951,30 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
               )}
 
               {!isLastStep ? (
-                <Button
-                  variant="contained"
-                  endIcon={<ArrowForwardIcon />}
-                  onClick={handleNext}
-                  sx={{ minWidth: 110 }}
-                >
-                  Next
-                </Button>
+                activeStep === 3 && !onboardingRequestId ? (
+                  <Button
+                    variant="contained"
+                    onClick={handleCreateRequest}
+                    disabled={submitting}
+                    sx={{ minWidth: 110 }}
+                    startIcon={
+                      submitting ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : null
+                    }
+                  >
+                    {submitting ? "Submitting…" : "Submit Onboarding"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={handleNext}
+                    sx={{ minWidth: 110 }}
+                  >
+                    Next
+                  </Button>
+                )
               ) : (
                 <Button
                   variant="contained"
@@ -989,7 +987,7 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
                     ) : null
                   }
                 >
-                  {submitting ? "Submitting…" : "Submit Request"}
+                  {submitting ? "Submitting…" : "Update Courier Tracking"}
                 </Button>
               )}
             </Stack>
