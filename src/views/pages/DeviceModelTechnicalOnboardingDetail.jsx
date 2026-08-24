@@ -21,8 +21,9 @@ import {
   TableHead,
   TableRow,
   Stepper,
+  StepLabel,
   Step,
-  StepLabel
+  LinearProgress
 } from '@mui/material';
 import MainCard from '../../ui-component/cards/MainCard';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -149,13 +150,29 @@ const DeviceModelTechnicalOnboardingDetail = () => {
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="h6" gutterBottom>Group / Checkpoint Progress</Typography>
-              <Stepper activeStep={requestData.checkpoint_progress} orientation="vertical">
-                {CHECKPOINTS.map((label, index) => (
-                  <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
-                  </Step>
-                ))}
-              </Stepper>
+              <Stack spacing={1} sx={{ mb: 3 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" fontWeight={600}>
+                        {requestData.checkpoint_progress} / {CHECKPOINTS.length} Completed
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                        {Math.round((requestData.checkpoint_progress / CHECKPOINTS.length) * 100)}%
+                    </Typography>
+                </Stack>
+                <LinearProgress 
+                    variant="determinate" 
+                    value={(requestData.checkpoint_progress / CHECKPOINTS.length) * 100} 
+                    color={isFailed ? "error" : requestData.checkpoint_progress === CHECKPOINTS.length ? "success" : "primary"}
+                    sx={{ height: 6, borderRadius: 3 }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                    {requestData.checkpoint_progress < CHECKPOINTS.length 
+                        ? (isFailed
+                            ? `Failed at: ${CHECKPOINTS[requestData.checkpoint_progress]}`
+                            : `Pending: ${CHECKPOINTS[requestData.checkpoint_progress]}`)
+                        : "All steps completed successfully"}
+                </Typography>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>

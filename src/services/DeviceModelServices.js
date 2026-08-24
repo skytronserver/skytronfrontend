@@ -103,6 +103,33 @@ const finalizeTechnicalOnboardingRequest = (formData) => {
   });
 };
 
+const getTestBoard = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/test-board/", data);
+};
+
+const startTestBoard = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/test-start/", data);
+};
+
+const heartbeatTestBoard = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/test-heartbeat/", data);
+};
+
+const refreshLogTestBoard = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/test-refresh-log/", data);
+};
+
+const completeTestBoard = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/test-complete/", data);
+};
+
+
+
 const DeviceModelServices = {
   getAllModels,
   getAdminAwaitingModels,
@@ -124,6 +151,11 @@ const DeviceModelServices = {
   markTechnicalOnboardingOngoing,
   finalizeTechnicalOnboardingRequest,
   updateCourierTracking,
+  getTestBoard,
+  startTestBoard,
+  heartbeatTestBoard,
+  refreshLogTestBoard,
+  completeTestBoard,
 };
 
 export default DeviceModelServices;

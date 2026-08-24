@@ -25,7 +25,8 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    LinearProgress
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -118,6 +119,17 @@ const RequestRow = ({ row, index }) => {
 
     const hasReport = row.final_comment || row.compatibility_report_pdf || row.report || row.comment || row.remarks;
 
+    const statusKey = String(row.status ?? "").trim().toLowerCase();
+    
+    // Map status to steps
+    let activeStep = 0;
+    if (statusKey === "submitted") activeStep = 1;
+    else if (statusKey === "ongoing_evaluation") activeStep = 3;
+    else if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved") activeStep = 5;
+    else if (statusKey === "technically_not_compatible" || statusKey === "rejected") activeStep = 2;
+
+    const STEPS = ["Submitted", "Document Check", "Functional Check", "Protocol Check", "Final Review"];
+
     return (
         <>
             <TableRow
@@ -149,15 +161,30 @@ const RequestRow = ({ row, index }) => {
                 </TableCell>
                 
                 {/* action required / progress */}
-                <TableCell sx={{ py: 1 }}>
-                    {(() => {
-                        const s = String(row.status ?? "").trim().toLowerCase();
-                        if (s === "pending" || s === "submitted") return <Typography variant="caption" color="text.secondary">Wait for review</Typography>;
-                        if (s === "ongoing_evaluation" || s === "processing") return <Typography variant="caption" color="info.main">Testing in progress</Typography>;
-                        if (s === "rejected" || s === "stateadminrejected" || s === "technically_not_compatible") return <Typography variant="caption" color="error.main" fontWeight="bold">Submit new request</Typography>;
-                        if (s === "approved" || s === "stateadminapproved" || s === "technically_compatible" || s === "accepted") return <Typography variant="caption" color="success.main">Download final report</Typography>;
-                        return <Typography variant="caption" color="text.secondary">—</Typography>;
-                    })()}
+                <TableCell sx={{ py: 1, minWidth: 200 }}>
+                    <Stack spacing={1}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography variant="caption" fontWeight={600}>
+                                {activeStep} / {STEPS.length} Completed
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                {Math.round((activeStep / STEPS.length) * 100)}%
+                            </Typography>
+                        </Stack>
+                        <LinearProgress 
+                            variant="determinate" 
+                            value={(activeStep / STEPS.length) * 100} 
+                            color={statusKey === "technically_not_compatible" || statusKey === "rejected" ? "error" : activeStep === STEPS.length ? "success" : "primary"}
+                            sx={{ height: 6, borderRadius: 3 }}
+                        />
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                            {activeStep < STEPS.length 
+                                ? (statusKey === "technically_not_compatible" || statusKey === "rejected" 
+                                    ? `Failed at: ${STEPS[activeStep]}`
+                                    : `Pending: ${STEPS[activeStep]}`)
+                                : "All steps completed"}
+                        </Typography>
+                    </Stack>
                 </TableCell>
 
                 {/* evaluation datetime */}
@@ -368,15 +395,7 @@ const RequestRow = ({ row, index }) => {
                                     </Grid>
                                 )}
                                 
-                                <Grid item xs={12} display="flex" justifyContent="flex-end" mt={2}>
-                                    <Button 
-                                        variant="contained" 
-                                        color="primary" 
-                                        onClick={() => navigate(`/manufacturer/technical-onboarding/detail/${row.id}`)}
-                                    >
-                                        View Full Status / Detail
-                                    </Button>
-                                </Grid>
+
                             </Grid>
                         </Box>
                     </Collapse>
@@ -559,7 +578,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                                             <TableCell sx={{ width: 40 }} />
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: 700 }}>Action Required</TableCell>
+                                            <TableCell sx={{ color: "white", fontWeight: 700, minWidth: 200 }}>Progress</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Evaluation</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Report</TableCell>

@@ -266,55 +266,52 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const [activeTestId, setActiveTestId] = useState(1);
     const [deviceTestResults, setDeviceTestResults] = useState({});
     
-    const TEST_BOARD_STEPS = useMemo(() => [
-        { id: 1, title: "SOS button -> Emergency Server (5s cadence)", desc: "Verify that, after pressing the physical SOS button, the emergency packet is sent to the Emergency Server at a frequency of one packet every 5 seconds.", source: "gpsem" },
-        { id: 2, title: "BLE SOS -> Emergency Server (5s cadence)", desc: "Verify that, after initiating SOS from the BLE mobile application, the BLE emergency packet is sent to the Emergency Server at a frequency of one packet every 5 seconds.", source: "manual" },
-        { id: 3, title: "SOS button -> Tracking Server (Start + NR SOS=1)", desc: "Verify that, after pressing the physical SOS button, an Emergency Start packet is sent to the Tracking Server, followed by NR packets with SOS = 1 at a frequency of one packet every 5 seconds.", source: "manual" },
-        { id: 4, title: "BLE SOS -> Tracking Server (Start + NR SOS=1)", desc: "Verify that, after initiating SOS from the BLE mobile application, a BLE Emergency Start packet is sent to the Tracking Server, followed by NR packets with SOS = 1 at a frequency of one packet every 5 seconds.", source: "manual" },
-        { id: 5, title: "SOS Stop on both servers", desc: "Verify that SOS is stopped on both the Emergency Server and Tracking Server after the SOS Stop command is sent from the server.", source: "gpsem" },
-        { id: 6, title: "FOTA upgrade A -> B", desc: "Perform the FOTA upgrade test by upgrading the device firmware from Version A to Version B.", source: "manual" },
-        { id: 7, title: "Internal battery voltage (3 levels)", desc: "Verify the internal battery voltage measurement at three different voltage levels.", source: "manual" },
-        { id: 8, title: "External battery/supply voltage (3 levels)", desc: "Verify the external battery/supply voltage measurement at three different voltage levels.", source: "manual" },
-        { id: 9, title: "Ignition ON/OFF status", desc: "Verify the ignition switch ON and OFF status.", source: "manual" },
-        { id: 10, title: "Harsh-braking event trigger", desc: "Verify the harsh-braking event at the configured speed/threshold (X km/h), including trigger accuracy, false-positive testing and false-negative testing.", source: "manual" },
-        { id: 11, title: "Harsh-acceleration event trigger", desc: "Verify the harsh-acceleration event at the configured speed/threshold (X km/h), including trigger accuracy, false-positive testing and false-negative testing.", source: "manual" },
-        { id: 12, title: "Rough-turning event trigger", desc: "Verify the rough-turning event at the configured speed/threshold (X km/h), including trigger accuracy, false-positive testing and false-negative testing.", source: "manual" },
-        { id: 13, title: "Tilt-event trigger", desc: "Verify the tilt-event trigger.", source: "manual" },
-        { id: 14, title: "GPS speed accuracy", desc: "Verify GPS speed accuracy against a standard/reference device. The deviation must be within the specified tolerance of X%.", source: "manual" },
-        { id: 15, title: "Geofence entry/exit accuracy", desc: "Verify geofence entry and exit accuracy. The location deviation must be within 50 metres.", source: "manual" },
-        { id: 16, title: "External power disconnection detection", desc: "Verify detection and reporting of external power disconnection.", source: "manual" },
-        { id: 17, title: "SOS harness disconnection trigger", desc: "Verify the SOS harness disconnection trigger and corresponding alert.", source: "manual" },
-        { id: 18, title: "Device-box tamper alert (optional)", desc: "Verify the device-box tamper alert, where supported. This test is optional.", source: "manual" },
-        { id: 19, title: "History-data storage & transmission (Faraday box)", desc: "Verify history-data storage and transmission by placing the device inside a Faraday box to simulate loss of network and/or GPS signals.", source: "manual" },
-        { id: 20, title: "A-GPS via primary SIM/profile", desc: "Verify A-GPS operation using the primary SIM/profile. The device must obtain and report cell-tower data according to the available standard/reference location data.", source: "manual" },
-        { id: 21, title: "A-GPS via secondary SIM/profile", desc: "Verify A-GPS operation using the secondary SIM/profile. The device must obtain and report cell-tower data according to the available standard/reference location data.", source: "manual" },
-        { id: 22, title: "Satellite/GPS signal loss and recovery", desc: "Verify satellite/GPS signal loss and automatic recovery. The device must recover automatically after signal restoration without any manual intervention.", source: "manual" },
-        { id: 23, title: "eSIM switch: primary -> secondary", desc: "Verify eSIM profile switching from the primary profile to the secondary profile.", source: "manual" },
-        { id: 24, title: "eSIM switch: secondary -> primary", desc: "Verify eSIM profile switching from the secondary profile to the primary profile.", source: "manual" },
-        { id: 25, title: "Login packet protocol validation", desc: "Validate the Login packet protocol, including the correctness of every individual data field.", source: "gps" },
-        { id: 26, title: "Health packet protocol validation", desc: "Validate the Health packet protocol, including the correctness of every individual data field.", source: "gps" },
-        { id: 27, title: "Emergency Start packet protocol validation", desc: "Validate the Emergency Start packet protocol on both the Emergency Server and Tracking Server, including the correctness of every individual data field.", source: "manual" },
-        { id: 28, title: "BLE Emergency packet protocol validation", desc: "Validate the BLE Emergency packet protocol on both the Emergency Server and Tracking Server, including the correctness of every individual data field.", source: "manual" },
-        { id: 29, title: "Tracking/NR packet protocol validation", desc: "Validate the Tracking/NR packet protocol, including the correctness of every individual data field.", source: "gps" },
-        { id: 30, title: "Emergency Stop packet protocol validation", desc: "Validate the Emergency Stop packet protocol on both the Emergency Server and Tracking Server, including the correctness of every individual data field.", source: "manual" },
-        { id: 31, title: "“Main Battery Disconnected” alert", desc: "Verify the “Main Battery Disconnected” alert.", source: "manual" },
-        { id: 32, title: "“Low Battery” alert", desc: "Verify the “Low Battery” alert.", source: "manual" },
-        { id: 33, title: "“Low Battery Removed/Cleared” alert", desc: "Verify the “Low Battery Removed/Cleared” alert.", source: "manual" },
-        { id: 34, title: "“Main Battery Reconnected” alert", desc: "Verify the “Main Battery Reconnected” alert.", source: "manual" },
-        { id: 35, title: "“Ignition ON” alert", desc: "Verify the “Ignition ON” alert.", source: "manual" },
-        { id: 36, title: "“Ignition OFF” alert", desc: "Verify the “Ignition OFF” alert.", source: "manual" },
-        { id: 37, title: "OT Reboot command + ack", desc: "Verify the OT Reboot command and its acknowledgement/reply.", source: "ota_command" },
-        { id: 38, title: "OT set vehicle registration number + ack", desc: "Verify the OT command for setting the vehicle registration number and its acknowledgement/reply.", source: "ota_command" },
-        { id: 39, title: "Activation command + reply", desc: "Verify the Activation command and the corresponding reply.", source: "activation_command" }
-    ], []);
-    
-    const allTestsCompleted = activeTestId > TEST_BOARD_STEPS.length;
+    // Test board data from API
+    const [testBoardCategories, setTestBoardCategories] = useState([]);
+    const [loadingBoard, setLoadingBoard] = useState(false);
 
     const demoDevices = useMemo(() => {
         if (!row?.demo_devices) return [];
         if (Array.isArray(row.demo_devices)) return row.demo_devices;
         try { return JSON.parse(row.demo_devices); } catch { return []; }
     }, [row?.demo_devices]);
+
+    const fetchTestBoard = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoadingBoard(true);
+        try {
+            const res = await DeviceModelServices.getTestBoard({ onboarding_request_id: row?.id });
+            let categories = [];
+            if (Array.isArray(res?.data)) {
+                categories = res.data;
+            } else if (res?.data?.rows) {
+                categories = res.data.rows;
+            } else if (res?.data?.categories) {
+                categories = res.data.categories;
+            }
+            
+            if (categories.length > 0) {
+                setTestBoardCategories(categories);
+                // find the first active test id that has any incomplete execution, or default to 1
+                let firstIncompleteId = 1;
+                for (const cat of categories) {
+                    const hasIncomplete = cat.executions.some(e => e.status === "incomplete" || e.status === "not_started" || e.status === "in_progress");
+                    if (hasIncomplete) {
+                        firstIncompleteId = cat.test_case.serial_no;
+                        break;
+                    }
+                }
+                // if all tests completed, it will set it to the max id
+                if (categories.every(cat => cat.executions.every(e => e.status === "pass" || e.status === "completed"))) {
+                     firstIncompleteId = categories.length + 1;
+                }
+                setActiveTestId(firstIncompleteId);
+            }
+        } catch (err) {
+            setApiError(extractError(err));
+        } finally {
+            if (showLoading) setLoadingBoard(false);
+        }
+    }, [row?.id]);
 
     useEffect(() => {
         if (open) {
@@ -325,8 +322,68 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             setApiError("");
             setActiveTestId(1);
             setDeviceTestResults({});
+
+            // Fetch test board data
+            if (row?.id) fetchTestBoard();
         }
-    }, [open]);
+    }, [open, row?.id, fetchTestBoard]);
+
+    // Polling effect for in-progress tests
+    useEffect(() => {
+        if (!open) return;
+
+        const inProgressExecutions = [];
+        testBoardCategories.forEach(cat => {
+            if (cat.executions) {
+                cat.executions.forEach(exec => {
+                    if (exec.status === "in_progress" && exec.id) {
+                        inProgressExecutions.push(exec.id);
+                    }
+                });
+            }
+        });
+
+        if (inProgressExecutions.length === 0) return;
+
+        const interval = setInterval(() => {
+            Promise.all(inProgressExecutions.map(execId => 
+                DeviceModelServices.heartbeatTestBoard({ execution_id: execId }).catch(e => console.error(e))
+            ));
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [open, testBoardCategories, fetchTestBoard]);
+
+    const handleStartTest = async (testCaseId, demoDeviceId) => {
+        try {
+            await DeviceModelServices.startTestBoard({
+                onboarding_request_id: row.id,
+                demo_device_id: demoDeviceId,
+                test_case_id: testCaseId
+            });
+            fetchTestBoard(false);
+        } catch (err) {
+            setApiError(extractError(err));
+        }
+    };
+
+    const handleRefreshLog = async (executionId) => {
+        try {
+            await DeviceModelServices.refreshLogTestBoard({ execution_id: executionId });
+            fetchTestBoard(false);
+        } catch (err) {
+            setApiError(extractError(err));
+        }
+    };
+
+    const handleCompleteTest = async (executionId) => {
+        try {
+            await DeviceModelServices.completeTestBoard({ execution_id: executionId });
+            fetchTestBoard(false);
+        } catch (err) {
+            setApiError(extractError(err));
+        }
+    };
 
     const validate = () => {
         const errs = {};
@@ -407,7 +464,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             Test Board — Request {row?.id} {row?.status}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" mb={2}>
-                            Currently unlocked test: #{activeTestId <= TEST_BOARD_STEPS.length ? activeTestId : 'All completed'}
+                            Currently unlocked test: #{activeTestId <= testBoardCategories.length ? activeTestId : 'All completed'}
                         </Typography>
 
                         <TableContainer sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
@@ -422,40 +479,91 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {TEST_BOARD_STEPS.map((step) => {
-                                        const isUnlocked = step.id === activeTestId;
-                                        const isCompleted = step.id < activeTestId;
+                                    {loadingBoard ? (
+                                        <TableRow>
+                                            <TableCell colSpan={2 + imeis.length} align="center" sx={{ py: 3 }}>
+                                                <CircularProgress size={24} sx={{ mr: 1, verticalAlign: 'middle' }} /> Fetching Test Board...
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : testBoardCategories.map((category) => {
+                                        const step = category.test_case;
+                                        const isUnlocked = step.serial_no === activeTestId;
+                                        const isCompleted = step.serial_no < activeTestId;
                                         return (
                                             <TableRow key={step.id}>
-                                                <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{step.id}</TableCell>
+                                                <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{step.serial_no}</TableCell>
                                                 <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>
-                                                    <Typography variant="body2" fontWeight={600} color="text.primary">{step.title}</Typography>
-                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>{step.desc}</Typography>
-                                                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>source: {step.source}</Typography>
+                                                    <Typography variant="body2" fontWeight={600} color="text.primary">{step.name}</Typography>
+                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>{step.description}</Typography>
+                                                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>source: {step.source_table}</Typography>
                                                 </TableCell>
-                                                {imeis.map((_, idx) => (
+                                                {imeis.map((imei, idx) => {
+                                                    const exec = category.executions.find(e => (e.demo_device?.imei === imei) || (e.demo_device?.device_serial_no === imei));
+                                                    // use index if match fails
+                                                    const execution = exec || category.executions[idx];
+                                                    const execStatus = execution?.status || "not_started";
+                                                    
+                                                    const isExecPass = execStatus === "pass" || execStatus === "completed";
+                                                    const isExecIncomplete = execStatus === "incomplete" || execStatus === "in_progress";
+                                                    
+                                                    return (
                                                     <TableCell key={idx} align="center" sx={{ verticalAlign: 'top', pt: 2, borderLeft: '1px solid #f0f0f0' }}>
-                                                        {isCompleted ? (
+                                                        {isExecPass ? (
                                                             <>
                                                                 <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
                                                                 <Typography variant="caption" display="block" color="text.secondary">Done</Typography>
                                                             </>
-                                                        ) : isUnlocked ? (
+                                                        ) : execStatus === "in_progress" ? (
                                                             <>
-                                                                <Chip label="incomplete" size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }} />
+                                                                <Chip label="In progress" size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#fff9c4', color: '#f57f17', borderRadius: 1 }} />
+                                                                <Button variant="outlined" size="small" sx={{ fontSize: '0.65rem', minWidth: '60px', p: '2px 8px', mb: 0.5, display: 'block', mx: 'auto' }} onClick={() => handleRefreshLog(execution.id)}>
+                                                                    Refresh Log
+                                                                </Button>
+                                                                {execution.test_log_snapshot && (
+                                                                    <Box sx={{ my: 1, textAlign: 'left', lineHeight: 1.2 }}>
+                                                                        {(() => {
+                                                                            let logStr = "";
+                                                                            if (typeof execution.test_log_snapshot === 'string') {
+                                                                                logStr = execution.test_log_snapshot;
+                                                                            } else if (typeof execution.test_log_snapshot === 'object' && execution.test_log_snapshot !== null) {
+                                                                                if (execution.test_log_snapshot.matched_count !== undefined) {
+                                                                                    logStr = `pass: ${execution.test_log_snapshot.pass} | matched: ${execution.test_log_snapshot.matched_count}/${execution.test_log_snapshot.required || '?'}\n${execution.test_log_snapshot.reason || ''}`;
+                                                                                } else {
+                                                                                    logStr = JSON.stringify(execution.test_log_snapshot, null, 2);
+                                                                                }
+                                                                            } else {
+                                                                                logStr = String(execution.test_log_snapshot);
+                                                                            }
+                                                                            return logStr.split('\n').map((line, i) => (
+                                                                                <Typography key={i} variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                                                                                    {line}
+                                                                                </Typography>
+                                                                            ));
+                                                                        })()}
+                                                                    </Box>
+                                                                )}
+                                                                <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', display: 'block', mx: 'auto', '&:hover': { bgcolor: '#283593' } }} onClick={() => handleCompleteTest(execution.id)}>
+                                                                    Complete
+                                                                </Button>
+                                                            </>
+                                                        ) : (isUnlocked || isExecIncomplete) ? (
+                                                            <>
+                                                                <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }} />
                                                                 <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', '&:hover': { bgcolor: '#283593' } }} onClick={() => {
-                                                                    // Advance step on any start click for mockup
-                                                                    if (idx === 4) setActiveTestId(s => s + 1);
+                                                                    if (execution?.demo_device?.id) {
+                                                                        handleStartTest(step.id, execution.demo_device.id);
+                                                                    }
                                                                 }}>Start</Button>
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <Chip label="not_started" size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#f5f5f5', color: '#757575', borderRadius: 1 }} />
+                                                                <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#f5f5f5', color: '#757575', borderRadius: 1 }} />
                                                                 <Typography variant="caption" color="text.secondary" display="block">locked</Typography>
                                                             </>
                                                         )}
                                                     </TableCell>
-                                                ))}
+                                                    );
+                                                })}
                                             </TableRow>
                                         );
                                     })}
@@ -892,10 +1000,7 @@ const TrackerRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize }) => {
                 )}
             </TableCell>
             <TableCell>
-                {!isStateAdmin && statusKey === "submitted" && (
-                    <Button variant="contained" color="secondary" size="small" onClick={() => onMarkReceived(row)}>Mark Received</Button>
-                )}
-                {!isStateAdmin && statusKey === "devices_received" && (
+                {!isStateAdmin && (statusKey === "submitted" || statusKey === "devices_received") && (
                     <Button variant="contained" color="info" size="small" onClick={() => onMarkOngoing(row)}>Start Testing</Button>
                 )}
                 {!isStateAdmin && statusKey === "ongoing_evaluation" && (
