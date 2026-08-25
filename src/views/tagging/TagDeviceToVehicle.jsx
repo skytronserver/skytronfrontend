@@ -25,7 +25,7 @@ const STEPS = [
   { label: 'Vehicle & Vahan',    icon: DirectionsCar,  color: '#7c3aed' },
   { label: 'eSIM / M2M Check',   icon: SimCard,        color: '#0891b2' },
   { label: 'Dealer OTP',         icon: LockOutlined,   color: '#d97706' },
-  { label: 'GPS Packets',        icon: SatelliteAlt,   color: '#059669' },
+  { label: 'Tagging Packets',        icon: SatelliteAlt,   color: '#059669' },
   { label: 'Owner OTP',          icon: EmojiEvents,    color: '#dc2626' },
 ];
 
@@ -89,21 +89,56 @@ export default function TagDeviceToVehicle() {
   const handleAlertClose = () => setAlert((p) => ({ ...p, open: false }));
 
   // ── resume from entries list ─────────────────────────────────────────────
-  const handleResume = useCallback((entry) => {
-    let resumeStep = 0;
-    for (let s = 1; s <= 5; s++) {
-      if (!entry[`step${s}_completed_at`]) { resumeStep = s - 1; break; }
-      if (s === 5) resumeStep = 5; // all done
-    }
-    setSession({
-      id: entry.id,
-      vahan: null, // not needed for resume
-      dateOfRegistration: entry.date_of_registration || null,
-    });
-    setActiveStep(resumeStep);
-    setTab(0);   // switch to form tab
-    setAlert({ open: true, type: 'info', message: `Resuming entry #${entry.id} from Step ${resumeStep + 1}.` });
-  }, []);
+ const handleResume = useCallback((entry) => {
+  if (!entry?.id) {
+    console.error('Cannot resume: entry ID is missing', entry);
+    return;
+  }
+
+  // Backend current_step is 1-based.
+  // React activeStep is 0-based.
+  //
+  // API:
+  // current_step = 2 -> React activeStep = 1 -> Step 2
+  // current_step = 3 -> React activeStep = 2 -> Step 3
+  // current_step = 4 -> React activeStep = 3 -> Step 4
+  // current_step = 5 -> React activeStep = 4 -> Step 5
+
+  const apiCurrentStep = Number(entry.current_step);
+
+  let resumeStep;
+
+  if (
+    Number.isInteger(apiCurrentStep) &&
+    apiCurrentStep >= 2 &&
+    apiCurrentStep <= 5
+  ) {
+    resumeStep = apiCurrentStep - 1;
+  } else if (apiCurrentStep === 6 || entry.is_completed) {
+    // Entry is already completed.
+    console.warn(`Entry #${entry.id} is already completed.`);
+    return;
+  } else {
+    // Fallback for unexpected/missing current_step.
+    resumeStep = 0;
+  }
+
+
+  setSession({
+    id: entry.id,
+    vahan: null,
+    dateOfRegistration: entry.date_of_registration || null,
+  });
+
+  setActiveStep(resumeStep);
+  setTab(0);
+
+  setAlert({
+    open: true,
+    type: 'info',
+    message: `Resuming entry #${entry.id} from Step ${apiCurrentStep}.`,
+  });
+}, []);
 
   // ── step success handlers ─────────────────────────────────────────────────
   const onStep1Success = useCallback(({ id, vahan }) => {

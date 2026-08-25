@@ -3,7 +3,7 @@ import * as Yup from "yup";
 export const m2mApiConfigInitials = {
   apiUrl: "",
   token: "",
-  sampleImei: "",
+  sampleIccid: "",
 };
 
 export const m2mApiConfigField = {
@@ -19,10 +19,11 @@ export const m2mApiConfigField = {
     label: "Token",
     validation: Yup.string().required("Token is required"),
   },
-  sampleImei: {
-    name: "sampleImei",
+  sampleIccid: {
+    name: "sampleIccid",
     type: "text",
-    label: "Sample IMEI",
-    validation: Yup.string().required("Sample IMEI is required"),
-  }
+    label: "Sample ICCID",
+    validation: Yup.string()
+      .required("Sample ICCID is required"),
+  },
 };

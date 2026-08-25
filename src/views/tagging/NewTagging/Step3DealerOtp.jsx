@@ -127,7 +127,7 @@ export default function Step3DealerOtp({ entryId, onSuccess, setAlert }) {
               : <><CheckCircle sx={{ fontSize: 18, mr: 1 }} /> Verify OTP</>}
           </Button>
         </Box>
-        
+
         {/* Timer / Resend */}
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
           {timer > 0 ? (

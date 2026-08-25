@@ -8,7 +8,8 @@ import {
 } from '@mui/material';
 import {
   PlayArrow, Refresh, Search, CheckCircle, RadioButtonUnchecked,
-  FilterList, AccessTime,
+  FilterList, AccessTime, ContentCopy,
+  Check,
 } from '@mui/icons-material';
 import NewTaggingService from '../../../services/NewTaggingService';
 
@@ -29,35 +30,125 @@ const StepBadge = ({ done, step }) => (
   </Tooltip>
 );
 
-const StepProgress = ({ entry }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-    {[1, 2, 3, 4, 5].map((s) => (
-      <React.Fragment key={s}>
-        <StepBadge done={!!entry[`step${s}_completed_at`]} step={s} />
-        {s < 5 && (
-          <Box sx={{ width: 12, height: 2, background: entry[`step${s}_completed_at`] && entry[`step${s + 1}_completed_at`] ? '#16a34a' : '#e2e8f0', borderRadius: 1 }} />
-        )}
-      </React.Fragment>
-    ))}
-  </Box>
-);
+const StepProgress = ({ entry }) => {
+  const steps = Array.isArray(entry?.steps) ? entry.steps : [];
+
+  const isStepDone = (stepNumber) => {
+    const step = steps.find((item) => item.step === stepNumber);
+    return !!step?.completed;
+  };
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <React.Fragment key={s}>
+          <StepBadge
+            done={isStepDone(s)}
+            step={s}
+          />
+
+          {s < 5 && (
+            <Box
+              sx={{
+                width: 12,
+                height: 2,
+                background:
+                  isStepDone(s) && isStepDone(s + 1)
+                    ? '#16a34a'
+                    : '#e2e8f0',
+                borderRadius: 1,
+              }}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </Box>
+  );
+};
+
+
 
 // ─── current step label ───────────────────────────────────────────────────────
 const currentStepOf = (entry) => {
-  for (let s = 5; s >= 1; s--) {
-    if (entry[`step${s}_completed_at`]) return s === 5 ? 'Complete' : `Resume from Step ${s + 1}`;
+  if (entry?.is_completed) {
+    return 'Complete';
   }
-  return 'Resume from Step 1';
+
+  return entry?.current_step_label
+    || `Resume from Step ${entry?.current_step || 1}`;
+};
+
+const CopyRowButton = ({ entry }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (e) => {
+    e.stopPropagation();
+
+    const rowText = `
+IMEI: ${entry.imei || '-'}
+ICCID: ${entry.iccid || '-'}
+// Vehicle No: ${entry.vehicle_reg_no || '-'}
+// Chassis No: ${entry.chassis_no || '-'}
+Owner Name: ${entry.vehicle_owner?.name || '-'}
+Mobile No: ${entry.vehicle_owner?.mobile || '-'}
+Created: ${entry.created_at
+        ? new Date(entry.created_at).toLocaleDateString('en-IN')
+        : '-'
+      }
+Status: ${entry.current_step_label || '-'}
+Current Step: ${entry.current_step || '-'}
+Manufacturer: ${entry.manufacturer?.company_name || '-'}
+Model: ${entry.device_model?.model_name || '-'}
+eSIM Provider: ${entry.esim_provider?.company_name || '-'}
+District: ${entry.district?.district || '-'}
+Category: ${entry.category?.category || '-'}
+`;
+
+    try {
+      await navigator.clipboard.writeText(rowText.trim());
+
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 1500);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
+  };
+
+  return (
+    <Tooltip title={copied ? 'Copied' : 'Copy row details'}>
+      <IconButton
+        size="small"
+        onClick={handleCopy}
+        sx={{
+          color: copied ? '#16a34a' : '#64748b',
+          mr: 0.5,
+          '&:hover': {
+            background: '#f3f4f6',
+            color: copied ? '#16a34a' : '#7c3aed',
+          },
+        }}
+      >
+        {copied ? (
+          <Check sx={{ fontSize: 18 }} />
+        ) : (
+          <ContentCopy sx={{ fontSize: 18 }} />
+        )}
+      </IconButton>
+    </Tooltip>
+  );
 };
 
 // ─── filter toggle ────────────────────────────────────────────────────────────
 const FILTERS = [
-  { value: 'all',    label: 'All' },
-  { value: '1',      label: 'Step 1 done' },
-  { value: '2',      label: 'Step 2 done' },
-  { value: '3',      label: 'Step 3 done' },
-  { value: '4',      label: 'Step 4 done' },
-  { value: 'done',   label: 'Completed' },
+  { value: 'all', label: 'All' },
+  { value: '2', label: 'eSIM pending' },
+  { value: '3', label: 'Dealer OTP pending' },
+  { value: '4', label: 'Tracking pending' },
+  { value: '5', label: 'Owner OTP pending' },
+  { value: 'done', label: 'Completed' },
 ];
 
 // ─── main ─────────────────────────────────────────────────────────────────────
@@ -69,14 +160,31 @@ export default function MyTaggingEntries({ onResume }) {
 
   const load = useCallback(async () => {
     setLoading(true);
+
     try {
       const params = {};
-      if (filter !== 'all' && filter !== 'done') params.step = Number(filter);
-      if (filter === 'done') params.completed = true;
+
+      // API expects current_step, not step
+      if (filter !== 'all' && filter !== 'done') {
+        params.current_step = Number(filter);
+      }
+
+      // API expects is_completed, not completed
+      if (filter === 'done') {
+        params.is_completed = true;
+      }
+
       const res = await NewTaggingService.getMyEntries(params);
-      setEntries(res?.data?.results || res?.data || []);
+
+
+      const apiEntries = Array.isArray(res?.data?.data)
+        ? res.data.data
+        : [];
+
+      setEntries(apiEntries);
     } catch (e) {
-      console.error('Failed to load entries', e);
+      console.error('Failed to load entries:', e);
+      setEntries([]);
     } finally {
       setLoading(false);
     }
@@ -143,18 +251,21 @@ export default function MyTaggingEntries({ onResume }) {
           <Typography variant="body2" color="text.secondary">Start a new tagging session using the form on the left.</Typography>
         </Paper>
       ) : (
-        <TableContainer component={Paper} elevation={0} sx={{ border: '1.5px solid #e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer component={Paper} elevation={0} sx={{
+          border: '1.5px solid #e2e8f0', borderRadius: 3, overflowX: 'auto',
+          overflowY: 'hidden',
+        }}>
           <Table size="small">
             <TableHead>
               <TableRow sx={{ background: '#f8fafc' }}>
-                {['ID', 'IMEI', 'ICCID', 'Owner', 'Created', 'Steps', 'Status', ''].map((h) => (
+                {['ID', 'IMEI', 'ICCID', 'Owner', 'Mobile No.', 'Created', 'Steps', 'Status', ''].map((h) => (
                   <TableCell key={h} sx={{ fontWeight: 700, color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', py: 1.5, whiteSpace: 'nowrap' }}>{h}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {filtered.map((entry) => {
-                const isComplete = !!entry.step5_completed_at;
+                const isComplete = !!entry.is_completed;
                 const label = currentStepOf(entry);
                 return (
                   <TableRow
@@ -165,7 +276,25 @@ export default function MyTaggingEntries({ onResume }) {
                     <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#64748b' }}>#{entry.id}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600 }}>{entry.imei || '—'}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#475569' }}>{entry.iccid || '—'}</TableCell>
-                    <TableCell sx={{ fontSize: '0.82rem' }}>{entry.owner_name || '—'}</TableCell>
+                    <TableCell sx={{ fontSize: '0.82rem', minWidth: 120 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {entry.vehicle_owner?.name || '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.82rem', minWidth: 130 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: '#475569',
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {entry.vehicle_owner?.mobile || '—'}
+                      </Typography>
+                    </TableCell>
                     <TableCell sx={{ fontSize: '0.78rem', color: '#64748b', whiteSpace: 'nowrap' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <AccessTime sx={{ fontSize: 13, color: '#94a3b8' }} />
@@ -187,24 +316,53 @@ export default function MyTaggingEntries({ onResume }) {
                         }}
                       />
                     </TableCell>
-                    <TableCell>
-                      {!isComplete && (
-                        <Button
-                          size="small"
-                          variant="contained"
-                          startIcon={<PlayArrow sx={{ fontSize: 16 }} />}
-                          onClick={() => onResume(entry)}
-                          sx={{
-                            textTransform: 'none', fontWeight: 700, fontSize: '0.78rem',
-                            borderRadius: 1.5, px: 1.5, py: 0.5,
-                            background: 'linear-gradient(135deg, #7c3aed, #5b21b6)',
-                            boxShadow: 'none',
-                            '&:hover': { background: 'linear-gradient(135deg, #6d28d9, #4c1d95)' },
-                          }}
-                        >
-                          Resume
-                        </Button>
-                      )}
+                    <TableCell
+                      sx={{
+                        whiteSpace: 'nowrap',
+                        minWidth: 130,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                        }}
+                      >
+                        {/* Copy button - ALWAYS visible */}
+                        <CopyRowButton entry={entry} />
+
+                        {/* Resume button - only for incomplete entries */}
+                        {!isComplete && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            startIcon={<PlayArrow sx={{ fontSize: 16 }} />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onResume(entry);
+                            }}
+                            sx={{
+                              textTransform: 'none',
+                              fontWeight: 700,
+                              fontSize: '0.78rem',
+                              borderRadius: 1.5,
+                              px: 1.5,
+                              py: 0.5,
+                              background:
+                                'linear-gradient(135deg, #7c3aed, #5b21b6)',
+                              boxShadow: 'none',
+                              whiteSpace: 'nowrap',
+                              '&:hover': {
+                                background:
+                                  'linear-gradient(135deg, #6d28d9, #4c1d95)',
+                              },
+                            }}
+                          >
+                            Resume
+                          </Button>
+                        )}
+                      </Box>
                     </TableCell>
                   </TableRow>
                 );

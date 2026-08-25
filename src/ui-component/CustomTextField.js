@@ -294,9 +294,19 @@ const FormField = ({
             formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
           onChange={(event) => {
-            formik.handleChange(event);
-            handleOptionChange && handleOptionChange(event, formik);
-          }}
+        // Update Formik value
+        formik.handleChange(event);
+
+        // Existing generic handler
+        handleOptionChange &&
+          handleOptionChange(event, formik);
+
+        // IMPORTANT:
+        // Call parent's onChange
+        // This is required for dependent dropdowns
+        onChange &&
+          onChange(event);
+      }}
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
