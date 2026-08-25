@@ -342,6 +342,15 @@ const user = {
       roles: ["esimprovider"],
     },
     {
+      id: "provider-esim-extension-requests",
+      title: "eSIM Extension Requests",
+      type: "item",
+      url: "/device/esim-extension-requests",
+      icon: icons.IconCalendarTime,
+      breadcrumbs: false,
+      roles: ["esimprovider"],
+    },
+    {
       id: "check-m2m-status",
       title: "Check M2M Status",
       type: "item",
@@ -358,6 +367,15 @@ const user = {
       icon: icons.IconDeviceSim1,
       breadcrumbs: false,
       roles: ["dealer"],
+    },
+    {
+      id: "esim-validity-extension",
+      title: "eSIM Validity Extension",
+      type: "item",
+      url: "/device/esim-validity-extension",
+      icon: icons.IconCalendarTime,
+      breadcrumbs: false,
+      roles: ["dealer", "devicemanufacture"],
     },
     // device management
     {
