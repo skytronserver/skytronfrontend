@@ -4,6 +4,7 @@ export const m2mApiConfigInitials = {
   apiUrl: "",
   token: "",
   sampleIccid: "",
+  deviceIpRange: "",
 };
 
 export const m2mApiConfigField = {
@@ -25,5 +26,11 @@ export const m2mApiConfigField = {
     label: "Sample ICCID",
     validation: Yup.string()
       .required("Sample ICCID is required"),
+  },
+  deviceIpRange: {
+    name: "deviceIpRange",
+    type: "text",
+    label: "Device IP Range",
+    validation: Yup.string().required("Device IP Range is required"),
   },
 };

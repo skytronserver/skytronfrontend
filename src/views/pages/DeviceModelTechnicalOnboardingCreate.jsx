@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Autocomplete,
@@ -155,6 +156,7 @@ const formatHealthTime = (ts) => {
 };
 
 const DeviceModelTechnicalOnboardingCreate = () => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
 
   /* ── form state ── */
@@ -391,7 +393,9 @@ const DeviceModelTechnicalOnboardingCreate = () => {
       if (response?.data?.id || response?.id) {
         setOnboardingRequestId(response?.data?.id || response?.id);
       }
-      showAlert("success", "Technical onboarding request created successfully! You can now click Next to proceed to Courier Tracking.");
+      showAlert("success", "Technical onboarding request created successfully! Please enter Courier Tracking details.");
+      // Automatically advance to the next step so the VLTD form details are "gone"
+      setActiveStep(4);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -455,6 +459,10 @@ const DeviceModelTechnicalOnboardingCreate = () => {
       await DeviceModelServices.updateCourierTracking(payload);
       showAlert("success", "Courier tracking details updated successfully!");
       resetForm();
+      // Redirect to the list page after final submission
+      setTimeout(() => {
+        navigate("/manufacturer/technical-onboarding/list");
+      }, 1500);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
