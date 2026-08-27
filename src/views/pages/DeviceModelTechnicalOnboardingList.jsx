@@ -107,7 +107,7 @@ const StatusChip = ({ status }) => {
 };
 
 /* ─── collapsible row ─── */
-const RequestRow = ({ row, index }) => {
+const RequestRow = ({ row, index, testBoardProgress }) => {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -117,18 +117,65 @@ const RequestRow = ({ row, index }) => {
         try { return JSON.parse(row.demo_devices); } catch { return []; }
     }, [row.demo_devices]);
 
+    const allDevicesReceived = demoDevices.length > 0 && demoDevices.every(d => d.receipt_confirmed);
+
     const hasReport = row.final_comment || row.compatibility_report_pdf || row.report || row.comment || row.remarks;
 
     const statusKey = String(row.status ?? "").trim().toLowerCase();
-    
-    // Map status to steps
-    let activeStep = 0;
-    if (statusKey === "submitted") activeStep = 1;
-    else if (statusKey === "ongoing_evaluation") activeStep = 3;
-    else if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved") activeStep = 5;
-    else if (statusKey === "technically_not_compatible" || statusKey === "rejected") activeStep = 2;
+    const isOngoingEval = statusKey === "ongoing_evaluation";
+    const tbProgress = testBoardProgress?.[row.id];
 
-    const STEPS = ["Submitted", "Document Check", "Functional Check", "Protocol Check", "Final Review"];
+    // Compute steps display from real data
+    const stepsDisplay = useMemo(() => {
+        // Guard against dummy DB data: if admin hasn't confirmed devices, testing mathematically cannot have started
+        if (!allDevicesReceived) {
+            return null;
+        }
+
+        // No steps to show before testing starts
+        if (statusKey === "submitted" || statusKey === "devices_received" || statusKey === "pending" || statusKey === "stock_received") {
+            return null;
+        }
+
+        if (isOngoingEval && tbProgress) {
+            // Use real test board data
+            const total = tbProgress.total || 0;
+            const completed = tbProgress.completed || 0;
+            const currentTestName = tbProgress.currentTestName || "";
+            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            return {
+                label: `${completed} / ${total} Tests Completed`,
+                pct,
+                pending: completed < total
+                    ? `In Progress: ${currentTestName}`
+                    : "All tests completed",
+                color: completed === total ? "success" : "primary",
+            };
+        }
+
+        // Finalized statuses
+        const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
+        if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
+            return {
+                label: "Testing Completed",
+                pct: 100,
+                pending: isFailed ? "Not Compatible" : "All tests completed",
+                color: isFailed ? "error" : "success",
+            };
+        }
+
+        // ongoing_evaluation without test board data yet
+        if (isOngoingEval) {
+            return {
+                label: "Testing In Progress",
+                pct: 0,
+                pending: "Loading test progress...",
+                color: "primary",
+            };
+        }
+
+        return null;
+    }, [statusKey, isOngoingEval, tbProgress, allDevicesReceived]);
 
     return (
         <>
@@ -155,44 +202,36 @@ const RequestRow = ({ row, index }) => {
                     </Typography>
                 </TableCell>
 
-                {/* status */}
-                <TableCell sx={{ py: 1 }}>
-                    <StatusChip status={row.status} />
-                </TableCell>
+                {/* status removed - redundant with STEPS column */}
                 
                 {/* action required / progress */}
                 <TableCell sx={{ py: 1, minWidth: 200 }}>
-                    <Stack spacing={1}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography variant="caption" fontWeight={600}>
-                                {activeStep} / {STEPS.length} Completed
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                                {Math.round((activeStep / STEPS.length) * 100)}%
+                    {stepsDisplay ? (
+                        <Stack spacing={1} sx={{ py: 1 }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                <Typography variant="body2" fontWeight={600}>
+                                    {stepsDisplay.label}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                    {stepsDisplay.pct}%
+                                </Typography>
+                            </Stack>
+                            <LinearProgress 
+                                variant="determinate" 
+                                value={stepsDisplay.pct} 
+                                color={stepsDisplay.color}
+                                sx={{ height: 6, borderRadius: 3 }}
+                            />
+                            <Typography variant="caption" color="text.secondary">
+                                {stepsDisplay.pending}
                             </Typography>
                         </Stack>
-                        <LinearProgress 
-                            variant="determinate" 
-                            value={(activeStep / STEPS.length) * 100} 
-                            color={statusKey === "technically_not_compatible" || statusKey === "rejected" ? "error" : activeStep === STEPS.length ? "success" : "primary"}
-                            sx={{ height: 6, borderRadius: 3 }}
-                        />
-                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-                            {activeStep < STEPS.length 
-                                ? (statusKey === "technically_not_compatible" || statusKey === "rejected" 
-                                    ? `Failed at: ${STEPS[activeStep]}`
-                                    : `Pending: ${STEPS[activeStep]}`)
-                                : "All steps completed"}
-                        </Typography>
-                    </Stack>
+                    ) : (
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Testing not started</Typography>
+                    )}
                 </TableCell>
 
-                {/* evaluation datetime */}
-                <TableCell sx={{ py: 1 }}>
-                    <Typography variant="body2" fontWeight={500}>
-                        {formatDateTime(row.evaluation_datetime)}
-                    </Typography>
-                </TableCell>
+                {/* evaluation datetime removed */}
 
                 {/* device model */}
                 <TableCell sx={{ py: 1 }}>
@@ -237,6 +276,66 @@ const RequestRow = ({ row, index }) => {
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ py: 2, px: 2 }}>
                             <Grid container spacing={2}>
+
+                                {/* VLTD Demo Devices Table */}
+                                {demoDevices.length > 0 && (
+                                    <Grid item xs={12}>
+                                        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                            <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
+                                                <SimCardIcon color="primary" fontSize="small" />
+                                                <Typography variant="subtitle2" fontWeight={700}>
+                                                    VLTD Devices ({demoDevices.length})
+                                                </Typography>
+                                            </Stack>
+                                            <Divider sx={{ mb: 1.5 }} />
+                                            <TableContainer sx={{ borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                                                <Table size="small">
+                                                    <TableHead sx={{ bgcolor: 'grey.50' }}>
+                                                        <TableRow>
+                                                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Device</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>IMEI / Serial No.</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>CCID / MSISDN (SIM 1)</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>CCID / MSISDN (SIM 2)</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', align: 'right' }}>Status</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {demoDevices.map((device, i) => (
+                                                            <TableRow key={i} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                                <TableCell sx={{ py: 1 }}>
+                                                                    <Typography variant="caption" color="primary" fontWeight={700}>
+                                                                        #{i + 1}
+                                                                    </Typography>
+                                                                </TableCell>
+                                                                <TableCell sx={{ py: 1 }}>
+                                                                    <Typography variant="caption" display="block" color="text.secondary">IMEI: {device.imei}</Typography>
+                                                                    <Typography variant="caption" display="block" color="text.secondary">SN: {device.device_serial_no || device.serial_no}</Typography>
+                                                                </TableCell>
+                                                                <TableCell sx={{ py: 1 }}>
+                                                                    <Typography variant="caption" display="block" color="text.secondary">CCID: {device.ccid1}</Typography>
+                                                                    <Typography variant="caption" display="block" color="text.secondary">MSISDN: {device.msisdn1}</Typography>
+                                                                </TableCell>
+                                                                <TableCell sx={{ py: 1 }}>
+                                                                    <Typography variant="caption" display="block" color="text.secondary">CCID: {device.ccid2}</Typography>
+                                                                    <Typography variant="caption" display="block" color="text.secondary">MSISDN: {device.msisdn2}</Typography>
+                                                                </TableCell>
+                                                                <TableCell sx={{ py: 1, textAlign: 'right' }}>
+                                                                    <Chip 
+                                                                        label={device.receipt_confirmed ? "Received" : "Pending"} 
+                                                                        color={device.receipt_confirmed ? "success" : "warning"}
+                                                                        variant="outlined" 
+                                                                        size="small" 
+                                                                        sx={{ fontSize: '0.65rem', height: 20 }}
+                                                                    />
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
+                                        </Paper>
+                                    </Grid>
+                                )}
 
                                 {/* Request Info */}
                                 <Grid item xs={12} md={6}>
@@ -305,51 +404,7 @@ const RequestRow = ({ row, index }) => {
                                     </Grid>
                                 )}
 
-                                {/* VLTD Demo Devices */}
-                                {demoDevices.length > 0 && (
-                                    <Grid item xs={12} md={6}>
-                                        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                                            <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
-                                                <SimCardIcon color="primary" fontSize="small" />
-                                                <Typography variant="subtitle2" fontWeight={700}>
-                                                    VLTD Demo Devices ({demoDevices.length})
-                                                </Typography>
-                                            </Stack>
-                                            <Divider sx={{ mb: 1.5 }} />
-                                            {demoDevices.map((device, i) => (
-                                                <Box key={i} mb={i < demoDevices.length - 1 ? 1.5 : 0}>
-                                                    <Typography variant="caption" color="primary" fontWeight={700} display="block" mb={0.5}>
-                                                        Device {i + 1}
-                                                    </Typography>
-                                                    <Grid container rowSpacing={0.25} columnSpacing={1}>
-                                                        {[
-                                                            ["Serial No", device.device_serial_no],
-                                                            ["IMEI", device.imei],
-                                                            ["CCID 1", device.ccid1],
-                                                            ["CCID 2", device.ccid2],
-                                                            ["MSISDN 1", device.msisdn1],
-                                                            ["MSISDN 2", device.msisdn2],
-                                                        ].map(([lbl, val]) =>
-                                                            val ? (
-                                                                <React.Fragment key={lbl}>
-                                                                    <Grid item xs={5}>
-                                                                        <Typography variant="caption" color="text.secondary">{lbl}</Typography>
-                                                                    </Grid>
-                                                                    <Grid item xs={7}>
-                                                                        <Typography variant="caption" fontWeight={600}>{val}</Typography>
-                                                                    </Grid>
-                                                                </React.Fragment>
-                                                            ) : null
-                                                        )}
-                                                    </Grid>
-                                                    {i < demoDevices.length - 1 && <Divider sx={{ mt: 1 }} />}
-                                                </Box>
-                                            ))}
-                                        </Paper>
-                                    </Grid>
-                                )}
 
-                                {/* Uploaded Documents */}
                                 {(row.user_manual_pdf || row.ot_command_list_pdf /* || row.compatibility_report_pdf */) && (
                                     <Grid item xs={12} md={6}>
                                         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
@@ -419,6 +474,8 @@ const DeviceModelTechnicalOnboardingList = () => {
     const [statusFilter, setStatusFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("");
 
+    const [testBoardProgress, setTestBoardProgress] = useState({});
+
     const loadData = useCallback(async () => {
         setError("");
         setLoading(true);
@@ -449,6 +506,49 @@ const DeviceModelTechnicalOnboardingList = () => {
     useEffect(() => {
         loadData();
     }, [loadData]);
+
+    // Fetch test board progress for ongoing rows
+    useEffect(() => {
+        const ongoingRows = rows.filter(r => String(r.status ?? "").trim().toLowerCase() === "ongoing_evaluation");
+        if (ongoingRows.length === 0) return;
+
+        const fetchProgress = async () => {
+            const progressMap = {};
+            await Promise.all(
+                ongoingRows.map(async (r) => {
+                    try {
+                        const res = await DeviceModelServices.getTestBoard({ onboarding_request_id: r.id });
+                        let categories = [];
+                        if (Array.isArray(res?.data)) categories = res.data;
+                        else if (res?.data?.rows) categories = res.data.rows;
+                        else if (res?.data?.categories) categories = res.data.categories;
+
+                        const total = categories.length;
+                        const completed = categories.filter(cat =>
+                            cat.executions && cat.executions.length > 0 &&
+                            cat.executions.every(e => e.status === "pass" || e.status === "completed")
+                        ).length;
+
+                        let currentTestName = "";
+                        for (const cat of categories) {
+                            const allDone = cat.executions && cat.executions.every(e => e.status === "pass" || e.status === "completed");
+                            if (!allDone) {
+                                currentTestName = cat.test_case?.name || `Test #${cat.test_case?.serial_no}`;
+                                break;
+                            }
+                        }
+
+                        progressMap[r.id] = { total, completed, currentTestName };
+                    } catch {
+                        // silently skip if test board fetch fails
+                    }
+                })
+            );
+            setTestBoardProgress(progressMap);
+        };
+
+        fetchProgress();
+    }, [rows]);
 
     const filteredRows = useMemo(() => {
         return rows.filter((r) => {
@@ -577,9 +677,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                                         <TableRow sx={{ bgcolor: "primary.main" }}>
                                             <TableCell sx={{ width: 40 }} />
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: 700, minWidth: 200 }}>Progress</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: 700 }}>Evaluation</TableCell>
+                                            <TableCell sx={{ color: "white", fontWeight: 700, minWidth: 200 }}>STEPS</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Report</TableCell>
                                         </TableRow>
@@ -587,7 +685,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                                     <TableBody>
                                         {paginatedRows.length > 0 ? (
                                             paginatedRows.map((row, idx) => (
-                                                <RequestRow key={row.id ?? idx} row={row} index={idx} />
+                                                <RequestRow key={row.id ?? idx} row={row} index={idx} testBoardProgress={testBoardProgress} />
                                             ))
                                         ) : (
                                             <TableRow>

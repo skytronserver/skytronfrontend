@@ -623,15 +623,17 @@ export const updateObjectValues = (targetObject, sourceObject, excludeKeys = [])
 };
 
 export const convertErrorObjectToArray = (errorObject) => {
+  if (!errorObject) return [];
   if (errorObject?.error) {
+    if (typeof errorObject.error === 'string') return [{ message: errorObject.error }];
     return errorObject?.error
   } else {
-    return Object.entries(errorObject).map(([key, value]) => ({
+    const targetObj = errorObject?.errors || errorObject;
+    return Object.entries(targetObj).map(([key, value]) => ({
       field: key,
-      message: value[0] // Assuming there's only one error message per field
+      message: Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : String(value))
     }));
   }
-
 };
 
 export const cipherEncryption = (salt) => {

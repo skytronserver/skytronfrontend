@@ -630,7 +630,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 /* ═══════════════════════════════════════════════════
    COLLAPSIBLE TABLE ROW
 ═══════════════════════════════════════════════════ */
-const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onMarkOngoing, onFinalize, onStateApprove, testBoardProgress }) => {
+const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmReceipt, onMarkOngoing, onFinalize, onStateApprove, testBoardProgress }) => {
     const [open, setOpen] = useState(false);
     const userRole = getRole();
     const isStateAdmin = userRole === "stateadmin";
@@ -640,6 +640,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onMarkOngoing, onFi
         if (Array.isArray(row.demo_devices)) return row.demo_devices;
         try { return JSON.parse(row.demo_devices); } catch { return []; }
     }, [row.demo_devices]);
+
+    const allDevicesReceived = demoDevices.length > 0 && demoDevices.every((d) => d.receipt_confirmed);
 
     const manufacturerName = useMemo(() => resolveManufacturer(row), [row]);
     const hasReport = row.final_comment || row.compatibility_report_pdf || row.report || row.comment || row.remarks;
@@ -657,8 +659,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onMarkOngoing, onFi
 
     // Compute steps display from real data
     const stepsDisplay = useMemo(() => {
-        // No steps to show before testing starts
-        if (statusKey === "submitted" || statusKey === "devices_received" || statusKey === "pending") {
+        // No steps to show before testing starts, or if devices haven't been fully confirmed
+        if (!allDevicesReceived || statusKey === "submitted" || statusKey === "devices_received" || statusKey === "pending") {
             return null;
         }
 
@@ -783,29 +785,16 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onMarkOngoing, onFi
                             </Typography>
                         </Stack>
                     ) : (
-                        <Typography variant="caption" color="text.secondary">—</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Testing not started</Typography>
                     )}
                 </TableCell>
 
-                {/* status */}
-                {!isStateAdmin && <TableCell sx={{ py: 1 }}><StatusChip status={row.status} /></TableCell>}
+
 
                 {/* actions */}
                 <TableCell sx={{ py: 1 }} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
-                        {isSubmitted && !isStateAdmin && (
-                            <Tooltip title="Accept & Confirm Receipt of Devices">
-                                <Button
-                                    size="small" variant="contained" color="success"
-                                    startIcon={<CheckCircleIcon fontSize="small" />}
-                                    onClick={() => onConfirmReceipt(row)}
-                                    sx={{ whiteSpace: "nowrap", fontSize: "0.72rem" }}
-                                >
-                                    Accept
-                                </Button>
-                            </Tooltip>
-                        )}
-                        {statusKey === "devices_received" && !isStateAdmin && (
+                        {(isSubmitted || statusKey === "pending" || statusKey === "devices_received" || statusKey === "stock_received") && !isStateAdmin && allDevicesReceived && (
                             <Tooltip title="Start Testing">
                                 <Button
                                     size="small" variant="contained" color="info"
@@ -817,7 +806,12 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onMarkOngoing, onFi
                                 </Button>
                             </Tooltip>
                         )}
-                        {isOngoingEval && !isStateAdmin && (
+                        {!allDevicesReceived && !isStateAdmin && (
+                            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                Confirm 5 devices first
+                            </Typography>
+                        )}
+                        {isOngoingEval && !isStateAdmin && allDevicesReceived && (
                             <Tooltip title="Complete Testing & Finalize">
                                 <Button
                                     size="small" variant="contained" color="primary"
@@ -877,6 +871,74 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onMarkOngoing, onFi
                         <Box sx={{ py: 2, px: 2 }}>
                             <Grid container spacing={2}>
 
+                                {/* Devices */}
+                                {demoDevices.length > 0 && (
+                                    <Grid item xs={12}>
+                                        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                            <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
+                                                <SimCardIcon color="primary" fontSize="small" />
+                                                <Typography variant="subtitle2" fontWeight={700}>
+                                                    VLTD Devices ({demoDevices.length})
+                                                </Typography>
+                                            </Stack>
+                                            <TableContainer sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
+                                                <Table size="small">
+                                                    <TableHead sx={{ bgcolor: "grey.50" }}>
+                                                        <TableRow>
+                                                            <TableCell sx={{ fontWeight: 600 }}>Device</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }}>IMEI / Serial No.</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }}>CCID / MSISDN (SIM 1)</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }}>CCID / MSISDN (SIM 2)</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }} align="right">Status</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {demoDevices.map((device, i) => (
+                                                            <TableRow key={i} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" color="primary" fontWeight={700}>
+                                                                        #{i + 1}
+                                                                    </Typography>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" display="block"><b>IMEI:</b> {device.imei || "—"}</Typography>
+                                                                    <Typography variant="caption" color="text.secondary"><b>SN:</b> {device.device_serial_no || "—"}</Typography>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" display="block"><b>CCID:</b> {device.ccid1 || "—"}</Typography>
+                                                                    <Typography variant="caption" color="text.secondary"><b>MSISDN:</b> {device.msisdn1 || "—"}</Typography>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" display="block"><b>CCID:</b> {device.ccid2 || "—"}</Typography>
+                                                                    <Typography variant="caption" color="text.secondary"><b>MSISDN:</b> {device.msisdn2 || "—"}</Typography>
+                                                                </TableCell>
+                                                                <TableCell align="right">
+                                                                    {device.receipt_confirmed ? (
+                                                                        <Chip label="Received" size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: "0.65rem" }} />
+                                                                    ) : (
+                                                                        <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
+                                                                            <Chip label="Pending" size="small" color="warning" variant="outlined" sx={{ height: 20, fontSize: "0.65rem" }} />
+                                                                            <Button 
+                                                                                size="small" 
+                                                                                variant="contained" 
+                                                                                color="primary"
+                                                                                sx={{ fontSize: "0.65rem", py: 0, px: 1, minWidth: 0, height: 24, whiteSpace: "nowrap" }}
+                                                                                onClick={(e) => { e.stopPropagation(); onDeviceConfirmReceipt(row.id, device.id); }}
+                                                                            >
+                                                                                Confirm Receipt
+                                                                            </Button>
+                                                                        </Stack>
+                                                                    )}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
+                                        </Paper>
+                                    </Grid>
+                                )}
+
                                 {/* Manufacturer */}
                                 <Grid item xs={12} md={6}>
                                     <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
@@ -930,43 +992,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onMarkOngoing, onFi
                                     </Grid>
                                 )}
 
-                                {/* Demo Devices */}
-                                {demoDevices.length > 0 && (
-                                    <Grid item xs={12} md={6}>
-                                        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                                            <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
-                                                <SimCardIcon color="primary" fontSize="small" />
-                                                <Typography variant="subtitle2" fontWeight={700}>
-                                                    VLTD Demo Devices ({demoDevices.length})
-                                                </Typography>
-                                            </Stack>
-                                            <Divider sx={{ mb: 1.5 }} />
-                                            {demoDevices.map((device, i) => (
-                                                <Box key={i} mb={i < demoDevices.length - 1 ? 1.5 : 0}>
-                                                    <Typography variant="caption" color="primary" fontWeight={700} display="block" mb={0.5}>
-                                                        Device {i + 1}
-                                                    </Typography>
-                                                    <Grid container rowSpacing={0.25} columnSpacing={1}>
-                                                        {[
-                                                            ["Serial No", device.device_serial_no],
-                                                            ["IMEI", device.imei],
-                                                            ["CCID 1", device.ccid1],
-                                                            ["CCID 2", device.ccid2],
-                                                            ["MSISDN 1", device.msisdn1],
-                                                            ["MSISDN 2", device.msisdn2],
-                                                        ].map(([lbl, val]) => val ? (
-                                                            <React.Fragment key={lbl}>
-                                                                <Grid item xs={5}><Typography variant="caption" color="text.secondary">{lbl}</Typography></Grid>
-                                                                <Grid item xs={7}><Typography variant="caption" fontWeight={600}>{val}</Typography></Grid>
-                                                            </React.Fragment>
-                                                        ) : null)}
-                                                    </Grid>
-                                                    {i < demoDevices.length - 1 && <Divider sx={{ mt: 1 }} />}
-                                                </Box>
-                                            ))}
-                                        </Paper>
-                                    </Grid>
-                                )}
+
 
                                 {/* Documents */}
                                 {(row.user_manual_pdf || row.ot_command_list_pdf || row.compatibility_report_pdf) && (
@@ -1193,6 +1219,25 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
         setActionMsg({ type: "success", text: `Request #${id} marked as Ongoing Evaluation.` });
     }, [loadData]);
 
+    const handleStartTesting = async (row) => {
+        setLoading(true);
+        try {
+            const payload = { 
+                onboarding_request_id: row.id,
+                evaluation_datetime: new Date().toISOString()
+            };
+            await DeviceModelServices.markTechnicalOnboardingOngoing(payload);
+            setActionMsg({ type: "success", text: `Testing started for Request #${row.id}.` });
+            loadData();
+            // Automatically open the testing board dialog
+            setFinalizeDialog({ open: true, row: { ...row, status: "ongoing_evaluation" } });
+        } catch (err) {
+            setActionMsg({ type: "error", text: extractError(err) });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleFinalizeSuccess = useCallback((id, decision) => {
         setFinalizeDialog({ open: false, row: null });
         loadData();
@@ -1202,18 +1247,6 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
         });
     }, [loadData]);
 
-    const handleMarkReceived = async (row) => {
-        if (!window.confirm("Confirm that you have physically received all 5 VLTD devices for this request?")) return;
-        setLoading(true);
-        try {
-            await DeviceModelServices.markTechnicalOnboardingDevicesReceived({ onboarding_request_id: row.id });
-            setActionMsg({ type: "success", text: `Request #${row.id} marked as devices received.` });
-            loadData();
-        } catch (err) {
-            setActionMsg({ type: "error", text: extractError(err) });
-            setLoading(false);
-        }
-    };
 
     const handleConfirmReceipt = async (row) => {
         if (!window.confirm("Accept this technical onboarding request?")) return;
@@ -1223,6 +1256,21 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                 onboarding_request_id: row.id,
             });
             setActionMsg({ type: "success", text: `Request #${row.id} accepted successfully.` });
+            loadData();
+        } catch (err) {
+            setActionMsg({ type: "error", text: extractError(err) });
+            setLoading(false);
+        }
+    };
+
+    const handleDeviceConfirmReceipt = async (rowId, deviceId) => {
+        setLoading(true);
+        try {
+            await DeviceModelServices.confirmReceipt({
+                onboarding_request_id: rowId,
+                demo_device_id: deviceId,
+            });
+            setActionMsg({ type: "success", text: `Device receipt confirmed successfully.` });
             loadData();
         } catch (err) {
             setActionMsg({ type: "error", text: extractError(err) });
@@ -1373,7 +1421,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>IMEI(s)</TableCell>
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>STEPS</TableCell>
-                                                    {!isStateAdmin && <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>}
+
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>Actions</TableCell>
                                                 </TableRow>
                                             </TableHead>
@@ -1382,9 +1430,9 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                                                     <RequestRow
                                                         key={row.id ?? idx}
                                                         row={row}
-                                                        onMarkReceived={handleMarkReceived}
                                                         onConfirmReceipt={handleConfirmReceipt}
-                                                        onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
+                                                        onDeviceConfirmReceipt={handleDeviceConfirmReceipt}
+                                                        onMarkOngoing={handleStartTesting}
                                                         onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
                                                         onStateApprove={handleStateApprove}
                                                         testBoardProgress={testBoardProgress}

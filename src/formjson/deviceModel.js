@@ -24,6 +24,8 @@ export const deviceModelInitials = {
   api_url: "",
   token: "",
   whitelisted_ip: "",
+  whitelisted_phone_number: "",
+  device_ip_range: "",
 };
 export const deviceModelFormField = {
   eSimProviders: {
@@ -173,5 +175,43 @@ export const deviceModelFormField = {
     label: "Whitelisted IP/URL",
     placeholder: "e.g., 192.168.1.1 or https://example.com",
     validation: Yup.string().required("Whitelisted IP/URL is required"),
+  },
+  whitelisted_phone_number: {
+    name: "whitelisted_phone_number",
+    type: "text",
+    label: "Whitelisted Phone Numbers",
+    placeholder: "e.g., 9876543210, 9876543211",
+    validation: Yup.string().nullable().test(
+      'is-valid-phone-list',
+      'Must be comma separated, max 10 numbers, each 10-15 digits',
+      (value) => {
+        if (!value) return true;
+        const numbers = value.split(',').map(n => n.trim()).filter(n => n.length > 0);
+        if (numbers.length > 10) return false;
+        return numbers.every(n => {
+          const digitsOnly = n.replace(/\D/g, '');
+          return digitsOnly.length >= 10 && digitsOnly.length <= 15;
+        });
+      }
+    )
+  },
+  device_ip_range: {
+    name: "device_ip_range",
+    type: "text",
+    label: "Device IP Range",
+    placeholder: "e.g., 103.21.58.0/24 or 103.21.58.1-103.21.58.50",
+    validation: Yup.string().nullable().test(
+      'is-valid-ip-range',
+      'Must be comma separated, valid CIDR or start-end range',
+      (value) => {
+        if (!value) return true;
+        const ranges = value.split(',').map(r => r.trim()).filter(r => r.length > 0);
+        
+        const cidrRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[1-2][0-9]|3[0-2])$/;
+        const startEndRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}-([0-9]{1,3}\.){3}[0-9]{1,3}$/;
+
+        return ranges.every(r => cidrRegex.test(r) || startEndRegex.test(r));
+      }
+    )
   },
 };
