@@ -477,6 +477,13 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
   // Hardcoded roles[] are NOT used — only what's saved in the permission
   // management page matters.
 
+  // EXCEPTIONS: Explicitly hide vehicle history from teamlead/sos roles
+  if (menuId === 'vehicle-history') {
+    if (['teamlead', 'sosadmin', 'desk_ex', 'desk_executive', 'sos_teamlead', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'].includes(role)) {
+      return false;
+    }
+  }
+
   if (permissions) {
     const moduleCode = getExpandedMenuModuleMap()[menuId];
     if (menuId === 'vehicle-owner') {
