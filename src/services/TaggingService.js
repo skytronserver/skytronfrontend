@@ -118,7 +118,10 @@ const getPendingActivations = (params) => {
   const http = getAxiosInstance();
   return http.get('/api/device/pending-activations/', { params });
 }
-
+const getCertificateList = (params) => {
+  const http = getAxiosInstance();
+  return http.get('/api/device-tagging/certificate-list/', { params });
+}
 
 const TaggingService = {
     tagDeviceToVehicle,
@@ -146,8 +149,8 @@ const TaggingService = {
     gettaggedDeviceList,
     sendActivationCommand,
     checkActivationStatus,
-    getPendingActivations
-
+    getPendingActivations,
+    getCertificateList
 };
 
 export default TaggingService;

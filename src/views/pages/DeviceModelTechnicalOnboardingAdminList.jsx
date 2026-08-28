@@ -501,8 +501,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                     // use index if match fails
                                                     const execution = exec || category.executions[idx];
                                                     const execStatus = execution?.status || "not_started";
-                                                    
-                                                    const isExecPass = execStatus === "pass" || execStatus === "completed";
+                                                    const isExecPass = execStatus === "pass" || execStatus === "completed" || execStatus === "complete";
                                                     const isExecIncomplete = execStatus === "incomplete" || execStatus === "in_progress";
                                                     
                                                     return (
@@ -1183,13 +1182,13 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                         // A test is completed when ALL its executions are pass/completed
                         const completed = categories.filter(cat =>
                             cat.executions && cat.executions.length > 0 &&
-                            cat.executions.every(e => e.status === "pass" || e.status === "completed")
+                            cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete")
                         ).length;
 
                         // Find the first incomplete test name
                         let currentTestName = "";
                         for (const cat of categories) {
-                            const allDone = cat.executions && cat.executions.every(e => e.status === "pass" || e.status === "completed");
+                            const allDone = cat.executions && cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete");
                             if (!allDone) {
                                 currentTestName = cat.test_case?.name || `Test #${cat.test_case?.serial_no}`;
                                 break;
