@@ -181,37 +181,98 @@ export const deviceModelFormField = {
     type: "text",
     label: "Whitelisted Phone Numbers",
     placeholder: "e.g., 9876543210, 9876543211",
-    validation: Yup.string().nullable().test(
-      'is-valid-phone-list',
-      'Must be comma separated, max 10 numbers, each 10-15 digits',
+     validation: Yup.string()
+    .nullable()
+    .test(
+      "is-valid-phone-list",
+      "Must be comma separated, max 10 numbers, each 10-15 digits",
       (value) => {
-        if (!value) return true;
-        const numbers = value.split(',').map(n => n.trim()).filter(n => n.length > 0);
+        if (!value || !value.trim()) return true;
+
+        const numbers = value
+          .split(",")
+          .map((n) => n.trim())
+          .filter(Boolean);
+
+        // Maximum 10 phone numbers
         if (numbers.length > 10) return false;
-        return numbers.every(n => {
-          const digitsOnly = n.replace(/\D/g, '');
+
+        return numbers.every((number) => {
+          // Keep only digits, same normalization expected by API
+          const digitsOnly = number.replace(/\D/g, "");
+
           return digitsOnly.length >= 10 && digitsOnly.length <= 15;
         });
       }
-    )
+    ),
   },
   device_ip_range: {
     name: "device_ip_range",
     type: "text",
     label: "Device IP Range",
     placeholder: "e.g., 103.21.58.0/24 or 103.21.58.1-103.21.58.50",
-    validation: Yup.string().nullable().test(
-      'is-valid-ip-range',
-      'Must be comma separated, valid CIDR or start-end range',
+    validation: Yup.string()
+    .nullable()
+    .test(
+      "is-valid-ip-range",
+      "Must be comma separated, valid CIDR or start-end range",
       (value) => {
-        if (!value) return true;
-        const ranges = value.split(',').map(r => r.trim()).filter(r => r.length > 0);
-        
-        const cidrRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[1-2][0-9]|3[0-2])$/;
-        const startEndRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}-([0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        if (!value || !value.trim()) return true;
 
-        return ranges.every(r => cidrRegex.test(r) || startEndRegex.test(r));
+        const ranges = value
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean);
+
+        const isValidIPv4 = (ip) => {
+          const parts = ip.split(".");
+
+          if (parts.length !== 4) return false;
+
+          return parts.every((part) => {
+            if (!/^\d+$/.test(part)) return false;
+
+            const num = Number(part);
+
+            return num >= 0 && num <= 255;
+          });
+        };
+
+        const isValidCIDR = (range) => {
+          const parts = range.split("/");
+
+          if (parts.length !== 2) return false;
+
+          const [ip, prefix] = parts;
+
+          if (!isValidIPv4(ip)) return false;
+
+          if (!/^\d+$/.test(prefix)) return false;
+
+          const prefixNumber = Number(prefix);
+
+          return prefixNumber >= 0 && prefixNumber <= 32;
+        };
+
+        const isValidStartEnd = (range) => {
+          const parts = range.split("-");
+
+          if (parts.length !== 2) return false;
+
+          const [startIP, endIP] = parts;
+
+          return (
+            isValidIPv4(startIP.trim()) &&
+            isValidIPv4(endIP.trim())
+          );
+        };
+
+        return ranges.every(
+          (range) =>
+            isValidCIDR(range) ||
+            isValidStartEnd(range)
+        );
       }
-    )
+    ),
   },
 };
