@@ -38,8 +38,6 @@ import {
     Step,
     StepLabel,
     StepContent,
-    Tabs,
-    Tab,
     LinearProgress,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -106,6 +104,7 @@ const extractError = (err) => {
 const STATUS_CONFIG = {
     pending: { label: "Pending", color: "warning" },
     submitted: { label: "Submitted", color: "info" },
+    devices_received: { label: "Accepted", color: "success" },
     ongoing_evaluation: { label: "Ongoing Evaluation", color: "secondary" },
     technically_compatible: { label: "Technically Compatible", color: "success" },
     technically_not_compatible: { label: "Technically Not Compatible", color: "error" },
@@ -631,7 +630,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 /* ═══════════════════════════════════════════════════
    COLLAPSIBLE TABLE ROW
 ═══════════════════════════════════════════════════ */
-const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApprove }) => {
+const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmReceipt, onMarkOngoing, onFinalize, onStateApprove, testBoardProgress }) => {
     const [open, setOpen] = useState(false);
     const userRole = getRole();
     const isStateAdmin = userRole === "stateadmin";
@@ -641,6 +640,8 @@ const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApp
         if (Array.isArray(row.demo_devices)) return row.demo_devices;
         try { return JSON.parse(row.demo_devices); } catch { return []; }
     }, [row.demo_devices]);
+
+    const allDevicesReceived = demoDevices.length > 0 && demoDevices.every((d) => d.receipt_confirmed);
 
     const manufacturerName = useMemo(() => resolveManufacturer(row), [row]);
     const hasReport = row.final_comment || row.compatibility_report_pdf || row.report || row.comment || row.remarks;
@@ -652,6 +653,56 @@ const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApp
     const statusKey = String(row.status ?? "").trim().toLowerCase();
     const isSubmitted = statusKey === "submitted";
     const isOngoingEval = statusKey === "ongoing_evaluation";
+
+    // Real test board progress for ongoing_evaluation
+    const tbProgress = testBoardProgress?.[row.id];
+
+    // Compute steps display from real data
+    const stepsDisplay = useMemo(() => {
+        // No steps to show before testing starts, or if devices haven't been fully confirmed
+        if (!allDevicesReceived || statusKey === "submitted" || statusKey === "devices_received" || statusKey === "pending") {
+            return null;
+        }
+
+        if (isOngoingEval && tbProgress) {
+            // Use real test board data
+            const total = tbProgress.total || 0;
+            const completed = tbProgress.completed || 0;
+            const currentTestName = tbProgress.currentTestName || "";
+            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            return {
+                label: `${completed} / ${total} Tests Completed`,
+                pct,
+                pending: completed < total
+                    ? `In Progress: ${currentTestName}`
+                    : "All tests completed",
+                color: completed === total ? "success" : "primary",
+            };
+        }
+
+        // Finalized statuses
+        const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
+        if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
+            return {
+                label: "Testing Completed",
+                pct: 100,
+                pending: isFailed ? "Not Compatible" : "All tests completed",
+                color: isFailed ? "error" : "success",
+            };
+        }
+
+        // ongoing_evaluation without test board data yet
+        if (isOngoingEval) {
+            return {
+                label: "Testing In Progress",
+                pct: 0,
+                pending: "Loading test progress...",
+                color: "primary",
+            };
+        }
+
+        return null;
+    }, [statusKey, isOngoingEval, tbProgress]);
 
     return (
         <>
@@ -700,13 +751,50 @@ const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApp
                     </Stack>
                 </TableCell>
 
-                {/* status */}
-                {!isStateAdmin && <TableCell sx={{ py: 1 }}><StatusChip status={row.status} /></TableCell>}
+                {/* imei(s) */}
+                <TableCell sx={{ py: 1 }}>
+                    {demoDevices.length > 0 ? (
+                        <Tooltip title={demoDevices.map(d => d.imei).join(", ")}>
+                            <Typography variant="body2">
+                                {demoDevices[0]?.imei} {demoDevices.length > 1 && <Typography component="span" variant="caption" color="primary" sx={{ cursor: 'pointer', ml: 0.5, fontWeight: 700 }}>(+{demoDevices.length - 1})</Typography>}
+                            </Typography>
+                        </Tooltip>
+                    ) : "—"}
+                </TableCell>
+
+                {/* steps */}
+                <TableCell sx={{ py: 1 }}>
+                    {stepsDisplay ? (
+                        <Stack spacing={1} sx={{ minWidth: 200, py: 1 }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                <Typography variant="body2" fontWeight={600}>
+                                    {stepsDisplay.label}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                    {stepsDisplay.pct}%
+                                </Typography>
+                            </Stack>
+                            <LinearProgress 
+                                variant="determinate" 
+                                value={stepsDisplay.pct} 
+                                color={stepsDisplay.color}
+                                sx={{ height: 6, borderRadius: 3 }}
+                            />
+                            <Typography variant="caption" color="text.secondary">
+                                {stepsDisplay.pending}
+                            </Typography>
+                        </Stack>
+                    ) : (
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Testing not started</Typography>
+                    )}
+                </TableCell>
+
+
 
                 {/* actions */}
                 <TableCell sx={{ py: 1 }} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
-                        {(isSubmitted || statusKey === "devices_received") && !isStateAdmin && (
+                        {(isSubmitted || statusKey === "pending" || statusKey === "devices_received" || statusKey === "stock_received") && !isStateAdmin && allDevicesReceived && (
                             <Tooltip title="Start Testing">
                                 <Button
                                     size="small" variant="contained" color="info"
@@ -718,7 +806,12 @@ const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApp
                                 </Button>
                             </Tooltip>
                         )}
-                        {isOngoingEval && !isStateAdmin && (
+                        {!allDevicesReceived && !isStateAdmin && (
+                            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                Confirm 5 devices first
+                            </Typography>
+                        )}
+                        {isOngoingEval && !isStateAdmin && allDevicesReceived && (
                             <Tooltip title="Complete Testing & Finalize">
                                 <Button
                                     size="small" variant="contained" color="primary"
@@ -773,10 +866,78 @@ const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApp
 
             {/* ── expanded detail ── */}
             <TableRow>
-                <TableCell colSpan={6} sx={{ py: 0, bgcolor: "primary.50" }}>
+                <TableCell colSpan={8} sx={{ py: 0, bgcolor: "primary.50" }}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ py: 2, px: 2 }}>
                             <Grid container spacing={2}>
+
+                                {/* Devices */}
+                                {demoDevices.length > 0 && (
+                                    <Grid item xs={12}>
+                                        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                            <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
+                                                <SimCardIcon color="primary" fontSize="small" />
+                                                <Typography variant="subtitle2" fontWeight={700}>
+                                                    VLTD Devices ({demoDevices.length})
+                                                </Typography>
+                                            </Stack>
+                                            <TableContainer sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
+                                                <Table size="small">
+                                                    <TableHead sx={{ bgcolor: "grey.50" }}>
+                                                        <TableRow>
+                                                            <TableCell sx={{ fontWeight: 600 }}>Device</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }}>IMEI / Serial No.</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }}>CCID / MSISDN (SIM 1)</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }}>CCID / MSISDN (SIM 2)</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }} align="right">Status</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {demoDevices.map((device, i) => (
+                                                            <TableRow key={i} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" color="primary" fontWeight={700}>
+                                                                        #{i + 1}
+                                                                    </Typography>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" display="block"><b>IMEI:</b> {device.imei || "—"}</Typography>
+                                                                    <Typography variant="caption" color="text.secondary"><b>SN:</b> {device.device_serial_no || "—"}</Typography>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" display="block"><b>CCID:</b> {device.ccid1 || "—"}</Typography>
+                                                                    <Typography variant="caption" color="text.secondary"><b>MSISDN:</b> {device.msisdn1 || "—"}</Typography>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Typography variant="caption" display="block"><b>CCID:</b> {device.ccid2 || "—"}</Typography>
+                                                                    <Typography variant="caption" color="text.secondary"><b>MSISDN:</b> {device.msisdn2 || "—"}</Typography>
+                                                                </TableCell>
+                                                                <TableCell align="right">
+                                                                    {device.receipt_confirmed ? (
+                                                                        <Chip label="Received" size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: "0.65rem" }} />
+                                                                    ) : (
+                                                                        <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
+                                                                            <Chip label="Pending" size="small" color="warning" variant="outlined" sx={{ height: 20, fontSize: "0.65rem" }} />
+                                                                            <Button 
+                                                                                size="small" 
+                                                                                variant="contained" 
+                                                                                color="primary"
+                                                                                sx={{ fontSize: "0.65rem", py: 0, px: 1, minWidth: 0, height: 24, whiteSpace: "nowrap" }}
+                                                                                onClick={(e) => { e.stopPropagation(); onDeviceConfirmReceipt(row.id, device.id); }}
+                                                                            >
+                                                                                Confirm Receipt
+                                                                            </Button>
+                                                                        </Stack>
+                                                                    )}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
+                                        </Paper>
+                                    </Grid>
+                                )}
 
                                 {/* Manufacturer */}
                                 <Grid item xs={12} md={6}>
@@ -831,43 +992,7 @@ const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApp
                                     </Grid>
                                 )}
 
-                                {/* Demo Devices */}
-                                {demoDevices.length > 0 && (
-                                    <Grid item xs={12} md={6}>
-                                        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                                            <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
-                                                <SimCardIcon color="primary" fontSize="small" />
-                                                <Typography variant="subtitle2" fontWeight={700}>
-                                                    VLTD Demo Devices ({demoDevices.length})
-                                                </Typography>
-                                            </Stack>
-                                            <Divider sx={{ mb: 1.5 }} />
-                                            {demoDevices.map((device, i) => (
-                                                <Box key={i} mb={i < demoDevices.length - 1 ? 1.5 : 0}>
-                                                    <Typography variant="caption" color="primary" fontWeight={700} display="block" mb={0.5}>
-                                                        Device {i + 1}
-                                                    </Typography>
-                                                    <Grid container rowSpacing={0.25} columnSpacing={1}>
-                                                        {[
-                                                            ["Serial No", device.device_serial_no],
-                                                            ["IMEI", device.imei],
-                                                            ["CCID 1", device.ccid1],
-                                                            ["CCID 2", device.ccid2],
-                                                            ["MSISDN 1", device.msisdn1],
-                                                            ["MSISDN 2", device.msisdn2],
-                                                        ].map(([lbl, val]) => val ? (
-                                                            <React.Fragment key={lbl}>
-                                                                <Grid item xs={5}><Typography variant="caption" color="text.secondary">{lbl}</Typography></Grid>
-                                                                <Grid item xs={7}><Typography variant="caption" fontWeight={600}>{val}</Typography></Grid>
-                                                            </React.Fragment>
-                                                        ) : null)}
-                                                    </Grid>
-                                                    {i < demoDevices.length - 1 && <Divider sx={{ mt: 1 }} />}
-                                                </Box>
-                                            ))}
-                                        </Paper>
-                                    </Grid>
-                                )}
+
 
                                 {/* Documents */}
                                 {(row.user_manual_pdf || row.ot_command_list_pdf || row.compatibility_report_pdf) && (
@@ -929,87 +1054,7 @@ const RequestRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize, onStateApp
     );
 };
 
-/* ═══════════════════════════════════════════════════
-   TRACKER ROW
-═══════════════════════════════════════════════════ */
-const TrackerRow = ({ row, onMarkReceived, onMarkOngoing, onFinalize }) => {
-    const userRole = getRole();
-    const isStateAdmin = userRole === "stateadmin";
-    const manufacturerName = useMemo(() => resolveManufacturer(row), [row]);
-    const statusKey = String(row.status ?? "").trim().toLowerCase();
-    
-    const demoDevices = useMemo(() => {
-        if (!row.demo_devices) return [];
-        if (Array.isArray(row.demo_devices)) return row.demo_devices;
-        try { return JSON.parse(row.demo_devices); } catch { return []; }
-    }, [row.demo_devices]);
-    
-    // Map status to steps
-    let activeStep = 0;
-    if (statusKey === "submitted") activeStep = 1; // Step 1 complete
-    else if (statusKey === "ongoing_evaluation") activeStep = 3; // Step 3 complete (in progress on 4)
-    else if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved") activeStep = 5; // All complete
-    else if (statusKey === "technically_not_compatible" || statusKey === "rejected") activeStep = 2; // Failed early
 
-    const STEPS = ["Submitted", "Document Check", "Functional Check", "Protocol Check", "Final Review"];
-
-    return (
-        <TableRow hover sx={{ "& > *": { borderBottom: "unset" } }}>
-            <TableCell sx={{ fontWeight: 600 }}>{manufacturerName}</TableCell>
-            <TableCell>{row.device_model?.model_name || row.device_model_name || "—"}</TableCell>
-            <TableCell>
-                {demoDevices.length > 0 ? (
-                    <Tooltip title={demoDevices.map(d => d.imei).join(", ")}>
-                        <Typography variant="body2">
-                            {demoDevices[0]?.imei} {demoDevices.length > 1 && <Typography component="span" variant="caption" color="primary" sx={{ cursor: 'pointer', ml: 0.5, fontWeight: 700 }}>(+{demoDevices.length - 1})</Typography>}
-                        </Typography>
-                    </Tooltip>
-                ) : "—"}
-            </TableCell>
-            <TableCell>{formatDateTime(row.request_datetime || row.created_at || row.created)}</TableCell>
-            <TableCell>
-                <Stack spacing={1} sx={{ minWidth: 200, py: 1 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2" fontWeight={600}>
-                            {activeStep} / {STEPS.length} Completed
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                            {Math.round((activeStep / STEPS.length) * 100)}%
-                        </Typography>
-                    </Stack>
-                    <LinearProgress 
-                        variant="determinate" 
-                        value={(activeStep / STEPS.length) * 100} 
-                        color={statusKey === "technically_not_compatible" || statusKey === "rejected" ? "error" : activeStep === STEPS.length ? "success" : "primary"}
-                        sx={{ height: 6, borderRadius: 3 }}
-                    />
-                    <Typography variant="caption" color="text.secondary">
-                        {activeStep < STEPS.length 
-                            ? (statusKey === "technically_not_compatible" || statusKey === "rejected" 
-                                ? `Failed at: ${STEPS[activeStep]}`
-                                : `Pending: ${STEPS[activeStep]}`)
-                            : "All steps completed successfully"}
-                    </Typography>
-                </Stack>
-            </TableCell>
-            <TableCell>
-                {STATUS_CONFIG[statusKey] ? (
-                    <Chip label={STATUS_CONFIG[statusKey].label} color={STATUS_CONFIG[statusKey].color} size="small" variant="filled" sx={{ fontWeight: 600 }} />
-                ) : (
-                    <Chip label={row.status} size="small" variant="outlined" />
-                )}
-            </TableCell>
-            <TableCell>
-                {!isStateAdmin && (statusKey === "submitted" || statusKey === "devices_received") && (
-                    <Button variant="contained" color="info" size="small" onClick={() => onMarkOngoing(row)}>Start Testing</Button>
-                )}
-                {!isStateAdmin && statusKey === "ongoing_evaluation" && (
-                    <Button variant="contained" color="secondary" size="small" onClick={() => onFinalize(row)}>Resume</Button>
-                )}
-            </TableCell>
-        </TableRow>
-    );
-};
 
 /* ─── summary stat card ─── */
 const StatCard = ({ label, value, color }) => (
@@ -1034,7 +1079,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [currentTab, setCurrentTab] = useState(0);
+    const [testBoardProgress, setTestBoardProgress] = useState({});
 
     /* dialog state */
     const [ongoingDialog, setOngoingDialog] = useState({ open: false, row: null });
@@ -1118,6 +1163,51 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
 
     useEffect(() => { loadData(); }, [loadData]);
 
+    /* ── fetch test board progress for ongoing rows ── */
+    useEffect(() => {
+        const ongoingRows = rows.filter(r => String(r.status ?? "").trim().toLowerCase() === "ongoing_evaluation");
+        if (ongoingRows.length === 0) return;
+
+        const fetchProgress = async () => {
+            const progressMap = {};
+            await Promise.all(
+                ongoingRows.map(async (r) => {
+                    try {
+                        const res = await DeviceModelServices.getTestBoard({ onboarding_request_id: r.id });
+                        let categories = [];
+                        if (Array.isArray(res?.data)) categories = res.data;
+                        else if (res?.data?.rows) categories = res.data.rows;
+                        else if (res?.data?.categories) categories = res.data.categories;
+
+                        const total = categories.length;
+                        // A test is completed when ALL its executions are pass/completed
+                        const completed = categories.filter(cat =>
+                            cat.executions && cat.executions.length > 0 &&
+                            cat.executions.every(e => e.status === "pass" || e.status === "completed")
+                        ).length;
+
+                        // Find the first incomplete test name
+                        let currentTestName = "";
+                        for (const cat of categories) {
+                            const allDone = cat.executions && cat.executions.every(e => e.status === "pass" || e.status === "completed");
+                            if (!allDone) {
+                                currentTestName = cat.test_case?.name || `Test #${cat.test_case?.serial_no}`;
+                                break;
+                            }
+                        }
+
+                        progressMap[r.id] = { total, completed, currentTestName };
+                    } catch {
+                        // silently skip if test board fetch fails
+                    }
+                })
+            );
+            setTestBoardProgress(progressMap);
+        };
+
+        fetchProgress();
+    }, [rows]);
+
     /* ── optimistic update helpers ── */
     const patchRow = useCallback((id, patch) => {
         setRows((prev) => prev.map((r) => r.id === id ? { ...r, ...patch } : r));
@@ -1129,6 +1219,25 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
         setActionMsg({ type: "success", text: `Request #${id} marked as Ongoing Evaluation.` });
     }, [loadData]);
 
+    const handleStartTesting = async (row) => {
+        setLoading(true);
+        try {
+            const payload = { 
+                onboarding_request_id: row.id,
+                evaluation_datetime: new Date().toISOString()
+            };
+            await DeviceModelServices.markTechnicalOnboardingOngoing(payload);
+            setActionMsg({ type: "success", text: `Testing started for Request #${row.id}.` });
+            loadData();
+            // Automatically open the testing board dialog
+            setFinalizeDialog({ open: true, row: { ...row, status: "ongoing_evaluation" } });
+        } catch (err) {
+            setActionMsg({ type: "error", text: extractError(err) });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleFinalizeSuccess = useCallback((id, decision) => {
         setFinalizeDialog({ open: false, row: null });
         loadData();
@@ -1138,12 +1247,30 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
         });
     }, [loadData]);
 
-    const handleMarkReceived = async (row) => {
-        if (!window.confirm("Confirm that you have physically received all 5 VLTD devices for this request?")) return;
+
+    const handleConfirmReceipt = async (row) => {
+        if (!window.confirm("Accept this technical onboarding request?")) return;
         setLoading(true);
         try {
-            await DeviceModelServices.markTechnicalOnboardingDevicesReceived({ onboarding_request_id: row.id });
-            setActionMsg({ type: "success", text: `Request #${row.id} marked as devices received.` });
+            await DeviceModelServices.confirmReceipt({
+                onboarding_request_id: row.id,
+            });
+            setActionMsg({ type: "success", text: `Request #${row.id} accepted successfully.` });
+            loadData();
+        } catch (err) {
+            setActionMsg({ type: "error", text: extractError(err) });
+            setLoading(false);
+        }
+    };
+
+    const handleDeviceConfirmReceipt = async (rowId, deviceId) => {
+        setLoading(true);
+        try {
+            await DeviceModelServices.confirmReceipt({
+                onboarding_request_id: rowId,
+                demo_device_id: deviceId,
+            });
+            setActionMsg({ type: "success", text: `Device receipt confirmed successfully.` });
             loadData();
         } catch (err) {
             setActionMsg({ type: "error", text: extractError(err) });
@@ -1250,12 +1377,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             </Stack>
                         )}
 
-                        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-                            <Tabs value={currentTab} onChange={(e, val) => setCurrentTab(val)} aria-label="admin view tabs">
-                                <Tab label="Request List" sx={{ fontWeight: 600 }} />
-                                <Tab label="Progress Tracker" sx={{ fontWeight: 600 }} />
-                            </Tabs>
-                        </Box>
+
 
                         {/* ── Search ── */}
                         {rows.length > 0 && (
@@ -1289,16 +1411,17 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             <Alert severity="info">No results match your search query.</Alert>
                         ) : (
                             <>
-                                {currentTab === 0 ? (
-                                    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                                        <Table size="small">
+                                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                                    <Table size="small">
                                             <TableHead>
                                                 <TableRow sx={{ bgcolor: "primary.main" }}>
                                                     <TableCell sx={{ width: 40 }} />
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>Manufacturer</TableCell>
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
-                                                    {!isStateAdmin && <TableCell sx={{ color: "white", fontWeight: 700 }}>Status</TableCell>}
+                                                    <TableCell sx={{ color: "white", fontWeight: 700 }}>IMEI(s)</TableCell>
+                                                    <TableCell sx={{ color: "white", fontWeight: 700 }}>STEPS</TableCell>
+
                                                     <TableCell sx={{ color: "white", fontWeight: 700 }}>Actions</TableCell>
                                                 </TableRow>
                                             </TableHead>
@@ -1307,42 +1430,17 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                                                     <RequestRow
                                                         key={row.id ?? idx}
                                                         row={row}
-                                                        onMarkReceived={handleMarkReceived}
-                                                        onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
-                                                        onFinalize={(r) => setFinalizeDialog({ open: true, row: r })} onStateApprove={handleStateApprove}
-                                                    />
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                ) : (
-                                    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow sx={{ bgcolor: "grey.100" }}>
-                                                    <TableCell sx={{ fontWeight: 700 }}>Manufacturer</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700 }}>Device Model</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700 }}>IMEI(s)</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700 }}>Submitted Date</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700 }}>STEPS</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {paginatedRows.map((row, idx) => (
-                                                    <TrackerRow
-                                                        key={row.id ?? idx}
-                                                        row={row}
-                                                        onMarkReceived={handleMarkReceived}
-                                                        onMarkOngoing={(r) => setOngoingDialog({ open: true, row: r })}
+                                                        onConfirmReceipt={handleConfirmReceipt}
+                                                        onDeviceConfirmReceipt={handleDeviceConfirmReceipt}
+                                                        onMarkOngoing={handleStartTesting}
                                                         onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
+                                                        onStateApprove={handleStateApprove}
+                                                        testBoardProgress={testBoardProgress}
                                                     />
                                                 ))}
                                             </TableBody>
                                         </Table>
                                     </TableContainer>
-                                )}
 
                                 <TablePagination
                                     component="div"

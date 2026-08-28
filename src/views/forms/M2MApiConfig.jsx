@@ -48,6 +48,7 @@ const M2MApiConfig = () => {
       api_url: values.apiUrl,
       token: values.token,
       sample_iccid: values.sampleIccid,
+      device_ip_range: values.deviceIpRange,
     };
 
     console.log("M2M save payload:", payload);

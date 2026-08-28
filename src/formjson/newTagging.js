@@ -48,6 +48,8 @@ export const newTaggingInitials = {
   iccid: "",
   owner_no: "",
   rc_file: null,
+  device_sell_amount: "",
+  no_of_emg_buttons: "",
 };
 
 export const newTaggingFields = {
@@ -103,5 +105,24 @@ export const newTaggingFields = {
     required: true,
     accept: ".pdf,.png,.jpg,.jpeg,.xls,.xlsx",
     validation: rcFileValidation,
+  },
+  device_sell_amount: {
+    name: "device_sell_amount",
+    type: "number",
+    label: "Device Sell Amount",
+    required: true,
+    validation: Yup.number()
+      .typeError('Must be a number')
+      .required("Device Sell Amount is required")
+      .min(1, "Amount must be at least 1")
+      .max(100000, "Amount cannot exceed 100000"),
+  },
+  no_of_emg_buttons: {
+    name: "no_of_emg_buttons",
+    type: "select",
+    label: "No of Emergency Buttons",
+    required: true,
+    options: Array.from({ length: 10 }, (_, i) => ({ label: String(i + 1), value: String(i + 1) })),
+    validation: Yup.string().required("Number of Emergency Buttons is required"),
   },
 };

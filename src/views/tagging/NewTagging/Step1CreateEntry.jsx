@@ -246,6 +246,8 @@ export default function Step1CreateEntry({ onSuccess, setAlert }) {
       formData.append("imei", String(values.imei));
       formData.append("iccid", String(values.iccid));
       formData.append("owner_phone_number", String(values.owner_no));
+      formData.append("device_sell_amount", String(values.device_sell_amount));
+      formData.append("no_of_emg_buttons", String(values.no_of_emg_buttons));
       if (values.rc_file) {
         formData.append("rc_file", values.rc_file);
       }
@@ -273,13 +275,25 @@ export default function Step1CreateEntry({ onSuccess, setAlert }) {
     } catch (err) {
       console.error("Step 1 API Error:", err);
 
-      const msg =
-        err?.response?.data?.detail ||
-        err?.response?.data?.error ||
-        Object.values(err?.response?.data || {})
-          .flat()
-          .join(" ") ||
-        "Something went wrong. Please try again.";
+      let msg = "Something went wrong. Please try again.";
+      if (err?.response?.data) {
+        const d = err.response.data;
+        if (d.detail) msg = d.detail;
+        else if (d.error) {
+          msg = d.error;
+          if (msg === "Device not found.") {
+            msg = "Device not found. (The device model may have reached its tagging limit)";
+          }
+        }
+        else if (d.message) msg = d.message;
+        else if (d.errors) msg = Object.values(d.errors).flat().join(" | ");
+        else if (typeof d === 'object') {
+          const vals = Object.values(d).flat();
+          if (vals.length > 0 && typeof vals[0] === 'string') {
+            msg = vals.join(" | ");
+          }
+        }
+      }
 
       setAlert({
         open: true,

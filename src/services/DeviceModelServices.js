@@ -91,6 +91,11 @@ const markTechnicalOnboardingDevicesReceived = (data) => {
   return http.post("/api/devicemodel/technical-onboarding/superadmin/mark-received/", data);
 };
 
+const confirmReceipt = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/confirm-receipt/", data);
+};
+
 const saveTechnicalOnboardingProgress = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/devicemodel/technical-onboarding/superadmin/save-progress/", data);
@@ -147,6 +152,7 @@ const DeviceModelServices = {
   listManufacturerTechnicalOnboardingRequests,
   listSuperadminTechnicalOnboardingRequests,
   markTechnicalOnboardingDevicesReceived,
+  confirmReceipt,
   saveTechnicalOnboardingProgress,
   markTechnicalOnboardingOngoing,
   finalizeTechnicalOnboardingRequest,
