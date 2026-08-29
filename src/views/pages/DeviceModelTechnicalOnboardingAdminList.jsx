@@ -386,6 +386,13 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         }
     };
 
+    const allTestsCompleted = useMemo(() => {
+        if (!testBoardCategories || testBoardCategories.length === 0) return false;
+        return testBoardCategories.every(cat => 
+            cat.executions && cat.executions.length > 0 && cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete")
+        );
+    }, [testBoardCategories]);
+
     const validate = () => {
         const errs = {};
         if (!finalComment.trim()) errs.finalComment = "Comment is required.";
@@ -443,30 +450,188 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
                 let timestamp = "N/A";
                 let rawData = "N/A";
+                let extraData = "";
 
                 if (execution?.test_log_snapshot) {
                     try {
                         const snap = typeof execution.test_log_snapshot === "string" ? JSON.parse(execution.test_log_snapshot) : execution.test_log_snapshot;
                         if (snap.samples && snap.samples.length > 0) {
-                            timestamp = snap.samples[0].timestamp || "N/A";
-                            rawData = snap.samples[0].raw_data || "N/A";
+                            const timestamps = [];
+                            const rawDatas = [];
+                            
+                            const fwVersions = new Set();
+                            const voltages = new Set();
+                            const extVoltages = new Set();
+                            const speeds = new Set();
+                            const locations = new Set();
+                            const networks = new Set();
+                            const operators = new Set();
+                            
+                            for (const sample of snap.samples) {
+                                timestamps.push(sample.timestamp || "N/A");
+                                rawDatas.push(sample.raw_data || "N/A");
+                                
+                                if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
+                                    const parts = sample.raw_data.split(",");
+                                    if (parts.length > 3) {
+                                        fwVersions.add(parts[2]);
+                                    }
+                                    if (parts.length > 14) {
+                                        locations.add(`${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`);
+                                    }
+                                    if (parts.length > 15) {
+                                        speeds.add(parts[15]);
+                                    }
+                                    if (parts.length > 25) {
+                                        voltages.add(parts[25]);
+                                        extVoltages.add(parts[24]);
+                                    }
+                                    if (parts.length > 32) {
+                                        networks.add(`${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`);
+                                        operators.add(parts[21]);
+                                    }
+                                }
+                            }
+                            
+                            timestamp = timestamps.join("\n");
+                            rawData = rawDatas.join("\n");
+                            if (fwVersions.size > 0) {
+                                extraData = `FW: ${Array.from(fwVersions).join(" -> ")}`;
+                            }
+                            if (locations.size > 0) {
+                                if (extraData) extraData += " | ";
+                                extraData += `Lat/Lon: ${Array.from(locations).join(" | ")}`;
+                            }
+                            if (networks.size > 0) {
+                                if (extraData) extraData += " | ";
+                                extraData += `Net: ${Array.from(networks).join(" | ")}`;
+                            }
+                            if (operators.size > 0) {
+                                if (extraData) extraData += " | ";
+                                extraData += `Op: ${Array.from(operators).join(" -> ")}`;
+                            }
+                            if (speeds.size > 0) {
+                                if (extraData) extraData += " | ";
+                                extraData += `Speed: ${Array.from(speeds).join(", ")}`;
+                            }
+                            if (voltages.size > 0) {
+                                if (extraData) extraData += " | ";
+                                extraData += `Vol: ${Array.from(voltages).join("V, ")}V`;
+                            }
+                            if (extVoltages.size > 0) {
+                                if (extraData) extraData += " | ";
+                                extraData += `Ext Vol: ${Array.from(extVoltages).join("V, ")}V`;
+                            }
                         }
                     } catch (e) {}
                 }
 
+                let displayName = step.name;
+                if (step.serial_no === 6 && extraData.includes("FW:")) {
+                    const fwMatch = extraData.match(/FW: (.*?)( \||$)/);
+                    if (fwMatch) {
+                        const fws = fwMatch[1].split(" -> ");
+                        if (fws.length >= 2) {
+                            displayName = `FOTA upgrade A(${fws[0]}) -> B(${fws[fws.length - 1]})`;
+                        } else {
+                            displayName = `FOTA upgrade A(${fws[0]}) -> B(...)`;
+                        }
+                    }
+                } else if (step.serial_no === 7 && extraData.includes("Vol:")) {
+                    const volMatch = extraData.match(/Vol: (.*?)( \||$)/);
+                    if (volMatch) {
+                        displayName = `${step.name} (${volMatch[1].replace(/V$/, '')}V)`;
+                    }
+                } else if (step.serial_no === 8 && extraData.includes("Ext Vol:")) {
+                    const extVolMatch = extraData.match(/Ext Vol: (.*?)( \||$)/);
+                    if (extVolMatch) {
+                        displayName = `${step.name} (${extVolMatch[1].replace(/V$/, '')}V)`;
+                    }
+                } else if (step.serial_no === 14 && extraData.includes("Speed:")) {
+                    const speedMatch = extraData.match(/Speed: (.*?)( \||$)/);
+                    if (speedMatch) {
+                        displayName = `${step.name} (${speedMatch[1]})`;
+                    }
+                } else if (step.serial_no === 15 && extraData.includes("Lat/Lon:")) {
+                    const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
+                    if (locMatch) {
+                        displayName = `${step.name} (Lat/Lon: ${locMatch[1]})`;
+                    }
+                } else if (step.serial_no === 20 || step.serial_no === 21) {
+                    let appendStr = "";
+                    const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
+                    if (locMatch) appendStr += `Lat/Lon: ${locMatch[1]}`;
+                    const netMatch = extraData.match(/Net: (.*?)( \||$)/);
+                    if (netMatch) {
+                        if (appendStr) appendStr += " | ";
+                        appendStr += `Net: ${netMatch[1]}`;
+                    }
+                    if (appendStr) {
+                        displayName = `${step.name} (${appendStr})`;
+                    }
+                } else if (step.serial_no === 23 && extraData.includes("Op:")) {
+                    const opMatch = extraData.match(/Op: (.*?)( \||$)/);
+                    if (opMatch) {
+                        const ops = opMatch[1].split(" -> ");
+                        if (ops.length >= 2) {
+                            displayName = `eSIM switch: primary (${ops[0]}) -> secondary (${ops[ops.length - 1]})`;
+                        } else {
+                            displayName = `eSIM switch: primary (${ops[0]}) -> secondary (...)`;
+                        }
+                    }
+                } else if (step.serial_no === 24 && extraData.includes("Op:")) {
+                    const opMatch = extraData.match(/Op: (.*?)( \||$)/);
+                    if (opMatch) {
+                        const ops = opMatch[1].split(" -> ");
+                        if (ops.length >= 2) {
+                            displayName = `eSIM switch: secondary (${ops[0]}) -> primary (${ops[ops.length - 1]})`;
+                        } else {
+                            displayName = `eSIM switch: secondary (${ops[0]}) -> primary (...)`;
+                        }
+                    }
+                }
+
+                let filteredExtraData = "";
+                if (step.serial_no === 6) {
+                    const match = extraData.match(/FW: (.*?)( \||$)/);
+                    if (match) filteredExtraData = `FW: ${match[1]}`;
+                } else if (step.serial_no === 7) {
+                    const match = extraData.match(/Vol: (.*?)( \||$)/);
+                    if (match) filteredExtraData = `Vol: ${match[1]}`;
+                } else if (step.serial_no === 8) {
+                    const match = extraData.match(/Ext Vol: (.*?)( \||$)/);
+                    if (match) filteredExtraData = `Ext Vol: ${match[1]}`;
+                } else if (step.serial_no === 14) {
+                    const match = extraData.match(/Speed: (.*?)( \||$)/);
+                    if (match) filteredExtraData = `Speed: ${match[1]}`;
+                } else if (step.serial_no === 15) {
+                    const match = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
+                    if (match) filteredExtraData = `Lat/Lon: ${match[1]}`;
+                } else if (step.serial_no === 20 || step.serial_no === 21) {
+                    const parts = [];
+                    const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
+                    if (locMatch) parts.push(`Lat/Lon: ${locMatch[1]}`);
+                    const netMatch = extraData.match(/Net: (.*?)( \||$)/);
+                    if (netMatch) parts.push(`Net: ${netMatch[1]}`);
+                    filteredExtraData = parts.join(" | ");
+                } else if (step.serial_no === 23 || step.serial_no === 24) {
+                    const match = extraData.match(/Op: (.*?)( \||$)/);
+                    if (match) filteredExtraData = `Op: ${match[1]}`;
+                }
+
                 tableData.push([
                     step.serial_no,
-                    step.name,
+                    displayName,
                     step.description,
                     timestamp,
                     rawData,
-                    "" // Extra Data
+                    filteredExtraData
                 ]);
             });
 
             autoTable(doc, {
                 startY: startY,
-                head: [["Serial No", "Test Name", "Test Description", "Timestamp", "Raw Data", "Extra Data"]],
+                head: [["Serial No", "Test Name", "Test Description", "Timestamp", "Raw Data", "Value"]],
                 body: tableData,
                 styles: { fontSize: 8, overflow: 'linebreak' },
                 columnStyles: {
@@ -555,15 +720,113 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         </TableRow>
                                     ) : testBoardCategories.map((category) => {
                                         const step = category.test_case;
+                                        
+
+                                        const fwVersions = new Set();
+                                        const voltages = new Set();
+                                        const extVoltages = new Set();
+                                        const speeds = new Set();
+                                        const locations = new Set();
+                                        const networks = new Set();
+                                        const operators = new Set();
+                                        if (category.executions && Array.isArray(category.executions)) {
+                                            for (const exec of category.executions) {
+                                                if (exec.test_log_snapshot) {
+                                                    let snap = null;
+                                                    try {
+                                                        snap = typeof exec.test_log_snapshot === 'string' ? JSON.parse(exec.test_log_snapshot) : exec.test_log_snapshot;
+                                                    } catch(e) {}
+                                                    if (snap && Array.isArray(snap.samples)) {
+                                                        for (const sample of snap.samples) {
+                                                            if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
+                                                                const parts = sample.raw_data.split(",");
+                                                                if (parts.length > 3) {
+                                                                    fwVersions.add(parts[2]);
+                                                                }
+                                                                if (parts.length > 14) {
+                                                                    locations.add(`${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`);
+                                                                }
+                                                                if (parts.length > 15) {
+                                                                    speeds.add(parts[15]);
+                                                                }
+                                                                if (parts.length > 25) {
+                                                                    voltages.add(parts[25]);
+                                                                    extVoltages.add(parts[24]);
+                                                                }
+                                                                if (parts.length > 32) {
+                                                                    networks.add(`${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`);
+                                                                    operators.add(parts[21]);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        let displayName = step.name;
+                                        const fwArr = Array.from(fwVersions);
+                                        if (step.serial_no === 6 && fwArr.length > 0) {
+                                            if (fwArr.length >= 2) {
+                                                displayName = `FOTA upgrade A(${fwArr[0]}) -> B(${fwArr[fwArr.length - 1]})`;
+                                            } else {
+                                                displayName = `FOTA upgrade A(${fwArr[0]}) -> B(...)`;
+                                            }
+                                        }
+                                        const volArr = Array.from(voltages);
+                                        if (step.serial_no === 7 && volArr.length > 0) {
+                                            displayName = `${step.name} (${volArr.join("V, ")}V)`;
+                                        }
+                                        const extVolArr = Array.from(extVoltages);
+                                        if (step.serial_no === 8 && extVolArr.length > 0) {
+                                            displayName = `${step.name} (${extVolArr.join("V, ")}V)`;
+                                        }
+                                        const speedArr = Array.from(speeds);
+                                        if (step.serial_no === 14 && speedArr.length > 0) {
+                                            displayName = `${step.name} (${speedArr.join(", ")})`;
+                                        }
+                                        const locArr = Array.from(locations);
+                                        if (step.serial_no === 15 && locArr.length > 0) {
+                                            displayName = `${step.name} (Lat/Lon: ${locArr.join(" | ")})`;
+                                        }
+                                        const netArr = Array.from(networks);
+                                        if (step.serial_no === 20 || step.serial_no === 21) {
+                                            let appendStr = "";
+                                            if (locArr.length > 0) appendStr += `Lat/Lon: ${locArr.join(" | ")}`;
+                                            if (netArr.length > 0) {
+                                                if (appendStr) appendStr += " | ";
+                                                appendStr += `Net: ${netArr.join(" | ")}`;
+                                            }
+                                            if (appendStr) displayName = `${step.name} (${appendStr})`;
+                                        }
+                                        const opArr = Array.from(operators);
+                                        if (step.serial_no === 23 && opArr.length > 0) {
+                                            if (opArr.length >= 2) {
+                                                displayName = `eSIM switch: primary (${opArr[0]}) -> secondary (${opArr[opArr.length - 1]})`;
+                                            } else {
+                                                displayName = `eSIM switch: primary (${opArr[0]}) -> secondary (...)`;
+                                            }
+                                        } else if (step.serial_no === 24 && opArr.length > 0) {
+                                            if (opArr.length >= 2) {
+                                                displayName = `eSIM switch: secondary (${opArr[0]}) -> primary (${opArr[opArr.length - 1]})`;
+                                            } else {
+                                                displayName = `eSIM switch: secondary (${opArr[0]}) -> primary (...)`;
+                                            }
+                                        }
+                                        
                                         const isUnlocked = step.serial_no === activeTestId;
                                         const isCompleted = step.serial_no < activeTestId;
                                         return (
                                             <TableRow key={step.id}>
                                                 <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{step.serial_no}</TableCell>
                                                 <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>
-                                                    <Typography variant="body2" fontWeight={600} color="text.primary">{step.name}</Typography>
+                                                    <Typography variant="body2" fontWeight={600} color="text.primary">{displayName}</Typography>
                                                     <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>{step.description}</Typography>
-                                                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>source: {step.source_table}</Typography>
+                                                    {step.serial_no === 39 && (
+                                                        <Typography variant="caption" sx={{ mt: 1, display: 'inline-block', fontWeight: 600, color: 'primary.main', bgcolor: '#e3f2fd', p: 0.5, px: 1, borderRadius: 1 }}>
+                                                            Command: ACTV,123456,1234567891
+                                                        </Typography>
+                                                    )}
                                                 </TableCell>
                                                 {imeis.map((imei, idx) => {
                                                     const exec = category.executions.find(e => (e.demo_device?.imei === imei) || (e.demo_device?.device_serial_no === imei));
@@ -579,6 +842,62 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                             <>
                                                                 <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
                                                                 <Typography variant="caption" display="block" color="text.secondary">Done</Typography>
+                                                                {(() => {
+                                                                    let snapshotObj = null;
+                                                                    if (typeof execution.test_log_snapshot === 'string') {
+                                                                        try { snapshotObj = JSON.parse(execution.test_log_snapshot); } catch(e){}
+                                                                    } else if (typeof execution.test_log_snapshot === 'object' && execution.test_log_snapshot !== null) {
+                                                                        snapshotObj = execution.test_log_snapshot;
+                                                                    }
+                                                                    if (snapshotObj && Array.isArray(snapshotObj.samples)) {
+                                                                        return (
+                                                                            <Box sx={{ my: 1, textAlign: 'left', lineHeight: 1.2 }}>
+                                                                                {snapshotObj.samples.map((sample, idx) => {
+                                                                                    let fwVersion = "";
+                                                                                    let voltage = "";
+                                                                                    let extVoltage = "";
+                                                                                    let speed = "";
+                                                                                    let location = "";
+                                                                                    let network = "";
+                                                                                    if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
+                                                                                        const parts = sample.raw_data.split(",");
+                                                                                        if (parts.length > 3) fwVersion = parts[2];
+                                                                                        if (parts.length > 14) location = `${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`;
+                                                                                        if (parts.length > 15) speed = parts[15];
+                                                                                        if (parts.length > 25) {
+                                                                                            voltage = parts[25];
+                                                                                            extVoltage = parts[24];
+                                                                                        }
+                                                                                        if (parts.length > 32) {
+                                                                                            network = `${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`;
+                                                                                        }
+                                                                                    }
+                                                                                    return (
+                                                                                    <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, justifyContent: 'center' }}>
+                                                                                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                                                                                            data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
+                                                                                            {fwVersion ? ` | FW: ${fwVersion}` : ""}
+                                                                                            {location ? ` | Lat/Lon: ${location}` : ""}
+                                                                                            {network ? ` | Net: ${network}` : ""}
+                                                                                            {speed ? ` | Speed: ${speed}` : ""}
+                                                                                            {voltage ? ` | Vol: ${voltage}V` : ""}
+                                                                                            {extVoltage ? ` | Ext Vol: ${extVoltage}V` : ""}
+                                                                                        </Typography>
+                                                                                        <Button 
+                                                                                            variant="outlined" 
+                                                                                            size="small" 
+                                                                                            sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
+                                                                                            onClick={() => navigator.clipboard.writeText(sample.raw_data)}
+                                                                                        >
+                                                                                            Copy
+                                                                                        </Button>
+                                                                                    </Box>
+                                                                                )})}
+                                                                            </Box>
+                                                                        );
+                                                                    }
+                                                                    return null;
+                                                                })()}
                                                             </>
                                                         ) : execStatus === "in_progress" ? (
                                                             <>
@@ -611,10 +930,36 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                 {snapshotObj.reason}
                                                                                             </Typography>
                                                                                         )}
-                                                                                        {Array.isArray(snapshotObj.samples) && snapshotObj.samples.map((sample, idx) => (
+                                                                                        {Array.isArray(snapshotObj.samples) && snapshotObj.samples.map((sample, idx) => {
+                                                                                            let fwVersion = "";
+                                                                                            let voltage = "";
+                                                                                            let extVoltage = "";
+                                                                                            let speed = "";
+                                                                                            let location = "";
+                                                                                            let network = "";
+                                                                                            if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
+                                                                                                const parts = sample.raw_data.split(",");
+                                                                                                if (parts.length > 3) fwVersion = parts[2];
+                                                                                                if (parts.length > 14) location = `${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`;
+                                                                                                if (parts.length > 15) speed = parts[15];
+                                                                                                if (parts.length > 25) {
+                                                                                                    voltage = parts[25];
+                                                                                                    extVoltage = parts[24];
+                                                                                                }
+                                                                                                if (parts.length > 32) {
+                                                                                                    network = `${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`;
+                                                                                                }
+                                                                                            }
+                                                                                            return (
                                                                                             <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                                                                                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
                                                                                                     data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
+                                                                                                    {fwVersion ? ` | FW: ${fwVersion}` : ""}
+                                                                                                    {location ? ` | Lat/Lon: ${location}` : ""}
+                                                                                                    {network ? ` | Net: ${network}` : ""}
+                                                                                                    {speed ? ` | Speed: ${speed}` : ""}
+                                                                                                    {voltage ? ` | Vol: ${voltage}V` : ""}
+                                                                                                    {extVoltage ? ` | Ext Vol: ${extVoltage}V` : ""}
                                                                                                 </Typography>
                                                                                                 <Button 
                                                                                                     variant="outlined" 
@@ -625,7 +970,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                     Copy
                                                                                                 </Button>
                                                                                             </Box>
-                                                                                        ))}
+                                                                                        )})}
                                                                                     </Box>
                                                                                 );
                                                                             } else {
@@ -681,7 +1026,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         </TableContainer>
 
                         {/* Finalize Form */}
-                        <Box mt={3} pt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {allTestsCompleted && (
+                            <Box mt={3} pt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <Typography variant="subtitle2" fontWeight={700}>
                                 Finalize
                             </Typography>
@@ -736,7 +1082,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                 </Button>
                             </Box>
                             {apiError && <Alert severity="error" sx={{ mt: 2 }}>{apiError}</Alert>}
-                        </Box>
+                            </Box>
+                        )}
                     </Box>
                 </Box>
             </DialogContent>
@@ -776,13 +1123,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
 
     // Compute steps display from real data
     const stepsDisplay = useMemo(() => {
-        // No steps to show before testing starts, or if devices haven't been fully confirmed
-        if (!allDevicesReceived || statusKey === "submitted" || statusKey === "devices_received" || statusKey === "pending") {
-            return null;
-        }
-
-        if (isOngoingEval && tbProgress) {
-            // Use real test board data
+        if (tbProgress && tbProgress.total > 0) {
+            // Use real test board data if tests have actually started, regardless of status
             const total = tbProgress.total || 0;
             const completed = tbProgress.completed || 0;
             const currentTestName = tbProgress.currentTestName || "";
@@ -795,6 +1137,11 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                     : "All tests completed",
                 color: completed === total ? "success" : "primary",
             };
+        }
+
+        // No steps to show before testing starts, or if devices haven't been fully confirmed
+        if (!allDevicesReceived || statusKey === "submitted" || statusKey === "devices_received" || statusKey === "stock_received" || statusKey === "pending") {
+            return null;
         }
 
         // Finalized statuses
@@ -911,7 +1258,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                 {/* actions */}
                 <TableCell sx={{ py: 1 }} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
-                        {(isSubmitted || statusKey === "pending" || statusKey === "devices_received" || statusKey === "stock_received") && !isStateAdmin && allDevicesReceived && (
+                        {(isSubmitted || statusKey === "pending" || statusKey === "devices_received" || statusKey === "stock_received") && !(tbProgress && tbProgress.total > 0) && !isStateAdmin && allDevicesReceived && (
                             <Tooltip title="Start Testing">
                                 <Button
                                     size="small" variant="contained" color="info"
@@ -928,15 +1275,15 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                 Confirm 5 devices first
                             </Typography>
                         )}
-                        {isOngoingEval && !isStateAdmin && allDevicesReceived && (
-                            <Tooltip title="Complete Testing & Finalize">
+                        {(!["technically_not_compatible", "rejected", "stateadminrejected", "technically_compatible", "accepted", "approved", "stateadminapproved"].includes(statusKey) && (isOngoingEval || (tbProgress && tbProgress.total > 0))) && !isStateAdmin && allDevicesReceived && (
+                            <Tooltip title="Testing Page">
                                 <Button
                                     size="small" variant="contained" color="primary"
                                     startIcon={<GavelIcon fontSize="small" />}
                                     onClick={() => onFinalize(row)}
                                     sx={{ whiteSpace: "nowrap", fontSize: "0.72rem" }}
                                 >
-                                    Complete Testing &amp; Finalize
+                                    {(tbProgress && tbProgress.completed < tbProgress.total) ? "Continue Testing" : "Complete Testing & Finalize"}
                                 </Button>
                             </Tooltip>
                         )}
@@ -1280,15 +1627,19 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
 
     useEffect(() => { loadData(); }, [loadData]);
 
-    /* ── fetch test board progress for ongoing rows ── */
+    /* ── fetch test board progress for active rows ── */
     useEffect(() => {
-        const ongoingRows = rows.filter(r => String(r.status ?? "").trim().toLowerCase() === "ongoing_evaluation");
-        if (ongoingRows.length === 0) return;
+        const activeRows = rows.filter(r => {
+            const s = String(r.status ?? "").trim().toLowerCase();
+            const finalized = ["technically_not_compatible", "rejected", "stateadminrejected", "technically_compatible", "accepted", "approved", "stateadminapproved"].includes(s);
+            return !finalized && s !== "submitted";
+        });
+        if (activeRows.length === 0) return;
 
         const fetchProgress = async () => {
             const progressMap = {};
             await Promise.all(
-                ongoingRows.map(async (r) => {
+                activeRows.map(async (r) => {
                     try {
                         const res = await DeviceModelServices.getTestBoard({ onboarding_request_id: r.id });
                         let categories = [];
