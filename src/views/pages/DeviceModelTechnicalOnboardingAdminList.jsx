@@ -61,6 +61,8 @@ import DeviceModelServices from "../../services/DeviceModelServices";
 import ManufacturerServices from "../../services/ManufacturerServices";
 import { openFile, getRole } from "../../helper";
 import DeviceDataHealthService from "../../services/DeviceDataHealth";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 /* ─── helpers ─── */
 const formatDateTime = (value) => {
@@ -387,15 +389,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const validate = () => {
         const errs = {};
         if (!finalComment.trim()) errs.finalComment = "Comment is required.";
-        if (!reportPdf) errs.reportPdf = "Report PDF is required.";
         setFieldErrors(errs);
         return Object.keys(errs).length === 0;
-    };
-
-    const handleFileChange = (e) => {
-        const file = e.target.files?.[0] || null;
-        setReportPdf(file);
-        setFieldErrors((prev) => { const c = { ...prev }; delete c.reportPdf; return c; });
     };
 
     const handleConfirm = async () => {
@@ -406,7 +401,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             fd.append("onboarding_request_id", row.id);
             fd.append("status", status);
             fd.append("final_comment", finalComment.trim());
-            fd.append("compatibility_report_pdf", reportPdf);
+            // No longer appending reportPdf here as it's not strictly required and is handled client-side
             fd.append("device_test_results", JSON.stringify(deviceTestResults));
             await DeviceModelServices.finalizeTechnicalOnboardingRequest(fd);
             onSuccess(row.id, status);
@@ -415,6 +410,80 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const generateAndDownloadPDF = () => {
+        const doc = new jsPDF("landscape");
+        
+        doc.setFontSize(16);
+        doc.text(`Compatibility Report - Request ID: ${row?.id}`, 14, 15);
+        doc.setFontSize(11);
+        doc.text(`Manufacturer: ${mfrName}`, 14, 22);
+        doc.text(`Device Model: ${modelName}`, 14, 28);
+        doc.text(`Status: ${status}`, 14, 34);
+
+        let startY = 40;
+
+        imeis.forEach((imei, index) => {
+            if (index > 0) {
+                doc.addPage();
+                startY = 15;
+            }
+
+            doc.setFontSize(14);
+            doc.text(`Testing Table for IMEI: ${imei}`, 14, startY);
+            startY += 8;
+
+            const tableData = [];
+            testBoardCategories.forEach((category) => {
+                const step = category.test_case;
+                // Find execution for this IMEI
+                const exec = category.executions.find(e => (e.demo_device?.imei === imei) || (e.demo_device?.device_serial_no === imei));
+                const execution = exec || category.executions[index];
+
+                let timestamp = "N/A";
+                let rawData = "N/A";
+
+                if (execution?.test_log_snapshot) {
+                    try {
+                        const snap = typeof execution.test_log_snapshot === "string" ? JSON.parse(execution.test_log_snapshot) : execution.test_log_snapshot;
+                        if (snap.samples && snap.samples.length > 0) {
+                            timestamp = snap.samples[0].timestamp || "N/A";
+                            rawData = snap.samples[0].raw_data || "N/A";
+                        }
+                    } catch (e) {}
+                }
+
+                tableData.push([
+                    step.serial_no,
+                    step.name,
+                    step.description,
+                    timestamp,
+                    rawData,
+                    "" // Extra Data
+                ]);
+            });
+
+            autoTable(doc, {
+                startY: startY,
+                head: [["Serial No", "Test Name", "Test Description", "Timestamp", "Raw Data", "Extra Data"]],
+                body: tableData,
+                styles: { fontSize: 8, overflow: 'linebreak' },
+                columnStyles: {
+                    0: { cellWidth: 15 },
+                    1: { cellWidth: 40 },
+                    2: { cellWidth: 70 },
+                    3: { cellWidth: 35 },
+                    4: { cellWidth: 90 },
+                    5: { cellWidth: 20 }
+                },
+                margin: { top: 10, left: 10, right: 10 }
+            });
+            
+            startY = doc.lastAutoTable.finalY + 15;
+        });
+
+        doc.save(`Technical_Onboarding_Report_${row?.id}.pdf`);
     };
 
     const mfrName = row ? resolveManufacturer(row) : "";
@@ -513,36 +582,78 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                             </>
                                                         ) : execStatus === "in_progress" ? (
                                                             <>
-                                                                <Chip label="In progress" size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#fff9c4', color: '#f57f17', borderRadius: 1 }} />
-                                                                <Button variant="outlined" size="small" sx={{ fontSize: '0.65rem', minWidth: '60px', p: '2px 8px', mb: 0.5, display: 'block', mx: 'auto' }} onClick={() => handleRefreshLog(execution.id)}>
-                                                                    Refresh Log
-                                                                </Button>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5 }}>
+                                                                    <Chip label="In progress" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#fff9c4', color: '#f57f17', borderRadius: 1 }} />
+                                                                    <Tooltip title="Refresh Log">
+                                                                        <IconButton size="small" onClick={() => handleRefreshLog(execution.id)} sx={{ p: 0.5 }}>
+                                                                            <RefreshIcon fontSize="small" color="primary" />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
                                                                 {execution.test_log_snapshot && (
                                                                     <Box sx={{ my: 1, textAlign: 'left', lineHeight: 1.2 }}>
                                                                         {(() => {
-                                                                            let logStr = "";
+                                                                            let snapshotObj = null;
                                                                             if (typeof execution.test_log_snapshot === 'string') {
-                                                                                logStr = execution.test_log_snapshot;
+                                                                                try { snapshotObj = JSON.parse(execution.test_log_snapshot); } catch(e){}
                                                                             } else if (typeof execution.test_log_snapshot === 'object' && execution.test_log_snapshot !== null) {
-                                                                                if (execution.test_log_snapshot.matched_count !== undefined) {
-                                                                                    logStr = `pass: ${execution.test_log_snapshot.pass} | matched: ${execution.test_log_snapshot.matched_count}/${execution.test_log_snapshot.required || '?'}\n${execution.test_log_snapshot.reason || ''}`;
-                                                                                } else {
-                                                                                    logStr = JSON.stringify(execution.test_log_snapshot, null, 2);
-                                                                                }
-                                                                            } else {
-                                                                                logStr = String(execution.test_log_snapshot);
+                                                                                snapshotObj = execution.test_log_snapshot;
                                                                             }
-                                                                            return logStr.split('\n').map((line, i) => (
-                                                                                <Typography key={i} variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-                                                                                    {line}
-                                                                                </Typography>
-                                                                            ));
+
+                                                                            if (snapshotObj && snapshotObj.matched_count !== undefined) {
+                                                                                return (
+                                                                                    <Box>
+                                                                                        <Typography variant="caption" display="block" color="text.primary" sx={{ fontSize: '0.65rem', fontWeight: 700 }}>
+                                                                                            # {snapshotObj.matched_count}/{snapshotObj.required || '?'}
+                                                                                        </Typography>
+                                                                                        {snapshotObj.reason && (
+                                                                                            <Typography variant="caption" display="block" color="error" sx={{ fontSize: '0.65rem' }}>
+                                                                                                {snapshotObj.reason}
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                        {Array.isArray(snapshotObj.samples) && snapshotObj.samples.map((sample, idx) => (
+                                                                                            <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                                                                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                                                                                                    data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
+                                                                                                </Typography>
+                                                                                                <Button 
+                                                                                                    variant="outlined" 
+                                                                                                    size="small" 
+                                                                                                    sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
+                                                                                                    onClick={() => navigator.clipboard.writeText(sample.raw_data)}
+                                                                                                >
+                                                                                                    Copy
+                                                                                                </Button>
+                                                                                            </Box>
+                                                                                        ))}
+                                                                                    </Box>
+                                                                                );
+                                                                            } else {
+                                                                                const logStr = typeof execution.test_log_snapshot === 'string' ? execution.test_log_snapshot : JSON.stringify(execution.test_log_snapshot, null, 2);
+                                                                                return String(logStr).split('\n').map((line, i) => (
+                                                                                    <Typography key={i} variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                                                                                        {line}
+                                                                                    </Typography>
+                                                                                ));
+                                                                            }
                                                                         })()}
                                                                     </Box>
                                                                 )}
-                                                                <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', display: 'block', mx: 'auto', '&:hover': { bgcolor: '#283593' } }} onClick={() => handleCompleteTest(execution.id)}>
-                                                                    Complete
-                                                                </Button>
+                                                                {(() => {
+                                                                    let isPass = false;
+                                                                    try {
+                                                                        const snapshot = typeof execution.test_log_snapshot === 'string' ? JSON.parse(execution.test_log_snapshot) : execution.test_log_snapshot;
+                                                                        if (snapshot && (snapshot.pass === true || String(snapshot.pass).toLowerCase() === 'true')) {
+                                                                            isPass = true;
+                                                                        }
+                                                                    } catch (e) {}
+                                                                    
+                                                                    return isPass ? (
+                                                                        <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', display: 'block', mx: 'auto', '&:hover': { bgcolor: '#283593' } }} onClick={() => handleCompleteTest(execution.id)}>
+                                                                            Complete
+                                                                        </Button>
+                                                                    ) : null;
+                                                                })()}
                                                             </>
                                                         ) : (isUnlocked || isExecIncomplete) ? (
                                                             <>
@@ -577,8 +688,15 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                                 <Box sx={{ flex: 1, maxWidth: 250 }}>
                                     <Typography variant="caption" display="block" mb={0.5}>Compatibility Report PDF</Typography>
-                                    <input type="file" accept="application/pdf" onChange={handleFileChange} style={{ fontSize: '13px', width: '100%' }} />
-                                    {fieldErrors.reportPdf && <Typography color="error" variant="caption" display="block">{fieldErrors.reportPdf}</Typography>}
+                                    <Button 
+                                        variant="outlined" 
+                                        size="small" 
+                                        startIcon={<DescriptionIcon />} 
+                                        onClick={generateAndDownloadPDF}
+                                        sx={{ width: '100%', bgcolor: '#fff', color: '#1976d2', borderColor: '#1976d2' }}
+                                    >
+                                        Download Report
+                                    </Button>
                                 </Box>
                                 <Box sx={{ flex: 1, maxWidth: 200 }}>
                                     <Typography variant="caption" display="block" mb={0.5}>Decision</Typography>
