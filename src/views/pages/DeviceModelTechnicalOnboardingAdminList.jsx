@@ -1027,7 +1027,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         </TableContainer>
 
                         {/* Finalize Form */}
-                        {true && (
+                        {testBoardCategories.length > 0 && testBoardCategories.every(cat => cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete")) && (
                             <Box mt={3} pt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <Typography variant="subtitle2" fontWeight={700}>
                                 Finalize
