@@ -819,6 +819,7 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
                   fullWidth
                   label="Onboarding Request ID"
                   value={onboardingRequestId}
+                  disabled
                   onChange={(e) => {
                     setOnboardingRequestId(e.target.value);
                     setFieldErrors((prev) => ({ ...prev, onboardingRequestId: undefined }));

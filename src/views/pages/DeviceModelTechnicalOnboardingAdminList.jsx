@@ -459,68 +459,73 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             const timestamps = [];
                             const rawDatas = [];
                             
-                            const fwVersions = new Set();
-                            const voltages = new Set();
-                            const extVoltages = new Set();
-                            const speeds = new Set();
-                            const locations = new Set();
-                            const networks = new Set();
-                            const operators = new Set();
+                            const fwVersions = [];
+                            const voltages = [];
+                            const extVoltages = [];
+                            const speeds = [];
+                            const locations = [];
+                            const networks = [];
+                            const operators = [];
+                            
+                            const pushUnique = (arr, val) => {
+                                if (arr.length === 0 || arr[arr.length - 1] !== val) arr.push(val);
+                            };
                             
                             for (const sample of snap.samples) {
                                 timestamps.push(sample.timestamp || "N/A");
                                 rawDatas.push(sample.raw_data || "N/A");
                                 
-                                if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
+                                if (sample.raw_data && typeof sample.raw_data === 'string' && (sample.raw_data.startsWith("$PVT") || sample.raw_data.startsWith("$,PVT"))) {
                                     const parts = sample.raw_data.split(",");
-                                    if (parts.length > 3) {
-                                        fwVersions.add(parts[2]);
+                                    const offset = sample.raw_data.startsWith("$,PVT") ? 1 : 0;
+                                    if (parts.length > 3 + offset) {
+                                        pushUnique(fwVersions, parts[2 + offset]);
                                     }
-                                    if (parts.length > 14) {
-                                        locations.add(`${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`);
+                                    if (parts.length > 14 + offset) {
+                                        pushUnique(locations, `${parts[11 + offset]} ${parts[12 + offset]}, ${parts[13 + offset]} ${parts[14 + offset]}`);
                                     }
-                                    if (parts.length > 15) {
-                                        speeds.add(parts[15]);
+                                    if (parts.length > 15 + offset) {
+                                        pushUnique(speeds, parts[15 + offset]);
                                     }
-                                    if (parts.length > 25) {
-                                        voltages.add(parts[25]);
-                                        extVoltages.add(parts[24]);
+                                    if (parts.length > 25 + offset) {
+                                        pushUnique(voltages, parts[25 + offset]);
+                                        pushUnique(extVoltages, parts[24 + offset]);
                                     }
-                                    if (parts.length > 32) {
-                                        networks.add(`${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`);
-                                        operators.add(parts[21]);
+                                    if (parts.length > 32 + offset) {
+                                        pushUnique(networks, `${parts[21 + offset]} (Sig:${parts[28 + offset]} MCC:${parts[29 + offset]} MNC:${parts[30 + offset]} LAC:${parts[31 + offset]} Cell:${parts[32 + offset]})`);
+                                        pushUnique(operators, parts[21 + offset]);
                                     }
                                 }
                             }
                             
                             timestamp = timestamps.join("\n");
                             rawData = rawDatas.join("\n");
-                            if (fwVersions.size > 0) {
-                                extraData = `FW: ${Array.from(fwVersions).join(" -> ")}`;
+                            if (fwVersions.length > 0) {
+                                extraData = `FW: ${[...new Set([...fwVersions].reverse())].join(" -> ")}`;
                             }
-                            if (locations.size > 0) {
+                            if (locations.length > 0) {
                                 if (extraData) extraData += " | ";
-                                extraData += `Lat/Lon: ${Array.from(locations).join(" | ")}`;
+                                extraData += `Lat/Lon: ${[...new Set([...locations].reverse())].join(" | ")}`;
                             }
-                            if (networks.size > 0) {
+                            if (networks.length > 0) {
                                 if (extraData) extraData += " | ";
-                                extraData += `Net: ${Array.from(networks).join(" | ")}`;
+                                extraData += `Net: ${[...new Set([...networks].reverse())].join(" | ")}`;
                             }
-                            if (operators.size > 0) {
+                            if (operators.length > 0) {
                                 if (extraData) extraData += " | ";
-                                extraData += `Op: ${Array.from(operators).join(" -> ")}`;
+                                extraData += `Op: ${[...new Set([...operators].reverse())].join(" -> ")}`;
                             }
-                            if (speeds.size > 0) {
+                            if (speeds.length > 0) {
                                 if (extraData) extraData += " | ";
-                                extraData += `Speed: ${Array.from(speeds).join(", ")}`;
+                                extraData += `Speed: ${[...new Set([...speeds].reverse())].join(", ")}`;
                             }
-                            if (voltages.size > 0) {
+                            if (voltages.length > 0) {
                                 if (extraData) extraData += " | ";
-                                extraData += `Vol: ${Array.from(voltages).join("V, ")}V`;
+                                extraData += `Vol: ${[...voltages].reverse().join("V, ")}V`;
                             }
-                            if (extVoltages.size > 0) {
+                            if (extVoltages.length > 0) {
                                 if (extraData) extraData += " | ";
-                                extraData += `Ext Vol: ${Array.from(extVoltages).join("V, ")}V`;
+                                extraData += `Ext Vol: ${[...extVoltages].reverse().join("V, ")}V`;
                             }
                         }
                     } catch (e) {}
@@ -619,10 +624,14 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                     if (match) filteredExtraData = `Op: ${match[1]}`;
                 }
 
+                let pdfDescription = step.description;
+                if (step.serial_no === 7) {
+                    pdfDescription = "Confirm the internal battery voltage reading at three distinct voltage levels.\n\nScans GPSDataLog for ,PVT,|$PVT, · needs >=1 match within a 5 min window.\nTester still confirms the reported voltage matches a reference meter, at all 3 levels.";
+                }
                 tableData.push([
                     step.serial_no,
                     displayName,
-                    step.description,
+                    pdfDescription,
                     timestamp,
                     rawData,
                     filteredExtraData
@@ -722,13 +731,18 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         const step = category.test_case;
                                         
 
-                                        const fwVersions = new Set();
-                                        const voltages = new Set();
-                                        const extVoltages = new Set();
-                                        const speeds = new Set();
-                                        const locations = new Set();
-                                        const networks = new Set();
-                                        const operators = new Set();
+                                        const fwVersions = [];
+                                        const voltages = [];
+                                        const extVoltages = [];
+                                        const speeds = [];
+                                        const locations = [];
+                                        const networks = [];
+                                        const operators = [];
+                                        
+                                        const pushUnique = (arr, val) => {
+                                            if (arr.length === 0 || arr[arr.length - 1] !== val) arr.push(val);
+                                        };
+                                        
                                         if (category.executions && Array.isArray(category.executions)) {
                                             for (const exec of category.executions) {
                                                 if (exec.test_log_snapshot) {
@@ -738,24 +752,25 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                     } catch(e) {}
                                                     if (snap && Array.isArray(snap.samples)) {
                                                         for (const sample of snap.samples) {
-                                                            if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
+                                                            if (sample.raw_data && typeof sample.raw_data === 'string' && (sample.raw_data.startsWith("$PVT") || sample.raw_data.startsWith("$,PVT"))) {
                                                                 const parts = sample.raw_data.split(",");
-                                                                if (parts.length > 3) {
-                                                                    fwVersions.add(parts[2]);
+                                                                const offset = sample.raw_data.startsWith("$,PVT") ? 1 : 0;
+                                                                if (parts.length > 3 + offset) {
+                                                                    pushUnique(fwVersions, parts[2 + offset]);
                                                                 }
-                                                                if (parts.length > 14) {
-                                                                    locations.add(`${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`);
+                                                                if (parts.length > 14 + offset) {
+                                                                    pushUnique(locations, `${parts[11 + offset]} ${parts[12 + offset]}, ${parts[13 + offset]} ${parts[14 + offset]}`);
                                                                 }
-                                                                if (parts.length > 15) {
-                                                                    speeds.add(parts[15]);
+                                                                if (parts.length > 15 + offset) {
+                                                                    pushUnique(speeds, parts[15 + offset]);
                                                                 }
-                                                                if (parts.length > 25) {
-                                                                    voltages.add(parts[25]);
-                                                                    extVoltages.add(parts[24]);
+                                                                if (parts.length > 25 + offset) {
+                                                                    pushUnique(voltages, parts[25 + offset]);
+                                                                    pushUnique(extVoltages, parts[24 + offset]);
                                                                 }
-                                                                if (parts.length > 32) {
-                                                                    networks.add(`${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`);
-                                                                    operators.add(parts[21]);
+                                                                if (parts.length > 32 + offset) {
+                                                                    pushUnique(networks, `${parts[21 + offset]} (Sig:${parts[28 + offset]} MCC:${parts[29 + offset]} MNC:${parts[30 + offset]} LAC:${parts[31 + offset]} Cell:${parts[32 + offset]})`);
+                                                                    pushUnique(operators, parts[21 + offset]);
                                                                 }
                                                             }
                                                         }
@@ -765,7 +780,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         }
                                         
                                         let displayName = step.name;
-                                        const fwArr = Array.from(fwVersions);
+                                        const fwArr = [...fwVersions].reverse();
                                         if (step.serial_no === 6 && fwArr.length > 0) {
                                             if (fwArr.length >= 2) {
                                                 displayName = `FOTA upgrade A(${fwArr[0]}) -> B(${fwArr[fwArr.length - 1]})`;
@@ -773,23 +788,23 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                 displayName = `FOTA upgrade A(${fwArr[0]}) -> B(...)`;
                                             }
                                         }
-                                        const volArr = Array.from(voltages);
+                                        const volArr = [...voltages].reverse();
                                         if (step.serial_no === 7 && volArr.length > 0) {
                                             displayName = `${step.name} (${volArr.join("V, ")}V)`;
                                         }
-                                        const extVolArr = Array.from(extVoltages);
+                                        const extVolArr = [...extVoltages].reverse();
                                         if (step.serial_no === 8 && extVolArr.length > 0) {
                                             displayName = `${step.name} (${extVolArr.join("V, ")}V)`;
                                         }
-                                        const speedArr = Array.from(speeds);
+                                        const speedArr = [...speeds].reverse();
                                         if (step.serial_no === 14 && speedArr.length > 0) {
                                             displayName = `${step.name} (${speedArr.join(", ")})`;
                                         }
-                                        const locArr = Array.from(locations);
+                                        const locArr = [...locations].reverse();
                                         if (step.serial_no === 15 && locArr.length > 0) {
                                             displayName = `${step.name} (Lat/Lon: ${locArr.join(" | ")})`;
                                         }
-                                        const netArr = Array.from(networks);
+                                        const netArr = [...networks].reverse();
                                         if (step.serial_no === 20 || step.serial_no === 21) {
                                             let appendStr = "";
                                             if (locArr.length > 0) appendStr += `Lat/Lon: ${locArr.join(" | ")}`;
@@ -799,7 +814,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                             }
                                             if (appendStr) displayName = `${step.name} (${appendStr})`;
                                         }
-                                        const opArr = Array.from(operators);
+                                        const opArr = [...operators].reverse();
                                         if (step.serial_no === 23 && opArr.length > 0) {
                                             if (opArr.length >= 2) {
                                                 displayName = `eSIM switch: primary (${opArr[0]}) -> secondary (${opArr[opArr.length - 1]})`;
@@ -821,7 +836,18 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                 <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{step.serial_no}</TableCell>
                                                 <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>
                                                     <Typography variant="body2" fontWeight={600} color="text.primary">{displayName}</Typography>
-                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>{step.description}</Typography>
+                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                                                        {step.serial_no === 7 ? (
+                                                            <>
+                                                                Confirm the internal battery voltage reading at three distinct voltage levels.
+                                                                <br /><br />
+                                                                Scans GPSDataLog for ,PVT,|$PVT, &middot; needs &ge;1 match within a 5 min window.<br />
+                                                                Tester still confirms the reported voltage matches a reference meter, at all 3 levels.
+                                                            </>
+                                                        ) : (
+                                                            step.description
+                                                        )}
+                                                    </Typography>
                                                     {step.serial_no === 39 && (
                                                         <Typography variant="caption" sx={{ mt: 1, display: 'inline-block', fontWeight: 600, color: 'primary.main', bgcolor: '#e3f2fd', p: 0.5, px: 1, borderRadius: 1 }}>
                                                             Command: ACTV,123456,1234567891
@@ -853,35 +879,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                         return (
                                                                             <Box sx={{ my: 1, textAlign: 'left', lineHeight: 1.2 }}>
                                                                                 {snapshotObj.samples.map((sample, idx) => {
-                                                                                    let fwVersion = "";
-                                                                                    let voltage = "";
-                                                                                    let extVoltage = "";
-                                                                                    let speed = "";
-                                                                                    let location = "";
-                                                                                    let network = "";
-                                                                                    if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
-                                                                                        const parts = sample.raw_data.split(",");
-                                                                                        if (parts.length > 3) fwVersion = parts[2];
-                                                                                        if (parts.length > 14) location = `${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`;
-                                                                                        if (parts.length > 15) speed = parts[15];
-                                                                                        if (parts.length > 25) {
-                                                                                            voltage = parts[25];
-                                                                                            extVoltage = parts[24];
-                                                                                        }
-                                                                                        if (parts.length > 32) {
-                                                                                            network = `${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`;
-                                                                                        }
-                                                                                    }
                                                                                     return (
                                                                                     <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, justifyContent: 'center' }}>
                                                                                         <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
                                                                                             data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
-                                                                                            {fwVersion ? ` | FW: ${fwVersion}` : ""}
-                                                                                            {location ? ` | Lat/Lon: ${location}` : ""}
-                                                                                            {network ? ` | Net: ${network}` : ""}
-                                                                                            {speed ? ` | Speed: ${speed}` : ""}
-                                                                                            {voltage ? ` | Vol: ${voltage}V` : ""}
-                                                                                            {extVoltage ? ` | Ext Vol: ${extVoltage}V` : ""}
                                                                                         </Typography>
                                                                                         <Button 
                                                                                             variant="outlined" 
@@ -1026,7 +1027,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         </TableContainer>
 
                         {/* Finalize Form */}
-                        {allTestsCompleted && (
+                        {true && (
                             <Box mt={3} pt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <Typography variant="subtitle2" fontWeight={700}>
                                 Finalize
