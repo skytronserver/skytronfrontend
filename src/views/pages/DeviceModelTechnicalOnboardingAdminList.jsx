@@ -542,21 +542,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             displayName = `FOTA upgrade A(${fws[0]}) -> B(...)`;
                         }
                     }
-                } else if (step.serial_no === 7 && extraData.includes("Vol:")) {
-                    const volMatch = extraData.match(/Vol: (.*?)( \||$)/);
-                    if (volMatch) {
-                        displayName = `${step.name} (${volMatch[1].replace(/V$/, '')}V)`;
-                    }
-                } else if (step.serial_no === 8 && extraData.includes("Ext Vol:")) {
-                    const extVolMatch = extraData.match(/Ext Vol: (.*?)( \||$)/);
-                    if (extVolMatch) {
-                        displayName = `${step.name} (${extVolMatch[1].replace(/V$/, '')}V)`;
-                    }
-                } else if (step.serial_no === 14 && extraData.includes("Speed:")) {
-                    const speedMatch = extraData.match(/Speed: (.*?)( \||$)/);
-                    if (speedMatch) {
-                        displayName = `${step.name} (${speedMatch[1]})`;
-                    }
+                // NOTE: Voltage NOT shown in title for test #7 — each device can have a different voltage.
+                // Voltage is shown per-device below each timestamp.
+                // NOTE: Ext Vol NOT shown in title for test #8 — per-device display instead.
+                // NOTE: Speed NOT shown in title for test #14 — per-device display instead.
                 } else if (step.serial_no === 15 && extraData.includes("Lat/Lon:")) {
                     const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
                     if (locMatch) {
@@ -780,26 +769,13 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         }
                                         
                                         let displayName = step.name;
+                                        // NOTE: FOTA version NOT shown in the title because each device
+                                        // can have a different firmware version — shown per-device below the timestamp.
                                         const fwArr = [...fwVersions].reverse();
-                                        if (step.serial_no === 6 && fwArr.length > 0) {
-                                            if (fwArr.length >= 2) {
-                                                displayName = `FOTA upgrade A(${fwArr[0]}) -> B(${fwArr[fwArr.length - 1]})`;
-                                            } else {
-                                                displayName = `FOTA upgrade A(${fwArr[0]}) -> B(...)`;
-                                            }
-                                        }
                                         const volArr = [...voltages].reverse();
-                                        if (step.serial_no === 7 && volArr.length > 0) {
-                                            displayName = `${step.name} (${volArr.join("V, ")}V)`;
-                                        }
-                                        const extVolArr = [...extVoltages].reverse();
-                                        if (step.serial_no === 8 && extVolArr.length > 0) {
-                                            displayName = `${step.name} (${extVolArr.join("V, ")}V)`;
-                                        }
-                                        const speedArr = [...speeds].reverse();
-                                        if (step.serial_no === 14 && speedArr.length > 0) {
-                                            displayName = `${step.name} (${speedArr.join(", ")})`;
-                                        }
+                                        // NOTE: Voltage NOT shown in title for test #7 — per-device display instead.
+                                        // NOTE: Ext Vol NOT shown in title for test #8 — per-device display instead.
+                                        // NOTE: Speed NOT shown in title for test #14 — per-device display instead.
                                         const locArr = [...locations].reverse();
                                         if (step.serial_no === 15 && locArr.length > 0) {
                                             displayName = `${step.name} (Lat/Lon: ${locArr.join(" | ")})`;
@@ -867,7 +843,6 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                         {isExecPass ? (
                                                             <>
                                                                 <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
-                                                                <Typography variant="caption" display="block" color="text.secondary">Done</Typography>
                                                                 {(() => {
                                                                     let snapshotObj = null;
                                                                     if (typeof execution.test_log_snapshot === 'string') {
@@ -875,25 +850,68 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                     } else if (typeof execution.test_log_snapshot === 'object' && execution.test_log_snapshot !== null) {
                                                                         snapshotObj = execution.test_log_snapshot;
                                                                     }
-                                                                    if (snapshotObj && Array.isArray(snapshotObj.samples)) {
+                                                                    const resolvedSamples = snapshotObj && Array.isArray(snapshotObj.samples) ? snapshotObj.samples : [];
+                                                                    if (resolvedSamples.length > 0) {
                                                                         return (
-                                                                            <Box sx={{ my: 1, textAlign: 'left', lineHeight: 1.2 }}>
-                                                                                {snapshotObj.samples.map((sample, idx) => {
+                                                                            <Box sx={{ my: 1, lineHeight: 1.2 }}>
+                                                                                {[...resolvedSamples].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((sample, sIdx) => {
+                                                                                    let sampleFwVersion = "";
+                                                                                    let sampleVoltage = "";
+                                                                                    let sampleExtVoltage = "";
+                                                                                    let sampleSpeed = "";
+                                                                                    if (sample.raw_data && typeof sample.raw_data === 'string') {
+                                                                                        const isComma = sample.raw_data.startsWith("$,PVT");
+                                                                                        const pParts = sample.raw_data.split(",");
+                                                                                        const offset = isComma ? 1 : 0;
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 3 + offset) {
+                                                                                            sampleFwVersion = pParts[2 + offset];
+                                                                                        }
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 15 + offset) {
+                                                                                            sampleSpeed = pParts[15 + offset];
+                                                                                        }
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 25 + offset) {
+                                                                                            sampleVoltage = pParts[25 + offset];
+                                                                                            sampleExtVoltage = pParts[24 + offset];
+                                                                                        }
+                                                                                    }
                                                                                     return (
-                                                                                    <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, justifyContent: 'center' }}>
-                                                                                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-                                                                                            data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
-                                                                                        </Typography>
-                                                                                        <Button 
-                                                                                            variant="outlined" 
-                                                                                            size="small" 
-                                                                                            sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
-                                                                                            onClick={() => navigator.clipboard.writeText(sample.raw_data)}
-                                                                                        >
-                                                                                            Copy
-                                                                                        </Button>
-                                                                                    </Box>
-                                                                                )})}
+                                                                                        <Box key={sIdx} sx={{ mt: 0.5, textAlign: 'center' }}>
+                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                                                                                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                                                                                                    data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
+                                                                                                </Typography>
+                                                                                                <Button
+                                                                                                    variant="outlined"
+                                                                                                    size="small"
+                                                                                                    sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
+                                                                                                    onClick={() => navigator.clipboard.writeText(sample.raw_data)}
+                                                                                                >
+                                                                                                    Copy
+                                                                                                </Button>
+                                                                                            </Box>
+                                                                                            {step.serial_no === 6 && sampleFwVersion && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    FW: {sampleFwVersion}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {step.serial_no === 7 && sampleVoltage && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Vol: {sampleVoltage}V
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {step.serial_no === 8 && sampleExtVoltage && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Ext Vol: {sampleExtVoltage}V
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {step.serial_no === 14 && sampleSpeed && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Speed: {sampleSpeed}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                        </Box>
+                                                                                    );
+                                                                                })}
                                                                             </Box>
                                                                         );
                                                                     }
@@ -931,45 +949,63 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                 {snapshotObj.reason}
                                                                                             </Typography>
                                                                                         )}
-                                                                                        {Array.isArray(snapshotObj.samples) && snapshotObj.samples.map((sample, idx) => {
+                                                                                        {Array.isArray(snapshotObj.samples) && [...snapshotObj.samples].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((sample, idx) => {
                                                                                             let fwVersion = "";
                                                                                             let voltage = "";
                                                                                             let extVoltage = "";
                                                                                             let speed = "";
                                                                                             let location = "";
                                                                                             let network = "";
-                                                                                            if (sample.raw_data && typeof sample.raw_data === 'string' && sample.raw_data.startsWith("$PVT")) {
+                                                                                            if (sample.raw_data && typeof sample.raw_data === 'string' && (sample.raw_data.startsWith("$PVT") || sample.raw_data.startsWith("$,PVT"))) {
+                                                                                                const isComma = sample.raw_data.startsWith("$,PVT");
                                                                                                 const parts = sample.raw_data.split(",");
-                                                                                                if (parts.length > 3) fwVersion = parts[2];
-                                                                                                if (parts.length > 14) location = `${parts[11]} ${parts[12]}, ${parts[13]} ${parts[14]}`;
-                                                                                                if (parts.length > 15) speed = parts[15];
-                                                                                                if (parts.length > 25) {
-                                                                                                    voltage = parts[25];
-                                                                                                    extVoltage = parts[24];
+                                                                                                const pvtOffset = isComma ? 1 : 0;
+                                                                                                if (parts.length > 3 + pvtOffset) fwVersion = parts[2 + pvtOffset];
+                                                                                                if (parts.length > 14 + pvtOffset) location = `${parts[11 + pvtOffset]} ${parts[12 + pvtOffset]}, ${parts[13 + pvtOffset]} ${parts[14 + pvtOffset]}`;
+                                                                                                if (parts.length > 15 + pvtOffset) speed = parts[15 + pvtOffset];
+                                                                                                if (parts.length > 25 + pvtOffset) {
+                                                                                                    voltage = parts[25 + pvtOffset];
+                                                                                                    extVoltage = parts[24 + pvtOffset];
                                                                                                 }
-                                                                                                if (parts.length > 32) {
-                                                                                                    network = `${parts[21]} (Sig:${parts[28]} MCC:${parts[29]} MNC:${parts[30]} LAC:${parts[31]} Cell:${parts[32]})`;
+                                                                                                if (parts.length > 32 + pvtOffset) {
+                                                                                                    network = `${parts[21 + pvtOffset]} (Sig:${parts[28 + pvtOffset]} MCC:${parts[29 + pvtOffset]} MNC:${parts[30 + pvtOffset]} LAC:${parts[31 + pvtOffset]} Cell:${parts[32 + pvtOffset]})`;
                                                                                                 }
                                                                                             }
                                                                                             return (
-                                                                                            <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                                                                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-                                                                                                    data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
-                                                                                                    {fwVersion ? ` | FW: ${fwVersion}` : ""}
-                                                                                                    {location ? ` | Lat/Lon: ${location}` : ""}
-                                                                                                    {network ? ` | Net: ${network}` : ""}
-                                                                                                    {speed ? ` | Speed: ${speed}` : ""}
-                                                                                                    {voltage ? ` | Vol: ${voltage}V` : ""}
-                                                                                                    {extVoltage ? ` | Ext Vol: ${extVoltage}V` : ""}
-                                                                                                </Typography>
-                                                                                                <Button 
-                                                                                                    variant="outlined" 
-                                                                                                    size="small" 
-                                                                                                    sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
-                                                                                                    onClick={() => navigator.clipboard.writeText(sample.raw_data)}
-                                                                                                >
-                                                                                                    Copy
-                                                                                                </Button>
+                                                                                            <Box key={idx} sx={{ mt: 0.5 }}>
+                                                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                                                                                                        data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
+                                                                                                    </Typography>
+                                                                                                    <Button 
+                                                                                                        variant="outlined" 
+                                                                                                        size="small" 
+                                                                                                        sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
+                                                                                                        onClick={() => navigator.clipboard.writeText(sample.raw_data)}
+                                                                                                    >
+                                                                                                        Copy
+                                                                                                    </Button>
+                                                                                                </Box>
+                                                                                                {step.serial_no === 6 && fwVersion && (
+                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                        FW: {fwVersion}
+                                                                                                    </Typography>
+                                                                                                )}
+                                                                                                {step.serial_no === 7 && voltage && (
+                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                        Vol: {voltage}V
+                                                                                                    </Typography>
+                                                                                                )}
+                                                                                                {step.serial_no === 8 && extVoltage && (
+                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                        Ext Vol: {extVoltage}V
+                                                                                                    </Typography>
+                                                                                                )}
+                                                                                                {step.serial_no === 14 && speed && (
+                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                        Speed: {speed}
+                                                                                                    </Typography>
+                                                                                                )}
                                                                                             </Box>
                                                                                         )})}
                                                                                     </Box>
