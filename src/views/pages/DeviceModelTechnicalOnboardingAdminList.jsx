@@ -546,11 +546,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 // Voltage is shown per-device below each timestamp.
                 // NOTE: Ext Vol NOT shown in title for test #8 — per-device display instead.
                 // NOTE: Speed NOT shown in title for test #14 — per-device display instead.
-                } else if (step.serial_no === 15 && extraData.includes("Lat/Lon:")) {
-                    const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
-                    if (locMatch) {
-                        displayName = `${step.name} (Lat/Lon: ${locMatch[1]})`;
-                    }
+                // NOTE: Lat/Lon NOT shown in title for test #15 — per-device display instead.
                 } else if (step.serial_no === 20 || step.serial_no === 21) {
                     let appendStr = "";
                     const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
@@ -777,9 +773,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         // NOTE: Ext Vol NOT shown in title for test #8 — per-device display instead.
                                         // NOTE: Speed NOT shown in title for test #14 — per-device display instead.
                                         const locArr = [...locations].reverse();
-                                        if (step.serial_no === 15 && locArr.length > 0) {
-                                            displayName = `${step.name} (Lat/Lon: ${locArr.join(" | ")})`;
-                                        }
+                                        // NOTE: Lat/Lon NOT shown in title for test #15 — per-device display instead.
                                         const netArr = [...networks].reverse();
                                         if (step.serial_no === 20 || step.serial_no === 21) {
                                             let appendStr = "";
@@ -859,12 +853,16 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                     let sampleVoltage = "";
                                                                                     let sampleExtVoltage = "";
                                                                                     let sampleSpeed = "";
+                                                                                    let sampleLocation = "";
                                                                                     if (sample.raw_data && typeof sample.raw_data === 'string') {
                                                                                         const isComma = sample.raw_data.startsWith("$,PVT");
                                                                                         const pParts = sample.raw_data.split(",");
                                                                                         const offset = isComma ? 1 : 0;
                                                                                         if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 3 + offset) {
                                                                                             sampleFwVersion = pParts[2 + offset];
+                                                                                        }
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 14 + offset) {
+                                                                                            sampleLocation = `${pParts[11 + offset]} ${pParts[12 + offset]}, ${pParts[13 + offset]} ${pParts[14 + offset]}`;
                                                                                         }
                                                                                         if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 15 + offset) {
                                                                                             sampleSpeed = pParts[15 + offset];
@@ -875,10 +873,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         }
                                                                                     }
                                                                                     return (
-                                                                                        <Box key={sIdx} sx={{ mt: 0.5, textAlign: 'center' }}>
-                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                                                                                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-                                                                                                    data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
+                                                                                        <Box key={sIdx} sx={{ mt: 1, p: 0.75, bgcolor: '#f8f9fa', border: '1px solid', borderColor: '#e0e0e0', borderRadius: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5, width: '100%' }}>
+                                                                                                <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                                                                                                    {sample.timestamp ? sample.timestamp.split('.')[0].replace('T', ' ') : 'N/A'}
                                                                                                 </Typography>
                                                                                                 <Button
                                                                                                     variant="outlined"
@@ -907,6 +905,11 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                             {step.serial_no === 14 && sampleSpeed && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                     Speed: {sampleSpeed}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {step.serial_no === 15 && sampleLocation && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Lat/Lon: {sampleLocation}
                                                                                                 </Typography>
                                                                                             )}
                                                                                         </Box>
@@ -972,10 +975,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                 }
                                                                                             }
                                                                                             return (
-                                                                                            <Box key={idx} sx={{ mt: 0.5 }}>
-                                                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-                                                                                                        data = {sample.timestamp ? sample.timestamp.split('.')[0] : 'N/A'}
+                                                                                            <Box key={idx} sx={{ mt: 1, p: 0.75, bgcolor: '#f8f9fa', border: '1px solid', borderColor: '#e0e0e0', borderRadius: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                                                                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5, width: '100%' }}>
+                                                                                                    <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                                                                                                        {sample.timestamp ? sample.timestamp.split('.')[0].replace('T', ' ') : 'N/A'}
                                                                                                     </Typography>
                                                                                                     <Button 
                                                                                                         variant="outlined" 
@@ -1004,6 +1007,11 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                 {step.serial_no === 14 && speed && (
                                                                                                     <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                         Speed: {speed}
+                                                                                                    </Typography>
+                                                                                                )}
+                                                                                                {step.serial_no === 15 && location && (
+                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                        Lat/Lon: {location}
                                                                                                     </Typography>
                                                                                                 )}
                                                                                             </Box>

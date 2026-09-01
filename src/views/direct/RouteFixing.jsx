@@ -853,7 +853,10 @@ const RouteFixing = () => {
 
       <Box ref={mapRef} id="map" sx={{ width: "100%", height: "500px", mt: 4, position: 'relative' }}>
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
-        <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ position: 'absolute', bottom: "20px", right: 0, width: '200px', zIndex: 1000, backgroundColor: 'transparent' }} />
+        <div style={{ position: 'absolute', bottom: "-15px", right: "20px", zIndex: 1000, display: 'flex', pointerEvents: 'none' }}>
+            <img src={require('../../assets/images/Bhugol_ogo.png')} style={{ height: '100px', width: 'auto', backgroundColor: 'transparent' }} alt="Bhugol" />
+            <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+        </div>
       </Box>
 
       <div
