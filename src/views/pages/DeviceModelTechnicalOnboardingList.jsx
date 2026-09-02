@@ -132,12 +132,11 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
             return null;
         }
 
-        // No steps to show before testing starts
-        if (statusKey === "submitted" || statusKey === "devices_received" || statusKey === "pending" || statusKey === "stock_received") {
+        if (statusKey === "submitted") {
             return null;
         }
 
-        if (isOngoingEval && tbProgress) {
+        if (tbProgress && tbProgress.total > 0) {
             // Use real test board data
             const total = tbProgress.total || 0;
             const completed = tbProgress.completed || 0;
@@ -164,8 +163,8 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
             };
         }
 
-        // ongoing_evaluation without test board data yet
-        if (isOngoingEval) {
+        // not started or no data yet
+        if (statusKey === "pending" || statusKey === "stock_received" || statusKey === "devices_received" || isOngoingEval) {
             return {
                 label: "Testing In Progress",
                 pct: 0,
@@ -509,13 +508,16 @@ const DeviceModelTechnicalOnboardingList = () => {
 
     // Fetch test board progress for ongoing rows
     useEffect(() => {
-        const ongoingRows = rows.filter(r => String(r.status ?? "").trim().toLowerCase() === "ongoing_evaluation");
-        if (ongoingRows.length === 0) return;
+        const activeRows = rows.filter(r => {
+            const s = String(r.status ?? "").trim().toLowerCase();
+            return s !== "submitted" && !["technically_not_compatible", "rejected", "stateadminrejected", "technically_compatible", "accepted", "approved", "stateadminapproved"].includes(s);
+        });
+        if (activeRows.length === 0) return;
 
         const fetchProgress = async () => {
             const progressMap = {};
             await Promise.all(
-                ongoingRows.map(async (r) => {
+                activeRows.map(async (r) => {
                     try {
                         const res = await DeviceModelServices.getTestBoard({ onboarding_request_id: r.id });
                         let categories = [];

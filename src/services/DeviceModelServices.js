@@ -113,6 +113,11 @@ const getTestBoard = (data) => {
   return http.post("/api/devicemodel/technical-onboarding/superadmin/test-board/", data);
 };
 
+const getManufacturerTestBoard = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/manufacturer/test-board/", data);
+};
+
 const startTestBoard = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/devicemodel/technical-onboarding/superadmin/test-start/", data);
@@ -158,6 +163,7 @@ const DeviceModelServices = {
   finalizeTechnicalOnboardingRequest,
   updateCourierTracking,
   getTestBoard,
+  getManufacturerTestBoard,
   startTestBoard,
   heartbeatTestBoard,
   refreshLogTestBoard,

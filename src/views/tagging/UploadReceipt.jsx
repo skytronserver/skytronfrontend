@@ -85,7 +85,7 @@ const UploadReceipt = () => {
 
       if (preselectedDeviceId) {
         // Automatically load certificate for the preselected device
-        loadCertificatePreview({ device_id: preselectedDeviceId });
+        loadCertificatePreview({ device_id: preselectedDeviceId }, tagged_list);
       }
     })();
   }, [preselectedDeviceId]);
@@ -102,52 +102,54 @@ const UploadReceipt = () => {
     }, {})
   );
 
-  // ─── Load data ───────────────────────────────────────────────
-  const loadCertificatePreview = async (values) => {
+  const loadCertificatePreview = async (values, overrideOptions = null) => {
     try {
       setLoading(true);
-      const response = await TaggingService.vahanVerificationApi({ device_id: values.device_id });
-
-      const device = response?.data?.Skytrack_data?.device || response?.Skytrack_data?.device;
-      const owner = response?.data?.Skytrack_data?.vehicle_owner?.users?.[0] || response?.Skytrack_data?.vehicle_owner?.users?.[0];
-      const vehicle = response?.data?.Skytrack_data || response?.Skytrack_data;
-      const rawVahan = response?.data?.vahan_data ?? response?.vahan_data;
-
-      let vahanPayload = rawVahan;
-      if (rawVahan && typeof rawVahan === "string") {
-        try { vahanPayload = JSON.parse(rawVahan); } catch (e) { console.error(e); }
+      
+      let imei = "";
+      const optionsToUse = overrideOptions || updatedFormFields?.device_id?.options;
+      if (optionsToUse) {
+         const selectedOption = optionsToUse.find(opt => String(opt.value) === String(values.device_id));
+         if (selectedOption) imei = selectedOption.label;
       }
-      const vd = vahanPayload?.VltdDetailsDobj || response?.data?.VltdDetailsDobj || response?.VltdDetailsDobj;
+      
+      const response = await TaggingService.getCertificateList({ imei });
+      const apiData = response?.data?.data?.[0] || response?.data?.[0] || response?.data;
 
-      const certNo = vd?.certNo || device?.cert_no || "";
-      const imei = device?.imei || vd?.imeiNo || "";
-      const serialNo = device?.serial_no || vd?.deviceSerialno || "";
-      const chassisNo = vehicle?.chassis_no || vd?.chassisNo || "";
-      const activationDate = formatDate(vd?.activationDate || vehicle?.activation_date || new Date());
+      if (!apiData || Object.keys(apiData).length === 0) {
+         console.warn("Certificate data not found.");
+         return;
+      }
+
+      const certNo = apiData.cert_no || "";
+      const imeiData = apiData.imei || imei || "";
+      const serialNo = apiData.serial_no || ""; 
+      const chassisNo = apiData.chassis_no || "";
+      const activationDate = formatDate(apiData.tagged_at || new Date());
       // QR encodes all key certificate fields — unique per device
-      const qrData = `Sr No:${serialNo}\nIMEI:${imei}\nChassis No:${chassisNo}\nCertificate No:${certNo || ""}\nActivation Date:${activationDate}`;
+      const qrData = `Sr No:${serialNo}\nIMEI:${imeiData}\nChassis No:${chassisNo}\nCertificate No:${certNo || ""}\nActivation Date:${activationDate}`;
 
       setCertificateData({
-        certNo: certNo || "",
-        activationDate: formatDate(vd?.activationDate || vehicle?.activation_date || new Date()),
-        vehicleOwnerName: vd?.ownerName || owner?.name || "",
-        vehicleRegNo: vehicle?.vehicle_reg_no || vd?.regnNo || "",
-        engineNo: vehicle?.engine_no || vd?.engineNo || "",
-        chassisNo: vehicle?.chassis_no || vd?.chassisNo || "",
-        vehicleClass: vehicle?.vehicle_class || vd?.vehClass || "",
-        vehicleModel: vehicle?.vehicle_model || vd?.modelName || "",
+        certNo: certNo,
+        activationDate: activationDate,
+        vehicleOwnerName: apiData.owner_name || "",
+        vehicleRegNo: apiData.vehicle_reg_no || "",
+        engineNo: apiData.engine_no || "",
+        chassisNo: chassisNo,
+        vehicleClass: apiData.category || "",
+        vehicleModel: apiData.vehicle_model || "",
         deviceSerialNo: serialNo,
-        vltdMake: vehicle?.device_manufacturer_name || vd?.makerName || "",
-        vltdModel: device?.model || vd?.modelName || "",
-        vltdImei: imei,
-        iccid: device?.iccid || vd?.iccId || "",
-        primaryMsisdn: device?.primary_msisdn || vd?.primaryMsisdn || "",
-        fallbackMsisdn: device?.fallback_msisdn || vd?.fallbackMsisdn || "",
-        esimValidUpto: formatDate(device?.esim_validity || vd?.esimValidUpto || ""),
-        noOfEmgButtons: vd?.noOfEmgButtons || device?.no_of_emg_buttons || "",
-        fitmentCenterName: response?.data?.fitment_center_name || vd?.fitmentCenterName || "",
-        fitmentCenterAddress: response?.data?.fitment_center_address || vd?.fitmentCenterAddress || "",
-        registeringOffice: vehicle?.rto_name || vd?.registeringOffice || "",
+        vltdMake: apiData.vehicle_make || "",
+        vltdModel: apiData.device_model || "",
+        vltdImei: imeiData,
+        iccid: apiData.iccid || "",
+        primaryMsisdn: apiData.primary_msisdn || "",
+        fallbackMsisdn: apiData.fallback_msisdn || "",
+        esimValidUpto: formatDate(apiData.esim_valid_upto || apiData.esim_validity || ""),
+        noOfEmgButtons: apiData.no_of_emg_buttons || "",
+        fitmentCenterName: apiData.fitment_center_name || "",
+        fitmentCenterAddress: apiData.fitment_center_address || "",
+        registeringOffice: apiData.rto_name || "",
         qrData,
       });
     } catch (err) {

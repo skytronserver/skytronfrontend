@@ -7825,9 +7825,10 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             </div>
 
             {/* --- Attribution Logos --- */}
-            <Box sx={{ position: 'absolute', bottom: 4, right: 4, zIndex: 1000, pointerEvents: 'none' }}>
-                <img src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`} style={{ height: '50px' }} alt="Skytron" />
-            </Box>
+            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                <img src={require('../../assets/images/Bhugol_ogo.png')} style={{ height: '100px' }} alt="Bhugol" />
+                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+            </div>
 
             {/* Overlay for displaying marker details */}
             <div ref={overlayElement} className="dynamic-overlay">
