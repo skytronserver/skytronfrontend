@@ -166,7 +166,6 @@ const DeviceModelForm = () => {
       modelPayload.append("token", values.token);
       modelPayload.append("whitelisted_ip", values.whitelisted_ip);
       if (values.whitelisted_phone_number) modelPayload.append("whitelisted_phone_number", values.whitelisted_phone_number);
-      if (values.device_ip_range) modelPayload.append("device_ip_range", values.device_ip_range);
       modelPayload.append("approval", "0");
       modelPayload.append("approved_by", "");
       modelPayload.append("created_by", userId || "");
@@ -285,8 +284,7 @@ const DeviceModelForm = () => {
                         if (['cop_no', 'cop_validity', 'cop_file'].includes(field) && !isExpired) {
                           return null;
                         }
-                        // Full-width for api_url, token, whitelisted_ip, whitelisted_phone_number, and device_ip_range
-                        const isFullWidth = ['api_url', 'token', 'whitelisted_ip', 'whitelisted_phone_number', 'device_ip_range'].includes(field);
+                        const isFullWidth = ['api_url', 'token', 'whitelisted_ip', 'whitelisted_phone_number'].includes(field);
                         return (
                           <Grid key={field} item md={isFullWidth ? 12 : 6} sm={12} xs={12}>
                             <FormField

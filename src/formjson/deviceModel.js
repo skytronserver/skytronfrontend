@@ -25,7 +25,6 @@ export const deviceModelInitials = {
   token: "",
   whitelisted_ip: "",
   whitelisted_phone_number: "",
-  device_ip_range: "",
   threshold: "",
 };
 export const deviceModelFormField = {
@@ -196,25 +195,7 @@ export const deviceModelFormField = {
       }
     )
   },
-  device_ip_range: {
-    name: "device_ip_range",
-    type: "text",
-    label: "Device IP Range",
-    placeholder: "e.g., 103.21.58.0/24 or 103.21.58.1-103.21.58.50",
-    validation: Yup.string().nullable().test(
-      'is-valid-ip-range',
-      'Must be comma separated, valid CIDR or start-end range',
-      (value) => {
-        if (!value) return true;
-        const ranges = value.split(',').map(r => r.trim()).filter(r => r.length > 0);
-        
-        const cidrRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[1-2][0-9]|3[0-2])$/;
-        const startEndRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}-([0-9]{1,3}\.){3}[0-9]{1,3}$/;
 
-        return ranges.every(r => cidrRegex.test(r) || startEndRegex.test(r));
-      }
-    )
-  },
   threshold: {
     name: "threshold",
     type: "number",

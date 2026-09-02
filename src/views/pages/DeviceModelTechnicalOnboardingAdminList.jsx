@@ -775,29 +775,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         const locArr = [...locations].reverse();
                                         // NOTE: Lat/Lon NOT shown in title for test #15 — per-device display instead.
                                         const netArr = [...networks].reverse();
-                                        if (step.serial_no === 20 || step.serial_no === 21) {
-                                            let appendStr = "";
-                                            if (locArr.length > 0) appendStr += `Lat/Lon: ${locArr.join(" | ")}`;
-                                            if (netArr.length > 0) {
-                                                if (appendStr) appendStr += " | ";
-                                                appendStr += `Net: ${netArr.join(" | ")}`;
-                                            }
-                                            if (appendStr) displayName = `${step.name} (${appendStr})`;
-                                        }
-                                        const opArr = [...operators].reverse();
-                                        if (step.serial_no === 23 && opArr.length > 0) {
-                                            if (opArr.length >= 2) {
-                                                displayName = `eSIM switch: primary (${opArr[0]}) -> secondary (${opArr[opArr.length - 1]})`;
-                                            } else {
-                                                displayName = `eSIM switch: primary (${opArr[0]}) -> secondary (...)`;
-                                            }
-                                        } else if (step.serial_no === 24 && opArr.length > 0) {
-                                            if (opArr.length >= 2) {
-                                                displayName = `eSIM switch: secondary (${opArr[0]}) -> primary (${opArr[opArr.length - 1]})`;
-                                            } else {
-                                                displayName = `eSIM switch: secondary (${opArr[0]}) -> primary (...)`;
-                                            }
-                                        }
+                                        // NOTE: Lat/Lon and Net NOT shown in title for test #20/21 — per-device display instead.
+                                        // NOTE: Op NOT shown in title for test #23/24 — per-device display instead.
                                         
                                         const isUnlocked = step.serial_no === activeTestId;
                                         const isCompleted = step.serial_no < activeTestId;
@@ -835,7 +814,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                     return (
                                                     <TableCell key={idx} align="center" sx={{ verticalAlign: 'top', pt: 2, borderLeft: '1px solid #f0f0f0' }}>
                                                         {isExecPass ? (
-                                                            <>
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                                 <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
                                                                 {(() => {
                                                                     let snapshotObj = null;
@@ -854,6 +833,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                     let sampleExtVoltage = "";
                                                                                     let sampleSpeed = "";
                                                                                     let sampleLocation = "";
+                                                                                    let sampleNetwork = "";
+                                                                                    let sampleOperator = "";
                                                                                     if (sample.raw_data && typeof sample.raw_data === 'string') {
                                                                                         const isComma = sample.raw_data.startsWith("$,PVT");
                                                                                         const pParts = sample.raw_data.split(",");
@@ -870,6 +851,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 25 + offset) {
                                                                                             sampleVoltage = pParts[25 + offset];
                                                                                             sampleExtVoltage = pParts[24 + offset];
+                                                                                        }
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 32 + offset) {
+                                                                                            sampleNetwork = `${pParts[21 + offset]} (Sig:${pParts[28 + offset]} MCC:${pParts[29 + offset]} MNC:${pParts[30 + offset]} LAC:${pParts[31 + offset]} Cell:${pParts[32 + offset]})`;
+                                                                                            sampleOperator = pParts[21 + offset];
                                                                                         }
                                                                                     }
                                                                                     return (
@@ -907,9 +892,19 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                     Speed: {sampleSpeed}
                                                                                                 </Typography>
                                                                                             )}
-                                                                                            {step.serial_no === 15 && sampleLocation && (
+                                                                                            {(step.serial_no === 15 || step.serial_no === 20 || step.serial_no === 21) && sampleLocation && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                     Lat/Lon: {sampleLocation}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {(step.serial_no === 20 || step.serial_no === 21) && sampleNetwork && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Net: {sampleNetwork}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {(step.serial_no === 23 || step.serial_no === 24) && sampleOperator && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Op: {sampleOperator}
                                                                                                 </Typography>
                                                                                             )}
                                                                                         </Box>
@@ -920,7 +915,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                     }
                                                                     return null;
                                                                 })()}
-                                                            </>
+                                                            </Box>
                                                         ) : execStatus === "in_progress" ? (
                                                             <>
                                                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5 }}>
@@ -959,6 +954,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                             let speed = "";
                                                                                             let location = "";
                                                                                             let network = "";
+                                                                                            let operator = "";
                                                                                             if (sample.raw_data && typeof sample.raw_data === 'string' && (sample.raw_data.startsWith("$PVT") || sample.raw_data.startsWith("$,PVT"))) {
                                                                                                 const isComma = sample.raw_data.startsWith("$,PVT");
                                                                                                 const parts = sample.raw_data.split(",");
@@ -972,6 +968,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                 }
                                                                                                 if (parts.length > 32 + pvtOffset) {
                                                                                                     network = `${parts[21 + pvtOffset]} (Sig:${parts[28 + pvtOffset]} MCC:${parts[29 + pvtOffset]} MNC:${parts[30 + pvtOffset]} LAC:${parts[31 + pvtOffset]} Cell:${parts[32 + pvtOffset]})`;
+                                                                                                    operator = parts[21 + pvtOffset];
                                                                                                 }
                                                                                             }
                                                                                             return (
@@ -1009,9 +1006,19 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                         Speed: {speed}
                                                                                                     </Typography>
                                                                                                 )}
-                                                                                                {step.serial_no === 15 && location && (
+                                                                                                {(step.serial_no === 15 || step.serial_no === 20 || step.serial_no === 21) && location && (
                                                                                                     <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                         Lat/Lon: {location}
+                                                                                                    </Typography>
+                                                                                                )}
+                                                                                                {(step.serial_no === 20 || step.serial_no === 21) && network && (
+                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                        Net: {network}
+                                                                                                    </Typography>
+                                                                                                )}
+                                                                                                {(step.serial_no === 23 || step.serial_no === 24) && operator && (
+                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                        Op: {operator}
                                                                                                     </Typography>
                                                                                                 )}
                                                                                             </Box>
@@ -1039,26 +1046,26 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                     } catch (e) {}
                                                                     
                                                                     return isPass ? (
-                                                                        <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', display: 'block', mx: 'auto', '&:hover': { bgcolor: '#283593' } }} onClick={() => handleCompleteTest(execution.id)}>
+                                                                        <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', display: 'block', mx: 'auto', mt: 1, '&:hover': { bgcolor: '#283593' } }} onClick={() => handleCompleteTest(execution.id)}>
                                                                             Complete
                                                                         </Button>
                                                                     ) : null;
                                                                 })()}
                                                             </>
                                                         ) : (isUnlocked || isExecIncomplete) ? (
-                                                            <>
-                                                                <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }} />
+                                                            <Stack direction="column" alignItems="center" spacing={1} sx={{ width: '100%' }}>
+                                                                <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }} />
                                                                 <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', '&:hover': { bgcolor: '#283593' } }} onClick={() => {
                                                                     if (execution?.demo_device?.id) {
                                                                         handleStartTest(step.id, execution.demo_device.id);
                                                                     }
                                                                 }}>Start</Button>
-                                                            </>
+                                                            </Stack>
                                                         ) : (
-                                                            <>
-                                                                <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', mb: 1, bgcolor: '#f5f5f5', color: '#757575', borderRadius: 1 }} />
+                                                            <Stack direction="column" alignItems="center" spacing={0.5} sx={{ width: '100%' }}>
+                                                                <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#f5f5f5', color: '#757575', borderRadius: 1 }} />
                                                                 <Typography variant="caption" color="text.secondary" display="block">locked</Typography>
-                                                            </>
+                                                            </Stack>
                                                         )}
                                                     </TableCell>
                                                     );

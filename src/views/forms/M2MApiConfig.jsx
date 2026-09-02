@@ -48,7 +48,6 @@ const M2MApiConfig = () => {
       api_url: values.apiUrl,
       token: values.token,
       sample_iccid: values.sampleIccid,
-      device_ip_range: values.deviceIpRange,
     };
 
     console.log("M2M save payload:", payload);
@@ -103,13 +102,16 @@ const M2MApiConfig = () => {
 
     const errorData = error?.response?.data;
 
-    handleAlert(
-      errorData?.message ||
-        errorData?.detail ||
-        error?.message ||
-        "Failed to process M2M API configuration.",
-      true
-    );
+    const errorMsg = errorData?.error || errorData?.message || errorData?.detail || error?.message || "Failed to process M2M API configuration.";
+
+    if (errorMsg === "Please upload at least one IP range with its ISP certificate before completing technical onboarding.") {
+      handleAlert(
+        `${errorMsg} <br/><br/><a href="/device/ip-range" style="color: #2196f3; font-weight: bold; text-decoration: underline;">Go to IP Ranges</a>`,
+        true
+      );
+    } else {
+      handleAlert(errorMsg, true);
+    }
   } finally {
     setSubmitting(false);
     setLoading(false);

@@ -42,6 +42,8 @@ const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/Unta
 const M2MApiConfig = Loadable(lazy(() => import("../views/forms/M2MApiConfig")));
 const EsimValidityExtension = Loadable(lazy(() => import("../views/pages/device/EsimValidityExtension")));
 const EsimValidityExtensionRequests = Loadable(lazy(() => import("../views/pages/device/EsimValidityExtensionRequests")));
+const EsimIpRanges = Loadable(lazy(() => import("../views/pages/device/EsimIpRanges")));
+const M2mIpScan = Loadable(lazy(() => import("../views/pages/device/M2mIpScan")));
 
 const applyPrivateRoute = (route) => ({
   ...route,
@@ -140,6 +142,16 @@ const DeviceRoutes = {
     {
       path: "/device/api-config",
       element: <M2MApiConfig />,
+      roles: ["esimprovider"],
+    },
+    {
+      path: "/device/m2m-ip-scan",
+      element: <M2mIpScan />,
+      roles: ["superadmin"],
+    },
+    {
+      path: "/device/ip-range",
+      element: <EsimIpRanges />,
       roles: ["esimprovider"],
     },
     {
