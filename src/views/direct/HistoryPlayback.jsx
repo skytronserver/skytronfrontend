@@ -9,7 +9,7 @@ import { FormControl, Autocomplete, TextField, Button, Grid, Typography, Box, Ci
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useTranslation } from "react-i18next";
 //const MAX_HISTORY_RANGE_MS = 1000 * 60 * 60 * 24 * 365 * 2; // two years
-const MAX_HISTORY_RANGE_MS = 2 * 60 * 60 * 1000; // 2 Hours
+const MAX_HISTORY_RANGE_MS = 24 * 60 * 60 * 1000; // 24 Hours
 const HistoryPlayback = () => {
   const { t } = useTranslation();
 
@@ -165,7 +165,7 @@ const HistoryPlayback = () => {
     const toDateObj = new Date(to);
 
     if (toDateObj.getTime() - fromDateObj.getTime() > MAX_HISTORY_RANGE_MS) {
-      return "Date range cannot exceed 2 hours. Please select a shorter range.";
+      return "Date range cannot exceed 24 hours. Please select a shorter range.";
     }
     return null;
   }, []);
@@ -291,7 +291,7 @@ const HistoryPlayback = () => {
   const diff = selected.getTime() - from.getTime();
 
   if (diff > MAX_HISTORY_RANGE_MS) {
-    alert("Maximum allowed range is 2 hours");
+    alert("Maximum allowed range is 24 hours");
 
     const autoEndDate = new Date(
       from.getTime() + MAX_HISTORY_RANGE_MS
