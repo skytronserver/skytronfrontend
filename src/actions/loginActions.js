@@ -136,9 +136,14 @@ export const loginUser = (username, password, captcha_key, captcha_reply) => asy
   } catch (error) {
     console.log(error, 'error')
     let message = "";
-    if (error?.code === "ERR_BAD_REQUEST") {
+    if (error?.response?.status === 502 || error?.response?.status === 503 || error?.response?.status === 504) {
+      message = "SMS Service Not Avaiable at this Time. Please try again Later.";
+    } else if (error?.code === "ERR_BAD_REQUEST") {
       if (error?.response?.data) {
-        message = error?.response?.data?.error
+        message = error?.response?.data?.error;
+        if (message && message.toLowerCase().includes("sms")) {
+          message = "SMS Service Not Avaiable at this Time. Please try again Later.";
+        }
       } else {
         message = "Internal Server Error"
       }
@@ -230,8 +235,13 @@ export const loginUserSos = (username, password, captcha_key, captcha_reply) => 
   } catch (error) {
     console.log(error, 'error');
     let message = '';
-    if (error?.code === 'ERR_BAD_REQUEST') {
+    if (error?.response?.status === 502 || error?.response?.status === 503 || error?.response?.status === 504) {
+      message = "SMS Service Not Avaiable at this Time. Please try again Later.";
+    } else if (error?.code === 'ERR_BAD_REQUEST') {
       message = error?.response?.data?.error || 'Internal Server Error';
+      if (message && message.toLowerCase().includes("sms")) {
+          message = "SMS Service Not Avaiable at this Time. Please try again Later.";
+      }
     } else {
       console.error(`[ACL] SOS Access Denied. Role: ${error.role || 'Unknown'}`);
       message = error.message;
@@ -381,7 +391,7 @@ export const resendOtp = (mobile, token) => async (dispatch) => {
     dispatch(setError(error));
   } catch (error) {
     const errorData = {
-      message: "We're unable to send the OTP code right now.Please try again later.",
+      message: "SMS Service Not Avaiable at this Time. Please try again Later.",
       status: null,
     }
     dispatch(setError(errorData));

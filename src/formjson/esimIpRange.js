@@ -46,9 +46,15 @@ export const esimIpRangeField = {
   },
   isp_name: {
     name: "isp_name",
-    type: "text",
+    type: "select",
     label: "ISP Name",
-    placeholder: "e.g., Airtel, Jio",
+    options: [
+      { value: "Airtel", label: "Airtel" },
+      { value: "Vodafone", label: "Vodafone" },
+      { value: "BSNL", label: "BSNL" },
+      { value: "Jio", label: "Jio" },
+      { value: "MTNL", label: "MTNL" },
+    ],
     validation: Yup.string().nullable(),
   },
   remarks: {

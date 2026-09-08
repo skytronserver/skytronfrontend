@@ -166,7 +166,9 @@ const EsimIpRanges = () => {
     { name: "certificate_file", label: "Certificate", options: {
         customBodyRender: (value) => {
           if (!value) return "None";
-          return <a href={`${process.env.REACT_APP_BASE_URL}${value}`} target="_blank" rel="noopener noreferrer">View</a>;
+          // Ensure 'files/' prefix is used if not already present
+          const fileUrl = value.startsWith('files/') ? value : `files/${value}`;
+          return <a href={`${process.env.REACT_APP_BASE_URL}${fileUrl}`} target="_blank" rel="noopener noreferrer">View</a>;
         }
     }},
     { name: "remarks", label: "Remarks" },
