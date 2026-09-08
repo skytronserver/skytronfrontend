@@ -25,7 +25,6 @@ export const deviceModelInitials = {
   token: "",
   whitelisted_ip: "",
   whitelisted_phone_number: "",
-  threshold: "",
 };
 export const deviceModelFormField = {
   eSimProviders: {
@@ -194,13 +193,5 @@ export const deviceModelFormField = {
         });
       }
     )
-  },
-
-  threshold: {
-    name: "threshold",
-    type: "number",
-    label: "Threshold",
-    placeholder: "e.g., 80",
-    validation: Yup.number().required("Threshold is required"),
   },
 };
