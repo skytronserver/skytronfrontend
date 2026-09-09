@@ -99,6 +99,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => impo
 const DeviceModelTechnicalOnboardingAdminList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingAdminList")));
 
 const HabitualOffenderReport = Loadable(lazy(() => import('../views/reports/HabitualOffenderReport')));
+const IpViolationReport = Loadable(lazy(() => import('../views/reports/IpViolationReport')));
 const ServerHealthDashboard = Loadable(lazy(() => import('../views/servermonitor/ServerHealthDashboard')));
 const DeviceInspectDashboard = Loadable(lazy(() => import('../views/servermonitor/DeviceInspector')));
 const AlertStatsReports = Loadable(lazy(() => import('../views/servermonitor/AlertStatsPage')));
@@ -620,6 +621,12 @@ const MainRoutes = {
     {
       path: '/reports/habitual-offender-report',
       element: <HabitualOffenderReport />,
+      roles: ['superadmin']
+    },
+
+    {
+      path: '/reports/ipviolation-report',
+      element: <IpViolationReport />,
       roles: ['superadmin']
     },
 
