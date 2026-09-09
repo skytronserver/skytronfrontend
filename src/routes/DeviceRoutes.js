@@ -44,6 +44,7 @@ const EsimValidityExtension = Loadable(lazy(() => import("../views/pages/device/
 const EsimValidityExtensionRequests = Loadable(lazy(() => import("../views/pages/device/EsimValidityExtensionRequests")));
 const EsimIpRanges = Loadable(lazy(() => import("../views/pages/device/EsimIpRanges")));
 const M2mIpScan = Loadable(lazy(() => import("../views/pages/device/M2mIpScan")));
+const M2mEsimQuery = Loadable(lazy(() => import("../views/pages/device/M2mEsimQuery")));
 
 const applyPrivateRoute = (route) => ({
   ...route,
@@ -148,6 +149,11 @@ const DeviceRoutes = {
       path: "/device/m2m-ip-scan",
       element: <M2mIpScan />,
       roles: ["superadmin"],
+    },
+    {
+      path: "/device/m2m-esim-query",
+      element: <M2mEsimQuery />,
+      roles: ["superadmin", "esimprovider"],
     },
     {
       path: "/device/ip-range",

@@ -325,6 +325,15 @@ const user = {
       roles: ["esimprovider"],
     },
     {
+      id: "m2m-esim-query",
+      title: "eSIM Query",
+      type: "item",
+      url: "/device/m2m-esim-query",
+      icon: icons.IconReport,
+      breadcrumbs: false,
+      roles: ["superadmin", "esimprovider"],
+    },
+    {
       id: "provider-esim-extension-requests",
       title: "eSIM Extension Requests",
       type: "item",

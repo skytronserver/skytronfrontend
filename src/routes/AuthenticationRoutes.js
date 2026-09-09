@@ -7,6 +7,7 @@ const LoginOtp = Loadable(lazy(() => import("../views/pages/authentication/Login
 const ResetPassword = Loadable(lazy(() => import("../views/pages/authentication/ResetPassword")));
 const SetPassword = Loadable(lazy(() => import("../views/pages/authentication/SetPassword")));
 const ForgotPassword = Loadable(lazy(() => import("../views/pages/authentication/ForgotPassword")));
+const VehicleStatusView = Loadable(lazy(() => import("../views/detailsview/VehicleStatusView")));
 
 // login option 3 routing
 const AuthLogin3 = Loadable(
@@ -37,7 +38,16 @@ const AuthenticationRoutes = {
     {
       path: "/reset-password/:reset_token",
       element: <SetPassword />
-    }
+    },
+    // Vehicle Status — standalone, no navbar/sidebar
+    {
+      path: "/vehicle-status",
+      element: <VehicleStatusView />,
+    },
+    {
+      path: "/vehicle-status/:vehicleNo",
+      element: <VehicleStatusView />,
+    },
   ],
 };
 

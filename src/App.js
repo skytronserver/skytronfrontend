@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline, StyledEngineProvider } from "@mui/material";
+import { useLocation } from "react-router-dom";
 import "./themes/styles.css"
 // routing
 import Routes from "./routes";
@@ -15,30 +16,17 @@ import StickyLanguageSwitcher from "./ui-component/StickyLanguageSwitcher";
 // ==============================|| APP ||============================== //
 
 const App = () => {
-  //   const response = await fetch(`${process.env.REACT_APP_BASE_URL}api/EM/DEx/get-media/`,{
-  //     headers: {
-  //       'Authorization': `Token c43e5631503ac48ab980b549ec1c74993e8ffe88`
-  //     },
-  //     method: "POST",
-  //   });
-  //   const data = await response.json();
-  //   console.log(data);
-  // }
-  // apicall();
   const customization = useSelector((state) => state.customization);
+  const location = useLocation();
+  const hideLanguageSwitcher = location.pathname.startsWith("/vehicle-status");
+
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={themes(customization)}>
         <CssBaseline />
         <NavigationScroll>
-          {/* <Suspense fallback={
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-              <CircularProgress />
-            </div>
-          }> */}
           <Routes />
-          <StickyLanguageSwitcher />
-          {/* </Suspense> */}
+          {!hideLanguageSwitcher && <StickyLanguageSwitcher />}
         </NavigationScroll>
       </ThemeProvider>
     </StyledEngineProvider>
