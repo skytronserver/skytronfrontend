@@ -162,50 +162,207 @@ function DealerAccount() {
     }
   })();
 
+  // const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+  //   const userData = sessionStorage.getItem("cookiesData");
+  //   const data = userData && userData.split("-");
+  //   const userId = userData && data.length > 2 && data[3];
+
+  //   setSubmitting(true);
+  //   setLoading(true);
+
+  //   // Format districts as an array if it exists
+  //   const formattedDistricts = values.districts ?
+  //     (Array.isArray(values.districts) ? values.districts : [values.districts]) : [];
+
+  //   const valuesWithRole = {
+  //     ...values,
+  //     districts: formattedDistricts,
+  //     role: "devicemanufacturer",
+  //     createdby: userId,
+  //     manufacturer: userId,
+  //     address_State: updatedFormFields.address_State?.id
+  //   };
+
+  //   try {
+  //     await DealerServices.dealerUser(valuesWithRole);
+  //     setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
+  //     handleAlert(t("common.formSubmittedSuccessfully"));
+  //     resetForm();
+  //     setSubmitting(false);
+  //     setShowResend(true);
+  //   } catch (error) {
+  //     if (error.message === "Network Error") {
+  //       handleAlert(t("common.internalServerError"));
+  //       return true;
+  //     }
+  //     setAlert((prevAlert) => ({
+  //       ...prevAlert,
+  //       error: true,
+  //       errorList: convertErrorObjectToArray(error.response.data),
+  //     }));
+  //     handleAlert(t("common.formNotSubmitted"));
+  //     setShowResend(false);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    const userData = sessionStorage.getItem("cookiesData");
-    const data = userData && userData.split("-");
-    const userId = userData && data.length > 2 && data[3];
+  const userData = sessionStorage.getItem("cookiesData");
+  const data = userData ? userData.split("-") : [];
+  const userId = data.length > 2 ? data[3] : "";
 
-    setSubmitting(true);
-    setLoading(true);
+  setSubmitting(true);
+  setLoading(true);
 
-    // Format districts as an array if it exists
-    const formattedDistricts = values.districts ?
-      (Array.isArray(values.districts) ? values.districts : [values.districts]) : [];
+  try {
+    const formData = new FormData();
 
-    const valuesWithRole = {
-      ...values,
-      districts: formattedDistricts,
-      role: "devicemanufacturer",
-      createdby: userId,
-      manufacturer: userId,
-      address_State: updatedFormFields.address_State?.id
-    };
+    // Normal fields
+    formData.append("manufacturer", userId);
+    formData.append("name", values.name || "");
+    formData.append("mobile", values.mobile || "");
+    formData.append("email", values.email || "");
+    formData.append("dob", values.dob || "");
+    formData.append("company_name", values.company_name || "");
+    formData.append("gstnnumber", values.gstnnumber || "");
 
-    try {
-      await DealerServices.dealerUser(valuesWithRole);
-      setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
-      handleAlert(t("common.formSubmittedSuccessfully"));
-      resetForm();
-      setSubmitting(false);
-      setShowResend(true);
-    } catch (error) {
-      if (error.message === "Network Error") {
-        handleAlert(t("common.internalServerError"));
-        return true;
-      }
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: true,
-        errorList: convertErrorObjectToArray(error.response.data),
-      }));
-      handleAlert(t("common.formNotSubmitted"));
-      setShowResend(false);
-    } finally {
-      setLoading(false);
+    // State ID
+    formData.append(
+      "address_State",
+      updatedFormFields.address_State?.id || ""
+    );
+
+    // IMPORTANT:
+    // API expects districts[] instead of a comma-separated value
+    if (Array.isArray(values.districts)) {
+      values.districts.forEach((district) => {
+        const districtValue =
+          typeof district === "object"
+            ? district.value
+            : district;
+
+        if (districtValue !== undefined && districtValue !== null) {
+          formData.append("districts[]", districtValue);
+        }
+      });
     }
-  };
+
+    // Send districts as comma-separated value for testing
+// const formattedDistricts = Array.isArray(values.districts)
+//   ? values.districts
+//       .map((district) =>
+//         typeof district === "object"
+//           ? district.value
+//           : district
+//       )
+//       .filter(
+//         (district) =>
+//           district !== undefined &&
+//           district !== null &&
+//           district !== ""
+//       )
+//       .join(",")
+//   : values.districts || "";
+
+// formData.append("districts", formattedDistricts);
+
+    formData.append("idProofno", values.idProofno || "");
+    formData.append("expirydate", values.expirydate || "");
+
+    // Files
+    if (values.file_authLetter) {
+      formData.append(
+        "file_authLetter",
+        values.file_authLetter
+      );
+    }
+
+    if (values.file_companRegCertificate) {
+      formData.append(
+        "file_companRegCertificate",
+        values.file_companRegCertificate
+      );
+    }
+
+    if (values.file_GSTCertificate) {
+      formData.append(
+        "file_GSTCertificate",
+        values.file_GSTCertificate
+      );
+    }
+
+    if (values.file_idProof) {
+      formData.append(
+        "file_idProof",
+        values.file_idProof
+      );
+    }
+
+    // Location
+    formData.append("lat", values.lat || "");
+    formData.append("lon", values.lon || "");
+
+    // Role / creator
+    formData.append("role", "devicemanufacturer");
+    formData.append("createdby", userId);
+
+    // Debug - VERY useful
+    for (const [key, value] of formData.entries()) {
+      console.log(
+        key,
+        value instanceof File
+          ? {
+              name: value.name,
+              type: value.type,
+              size: value.size,
+            }
+          : value
+      );
+    }
+
+    await DealerServices.dealerUser(formData);
+
+    setAlert({
+      error: false,
+      message: t("common.formSubmittedSuccessfully"),
+      errorList: [],
+    });
+
+    setOpen(true);
+
+    resetForm();
+    setShowResend(true);
+  } catch (error) {
+    console.error("Create dealer error:", error);
+    console.error("Response:", error?.response?.data);
+
+    if (error?.message === "Network Error") {
+      setAlert({
+        error: true,
+        message: t("common.internalServerError"),
+        errorList: [],
+      });
+
+      setOpen(true);
+      return;
+    }
+
+    setAlert({
+      error: true,
+      message: t("common.formNotSubmitted"),
+      errorList: error?.response?.data
+        ? convertErrorObjectToArray(error.response.data)
+        : [],
+    });
+
+    setOpen(true);
+    setShowResend(false);
+  } finally {
+    setSubmitting(false);
+    setLoading(false);
+  }
+};
 
   const handleResend = (resetForm) => {
     setShowResend(false);
