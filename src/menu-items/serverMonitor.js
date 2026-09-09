@@ -24,54 +24,90 @@ const serverMonitor = {
       icon: icons.IconServer,
       roles: ['superadmin'],
       children: [
+        // {
+        //   id: 'server-health-dashboard',
+        //   title: 'Server Health',
+        //   type: 'item',
+        //   url: `${BASE_URL}api/server-health/dashboard/`,
+        //   icon: icons.IconHeartbeat,
+        //   breadcrumbs: false,
+        //   external: true,
+        //   target: true,     // opens in _blank
+        //   tokenParam: true, // NavItem will append ?token=<oAuthToken>
+        //   roles: ['superadmin']
+        // },
         {
           id: 'server-health-dashboard',
           title: 'Server Health',
           type: 'item',
-          url: `${BASE_URL}api/server-health/dashboard/`,
+          url: `/server-health`,
           icon: icons.IconHeartbeat,
           breadcrumbs: false,
-          external: true,
-          target: true,     // opens in _blank
-          tokenParam: true, // NavItem will append ?token=<oAuthToken>
           roles: ['superadmin']
         },
         {
-          id: 'device-inspector-dashboard',
+          id: 'device-inspector',
           title: 'Device Inspector',
           type: 'item',
-          url: `${BASE_URL}api/device-inspector/dashboard/`,
+          url: `/device-inspect`,
           icon: icons.IconCpu,
           breadcrumbs: false,
-          external: true,
-          target: true,
-          tokenParam: true,
           roles: ['superadmin']
         },
         {
-          id: 'alert-stats-dashboard',
+          id: 'alert-stats',
           title: 'Alert Stats',
           type: 'item',
-          url: `${BASE_URL}api/alert-stats/dashboard/`,
+          url: `/alert-stats`,
           icon: icons.IconAlertTriangle,
           breadcrumbs: false,
-          external: true,
-          target: true,
-          tokenParam: true,
           roles: ['superadmin']
         },
         {
-          id: 'device-data-health-dashboard',
-          title: 'Device Data Health',
+          id: 'device-health-dashboard',
+          title: 'Alert Stats',
           type: 'item',
-          url: `${BASE_URL}api/device-data-health/dashboard/`,
+          url: `/device-health-dashboard`,
           icon: icons.IconActivity,
           breadcrumbs: false,
-          external: true,
-          target: true,
-          // No tokenParam — this endpoint does not require a token query param
           roles: ['superadmin']
-        }
+        },
+        // {
+        //   id: 'device-inspector-dashboard',
+        //   title: 'Device Inspector',
+        //   type: 'item',
+        //   url: `${BASE_URL}api/device-inspector/dashboard/`,
+        //   icon: icons.IconCpu,
+        //   breadcrumbs: false,
+        //   external: true,
+        //   target: true,
+        //   tokenParam: true,
+        //   roles: ['superadmin']
+        // },
+        // {
+        //   id: 'alert-stats-dashboard',
+        //   title: 'Alert Stats',
+        //   type: 'item',
+        //   url: `${BASE_URL}api/alert-stats/dashboard/`,
+        //   icon: icons.IconAlertTriangle,
+        //   breadcrumbs: false,
+        //   external: true,
+        //   target: true,
+        //   tokenParam: true,
+        //   roles: ['superadmin']
+        // },
+        // {
+        //   id: 'device-data-health-dashboard',
+        //   title: 'Device Data Health',
+        //   type: 'item',
+        //   url: `${BASE_URL}api/device-data-health/dashboard/`,
+        //   icon: icons.IconActivity,
+        //   breadcrumbs: false,
+        //   external: true,
+        //   target: true,
+        //   // No tokenParam — this endpoint does not require a token query param
+        //   roles: ['superadmin']
+        // }
       ]
     }
   ]

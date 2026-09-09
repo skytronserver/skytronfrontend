@@ -99,6 +99,10 @@ const AIS140DeviceManufacturerRegistrationAdminReview = Loadable(lazy(() => impo
 const DeviceModelTechnicalOnboardingAdminList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingAdminList")));
 
 const HabitualOffenderReport = Loadable(lazy(() => import('../views/reports/HabitualOffenderReport')));
+const ServerHealthDashboard = Loadable(lazy(() => import('../views/servermonitor/ServerHealthDashboard')));
+const DeviceInspectDashboard = Loadable(lazy(() => import('../views/servermonitor/DeviceInspector')));
+const AlertStatsReports = Loadable(lazy(() => import('../views/servermonitor/AlertStatsPage')));
+const DeviceDataHealthPage = Loadable(lazy(() => import('../views/servermonitor/DeviceDataHealthPage')));
 
 
 const applyPrivateRoute = (route) => ({
@@ -376,6 +380,26 @@ const MainRoutes = {
     {
       path: '/reports/user-statistics-report',
       element: <UserStatisticsReport />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/server-health',
+      element: <ServerHealthDashboard />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/device-inspect',
+      element: <DeviceInspectDashboard />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/alert-stats',
+      element: <AlertStatsReports />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/device-health-dashboard',
+      element: <DeviceDataHealthPage />,
       roles: ['superadmin']
     },
     {
