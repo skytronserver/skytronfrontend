@@ -179,6 +179,11 @@ const get_habitual_offender_report = (params) => {
   return http.get("/api/alert-stats/summary/", { params });
 };
 
+// IP Violation Report
+const get_ip_violations = () => {
+  const http = getAxiosInstance();
+  return http.get("/api/ip-violations/dummy/");
+};
 
 const SettingService = {
   create_settings_hp_freq,
@@ -217,6 +222,7 @@ const SettingService = {
   list_settings_permit_master,
   list_all_settings_permit_master,
   get_habitual_offender_report,
+  get_ip_violations,
 };
 
 export default SettingService;
