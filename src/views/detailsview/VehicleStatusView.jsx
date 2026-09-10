@@ -343,6 +343,28 @@ const VehicleStatusView = () => {
                 </div>
               </div>
 
+              {/* Warning Message if any red status */}
+              {[
+                  data.integration_status,
+                  data.connectivity_status,
+                  data.speed_limit_status,
+                  data.vltd_status
+              ].some(st => BADGE[st?.toLowerCase()]?.color === "#dc2626") && (
+                <div style={{
+                  background: "#fef2f2",
+                  border: "1px solid #fca5a5",
+                  borderRadius: 8,
+                  padding: "10px 16px",
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10
+                }}>
+                  <img src={iconAlert} alt="Warning" style={{ width: 20, height: 20 }} />
+                  <span style={{ color: "#991b1b", fontWeight: 700, fontSize: 14 }}>Technical assessment required</span>
+                </div>
+              )}
+
               {/* 4 cards */}
               <Grid container spacing={2}>
                 {[
