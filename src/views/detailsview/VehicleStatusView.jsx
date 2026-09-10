@@ -138,7 +138,7 @@ const VehicleStatusView = () => {
           connectivity_status: (sum.connectivity_status || "").toLowerCase() === "online" ? "online" : "offline",
           api_connectivity_raw: sum.connectivity_status || "Offline",
           
-          speed_limit_status: (sum.speed_limit_status || "").toLowerCase().includes("anomaly") ? "non_functional" : "functional",
+          speed_limit_status: ((sum.speed_limit_status || "").toLowerCase().includes("anomaly") || (sum.speed_limit_status || "").toLowerCase().includes("overspeed")) ? "non_functional" : "functional",
           api_speed_limit_raw: sum.speed_limit_status || "Functional",
           
           vltd_status: (sum.vltd_status || "").toLowerCase() === "active" ? "active" : "inactive",
