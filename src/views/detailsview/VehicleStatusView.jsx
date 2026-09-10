@@ -95,19 +95,6 @@ const StatusCard = ({ number, title, icon, status, rawLabel, lastUpdated }) => {
       <div style={{ fontSize:12, color:"#374151", lineHeight:1.6, flex:1, whiteSpace:"pre-line" }}>
         {cfg.desc}
       </div>
-      {/* last updated */}
-      <div style={{ display:"flex", alignItems:"flex-start", gap:5, paddingTop:8, borderTop:"1px solid #d1fae5" }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ marginTop:2, flexShrink:0 }}>
-          <circle cx="12" cy="12" r="9" stroke="#9ca3af" strokeWidth="2"/>
-          <path d="M12 7v5l3 3" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-        <div>
-          <div style={{ fontSize:10, color:"#9ca3af", lineHeight:1.3 }}>Last Updated</div>
-          <div style={{ fontSize:10.5, color:"#6b7280", fontWeight:600, lineHeight:1.3 }}>
-            {fmtDate(lastUpdated)} | {fmtTime(lastUpdated)}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -118,12 +105,14 @@ const VehicleStatusView = () => {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState(vehicleNo || "");
   const [loading, setLoading]         = useState(false);
+  const [bgLoading, setBgLoading]     = useState(false);
   const [data, setData]               = useState(null);
   const [lastRefresh, setLastRefresh] = useState(new Date("2024-11-14T10:24:35.000Z"));
 
-  const fetchData = async (vNo) => {
+  const fetchData = async (vNo, isBackground = false) => {
     if (!vNo) return;
-    setLoading(true);
+    if (!isBackground) setLoading(true);
+    else setBgLoading(true);
     try {
       const q = vNo.trim();
       const isImei = /^\d{10,15}$/.test(q); // if strictly digits, assume IMEI
@@ -165,11 +154,25 @@ const VehicleStatusView = () => {
       setData({ ...DUMMY, vehicle_no: vNo.toUpperCase(), vehicle_id: vNo });
     } finally {
       setLastRefresh(new Date());
-      setLoading(false);
+      if (!isBackground) setLoading(false);
+      else setBgLoading(false);
     }
   };
 
-  useEffect(() => { if (vehicleNo) { setSearchInput(vehicleNo); fetchData(vehicleNo); } }, [vehicleNo]);
+  useEffect(() => {
+    if (vehicleNo) {
+      setSearchInput(vehicleNo);
+      fetchData(vehicleNo);
+    }
+  }, [vehicleNo]);
+
+  useEffect(() => {
+    if (!vehicleNo) return;
+    const interval = setInterval(() => {
+      fetchData(vehicleNo, true);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [vehicleNo]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -353,7 +356,9 @@ const VehicleStatusView = () => {
                     display:"flex", alignItems:"center", justifyContent:"center",
                     cursor:"pointer",
                   }}>
-                    <img src={iconRefresh} alt="refresh" style={{ width:16, height:16, objectFit:"contain" }} />
+                    <svg viewBox="0 0 24 24" fill="#16a34a" style={{ width: 18, height: 18, animation: bgLoading ? "spin 1s linear infinite" : "none" }}>
+                      <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                    </svg>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:4 }}>
                     <div style={{ width:9, height:9, borderRadius:"50%", background:"#16a34a", boxShadow:"0 0 0 3px rgba(22,163,74,0.2)" }} />
@@ -380,7 +385,7 @@ const VehicleStatusView = () => {
                   gap: 10
                 }}>
                   <img src={iconAlert} alt="Warning" style={{ width: 20, height: 20 }} />
-                  <span style={{ color: "#991b1b", fontWeight: 700, fontSize: 14 }}>Technical assessment required</span>
+                  <span style={{ color: "#991b1b", fontWeight: 700, fontSize: 14 }}>Technical Inspection Required</span>
                 </div>
               )}
 
@@ -426,7 +431,10 @@ const VehicleStatusView = () => {
       </div>
 
       {/* spinner keyframe */}
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      `}</style>
     </div>
   );
 };
