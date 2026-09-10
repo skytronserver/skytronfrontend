@@ -26,7 +26,7 @@ import iconSpeedLimit   from "../../assets/images/yatra-kavach/icon_speed_limit.
 const DUMMY = {
   vehicle_no: "AS01JC1234", vehicle_id: "AS01JC1234",
   category: "Bus", owner: "Assam State Transport",
-  type: "Public Service Vehicle", is_active: true, max_speed: 80,
+  type: "Public Service Vehicle", is_active: true, max_speed: 20,
   integration_status: "integrated", api_integration_raw: "",
   connectivity_status: "online", api_connectivity_raw: "",
   speed_limit_status: "functional", api_speed_limit_raw: "",
@@ -190,15 +190,16 @@ const VehicleStatusView = () => {
         padding:"6px 20px", background:"#fff",
         borderBottom:"1px solid #e5e7eb", gap:10,
       }}>
-        <form onSubmit={handleSearch} style={{ display:"flex", alignItems:"center", border:"1.5px solid #d1d5db", borderRadius:8, overflow:"hidden", background:"#fff", boxShadow:"0 1px 3px rgba(0,0,0,0.07)" }}>
-          <div style={{ display:"flex", alignItems:"center", padding:"0 12px", gap:6 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+        <form onSubmit={handleSearch} className="search-form" style={{ display:"flex", alignItems:"center", border:"1.5px solid #d1d5db", borderRadius:8, overflow:"hidden", background:"#fff", boxShadow:"0 1px 3px rgba(0,0,0,0.07)" }}>
+          <div style={{ display:"flex", flex: 1, alignItems:"center", padding:"0 12px", gap:6 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
               <circle cx="11" cy="11" r="7" stroke="#9ca3af" strokeWidth="2"/>
               <path d="m21 21-4-4" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search by Vehicle No. / Chassis No."
-              style={{ border:"none", outline:"none", fontSize:13, color:"#374151", background:"transparent", width:260, padding:"9px 0", fontFamily:"inherit" }}
+              className="search-input"
+              style={{ border:"none", outline:"none", fontSize:13, color:"#374151", background:"transparent", padding:"9px 0", fontFamily:"inherit" }}
             />
           </div>
           <button type="submit" style={{
@@ -210,10 +211,29 @@ const VehicleStatusView = () => {
       </div>
 
       {/* ═══════════ CONTENT ═══════════ */}
-      <div className="hide-scroll" style={{ flex:1, padding:"8px 20px", overflowY:"hidden" }}>
+      <div className="hide-scroll" style={{ flex:1, padding:"8px 20px" }}>
         <style>{`
           .hide-scroll::-webkit-scrollbar { display: none; }
-          .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+          .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; overflow-y: auto; }
+          .search-form { width: 400px; max-width: 100%; }
+          .search-input { width: 260px; }
+          .summary-card { flex-wrap: nowrap; overflow-x: auto; }
+          .summary-divider { display: block; }
+          .footer-container { flex-direction: row; justify-content: space-between; }
+          .header-controls { text-align: right; }
+          .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+          @media (max-width: 768px) {
+            .hide-scroll { overflow-y: auto !important; }
+            .search-form { width: 100%; }
+            .search-input { width: 100%; }
+            .summary-card { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; padding: 16px !important; }
+            .summary-divider { display: none !important; }
+            .summary-item { width: 100% !important; min-width: 100% !important; margin-right: 0 !important; }
+            .panel-header { flex-direction: column !important; align-items: flex-start !important; }
+            .footer-container { flex-direction: column !important; align-items: flex-start !important; justify-content: flex-start; gap: 16px; }
+            .header-controls { flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; margin-top: 4px; }
+            .header-controls-text { text-align: left !important; }
+          }
         `}</style>
 
         {loading && (
@@ -235,11 +255,10 @@ const VehicleStatusView = () => {
         {!loading && data && (
           <>
             {/* ── Vehicle Summary — single horizontal row ── */}
-            <div style={{
+            <div className="summary-card" style={{
               background:"#fff", border:"1px solid #e5e7eb", borderRadius:12,
               padding:"12px 20px", marginBottom:10,
               display:"flex", alignItems:"center",
-              flexWrap:"nowrap", overflowX:"auto",
               boxShadow:"0 1px 4px rgba(0,0,0,0.05)",
             }}>
               {/* bus circle */}
@@ -253,7 +272,7 @@ const VehicleStatusView = () => {
               </div>
 
               {/* name block */}
-              <div style={{ flex:2, minWidth:180, marginRight:0 }}>
+              <div className="summary-item" style={{ flex:2, minWidth:180, marginRight:0 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:3 }}>
                   <span style={{ fontWeight:800, fontSize:20, color:"#111827" }}>{data.vehicle_no}</span>
                   <div style={{ display:"flex", alignItems:"center", gap:5, background:"#dcfce7", border:"1px solid #bbf7d0", borderRadius:20, padding:"3px 10px" }}>
@@ -266,19 +285,19 @@ const VehicleStatusView = () => {
               </div>
 
               {/* divider */}
-              <div style={{ width:1, height:54, background:"#e5e7eb", flexShrink:0, margin:"0 20px" }} />
+              <div className="summary-divider" style={{ width:1, height:54, background:"#e5e7eb", flexShrink:0, margin:"0 20px" }} />
 
               {/* Vehicle ID */}
-              <div style={{ flex:1, minWidth:90 }}>
+              <div className="summary-item" style={{ flex:1, minWidth:90 }}>
                 <div style={{ fontSize:11, color:"#9ca3af", marginBottom:4 }}>Vehicle ID</div>
                 <div style={{ fontWeight:800, fontSize:17, color:"#111827" }}>{data.vehicle_id}</div>
               </div>
 
               {/* divider */}
-              <div style={{ width:1, height:54, background:"#e5e7eb", flexShrink:0, margin:"0 20px" }} />
+              <div className="summary-divider" style={{ width:1, height:54, background:"#e5e7eb", flexShrink:0, margin:"0 20px" }} />
 
               {/* Category */}
-              <div style={{ flex:1, minWidth:90 }}>
+              <div className="summary-item" style={{ flex:1, minWidth:90 }}>
                 <div style={{ fontSize:11, color:"#9ca3af", marginBottom:4 }}>Vehicle Category</div>
                 <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                   <img src={iconBus} alt="bus" style={{ width:18, height:18, objectFit:"contain" }} />
@@ -287,10 +306,10 @@ const VehicleStatusView = () => {
               </div>
 
               {/* divider */}
-              <div style={{ width:1, height:54, background:"#e5e7eb", flexShrink:0, margin:"0 20px" }} />
+              <div className="summary-divider" style={{ width:1, height:54, background:"#e5e7eb", flexShrink:0, margin:"0 20px" }} />
 
               {/* Speed Limit */}
-              <div style={{ flex:1, minWidth:110 }}>
+              <div className="summary-item" style={{ flex:1, minWidth:110 }}>
                 <div style={{ fontSize:11, color:"#9ca3af", marginBottom:4 }}>Maximum Speed Limit</div>
                 <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                   <img src={iconSpeedLimit} alt="speed" style={{ width:22, height:22, objectFit:"contain" }} />
@@ -305,7 +324,7 @@ const VehicleStatusView = () => {
               padding:"10px 20px 14px", boxShadow:"0 1px 4px rgba(0,0,0,0.05)",
             }}>
               {/* panel header */}
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10, flexWrap:"wrap", gap:10 }}>
+              <div className="panel-header">
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <div style={{
                     width:40, height:40, borderRadius:"50%",
@@ -321,8 +340,8 @@ const VehicleStatusView = () => {
                   </div>
                 </div>
 
-                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                  <div style={{ textAlign:"right" }}>
+                <div className="header-controls" style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <div className="header-controls-text" style={{ textAlign:"right" }}>
                     <div style={{ fontSize:10, color:"#9ca3af" }}>Last Updated</div>
                     <div style={{ fontSize:11.5, color:"#374151", fontWeight:600 }}>
                       {fmtDate(lastRefresh)}&nbsp;|&nbsp;{fmtTime(lastRefresh)}
@@ -384,9 +403,9 @@ const VehicleStatusView = () => {
       </div>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <div style={{
+      <div className="footer-container" style={{
         padding:"8px 20px", borderTop:"1px solid #e5e7eb", background:"#fff",
-        display:"flex", justifyContent:"space-between", alignItems:"center",
+        display:"flex", alignItems:"center",
         flexWrap:"wrap", gap:10,
       }}>
         <div>
