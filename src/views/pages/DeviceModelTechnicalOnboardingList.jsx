@@ -178,7 +178,7 @@ const RequestRow = ({ row, index }) => {
             return {
                 label: maxCompleted > 0 ? `${maxCompleted}/${total} Tests Completed` : `Testing In Progress`,
                 pct: pct,
-                pending: (
+                pending: maxCompleted >= total ? <span>All tests completed</span> : (
                     <>
                         {lastTestName && <span style={{ display: 'block' }}>Completed: {lastTestName}</span>}
                         {nextTestName && <span style={{ display: 'block' }}>Next: {nextTestName}</span>}
