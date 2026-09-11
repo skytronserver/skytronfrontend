@@ -107,7 +107,7 @@ const StatusChip = ({ status }) => {
 };
 
 /* ─── collapsible row ─── */
-const RequestRow = ({ row, index, testBoardProgress }) => {
+const RequestRow = ({ row, index }) => {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -123,7 +123,6 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
 
     const statusKey = String(row.status ?? "").trim().toLowerCase();
     const isOngoingEval = statusKey === "ongoing_evaluation";
-    const tbProgress = testBoardProgress?.[row.id];
 
     // Compute steps display from real data
     const stepsDisplay = useMemo(() => {
@@ -136,22 +135,6 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
             return null;
         }
 
-        if (tbProgress && tbProgress.total > 0) {
-            // Use real test board data
-            const total = tbProgress.total || 0;
-            const completed = tbProgress.completed || 0;
-            const currentTestName = tbProgress.currentTestName || "";
-            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-            return {
-                label: `${completed} / ${total} Tests Completed`,
-                pct,
-                pending: completed < total
-                    ? `In Progress: ${currentTestName}`
-                    : "All tests completed",
-                color: completed === total ? "success" : "primary",
-            };
-        }
-
         // Finalized statuses
         const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
         if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
@@ -160,6 +143,49 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
                 pct: 100,
                 pending: isFailed ? "Not Compatible" : "All tests completed",
                 color: isFailed ? "error" : "success",
+            };
+        }
+
+        // Extract progress from demo_devices checkpoint_status
+        let maxCompleted = 0;
+        let lastTestName = "";
+        let nextTestName = "";
+        let hasStarted = false;
+
+        if (demoDevices && demoDevices.length > 0) {
+            for (const d of demoDevices) {
+                const cp = d.checkpoint_status;
+                if (cp) {
+                    const comp = cp.last_completed_test_no || 0;
+                    if (comp >= maxCompleted) {
+                        maxCompleted = comp;
+                        lastTestName = cp.last_completed_test_name || lastTestName;
+                        nextTestName = cp.next_test_name || nextTestName;
+                        hasStarted = true;
+                    }
+                    if (cp.next_test_name && !hasStarted) {
+                        nextTestName = cp.next_test_name;
+                        hasStarted = true;
+                    }
+                }
+            }
+        }
+
+        if (hasStarted) {
+            const total = 39;
+            const pct = Math.min(Math.round((maxCompleted / total) * 100), 100);
+
+            return {
+                label: maxCompleted > 0 ? `${maxCompleted}/${total} Tests Completed` : `Testing In Progress`,
+                pct: pct,
+                pending: (
+                    <>
+                        {lastTestName && <span style={{ display: 'block' }}>Completed: {lastTestName}</span>}
+                        {nextTestName && <span style={{ display: 'block' }}>Next: {nextTestName}</span>}
+                        {!lastTestName && !nextTestName && <span>Waiting for tests to start...</span>}
+                    </>
+                ),
+                color: maxCompleted === total ? "success" : "primary",
             };
         }
 
@@ -174,7 +200,7 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
         }
 
         return null;
-    }, [statusKey, isOngoingEval, tbProgress, allDevicesReceived]);
+    }, [statusKey, isOngoingEval, demoDevices, allDevicesReceived]);
 
     return (
         <>
@@ -202,7 +228,7 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
                 </TableCell>
 
                 {/* status removed - redundant with STEPS column */}
-                
+
                 {/* action required / progress */}
                 <TableCell sx={{ py: 1, minWidth: 200 }}>
                     {stepsDisplay ? (
@@ -215,9 +241,9 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
                                     {stepsDisplay.pct}%
                                 </Typography>
                             </Stack>
-                            <LinearProgress 
-                                variant="determinate" 
-                                value={stepsDisplay.pct} 
+                            <LinearProgress
+                                variant="determinate"
+                                value={stepsDisplay.pct}
                                 color={stepsDisplay.color}
                                 sx={{ height: 6, borderRadius: 3 }}
                             />
@@ -319,11 +345,11 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
                                                                     <Typography variant="caption" display="block" color="text.secondary">MSISDN: {device.msisdn2}</Typography>
                                                                 </TableCell>
                                                                 <TableCell sx={{ py: 1, textAlign: 'right' }}>
-                                                                    <Chip 
-                                                                        label={device.receipt_confirmed ? "Received" : "Pending"} 
+                                                                    <Chip
+                                                                        label={device.receipt_confirmed ? "Received" : "Pending"}
                                                                         color={device.receipt_confirmed ? "success" : "warning"}
-                                                                        variant="outlined" 
-                                                                        size="small" 
+                                                                        variant="outlined"
+                                                                        size="small"
                                                                         sx={{ fontSize: '0.65rem', height: 20 }}
                                                                     />
                                                                 </TableCell>
@@ -448,7 +474,7 @@ const RequestRow = ({ row, index, testBoardProgress }) => {
                                         </Paper>
                                     </Grid>
                                 )}
-                                
+
 
                             </Grid>
                         </Box>
@@ -472,8 +498,6 @@ const DeviceModelTechnicalOnboardingList = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("");
-
-    const [testBoardProgress, setTestBoardProgress] = useState({});
 
     const loadData = useCallback(async () => {
         setError("");
@@ -505,52 +529,6 @@ const DeviceModelTechnicalOnboardingList = () => {
     useEffect(() => {
         loadData();
     }, [loadData]);
-
-    // Fetch test board progress for ongoing rows
-    useEffect(() => {
-        const activeRows = rows.filter(r => {
-            const s = String(r.status ?? "").trim().toLowerCase();
-            return s !== "submitted" && !["technically_not_compatible", "rejected", "stateadminrejected", "technically_compatible", "accepted", "approved", "stateadminapproved"].includes(s);
-        });
-        if (activeRows.length === 0) return;
-
-        const fetchProgress = async () => {
-            const progressMap = {};
-            await Promise.all(
-                activeRows.map(async (r) => {
-                    try {
-                        const res = await DeviceModelServices.getTestBoard({ onboarding_request_id: r.id });
-                        let categories = [];
-                        if (Array.isArray(res?.data)) categories = res.data;
-                        else if (res?.data?.rows) categories = res.data.rows;
-                        else if (res?.data?.categories) categories = res.data.categories;
-
-                        const total = categories.length;
-                        const completed = categories.filter(cat =>
-                            cat.executions && cat.executions.length > 0 &&
-                            cat.executions.every(e => e.status === "pass" || e.status === "completed")
-                        ).length;
-
-                        let currentTestName = "";
-                        for (const cat of categories) {
-                            const allDone = cat.executions && cat.executions.every(e => e.status === "pass" || e.status === "completed");
-                            if (!allDone) {
-                                currentTestName = cat.test_case?.name || `Test #${cat.test_case?.serial_no}`;
-                                break;
-                            }
-                        }
-
-                        progressMap[r.id] = { total, completed, currentTestName };
-                    } catch {
-                        // silently skip if test board fetch fails
-                    }
-                })
-            );
-            setTestBoardProgress(progressMap);
-        };
-
-        fetchProgress();
-    }, [rows]);
 
     const filteredRows = useMemo(() => {
         return rows.filter((r) => {
@@ -687,7 +665,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                                     <TableBody>
                                         {paginatedRows.length > 0 ? (
                                             paginatedRows.map((row, idx) => (
-                                                <RequestRow key={row.id ?? idx} row={row} index={idx} testBoardProgress={testBoardProgress} />
+                                                <RequestRow key={row.id ?? idx} row={row} index={idx} />
                                             ))
                                         ) : (
                                             <TableRow>

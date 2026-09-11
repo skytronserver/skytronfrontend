@@ -1871,13 +1871,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             </Stack>
                         }
                     >
-                        {!isStateAdmin && (
-                            <Typography variant="body2" color="text.secondary" mb={3}>
-                                Admin view of all technical onboarding requests. Use <strong>Mark Ongoing</strong> on{" "}
-                                <em>Submitted</em> requests to start evaluation, then <strong>Finalize</strong> on{" "}
-                                <em>Ongoing Evaluation</em> requests to accept or reject.
-                            </Typography>
-                        )}
+                        {/* ── Helper text (Removed) ── */}
 
                         {/* ── Action feedback ── */}
                         {actionMsg.text && (
@@ -1886,16 +1880,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             </Alert>
                         )}
 
-                        {/* ── Stats ── */}
-                        {rows.length > 0 && !isStateAdmin && (
-                            <Stack direction="row" flexWrap="wrap" gap={2} mb={3}>
-                                <StatCard label="Total" value={stats.total} color="primary" />
-                                <StatCard label="Submitted" value={stats.submitted} color="info" />
-                                <StatCard label="Ongoing Eval." value={stats.ongoing} color="secondary" />
-                                <StatCard label="Accepted" value={stats.accepted} color="success" />
-                                <StatCard label="Rejected" value={stats.rejected} color="error" />
-                            </Stack>
-                        )}
+                        {/* ── Stats (Removed) ── */}
 
 
 
