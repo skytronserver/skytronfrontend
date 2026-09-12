@@ -154,7 +154,13 @@ const DeviceModelForm = () => {
 
       // Always send device model fields only to createModel
       const modelPayload = new FormData();
-      modelPayload.append("eSimProviders", values.eSimProviders);
+      if (Array.isArray(values.eSimProviders)) {
+        values.eSimProviders.forEach(provider => {
+          modelPayload.append("eSimProviders", provider);
+        });
+      } else {
+        modelPayload.append("eSimProviders", values.eSimProviders);
+      }
       modelPayload.append("model_name", values.model_name);
       modelPayload.append("test_agency", values.test_agency);
       modelPayload.append("tac_no", values.tac_no);
