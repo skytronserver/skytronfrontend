@@ -204,6 +204,7 @@ export default function Step1CreateEntry({ onSuccess, setAlert }) {
     // ============================================================
     if (field === "model_id") {
       formik.setFieldValue("esim_provider_id", "");
+      formik.setFieldValue("provider_combination", "");
 
       const selectedModel = deviceModels.find(
         (model) => String(model.id) === String(value)
@@ -220,6 +221,12 @@ export default function Step1CreateEntry({ onSuccess, setAlert }) {
 
       console.log("ESIM PROVIDER OPTIONS:", providerOptions);
 
+      const combinations = selectedModel?.provider_combinations || [];
+      const combinationOptions = combinations.map((comb) => ({
+        label: comb.map(c => c.toUpperCase()).join(' + '),
+        value: JSON.stringify(comb),
+      }));
+
       setSelectedModelProviders(providers);
 
       setUpdatedFormFields((prev) => ({
@@ -229,6 +236,11 @@ export default function Step1CreateEntry({ onSuccess, setAlert }) {
           ...prev.esim_provider_id,
           options: providerOptions,
           disabled: providerOptions.length === 0,
+        },
+        provider_combination: {
+          ...prev.provider_combination,
+          options: combinationOptions,
+          disabled: combinationOptions.length === 0,
         },
       }));
 
@@ -248,6 +260,7 @@ export default function Step1CreateEntry({ onSuccess, setAlert }) {
       formData.append("owner_phone_number", String(values.owner_no));
       formData.append("device_sell_amount", String(values.device_sell_amount));
       formData.append("no_of_emg_buttons", String(values.no_of_emg_buttons));
+      formData.append("provider_combination", values.provider_combination);
       if (values.rc_file) {
         formData.append("rc_file", values.rc_file);
       }

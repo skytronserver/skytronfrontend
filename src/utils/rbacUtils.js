@@ -189,6 +189,9 @@ export const MENU_MODULE_MAP = {
   'manufacturer-tickets':        'ct_escalated',
 
   // ── Device, Stock & Management ────────────────────────────────────────────
+  'device-renewal':              'device_renewal_management',
+  'device-renewal-eligible':     'device_renewal_management',
+  'device-renewal-history':      'device_renewal_management',
   'new-device-model':            'dm_create_model',
   'device-model-extension':      'dm_tac_cop',
   'new-device':                  'ds_individual',

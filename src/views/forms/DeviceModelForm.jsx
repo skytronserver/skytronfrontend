@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { Grid, Button, CircularProgress, Typography } from "@mui/material";
+import { Grid, Button, CircularProgress, Typography, Select, MenuItem, InputLabel, FormControl, OutlinedInput, Checkbox, ListItemText, IconButton, FormHelperText } from "@mui/material";
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import { Formik } from "formik";
@@ -42,6 +43,24 @@ const DeviceModelForm = () => {
   const [apiError, setApiError] = useState(false);
   const [isCopFlow, setIsCopFlow] = useState(false);
   const [agencies, setAgencies] = useState([]);
+  const [combinations, setCombinations] = useState([[]]);
+
+  const handleAddCombination = () => setCombinations([...combinations, []]);
+  
+  const handleRemoveCombination = (index) => {
+    const newCombs = [...combinations];
+    newCombs.splice(index, 1);
+    setCombinations(newCombs);
+  };
+  
+  const handleCombinationChange = (event, index) => {
+    const {
+      target: { value },
+    } = event;
+    const newCombs = [...combinations];
+    newCombs[index] = typeof value === 'string' ? value.split(',') : value;
+    setCombinations(newCombs);
+  };
   const handleChange = (newValue) => {
     setOtp(newValue);
   };
@@ -152,6 +171,32 @@ const DeviceModelForm = () => {
       const isExpired = values.tac_validity && values.tac_validity < new Date().toISOString().split('T')[0];
       setIsCopFlow(isExpired);
 
+      const activeCombinations = combinations.filter(c => c.length > 0);
+      if (activeCombinations.length === 0) {
+        setAlert((prevAlert) => ({
+          ...prevAlert,
+          error: true,
+          errorList: ["Please provide at least one valid SIM combination with minimum 2 profiles."],
+        }));
+        handleAlert("Validation Error");
+        setSubmitting(false);
+        setLoading(false);
+        return;
+      }
+      
+      const isValid = activeCombinations.every(c => c.length >= 2 && c.length <= 5);
+      if (!isValid) {
+        setAlert((prevAlert) => ({
+          ...prevAlert,
+          error: true,
+          errorList: ["Each active SIM combination must have between 2 and 5 profiles selected."],
+        }));
+        handleAlert("Validation Error");
+        setSubmitting(false);
+        setLoading(false);
+        return;
+      }
+
       // Always send device model fields only to createModel
       const modelPayload = new FormData();
       if (Array.isArray(values.eSimProviders)) {
@@ -175,6 +220,9 @@ const DeviceModelForm = () => {
       modelPayload.append("approval", "0");
       modelPayload.append("approved_by", "");
       modelPayload.append("created_by", userId || "");
+      
+      const lowerCaseCombinations = activeCombinations.map(comb => comb.map(sim => sim.toLowerCase()));
+      modelPayload.append("provider_combinations", JSON.stringify(lowerCaseCombinations));
 
       // Step 1: Always create the device model first
       const modelResponse = await DeviceModelServices.createModel(modelPayload);
@@ -203,6 +251,7 @@ const DeviceModelForm = () => {
         setAlert((prevAlert) => ({ ...prevAlert, error: false, errorList: [] }));
         handleAlert("An OTP has been sent to your registered mobile number. Please click below to continue to enter the OTP");
         resetForm(deviceModelInitials);
+        setCombinations([[]]);
       }
     } catch (error) {
       console.error("Error while submitting data", error.message);
@@ -302,6 +351,57 @@ const DeviceModelForm = () => {
                           </Grid>
                         )
                       })}
+
+                      {/* SIM Profile Combinations Section */}
+                      <Grid item xs={12} style={{ marginTop: '10px' }}>
+                        <Typography variant="subtitle1" style={{ marginBottom: '10px', fontWeight: 'bold' }}>
+                          SIM Profile Combinations
+                        </Typography>
+                        {combinations.map((comb, index) => (
+                          <Grid container spacing={2} key={index} alignItems="center" style={{ marginBottom: '15px' }}>
+                            <Grid item xs={11}>
+                              <FormControl fullWidth>
+                                <InputLabel id={`combination-label-${index}`}>Combination {index + 1}</InputLabel>
+                                <Select
+                                  labelId={`combination-label-${index}`}
+                                  multiple
+                                  value={comb}
+                                  onChange={(e) => handleCombinationChange(e, index)}
+                                  input={<OutlinedInput label={`Combination ${index + 1}`} />}
+                                  renderValue={(selected) => selected.join(', ')}
+                                >
+                                  {['Airtel', 'Vi', 'BSNL', 'Jio', 'MTNL'].map((name) => (
+                                    <MenuItem key={name} value={name}>
+                                      <Checkbox checked={comb.indexOf(name) > -1} />
+                                      <ListItemText primary={name} />
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {(comb.length < 2 || comb.length > 5) && comb.length > 0 && (
+                                  <FormHelperText error>Must select between 2 and 5 profiles.</FormHelperText>
+                                )}
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={1}>
+                              <IconButton 
+                                 color="default" 
+                                 onClick={() => handleRemoveCombination(index)}
+                              >
+                                <DeleteOutlineIcon />
+                              </IconButton>
+                            </Grid>
+                          </Grid>
+                        ))}
+                        <Button 
+                          variant="outlined" 
+                          color="primary" 
+                          onClick={handleAddCombination}
+                          style={{ marginTop: '5px' }}
+                        >
+                          + Add Combination
+                        </Button>
+                      </Grid>
+
                       <Grid item xs={12} style={{ display: "flex", alignItems: "center", marginTop: "4px" }}>
                         <Button
                           variant="outlined"

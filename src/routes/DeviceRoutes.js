@@ -40,11 +40,13 @@ const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDas
 const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/ActivationStatusList")));
 const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/UntaggedDeviceStock")));
 const M2MApiConfig = Loadable(lazy(() => import("../views/forms/M2MApiConfig")));
-const EsimValidityExtension = Loadable(lazy(() => import("../views/pages/device/EsimValidityExtension")));
+
 const EsimValidityExtensionRequests = Loadable(lazy(() => import("../views/pages/device/EsimValidityExtensionRequests")));
 const EsimIpRanges = Loadable(lazy(() => import("../views/pages/device/EsimIpRanges")));
 const M2mIpScan = Loadable(lazy(() => import("../views/pages/device/M2mIpScan")));
 const M2mEsimQuery = Loadable(lazy(() => import("../views/pages/device/M2mEsimQuery")));
+const EligibleDevices = Loadable(lazy(() => import("../views/device-renewal/EligibleDevices")));
+const RenewalHistory = Loadable(lazy(() => import("../views/device-renewal/RenewalHistory")));
 
 const applyPrivateRoute = (route) => ({
   ...route,
@@ -210,11 +212,7 @@ const DeviceRoutes = {
       element: <M2MStatusReport />,
       roles: ["dealer"],
     },
-    {
-      path: "/device/esim-validity-extension",
-      element: <EsimValidityExtension />,
-      roles: ["dealer", "devicemanufacture"],
-    },
+
     {
       path: "/device/whitelist/requests",
       element: <WhitelistRequests />,
@@ -232,6 +230,16 @@ const DeviceRoutes = {
     {
       path: "/device/eSimActivation",
       element: <Navigate to="/device/m2m-activation" replace />,
+    },
+    {
+      path: "/device-renewal/eligible",
+      element: <EligibleDevices />,
+      roles: ["superadmin", "devicemanufacture", "dealer"],
+    },
+    {
+      path: "/device-renewal/history",
+      element: <RenewalHistory />,
+      roles: ["superadmin", "devicemanufacture", "dealer"],
     },
     {
       path: "/manufacturer/unused-stock",

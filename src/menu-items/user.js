@@ -352,14 +352,32 @@ const user = {
       breadcrumbs: false,
       roles: ["dealer"],
     },
+
+    // device renewal
     {
-      id: "esim-validity-extension",
-      title: "eSIM Validity Extension",
-      type: "item",
-      url: "/device/esim-validity-extension",
+      id: "device-renewal",
+      title: "eSIM Validity Renewal",
+      type: "collapse",
       icon: icons.IconCalendarTime,
-      breadcrumbs: false,
-      roles: ["dealer", "devicemanufacture"],
+      roles: ["superadmin", "devicemanufacture", "dealer"],
+      children: [
+        {
+          id: "device-renewal-eligible",
+          title: "Eligible Devices",
+          type: "item",
+          url: "/device-renewal/eligible",
+          breadcrumbs: false,
+          roles: ["superadmin", "devicemanufacture", "dealer"],
+        },
+        {
+          id: "device-renewal-history",
+          title: "Renewal History",
+          type: "item",
+          url: "/device-renewal/history",
+          breadcrumbs: false,
+          roles: ["superadmin", "devicemanufacture", "dealer"],
+        },
+      ]
     },
     // device management
     {

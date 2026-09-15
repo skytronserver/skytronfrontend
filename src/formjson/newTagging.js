@@ -50,6 +50,7 @@ export const newTaggingInitials = {
   rc_file: null,
   device_sell_amount: "",
   no_of_emg_buttons: "",
+  provider_combination: "",
 };
 
 export const newTaggingFields = {
@@ -124,5 +125,13 @@ export const newTaggingFields = {
     required: true,
     options: Array.from({ length: 10 }, (_, i) => ({ label: String(i + 1), value: String(i + 1) })),
     validation: Yup.string().required("Number of Emergency Buttons is required"),
+  },
+  provider_combination: {
+    name: "provider_combination",
+    type: "select",
+    label: "Provider Combination",
+    required: true,
+    options: [],
+    validation: Yup.string().required("Provider combination is required"),
   },
 };
