@@ -27,7 +27,7 @@ const icons = {
 const dashboard = {
   id: 'dashboard',
   type: 'group',
-  roles: ['superadmin', 'stateadmin', 'dealer', 'devicemanufacture', 'owner', 'dtorto', 'sosadmin', 'teamlead', 'desk_ex', 'esimprovider'],
+  roles: ['superadmin', 'stateadmin', 'dealer', 'devicemanufacture', 'owner', 'dtorto', 'sosadmin', 'teamlead', 'desk_ex', 'esimprovider', 'systemadmin'],
   children: [
     {
       id: 'default',
@@ -81,6 +81,15 @@ const dashboard = {
           roles: ['superadmin', 'sosadmin']
         }
       ]
+    },
+    {
+      id: 'systemadmin-dashboard',
+      title: 'System Admin Dashboard',
+      type: 'item',
+      url: '/systemadmin-dashboard',
+      icon: icons.IconDashboard,
+      breadcrumbs: false,
+      roles: ['superadmin', 'systemadmin']
     },
     {
       id: 'morth-dashboard',

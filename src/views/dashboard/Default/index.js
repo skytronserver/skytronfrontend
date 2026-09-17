@@ -19,6 +19,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (userRole === 'testagency') {
       navigate('/test-agency/assigned-models', { replace: true });
+    } else if (userRole === 'systemadmin') {
+      navigate('/systemadmin-dashboard', { replace: true });
     }
   }, [userRole, navigate]);
 
@@ -27,7 +29,7 @@ const Dashboard = () => {
     createAxiosInstance(token);
   }
 
-  if (userRole === 'testagency') {
+  if (userRole === 'testagency' || userRole === 'systemadmin') {
     return null; // Prevent showing flash of empty dashboard
   }
 

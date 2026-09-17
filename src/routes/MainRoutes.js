@@ -124,6 +124,10 @@ const MorthDashboard = Loadable(
   lazy(() => import("../views/dashboard/Morth"))
 );
 
+const SystemAdminDashboard = Loadable(
+  lazy(() => import("../views/dashboard/SystemAdmin"))
+);
+
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import("../views/sample-page")));
@@ -148,6 +152,11 @@ const MainRoutes = {
     {
       path: "dashboard",
       element: <DashboardDefault />,
+    },
+    {
+      path: "/systemadmin-dashboard",
+      element: <SystemAdminDashboard />,
+      roles: ["systemadmin"],
     },
     {
       path: "/superadmin-dashboard",
