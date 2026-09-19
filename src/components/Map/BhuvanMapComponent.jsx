@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import bhugolLogo from "../../assets/images/Bhugol_ogo.png";
+import isroLogo from "../../assets/images/isrologo.png";
 import { Button, ButtonGroup, Tooltip, Box, Divider, Paper, Switch, Typography } from "@mui/material";
 import { Map, View } from "ol";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
@@ -2946,21 +2948,10 @@ ${trailerHtml}
                             </div>
                         )}
                         {showLogos && (
-                            <>
-                                <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
-                                    style={{
-                                        position: "absolute",
-                                        bottom: "20px",
-                                        right: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                        backgroundColor: "transparent",
-                                    }}
-                                    alt="Skytron Logo"
-                                />
-                            </>
+                            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                                <img src={bhugolLogo} style={{ height: '100px' }} alt="Bhugol" />
+                                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+                            </div>
                         )}
                     </div>
                 )}
@@ -3001,21 +2992,10 @@ ${trailerHtml}
                             </div>
                         )}
                         {showLogos && (
-                            <>
-                                <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
-                                    style={{
-                                        position: "absolute",
-                                        bottom: "20px",
-                                        right: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                        backgroundColor: "transparent",
-                                    }}
-                                    alt="Skytron Logo"
-                                />
-                            </>
+                            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                                <img src={bhugolLogo} style={{ height: '100px' }} alt="Bhugol" />
+                                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+                            </div>
                         )}
                     </div>
                 )}
@@ -3056,21 +3036,13 @@ ${trailerHtml}
                             </div>
                         )}
                         {showLogos && (
-                            <>
-                                <img
-                                    src={`${process.env.REACT_APP_BASE_URL}static/logo/skytron.png`}
-                                    style={{
-                                        position: "absolute",
-                                        bottom: "20px",
-                                        right: 0,
-                                        height: "60px",
-                                        width: "auto",
-                                        zIndex: 1000,
-                                        backgroundColor: "transparent",
-                                    }}
-                                    alt="Skytron Logo"
-                                />
-                            </>
+                            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                                <img src={bhugolLogo} style={{ height: '100px' }} alt="Bhugol" />
+                                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+                            </div>
+                        )}
+                        {showLogos && (
+                            <img src={isroLogo} style={{ position: 'absolute', bottom: '10px', left: '20px', height: '100px', width: 'auto', objectFit: 'contain', zIndex: 1000, pointerEvents: 'none', backgroundColor: 'transparent' }} alt="ISRO" />
                         )}
                     </div>
                 )}

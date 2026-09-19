@@ -5997,6 +5997,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 <img src={require('../../assets/images/Bhugol_ogo.png')} style={{ height: '100px' }} alt="Bhugol" />
                 <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
             </div>
+            <img src={require('../../assets/images/isrologo.png')} style={{ position: 'absolute', bottom: '40px', left: '20px', height: '100px', width: 'auto', objectFit: 'contain', zIndex: 1000, pointerEvents: 'none', backgroundColor: 'transparent', display: mapType === "satellite" ? 'block' : 'none' }} alt="ISRO" />
 
             {/* Overlay for displaying marker details */}
             <div ref={overlayElement} className="dynamic-overlay">
