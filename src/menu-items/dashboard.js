@@ -89,7 +89,7 @@ const dashboard = {
       url: '/systemadmin-dashboard',
       icon: icons.IconDashboard,
       breadcrumbs: false,
-      roles: ['superadmin', 'systemadmin']
+      roles: ['systemadmin']
     },
     {
       id: 'morth-dashboard',

@@ -487,6 +487,14 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
     }
   }
 
+  // EXCEPTION: Explicitly hide systemadmin dashboard from everyone except systemadmin (superadmin)
+  if (menuId === 'systemadmin-dashboard') {
+    if (role === 'superadmin') {
+      return true;
+    }
+    return false;
+  }
+
   if (permissions) {
     const moduleCode = getExpandedMenuModuleMap()[menuId];
     if (menuId === 'vehicle-owner') {
