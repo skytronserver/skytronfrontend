@@ -224,6 +224,8 @@ const ErssVehicleMap = ({erss, onBack, vehicles,data ,onDistrictClick,level, onZ
     onLocalityClick={onLocalityClick} 
     onBack={onBack}
     level={level} 
+    width="100%"
+    height="100%"
   />
 </>
 

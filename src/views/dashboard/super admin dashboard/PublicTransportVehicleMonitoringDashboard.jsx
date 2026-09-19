@@ -203,6 +203,8 @@ const [zoom, setZoom] = useState(7);
     onLocalityClick={onLocalityClick} 
     onBack={onBack}
     level={level} 
+    width="100%"
+    height="100%"
   />
 
 

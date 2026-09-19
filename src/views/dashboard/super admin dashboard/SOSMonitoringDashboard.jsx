@@ -827,6 +827,8 @@ total_assigned_calls:
                   onDistrictClick={handleDistrictClick}
                   onCityClick={handleCityClick}
                   onLocalityClick={handleLocalityClick}
+                  width="100%"
+                  height="100%"
                 />                {/* <BhuvanMapComponent
                  
                   gpsData={gpsData}

@@ -2197,7 +2197,7 @@ ${trailerHtml}
         };
         // Intentionally do not depend on soiLayerVisibility to avoid re-init on toggle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapType, center, zoom, onMapReady]);
+    }, [mapType]);
 
     useEffect(() => {
         const activeMap =
@@ -2392,8 +2392,15 @@ ${trailerHtml}
         } catch (error) {
             console.error("Error initializing satellite map:", error);
         }
+
+        return () => {
+            if (satelliteMapRef.current) {
+                satelliteMapRef.current.setTarget(null);
+                satelliteMapRef.current = null;
+            }
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapType, center, zoom, onMapReady]);
+    }, [mapType]);
 
     useEffect(() => {
         if (!map || !vectorLayer) {
