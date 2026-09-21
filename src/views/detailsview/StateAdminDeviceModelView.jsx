@@ -14,6 +14,11 @@ import {
   TableCell,
   Paper,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
@@ -54,6 +59,34 @@ const StateAdminDeviceModelView = () => {
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [openRejectDialog, setOpenRejectDialog] = useState(false);
+  const [rejectRemarks, setRejectRemarks] = useState("");
+  const [rejectLoading, setRejectLoading] = useState(false);
+
+  /* custom helper functionality */
+  const handleRejectSubmit = async () => {
+    if (!rejectRemarks.trim()) return;
+    setRejectLoading(true);
+    try {
+      await DeviceModelServices.rejectModel({
+        device_model_id: deviceId,
+        remarks: rejectRemarks
+      });
+      setOpenRejectDialog(false);
+      setOpenAlert(true);
+      setAlertType("success");
+      setMessage("Device Model Rejected Successfully");
+      setTimeout(() => {
+        navigate("/device/list");
+      }, 2000);
+    } catch (error) {
+      setOpenAlert(true);
+      setAlertType("error");
+      setMessage(error.response?.data?.message || "Failed to reject model");
+    } finally {
+      setRejectLoading(false);
+    }
+  };
 
   /* custom helper functionality */
 
@@ -310,7 +343,7 @@ const StateAdminDeviceModelView = () => {
                   </Grid>
                 </Grid>
                 <br />
-                <Typography align="center">
+                <Typography align="center" sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
                   <Button
                     color="primary"
                     size="large"
@@ -323,8 +356,41 @@ const StateAdminDeviceModelView = () => {
                   >
                     {t('deviceModelView.actions.verifyAndSendOtp')}
                   </Button>
+                  <Button
+                    color="error"
+                    size="large"
+                    variant="contained"
+                    onClick={() => setOpenRejectDialog(true)}
+                  >
+                    Reject
+                  </Button>
                 </Typography>
               </>)}
+              <Dialog open={openRejectDialog} onClose={() => setOpenRejectDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Reject Device Model</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    label="Rejection Remarks"
+                    type="text"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    variant="outlined"
+                    value={rejectRemarks}
+                    onChange={(e) => setRejectRemarks(e.target.value)}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setOpenRejectDialog(false)} color="inherit" disabled={rejectLoading}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleRejectSubmit} color="error" variant="contained" disabled={rejectLoading || !rejectRemarks.trim()}>
+                    {rejectLoading ? "Rejecting..." : "Confirm Reject"}
+                  </Button>
+                </DialogActions>
+              </Dialog>
               {showOTP && (
                 <Grid
                   container

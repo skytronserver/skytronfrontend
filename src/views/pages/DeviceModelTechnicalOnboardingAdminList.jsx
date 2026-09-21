@@ -400,18 +400,19 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         return Object.keys(errs).length === 0;
     };
 
-    const handleConfirm = async () => {
+    const handleConfirm = async (submitStatus) => {
         if (!validate()) return;
+        setStatus(submitStatus); // Update state for UI consistency
         setApiError(""); setSubmitting(true);
         try {
             const fd = new FormData();
             fd.append("onboarding_request_id", row.id);
-            fd.append("status", status);
+            fd.append("status", submitStatus);
             fd.append("final_comment", finalComment.trim());
             // No longer appending reportPdf here as it's not strictly required and is handled client-side
             fd.append("device_test_results", JSON.stringify(deviceTestResults));
             await DeviceModelServices.finalizeTechnicalOnboardingRequest(fd);
-            onSuccess(row.id, status);
+            onSuccess(row.id, submitStatus);
         } catch (err) {
             setApiError(extractError(err));
         } finally {
@@ -1078,65 +1079,68 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         </TableContainer>
 
                         {/* Finalize Form */}
-                        {testBoardCategories.length > 0 && testBoardCategories.every(cat => cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete")) && (
-                            <Box mt={3} pt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <Typography variant="subtitle2" fontWeight={700}>
-                                Finalize
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-                                <Box sx={{ flex: 1, maxWidth: 250 }}>
-                                    <Typography variant="caption" display="block" mb={0.5}>Compatibility Report PDF</Typography>
+                        {testBoardCategories.length > 0 && (() => {
+                            const allPassed = testBoardCategories.every(cat => cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete"));
+
+                            return (
+                                <Box mt={3} pt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <Typography variant="subtitle2" fontWeight={700}>
+                                    Finalize
+                                </Typography>
+                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                                    <Box sx={{ flex: 1, maxWidth: 250 }}>
+                                        <Typography variant="caption" display="block" mb={0.5}>Compatibility Report PDF</Typography>
+                                        <Button 
+                                            variant="outlined" 
+                                            size="small" 
+                                            startIcon={<DescriptionIcon />} 
+                                            onClick={generateAndDownloadPDF}
+                                            disabled={!allPassed}
+                                            sx={{ width: '100%', bgcolor: '#fff', color: '#1976d2', borderColor: '#1976d2', '&:disabled': { opacity: 0.6 } }}
+                                        >
+                                            Download Report
+                                        </Button>
+                                    </Box>
+                                    <Box sx={{ flex: 3 }}>
+                                        <Typography variant="caption" display="block" mb={0.5}>Comment</Typography>
+                                        <textarea 
+                                            value={finalComment} 
+                                            onChange={(e) => {
+                                                setFinalComment(e.target.value);
+                                                setFieldErrors((p) => { const c = { ...p }; delete c.finalComment; return c; });
+                                            }} 
+                                            rows={2}
+                                            style={{ width: '100%', padding: '6px', borderRadius: '4px', border: fieldErrors.finalComment ? '1px solid red' : '1px solid #ccc', fontSize: '14px', fontFamily: 'inherit', resize: 'vertical', background: '#fff' }}
+                                        />
+                                        {fieldErrors.finalComment && <Typography color="error" variant="caption" display="block">{fieldErrors.finalComment}</Typography>}
+                                    </Box>
+                                </Box>
+                                
+                                <Box mt={1} sx={{ display: 'flex', gap: 2 }}>
                                     <Button 
-                                        variant="outlined" 
-                                        size="small" 
-                                        startIcon={<DescriptionIcon />} 
-                                        onClick={generateAndDownloadPDF}
-                                        sx={{ width: '100%', bgcolor: '#fff', color: '#1976d2', borderColor: '#1976d2' }}
+                                        variant="contained"
+                                        disableElevation
+                                        disabled={submitting || !allPassed}
+                                        onClick={() => handleConfirm("technically_compatible")}
+                                        sx={{ bgcolor: '#0d1b2a', color: '#fff', '&:disabled': { bgcolor: '#b0bec5', color: '#fff' } }}
                                     >
-                                        Download Report
+                                        {submitting && status === "technically_compatible" ? "Finalizing..." : "Finalize Onboarding"}
+                                    </Button>
+                                    <Button 
+                                        variant="contained"
+                                        color="error"
+                                        disableElevation
+                                        disabled={submitting}
+                                        onClick={() => handleConfirm("technically_not_compatible")}
+                                    >
+                                        {submitting && status === "technically_not_compatible" ? "Rejecting..." : "Reject Onboarding"}
                                     </Button>
                                 </Box>
-                                <Box sx={{ flex: 1, maxWidth: 200 }}>
-                                    <Typography variant="caption" display="block" mb={0.5}>Decision</Typography>
-                                    <select 
-                                        value={status} 
-                                        onChange={(e) => setStatus(e.target.value)} 
-                                        style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', background: '#fff' }}
-                                    >
-                                        <option value="technically_compatible">Technically Compatible</option>
-                                        <option value="technically_not_compatible">Technically Not Compatible</option>
-                                    </select>
+                                {apiError && <Alert severity="error" sx={{ mt: 2 }}>{apiError}</Alert>}
                                 </Box>
-                                <Box sx={{ flex: 2 }}>
-                                    <Typography variant="caption" display="block" mb={0.5}>Comment</Typography>
-                                    <textarea 
-                                        value={finalComment} 
-                                        onChange={(e) => {
-                                            setFinalComment(e.target.value);
-                                            setFieldErrors((p) => { const c = { ...p }; delete c.finalComment; return c; });
-                                        }} 
-                                        rows={2}
-                                        style={{ width: '100%', padding: '6px', borderRadius: '4px', border: fieldErrors.finalComment ? '1px solid red' : '1px solid #ccc', fontSize: '14px', fontFamily: 'inherit', resize: 'vertical', background: '#fff' }}
-                                    />
-                                    {fieldErrors.finalComment && <Typography color="error" variant="caption" display="block">{fieldErrors.finalComment}</Typography>}
-                                </Box>
-                            </Box>
-                            
-                            <Box mt={1}>
-                                <Button 
-                                    variant="contained"
-                                    disableElevation
-                                    disabled={submitting}
-                                    onClick={handleConfirm}
-                                    sx={{ bgcolor: '#b0bec5', color: '#fff', '&:not(:disabled)': { bgcolor: '#0d1b2a' } }}
-                                >
-                                    {submitting ? "Finalizing..." : "Finalize Onboarding"}
-                                </Button>
-                            </Box>
-                            {apiError && <Alert severity="error" sx={{ mt: 2 }}>{apiError}</Alert>}
-                            </Box>
-                        )}
-                    </Box>
+                                );
+                            })()}
+                        </Box>
                 </Box>
             </DialogContent>
         </Dialog>
@@ -1146,7 +1150,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 /* ═══════════════════════════════════════════════════
    COLLAPSIBLE TABLE ROW
 ═══════════════════════════════════════════════════ */
-const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmReceipt, onMarkOngoing, onFinalize, onStateApprove, testBoardProgress }) => {
+const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmReceipt, onDeviceRejectReceipt, onMarkOngoing, onFinalize, onStateApprove, testBoardProgress }) => {
     const [open, setOpen] = useState(false);
     const userRole = getRole();
     const isStateAdmin = userRole === "stateadmin";
@@ -1443,6 +1447,15 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                                                             >
                                                                                 Confirm Receipt
                                                                             </Button>
+                                                                            <Button 
+                                                                                size="small" 
+                                                                                variant="contained" 
+                                                                                color="error"
+                                                                                sx={{ fontSize: "0.65rem", py: 0, px: 1, minWidth: 0, height: 24, whiteSpace: "nowrap" }}
+                                                                                onClick={(e) => { e.stopPropagation(); onDeviceRejectReceipt(row.id, device.id); }}
+                                                                            >
+                                                                                Reject
+                                                                            </Button>
                                                                         </Stack>
                                                                     )}
                                                                 </TableCell>
@@ -1601,6 +1614,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
     const [ongoingDialog, setOngoingDialog] = useState({ open: false, row: null });
     const [finalizeDialog, setFinalizeDialog] = useState({ open: false, row: null });
     const [actionMsg, setActionMsg] = useState({ type: "", text: "" });
+    const [deviceRejectDialog, setDeviceRejectDialog] = useState({ open: false, rowId: null, deviceId: null, remarks: "" });
 
     const handleStateApprove = async (row) => {
         const mfrObj = row.manufacturer || row.manufacturer_info || row.created_by_info || {};
@@ -1789,8 +1803,28 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
             await DeviceModelServices.confirmReceipt({
                 onboarding_request_id: rowId,
                 demo_device_id: deviceId,
+                status: "received"
             });
             setActionMsg({ type: "success", text: `Device receipt confirmed successfully.` });
+            loadData();
+        } catch (err) {
+            setActionMsg({ type: "error", text: extractError(err) });
+            setLoading(false);
+        }
+    };
+
+    const handleDeviceRejectReceiptSubmit = async () => {
+        if (!deviceRejectDialog.remarks.trim()) return;
+        setLoading(true);
+        try {
+            await DeviceModelServices.confirmReceipt({
+                onboarding_request_id: deviceRejectDialog.rowId,
+                demo_device_id: deviceRejectDialog.deviceId,
+                status: "rejected",
+                remarks: deviceRejectDialog.remarks
+            });
+            setActionMsg({ type: "success", text: `Device receipt rejected successfully.` });
+            setDeviceRejectDialog({ open: false, rowId: null, deviceId: null, remarks: "" });
             loadData();
         } catch (err) {
             setActionMsg({ type: "error", text: extractError(err) });
@@ -1850,6 +1884,31 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                 onClose={() => setFinalizeDialog({ open: false, row: null })}
                 onSuccess={handleFinalizeSuccess}
             />
+            <Dialog open={deviceRejectDialog.open} onClose={() => setDeviceRejectDialog({ open: false, rowId: null, deviceId: null, remarks: "" })} maxWidth="sm" fullWidth>
+                <DialogTitle>Reject Device Receipt</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Rejection Remarks"
+                        type="text"
+                        fullWidth
+                        multiline
+                        rows={3}
+                        variant="outlined"
+                        value={deviceRejectDialog.remarks}
+                        onChange={(e) => setDeviceRejectDialog({ ...deviceRejectDialog, remarks: e.target.value })}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeviceRejectDialog({ open: false, rowId: null, deviceId: null, remarks: "" })} color="inherit" disabled={loading}>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleDeviceRejectReceiptSubmit} color="error" variant="contained" disabled={loading || !deviceRejectDialog.remarks.trim()}>
+                        {loading ? "Rejecting..." : "Confirm Reject"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             <Grid container spacing={gridSpacing}>
                 <Grid item xs={12}>
@@ -1937,6 +1996,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                                                         row={row}
                                                         onConfirmReceipt={handleConfirmReceipt}
                                                         onDeviceConfirmReceipt={handleDeviceConfirmReceipt}
+                                                        onDeviceRejectReceipt={(rowId, deviceId) => setDeviceRejectDialog({ open: true, rowId, deviceId, remarks: "" })}
                                                         onMarkOngoing={handleStartTesting}
                                                         onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
                                                         onStateApprove={handleStateApprove}

@@ -217,19 +217,6 @@ export default function TagDeviceToVehicle() {
             </Tabs>
 
             <Box sx={{ display: 'flex', gap: 1 }}>
-              {tab === 0 && activeStep < 4 && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => {
-                    if (!session.id) setSession(p => ({ ...p, id: 'DEV_SKIP' }));
-                    setActiveStep(p => p + 1);
-                  }}
-                  sx={{ textTransform: 'none', fontWeight: 600, color: '#f59e0b', borderColor: '#fcd34d' }}
-                >
-                  Skip Step (Dev)
-                </Button>
-              )}
               {tab === 0 && session.id && (
                 <Button
                   size="small"
