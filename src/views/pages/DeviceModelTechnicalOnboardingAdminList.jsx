@@ -1435,6 +1435,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                                                 <TableCell align="right">
                                                                     {device.receipt_confirmed ? (
                                                                         <Chip label="Received" size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: "0.65rem" }} />
+                                                                    ) : device.status === 'rejected' || device.receipt_status === 'rejected' || device.receipt_rejected ? (
+                                                                        <Chip label="Rejected" size="small" color="error" variant="outlined" sx={{ height: 20, fontSize: "0.65rem" }} />
                                                                     ) : (
                                                                         <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
                                                                             <Chip label="Pending" size="small" color="warning" variant="outlined" sx={{ height: 20, fontSize: "0.65rem" }} />

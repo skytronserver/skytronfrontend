@@ -443,6 +443,14 @@ const user = {
           url: "/deviceModel/extension",
           breadcrumbs: false,
           roles: ["devicemanufacture"],
+        },
+        {
+          id: "manufacturer-model-list",
+          title: "Model List",
+          type: "item",
+          url: "/manufacturer/model-list",
+          breadcrumbs: false,
+          roles: ["devicemanufacture"],
         }
       ]
     },
@@ -750,6 +758,7 @@ const user = {
           breadcrumbs: false,
           roles: ["superadmin", "stateadmin", "devicemanufacture"],
         },
+
         {
           id: "vehicle-owner-list",
           title: "Vehicle Owner",

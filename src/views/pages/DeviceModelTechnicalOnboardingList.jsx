@@ -346,8 +346,8 @@ const RequestRow = ({ row, index }) => {
                                                                 </TableCell>
                                                                 <TableCell sx={{ py: 1, textAlign: 'right' }}>
                                                                     <Chip
-                                                                        label={device.receipt_confirmed ? "Received" : "Pending"}
-                                                                        color={device.receipt_confirmed ? "success" : "warning"}
+                                                                        label={device.receipt_confirmed ? "Received" : device.status === 'rejected' || device.receipt_status === 'rejected' || device.receipt_rejected ? "Rejected" : "Pending"}
+                                                                        color={device.receipt_confirmed ? "success" : device.status === 'rejected' || device.receipt_status === 'rejected' || device.receipt_rejected ? "error" : "warning"}
                                                                         variant="outlined"
                                                                         size="small"
                                                                         sx={{ fontSize: '0.65rem', height: 20 }}

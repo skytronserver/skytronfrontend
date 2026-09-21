@@ -143,6 +143,11 @@ const rejectModel = (data) => {
   return http.post("/api/devicemodel/reject-model/", data);
 };
 
+const getManufacturerModelOverview = (data = { page: 1, page_size: 1000 }) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/manufacturer/overview/", data);
+};
+
 
 
 const DeviceModelServices = {
@@ -174,6 +179,7 @@ const DeviceModelServices = {
   refreshLogTestBoard,
   completeTestBoard,
   rejectModel,
+  getManufacturerModelOverview,
 };
 
 export default DeviceModelServices;

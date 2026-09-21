@@ -34,6 +34,8 @@ const M2MStatusReport = Loadable(lazy(() => import("../views/reports/M2MStatusRe
 const ManufacturerOnboarding = Loadable(lazy(() => import("../views/pages/ManufacturerOnboarding")));
 const DeviceModelTechnicalOnboardingCreate = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingCreate")));
 const DeviceModelTechnicalOnboardingList = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingList")));
+const ManufacturerModelList = Loadable(lazy(() => import("../views/pages/ManufacturerModelList")));
+
 const DeviceModelTechnicalOnboardingDetail = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingDetail")));
 const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
@@ -100,6 +102,11 @@ const DeviceRoutes = {
     {
       path: "/deviceModel/extension",
       element: <ModelExtension formTitle="Model Extension" />,
+      roles: ["devicemanufacture"],
+    },
+    {
+      path: "/manufacturer/model-list",
+      element: <ManufacturerModelList />,
       roles: ["devicemanufacture"],
     },
     {

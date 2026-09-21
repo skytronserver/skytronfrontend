@@ -540,7 +540,7 @@ export const deviceModelColumns = [
     name: 'eSimProviders', label: 'M2M Providers', options: {
       filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
         return (
-          <p>{value[0]?.company_name}</p>
+          <p>{Array.isArray(value) ? value[0]?.company_name : 'N/A'}</p>
         )
       }, csvExportKey: "company_name"
     }
