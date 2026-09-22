@@ -1214,6 +1214,16 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         }
 
         // Finalized statuses
+        const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
+        if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
+            return {
+                label: isFailed ? "Testing Not Completed":"Testing Completed",
+      pct: isFailed ? null : 100,
+        pending: isFailed ? "Not Compatible" : "All tests completed",
+        color: isFailed ? "error" : "success",
+               
+            };
+        }
 
         // ongoing_evaluation without test board data yet
         if (isOngoingEval) {
@@ -1294,16 +1304,20 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                 <Typography variant="body2" fontWeight={600}>
                                     {stepsDisplay.label}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                                    {stepsDisplay.pct}%
-                                </Typography>
+                                {stepsDisplay.pct !== null && (
+    <Typography variant="caption" color="text.secondary" fontWeight={600}>
+        {stepsDisplay.pct}%
+    </Typography>
+)}
                             </Stack>
-                            <LinearProgress
-                                variant="determinate"
-                                value={stepsDisplay.pct}
-                                color={stepsDisplay.color}
-                                sx={{ height: 6, borderRadius: 3 }}
-                            />
+                            {stepsDisplay.pct !== null && (
+    <LinearProgress
+        variant="determinate"
+        value={stepsDisplay.pct}
+        color={stepsDisplay.color}
+        sx={{ height: 6, borderRadius: 3 }}
+    />
+)}
                             <Typography variant="caption" color="text.secondary">
                                 {stepsDisplay.pending}
                             </Typography>
