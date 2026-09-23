@@ -334,24 +334,24 @@ const user = {
       breadcrumbs: false,
       roles: ["esimprovider"],
     },
-    {
-      id: "check-m2m-status",
-      title: "Check M2M Status",
-      type: "item",
-      url: "/device/m2m-status",
-      icon: icons.IconDeviceSim1,
-      breadcrumbs: false,
-      roles: ["dealer"],
-    },
-    {
-      id: "activate-m2m-device",
-      title: "Request M2M Activation",
-      type: "item",
-      url: "/device/m2m-activation",
-      icon: icons.IconDeviceSim1,
-      breadcrumbs: false,
-      roles: ["dealer"],
-    },
+    // {
+    //   id: "check-m2m-status",
+    //   title: "Check M2M Status",
+    //   type: "item",
+    //   url: "/device/m2m-status",
+    //   icon: icons.IconDeviceSim1,
+    //   breadcrumbs: false,
+    //   roles: ["dealer"],
+    // },
+    // {
+    //   id: "activate-m2m-device",
+    //   title: "Request M2M Activation",
+    //   type: "item",
+    //   url: "/device/m2m-activation",
+    //   icon: icons.IconDeviceSim1,
+    //   breadcrumbs: false,
+    //   roles: ["dealer"],
+    // },
 
     // device renewal
     {

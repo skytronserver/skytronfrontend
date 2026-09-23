@@ -3238,7 +3238,7 @@ const ActiveState = () => {
       case "dealer":
         return (
           <Grid container spacing={2} marginBottom={mar}>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label="Assigned, Available for Fitment, Returned, Faulty"
@@ -3251,7 +3251,7 @@ const ActiveState = () => {
                 iconImage={Stock}
                 heading={t('dashboard.headings.stockStatistics')}
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
@@ -3282,7 +3282,7 @@ const ActiveState = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label={t('dashboard.labels.eSIMStatistics')}
@@ -3296,7 +3296,7 @@ const ActiveState = () => {
                 iconImage={Sim}
                 heading={t('dashboard.headings.eSIMStatistics')}
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
@@ -3424,7 +3424,7 @@ const ActiveState = () => {
       case "devicemanufacture":
         return (
           <Grid container spacing={2} marginBottom={mar}>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #9933ff 0%, #99ccff 100%)"
                 label={t('dashboard.labels.manufacturerStockStatistics')}
@@ -3437,7 +3437,7 @@ const ActiveState = () => {
                 iconImage={Stock}
                 heading={t('dashboard.headings.stockStatistics')}
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
@@ -3451,7 +3451,7 @@ const ActiveState = () => {
                 heading={t('dashboard.headings.modelStatistics')}
               />
             </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label={t('dashboard.labels.manufacturerDeviceStatistics')}
@@ -3466,7 +3466,7 @@ const ActiveState = () => {
                 iconImage={Car}
                 heading={t('dashboard.headings.deviceStatistics')}
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
@@ -3519,7 +3519,7 @@ const ActiveState = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #cc00cc 0%, #ff99ff 100%)"
                 label={`${t('dashboard.labels.activationStatus.requestsSent')},${t('dashboard.labels.activationStatus.confirmed')},${t('dashboard.labels.activationStatus.rejected')},${t('dashboard.labels.activationStatus.expiringSoon')}`}
@@ -3532,9 +3532,9 @@ const ActiveState = () => {
                 iconImage={Bell}
                 heading={t('dashboard.headings.activationStatus')}
               />
-            </Grid>
+            </Grid> */}
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to right, #ff6600 0%, #ffcc66 100%)"
                 label="Pending,Invalid,Total Devices"
@@ -3546,9 +3546,9 @@ const ActiveState = () => {
                 iconImage={Sim}
                 heading="M2M Status Overview"
               />
-            </Grid>
+            </Grid> */}
 
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #00C49F 0%, #82ca9d 100%)"
                 label="Today,This Week,This Month"
@@ -3560,7 +3560,7 @@ const ActiveState = () => {
                 iconImage={Activation}
                 heading="Activation Requests Timeline"
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
@@ -3580,7 +3580,7 @@ const ActiveState = () => {
 
 
             {/* Added eSIM statistics widget */}
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6666 0%, #ffcc99 100%)"
                 label={t('dashboard.labels.esimproviderStatistics')}
@@ -3595,7 +3595,7 @@ const ActiveState = () => {
                 iconImage={Sim}
                 heading={t('dashboard.headings.eSIMStatistics')}
               />
-            </Grid>
+            </Grid> */}
           </Grid>
         );
       case "sosadmin":
