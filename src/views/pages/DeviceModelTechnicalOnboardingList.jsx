@@ -137,13 +137,22 @@ const RequestRow = ({ row, index }) => {
 
         // Finalized statuses
         const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
+        if (isFailed){
+            return {
+                label : "Testing Not Completed",
+                pct: null,
+                pending: "Not Comatible",
+                color: "error",
+            };
+        }
+           
         if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
             return {
                 label: "Testing Completed",
                 pct: 100,
-                pending: isFailed ? "Not Compatible" : "All tests completed",
-                color: isFailed ? "error" : "success",
-            };
+                pending: "All tests completed",
+                color:  "success",
+            }; 
         }
 
         // Extract progress from demo_devices checkpoint_status
@@ -237,16 +246,22 @@ const RequestRow = ({ row, index }) => {
                                 <Typography variant="body2" fontWeight={600}>
                                     {stepsDisplay.label}
                                 </Typography>
+
+                                {stepsDisplay.pct !== null && (
                                 <Typography variant="caption" color="text.secondary" fontWeight={600}>
                                     {stepsDisplay.pct}%
                                 </Typography>
+                                 )}
+
                             </Stack>
+                            {stepsDisplay.pct !== null && (
                             <LinearProgress
-                                variant="determinate"
+                                variant="determinate" 
                                 value={stepsDisplay.pct}
                                 color={stepsDisplay.color}
                                 sx={{ height: 6, borderRadius: 3 }}
                             />
+                            )}
                             <Typography variant="caption" color="text.secondary">
                                 {stepsDisplay.pending}
                             </Typography>
