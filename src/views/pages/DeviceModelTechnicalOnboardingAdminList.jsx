@@ -43,6 +43,7 @@ import {
 import RefreshIcon from "@mui/icons-material/Refresh";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import DevicesIcon from "@mui/icons-material/Devices";
 import SimCardIcon from "@mui/icons-material/SimCard";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -1163,7 +1164,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 /* ═══════════════════════════════════════════════════
    COLLAPSIBLE TABLE ROW
 ═══════════════════════════════════════════════════ */
-const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmReceipt, onDeviceRejectReceipt, onMarkOngoing, onFinalize, onStateApprove, testBoardProgress }) => {
+const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmReceipt, onDeviceRejectReceipt, onMarkOngoing, onFinalize, onStateApprove }) => {
     const [open, setOpen] = useState(false);
     const userRole = getRole();
     const isStateAdmin = userRole === "stateadmin";
@@ -1187,11 +1188,53 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
     const isSubmitted = statusKey === "submitted";
     const isOngoingEval = statusKey === "ongoing_evaluation";
 
-    // Real test board progress for ongoing_evaluation
-    const tbProgress = testBoardProgress?.[row.id];
+    // Real test board progress for ongoing_evaluation (calculated locally from demo_devices to save API calls)
+    const tbProgress = useMemo(() => {
+        if (!demoDevices || demoDevices.length === 0) return null;
+        
+        let hasAnyProgress = false;
+        let completed = 39;
+        let currentTestName = "";
+        let lastCompletedName = "";
+        
+        demoDevices.forEach(d => {
+            const cp = d.checkpoint_status;
+            if (cp && (cp.last_completed_test_no !== null || cp.next_test_no !== null || cp.next_test_name || cp.last_completed_test_name)) {
+                hasAnyProgress = true;
+                const devCompleted = cp.last_completed_test_no || 0;
+                if (devCompleted < completed) {
+                    completed = devCompleted;
+                    currentTestName = cp.next_test_name || "";
+                    lastCompletedName = cp.last_completed_test_name || "";
+                }
+            } else {
+                completed = 0; // If any device hasn't started, overall completed is 0
+            }
+        });
+        
+        if (!hasAnyProgress) return null;
+        
+        return {
+            total: 39,
+            completed,
+            currentTestName: currentTestName || (completed === 39 ? "All tests completed" : ""),
+            lastCompletedName
+        };
+    }, [demoDevices]);
 
     // Compute steps display from real data
     const stepsDisplay = useMemo(() => {
+        // Finalized statuses take precedence
+        const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
+        if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
+            return {
+                label: isFailed ? "Testing Not Completed" : "Testing Completed",
+                pct: isFailed ? null : 100,
+                pending: isFailed ? "Not Compatible" : "All tests completed",
+                color: isFailed ? "error" : "success",
+            };
+        }
+
         if (tbProgress && tbProgress.total > 0) {
             // Use real test board data if tests have actually started, regardless of status
             const total = tbProgress.total || 0;
@@ -1202,7 +1245,12 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                 label: `${completed} / ${total} Tests Completed`,
                 pct,
                 pending: completed < total
-                    ? `In Progress: ${currentTestName}`
+                    ? (
+                        <>
+                            {tbProgress.lastCompletedName && <span style={{ display: 'block', marginBottom: '2px' }}>Completed: {tbProgress.lastCompletedName}</span>}
+                            <span style={{ display: 'block' }}>In Progress: {currentTestName}</span>
+                        </>
+                    )
                     : "All tests completed",
                 color: completed === total ? "success" : "primary",
             };
@@ -1211,18 +1259,6 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         // No steps to show before testing starts, or if devices haven't been fully confirmed
         if (!allDevicesReceived || statusKey === "submitted" || statusKey === "devices_received" || statusKey === "stock_received" || statusKey === "pending") {
             return null;
-        }
-
-        // Finalized statuses
-        const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
-        if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
-            return {
-                label: isFailed ? "Testing Not Completed":"Testing Completed",
-      pct: isFailed ? null : 100,
-        pending: isFailed ? "Not Compatible" : "All tests completed",
-        color: isFailed ? "error" : "success",
-               
-            };
         }
 
         // ongoing_evaluation without test board data yet
@@ -1380,24 +1416,6 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                 Manufacturer Active
                             </Typography>
                         )}
-                        {row.compatibility_report_pdf ? (
-                            <Tooltip title="View Compatibility Report">
-                                <IconButton
-                                    size="small"
-                                    color="primary"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        openFile(e, row.compatibility_report_pdf);
-                                    }}
-                                >
-                                    <DescriptionIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        ) : hasReport ? (
-                            <Tooltip title="Has compatibility test findings">
-                                <CommentIcon fontSize="small" color="primary" />
-                            </Tooltip>
-                        ) : null}
                     </Stack>
                 </TableCell>
             </TableRow>
@@ -1544,7 +1562,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
 
 
                                 {/* Documents */}
-                                {(row.user_manual_pdf || row.ot_command_list_pdf || row.compatibility_report_pdf) && (
+                                {(row.user_manual_pdf || row.ot_command_list_pdf) && (
                                     <Grid item xs={12} md={6}>
                                         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                                             <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
@@ -1556,7 +1574,6 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                                 {[
                                                     ["User Manual PDF", row.user_manual_pdf],
                                                     ["OT Command List PDF", row.ot_command_list_pdf],
-                                                    ["Compatibility Report PDF", row.compatibility_report_pdf],
                                                 ].map(([lbl, url]) => url ? (
                                                     <Stack key={lbl} direction="row" alignItems="center" spacing={1} justifyContent="space-between" sx={{ width: "100%" }}>
                                                         <Stack direction="row" alignItems="center" spacing={1}>
@@ -1579,21 +1596,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                     </Grid>
                                 )}
 
-                                {/* Compatibility Test Findings */}
-                                {hasReport && (
-                                    <Grid item xs={12} md={6}>
-                                        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: "primary.light", bgcolor: "primary.50" }}>
-                                            <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
-                                                <CommentIcon color="primary" fontSize="small" />
-                                                <Typography variant="subtitle2" fontWeight={700}>Compatibility Test Findings</Typography>
-                                            </Stack>
-                                            <Divider sx={{ mb: 1.5 }} />
-                                            <Typography variant="body2" color="text.primary" sx={{ whiteSpace: "pre-wrap" }}>
-                                                {row.final_comment || row.report || row.comment || row.remarks}
-                                            </Typography>
-                                        </Paper>
-                                    </Grid>
-                                )}
+                                {/* Compatibility Test Findings section removed as requested */}
                             </Grid>
                         </Box>
                     </Collapse>
@@ -1628,7 +1631,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [testBoardProgress, setTestBoardProgress] = useState({});
+
 
     /* dialog state */
     const [ongoingDialog, setOngoingDialog] = useState({ open: false, row: null });
@@ -1713,54 +1716,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
 
     useEffect(() => { loadData(); }, [loadData]);
 
-    /* ── fetch test board progress for active rows ── */
-    useEffect(() => {
-        const activeRows = rows.filter(r => {
-            const s = String(r.status ?? "").trim().toLowerCase();
-            const finalized = ["technically_not_compatible", "rejected", "stateadminrejected", "technically_compatible", "accepted", "approved", "stateadminapproved"].includes(s);
-            return !finalized && s !== "submitted";
-        });
-        if (activeRows.length === 0) return;
 
-        const fetchProgress = async () => {
-            const progressMap = {};
-            await Promise.all(
-                activeRows.map(async (r) => {
-                    try {
-                        const res = await DeviceModelServices.getTestBoard({ onboarding_request_id: r.id });
-                        let categories = [];
-                        if (Array.isArray(res?.data)) categories = res.data;
-                        else if (res?.data?.rows) categories = res.data.rows;
-                        else if (res?.data?.categories) categories = res.data.categories;
-
-                        const total = categories.length;
-                        // A test is completed when ALL its executions are pass/completed
-                        const completed = categories.filter(cat =>
-                            cat.executions && cat.executions.length > 0 &&
-                            cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete")
-                        ).length;
-
-                        // Find the first incomplete test name
-                        let currentTestName = "";
-                        for (const cat of categories) {
-                            const allDone = cat.executions && cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete");
-                            if (!allDone) {
-                                currentTestName = cat.test_case?.name || `Test #${cat.test_case?.serial_no}`;
-                                break;
-                            }
-                        }
-
-                        progressMap[r.id] = { total, completed, currentTestName };
-                    } catch {
-                        // silently skip if test board fetch fails
-                    }
-                })
-            );
-            setTestBoardProgress(progressMap);
-        };
-
-        fetchProgress();
-    }, [rows]);
 
     /* ── optimistic update helpers ── */
     const patchRow = useCallback((id, patch) => {
@@ -1888,6 +1844,8 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
         () => filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
         [filteredRows, page, rowsPerPage]
     );
+
+
 
     return (
         <>
@@ -2020,7 +1978,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                                                     onMarkOngoing={handleStartTesting}
                                                     onFinalize={(r) => setFinalizeDialog({ open: true, row: r })}
                                                     onStateApprove={handleStateApprove}
-                                                    testBoardProgress={testBoardProgress}
+
                                                 />
                                             ))}
                                         </TableBody>
