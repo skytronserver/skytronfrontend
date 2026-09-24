@@ -78,7 +78,7 @@ export const retriveModelList = async () => {
     } else {
       console.log('No Data Found')
     }
-    return { status: 500 }
+    return []
   }
 };
 export const filterModelList = async (data) => {
@@ -193,6 +193,7 @@ export const retriveStateList = async () => {
     } else {
       console.log('No Data Found')
     }
+    return []
   }
 };
 

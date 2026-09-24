@@ -140,7 +140,7 @@ const ActivationCertificatePreview = ({ deviceId }) => {
     Sz(16); B(true);
     L("VLTD ACTIVATION CERTIFICATE", pw / 2, y, { align: "center" }); y += 6;
     Sz(9); B(false);
-    L("(Generated Online in https://vlts.rajasthan.gov.in)", pw / 2, y, { align: "center" }); y += 3;
+    L("(Generated Online in https://skytron.in)", pw / 2, y, { align: "center" }); y += 3;
 
     try {
       const canvas = qrCanvasRef.current?.querySelector("canvas");
@@ -154,19 +154,19 @@ const ActivationCertificatePreview = ({ deviceId }) => {
     Sz(11); B(false);
     L("To,", margin, y); y += 5;
     L("The Registering Authority", margin, y); y += 5;
-    L("State Transport Department, Govt. of Rajasthan", margin, y); y += 24;
+    L("State Transport Department, Govt. of Assam", margin, y); y += 24;
 
     Sz(10);
     L("VLTD Certificate No: ", margin, y);
     B(true); L(d.certNo, margin + pdf.getTextWidth("VLTD Certificate No: "), y); B(false);
-    const dl = "VLTD Activation Date (In https://vlts.rajasthan.gov.in): ";
+    const dl = "VLTD Activation Date (In https://skytron.in): ";
     const dx = pw / 2;
     L(dl, dx, y);
     B(true); L(d.activationDate, dx + pdf.getTextWidth(dl), y); B(false);
     y += 12;
 
     Sz(11); B(true);
-    y = Wrap(`Subject:   VLTD Serial No: ${d.deviceSerialNo} in the vehicle having chassis no: ${d.chassisNo} in the portal (https://vlts.rajasthan.gov.in), State Transport Department, Govt. of Rajasthan.`, margin, y, usable);
+    y = Wrap(`Subject:   VLTD Serial No: ${d.deviceSerialNo} in the vehicle having chassis no: ${d.chassisNo} in the portal (https://skytron.in), State Transport Department, Govt. of Assam.`, margin, y, usable);
     B(false); y += 5;
     L("Dear Sir,", margin, y); y += 10;
 
@@ -220,18 +220,18 @@ const ActivationCertificatePreview = ({ deviceId }) => {
   .gap2{margin-top:32px}
   @media print{@page{margin:18px}body{padding:20px}}
 </style></head><body>
-<div class="hdr"><h1>VLTD ACTIVATION CERTIFICATE</h1><p><sub>(Generated Online in https://vlts.rajasthan.gov.in)</sub></p></div>
+<div class="hdr"><h1>VLTD ACTIVATION CERTIFICATE</h1><p><sub>(Generated Online in https://skytron.in)</sub></p></div>
 <div class="top-row">
   <div>
-    <p>To,<br/>The Registering Authority<br/>State Transport Department, Govt. of Rajasthan</p>
+    <p>To,<br/>The Registering Authority<br/>State Transport Department, Govt. of Assam</p>
   </div>
   ${qrDataUrl ? `<div><img src="${qrDataUrl}" width="148" height="148" alt="QR"/></div>` : ""}
 </div>
 <div class="meta">
   <span>VLTD Certificate No: <strong>${d.certNo}</strong></span>
-  <span>VLTD Activation Date (In https://vlts.rajasthan.gov.in): <strong>${d.activationDate}</strong></span>
+  <span>VLTD Activation Date (In https://skytron.in): <strong>${d.activationDate}</strong></span>
 </div>
-<p><strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No: <strong>${d.deviceSerialNo}</strong> in the vehicle having chassis no: <strong>${d.chassisNo}</strong> in the portal (https://vlts.rajasthan.gov.in), State Transport Department, Govt. of Rajasthan.</p>
+<p><strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No: <strong>${d.deviceSerialNo}</strong> in the vehicle having chassis no: <strong>${d.chassisNo}</strong> in the portal (https://skytron.in), State Transport Department, Govt. of Assam.</p>
 <p>Dear Sir,</p>
 <p>This is to inform you that VLTD serial number: <strong>${d.deviceSerialNo}</strong>, model number: <strong>${d.vltdModel}</strong> of VLTD manufacturer <strong>${d.vltdMake}</strong>, has been activated on vehicle having chasis number: <strong>${d.chassisNo}</strong> , engine number: <strong>${d.engineNo}</strong> ,vehicle registration number: <strong>${d.vehicleRegNo}</strong> and vehicle class: <strong>${d.vehicleClass}</strong></p>
 <p class="gap">The details of VLTD shown blow:</p>
@@ -296,7 +296,7 @@ ${rows}
                   VLTD ACTIVATION CERTIFICATE
                 </Typography>
                 <Typography sx={{ fontFamily: F, fontSize: "12px", color: "#000" }}>
-                  (Generated Online in https://vlts.rajasthan.gov.in)
+                  (Generated Online in https://skytron.in)
                 </Typography>
               </Box>
 
@@ -304,7 +304,7 @@ ${rows}
                 <Box>
                   <T>To,</T>
                   <T>The Registering Authority</T>
-                  <T>State Transport Department, Govt. of Rajasthan</T>
+                  <T>State Transport Department, Govt. of Assam</T>
                 </Box>
                 <Box sx={{ flexShrink: 0, ml: 2 }}>
                   <QRCodeSVG
@@ -329,7 +329,7 @@ ${rows}
                   VLTD Certificate No: <strong>{certificateData.certNo}</strong>
                 </Typography>
                 <Typography sx={{ fontFamily: F, fontSize: FS, color: "#000" }}>
-                  VLTD Activation Date (In https://vlts.rajasthan.gov.in):{" "}
+                  VLTD Activation Date (In https://skytron.in):{" "}
                   <strong>{certificateData.activationDate}</strong>
                 </Typography>
               </Box>
@@ -338,8 +338,8 @@ ${rows}
                 <Typography component="p" sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
                   <strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No:{" "}
                   <strong>{certificateData.deviceSerialNo}</strong> in the vehicle having chassis no:{" "}
-                  <strong>{certificateData.chassisNo}</strong> in the portal (https://vlts.rajasthan.gov.in),
-                  State Transport Department, Govt. of Rajasthan.
+                  <strong>{certificateData.chassisNo}</strong> in the portal (https://skytron.in),
+                  State Transport Department, Govt. of Assam.
                 </Typography>
               </Box>
 

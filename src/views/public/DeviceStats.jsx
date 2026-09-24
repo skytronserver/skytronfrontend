@@ -89,28 +89,28 @@ const DeviceStats = () => {
       xs: 12, sm: 6, md: 3
     },
     {
-      title: "Technically Onboarded Manufacturers",
-      value: totals?.total_manufacturers_with_onboarding_done ?? 0,
+      title: "VLTD MANUFACTURERS",
+      value: totals?.total_manufacturers ?? 0,
       icon: <BusinessIcon fontSize="large" sx={{ color: '#9c27b0' }} />,
       color: "#f3e5f5",
       xs: 12, sm: 6, md: 3
     },
     {
-      title: "Device Models",
+      title: "TECHNICALLY ONBOARDED DEVICE MODELS",
       value: totals?.total_device_models_with_onboarding_done ?? 0,
       icon: <DevicesIcon fontSize="large" sx={{ color: '#ff9800' }} />,
       color: "#fff3e0",
       xs: 12, sm: 6, md: 3
     },
     {
-      title: "Total Stock",
+      title: "UPLOADED DEVICE",
       value: totals?.total_device_stock ?? 0,
       icon: <InventoryIcon fontSize="large" sx={{ color: '#00bcd4' }} />,
       color: "#e0f7fa",
       xs: 12, sm: 6, md: 3
     },
     {
-      title: "Total Tagged Device",
+      title: "TOTAL ACTIVATIONS DONE",
       value: totals?.total_tagged_device ?? 0,
       icon: <LabelIcon fontSize="large" sx={{ color: '#3f51b5' }} />,
       color: "#e8eaf6",
