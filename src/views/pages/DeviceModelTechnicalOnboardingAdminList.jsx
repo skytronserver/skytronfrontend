@@ -1228,7 +1228,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
         if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
             return {
-                label: isFailed ? "Testing Not Completed" : "Testing Completed",
+                label: isFailed ? "Platform Integration Testing Not Completed" : "Platform IntegrationTesting Completed",
+                
                 pct: isFailed ? null : 100,
                 pending: isFailed ? "Not Compatible" : "All tests completed",
                 color: isFailed ? "error" : "success",
@@ -1264,7 +1265,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         // ongoing_evaluation without test board data yet
         if (isOngoingEval) {
             return {
-                label: "Testing In Progress",
+                label: "Platform Integration Testing In Progress",
                 pct: 0,
                 pending: "Loading test progress...",
                 color: "primary",
@@ -1359,7 +1360,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                             </Typography>
                         </Stack>
                     ) : (
-                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Testing not started</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}> Platform Integration Testing not started</Typography>
                     )}
                 </TableCell>
 

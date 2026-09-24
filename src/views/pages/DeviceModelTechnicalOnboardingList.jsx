@@ -139,16 +139,16 @@ const RequestRow = ({ row, index }) => {
         const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
         if (isFailed){
             return {
-                label : "Testing Not Completed",
+                label : "Platform Integration Testing Not Completed",
                 pct: null,
-                pending: "Not Comatible",
+                pending: "Not Compatible",
                 color: "error",
             };
         }
            
         if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
             return {
-                label: "Testing Completed",
+                label: "Platform Integration Testing Completed",
                 pct: 100,
                 pending: "All tests completed",
                 color:  "success",
@@ -185,7 +185,7 @@ const RequestRow = ({ row, index }) => {
             const pct = Math.min(Math.round((maxCompleted / total) * 100), 100);
 
             return {
-                label: maxCompleted > 0 ? `${maxCompleted}/${total} Tests Completed` : `Testing In Progress`,
+                label: maxCompleted > 0 ? `${maxCompleted}/${total} Tests Completed` : `Platform Integration Testing In Progress`,
                 pct: pct,
                 pending: maxCompleted >= total ? <span>All tests completed</span> : (
                     <>
@@ -201,7 +201,7 @@ const RequestRow = ({ row, index }) => {
         // not started or no data yet
         if (statusKey === "pending" || statusKey === "stock_received" || statusKey === "devices_received" || isOngoingEval) {
             return {
-                label: "Testing In Progress",
+                label: "Platform Integration Testing In Progress",
                 pct: 0,
                 pending: "Loading test progress...",
                 color: "primary",
@@ -267,7 +267,7 @@ const RequestRow = ({ row, index }) => {
                             </Typography>
                         </Stack>
                     ) : (
-                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Testing not started</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Samples Not Received</Typography>
                     )}
                 </TableCell>
 

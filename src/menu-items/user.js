@@ -448,7 +448,7 @@ const user = {
     },
     {
       id: "manufacturer-technical-onboarding",
-      title: "Technical Onboarding",
+      title: "Device Model Technical Onboarding",
       type: "collapse",
       icon: icons.IconChecks,
       roles: ["devicemanufacture"],
