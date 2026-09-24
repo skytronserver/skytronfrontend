@@ -254,6 +254,199 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
 };
 
 /* ═══════════════════════════════════════════════════
+   DEVICE HISTORY MODAL
+═══════════════════════════════════════════════════ */
+const DeviceHistoryModal = ({ open, row, onClose }) => {
+    const [loading, setLoading] = useState(false);
+    const [historyData, setHistoryData] = useState([]);
+    const [error, setError] = useState("");
+    const [filterType, setFilterType] = useState("1hr"); // "1hr", "custom", "timestamp"
+    const [customStart, setCustomStart] = useState("");
+    const [customEnd, setCustomEnd] = useState("");
+    const [specificTimestamp, setSpecificTimestamp] = useState("");
+    
+    // Automatically fetch 1-hr data when opened (if filterType is 1hr)
+    useEffect(() => {
+        if (open && row?.id) {
+            setFilterType("1hr");
+            setHistoryData([]);
+            setCustomStart("");
+            setCustomEnd("");
+            setSpecificTimestamp("");
+            fetchHistory("1hr");
+        }
+    }, [open, row?.id]);
+
+    const fetchHistory = async (type = filterType) => {
+        setLoading(true);
+        setError("");
+        setHistoryData([]);
+        try {
+            const payload = { onboarding_request_id: row.id };
+            
+            if (type === "custom") {
+                if (!customStart || !customEnd) {
+                    setError("Please select both start and end datetime.");
+                    setLoading(false);
+                    return;
+                }
+                payload.start_datetime = new Date(customStart).toISOString();
+                payload.end_datetime = new Date(customEnd).toISOString();
+            } else if (type === "timestamp") {
+                if (!specificTimestamp) {
+                    setError("Please select a specific timestamp.");
+                    setLoading(false);
+                    return;
+                }
+                payload.timestamp = new Date(specificTimestamp).toISOString();
+            }
+            // If type === '1hr', we just send onboarding_request_id (defaults to 1 hr)
+            
+            const res = await DeviceModelServices.getDemoDeviceHistory(payload);
+            
+            let fetchedData = [];
+            if (Array.isArray(res.data)) {
+                fetchedData = res.data;
+            } else if (Array.isArray(res.data?.data)) {
+                fetchedData = res.data.data;
+            } else if (res.data && typeof res.data === 'object') {
+                // If the response is an object, try to find the array
+                const possibleArray = Object.values(res.data).find(val => Array.isArray(val));
+                if (possibleArray) fetchedData = possibleArray;
+            }
+            
+            setHistoryData(fetchedData);
+        } catch (err) {
+            setError(extractError(err));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
+                <Typography variant="h6" fontWeight={700}>Device History Logs</Typography>
+                <IconButton onClick={onClose} size="small"><CancelIcon /></IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: 3, bgcolor: '#fdfdfd' }}>
+                <Stack spacing={3}>
+                    <Paper variant="outlined" sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center', bgcolor: '#fff', borderRadius: 2 }}>
+                        <FormControl component="fieldset">
+                            <RadioGroup row value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                                <FormControlLabel value="1hr" control={<Radio size="small" />} label="Last 1 Hour" />
+                                <FormControlLabel value="timestamp" control={<Radio size="small" />} label="Specific Timestamp" />
+                                <FormControlLabel value="custom" control={<Radio size="small" />} label="Custom Range" />
+                            </RadioGroup>
+                        </FormControl>
+
+                        {filterType === "timestamp" && (
+                            <TextField
+                                label="Select Time"
+                                type="datetime-local"
+                                size="small"
+                                InputLabelProps={{ shrink: true }}
+                                value={specificTimestamp}
+                                onChange={(e) => setSpecificTimestamp(e.target.value)}
+                            />
+                        )}
+
+                        {filterType === "custom" && (
+                            <>
+                                <TextField
+                                    label="Start"
+                                    type="datetime-local"
+                                    size="small"
+                                    InputLabelProps={{ shrink: true }}
+                                    value={customStart}
+                                    onChange={(e) => setCustomStart(e.target.value)}
+                                />
+                                <TextField
+                                    label="End"
+                                    type="datetime-local"
+                                    size="small"
+                                    InputLabelProps={{ shrink: true }}
+                                    value={customEnd}
+                                    onChange={(e) => setCustomEnd(e.target.value)}
+                                />
+                            </>
+                        )}
+                        
+                        <Button 
+                            variant="contained" 
+                            color="primary" 
+                            onClick={() => fetchHistory()} 
+                            disabled={loading}
+                            startIcon={loading ? <CircularProgress size={16} /> : <SearchIcon />}
+                            sx={{ ml: 'auto' }}
+                        >
+                            Fetch
+                        </Button>
+                    </Paper>
+
+                    {error && <Alert severity="error">{error}</Alert>}
+
+                    <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 400 }}>
+                        <Table size="small" stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 600, width: '15%' }}>IMEI</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, width: '20%' }}>Timestamp</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Raw Data</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {(() => {
+                                    if (loading) {
+                                        return (
+                                            <TableRow>
+                                                <TableCell colSpan={3} align="center" sx={{ py: 3 }}><CircularProgress size={24} /></TableCell>
+                                            </TableRow>
+                                        );
+                                    }
+                                    
+                                    // Flatten the entries from all devices in the response
+                                    const allEntries = historyData.flatMap(device => 
+                                        (device.entries || []).map(entry => ({
+                                            ...entry,
+                                            device_imei: device.imei || device.device_serial_no || 'Unknown'
+                                        }))
+                                    ).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); // Sort newest first
+
+                                    if (allEntries.length === 0) {
+                                        return (
+                                            <TableRow>
+                                                <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                                                    {historyData.length > 0 ? "No history entries found for the selected period." : "No data found."}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    }
+
+                                    return allEntries.map((rowItem, idx) => (
+                                        <TableRow key={idx}>
+                                            <TableCell sx={{ whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'text.secondary' }}>
+                                                {rowItem.device_imei}
+                                            </TableCell>
+                                            <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                                                {formatDateTime(rowItem.timestamp || rowItem.created_at)}
+                                            </TableCell>
+                                            <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                                                {rowItem.raw_data || JSON.stringify(rowItem)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ));
+                                })()}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Stack>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+/* ═══════════════════════════════════════════════════
    FINALIZE DIALOG
 ═══════════════════════════════════════════════════ */
 const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
@@ -263,6 +456,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const [fieldErrors, setFieldErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [apiError, setApiError] = useState("");
+
+    // History Modal State
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
     // Checklist states
     const [activeTestId, setActiveTestId] = useState(1);
@@ -668,16 +864,27 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
-            <DialogTitle sx={{ pb: 1, borderBottom: '1px solid #eee', bgcolor: '#fff' }}>
-                <Typography variant="h6" fontWeight={700} color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 2L20 8L14 14M20 8H4M10 22L4 16L10 10M4 16H20" stroke="#1976d2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Complete Testing & Finalize
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                    Please complete all testing steps below before uploading the report and finalizing.
-                </Typography>
+            <DialogTitle sx={{ pb: 1, borderBottom: '1px solid #eee', bgcolor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                    <Typography variant="h6" fontWeight={700} color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 2L20 8L14 14M20 8H4M10 22L4 16L10 10M4 16H20" stroke="#1976d2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Complete Testing & Finalize
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        Please complete all testing steps below before uploading the report and finalizing.
+                    </Typography>
+                </Box>
+                <Button 
+                    variant="outlined" 
+                    color="secondary" 
+                    size="small" 
+                    startIcon={<SearchIcon />} 
+                    onClick={() => setHistoryModalOpen(true)}
+                >
+                    View Device History
+                </Button>
             </DialogTitle>
 
             <DialogContent sx={{ p: 0, bgcolor: '#f5f7fa' }}>
@@ -1157,6 +1364,13 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                     </Box>
                 </Box>
             </DialogContent>
+
+            {/* Device History Modal */}
+            <DeviceHistoryModal 
+                open={historyModalOpen} 
+                row={row} 
+                onClose={() => setHistoryModalOpen(false)} 
+            />
         </Dialog>
     );
 };

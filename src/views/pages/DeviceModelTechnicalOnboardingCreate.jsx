@@ -257,10 +257,11 @@ const DeviceModelTechnicalOnboardingCreate = () => {
           const obj = res.data.data ? res.data.data : res.data;
           formatList = Object.entries(obj).map(([k, v]) => ({ value: k, label: v }));
         }
+        formatList = formatList.filter(opt => opt.value !== 'Amendment3' && opt.label !== 'Amendment 3');
         if (formatList.length === 0) {
           formatList = [
             { value: "ARAI_2025", label: "ARAI (current)" },
-            { value: "Amendment3", label: "Amendment 3" },
+            // { value: "Amendment3", label: "Amendment 3" },
           ];
         }
         if (isMounted) {
@@ -270,7 +271,7 @@ const DeviceModelTechnicalOnboardingCreate = () => {
       } catch {
         const fallback = [
           { value: "ARAI_2025", label: "ARAI (current)" },
-          { value: "Amendment3", label: "Amendment 3" },
+          // { value: "Amendment3", label: "Amendment 3" },
         ];
         if (isMounted) {
           setHealthFormats(fallback);

@@ -138,6 +138,11 @@ const completeTestBoard = (data) => {
   return http.post("/api/devicemodel/technical-onboarding/superadmin/test-complete/", data);
 };
 
+const getDemoDeviceHistory = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/demo-device-history/", data);
+};
+
 const rejectModel = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/devicemodel/reject-model/", data);
@@ -178,6 +183,7 @@ const DeviceModelServices = {
   heartbeatTestBoard,
   refreshLogTestBoard,
   completeTestBoard,
+  getDemoDeviceHistory,
   rejectModel,
   getManufacturerModelOverview,
 };

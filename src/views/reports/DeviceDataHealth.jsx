@@ -41,9 +41,10 @@ const DeviceDataHealth = ({ initialImei = '', isTagging = false }) => {
     try {
       const res = await DeviceDataHealthService.getFormats();
       if (res.data && res.data.options && Array.isArray(res.data.options)) {
-        setFormats(res.data.options);
-        if (res.data.options.length > 0) {
-          setProtocol(res.data.options[0].value);
+        const filteredOptions = res.data.options.filter(opt => opt.value !== 'Amendment3' && opt.label !== 'Amendment 3');
+        setFormats(filteredOptions);
+        if (filteredOptions.length > 0) {
+          setProtocol(filteredOptions[0].value);
         }
         return;
       }
@@ -55,7 +56,9 @@ const DeviceDataHealth = ({ initialImei = '', isTagging = false }) => {
           formatObj = { "ARAI_2025": "ARAI (current)", "Amendment3": "Amendment 3" };
         }
         
-        const formatList = Object.entries(formatObj).map(([key, value]) => ({ value: key, label: value }));
+        const formatList = Object.entries(formatObj)
+          .map(([key, value]) => ({ value: key, label: value }))
+          .filter(opt => opt.value !== 'Amendment3' && opt.label !== 'Amendment 3');
         setFormats(formatList);
         if (formatList.length > 0) {
           setProtocol(formatList[0].value);
@@ -65,7 +68,7 @@ const DeviceDataHealth = ({ initialImei = '', isTagging = false }) => {
       console.error('Failed to fetch formats', err);
       const fallback = [
         { value: 'ARAI_2025', label: 'ARAI (current)' },
-        { value: 'Amendment3', label: 'Amendment 3' }
+        // { value: 'Amendment3', label: 'Amendment 3' }
       ];
       setFormats(fallback);
       setProtocol(fallback[0].value);
