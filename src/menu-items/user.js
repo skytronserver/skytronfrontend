@@ -637,7 +637,7 @@ const user = {
           breadcrumbs: false,
           roles: ["sosadmin"],
         },
-        {
+        /*{
           id: "sos-report",
           title: "SOS Report",
           type: "item",
@@ -645,6 +645,7 @@ const user = {
           breadcrumbs: false,
           roles: ["superadmin", "sosadmin"],
         },
+        */
         {
           id: "sos-call-list-report",
           title: "SOS Call List",
@@ -670,6 +671,7 @@ const user = {
           breadcrumbs: false,
           roles: ["superadmin"],
         },
+        /*
         {
           id: "login-report",
           title: "Login Report",
@@ -678,6 +680,7 @@ const user = {
           breadcrumbs: false,
           roles: ["superadmin"],
         },
+        */
         {
           id: "user-list",
           title: "Users",
