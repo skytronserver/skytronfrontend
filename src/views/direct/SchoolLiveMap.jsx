@@ -118,7 +118,7 @@ const ALERT_CODE_LABELS = {
     // Driving Behavior Alerts
     HB13: "Harsh Braking",
     HA14: "Harsh Acceleration",
-    RT15: "Rash Turning"
+    RT15: "Rush Turning"
 };
 
 const resolveAlertCode = (entry) => {

@@ -325,15 +325,7 @@ const user = {
       roles: ["esimprovider"],
     },
 
-    {
-      id: "provider-esim-extension-requests",
-      title: "eSIM Extension Requests",
-      type: "item",
-      url: "/device/esim-extension-requests",
-      icon: icons.IconCalendarTime,
-      breadcrumbs: false,
-      roles: ["esimprovider"],
-    },
+   
     {
       id: "check-m2m-status",
       title: "Check M2M Status",
@@ -363,7 +355,7 @@ const user = {
       children: [
         {
           id: "device-renewal-eligible",
-          title: "Eligible Devices",
+          title: "Validity expiring in next 60 days",
           type: "item",
           url: "/device-renewal/eligible",
           breadcrumbs: false,

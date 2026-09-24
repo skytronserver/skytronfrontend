@@ -55,7 +55,7 @@ import DeviceDataHealthService from "../../services/DeviceDataHealth";
 
 const STEPS = [
   { label: "Select Model" },
-  { label: "Manufacturer Onboarding" },
+  { label: "Technical Onboarding Instruction" },
   { label: "Required Documents" },
   { label: "VLTD Devices" },
   { label: "Courier Tracking" },
@@ -546,11 +546,11 @@ const DeviceModelTechnicalOnboardingCreate = () => {
           </SectionBlock>
         );
 
-      /* ── Step 1: Manufacturer Onboarding ── */
+      /* ── Step 1: Technical Onboarding Instruction ── */
       case 1:
         return (
           <SectionBlock
-            label="Manufacturer Onboarding"
+            label="Technical Onboarding Instruction"
             description="Review the integration details before uploading documents."
           >
             <Stack spacing={3}>

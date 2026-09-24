@@ -43,7 +43,6 @@ const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/Activa
 const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/UntaggedDeviceStock")));
 const M2MApiConfig = Loadable(lazy(() => import("../views/forms/M2MApiConfig")));
 
-const EsimValidityExtensionRequests = Loadable(lazy(() => import("../views/pages/device/EsimValidityExtensionRequests")));
 const EsimIpRanges = Loadable(lazy(() => import("../views/pages/device/EsimIpRanges")));
 const M2mIpScan = Loadable(lazy(() => import("../views/pages/device/M2mIpScan")));
 const M2mEsimQuery = Loadable(lazy(() => import("../views/pages/device/M2mEsimQuery")));
@@ -169,11 +168,7 @@ const DeviceRoutes = {
       element: <EsimIpRanges />,
       roles: ["esimprovider"],
     },
-    {
-      path: "/device/esim-extension-requests",
-      element: <EsimValidityExtensionRequests />,
-      roles: ["esimprovider"],
-    },
+   
     {
       path: "/device/show-available-device",
       element: <AvailableForSale />,
