@@ -115,7 +115,7 @@ const EligibleDevices = () => {
           <CircularProgress />
         ) : (
           <DynamicDatatables 
-            tableTitle="Devices Eligible for Renewal (Next 60 Days)" 
+            tableTitle="Validity expiring in next 60 days" 
             rows={devices} 
             columns={columns} 
           />

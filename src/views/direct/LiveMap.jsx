@@ -121,7 +121,7 @@ const ALERT_CODE_LABELS = {
     // Driving Behavior Alerts
     HB13: "Harsh Braking",
     HA14: "Harsh Acceleration",
-    RT15: "Rash Turning"
+    RT15: "Rush Turning"
 };
 
 const resolveAlertCode = (entry) => {
@@ -6835,7 +6835,8 @@ ${selectedColumns.map((key) => {
         let lat = result.latitude || result.lat;
         // eslint-disable-next-line no-mixed-operators
         let lng = result.longitude || result.lng || result.lon;
-// eslint-disable-next-line no-mixed-operators
+
+// eslint-disable-next-line no-mixed-operators
 
         // If lat/lng are missing, try to fetch them using eLoc
         if ((!lat || !lng) && result.eLoc) {
