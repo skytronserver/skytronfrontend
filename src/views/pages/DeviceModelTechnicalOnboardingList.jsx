@@ -534,7 +534,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
                 err?.message ||
-                "Failed to load technical onboarding requests."
+                "Failed to load device model technical onboarding requests."
             );
         } finally {
             setLoading(false);
@@ -584,7 +584,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                             <Stack direction="row" alignItems="center" spacing={1.5}>
                                 <DevicesIcon color="primary" />
                                 <Typography variant="h4" fontWeight={700}>
-                                    My Technical Onboarding Requests
+                                    My Device Model Technical Onboarding Requests
                                 </Typography>
                             </Stack>
                             <Tooltip title="Refresh">

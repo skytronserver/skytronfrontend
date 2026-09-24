@@ -1709,7 +1709,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                 else setRows([]);
             }
         } catch (err) {
-            setError(extractError(err) || "Failed to load technical onboarding requests.");
+            setError(extractError(err) || "Failed to load device model technical onboarding requests.");
         } finally {
             setLoading(false);
         }
@@ -1896,7 +1896,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
                                 <Stack direction="row" alignItems="center" spacing={1.5}>
                                     <DevicesIcon color="primary" />
-                                    <Typography variant="h4" fontWeight={700}>{title || "Technical Onboarding Requests"}</Typography>
+                                    <Typography variant="h4" fontWeight={700}>{title || "Device Model Technical Onboarding Requests"}</Typography>
                                     <Chip label={`${rows.length} total`} size="small" color="primary" variant="outlined" />
                                 </Stack>
                                 <Tooltip title="Refresh">

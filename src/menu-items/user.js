@@ -174,7 +174,7 @@ const user = {
     },
     {
       id: "superadmin-technical-onboarding-requests",
-      title: "Technical Onboarding Requests",
+      title: "Devivce Model Technical Onboarding Requests",
       type: "item",
       url: "/superadmin-dashboard/technical-onboarding-requests",
       icon: icons.IconChecks,
