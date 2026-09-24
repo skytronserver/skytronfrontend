@@ -1228,7 +1228,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         const isFailed = statusKey === "technically_not_compatible" || statusKey === "rejected" || statusKey === "stateadminrejected";
         if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
             return {
-                label: isFailed ? "Testing Not Completed" : "Testing Completed",
+                label: isFailed ? "Platform Integration Testing Not Completed" : "Platform IntegrationTesting Completed",
+                
                 pct: isFailed ? null : 100,
                 pending: isFailed ? "Not Compatible" : "All tests completed",
                 color: isFailed ? "error" : "success",
@@ -1264,7 +1265,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         // ongoing_evaluation without test board data yet
         if (isOngoingEval) {
             return {
-                label: "Testing In Progress",
+                label: "Platform Integration Testing In Progress",
                 pct: 0,
                 pending: "Loading test progress...",
                 color: "primary",
@@ -1359,7 +1360,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                             </Typography>
                         </Stack>
                     ) : (
-                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Testing not started</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}> Platform Integration Testing not started</Typography>
                     )}
                 </TableCell>
 
@@ -1708,7 +1709,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                 else setRows([]);
             }
         } catch (err) {
-            setError(extractError(err) || "Failed to load technical onboarding requests.");
+            setError(extractError(err) || "Failed to load device model technical onboarding requests.");
         } finally {
             setLoading(false);
         }
@@ -1895,7 +1896,7 @@ const DeviceModelTechnicalOnboardingAdminList = ({ mfrType, title }) => {
                             <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
                                 <Stack direction="row" alignItems="center" spacing={1.5}>
                                     <DevicesIcon color="primary" />
-                                    <Typography variant="h4" fontWeight={700}>{title || "Technical Onboarding Requests"}</Typography>
+                                    <Typography variant="h4" fontWeight={700}>{title || "Device Model Technical Onboarding Requests"}</Typography>
                                     <Chip label={`${rows.length} total`} size="small" color="primary" variant="outlined" />
                                 </Stack>
                                 <Tooltip title="Refresh">
