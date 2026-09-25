@@ -17,13 +17,10 @@ WebFont.load({
 });
 function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
   const { t } = useTranslation();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const importantLinksOpen = Boolean(anchorEl);
   const [downloadAppAnchorEl, setDownloadAppAnchorEl] = useState(null);
   const downloadAppOpen = Boolean(downloadAppAnchorEl);
   // const [dashboardAnchorEl, setDashboardAnchorEl] = useState(null);
   // const dashboardOpen = Boolean(dashboardAnchorEl);
-  const [drawerImportantLinksOpen, setDrawerImportantLinksOpen] = useState(false);
   const [drawerDownloadAppOpen, setDrawerDownloadAppOpen] = useState(false);
 
   const handleDrawerDownloadAppClick = (event) => {
@@ -31,18 +28,7 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
     setDrawerDownloadAppOpen(!drawerDownloadAppOpen);
   };
 
-  const handleDrawerImportantLinksClick = (event) => {
-    event.stopPropagation();
-    setDrawerImportantLinksOpen(!drawerImportantLinksOpen);
-  };
 
-  const handleImportantLinksClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleImportantLinksClose = () => {
-    setAnchorEl(null);
-  };
 
   const handleDownloadAppClick = (event) => {
     setDownloadAppAnchorEl(event.currentTarget);
@@ -182,31 +168,16 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
 
             </Menu> */}
 
-            {/* Important Links Dropdown */}
+            {/* Inauguration Photos */}
             <Button
               color="inherit"
+              component={Link}
+              to="/inauguration-photos"
               startIcon={<ImportantLinksIcon />}
-              endIcon={<ArrowDownIcon />}
-              onClick={handleImportantLinksClick}
               sx={{ mr: 2 }}
             >
-              {t('common.importantLinks')}
+              {t('common.inaugurationPhotos')}
             </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={importantLinksOpen}
-              onClose={handleImportantLinksClose}
-              MenuListProps={{
-                'aria-labelledby': 'important-links-button',
-              }}
-            >
-              <MenuItem onClick={handleImportantLinksClose} component={Link} to="/device-stats">
-                {t('common.manufacturerDeviceUptimeDetails')}
-              </MenuItem>
-              <MenuItem onClick={handleImportantLinksClose} component={Link} to="/inauguration-photos">
-                {t('common.inaugurationPhotos')}
-              </MenuItem>
-            </Menu>
 
             {/* Download App Dropdown */}
             <Button
@@ -325,23 +296,10 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
               <ListItemText primary={t('common.home')} />
             </ListItem>
 
-            {/* Important Links (Collapsible) - Reordered and collapsible to match dropdown */}
-            <ListItem button onClick={handleDrawerImportantLinksClick}>
-              <ListItemText primary={t('common.importantLinks')} />
-              <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-                {drawerImportantLinksOpen ? <ExpandLess /> : <ExpandMore />}
-              </Box>
+            {/* Inauguration Photos */}
+            <ListItem button component={Link} to="/inauguration-photos" onClick={toggleDrawer(false)}>
+              <ListItemText primary={t('common.inaugurationPhotos')} />
             </ListItem>
-            <Collapse in={drawerImportantLinksOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button component={Link} to="/device-stats" onClick={toggleDrawer(false)} sx={{ pl: 4 }}>
-                  <ListItemText primary={t('common.manufacturerDeviceUptimeDetails')} />
-                </ListItem>
-                <ListItem button component={Link} to="/inauguration-photos" onClick={toggleDrawer(false)} sx={{ pl: 4 }}>
-                  <ListItemText primary={t('common.inaugurationPhotos')} />
-                </ListItem>
-              </List>
-            </Collapse>
 
             {/* Download App (Collapsible) */}
             <ListItem button onClick={handleDrawerDownloadAppClick}>

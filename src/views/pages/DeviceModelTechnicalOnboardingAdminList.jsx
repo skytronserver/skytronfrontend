@@ -1018,7 +1018,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                             step.description
                                                         )}
                                                     </Typography>
-                                                    {step.serial_no === 39 && (
+                                                    {step.serial_no === 41 && (
                                                         <Typography variant="caption" sx={{ mt: 1, display: 'inline-block', fontWeight: 600, color: 'primary.main', bgcolor: '#e3f2fd', p: 0.5, px: 1, borderRadius: 1 }}>
                                                             Command: ACTV,123456,1234567891
                                                         </Typography>
@@ -1407,7 +1407,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         if (!demoDevices || demoDevices.length === 0) return null;
         
         let hasAnyProgress = false;
-        let completed = 39;
+        let completed = 41;
         let currentTestName = "";
         let lastCompletedName = "";
         
@@ -1429,9 +1429,9 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         if (!hasAnyProgress) return null;
         
         return {
-            total: 39,
+            total: 41,
             completed,
-            currentTestName: currentTestName || (completed === 39 ? "All tests completed" : ""),
+            currentTestName: currentTestName || (completed === 41 ? "All tests completed" : ""),
             lastCompletedName
         };
     }, [demoDevices]);

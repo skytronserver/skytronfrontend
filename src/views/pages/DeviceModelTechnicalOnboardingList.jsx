@@ -181,7 +181,7 @@ const RequestRow = ({ row, index }) => {
         }
 
         if (hasStarted) {
-            const total = 39;
+            const total = 41;
             const pct = Math.min(Math.round((maxCompleted / total) * 100), 100);
 
             return {
@@ -191,7 +191,7 @@ const RequestRow = ({ row, index }) => {
                     <>
                         {lastTestName && <span style={{ display: 'block' }}>Completed: {lastTestName}</span>}
                         {nextTestName && <span style={{ display: 'block' }}>Next: {nextTestName}</span>}
-                        {!lastTestName && !nextTestName && <span>Waiting for tests to start...</span>}
+                        {!lastTestName && !nextTestName && <span>Samples received</span>}
                     </>
                 ),
                 color: maxCompleted === total ? "success" : "primary",

@@ -21,8 +21,6 @@ export const deviceModelInitials = {
   cop_file: null,
   agency_address: "",
   agency_pincode: "",
-  api_url: "",
-  token: "",
   whitelisted_ip: "",
   whitelisted_phone_number: "",
 };
@@ -153,21 +151,6 @@ export const deviceModelFormField = {
       otherwise: Yup.mixed().nullable()
     }),
   },
-  api_url: {
-    name: "api_url",
-    type: "text",
-    label: "API URL",
-    placeholder: "https://example.com/device/callback",
-    validation: Yup.string().url("Must be a valid URL").nullable(),
-  },
-  token: {
-    name: "token",
-    type: "text",
-    label: "Token (up to 500 characters)",
-    multiline: true,
-    rows: 3,
-    validation: Yup.string().max(500, "Token can be at most 500 characters").nullable(),
-  },
   whitelisted_ip: {
     name: "whitelisted_ip",
     type: "text",
@@ -202,75 +185,6 @@ export const deviceModelFormField = {
 
             return digitsOnly.length >= 10 && digitsOnly.length <= 15;
           });
-        }
-      ),
-  },
-  device_ip_range: {
-    name: "device_ip_range",
-    type: "text",
-    label: "Device IP Range",
-    placeholder: "e.g., 103.21.58.0/24 or 103.21.58.1-103.21.58.50",
-    validation: Yup.string()
-      .nullable()
-      .test(
-        "is-valid-ip-range",
-        "Must be comma separated, valid CIDR or start-end range",
-        (value) => {
-          if (!value || !value.trim()) return true;
-
-          const ranges = value
-            .split(",")
-            .map((r) => r.trim())
-            .filter(Boolean);
-
-          const isValidIPv4 = (ip) => {
-            const parts = ip.split(".");
-
-            if (parts.length !== 4) return false;
-
-            return parts.every((part) => {
-              if (!/^\d+$/.test(part)) return false;
-
-              const num = Number(part);
-
-              return num >= 0 && num <= 255;
-            });
-          };
-
-          const isValidCIDR = (range) => {
-            const parts = range.split("/");
-
-            if (parts.length !== 2) return false;
-
-            const [ip, prefix] = parts;
-
-            if (!isValidIPv4(ip)) return false;
-
-            if (!/^\d+$/.test(prefix)) return false;
-
-            const prefixNumber = Number(prefix);
-
-            return prefixNumber >= 0 && prefixNumber <= 32;
-          };
-
-          const isValidStartEnd = (range) => {
-            const parts = range.split("-");
-
-            if (parts.length !== 2) return false;
-
-            const [startIP, endIP] = parts;
-
-            return (
-              isValidIPv4(startIP.trim()) &&
-              isValidIPv4(endIP.trim())
-            );
-          };
-
-          return ranges.every(
-            (range) =>
-              isValidCIDR(range) ||
-              isValidStartEnd(range)
-          );
         }
       ),
   },
