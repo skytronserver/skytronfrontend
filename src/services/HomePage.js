@@ -395,7 +395,7 @@ const getSchoolBusOverview = () => {
     const http = getAxiosInstance();
 
     return http.get(
-        `${process.env.REACT_APP_BASE_URL}school/api/admin/school/overview/`
+        `${process.env.REACT_APP_BASE_URL}api/admin/school/overview/`
     );
 };
 
@@ -414,32 +414,32 @@ const getPoiList = (params = {}) => {
 };
 const getSchoolBusRoutes = () => {
     const http = getAxiosInstance();
-    return http.get("/school/api/map/school-bus/routes/");
+    return http.get("/api/map/school-bus/routes/");
 };
 
 const getPisRoutes = () => {
     const http = getAxiosInstance();
-    return http.get("/school/api/map/pis/routes/");
+    return http.get("/api/map/pis/routes/");
 };
 
 const getSchoolBusLocations = () => {
     const http = getAxiosInstance();
-    return http.get("/school/api/map/school-bus/buses/");
+    return http.get("/api/map/school-bus/buses/");
 };
 
 const getPisBusLocations = () => {
     const http = getAxiosInstance();
-    return http.get("/school/api/map/pis/buses/");
+    return http.get("/api/map/pis/buses/");
 };
 
 const getPisBusStops = () => {
     const http = getAxiosInstance();
-    return http.get("/school/api/map/pis/bus-stops/");
+    return http.get("/api/map/pis/bus-stops/");
 };
 
 const getAlertHeatmap = (params = {}, config = {}) => {
     const http = getAxiosInstance();
-    return http.get('/school/api/analytics/alert-heatmap/', {
+    return http.get('/api/analytics/alert-heatmap/', {
         params,
         ...config,
     });

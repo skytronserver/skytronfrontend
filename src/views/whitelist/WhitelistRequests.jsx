@@ -386,7 +386,7 @@ const WhitelistRequests = () => {
     <Grid container spacing={gridSpacing}>
       {/* Title Header */}
       <Grid item xs={12}>
-        <PageHeader title={isAdmin ? "Active Whitelisted Devices" : "Whitelist Requests & Verification"} />
+        <PageHeader title={isAdmin ? "Active Whitelisted Devices" : "Whitelist Request Report"} />
       </Grid>
 
       {/* Tabs Selection */}
@@ -482,20 +482,7 @@ const WhitelistRequests = () => {
           {/* Grid Table MainCard */}
           <Grid item xs={12}>
             <MainCard
-              title="Whitelist Requests Register"
-              secondary={
-                isRequester ? (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={handleOpenCreateModal}
-                    sx={{ textTransform: 'none', borderRadius: '8px' }}
-                  >
-                    New Whitelist Request
-                  </Button>
-                ) : null
-              }
+              title="Whitelist Requests"
             >
               <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
                 {reqLoading && (
@@ -695,7 +682,7 @@ const WhitelistRequests = () => {
 
           {/* Grid list active whitelists */}
           <Grid item xs={12}>
-            <MainCard title="Active Whitelist Database Register">
+            <MainCard title="Active Whitelisted Entries">
               <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
                 {activeLoading && (
                   <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', py: 4 }}>

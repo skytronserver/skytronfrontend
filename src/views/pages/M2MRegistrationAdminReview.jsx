@@ -94,7 +94,7 @@ const M2MRegistrationAdminReview = () => {
       try {
         await UserServices.updateSimProvider({
           esimprovider_id: id,
-          status: "Accept",
+          status: "Allow to login",
         });
 
         const userId = row?.users?.[0]?.id;
@@ -106,10 +106,10 @@ const M2MRegistrationAdminReview = () => {
         setRows((prevRows) =>
           (Array.isArray(prevRows) ? prevRows : []).map((r) => {
             if (r?.id !== id) return r;
-            return { ...r, status: "Accept" };
+            return { ...r, status: "Allow to login" };
           })
         );
-        setInfoMessage(`Accepted ID: ${id}`);
+        setInfoMessage(`Allowed login for ID: ${id}`);
       } catch (e) {
         setErrorMessage(
           e?.response?.data?.message ||
@@ -205,7 +205,7 @@ const M2MRegistrationAdminReview = () => {
             const isRequestPending =
               requestStatus === "pending" || requestStatus === "created" || requestStatus === "";
             const canResendOtp =
-              acceptedId === id || isApplicantActive || requestStatus === "accept";
+              acceptedId === id || isApplicantActive || requestStatus === "allow to login";
             return (
               <Stack
                 direction="row"
@@ -224,6 +224,7 @@ const M2MRegistrationAdminReview = () => {
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
+                {/* STEP 1: Resend OTP button hidden (commented out)
                 {canResendOtp ? (
                   <Button
                     size="small"
@@ -242,6 +243,7 @@ const M2MRegistrationAdminReview = () => {
                     Resend OTP
                   </Button>
                 ) : null}
+                */}
                 {isRequestPending ? (
                   <>
                     <Button
@@ -263,7 +265,7 @@ const M2MRegistrationAdminReview = () => {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      Accept
+                      Allow To Login
                     </Button>
                   </>
                 ) : null}

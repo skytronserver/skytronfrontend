@@ -901,7 +901,7 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <DevicesIcon color="primary" />
               <Typography variant="h4" fontWeight={700}>
-                Technical Onboarding Request
+                Device Technical Onboarding Request
               </Typography>
             </Stack>
           }
@@ -925,6 +925,11 @@ oEO40NoUqYCSs/fdqNV+h9xbDERr25Oq6kYkYOaPwae9jmo=
           {/* ── Step Content ── */}
           {renderStepContent()}
 
+          {activeStep === 3 && (
+            <Typography variant="body2" color="error" sx={{ fontStyle: 'italic' }}>
+              Note: Devices submitted for integration testing are non-returnable.
+            </Typography>
+          )}
           <Divider sx={{ my: 3 }} />
 
           {/* ── Navigation Buttons ── */}

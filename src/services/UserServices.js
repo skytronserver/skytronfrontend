@@ -299,7 +299,7 @@ const getLoginReport = (params) => {
         });
     }
     const queryString = queryParams.toString();
-    return http.get(`/school/api/admin/users/login-report/${queryString ? `?${queryString}` : ''}`);
+    return http.get(`/api/admin/users/login-report/${queryString ? `?${queryString}` : ''}`);
 };
 
 

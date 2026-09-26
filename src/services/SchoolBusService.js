@@ -299,7 +299,7 @@ const mock = {
   async getTaggedVehicles() {
     // debugger
     const res = await apiRequest({
-      url: "school/api/admin/buses/tag/history/",
+      url: "api/admin/buses/tag/history/",
     });
     // debugger
     return {
@@ -590,12 +590,12 @@ const api = {
   },
   getSchoolApplications() {
     const http = getAxiosInstance();
-    return http.get('/school/api/state-admin/schools/');
+    return http.get('/api/state-admin/schools/');
   },
   submitSchoolApplication(formData) {
     // debugger
     const http = getAxiosInstance();
-    return http.post('/school/api/schools/apply/', formData, {
+    return http.post('/api/schools/apply/', formData, {
       headers: {
         'Content-type': 'multipart/form-data'
       }
@@ -611,11 +611,11 @@ const api = {
   },
   getHolidays() {
     const http = getAxiosInstance();
-    return http.get('/school/api/admin/holidays/');
+    return http.get('/api/admin/holidays/');
   },
   createHoliday(data) {
     const http = getAxiosInstance();
-    return http.post('/school/api/admin/holidays/', data);
+    return http.post('/api/admin/holidays/', data);
   },
   getUnplannedUsageReport() {
     const http = getAxiosInstance();
@@ -625,7 +625,7 @@ const api = {
   const http = getAxiosInstance();
 
   return http.get(
-    `/school/api/admin/reports/unplanned-movement/?from_datetime=${fromDate}&to_datetime=${toDate}`
+    `/api/admin/reports/unplanned-movement/?from_datetime=${fromDate}&to_datetime=${toDate}`
   );
 },
   // getAttendanceReport() {
@@ -634,11 +634,11 @@ const api = {
   // },
   getAttendanceReport() {
     const http = getAxiosInstance();
-    return http.get(`/school/api/admin/trips/attendance/raw/`);
+    return http.get(`/api/admin/trips/attendance/raw/`);
   },
   getTripManagementReport() {
     const http = getAxiosInstance();
-    return http.get('/school/api/admin/trips/');
+    return http.get('/api/admin/trips/');
   },
   getTrafficReport() {
     const http = getAxiosInstance();
@@ -648,18 +648,18 @@ const api = {
   const http = getAxiosInstance();
 
   const url = alertType
-    ? `/school/api/admin/school/alerts/?alert_type=${alertType}`
-    : `/school/api/admin/school/alerts/`;
+    ? `/api/admin/school/alerts/?alert_type=${alertType}`
+    : `/api/admin/school/alerts/`;
 
   return http.get(url);
 },
   getTaggedVehicles() {
     const http = getAxiosInstance();
-    return http.get('school/api/admin/buses/tag/history/');
+    return http.get('api/admin/buses/tag/history/');
   },
   requestTagVehicle(data) {
     const http = getAxiosInstance();
-    return http.post('school/api/admin/buses/tag/initiate/', data);
+    return http.post('api/admin/buses/tag/initiate/', data);
   },
   validateTagOtp(data) {
     const tagId = data?.requestId; // this is your tag_id
@@ -667,11 +667,11 @@ const api = {
       otp: data?.otp
     };
     const http = getAxiosInstance();
-    return http.post(`school/api/admin/buses/tag/${tagId}/verify-otp/`, payload);
+    return http.post(`api/admin/buses/tag/${tagId}/verify-otp/`, payload);
   },
   uploadTagDocuments(tagId, formData) {
     const http = getAxiosInstance();
-    return http.post(`/school/api/admin/buses/tag/${tagId}/documents/`,
+    return http.post(`/api/admin/buses/tag/${tagId}/documents/`,
       formData, {
       headers: {
         'Content-type': 'multipart/form-data'
@@ -680,72 +680,72 @@ const api = {
   },
   getRoutes() {
     const http = getAxiosInstance();
-    return http.get('school/api/admin/routes/');
+    return http.get('api/admin/routes/');
   },
   createRoute(data) {
     //  debugger
     const http = getAxiosInstance();
-    return http.post('school/api/admin/routes/', data);
+    return http.post('api/admin/routes/', data);
   },
   updateRoute(id, data) {
     const http = getAxiosInstance();
-    return http.post(`school/api/admin/routes/${id}/update/`, data);
+    return http.post(`api/admin/routes/${id}/update/`, data);
   },
   deleteRoute(id) {
     const http = getAxiosInstance();
-    return http.post(`school/api/admin/routes/${id}/delete/`);
+    return http.post(`api/admin/routes/${id}/delete/`);
   },
   getStops(routeId) {
     const http = getAxiosInstance();
-    return http.get(`school/api/admin/routes/?route_id=${routeId}`);
+    return http.get(`api/admin/routes/?route_id=${routeId}`);
   },
   addStop(routeId, data) {
     const http = getAxiosInstance();
-    return http.post(`school/api/admin/routes//${routeId}/stops/add/`, data);
+    return http.post(`api/admin/routes//${routeId}/stops/add/`, data);
   },
   updateStop(stopId, data) {
     const http = getAxiosInstance();
-    return http.post(`school/api/admin/bus-stops/${stopId}/update/`, data);
+    return http.post(`api/admin/bus-stops/${stopId}/update/`, data);
   },
   deleteStop(stopId, selectedRoute) {
     const http = getAxiosInstance();
-    return http.post(`school/api/admin/routes/${selectedRoute}/stops/${stopId}/remove/`);
+    return http.post(`api/admin/routes/${selectedRoute}/stops/${stopId}/remove/`);
   },
   getBuses() {
     const http = getAxiosInstance();
-    return http.get('school/api/admin/buses/available/');
+    return http.get('api/admin/buses/available/');
   },
   getAvailableTaggedBuses() {
   const http = getAxiosInstance();
-  return http.get('/school/api/admin/buses/');
+  return http.get('/api/admin/buses/');
 },
   getRouteOptions() {
     const http = getAxiosInstance();
-    return http.get('/school/api/admin/routes/');
+    return http.get('/api/admin/routes/');
   },
   getAssignments() {
     const http = getAxiosInstance();
-    return http.get('/school/api/admin/routes/assignments/');
+    return http.get('/api/admin/routes/assignments/');
   },
   assignBus(data) {
     const http = getAxiosInstance();
-    return http.post('/school/api/admin/routes/assign-bus/', data);
+    return http.post('/api/admin/routes/assign-bus/', data);
   },
   reassignBus(bus_id, data) {
     const http = getAxiosInstance();
-    return http.post(`/school/api/admin/routes/${bus_id}/reassign/`, data);
+    return http.post(`/api/admin/routes/${bus_id}/reassign/`, data);
   },
   untagBus(bus_id) {
     const http = getAxiosInstance();
-    return http.post(`/school/api/admin/routes/${bus_id}/remove-bus/`);
+    return http.post(`/api/admin/routes/${bus_id}/remove-bus/`);
   },
   getParents() {
     const http = getAxiosInstance();
-    return http.get('school/api/admin/parents/');
+    return http.get('api/admin/parents/');
   },
   createParent(data) {
     const http = getAxiosInstance();
-    return http.post('school/api/admin/parents/', data);
+    return http.post('api/admin/parents/', data);
   },
   updateParent(parentId, data) {
     const http = getAxiosInstance();
@@ -758,15 +758,15 @@ const api = {
   getBuses_P_Manage(routeId) {
     // debugger
     const http = getAxiosInstance();
-    return http.get(`school/api/admin/routes/${routeId}/buses/`);
+    return http.get(`api/admin/routes/${routeId}/buses/`);
   },
   getStudents() {
     const http = getAxiosInstance();
-    return http.get('school/api/admin/students/');
+    return http.get('api/admin/students/');
   },
   createStudent(data) {
     const http = getAxiosInstance();
-    return http.post('/school/api/admin/students/', data);
+    return http.post('/api/admin/students/', data);
   },
   updateStudent(studentId, data) {
     const http = getAxiosInstance();
@@ -782,7 +782,7 @@ const api = {
   // },
   async getParentTracking() {
     return await apiRequest({
-      url: "school/api/parents/students/live-location/",
+      url: "api/parents/students/live-location/",
       method: "GET",
     });
   },
@@ -792,13 +792,13 @@ const api = {
   },
   approveSchool(applicationId) {
     const http = getAxiosInstance();
-    return http.post(`/school/api/state-admin/schools/${applicationId}/decision/`, {
+    return http.post(`/api/state-admin/schools/${applicationId}/decision/`, {
       decision: "APPROVE"
     });
   },
   rejectSchool(applicationId) {
     const http = getAxiosInstance();
-    return http.post(`/school/api/state-admin/schools/${applicationId}/decision/`, {
+    return http.post(`/api/state-admin/schools/${applicationId}/decision/`, {
       decision: "REJECT",
       remarks: "Documents Not Valid"
     });
@@ -839,43 +839,43 @@ const api = {
   },
   createTrip(data) {
     const http = getAxiosInstance();
-    return http.post('/school/api/admin/trips/', data);
+    return http.post('/api/admin/trips/', data);
   },
   getRouteAssignments() {
     const http = getAxiosInstance();
-    return http.get('school/api/admin/routes/assignments/');
+    return http.get('api/admin/routes/assignments/');
   },
   initializeAttendance(tripId) {
     const http = getAxiosInstance();
     return http.post(
-      `/school/api/admin/trips/${tripId}/attendance/init/`
+      `/api/admin/trips/${tripId}/attendance/init/`
     );
   },
 
   validateHoliday() {
     const http = getAxiosInstance();
     return http.post(
-      '/school/api/admin/trips/validate-holidays/'
+      '/api/admin/trips/validate-holidays/'
     );
   },
   getRawAttendance(tripId) {
   const http = getAxiosInstance();
   return http.get(
-    `/school/api/admin/trips/${tripId}/attendance/raw/`
+    `/api/admin/trips/${tripId}/attendance/raw/`
   );
   
 },
 markPickup(tripId, data) {
   const http = getAxiosInstance();
   return http.post(
-    `/school/api/admin/trips/${tripId}/attendance/pickup/`,
+    `/api/admin/trips/${tripId}/attendance/pickup/`,
     data
   );
 },
 markDrop(tripId, data) {
   const http = getAxiosInstance();
   return http.post(
-    `/school/api/admin/trips/${tripId}/attendance/drop/`,
+    `/api/admin/trips/${tripId}/attendance/drop/`,
     data
   );
 },
@@ -884,7 +884,7 @@ approveBusTag(tagId) {
   const http = getAxiosInstance();
 
   return http.post(
-    `/school/api/state-admin/bus-tags/${tagId}/decision/`,
+    `/api/state-admin/bus-tags/${tagId}/decision/`,
     {
       decision: "APPROVE"
     }
@@ -895,7 +895,7 @@ rejectBusTag(tagId, remarks) {
   const http = getAxiosInstance();
 
   return http.post(
-    `/school/api/state-admin/bus-tags/${tagId}/decision/`,
+    `/api/state-admin/bus-tags/${tagId}/decision/`,
     {
       decision: "REJECT",
       remarks

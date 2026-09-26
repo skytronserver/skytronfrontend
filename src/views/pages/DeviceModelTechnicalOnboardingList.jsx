@@ -185,13 +185,13 @@ const RequestRow = ({ row, index }) => {
             const pct = Math.min(Math.round((maxCompleted / total) * 100), 100);
 
             return {
-                label: maxCompleted > 0 ? `${maxCompleted}/${total} Tests Completed` : `Platform Integration Testing In Progress`,
+                label: maxCompleted > 0 ? `${maxCompleted}/${total} Integration test completed` : `Platform Integration Testing In Progress`,
                 pct: pct,
                 pending: maxCompleted >= total ? <span>All tests completed</span> : (
                     <>
                         {lastTestName && <span style={{ display: 'block' }}>Completed: {lastTestName}</span>}
                         {nextTestName && <span style={{ display: 'block' }}>Next: {nextTestName}</span>}
-                        {!lastTestName && !nextTestName && <span>Samples received</span>}
+                        {!lastTestName && !nextTestName && <span>Test Samples received</span>}
                     </>
                 ),
                 color: maxCompleted === total ? "success" : "primary",
@@ -291,23 +291,7 @@ const RequestRow = ({ row, index }) => {
                 </TableCell>
 
                 {/* Compatibility test findings indicator */}
-                <TableCell sx={{ py: 1 }}>
-                    <Stack direction="row" justifyContent="center">
-                        {/* row.compatibility_report_pdf ? (
-                            <Tooltip title="Compatibility Report Available">
-                                <DescriptionIcon fontSize="small" color="primary" />
-                            </Tooltip>
-                        ) : */ row.user_manual_pdf ? (
-                                <Tooltip title="User Manual Available">
-                                    <DescriptionIcon fontSize="small" color="info" />
-                                </Tooltip>
-                            ) : hasReport ? (
-                                <Tooltip title="Evaluation Comment Available">
-                                    <CommentIcon fontSize="small" color="primary" />
-                                </Tooltip>
-                            ) : null}
-                    </Stack>
-                </TableCell>
+
             </TableRow>
 
             {/* ── expanded detail row ── */}
@@ -548,24 +532,14 @@ const DeviceModelTechnicalOnboardingList = () => {
     const filteredRows = useMemo(() => {
         return rows.filter((r) => {
             let match = true;
-            // Search Query: Request ID, Model Name, TAC
+            // Search Query: Request ID, Model Name
             if (searchQuery.trim()) {
                 const q = searchQuery.toLowerCase();
                 const idStr = String(r.id || "").toLowerCase();
                 const modelStr = String(r.device_model?.model_name || r.device_model_name || "").toLowerCase();
-                const tacStr = String(r.device_model?.tac_no || "").toLowerCase();
-                if (!idStr.includes(q) && !modelStr.includes(q) && !tacStr.includes(q)) match = false;
+                if (!idStr.includes(q) && !modelStr.includes(q)) match = false;
             }
-            // Status filter
-            if (statusFilter) {
-                const s = String(r.status ?? "").trim().toLowerCase();
-                if (s !== statusFilter.toLowerCase()) match = false;
-            }
-            // Date filter
-            if (dateFilter) {
-                const rowDate = new Date(r.request_datetime || r.created_at || r.created).toISOString().split('T')[0];
-                if (rowDate !== dateFilter) match = false;
-            }
+
             return match;
         });
     }, [rows, searchQuery, statusFilter, dateFilter]);
@@ -609,39 +583,13 @@ const DeviceModelTechnicalOnboardingList = () => {
                     {/* Filter Bar */}
                     <Box sx={{ mb: 3, p: 2, bgcolor: "grey.50", borderRadius: 2 }}>
                         <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} sm={4}>
+                            <Grid item xs={12}>
                                 <TextField
                                     fullWidth
                                     size="small"
-                                    label="Search (ID, Model, TAC)"
+                                    label="Search (ID, Model)"
                                     value={searchQuery}
                                     onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel>Status</InputLabel>
-                                    <Select
-                                        label="Status"
-                                        value={statusFilter}
-                                        onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
-                                    >
-                                        <MenuItem value=""><em>All Statuses</em></MenuItem>
-                                        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                                            <MenuItem key={key} value={key}>{cfg.label}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    fullWidth
-                                    size="small"
-                                    type="date"
-                                    label="Date"
-                                    InputLabelProps={{ shrink: true }}
-                                    value={dateFilter}
-                                    onChange={(e) => { setDateFilter(e.target.value); setPage(0); }}
                                 />
                             </Grid>
                         </Grid>
@@ -674,7 +622,7 @@ const DeviceModelTechnicalOnboardingList = () => {
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Request Date &amp; Time</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700, minWidth: 200 }}>STEPS</TableCell>
                                             <TableCell sx={{ color: "white", fontWeight: 700 }}>Device Model</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: 700 }}>Report</TableCell>
+
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>

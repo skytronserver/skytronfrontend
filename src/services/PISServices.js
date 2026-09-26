@@ -22,32 +22,32 @@ const PISService = {
   // ================= BUS STOPS (Real API) =================
   createBusStop: async (stopData) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/bus-stops/`, stopData);
+    const response = await http.post(`${BASE_URL}api/pis/bus-stops/`, stopData);
     return { success: true, data: response.data, message: "Bus stop created successfully" };
   },
 
   // GET single bus stop
   getBusStop: async (id) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/bus-stops/${id}/`);
+    const response = await http.get(`${BASE_URL}api/pis/bus-stops/${id}/`);
     return { success: true, data: response.data };
   },
 
   updateBusStop: async (id, stopData) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/bus-stops/${id}/update/`, stopData);
+    const response = await http.post(`${BASE_URL}api/pis/bus-stops/${id}/update/`, stopData);
     return { success: true, data: response.data, message: "Bus stop updated successfully" };
   },
 
   toggleBusStop: async (id) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/bus-stops/${id}/toggle/`);
+    const response = await http.post(`${BASE_URL}api/pis/bus-stops/${id}/toggle/`);
     return { success: true, data: response.data, message: "Bus stop status toggled" };
   },
 
   getBusStops: async (filters = {}) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/bus-stops/`, { params: filters });
+    const response = await http.get(`${BASE_URL}api/pis/bus-stops/`, { params: filters });
     const raw = response.data;
     console.log('[getBusStops] raw response:', raw); // 🔍 debug — check in Network > Response or Console
     const data = Array.isArray(raw)
@@ -64,7 +64,7 @@ const PISService = {
 
   getActiveBusStops: async () => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/bus-stops/`, { params: { status: 'active' } });
+    const response = await http.get(`${BASE_URL}api/pis/bus-stops/`, { params: { status: 'active' } });
     const raw = response.data;
     const data = Array.isArray(raw)
       ? raw
@@ -81,32 +81,32 @@ const PISService = {
   // ================= BUS ROUTES (Real API) =================
   createBusRoute: async (routeData) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/routes/`, routeData);
+    const response = await http.post(`${BASE_URL}api/pis/routes/`, routeData);
     return { success: true, data: response.data, message: "Bus route created successfully" };
   },
 
   updateBusRoute: async (id, routeData) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/routes/${id}/update/`, routeData);
+    const response = await http.post(`${BASE_URL}api/pis/routes/${id}/update/`, routeData);
     return { success: true, data: response.data, message: "Bus route updated successfully" };
   },
 
   toggleBusRoute: async (id) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/routes/${id}/toggle/`);
+    const response = await http.post(`${BASE_URL}api/pis/routes/${id}/toggle/`);
     return { success: true, data: response.data, message: "Bus route status toggled" };
   },
 
   // GET single bus route
   getBusRoute: async (id) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/routes/${id}/`);
+    const response = await http.get(`${BASE_URL}api/pis/routes/${id}/`);
     return { success: true, data: response.data };
   },
 
   getBusRoutes: async (filters = {}) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/routes/`, { params: filters });
+    const response = await http.get(`${BASE_URL}api/pis/routes/`, { params: filters });
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
@@ -116,7 +116,7 @@ const PISService = {
 
   getActiveBusRoutes: async () => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/routes/`, { params: { status: 'active' } });
+    const response = await http.get(`${BASE_URL}api/pis/routes/`, { params: { status: 'active' } });
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
@@ -128,20 +128,20 @@ const PISService = {
   // ================= BUS SCHEDULES =================
   createBusSchedule: async (scheduleData) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/schedules/`, scheduleData);
+    const response = await http.post(`${BASE_URL}api/pis/schedules/`, scheduleData);
     return { success: true, data: response.data, message: "Bus schedule created successfully" };
   },
 
   // GET single bus schedule
   getBusSchedule: async (id) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/schedules/${id}/`);
+    const response = await http.get(`${BASE_URL}api/pis/schedules/${id}/`);
     return { success: true, data: response.data };
   },
 
   getBusSchedules: async (filters = {}) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/schedules/`, { params: filters });
+    const response = await http.get(`${BASE_URL}api/pis/schedules/`, { params: filters });
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
@@ -152,7 +152,7 @@ const PISService = {
   // ================= OTHER / UTILITIES =================
   getAvailableBuses: async () => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/pis/available-buses/`);
+    const response = await http.get(`${BASE_URL}api/pis/available-buses/`);
     const raw = response.data;
     const data = Array.isArray(raw) ? raw
       : Array.isArray(raw?.results) ? raw.results
@@ -162,7 +162,7 @@ const PISService = {
 
   updateTripStatus: async (scheduleId, status) => {
     const http = getAxiosInstance();
-    const response = await http.post(`${BASE_URL}school/api/pis/schedules/${scheduleId}/update-status/`, { status });
+    const response = await http.post(`${BASE_URL}api/pis/schedules/${scheduleId}/update-status/`, { status });
     return { success: true, data: response.data, message: `Trip status updated to ${status}` };
   },
 
@@ -187,25 +187,25 @@ const PISService = {
   // ================= ANALYTICS =================
   getPISSummary: async (params) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/analytics/pis-summary/`, { params });
+    const response = await http.get(`${BASE_URL}api/analytics/pis-summary/`, { params });
     return response.data;
   },
 
   getResourcePerformance: async (params) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/analytics/resource-performance/`, { params });
+    const response = await http.get(`${BASE_URL}api/analytics/resource-performance/`, { params });
     return response.data;
   },
 
   getOperationalAnalytics: async (params) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/analytics/operational/`, { params });
+    const response = await http.get(`${BASE_URL}api/analytics/operational/`, { params });
     return response.data;
   },
 
   getComparativeAnalysis: async (params) => {
     const http = getAxiosInstance();
-    const response = await http.get(`${BASE_URL}school/api/analytics/comparative-analysis/`, { params });
+    const response = await http.get(`${BASE_URL}api/analytics/comparative-analysis/`, { params });
     return response.data;
   }
 };

@@ -4,7 +4,7 @@ import { getAxiosInstance } from './axiosInstance';
 const getTripAnalytics = async (params) => {
   try {
     const axios = getAxiosInstance();
-    const response = await axios.get('/school/api/analytics/trips/', { params });
+    const response = await axios.get('/api/analytics/trips/', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching trip analytics:', error);
@@ -16,7 +16,7 @@ const getTripAnalytics = async (params) => {
 const getDrivingAlerts = async (params) => {
   try {
     const axios = getAxiosInstance();
-    const response = await axios.get('/school/api/analytics/driving-pattern-alerts/', { params });
+    const response = await axios.get('/api/analytics/driving-pattern-alerts/', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching driving alerts:', error);
@@ -28,7 +28,7 @@ const getDrivingAlerts = async (params) => {
 const getVehicleAlertSummary = async (params) => {
   try {
     const axios = getAxiosInstance();
-    const response = await axios.get('/school/api/analytics/vehicle-alert-summary/', { params });
+    const response = await axios.get('/api/analytics/vehicle-alert-summary/', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching vehicle alert summary:', error);

@@ -577,7 +577,7 @@ const Details = () => {
                                 whiteSpace: "nowrap",
                               }}
                             >
-                              {rawRecord?.manufacturer_type === "Vehicle manufacturer" ? "Device Found Compatible" : "Allow To Login"}
+                              Allow To Login
                             </Button>
                           </>
                         ) : null

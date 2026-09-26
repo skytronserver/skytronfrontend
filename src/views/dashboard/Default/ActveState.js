@@ -1849,6 +1849,7 @@ const ActiveState = () => {
 
     if (role === 'dealer') {
       // Stock Statistics Pie Chart
+      /*
       const stockData = [
         { name: 'Assigned', value: dealerDeviceInfo.assigned || 0 },
         { name: 'Available for Fitment', value: dealerDeviceInfo.freeDevice || 0 },
@@ -1880,6 +1881,7 @@ const ActiveState = () => {
           </Card>
         </Grid>
       );
+      */
 
       // Fitment Trends Bar Chart
       const fitmentTrendsData = [
@@ -1907,6 +1909,7 @@ const ActiveState = () => {
       );
 
       // Device Statistics Pie Chart
+      /*
       const deviceStatsData = [
         { name: 'Online Devices', value: fitmentInfo.onlineDevice || 0 },
         { name: 'Offline Devices', value: fitmentInfo.offlineDevice || 0 },
@@ -1937,6 +1940,7 @@ const ActiveState = () => {
           </Card>
         </Grid>
       );
+      */
 
       // M2M Statistics Bar Chart
       const esimStatsData = [
@@ -3264,7 +3268,7 @@ const ActiveState = () => {
                 heading={t('dashboard.headings.fitmentStatistics')}
               />
             </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={4}>
+            {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget
                 cardColor="linear-gradient(to left, #ff6600 0%, #ffcc66 100%)"
                 label="Total Stock, Tagged, Online Device, Offline Device, Online today, Offline 7 days, Offline 30 days"
@@ -3280,7 +3284,7 @@ const ActiveState = () => {
                 iconImage={Car}
                 heading={t('dashboard.headings.deviceStatistics')}
               />
-            </Grid>
+            </Grid> */}
 
             {/* <Grid item xs={12} sm={12} md={6} lg={4}>
               <Widget

@@ -1457,7 +1457,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
             const currentTestName = tbProgress.currentTestName || "";
             const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
             return {
-                label: `${completed} / ${total} Tests Completed`,
+                label: `${completed} / ${total} Integration test completed`,
                 pct,
                 pending: completed < total
                     ? (

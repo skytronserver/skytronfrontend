@@ -295,7 +295,7 @@ const AIS140DeviceManufacturerRegistrationAdminReview = () => {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      Device found Compatible
+                      Allow To Login
                     </Button>
                   </>
                 ) : null}

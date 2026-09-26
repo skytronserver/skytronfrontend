@@ -420,11 +420,14 @@ export const manufacturerColumns = [
   { name: "cop_no", label: "COP No", options: { filter: false, sort: false } },
   { name: "cop_validity", label: "COP Validity", options: { filter: false, sort: false } },
   {
-    name: "status", label: "Compatibility Test Result", options: {
+    name: "status", label: "Status", options: {
       filter: false, sort: false,
       customBodyRender: (value) => {
         if (!value) return "";
-        if (String(value).trim().toLowerCase() === "allow to login") return "Device found Compatible";
+        const lowerVal = String(value).trim().toLowerCase();
+        if (lowerVal === "allow to login" || lowerVal === "accept" || lowerVal === "technicalonboardingapproved" || lowerVal === "device found compatible") {
+          return "Allowed To Login";
+        }
         return value;
       }
     }
@@ -503,11 +506,14 @@ export const serviceProviderCol = [
   { name: "m2m_reg_certificate_no", label: "M2M Reg Certificate No", options: { filter: false, sort: false } },
 
   {
-    name: "status", label: "Compatibility Test Result", options: {
+    name: "status", label: "Status", options: {
       filter: false, sort: false,
       customBodyRender: (value) => {
         if (!value) return "";
-        if (String(value).trim().toLowerCase() === "allow to login") return "Device found Compatible";
+        const lowerVal = String(value).trim().toLowerCase();
+        if (lowerVal === "allow to login" || lowerVal === "accept" || lowerVal === "technicalonboardingapproved" || lowerVal === "device found compatible") {
+          return "Allowed To Login";
+        }
         return value;
       }
     }

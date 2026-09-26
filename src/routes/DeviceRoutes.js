@@ -38,6 +38,7 @@ const ManufacturerModelList = Loadable(lazy(() => import("../views/pages/Manufac
 
 const DeviceModelTechnicalOnboardingDetail = Loadable(lazy(() => import("../views/pages/DeviceModelTechnicalOnboardingDetail")));
 const WhitelistRequests = Loadable(lazy(() => import("../views/whitelist/WhitelistRequests")));
+const WhitelistRequestCreate = Loadable(lazy(() => import("../views/whitelist/WhitelistRequestCreate")));
 const DeviceDashboard = Loadable(lazy(() => import("../views/whitelist/DeviceDashboard")));
 const ActivationStatusList = Loadable(lazy(() => import("../views/tagging/ActivationStatusList")));
 const UntaggedDeviceStock = Loadable(lazy(() => import("../views/showDevice/UntaggedDeviceStock")));
@@ -218,6 +219,11 @@ const DeviceRoutes = {
     {
       path: "/device/whitelist/requests",
       element: <WhitelistRequests />,
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+    },
+    {
+      path: "/device/whitelist/create-request",
+      element: <WhitelistRequestCreate />,
       roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
     },
     {

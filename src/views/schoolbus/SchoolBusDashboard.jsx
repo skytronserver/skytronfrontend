@@ -108,11 +108,11 @@ useEffect(() => {
     debugger
     try {
       const [dashboard, schools, trips,busOperational,liveAltFeed] = await Promise.all([
-        apiRequest({ url: "school/api/dashboard/" }),
-        apiRequest({ url: "school/api/school-distribution/" }),
-        apiRequest({ url: "school/api/active-trips/" }),
-        apiRequest({ url: "school/api/bus-operational-status/" }),
-        apiRequest({ url: "school/api/live-alerts/" }),
+        apiRequest({ url: "api/dashboard/" }),
+        apiRequest({ url: "api/school-distribution/" }),
+        apiRequest({ url: "api/active-trips/" }),
+        apiRequest({ url: "api/bus-operational-status/" }),
+        apiRequest({ url: "api/live-alerts/" }),
 
 
       ]);

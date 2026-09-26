@@ -519,36 +519,29 @@ const user = {
           breadcrumbs: false,
           roles: ["devicemanufacture"],
         },
-        {
-          id: "unused-stock",
-          title: "Unused Stock",
-          type: "item",
-          url: "/manufacturer/unused-stock",
-          breadcrumbs: false,
-          roles: ["devicemanufacture"],
-        },
+
       ]
     },
     {
       id: "whitelist-kyc",
-      title: "Whitelist & KYC",
+      title: "Whitelist",
       type: "collapse",
       icon: icons.IconDeviceSim,
       roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
       children: [
         {
           id: "whitelist-requests",
-          title: "Whitelist Requests",
+          title: "Whitelist Request",
           type: "item",
-          url: "/device/whitelist/requests",
+          url: "/device/whitelist/create-request",
           breadcrumbs: false,
           roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
         },
         {
-          id: "whitelist-dashboard",
-          title: "Device Dashboard",
+          id: "whitelist-request-report",
+          title: "Whitelist Request Report",
           type: "item",
-          url: "/device/whitelist/dashboard",
+          url: "/device/whitelist/requests",
           breadcrumbs: false,
           roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
         }
