@@ -9,6 +9,7 @@ import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 import ReplayIcon from "@mui/icons-material/Replay";
 import * as Yup from "yup";
 import { Formik, useFormik, Form } from "formik";
@@ -40,6 +41,19 @@ function Home() {
     captcha_key: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  // =====================================================
+  // GO LIVE CONFIGURATION
+  // =====================================================
+
+  const isGoLive = process.env.REACT_APP_GOLIVE === "true";
+
+  // =====================================================
+  // REGISTRATION MESSAGE
+  // =====================================================
+
+  const [showRegistrationMessage, setShowRegistrationMessage] =
+    useState(false);
+
   const initialValues = {
     mobile: "",
     password: "",
@@ -97,6 +111,24 @@ function Home() {
     getCaptcha();
     localStorage.removeItem("skytrackCookiesData");
   }, []);
+
+  // =====================================================
+  // REGISTRATION LINK HANDLER
+  // =====================================================
+
+  const handleRegistrationClick = (event) => {
+    // If application is NOT live
+    if (!isGoLive) {
+      event.preventDefault();
+
+      setShowRegistrationMessage(true);
+
+      return;
+    }
+
+    // If GOLIVE=true, normal href navigation will happen.
+  };
+
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -273,7 +305,10 @@ function Home() {
               </Form>
             </Formik>
             <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Link href="/user-registration-request" variant="body2">
+              <Link href="/user-registration-request" variant="body2"
+              onClick={handleRegistrationClick}
+              aria-disabled={!isGoLive}
+              >
                 {t('auth.noAccountCTA')}
               </Link>
               <Link href="/forgot-password" variant="body2">
@@ -284,6 +319,29 @@ function Home() {
         </Grid>
       </Grid>
       
+      {/* =====================================================
+          REGISTRATION NOT AVAILABLE MESSAGE
+          ===================================================== */}
+
+      <Snackbar
+        open={showRegistrationMessage}
+        autoHideDuration={5000}
+        onClose={() => setShowRegistrationMessage(false)}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+      >
+        <Alert
+          onClose={() => setShowRegistrationMessage(false)}
+          severity="info"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          New User registration has not commenced yet- please check
+          later
+        </Alert>
+      </Snackbar>
       {/* STQC Certification Badge - Bottom Left, Responsive */}
       <Box
         sx={{

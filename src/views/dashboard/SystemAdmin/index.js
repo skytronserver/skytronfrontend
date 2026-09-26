@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Grid, Card, CardContent, Typography, Box, Table, TableBody,
   TableCell, TableContainer, TableRow, Select, MenuItem, FormControl,
@@ -23,62 +23,62 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import SettingsIcon from '@mui/icons-material/Settings';
 import TimerIcon from '@mui/icons-material/Timer';
-
+import UserServices from '../../../services/UserServices';
 // Mock Data
-const stats = [
-  {
-    id: 1, count: 2631, label: 'INSTALLED VLTDs IN ALL VEHICLES',
-    Icon: MemoryIcon, bg: 'linear-gradient(135deg, #6c3bfc, #9b6bfe)',
-    darkBg: 'rgba(0,0,0,0.15)'
-  },
-  {
-    id: 2, count: 2612, label: 'VLTDs IN REGISTERED VEHICLES',
-    Icon: DirectionsCarIcon, bg: 'linear-gradient(135deg, #3b9afc, #6bcafe)',
-    darkBg: 'rgba(0,0,0,0.15)'
-  },
-  {
-    id: 3, count: 1410, label: 'ACTIVE VLTDs', subtitle: '(Within Last 10 Min)',
-    Icon: WifiIcon, bg: 'linear-gradient(135deg, #2dc76d, #5ae89a)',
-    darkBg: 'rgba(0,0,0,0.15)'
-  },
-  {
-    id: 4, count: 1155, label: 'INACTIVE VLTDs', subtitle: '(For more than 10 Min)',
-    Icon: BlockIcon, bg: 'linear-gradient(135deg, #fc8b2b, #ffb97a)',
-    darkBg: 'rgba(0,0,0,0.15)'
-  },
-  {
-    id: 5, count: 47, label: 'NEVER ACTIVE VLTDs',
-    Icon: CancelIcon, bg: 'linear-gradient(135deg, #fc3b6b, #ff7a9a)',
-    darkBg: 'rgba(0,0,0,0.15)'
-  },
-  {
-    id: 6, count: 375, label: 'E-SIM VALIDITY EXHAUSTED',
-    Icon: HourglassEmptyIcon, bg: 'linear-gradient(135deg, #2bbbe0, #7ee8ff)',
-    darkBg: 'rgba(0,0,0,0.15)'
-  }
-];
+// const stats = [
+//   {
+//     id: 1, count: 2631, label: 'INSTALLED VLTDs IN ALL VEHICLES',
+//     Icon: MemoryIcon, bg: 'linear-gradient(135deg, #6c3bfc, #9b6bfe)',
+//     darkBg: 'rgba(0,0,0,0.15)'
+//   },
+//   {
+//     id: 2, count: 2612, label: 'VLTDs IN REGISTERED VEHICLES',
+//     Icon: DirectionsCarIcon, bg: 'linear-gradient(135deg, #3b9afc, #6bcafe)',
+//     darkBg: 'rgba(0,0,0,0.15)'
+//   },
+//   {
+//     id: 3, count: 1410, label: 'ACTIVE VLTDs', subtitle: '(Within Last 10 Min)',
+//     Icon: WifiIcon, bg: 'linear-gradient(135deg, #2dc76d, #5ae89a)',
+//     darkBg: 'rgba(0,0,0,0.15)'
+//   },
+//   {
+//     id: 4, count: 1155, label: 'INACTIVE VLTDs', subtitle: '(For more than 10 Min)',
+//     Icon: BlockIcon, bg: 'linear-gradient(135deg, #fc8b2b, #ffb97a)',
+//     darkBg: 'rgba(0,0,0,0.15)'
+//   },
+//   {
+//     id: 5, count: 47, label: 'NEVER ACTIVE VLTDs',
+//     Icon: CancelIcon, bg: 'linear-gradient(135deg, #fc3b6b, #ff7a9a)',
+//     darkBg: 'rgba(0,0,0,0.15)'
+//   },
+//   {
+//     id: 6, count: 375, label: 'E-SIM VALIDITY EXHAUSTED',
+//     Icon: HourglassEmptyIcon, bg: 'linear-gradient(135deg, #2bbbe0, #7ee8ff)',
+//     darkBg: 'rgba(0,0,0,0.15)'
+//   }
+// ];
 
-const vendorWiseData = [
-  { name: 'AEPL', value: 46 },
-  { name: 'APM', value: 152 },
-  { name: 'BBOX', value: 243 },
-  { name: 'EGAS', value: 0 },
-  { name: 'INTE4G', value: 0 },
-  { name: 'INTENA', value: 0 },
-  { name: 'TRIANGLE', value: 0 },
-  { name: 'NIPP', value: 1358 },
-  { name: 'RA10', value: 159 },
-  { name: 'VLT1', value: 660 },
-  { name: 'WTEX', value: 13 }
-];
+// const vendorWiseData = [
+//   { name: 'AEPL', value: 46 },
+//   { name: 'APM', value: 152 },
+//   { name: 'BBOX', value: 243 },
+//   { name: 'EGAS', value: 0 },
+//   { name: 'INTE4G', value: 0 },
+//   { name: 'INTENA', value: 0 },
+//   { name: 'TRIANGLE', value: 0 },
+//   { name: 'NIPP', value: 1358 },
+//   { name: 'RA10', value: 159 },
+//   { name: 'VLT1', value: 660 },
+//   { name: 'WTEX', value: 13 }
+// ];
 
-const inactiveVltdsData = [
-  { name: 'from 15 to 30 Days (34)', value: 34, color: '#e74c3c' },
-  { name: 'From More than 30 Days (478)', value: 478, color: '#f39c12' },
-  { name: 'from 7 to 15 Days (42)', value: 42, color: '#9b59b6' },
-  { name: 'from 24 Hours to 7 Days (79)', value: 79, color: '#3498db' },
-  { name: 'From 10 Min to 24 Hours (522)', value: 522, color: '#1abc9c' }
-];
+// const inactiveVltdsData = [
+//   { name: 'from 15 to 30 Days (34)', value: 34, color: '#e74c3c' },
+//   { name: 'From More than 30 Days (478)', value: 478, color: '#f39c12' },
+//   { name: 'from 7 to 15 Days (42)', value: 42, color: '#9b59b6' },
+//   { name: 'from 24 Hours to 7 Days (79)', value: 79, color: '#3498db' },
+//   { name: 'From 10 Min to 24 Hours (522)', value: 522, color: '#1abc9c' }
+// ];
 
 const renderCustomBarLabel = (props) => {
   const { x, y, width, value } = props;
@@ -104,6 +104,191 @@ const renderCustomPieLabel = ({ cx, cy, midAngle, outerRadius, name, value }) =>
 
 const SystemAdminDashboard = () => {
   const [vendorFilter, setVendorFilter] = useState('All Vendors');
+
+  const [vltdSummary, setVltdSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchVltDSummary = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await UserServices.getVltDSummary();
+
+      console.log('VLTD Summary API Response:', response);
+
+      setVltdSummary(response?.data);
+    } catch (err) {
+      console.error('VLTD Summary API Error:', err);
+
+      setError(
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
+        'Failed to load VLTD summary data.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVltDSummary();
+  }, []);
+
+  // =====================================================
+  // API DATA MAPPING
+  // =====================================================
+
+  const summary = vltdSummary?.vltd_summary || {};
+
+  const stats = [
+    {
+      id: 1,
+      count: summary.installed_vltds_in_all_vehicles ?? 0,
+      label: 'INSTALLED VLTDs IN ALL VEHICLES',
+      Icon: MemoryIcon,
+      bg: 'linear-gradient(135deg, #6c3bfc, #9b6bfe)',
+    },
+    {
+      id: 2,
+      count: summary.vltds_in_registered_vehicles ?? 0,
+      label: 'VLTDs IN REGISTERED VEHICLES',
+      Icon: DirectionsCarIcon,
+      bg: 'linear-gradient(135deg, #3b9afc, #6bcafe)',
+    },
+    {
+      id: 3,
+      count: summary.active_vltds ?? 0,
+      label: 'ACTIVE VLTDs',
+      subtitle: '(Within Last 10 Min)',
+      Icon: WifiIcon,
+      bg: 'linear-gradient(135deg, #2dc76d, #5ae89a)',
+    },
+    {
+      id: 4,
+      count: summary.inactive_vltds ?? 0,
+      label: 'INACTIVE VLTDs',
+      subtitle: '(For more than 10 Min)',
+      Icon: BlockIcon,
+      bg: 'linear-gradient(135deg, #fc8b2b, #ffb97a)',
+    },
+    {
+      id: 5,
+      count: summary.never_active_vltds ?? 0,
+      label: 'NEVER ACTIVE VLTDs',
+      Icon: CancelIcon,
+      bg: 'linear-gradient(135deg, #fc3b6b, #ff7a9a)',
+    },
+    {
+      id: 6,
+      count: summary.esim_validity_exhausted ?? 0,
+      label: 'E-SIM VALIDITY EXHAUSTED',
+      Icon: HourglassEmptyIcon,
+      bg: 'linear-gradient(135deg, #2bbbe0, #7ee8ff)',
+    }
+  ];
+
+  // Vendor-wise chart
+  const vendorWiseData = (vltdSummary?.vendor_wise_vltds || []).map(
+    (item) => ({
+      name: item.vendor_name,
+      value: item.installed_vltd_count,
+    })
+  );
+
+  // Inactive VLTD breakdown
+  const inactiveBreakdown = vltdSummary?.inactive_breakdown || {};
+
+  const inactiveVltdsData = [
+    {
+      name: 'From 15 to 30 Days',
+      value: inactiveBreakdown['15_to_30_days'] ?? 0,
+      color: '#e74c3c',
+    },
+    {
+      name: 'More than 30 Days',
+      value: inactiveBreakdown['more_than_30_days'] ?? 0,
+      color: '#f39c12',
+    },
+    {
+      name: 'From 7 to 15 Days',
+      value: inactiveBreakdown['7_to_15_days'] ?? 0,
+      color: '#9b59b6',
+    },
+    {
+      name: 'From 24 Hours to 7 Days',
+      value: inactiveBreakdown['24_hours_to_7_days'] ?? 0,
+      color: '#3498db',
+    },
+    {
+      name: 'From 10 Min to 24 Hours',
+      value: inactiveBreakdown['10_min_to_24_hours'] ?? 0,
+      color: '#1abc9c',
+    }
+  ];
+
+  // Health status
+  const healthStatus = vltdSummary?.vltd_health_status || {};
+
+  const healthData = [
+    {
+      label: 'Health Request Sent',
+      value: healthStatus.health_request_sent ?? 0,
+      color: '#7c4dff',
+    },
+    {
+      label: 'Health Response Received',
+      value: healthStatus.health_response_received ?? 0,
+      color: '#28b463',
+    },
+    {
+      label: 'Health Response Awaited',
+      value: healthStatus.health_response_awaited ?? 0,
+      color: '#fc8b2b',
+    }
+  ];
+
+  // Manufacturer details
+  const manufacturerDetails = vltdSummary?.manufacturer_details || {};
+
+  const manufacturerData = [
+    {
+      label: 'Total VLTD Manufacturers',
+      value: manufacturerDetails.total_vltd_manufacturers ?? 0,
+      color: '#7c4dff',
+    },
+    {
+      label: 'Total RFCs',
+      value: manufacturerDetails.total_rfcs ?? 0,
+      color: '#1abc9c',
+    },
+    {
+      label: 'Total VLTD Models',
+      value: manufacturerDetails.total_vltd_models ?? 0,
+      color: '#28b463',
+    }
+  ];
+
+  // eSIM validity
+  const esimValidity = vltdSummary?.esim_validity || {};
+
+  const esimValidityData = [
+    {
+      count: esimValidity['0_7_days_remaining'] ?? 0,
+      label: '0-7 Days\nRemaining',
+    },
+    {
+      count: esimValidity['8_15_days_remaining'] ?? 0,
+      label: '8-15 Days\nRemaining',
+    },
+    {
+      count: esimValidity['16_30_days_remaining'] ?? 0,
+      label: '16-30 Days\nRemaining',
+    }
+  ];
+
+  const vendorOptions = vltdSummary?.vendor_wise_vltds || [];
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -208,9 +393,25 @@ const SystemAdminDashboard = () => {
                     <Select
                       value={vendorFilter}
                       onChange={(e) => setVendorFilter(e.target.value)}
-                      sx={{ fontSize: '12px', height: 30, borderRadius: 2 }}
+                      sx={{
+                        fontSize: '12px',
+                        height: 30,
+                        borderRadius: 2,
+                        minWidth: 150
+                      }}
                     >
-                      <MenuItem value="All Vendors">All Vendors</MenuItem>
+                      <MenuItem value="All Vendors">
+                        All Vendors
+                      </MenuItem>
+
+                      {vendorOptions.map((vendor) => (
+                        <MenuItem
+                          key={vendor.manufacturer_id}
+                          value={String(vendor.manufacturer_id)}
+                        >
+                          {vendor.vendor_name}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                   <MoreVertIcon sx={{ color: '#aaa', cursor: 'pointer' }} />
@@ -293,20 +494,47 @@ const SystemAdminDashboard = () => {
               <TableContainer>
                 <Table size="small">
                   <TableBody>
-                    {[
-                      { label: 'Health Request Sent', value: 0, color: '#7c4dff' },
-                      { label: 'Health Response Received', value: 0, color: '#28b463' },
-                      { label: 'Health Response Awaited', value: 0, color: '#fc8b2b' }
-                    ].map((row, i) => (
-                      <TableRow key={i} sx={{ '&:nth-of-type(even)': { bgcolor: '#fafafa' } }}>
-                        <TableCell sx={{ color: '#555', py: 1, borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
+                    {healthData.map((row, i) => (
+                      <TableRow
+                        key={i}
+                        sx={{
+                          '&:nth-of-type(even)': {
+                            bgcolor: '#fafafa'
+                          }
+                        }}
+                      >
+                        <TableCell
+                          sx={{
+                            color: '#555',
+                            py: 1,
+                            borderBottom: '1px solid #f0f0f0',
+                            fontSize: '13px'
+                          }}
+                        >
                           {row.label}
                         </TableCell>
-                        <TableCell align="right" sx={{ py: 1, borderBottom: '1px solid #f0f0f0' }}>
-                          <Box sx={{
-                            bgcolor: row.color, color: 'white', px: 1, py: 0.2, borderRadius: '4px',
-                            display: 'inline-block', fontSize: '12px', fontWeight: 'bold', minWidth: 28, textAlign: 'center'
-                          }}>
+
+                        <TableCell
+                          align="right"
+                          sx={{
+                            py: 1,
+                            borderBottom: '1px solid #f0f0f0'
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              bgcolor: row.color,
+                              color: 'white',
+                              px: 1,
+                              py: 0.2,
+                              borderRadius: '4px',
+                              display: 'inline-block',
+                              fontSize: '12px',
+                              fontWeight: 'bold',
+                              minWidth: 28,
+                              textAlign: 'center'
+                            }}
+                          >
                             {row.value}
                           </Box>
                         </TableCell>
@@ -331,11 +559,7 @@ const SystemAdminDashboard = () => {
               <TableContainer>
                 <Table size="small">
                   <TableBody>
-                    {[
-                      { label: 'Total VLTD Manufacturers', value: 11, color: '#7c4dff' },
-                      { label: 'Total RFCs', value: 25, color: '#1abc9c' },
-                      { label: 'Total VLTD Models', value: 15, color: '#28b463' }
-                    ].map((row, i) => (
+                    {manufacturerData.map((row, i) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(even)': { bgcolor: '#fafafa' } }}>
                         <TableCell sx={{ color: '#555', py: 1, borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
                           {row.label}
@@ -368,11 +592,7 @@ const SystemAdminDashboard = () => {
               </Box>
               <Box sx={{ p: 2 }}>
                 <Grid container textAlign="center">
-                  {[
-                    { count: 8, label: '0-7 Days\nRemaining' },
-                    { count: 8, label: '8-15 Days\nRemaining' },
-                    { count: 7, label: '16-30 Days\nRemaining' }
-                  ].map((item, i) => (
+                  {esimValidityData.map((item, i) => (
                     <Grid item xs={4} key={i} sx={{ borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
                       <Typography sx={{ fontWeight: 800, fontSize: '1.8rem', color: '#333', lineHeight: 1.2 }}>
                         {item.count}

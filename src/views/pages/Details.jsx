@@ -396,6 +396,15 @@ const Details = () => {
         },
       ];
     }
+    if (userType === 'sosUser') {
+  return [
+    {
+      key: 'file_authLetter',
+      label: 'Authorization Letter',
+      fallbackKeys: ['file_authorisation_letter'],
+    },
+  ];
+}
     return [];
   }, [userType]);
 
@@ -405,8 +414,22 @@ const Details = () => {
       .map((d) => {
         const fallbackKeys = Array.isArray(d.fallbackKeys) ? d.fallbackKeys : [];
         const allKeys = [d.key, ...fallbackKeys].filter(Boolean);
-        const fileUrl = allKeys.map((k) => rec?.[k]).find((v) => !!v);
-        if (!fileUrl) return null;
+        // const fileUrl = allKeys.map((k) => rec?.[k]).find((v) => !!v);
+        // if (!fileUrl) return null;
+        let fileUrl = allKeys
+  .map((k) => rec?.[k])
+  .find((v) => !!v);
+
+// SOS Admin authorization letter is inside users[0]
+if (
+  !fileUrl &&
+  userType === "sosUser" &&
+  d.key === "file_authLetter"
+) {
+  fileUrl = rec?.users?.[0]?.authorisation_letter;
+}
+
+if (!fileUrl) return null;
         return {
           key: d.key,
           label: d.label,

@@ -105,18 +105,18 @@ const handleClose = () => setOpen(false);
 
 useEffect(() => {
   const fetchData = async () => {
-    debugger
+    // debugger
     try {
       const [dashboard, schools, trips,busOperational,liveAltFeed] = await Promise.all([
-        apiRequest({ url: "school/api/dashboard/" }),
-        apiRequest({ url: "school/api/school-distribution/" }),
-        apiRequest({ url: "school/api/active-trips/" }),
-        apiRequest({ url: "school/api/bus-operational-status/" }),
-        apiRequest({ url: "school/api/live-alerts/" }),
+        apiRequest({ url: "api/dashboard/" }),
+        apiRequest({ url: "api/school-distribution/" }),
+        apiRequest({ url: "api/active-trips/" }),
+        apiRequest({ url: "api/bus-operational-status/" }),
+        apiRequest({ url: "api/live-alerts/" }),
 
 
       ]);
-debugger
+// debugger
       setDashboardData(dashboard.data);
       console.log(dashboard.data);
 
@@ -212,11 +212,7 @@ debugger
         }
     ];
 
-    const activeTripsData = [
-        { bus: 'DL 1PC 1234', route: 'Morning North A', driver: 'Suresh Kumar', contact: '9876543210', status: 'On-Time' },
-        { bus: 'DL 2PB 5678', route: 'Morning South B', driver: 'Amit Singh', contact: '9876543211', status: 'Delayed' },
-        { bus: 'HR 55X 0012', route: 'Morning West C', driver: 'Vikram Dutt', contact: '9876543212', status: 'On-Time' }
-    ];
+    const activeTripsData = activeTrips || [];
 
     return (
         <Box sx={{ p: 3 }}>
@@ -322,7 +318,7 @@ debugger
    {liveAlertsFeed?.slice(0, 3).map((alert) => {
         const isEmergency = alert.type === "EMERGENCY";
 
-debugger
+// debugger
         return (
           <Box
             key={alert.id}

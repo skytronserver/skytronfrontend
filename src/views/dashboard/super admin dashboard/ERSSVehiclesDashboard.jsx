@@ -149,7 +149,7 @@ const buildDummyErssVehicles = () => {
 
 const fetchAreaData = async (payload = {}, method = "POST") => {
   try {
-    debugger
+    // debugger
     const res = await fetch(
       `${process.env.REACT_APP_BASE_URL}api/dashboard_ERSS/areawise-device-count/`,
       {
@@ -277,7 +277,7 @@ const [dashboardData,setDashboardData]=useState({
   totalActiveExecutives: 0});
 
 const handleDistrictClick = async (district) => {
- debugger
+//  debugger
   //  setSelectedDistrictObj(district); // ⭐ ADD THIS
  const res = await fetchAreaData({
     district_name: district.district_name
@@ -295,7 +295,7 @@ const handleDistrictClick = async (district) => {
   }
 };
 const handleCityClick = async(city) => {
-   debugger
+  //  debugger
   //  setSelectedCityObj(city); // ⭐ ADD THIS
   const res = await fetchAreaData({
     district_name: city.district_name,
@@ -315,7 +315,7 @@ const handleCityClick = async(city) => {
   }
 };
 const handleLocalityClick =async (locality) => {
-   debugger
+  //  debugger
     //  setSelectedLocalityObj(locality); // ⭐ ADD THIS
   const res = await fetchAreaData({
     district_name: locality.district_name,
@@ -330,7 +330,7 @@ const handleLocalityClick =async (locality) => {
   }
 };
 const handleBack = async ({ level, data }) => {
- debugger
+//  debugger
   if (level === "device" && data) {
   const res = await fetchAreaData({
     district_name: data.district_name,
@@ -349,7 +349,7 @@ const handleBack = async ({ level, data }) => {
 }
 }
   else if (level === "locality" && data) {
-    debugger
+    // debugger
   const res = await fetchAreaData({
     district_name: data.district_name
   });
@@ -385,7 +385,7 @@ try {
       }
 
     if (metricsRes?.erss_dashboard_metrics) {
-      debugger
+      // debugger
   const metrics = metricsRes.erss_dashboard_metrics;
 
   setDashboardData({

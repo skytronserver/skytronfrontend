@@ -319,7 +319,21 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                     />
                     <ListItemText
                       primary={t('common.googlePlay')}
-                      secondary={<Link href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
+                      //secondary={<Link href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
+                       secondary={
+    <a
+      href="https://play.google.com/store/apps/details?id=com.skytrack.skytronapp"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        fontSize: '0.7rem',
+        color: '#1976d2',
+        textDecoration: 'none',
+      }}
+    >
+      Download Now
+    </a>
+  }
                     />
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -330,7 +344,21 @@ function HomeHeader({ isDrawerOpen, setDrawerOpen, toggleDrawer }) {
                     />
                     <ListItemText
                       primary={t('common.appleAppStore')}
-                      secondary={<Link href="https://apps.apple.com/in/app/skytron/id6746767283" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
+                      //secondary={<Link href="https://apps.apple.com/in/app/skytron/id6746767283" target="_blank" sx={{ fontSize: '0.7rem' }}>Download Now</Link>}
+                      secondary={
+    <a
+      href="https://apps.apple.com/in/app/skytron/id6746767283"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        fontSize: '0.7rem',
+        color: '#1976d2',
+        textDecoration: 'none',
+      }}
+    >
+      Download Now
+    </a>
+  }
                     />
                   </Box>
                 </ListItem>

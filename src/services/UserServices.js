@@ -302,6 +302,14 @@ const getLoginReport = (params) => {
     return http.get(`/school/api/admin/users/login-report/${queryString ? `?${queryString}` : ''}`);
 };
 
+// =====================================================
+// SUPERADMIN VLTD SUMMARY
+// =====================================================
+
+const getVltDSummary = () => {
+    const http = getAxiosInstance();
+    return http.get("/api/superadmin/vltd-summary/");
+};
 
 const UserServices = {
 
@@ -360,7 +368,8 @@ const UserServices = {
         const http = getAxiosInstance();
         return http.get('/api/police_fleet_metrics/');
     },
-    getLoginReport
+    getLoginReport,
+    getVltDSummary,
 };
 
 export default UserServices;

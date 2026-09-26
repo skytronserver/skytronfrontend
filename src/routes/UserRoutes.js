@@ -92,16 +92,16 @@ const UserRoutes = {
       element: <Dynamic />,
       roles: ["superadmin"],
     },
-    {
-      path: "/user/newM2MUser",
-      element: <M2MUser />,
-      roles: ["superadmin"],
-    },
-    {
-      path: "/user/newManufacturer",
-      element: <Manufacturer />,
-      roles: ["superadmin"],
-    },
+    // {
+    //   path: "/user/newM2MUser",
+    //   element: <M2MUser />,
+    //   roles: ["superadmin"],
+    // },
+    // {
+    //   path: "/user/newManufacturer",
+    //   element: <Manufacturer />,
+    //   roles: ["superadmin"],
+    // },
     {
       path: "/user/manufacturer-list",
       element: <ManufacturerList />,

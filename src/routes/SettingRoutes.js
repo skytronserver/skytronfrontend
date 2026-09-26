@@ -125,7 +125,7 @@ const SettingRoutes = {
       element: (
         <IPSetting />
       ),
-      roles: ['superadmin', 'dealer']
+      roles: ['superadmin',]
     },
     {
       path: "/setting/holiday/*",

@@ -210,7 +210,7 @@ console.log(data);
           }))
         );
       }
-debugger
+// debugger
       // District series
       if (data.district_wise_metrics && data.district_wise_metrics.length > 0) {
        
@@ -221,7 +221,7 @@ debugger
           }))
         );
       }
-debugger
+// debugger
       // Police Station series
       if (data.policestation_wise_metrics) {
         setPoliceStationSeries(
@@ -231,7 +231,7 @@ debugger
           }))
         );
       }
-debugger
+// debugger
       // Time of Day Heatmap
      if (data.timeOfDayHeatmap_wise_metrics) {
   const mappedData = data.timeOfDayHeatmap_wise_metrics.map(item => ({
@@ -300,7 +300,7 @@ debugger
           }))
         );
       }
-debugger
+// debugger
       // Overall SLA
       if (data.overallSLA) {
         setOverallSLACompliance(data.overallSLA ?? 1);
