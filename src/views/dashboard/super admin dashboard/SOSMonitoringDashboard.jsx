@@ -566,9 +566,9 @@ const statusRows = useMemo(() => {
          setDistrictData(areaRes);
           setMapData(areaRes);
        }
- debugger
+//  debugger
      if (metricsRes) {
-       debugger
+      //  debugger
    const sos = metricsRes;
  console.log(sos);
    setDashboardData({

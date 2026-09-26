@@ -847,6 +847,35 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             startY = doc.lastAutoTable.finalY + 15;
         });
 
+        // =====================================================
+        // PDF FOOTER NOTE
+        // =====================================================
+        const pageCount = doc.getNumberOfPages();
+
+        doc.setPage(pageCount);
+
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // Draw a separator line
+        doc.setDrawColor(180);
+        doc.line(14, pageHeight - 28, pageWidth - 14, pageHeight - 28);
+
+        // Add note at the bottom of the last page
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+
+        const note =
+            "This platform integration test report is generated online and hence does not require any signature.";
+
+        doc.text(note, pageWidth / 2, pageHeight - 18, {
+            align: "center",
+            maxWidth: pageWidth - 28,
+        });
+
+        // Reset text color
+        doc.setTextColor(0, 0, 0);
+
         return doc;
     };
 
@@ -1363,6 +1392,26 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         })()}
                     </Box>
                 </Box>
+                {/* Online Report Note */}
+<Box
+    sx={{
+        mt: 1,
+        pt: 2,
+        borderTop: "1px solid #e0e0e0",
+        textAlign: "center",
+    }}
+>
+    <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+            fontStyle: "italic",
+            display: "block",
+        }}
+    >
+        This platform integration test report is generated online and hence does not require any signature.
+    </Typography>
+</Box>
             </DialogContent>
 
             {/* Device History Modal */}

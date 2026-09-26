@@ -5,7 +5,7 @@ import amtronlogo from "../../assets/images/amtron-logo.png";
 
 function HomeFooter() {
   const { t } = useTranslation();
-  
+
   return (
     <footer style={{ position: 'fixed', bottom: 0, width: '100%', textAlign: 'center', color: 'rgb(163, 255, 214)', padding: '10px 0' }}>
       <img
@@ -13,8 +13,18 @@ function HomeFooter() {
         alt={t('common.logo')}
         style={{ height: 'auto', width: '36px' }}
       /><br />
-      <Typography variant="body1" sx={{ fontSize: '16px',color: "#0010FF" }}>
+      <Typography variant="body1" sx={{ fontSize: '16px', color: "#0010FF" }}>
         {t('common.implementedBy')} <br />© {t('common.allRights')}
+      </Typography>
+      {/* Best Experience Section - marked location */}
+      <Typography
+        variant="body2"
+        sx={{
+          fontSize: "11px",
+          color: "#0010FF",
+        }}
+      >
+        For best experience, please use the latest version of Mozilla Firefox or Google Chrome.
       </Typography>
     </footer>
   );

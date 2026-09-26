@@ -346,7 +346,7 @@ const ActiveState = () => {
           stateAdmin: data.state_admin || 0,
           sosAdmin: data.SOS_admin || 0,
           m2mServiceProvider: data.eSimProvider || 0,
-          manufacturer: dashboardData.Manufacture || 0,
+          manufacturer: data.manufacturer_admin  || 0,
           dealer: dashboardData.Dealer || 0,
           vehicleOwner: dashboardData.VehicleOwner || 0
         }))

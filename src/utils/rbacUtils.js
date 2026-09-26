@@ -480,6 +480,10 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
   // Hardcoded roles[] are NOT used — only what's saved in the permission
   // management page matters.
 
+  // Dealer must NEVER see IP Settings
+  if (menuId === 'ip-settings' && role === 'dealer') {
+    return false;
+  }
   // EXCEPTIONS: Explicitly hide vehicle history from teamlead/sos roles
   if (menuId === 'vehicle-history') {
     if (['teamlead', 'sosadmin', 'desk_ex', 'desk_executive', 'sos_teamlead', 'sos_deskexecutive', 'sos_desk_executive', 'sosexecutive'].includes(role)) {

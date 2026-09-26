@@ -72,7 +72,7 @@ const createStateAdmin = (formData) => {
 }
 const fetchStateAdmin = (formData) => {
     const http = getAxiosInstance();
-    return http.post("/api/StateAdmin/filter_StateAdmin/", formData)
+    return http.post("api/StateAdmin/filter_StateAdmin/", formData)
 }
 const createDTO = (formData) => {
     const http = getAxiosInstance();
@@ -302,6 +302,14 @@ const getLoginReport = (params) => {
     return http.get(`/api/admin/users/login-report/${queryString ? `?${queryString}` : ''}`);
 };
 
+// =====================================================
+// SUPERADMIN VLTD SUMMARY
+// =====================================================
+
+const getVltDSummary = () => {
+    const http = getAxiosInstance();
+    return http.get("/api/superadmin/vltd-summary/");
+};
 
 const UserServices = {
 
@@ -360,7 +368,9 @@ const UserServices = {
         const http = getAxiosInstance();
         return http.get('/api/police_fleet_metrics/');
     },
-    getLoginReport
+    getLoginReport,
+    getVltDSummary,
+    fetchStateAdmin,
 };
 
 export default UserServices;
