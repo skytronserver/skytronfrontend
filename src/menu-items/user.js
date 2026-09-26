@@ -535,7 +535,7 @@ const user = {
           type: "item",
           url: "/device/whitelist/create-request",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+          roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer"],
         },
         {
           id: "whitelist-request-report",

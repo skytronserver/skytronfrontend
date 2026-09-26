@@ -224,7 +224,7 @@ const DeviceRoutes = {
     {
       path: "/device/whitelist/create-request",
       element: <WhitelistRequestCreate />,
-      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer"],
     },
     {
       path: "/device/whitelist/dashboard",

@@ -632,18 +632,7 @@ const WhitelistRequests = () => {
                     <MenuItem value="apn">APN Gateway</MenuItem>
                   </TextField>
                 </Grid>
-                <Grid item xs={12} sm={3}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Device Stock ID"
-                    value={activeStockIdFilter}
-                    onChange={(e) => {
-                      setActiveStockIdFilter(e.target.value);
-                      setActivePage(0);
-                    }}
-                  />
-                </Grid>
+
                 <Grid item xs={12} sm={3}>
                   <TextField
                     fullWidth

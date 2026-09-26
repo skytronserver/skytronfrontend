@@ -495,6 +495,11 @@ export const canViewMenu = (menuId, role, permissions, fallbackRoles = []) => {
     return false;
   }
 
+  // EXCEPTION: Explicitly hide whitelist create request from esimprovider
+  if (menuId === 'whitelist-requests' && role === 'esimprovider') {
+    return false;
+  }
+
   if (permissions) {
     const moduleCode = getExpandedMenuModuleMap()[menuId];
     if (menuId === 'vehicle-owner') {
@@ -567,6 +572,11 @@ export const canViewRoute = (routePath, role, permissions, fallbackRoles = []) =
   // Route access is controlled ENTIRELY by the RBAC permission toggles.
   // Hardcoded roles[] are NOT used — only what's saved in the permission
   // management page matters, just like the sidebar menu.
+
+  // EXCEPTION: Explicitly block esimprovider from whitelist create request route
+  if (routePath === '/device/whitelist/create-request' && role === 'esimprovider') {
+    return false;
+  }
 
   if (permissions) {
     const moduleCode = resolveRouteModule(routePath);
