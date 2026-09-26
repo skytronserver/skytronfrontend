@@ -156,26 +156,10 @@ const WhitelistRequestCreate = () => {
             <Grid item xs={12} sm={6}>
               <TextField select fullWidth  label="Device Selection Scope" value={deviceSelectionMode} onChange={(e) => setDeviceSelectionMode(e.target.value)} disabled={!selectedProvider}>
                 <MenuItem value="all">All Accessible Devices linked to Provider</MenuItem>
-                <MenuItem value="specific">Select Specific Device Stocks</MenuItem>
               </TextField>
             </Grid>
 
-            {deviceSelectionMode === 'specific' && (
-              <Grid item xs={12}>
-                <Autocomplete
-                  multiple
-                  freeSolo
-                  options={availableDevices}
-                  loading={loadingDevices}
-                  getOptionLabel={(option) => typeof option === 'string' ? option : `${option.device_esn || ''} (IMEI: ${option.imei || ''})`}
-                  value={selectedDevices}
-                  onChange={(event, newValue) => setSelectedDevices(newValue)}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Enter ICCID" placeholder="Type ICCID and press Enter" />
-                  )}
-                />
-              </Grid>
-            )}
+
 
             <Grid item xs={12}>
               <Divider sx={{ my: 1 }} />

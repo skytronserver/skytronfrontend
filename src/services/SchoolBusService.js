@@ -591,75 +591,56 @@ const api = {
   getSchoolApplications() {
     const http = getAxiosInstance();
     return http.get('/api/state-admin/schools/');
-    return http.get('/api/state-admin/schools/');
   },
   submitSchoolApplication(formData) {
-    // debugger
     const http = getAxiosInstance();
     return http.post('/api/schools/apply/', formData, {
-      return http.post('/api/schools/apply/', formData, {
-        headers: {
-          'Content-type': 'multipart/form-data'
-        }
-      });
-    },
-      reviewSchoolApplication(appId, data) {
-      const http = getAxiosInstance();
-      return http.put(`/api/schoolbus/schools/applications/${appId}/review`, data);
-    },
-      issueCredentials(appId) {
-      const http = getAxiosInstance();
-      return http.post(`/api/schoolbus/schools/applications/${appId}/issue-credentials`);
-    },
-      getHolidays() {
-      const http = getAxiosInstance();
-      return http.get('/api/admin/holidays/');
-      return http.get('/api/admin/holidays/');
-    },
-      createHoliday(data) {
-      const http = getAxiosInstance();
-      return http.post('/api/admin/holidays/', data);
-      return http.post('/api/admin/holidays/', data);
-    },
-      getUnplannedUsageReport() {
-      const http = getAxiosInstance();
-      return http.get('/api/schoolbus/reports/unplanned-usage');
-    },
-      getUnplannedUsage(fromDate, toDate) {
-      const http = getAxiosInstance();
-
-      return http.get(
-        `/api/admin/reports/unplanned-movement/?from_datetime=${fromDate}&to_datetime=${toDate}`
-          `/api/admin/reports/unplanned-movement/?from_datetime=${fromDate}&to_datetime=${toDate}`
-      );
-    },
-      // getAttendanceReport() {
-      //   const http = getAxiosInstance();
-      //   return http.get('/api/schoolbus/reports/attendance');
-      // },
-      getAttendanceReport() {
-      const http = getAxiosInstance();
-      return http.get(`/api/admin/trips/attendance/raw/`);
-      return http.get(`/api/admin/trips/attendance/raw/`);
-    },
-      getTripManagementReport() {
-      const http = getAxiosInstance();
-      return http.get('/api/admin/trips/');
-      return http.get('/api/admin/trips/');
-    },
-      getTrafficReport() {
-      const http = getAxiosInstance();
-      return http.get('/api/schoolbus/reports/traffic');
-    },
-      getAlertsFeed(alertType = "") {
-        const http = getAxiosInstance();
-
-        const url = alertType
-          ? `/api/admin/school/alerts/?alert_type=${alertType}`
-          : `/api/admin/school/alerts/`;
-    ? `/api/admin/school/alerts/?alert_type=${alertType}`
+      headers: {
+        'Content-type': 'multipart/form-data'
+      }
+    });
+  },
+  reviewSchoolApplication(appId, data) {
+    const http = getAxiosInstance();
+    return http.put(`/api/schoolbus/schools/applications/${appId}/review`, data);
+  },
+  issueCredentials(appId) {
+    const http = getAxiosInstance();
+    return http.post(`/api/schoolbus/schools/applications/${appId}/issue-credentials`);
+  },
+  getHolidays() {
+    const http = getAxiosInstance();
+    return http.get('/api/admin/holidays/');
+  },
+  createHoliday(data) {
+    const http = getAxiosInstance();
+    return http.post('/api/admin/holidays/', data);
+  },
+  getUnplannedUsageReport() {
+    const http = getAxiosInstance();
+    return http.get('/api/schoolbus/reports/unplanned-usage');
+  },
+  getUnplannedUsage(fromDate, toDate) {
+    const http = getAxiosInstance();
+    return http.get(`/api/admin/reports/unplanned-movement/?from_datetime=${fromDate}&to_datetime=${toDate}`);
+  },
+  getAttendanceReport() {
+    const http = getAxiosInstance();
+    return http.get(`/api/admin/trips/attendance/raw/`);
+  },
+  getTripManagementReport() {
+    const http = getAxiosInstance();
+    return http.get('/api/admin/trips/');
+  },
+  getTrafficReport() {
+    const http = getAxiosInstance();
+    return http.get('/api/schoolbus/reports/traffic');
+  },
+  getAlertsFeed(alertType = "") {
+    const http = getAxiosInstance();
+    const url = alertType
+      ? `/api/admin/school/alerts/?alert_type=${alertType}`
       : `/api/admin/school/alerts/`;
-
     return http.get(url);
   },
   getTaggedVehicles() {
@@ -671,18 +652,14 @@ const api = {
     return http.post('api/admin/buses/tag/initiate/', data);
   },
   validateTagOtp(data) {
-    const tagId = data?.requestId; // this is your tag_id
-    const payload = {
-      otp: data?.otp
-    };
+    const tagId = data?.requestId;
+    const payload = { otp: data?.otp };
     const http = getAxiosInstance();
     return http.post(`api/admin/buses/tag/${tagId}/verify-otp/`, payload);
   },
   uploadTagDocuments(tagId, formData) {
     const http = getAxiosInstance();
-    return http.post(`/api/admin/buses/tag/${tagId}/documents/`,
-    return http.post(`/api/admin/buses/tag/${tagId}/documents/`,
-      formData, {
+    return http.post(`/api/admin/buses/tag/${tagId}/documents/`, formData, {
       headers: {
         'Content-type': 'multipart/form-data'
       }
@@ -693,7 +670,6 @@ const api = {
     return http.get('api/admin/routes/');
   },
   createRoute(data) {
-    //  debugger
     const http = getAxiosInstance();
     return http.post('api/admin/routes/', data);
   },
@@ -728,31 +704,25 @@ const api = {
   getAvailableTaggedBuses() {
     const http = getAxiosInstance();
     return http.get('/api/admin/buses/');
-    return http.get('/api/admin/buses/');
   },
   getRouteOptions() {
     const http = getAxiosInstance();
-    return http.get('/api/admin/routes/');
     return http.get('/api/admin/routes/');
   },
   getAssignments() {
     const http = getAxiosInstance();
     return http.get('/api/admin/routes/assignments/');
-    return http.get('/api/admin/routes/assignments/');
   },
   assignBus(data) {
     const http = getAxiosInstance();
-    return http.post('/api/admin/routes/assign-bus/', data);
     return http.post('/api/admin/routes/assign-bus/', data);
   },
   reassignBus(bus_id, data) {
     const http = getAxiosInstance();
     return http.post(`/api/admin/routes/${bus_id}/reassign/`, data);
-    return http.post(`/api/admin/routes/${bus_id}/reassign/`, data);
   },
   untagBus(bus_id) {
     const http = getAxiosInstance();
-    return http.post(`/api/admin/routes/${bus_id}/remove-bus/`);
     return http.post(`/api/admin/routes/${bus_id}/remove-bus/`);
   },
   getParents() {
@@ -772,7 +742,6 @@ const api = {
     return http.delete(`/api/schoolbus/parents/${parentId}`);
   },
   getBuses_P_Manage(routeId) {
-    // debugger
     const http = getAxiosInstance();
     return http.get(`api/admin/routes/${routeId}/buses/`);
   },
@@ -783,7 +752,6 @@ const api = {
   createStudent(data) {
     const http = getAxiosInstance();
     return http.post('/api/admin/students/', data);
-    return http.post('/api/admin/students/', data);
   },
   updateStudent(studentId, data) {
     const http = getAxiosInstance();
@@ -793,10 +761,6 @@ const api = {
     const http = getAxiosInstance();
     return http.delete(`/api/schoolbus/students/${studentId}`);
   },
-  // getParentTracking(studentId) {
-  //   const http = getAxiosInstance();
-  //   return http.get(`/api/schoolbus/tracking/${studentId}`);
-  // },
   async getParentTracking() {
     return await apiRequest({
       url: "api/parents/students/live-location/",
@@ -810,125 +774,81 @@ const api = {
   approveSchool(applicationId) {
     const http = getAxiosInstance();
     return http.post(`/api/state-admin/schools/${applicationId}/decision/`, {
-      return http.post(`/api/state-admin/schools/${applicationId}/decision/`, {
-        decision: "APPROVE"
-      });
-    },
-      rejectSchool(applicationId) {
-      const http = getAxiosInstance();
-      return http.post(`/api/state-admin/schools/${applicationId}/decision/`, {
-        return http.post(`/api/state-admin/schools/${applicationId}/decision/`, {
-          decision: "REJECT",
-          remarks: "Documents Not Valid"
-        });
+      decision: "APPROVE"
+    });
+  },
+  rejectSchool(applicationId) {
+    const http = getAxiosInstance();
+    return http.post(`/api/state-admin/schools/${applicationId}/decision/`, {
+      decision: "REJECT",
+      remarks: "Documents Not Valid"
+    });
+  },
+  getStates() {
+    const http = getAxiosInstance();
+    return http.post("/api/Settings/filter_settings_State/", {});
+  },
+  getDistricts() {
+    const http = getAxiosInstance();
+    return http.post("/api/Settings/filter_settings_District/", {});
+  },
+  resendUserCreationOtp(data) {
+    const http = getAxiosInstance();
+    return http.post("/api/resend_usercreation_otp/", data, {
+      headers: {
+        "Content-Type": "application/json",
       },
-
-        getStates() {
-        const http = getAxiosInstance();
-        return http.post("/api/Settings/filter_settings_State/", {});
+    });
+  },
+  resendParentCreationOtp(data) {
+    const http = getAxiosInstance();
+    return http.post("/api/resend_parent_activation_otp/", data, {
+      headers: {
+        "Content-Type": "application/json",
       },
-
-        getDistricts() {
-        const http = getAxiosInstance();
-        return http.post("/api/Settings/filter_settings_District/", {});
-      },
-        resendUserCreationOtp(data) {
-        const http = getAxiosInstance();
-        return http.post(
-          "/api/resend_usercreation_otp/",
-          data,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      },
-        resendParentCreationOtp(data) {
-        const http = getAxiosInstance();
-        return http.post(
-          "/api/resend_parent_activation_otp/",
-          data,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      },
-        createTrip(data) {
-        const http = getAxiosInstance();
-        return http.post('/api/admin/trips/', data);
-        return http.post('/api/admin/trips/', data);
-      },
-        getRouteAssignments() {
-        const http = getAxiosInstance();
-        return http.get('api/admin/routes/assignments/');
-      },
-        initializeAttendance(tripId) {
-        const http = getAxiosInstance();
-        return http.post(
-          `/api/admin/trips/${tripId}/attendance/init/`
-            `/api/admin/trips/${tripId}/attendance/init/`
-        );
-      },
-
-        validateHoliday() {
-        const http = getAxiosInstance();
-        return http.post(
-          '/api/admin/trips/validate-holidays/'
-      '/api/admin/trips/validate-holidays/'
-        );
-      },
-        getRawAttendance(tripId) {
-        const http = getAxiosInstance();
-        return http.get(
-          `/api/admin/trips/${tripId}/attendance/raw/`
-            `/api/admin/trips/${tripId}/attendance/raw/`
-        );
-
-      },
-        markPickup(tripId, data) {
-        const http = getAxiosInstance();
-        return http.post(
-          `/api/admin/trips/${tripId}/attendance/pickup/`,
-          `/api/admin/trips/${tripId}/attendance/pickup/`,
-          data
-        );
-      },
-        markDrop(tripId, data) {
-        const http = getAxiosInstance();
-        return http.post(
-          `/api/admin/trips/${tripId}/attendance/drop/`,
-          `/api/admin/trips/${tripId}/attendance/drop/`,
-          data
-        );
-      },
-
-        approveBusTag(tagId) {
-        const http = getAxiosInstance();
-
-        return http.post(
-          `/api/state-admin/bus-tags/${tagId}/decision/`,
-          `/api/state-admin/bus-tags/${tagId}/decision/`,
-          {
-            decision: "APPROVE"
-          }
-        );
-      },
-
-        rejectBusTag(tagId, remarks) {
-        const http = getAxiosInstance();
-
-        return http.post(
-          `/api/state-admin/bus-tags/${tagId}/decision/`,
-          `/api/state-admin/bus-tags/${tagId}/decision/`,
-          {
-            decision: "REJECT",
-            remarks
-          }
-        );
-      },
+    });
+  },
+  createTrip(data) {
+    const http = getAxiosInstance();
+    return http.post('/api/admin/trips/', data);
+  },
+  getRouteAssignments() {
+    const http = getAxiosInstance();
+    return http.get('api/admin/routes/assignments/');
+  },
+  initializeAttendance(tripId) {
+    const http = getAxiosInstance();
+    return http.post(`/api/admin/trips/${tripId}/attendance/init/`);
+  },
+  validateHoliday() {
+    const http = getAxiosInstance();
+    return http.post('/api/admin/trips/validate-holidays/');
+  },
+  getRawAttendance(tripId) {
+    const http = getAxiosInstance();
+    return http.get(`/api/admin/trips/${tripId}/attendance/raw/`);
+  },
+  markPickup(tripId, data) {
+    const http = getAxiosInstance();
+    return http.post(`/api/admin/trips/${tripId}/attendance/pickup/`, data);
+  },
+  markDrop(tripId, data) {
+    const http = getAxiosInstance();
+    return http.post(`/api/admin/trips/${tripId}/attendance/drop/`, data);
+  },
+  approveBusTag(tagId) {
+    const http = getAxiosInstance();
+    return http.post(`/api/state-admin/bus-tags/${tagId}/decision/`, {
+      decision: "APPROVE"
+    });
+  },
+  rejectBusTag(tagId, remarks) {
+    const http = getAxiosInstance();
+    return http.post(`/api/state-admin/bus-tags/${tagId}/decision/`, {
+      decision: "REJECT",
+      remarks
+    });
+  }
 };
 
     const SchoolBusService = {

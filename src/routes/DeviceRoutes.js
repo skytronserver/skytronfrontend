@@ -219,17 +219,17 @@ const DeviceRoutes = {
     {
       path: "/device/whitelist/requests",
       element: <WhitelistRequests />,
-      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "esimprovider"],
     },
     {
       path: "/device/whitelist/create-request",
       element: <WhitelistRequestCreate />,
-      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer"],
+      roles: ["superadmin", "stateadmin", "devicemanufacture"],
     },
     {
       path: "/device/whitelist/dashboard",
       element: <DeviceDashboard />,
-      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "esimprovider"],
     },
     {
       path: "/device/esim-status",

@@ -527,7 +527,7 @@ const user = {
       title: "Whitelist",
       type: "collapse",
       icon: icons.IconDeviceSim,
-      roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+      roles: ["superadmin", "stateadmin", "devicemanufacture", "esimprovider"],
       children: [
         {
           id: "whitelist-requests",
@@ -535,7 +535,7 @@ const user = {
           type: "item",
           url: "/device/whitelist/create-request",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer"],
+          roles: ["superadmin", "stateadmin", "devicemanufacture"],
         },
         {
           id: "whitelist-request-report",
@@ -543,7 +543,7 @@ const user = {
           type: "item",
           url: "/device/whitelist/requests",
           breadcrumbs: false,
-          roles: ["superadmin", "stateadmin", "devicemanufacture", "dealer", "esimprovider"],
+          roles: ["superadmin", "stateadmin", "devicemanufacture", "esimprovider"],
         }
       ]
     },
