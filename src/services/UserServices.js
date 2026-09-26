@@ -72,7 +72,7 @@ const createStateAdmin = (formData) => {
 }
 const fetchStateAdmin = (formData) => {
     const http = getAxiosInstance();
-    return http.post("/api/StateAdmin/filter_StateAdmin/", formData)
+    return http.post("api/StateAdmin/filter_StateAdmin/", formData)
 }
 const createDTO = (formData) => {
     const http = getAxiosInstance();
@@ -370,6 +370,7 @@ const UserServices = {
     },
     getLoginReport,
     getVltDSummary,
+    fetchStateAdmin,
 };
 
 export default UserServices;
