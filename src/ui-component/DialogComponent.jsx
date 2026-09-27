@@ -1,4 +1,5 @@
 import React from 'react'
+import { sanitizeHtml } from '../utils/sanitizeHtml';
 import {
     Dialog,
     DialogContent,
@@ -14,12 +15,12 @@ const DialogComponent = ({open,handleClose,message,errorList}) => {
   return (
     <Dialog open={open} onClose={handleClose} style={{ padding: "30px" }}>
       <DialogContent>
-        <p dangerouslySetInnerHTML={{ __html: message }}/>
+        <p dangerouslySetInnerHTML={{ __html: sanitizeHtml(message) }}/>
         {(typeof errorList === "string" ||
           (Array.isArray(errorList) && errorList.length > 0)) && (
           <ul className="error-list">
             {typeof errorList === "string" ? (
-              <li>{messageDesc?.[errorList] ?? <p dangerouslySetInnerHTML={{ __html: errorList }}/>}</li>
+              <li>{messageDesc?.[errorList] ?? <p dangerouslySetInnerHTML={{ __html: sanitizeHtml(errorList) }}/>}</li>
             ) : (
               errorList.map((item) => <li key={item.field}>
                 {messageDesc?.[item.message] ?? item.message}
