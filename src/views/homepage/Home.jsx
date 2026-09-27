@@ -199,7 +199,7 @@ function Home() {
                   }}
                   onKeyPress={(e) => {
                     if (
-                      !/[0-9]/.test(e.key) || 
+                      !/[0-9]/.test(e.key) ||
                       (formik.values.mobile.length >= 10 && e.key !== 'Backspace')
                     ) {
                       e.preventDefault();
@@ -306,8 +306,8 @@ function Home() {
             </Formik>
             <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Link href="/user-registration-request" variant="body2"
-              onClick={handleRegistrationClick}
-              aria-disabled={!isGoLive}
+                onClick={handleRegistrationClick}
+                aria-disabled={!isGoLive}
               >
                 {t('auth.noAccountCTA')}
               </Link>
@@ -318,7 +318,7 @@ function Home() {
           </Paper>
         </Grid>
       </Grid>
-      
+
       {/* =====================================================
           REGISTRATION NOT AVAILABLE MESSAGE
           ===================================================== */}
@@ -338,8 +338,8 @@ function Home() {
           variant="filled"
           sx={{ width: "100%" }}
         >
-          New User registration has not commenced yet- please check
-          later
+          New User registration has not commenced yet, please check
+          later.
         </Alert>
       </Snackbar>
       {/* STQC Certification Badge - Bottom Left, Responsive */}

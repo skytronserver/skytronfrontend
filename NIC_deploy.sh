@@ -13,18 +13,14 @@ git pull
 
 # Run with sudo — scripts have their own env/Docker setup
  
-sudo rm -f /var/log/*.gz
-sudo rm -f /var/log/*-????????
-sudo journalctl --vacuum-size=100M
-sudo truncate -s 0 /var/log/mail.log
-sudo truncate -s 0 /var/log/mail.info
-sudo truncate -s 0 /var/log/mail.warn
-sudo truncate -s 0 /var/log/mail.err
-sudo truncate -s 0 /var/log/mail
-sudo truncate -s 0 /var/log/syslog.1
-sudo truncate -s 0 /var/log/warn
-sudo truncate -s 0 /var/log/sudo.log
-sudo truncate -s 0 /var/log/aide
+# Only delete regular files — the glob also matches dirs like /var/log/unattended-upgrades
+sudo find /var/log -maxdepth 1 -type f \( -name '*.gz' -o -name '*-????????' \) -delete
+sudo journalctl --vacuum-size=100M || true
+for f in mail.log mail.info mail.warn mail.err mail syslog.1 warn sudo.log aide; do
+  if sudo test -f "/var/log/$f"; then
+    sudo truncate -s 0 "/var/log/$f"
+  fi
+done
 
 
 sudo docker system prune -f
