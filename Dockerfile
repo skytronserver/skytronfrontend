@@ -6,6 +6,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
 # ---------- Stage 2: Serve with Nginx ----------
