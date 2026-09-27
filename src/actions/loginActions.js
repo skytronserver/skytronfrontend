@@ -267,6 +267,30 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
       token,
       otp: encryptedOtp
     });
+
+    // Do not trust this response on its own - it can be altered in transit
+    // (VAPT: OTP bypass via response manipulation). Confirm the new token
+    // with the server before storing anything; a pre-OTP or forged token is
+    // rejected there (403), which lands in the catch below as "WRONG OTP".
+    const newToken = response?.data?.token;
+    if (!newToken || newToken === token) {
+      const err = new Error("Verification failed. Please check the code and try again.");
+      err.response = { status: 401 };
+      throw err;
+    }
+    const verified = await axios.get(`${BASE_URL}api/session/verify/`, {
+      headers: { Authorization: `Bearer ${newToken}` },
+    });
+    if (!verified?.data?.authenticated) {
+      const err = new Error("Verification failed. Please check the code and try again.");
+      err.response = { status: 401 };
+      throw err;
+    }
+    // Role and permissions come from the server-verified answer, not from
+    // the (manipulable) validate_otp response.
+    response.data.user = { ...(response.data?.user || {}), role: verified.data.role };
+    response.data.permissions = verified.data.permissions;
+
     const userRole = (response.data?.user?.role || '').toLowerCase().trim();
     const userType = (response.data?.info?.user_type || '').toLowerCase().trim();
 
