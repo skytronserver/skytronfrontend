@@ -45,6 +45,25 @@ export const createAxiosInstance = (token) => {
       return Promise.reject(new Error(`Unexpected status code: ${response.status}`));
     },
     (error) => {
+      // Session no longer valid on the server (logged out, expired, or ended
+      // because the account signed in elsewhere): clear local state and send
+      // the user back to login. Matches only DRF's "not authenticated" reply,
+      // so permission-denied 403s from RBAC still reach the calling page.
+      const detail = error.response?.data?.detail;
+      if (
+        error.response &&
+        (error.response.status === 401 || error.response.status === 403) &&
+        detail === 'Authentication credentials were not provided.'
+      ) {
+        if (!window.__sessionEnded) {
+          window.__sessionEnded = true;
+          sessionStorage.clear();
+          localStorage.clear();
+          alert('Your session has ended. This account may have been signed in on another device. Please log in again.');
+          window.location.href = '/';
+        }
+        return Promise.reject(error);
+      }
       // Handle specific error statuses
       if (error.response) {
         if (error.response.status === 404) {
