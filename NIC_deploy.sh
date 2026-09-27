@@ -25,7 +25,7 @@ done
 
 sudo docker system prune -f
 
-sudo docker-compose build \
+sudo docker-compose build --pull \
   --build-arg http_proxy=http://192.0.2.12:8080 \
   --build-arg https_proxy=http://192.0.2.12:8080 \
   --build-arg HTTP_PROXY=http://192.0.2.12:8080 \

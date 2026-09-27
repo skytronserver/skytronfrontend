@@ -10,7 +10,9 @@ ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
 # ---------- Stage 2: Serve with Nginx ----------
-FROM nginx:alpine
+# Pinned to the current stable branch (VAPT: outdated nginx). Deploy builds
+# with --pull so each rebuild picks up the latest 1.30.x security patch.
+FROM nginx:1.30-alpine
 
 # Set working directory in Nginx container
 WORKDIR /usr/share/nginx/html
