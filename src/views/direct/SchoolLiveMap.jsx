@@ -62,6 +62,7 @@ import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/Hom
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
+import { applyInlineStyles, createStyleElement } from "../../utils/cspNonce";
 const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
 
 const formatDateDDMMYY = (raw) => {
@@ -510,7 +511,7 @@ const ensureHdPopupStyles = () => { return;
         return;
     }
 
-    const styleElement = document.createElement("style");
+    const styleElement = createStyleElement();
     styleElement.id = LEGACYMAP_HD_POPUP_STYLE_ID;
     styleElement.textContent = `
 .legacyMap-hd-popup-card {
@@ -2879,7 +2880,7 @@ const MapComponent = ({
                         const mapContainer = document.getElementById(containerId);
                         if (mapContainer) {
                             // Hide all LegacyMap control elements
-                            const style = document.createElement('style');
+                            const style = createStyleElement();
                             style.id = 'legacyMap-controls-hide';
                             style.textContent = `
 #${containerId} .legacyMap-ctrl-zoom,
@@ -3964,6 +3965,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
                     const el = document.getElementById("overlay-content");
                     if (el) el.innerHTML = listHtml;
+                    if (el) applyInlineStyles(el);
                     dynamicOverlay.setPosition(items[0].coord);
                     dynamicOverlay.getElement().style.display = "block";
                 }
@@ -3990,6 +3992,7 @@ ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;">
 </div>
 </div>
 `;
+                        applyInlineStyles(document.getElementById("overlay-content"));
 
                         dynamicOverlay.setPosition(coordinates);
                         dynamicOverlay.getElement().style.display = "block";
@@ -4201,6 +4204,7 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 `;
+                            applyInlineStyles(document.getElementById("overlay-content"));
                         };
 
                         renderVehicleOverlay(entryDataRaw);
@@ -4484,6 +4488,7 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 `;
+        applyInlineStyles(overlayContent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
 
@@ -5123,6 +5128,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
 </div>
 </div>
 `;
+                            applyInlineStyles(overlayContent);
                             dynamicOverlay.setPosition([lngNum, latNum]);
                             overlayElement.current.style.display = 'block';
                         }

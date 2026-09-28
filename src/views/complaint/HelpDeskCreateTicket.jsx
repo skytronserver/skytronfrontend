@@ -361,6 +361,7 @@ const HelpDeskCreateTicket = () => {
                   onChange={handleChange}
                   error={!!errors.details}
                   helperText={errors.details}
+                  inputProps={{ maxLength: 5000 }}
                 />
               </Grid>
 

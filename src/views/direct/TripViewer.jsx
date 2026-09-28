@@ -25,6 +25,7 @@ import Overlay from 'ol/Overlay';
 import "ol/ol.css";
 import axios from 'axios';
 
+import { applyInlineStyles } from "../../utils/cspNonce";
 const resolveBhuvanWmsUrl = () => {
   const envUrl = process.env.REACT_APP_BHUVAN_URL || "https://bhuvan-vec1.nrsc.gov.in";
   const normalizedUrl = envUrl.replace(/\/$/, "");
@@ -626,6 +627,7 @@ const TripViewer = () => {
         <p><strong>DateTime:</strong> ${data.et}</p>
       `;
       document.getElementById("overlay-content").innerHTML = content;
+      applyInlineStyles(document.getElementById("overlay-content"));
       map.current.getOverlays().getArray()[0].setPosition(coordinates);
       overlayRef.current.style.display = "block";
     }

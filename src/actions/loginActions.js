@@ -269,18 +269,20 @@ export const verifyOtp = (token, otp, username) => async (dispatch) => {
     });
 
     // Do not trust this response on its own - it can be altered in transit
-    // (VAPT: OTP bypass via response manipulation). Confirm the new token
-    // with the server before storing anything; a pre-OTP or forged token is
-    // rejected there (403), which lands in the catch below as "WRONG OTP".
+    // (VAPT: OTP bypass / token reuse via response manipulation). Confirm with
+    // the server that this exact token was issued for this login attempt
+    // (`token` = the pre-OTP token). A pre-OTP, forged, or older replayed
+    // token is rejected there (403), which lands in the catch below as "WRONG OTP".
     const newToken = response?.data?.token;
     if (!newToken || newToken === token) {
       const err = new Error("Verification failed. Please check the code and try again.");
       err.response = { status: 401 };
       throw err;
     }
-    const verified = await axios.get(`${BASE_URL}api/session/verify/`, {
-      headers: { Authorization: `Bearer ${newToken}` },
-    });
+    const verified = await axios.post(`${BASE_URL}api/session/verify/`,
+      { login_txn: token },
+      { headers: { Authorization: `Bearer ${newToken}` } },
+    );
     if (!verified?.data?.authenticated) {
       const err = new Error("Verification failed. Please check the code and try again.");
       err.response = { status: 401 };

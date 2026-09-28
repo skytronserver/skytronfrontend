@@ -1,3 +1,4 @@
+import { applyInlineStyles } from "./cspNonce";
 /**
  * Utility for securely loading incident images from API
  * Uses authentication token and POST request for security
@@ -86,6 +87,7 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
         Loading...
       </div>
     `;
+    applyInlineStyles(container);
 
     // Get auth token from session storage
     const authToken = sessionStorage.getItem("oAuthToken");
@@ -115,6 +117,7 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
           "
         ></video>
       `;
+      applyInlineStyles(container);
     } else {
       container.innerHTML = `
         <img 
@@ -130,6 +133,7 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
           "
         />
       `;
+      applyInlineStyles(container);
     }
   } catch (error) {
     console.error("Error rendering secure incident media:", error);
@@ -140,6 +144,7 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
           Failed to load media
         </div>
       `;
+      applyInlineStyles(container);
     }
   }
 };

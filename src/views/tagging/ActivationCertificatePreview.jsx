@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { jsPDF } from "jspdf";
 import { QRCodeSVG, QRCodeCanvas } from "qrcode.react";
 import TaggingService from "../../services/TaggingService";
+import { withStyleNonce } from "../../utils/cspNonce";
 
 // ─────────────────────────────────────────────
 // Utilities
@@ -244,7 +245,7 @@ ${rows}
 </body></html>`;
     const w = window.open("", "_blank", "width=900,height=1200");
     if (!w) return;
-    w.document.open(); w.document.write(html); w.document.close();
+    w.document.open(); w.document.write(withStyleNonce(html)); w.document.close();
     w.focus(); setTimeout(() => { w.print(); w.close(); }, 300);
   };
 

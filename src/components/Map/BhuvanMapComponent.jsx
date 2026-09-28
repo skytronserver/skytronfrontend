@@ -22,6 +22,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
 
+import { applyInlineStyles } from "../../utils/cspNonce";
 /**
  * Reusable Bhuvan Map Component with OpenLayers
  * Supports Normal (Bhuvan) and Satellite (OSM) base layerss
@@ -1127,6 +1128,7 @@ ${trailerHtml}
               ${selectButtonHtml}
             </div>
           `;
+        applyInlineStyles(el);
 
         dynamicOverlay.setPosition(coordinates);
         dynamicOverlay.getElement().style.display = "block";
