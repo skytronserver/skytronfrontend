@@ -6,7 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import AuthWrapper1 from "./AuthWrapper1";
 import AuthCardWrapper from "./AuthCardWrapper";
 import AuthFooter from "../../../ui-component/cards/AuthFooter";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axios from 'axios';
 import { BASE_URL } from "../../../store/constant";
 import { encryptWithPublicKey } from '../../../actions/loginActions';
@@ -18,7 +18,9 @@ import Tooltip from '@mui/material/Tooltip';
 
 const SetPassword = () => {
   const { t } = useTranslation();
-  const { reset_token } = useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const reset_token = searchParams.get('q');
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [loading, setLoading] = useState(false);

@@ -28,7 +28,7 @@ const AuthenticationRoutes = {
       element: <LoginOtp />,
     },
     {
-      path: "/new/:reset_token",
+      path: "/new",
       element: <ResetPassword />
     },
     {
@@ -36,7 +36,7 @@ const AuthenticationRoutes = {
       element: <ForgotPassword />
     },
     {
-      path: "/reset-password/:reset_token",
+      path: "/reset-password",
       element: <SetPassword />
     },
     // Vehicle Status — standalone, no navbar/sidebar
