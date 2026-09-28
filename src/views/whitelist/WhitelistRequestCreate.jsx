@@ -7,16 +7,16 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import WhitelistService from '../../services/WhitelistService';
 import StockServices from '../../services/StockServices';
+import DeviceModelServices from '../../services/DeviceModelServices';
 import PageHeader from '../../ui-component/cards/PageHeader';
 import MainCard from '../../ui-component/cards/MainCard';
 import { gridSpacing } from '../../store/constant';
 
 const WhitelistRequestCreate = () => {
   const [requestType, setRequestType] = useState('add');
-  const [deviceSelectionMode, setDeviceSelectionMode] = useState('all');
-  const [availableDevices, setAvailableDevices] = useState([]);
-  const [selectedDevices, setSelectedDevices] = useState([]);
-  const [loadingDevices, setLoadingDevices] = useState(false);
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [loadingModels, setLoadingModels] = useState(false);
   const [requesterRemarks, setRequesterRemarks] = useState('');
   const [entries, setEntries] = useState([{ whitelist_type: 'ip', value: '' }]);
   const [submittingReq, setSubmittingReq] = useState(false);
@@ -39,34 +39,25 @@ const WhitelistRequestCreate = () => {
     }
   };
 
-  const fetchDevicesForProvider = async (providerId) => {
-    setLoadingDevices(true);
+  const fetchModels = async () => {
+    setLoadingModels(true);
     try {
-      const params = { esim_provider_id: providerId, page_size: 100 };
-      const res = await WhitelistService.deviceDashboard(params);
+      const res = await DeviceModelServices.getAllModels();
       if (res && res.data) {
-        setAvailableDevices(res.data.devices || []);
+        setModels(res.data || []);
       }
     } catch (err) {
-      console.error('Error fetching devices for provider:', err);
-      showToast('Failed to fetch devices for this eSIM provider.', 'warning');
+      console.error('Error fetching models:', err);
+      showToast('Failed to fetch device models.', 'warning');
     } finally {
-      setLoadingDevices(false);
+      setLoadingModels(false);
     }
   };
 
   useEffect(() => {
     fetchProviders();
+    fetchModels();
   }, []);
-
-  useEffect(() => {
-    if (selectedProvider && deviceSelectionMode === 'specific') {
-      fetchDevicesForProvider(selectedProvider.id);
-    } else {
-      setAvailableDevices([]);
-      setSelectedDevices([]);
-    }
-  }, [selectedProvider, deviceSelectionMode]);
 
   const handleAddEntryRow = () => {
     setEntries([...entries, { whitelist_type: 'ip', value: '' }]);
@@ -95,18 +86,18 @@ const WhitelistRequestCreate = () => {
       return;
     }
 
+    if (!selectedModel) {
+      showToast('Please select a device model.', 'error');
+      return;
+    }
+
     const payload = {
       request_type: requestType,
       esim_provider_id: selectedProvider.id,
+      device_model_id: selectedModel.id,
       entries: validEntries,
-      device_stock_ids: deviceSelectionMode === 'all' ? 'all' : selectedDevices.map(d => typeof d === 'string' ? d : d.id),
       requester_remarks: requesterRemarks
     };
-
-    if (payload.device_stock_ids !== 'all' && payload.device_stock_ids.length === 0) {
-      showToast('Please select at least one device or choose All accessible devices.', 'error');
-      return;
-    }
 
     setSubmittingReq(true);
     try {
@@ -147,16 +138,37 @@ const WhitelistRequestCreate = () => {
                 value={selectedProvider}
                 onChange={(event, newValue) => {
                   setSelectedProvider(newValue);
-                  setSelectedDevices([]);
                 }}
                 renderInput={(params) => <TextField {...params} label="eSim Provider" required />}
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <TextField select fullWidth  label="Device Selection Scope" value={deviceSelectionMode} onChange={(e) => setDeviceSelectionMode(e.target.value)} disabled={!selectedProvider}>
-                <MenuItem value="all">All Accessible Devices linked to Provider</MenuItem>
-              </TextField>
+              <Autocomplete
+                options={models}
+                getOptionLabel={(option) => option.model_name || option.name || `Model ID: ${option.id}`}
+                value={selectedModel}
+                loading={loadingModels}
+                onChange={(event, newValue) => {
+                  setSelectedModel(newValue);
+                }}
+                renderInput={(params) => (
+                  <TextField 
+                    {...params} 
+                    label="Device Model" 
+                    required 
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <React.Fragment>
+                          {loadingModels ? <CircularProgress color="inherit" size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </React.Fragment>
+                      ),
+                    }}
+                  />
+                )}
+              />
             </Grid>
 
 

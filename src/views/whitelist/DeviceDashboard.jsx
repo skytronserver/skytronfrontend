@@ -517,6 +517,7 @@ const DeviceDashboard = () => {
                       >
                         ICCID {sortBy === 'iccid' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                       </TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Device Model</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Phone Numbers</TableCell>
                       <TableCell
                         sx={{ fontWeight: 'bold', cursor: 'pointer' }}
@@ -546,6 +547,9 @@ const DeviceDashboard = () => {
                         <TableCell sx={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{device.device_esn}</TableCell>
                         <TableCell>{device.imei}</TableCell>
                         <TableCell sx={{ fontFamily: 'monospace' }}>{device.iccid}</TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{device.device_model_name || 'N/A'}</Typography>
+                        </TableCell>
                         <TableCell>
                           <Typography variant="body2">{device.msisdn1 || 'N/A'}</Typography>
                           {device.msisdn2 && <Typography variant="caption" color="textSecondary">{device.msisdn2}</Typography>}
@@ -703,6 +707,12 @@ const DeviceDashboard = () => {
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="textSecondary">Device Model</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    {selectedDevice.device_model_name || 'N/A'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="textSecondary">Assigned Dealer RFC(Retro Fitment Center) Name</Typography>
                   <Typography variant="body1">
                     {selectedDevice.dealer_name || 'N/A'}
@@ -760,6 +770,7 @@ const DeviceDashboard = () => {
                               <TableHead sx={{ bgcolor: '#f8fafc' }}>
                                 <TableRow>
                                   <TableCell sx={{ py: 0.5, fontWeight: 'bold' }}>Value</TableCell>
+                                  <TableCell sx={{ py: 0.5, fontWeight: 'bold' }}>Scope</TableCell>
                                   <TableCell sx={{ py: 0.5, fontWeight: 'bold' }}>Source Req</TableCell>
                                   <TableCell sx={{ py: 0.5, fontWeight: 'bold' }}>Activated At</TableCell>
                                 </TableRow>
@@ -768,6 +779,15 @@ const DeviceDashboard = () => {
                                 {list.map((item) => (
                                   <TableRow key={item.id}>
                                     <TableCell sx={{ py: 0.5, fontFamily: 'monospace', fontWeight: 'bold' }}>{item.value}</TableCell>
+                                    <TableCell sx={{ py: 0.5 }}>
+                                      {item.device_stock_id ? (
+                                        <Chip label="Device" size="small" variant="outlined" />
+                                      ) : (
+                                        <Tooltip title="Applies to all devices of this model">
+                                          <Chip label="Model Level" size="small" color="primary" />
+                                        </Tooltip>
+                                      )}
+                                    </TableCell>
                                     <TableCell sx={{ py: 0.5 }}>Req #{item.source_request_id}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{item.activated_at ? new Date(item.activated_at).toLocaleString() : 'N/A'}</TableCell>
                                   </TableRow>

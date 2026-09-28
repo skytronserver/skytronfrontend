@@ -39,6 +39,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { decipherEncryption } from '../../helper';
 import WhitelistService from '../../services/WhitelistService';
 import StockServices from '../../services/StockServices';
+import DeviceModelServices from '../../services/DeviceModelServices';
 
 // Project imports
 import PageHeader from '../../ui-component/cards/PageHeader';
@@ -89,6 +90,8 @@ const WhitelistRequests = () => {
   const [activeTypeFilter, setActiveTypeFilter] = useState('');
   const [activeStockIdFilter, setActiveStockIdFilter] = useState('');
   const [activeProviderIdFilter, setActiveProviderIdFilter] = useState('');
+  const [activeModelIdFilter, setActiveModelIdFilter] = useState('');
+  const [models, setModels] = useState([]);
 
   // ----------------------------------------------------
   // Create Request Modal States
@@ -176,6 +179,7 @@ const WhitelistRequests = () => {
       if (activeTypeFilter) params.whitelist_type = activeTypeFilter;
       if (activeStockIdFilter) params.device_stock_id = activeStockIdFilter;
       if (activeProviderIdFilter) params.esim_provider_id = activeProviderIdFilter;
+      if (activeModelIdFilter) params.device_model_id = activeModelIdFilter;
 
       const res = await WhitelistService.listActiveWhitelist(params);
       if (res && res.data) {
@@ -198,6 +202,17 @@ const WhitelistRequests = () => {
       }
     } catch (err) {
       console.error('Error fetching providers:', err);
+    }
+  };
+
+  const fetchModels = async () => {
+    try {
+      const res = await DeviceModelServices.getAllModels();
+      if (res && res.data) {
+        setModels(res.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching models:', err);
     }
   };
 
@@ -234,6 +249,7 @@ const WhitelistRequests = () => {
   // Load providers once on mount
   useEffect(() => {
     fetchProviders();
+    fetchModels();
   }, []);
 
   // Fetch devices when eSIM provider changes in the Create Request Dialog
@@ -361,6 +377,7 @@ const WhitelistRequests = () => {
       setActiveTypeFilter('');
       setActiveStockIdFilter('');
       setActiveProviderIdFilter('');
+      setActiveModelIdFilter('');
       setActivePage(0);
     }
   };
@@ -506,6 +523,7 @@ const WhitelistRequests = () => {
                           <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Requester</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>eSim Provider</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Device Model</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Devices</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Whitelist Entries</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Created At</TableCell>
@@ -531,9 +549,12 @@ const WhitelistRequests = () => {
                             </TableCell>
                             <TableCell>{row.esim_provider_name || 'N/A'}</TableCell>
                             <TableCell>
-                              <Tooltip title={row.device_stock_ids && Array.isArray(row.device_stock_ids) ? row.device_stock_ids.join(', ') : 'All Devices'}>
+                              <Typography variant="body2">{row.device_model_name || 'N/A'}</Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Tooltip title={row.device_stock_ids && Array.isArray(row.device_stock_ids) ? row.device_stock_ids.join(', ') : 'All Devices for Model'}>
                                 <Chip
-                                  label={`${row.device_stock_count} Device(s)`}
+                                  label={`${row.device_stock_count || 0} Device(s)`}
                                   variant="outlined"
                                   size="small"
                                 />
@@ -645,6 +666,19 @@ const WhitelistRequests = () => {
                     }}
                   />
                 </Grid>
+                <Grid item xs={12} sm={3}>
+                  <Autocomplete
+                    size="small"
+                    options={models}
+                    getOptionLabel={(option) => option.model_name || `Model ID: ${option.id}`}
+                    value={models.find((m) => m.id === activeModelIdFilter) || null}
+                    onChange={(event, newValue) => {
+                      setActiveModelIdFilter(newValue ? newValue.id : '');
+                      setActivePage(0);
+                    }}
+                    renderInput={(params) => <TextField {...params} label="Device Model" />}
+                  />
+                </Grid>
                 <Grid item xs={12} sm={3} sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                   <Button
                     variant="outlined"
@@ -690,7 +724,8 @@ const WhitelistRequests = () => {
                       <TableHead sx={{ backgroundColor: '#f8fafc' }}>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Device ESN</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Device Model</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Device ESN / ID</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>eSim Provider</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Value</TableCell>
@@ -702,7 +737,14 @@ const WhitelistRequests = () => {
                         {activeWhitelists.map((row) => (
                           <TableRow key={row.id} hover>
                             <TableCell sx={{ fontWeight: 'bold' }}>#{row.id}</TableCell>
-                            <TableCell sx={{ fontFamily: 'monospace' }}>{row.device_esn}</TableCell>
+                            <TableCell>
+                              <Typography variant="body2">{row.device_model_name || 'N/A'}</Typography>
+                            </TableCell>
+                            <TableCell sx={{ fontFamily: 'monospace' }}>
+                              {row.device_esn ? row.device_esn : (
+                                <Chip label="All Devices for Model" size="small" variant="outlined" color="primary" />
+                              )}
+                            </TableCell>
                             <TableCell>
                               <Typography variant="body2">{row.esim_provider_name || 'N/A'}</Typography>
                             </TableCell>
