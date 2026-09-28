@@ -8,6 +8,7 @@ import FormField from "../../ui-component/CustomTextField";
 import * as Yup from "yup";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
+import ManufacturerServices from "../../services/ManufacturerServices";
 import DialogComponent from "../../ui-component/DialogComponent";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -127,6 +128,41 @@ const DeviceModelForm = () => {
     } else {
       formik.setFieldValue("agency_address", "");
       formik.setFieldValue("agency_pincode", "");
+    }
+  };
+
+  const [m2mIspNames, setM2mIspNames] = useState([]);
+
+  const handleEsimProviderChange = async (event, formik) => {
+    const selectedProviders = event.target.value;
+    if (selectedProviders && selectedProviders.length > 0) {
+      try {
+        let allIps = [];
+        let allIspNames = [];
+        for (const providerId of selectedProviders) {
+           const res = await ManufacturerServices.listEsimProviderIpRanges(providerId);
+           if (res?.data && Array.isArray(res.data.data)) {
+              const ips = res.data.data.map(item => item.ip_address || item.ip).filter(Boolean);
+              const isps = res.data.data.map(item => item.isp_name).filter(Boolean);
+              allIps = [...allIps, ...ips];
+              allIspNames = [...allIspNames, ...isps];
+           }
+        }
+        const uniqueIps = [...new Set(allIps)];
+        const uniqueIsps = [...new Set(allIspNames)];
+        
+        if (uniqueIps.length > 0) {
+           formik.setFieldValue("whitelisted_ip", uniqueIps.join(", "));
+        } else {
+           formik.setFieldValue("whitelisted_ip", "");
+        }
+        setM2mIspNames(uniqueIsps);
+      } catch (err) {
+         console.error("Error fetching IP ranges", err);
+      }
+    } else {
+       formik.setFieldValue("whitelisted_ip", "");
+       setM2mIspNames([]);
     }
   };
 
@@ -344,7 +380,11 @@ const DeviceModelForm = () => {
                               fieldConfig={updatedFormFields[field]}
                               formik={formik}
                               handleFileChange={handleFileChange}
-                              handleOptionChange={field === 'test_agency' ? (e) => handleAgencyChange(e, formik) : undefined}
+                              handleOptionChange={
+                                field === 'test_agency' ? (e) => handleAgencyChange(e, formik) :
+                                field === 'eSimProviders' ? (e) => handleEsimProviderChange(e, formik) :
+                                undefined
+                              }
                             />
                           </Grid>
                         )
@@ -365,16 +405,16 @@ const DeviceModelForm = () => {
                                   multiple
                                   value={comb}
                                   onChange={(e) => handleCombinationChange(e, index)}
-                                  input={<OutlinedInput label={`Combination ${index + 1}`} />}
-                                  renderValue={(selected) => selected.join(', ')}
-                                >
-                                  {['Airtel', 'Vi', 'BSNL', 'Jio', 'MTNL'].map((name) => (
-                                    <MenuItem key={name} value={name}>
-                                      <Checkbox checked={comb.indexOf(name) > -1} />
-                                      <ListItemText primary={name} />
-                                    </MenuItem>
-                                  ))}
-                                </Select>
+                                    input={<OutlinedInput label={`Combination ${index + 1}`} />}
+                                    renderValue={(selected) => selected.join(', ')}
+                                  >
+                                    {m2mIspNames.map((name) => (
+                                      <MenuItem key={name} value={name}>
+                                        <Checkbox checked={comb.indexOf(name) > -1} />
+                                        <ListItemText primary={name} />
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
                                 {(comb.length < 2 || comb.length > 5) && comb.length > 0 && (
                                   <FormHelperText error>Must select between 2 and 5 profiles.</FormHelperText>
                                 )}

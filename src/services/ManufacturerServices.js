@@ -38,6 +38,11 @@ const approveTechOnboarding = (data) => {
   return http.post('/api/manufacturer/approve_tech_onboarding/', data);
 }
 
+const listEsimProviderIpRanges = (esim_provider_id) => {
+  const http = getAxiosInstance();
+  return http.get(`/api/manufacturer/esim-provider/ip-range/list/?esim_provider_id=${esim_provider_id}`);
+}
+
 const ManufacturerServices = {
   getAll,
   getSingle,
@@ -48,6 +53,7 @@ const ManufacturerServices = {
   updateManufacturer,
   filterTechOnboardManufacturers,
   approveTechOnboarding,
+  listEsimProviderIpRanges,
 };
 
 export default ManufacturerServices;

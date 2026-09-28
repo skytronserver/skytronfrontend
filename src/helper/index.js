@@ -519,6 +519,7 @@ export const retriveCreatedSimProvider = async (data) => {
     const list = filtered.map((simProvider) => ({
       value: simProvider.id,
       label: simProvider.company_name,
+      isp_name: simProvider.isp_name || simProvider.company_name, // fallback just in case
     }));
     return list;
   } catch (error) {
