@@ -48,6 +48,7 @@ import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 import { fetchSecureIncidentMedia, createMediaUrl, isVideoFile } from "../../utils/incidentImageLoader";
 import { getRole } from "../../helper";
 
+import { createStyleElement } from "../../utils/cspNonce";
 const emCallAudio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
 const DriverCard = ({ driver }) => {
@@ -1449,7 +1450,7 @@ const EMCall = () => {
   `;
 
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = createStyleElement();
     style.innerHTML = keyframes;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
