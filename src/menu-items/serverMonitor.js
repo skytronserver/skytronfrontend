@@ -65,7 +65,7 @@ const serverMonitor = {
         },
         {
           id: 'device-health-dashboard',
-          title: 'Alert Stats',
+          title: 'Device Data Health',
           type: 'item',
           url: `/device-health-dashboard`,
           icon: icons.IconActivity,

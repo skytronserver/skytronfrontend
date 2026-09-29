@@ -112,7 +112,12 @@ const Details = () => {
         } else if (userType === 'sosUser') {
           retrieveData = await UserServices.fetchSOSAdmin({ StateAdmin_id: userId });
         } else if (userType === 'sosOtherUser') {
-          retrieveData = await UserServices.fetchSOSUser({ SOSUser_id: userId });
+          retrieveData = await UserServices.fetchSOSUser({ 
+            SOSUser_id: userId, 
+            id: userId, 
+            sosuser_id: userId, 
+            SOSuser_id: userId 
+          });
         }
         else if (userType === 'dtoUser') {
           retrieveData = await UserServices.fetchDTOList({ dto_rto_id: userId });
@@ -126,7 +131,16 @@ const Details = () => {
           throw new Error("Unsupported user type");
         }
 
-        const userData = retrieveData.data[0];
+        let userData = retrieveData.data[0];
+
+        // If the API returns multiple users (e.g. filter by ID wasn't supported), find the correct one
+        if (retrieveData.data && retrieveData.data.length > 1) {
+          const found = retrieveData.data.find(u => String(u.id) === String(userId) || String(u?.users?.[0]?.id) === String(userId));
+          if (found) {
+            userData = found;
+          }
+        }
+
         setRawRecord(userData);
 
         const statusRaw =
@@ -396,15 +410,20 @@ const Details = () => {
         },
       ];
     }
-    if (userType === 'sosUser') {
-  return [
-    {
-      key: 'file_authLetter',
-      label: 'Authorization Letter',
-      fallbackKeys: ['file_authorisation_letter'],
-    },
-  ];
-}
+    if (userType === 'sosUser' || userType === 'sosOtherUser') {
+      return [
+        {
+          key: 'file_authLetter',
+          label: 'Authorization Letter',
+          fallbackKeys: ['file_authorisation_letter', 'file_authorization_letter'],
+        },
+        {
+          key: 'file_idProof',
+          label: 'ID Proof',
+          fallbackKeys: ['file_idproof'],
+        },
+      ];
+    }
     return [];
   }, [userType]);
 
@@ -423,10 +442,17 @@ const Details = () => {
 // SOS Admin authorization letter is inside users[0]
 if (
   !fileUrl &&
-  userType === "sosUser" &&
+  (userType === "sosUser" || userType === "sosOtherUser") &&
   d.key === "file_authLetter"
 ) {
-  fileUrl = rec?.users?.[0]?.authorisation_letter;
+  fileUrl = rec?.users?.[0]?.authorisation_letter || rec?.users?.[0]?.authorization_letter || rec?.users?.[0]?.file_authorization_letter;
+}
+
+if (!fileUrl) {
+  // If still not found, check if it's anywhere else with different casings
+  if (d.key === 'file_authLetter') {
+     fileUrl = rec?.authorization_letter || rec?.authorisation_letter;
+  }
 }
 
 if (!fileUrl) return null;
