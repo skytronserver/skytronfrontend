@@ -22,15 +22,27 @@ export const createStyleElement = () => {
   return style;
 };
 
-// Inline style="" attributes in HTML strings (innerHTML) are blocked by the
-// CSP, but setting the same declarations through the CSSOM is allowed. Call
-// this after putting one of our own HTML templates into the page.
+const CSP_STYLE_ATTR = "data-csp-style";
+
+// Inline style="" attributes in HTML strings are blocked by the CSP (and the
+// browser logs a violation as soon as the HTML is parsed - even by DOMParser).
+// Setting the same declarations through the CSSOM is allowed. So our own HTML
+// templates go through two steps:
+//   el.innerHTML = toCspHtml(html);   // style="..." -> data-csp-style="..."
+//   applyInlineStyles(el);            // data-csp-style -> el.style.cssText
+// toCspHtml only rewrites attribute names inside tags, never visible text.
+export const toCspHtml = (html) =>
+  String(html ?? "").replace(/<[a-zA-Z][^<>]*>/g, (tag) =>
+    tag.replace(/(\s)style(\s*=)/gi, `$1${CSP_STYLE_ATTR}$2`)
+  );
+
 export const applyInlineStyles = (root) => {
-  if (!root) return;
-  const nodes = root.querySelectorAll ? [root, ...root.querySelectorAll("[style]")] : [];
-  nodes.forEach((el) => {
-    const css = el.getAttribute && el.getAttribute("style");
+  if (!root || !root.querySelectorAll) return;
+  [root, ...root.querySelectorAll(`[${CSP_STYLE_ATTR}], [style]`)].forEach((el) => {
+    if (!el.getAttribute) return;
+    const css = el.getAttribute(CSP_STYLE_ATTR) ?? el.getAttribute("style");
     if (css) el.style.cssText = css;
+    el.removeAttribute(CSP_STYLE_ATTR);
   });
 };
 

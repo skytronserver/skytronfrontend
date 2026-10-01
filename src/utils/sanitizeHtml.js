@@ -2,6 +2,8 @@
 // simple formatting (<br>, <strong>, links). Anything else - <script>, <img>,
 // <svg>, event handlers (onerror=...), javascript: URLs - is removed, so a
 // value echoed back from the server can't execute in the page (VAPT: XSS).
+import { toCspHtml } from './cspNonce';
+
 const ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'P', 'DIV', 'SPAN', 'UL', 'OL', 'LI', 'A']);
 const SAFE_HREF = /^(https?:\/\/|\/(?!\/)|#|mailto:)/i;
 
@@ -15,9 +17,11 @@ const cleanNode = (node) => {
     }
     [...child.attributes].forEach((attr) => {
       const name = attr.name.toLowerCase();
+      // Inline styles arrive as data-csp-style (see toCspHtml); the caller
+      // applies them with applyInlineStyles after rendering.
       const keep =
         (name === 'href' && child.tagName === 'A' && SAFE_HREF.test(attr.value.trim())) ||
-        (name === 'style' && !/url\s*\(|expression\s*\(/i.test(attr.value));
+        (name === 'data-csp-style' && !/url\s*\(|expression\s*\(/i.test(attr.value));
       if (!keep) child.removeAttribute(attr.name);
     });
     if (child.tagName === 'A') child.setAttribute('rel', 'noopener noreferrer');
@@ -27,7 +31,9 @@ const cleanNode = (node) => {
 
 export const sanitizeHtml = (html) => {
   if (html === null || html === undefined) return '';
-  const doc = new DOMParser().parseFromString(`<div>${String(html)}</div>`, 'text/html');
+  // style="" -> data-csp-style before parsing: the CSP flags inline style
+  // attributes even inside DOMParser documents.
+  const doc = new DOMParser().parseFromString(`<div>${toCspHtml(html)}</div>`, 'text/html');
   const root = doc.body.firstChild;
   cleanNode(root);
   return root.innerHTML;

@@ -22,7 +22,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
 
-import { applyInlineStyles } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml } from "../../utils/cspNonce";
 /**
  * Reusable Bhuvan Map Component with OpenLayers
  * Supports Normal (Bhuvan) and Satellite (OSM) base layerss
@@ -1089,7 +1089,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
         const el = document.getElementById("overlay-content");
         if (!el) return;
 
-        el.innerHTML = `
+        el.innerHTML = toCspHtml(`
             <div class="overlay-card">
               <div class="overlay-header">
                 <div class="overlay-title">${resolveVehicleNo(entryData)}</div>
@@ -1127,7 +1127,7 @@ ${trailerHtml}
               </div>
               ${selectButtonHtml}
             </div>
-          `;
+          `);
         applyInlineStyles(el);
 
         dynamicOverlay.setPosition(coordinates);

@@ -62,7 +62,7 @@ import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/Hom
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
-import { applyInlineStyles, createStyleElement } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml, createStyleElement } from "../../utils/cspNonce";
 const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
 
 const formatDateDDMMYY = (raw) => {
@@ -4159,7 +4159,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 : "",
         ].join("");
 
-        overlayContent.innerHTML = `
+        overlayContent.innerHTML = toCspHtml(`
 <div class="overlay-card">
 <div class="overlay-header">
 <div class="overlay-header-content">
@@ -4260,7 +4260,7 @@ ${policeInfoRows || policeDetailsRows
 </div>
 </div>
 </div>
-`;
+`);
         applyInlineStyles(overlayContent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address]);
@@ -4876,7 +4876,7 @@ ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
                     if (dynamicOverlay) {
                         const overlayContent = document.getElementById('overlay-content');
                         if (overlayContent) {
-                            overlayContent.innerHTML = `
+                            overlayContent.innerHTML = toCspHtml(`
 <div class="overlay-card" style="max-width: 250px; overflow: hidden;">
 <div class="overlay-header">
 <div class="overlay-title" style="word-wrap: break-word;">${result.poi || result.placeName || result.locality || 'Location'}</div>
@@ -4894,7 +4894,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
 </div>
 </div>
 </div>
-`;
+`);
                             applyInlineStyles(overlayContent);
                             dynamicOverlay.setPosition([lngNum, latNum]);
                             overlayElement.current.style.display = 'block';

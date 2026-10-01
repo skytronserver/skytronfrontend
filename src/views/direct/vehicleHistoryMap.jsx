@@ -65,7 +65,7 @@ import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/Hom
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
-import { applyInlineStyles, createStyleElement } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml, createStyleElement } from "../../utils/cspNonce";
 const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
 
 const formatDateDDMMYY = (raw) => {
@@ -5460,7 +5460,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                     listHtml += `</div></div>`;
 
                     const el = document.getElementById("overlay-content");
-                    if (el) el.innerHTML = listHtml;
+                    if (el) el.innerHTML = toCspHtml(listHtml);
                     if (el) applyInlineStyles(el);
                     dynamicOverlay.setPosition(items[0].coord);
                     dynamicOverlay.getElement().style.display = "block";
@@ -5472,7 +5472,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                     if (item.type === 'incident') {
                         const incident = item.data;
                         const imageContainerId = `incident-media-${incident.id}-${Date.now()}`;
-                        document.getElementById("overlay-content").innerHTML = `
+                        document.getElementById("overlay-content").innerHTML = toCspHtml(`
 <div class="overlay-card" style="min-width: 250px; font-family: 'Roboto', sans-serif;">
 <div class="overlay-header">
 <div class="overlay-title">Incident #${incident.id}</div>
@@ -5487,7 +5487,7 @@ ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;">
 </div>
 </div>
 </div>
-`;
+`);
                         applyInlineStyles(document.getElementById("overlay-content"));
 
                         dynamicOverlay.setPosition(coordinates);
@@ -5594,7 +5594,7 @@ ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;">
                                     : "",
                             ].join("");
 
-                            document.getElementById("overlay-content").innerHTML = `
+                            document.getElementById("overlay-content").innerHTML = toCspHtml(`
 <div class="overlay-card">
 <div class="overlay-header">
 <div class="overlay-header-content">
@@ -5711,7 +5711,7 @@ ${policeInfoRows || policeDetailsRows
   Click anywhere on the map to draw route from this vehicle
 </div>
 </div>
-`;
+`);
                             applyInlineStyles(document.getElementById("overlay-content"));
                         };
 
@@ -5897,7 +5897,7 @@ ${policeInfoRows || policeDetailsRows
         const showSelectedOnly =
     Array.isArray(selectedColumns) &&
     selectedColumns.length > 0;
-        overlayContent.innerHTML = `
+        overlayContent.innerHTML = toCspHtml(`
 <div class="overlay-card">
 <div class="overlay-header">
 <div class="overlay-header-content">
@@ -5983,7 +5983,7 @@ ${selectedColumns.map((key) => {
 </div>
 
 </div>
-`;
+`);
         applyInlineStyles(overlayContent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address, selectedColumns]);
@@ -6222,7 +6222,7 @@ ${selectedColumns.map((key) => {
                 const infoEl = routeInfoOverlayElementRef.current;
                 if (infoEl) {
                     infoEl.style.display = "block";
-                    infoEl.innerHTML = `
+                    infoEl.innerHTML = toCspHtml(`
                     <div style="
                       background:#fff;border-radius:10px;padding:14px 16px;
                       box-shadow:0 6px 24px rgba(0,0,0,.22);border:1px solid #e5e7eb;
@@ -6240,7 +6240,7 @@ ${selectedColumns.map((key) => {
                           <div style="font-weight:700;font-size:13px;color:#111827;">${etaDisplay}</div>
                         </div>
                       </div>
-                    </div>`;
+                    </div>`);
                     applyInlineStyles(infoEl);
                     // Position popup at midpoint of the route
                     const midIdx = Math.floor(lineCoords.length / 2);
@@ -6267,7 +6267,7 @@ ${selectedColumns.map((key) => {
 
                 // Update popup with full address info
                 if (infoEl && infoEl.style.display !== "none") {
-                    infoEl.innerHTML = `
+                    infoEl.innerHTML = toCspHtml(`
                     <div style="
                       background:#fff;border-radius:10px;padding:14px 16px;
                       box-shadow:0 6px 24px rgba(0,0,0,.22);border:1px solid #e5e7eb;
@@ -6296,7 +6296,7 @@ ${selectedColumns.map((key) => {
                           <div style="font-weight:700;font-size:15px;color:#15803d;">${etaDisplay}</div>
                         </div>
                       </div>
-                    </div>`;
+                    </div>`);
                     applyInlineStyles(infoEl);
                     // Wire up close button
                     const closeBtn = infoEl.querySelector("#route-info-close-btn");
@@ -6944,7 +6944,7 @@ ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
                     if (dynamicOverlay) {
                         const overlayContent = document.getElementById('overlay-content');
                         if (overlayContent) {
-                            overlayContent.innerHTML = `
+                            overlayContent.innerHTML = toCspHtml(`
 <div class="overlay-card" style="max-width: 250px; overflow: hidden;">
 <div class="overlay-header">
 <div class="overlay-title" style="word-wrap: break-word;">${result.poi || result.placeName || result.locality || 'Location'}</div>
@@ -6962,7 +6962,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
 </div>
 </div>
 </div>
-`;
+`);
                             applyInlineStyles(overlayContent);
                             dynamicOverlay.setPosition([lngNum, latNum]);
                             overlayElement.current.style.display = 'block';

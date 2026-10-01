@@ -28,7 +28,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { applyInlineStyles } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml } from "../../utils/cspNonce";
 const GPSHistoryMap = ({
   startDateTime,
   endDateTime,
@@ -208,7 +208,7 @@ const [snackbar, setSnackbar] = useState({
     </div>
   `;
 
-    poiPopupRef.current.innerHTML = html;
+    poiPopupRef.current.innerHTML = toCspHtml(html);
     applyInlineStyles(poiPopupRef.current);
     poiPopupRef.current.style.display = "block";
 
@@ -1118,7 +1118,7 @@ map.renderSync();
         <p><strong>DateTime:</strong> ${data.et}</p>
       `;
       console.log(data);
-      document.getElementById("overlay-content").innerHTML = content;
+      document.getElementById("overlay-content").innerHTML = toCspHtml(content);
       applyInlineStyles(document.getElementById("overlay-content"));
 
       // Set overlay position and make it visible

@@ -9,7 +9,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 
-import { applyInlineStyles } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml } from "../../utils/cspNonce";
 const VehicleSelectionMap = ({
     gpsData,
     width = "100%",
@@ -210,13 +210,13 @@ const VehicleSelectionMap = ({
                     // Set overlay content
                     const overlayContent = document.getElementById("overlay-content");
                     if (overlayContent) {
-                        overlayContent.innerHTML =
+                        overlayContent.innerHTML =toCspHtml(
                             `<strong>${entryData.vehicle_registration_number}</strong><br>` +
                             `<strong>Date:</strong> ${entryData.date}<br>` +
                             `<strong>Time:</strong> ${entryData.time}<br>` +
                             `<strong>Alert:</strong> ${entryData.packet_type}<br>` +
                             `<strong>Speed:</strong> ${entryData.speed > 2 ? entryData.speed : 0} km/h<br>` +
-                            `<button id='select-vehicle-btn' style='margin-top: 10px; padding: 5px 10px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;'>Select Vehicle</button>`;
+                            `<button id='select-vehicle-btn' style='margin-top: 10px; padding: 5px 10px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;'>Select Vehicle</button>`);
                         applyInlineStyles(overlayContent);
                     }
 

@@ -1,4 +1,4 @@
-import { applyInlineStyles } from "./cspNonce";
+import { applyInlineStyles, toCspHtml } from "./cspNonce";
 /**
  * Utility for securely loading incident images from API
  * Uses authentication token and POST request for security
@@ -82,11 +82,11 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
 
   try {
     // Show loading state
-    container.innerHTML = `
+    container.innerHTML = toCspHtml(`
       <div style="display: flex; align-items: center; justify-content: center; height: 160px; background: #f5f5f5; border-radius: ${borderRadius}; border: 1px solid #eee; font-size: 12px; color: #999;">
         Loading...
       </div>
-    `;
+    `);
     applyInlineStyles(container);
 
     // Get auth token from session storage
@@ -104,7 +104,7 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
 
     // Render appropriate element
     if (isVideo) {
-      container.innerHTML = `
+      container.innerHTML = toCspHtml(`
         <video 
           src="${mediaUrl}" 
           controls 
@@ -116,10 +116,10 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
             display: block;
           "
         ></video>
-      `;
+      `);
       applyInlineStyles(container);
     } else {
-      container.innerHTML = `
+      container.innerHTML = toCspHtml(`
         <img 
           src="${mediaUrl}" 
           alt="Incident Media" 
@@ -132,18 +132,18 @@ export const renderSecureIncidentMedia = async (filePath, containerId, options =
             display: block;
           "
         />
-      `;
+      `);
       applyInlineStyles(container);
     }
   } catch (error) {
     console.error("Error rendering secure incident media:", error);
     const container = document.getElementById(containerId);
     if (container) {
-      container.innerHTML = `
+      container.innerHTML = toCspHtml(`
         <div style="padding: 10px; color: #e53935; font-size: 12px; background: #fef2f2; border-radius: ${options.borderRadius || '6px'}; border: 1px solid #fecaca;">
           Failed to load media
         </div>
-      `;
+      `);
       applyInlineStyles(container);
     }
   }
