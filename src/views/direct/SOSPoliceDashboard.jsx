@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Grid, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Button, Paper, Switch, FormControlLabel, Box
 } from "@mui/material";
@@ -14,6 +14,9 @@ import { getAllSOSCall } from '../../actions/commonDataActions';
 import { useNavigate } from "react-router";
 import { useTranslation } from 'react-i18next';
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
+import useSOSIdleChallenge from "../../hooks/useSOSIdleChallenge";
+import SOSCaptchaChallenge from "../../ui-component/SOSCaptchaChallenge";
+import { logout } from "../../actions/loginActions";
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
@@ -40,6 +43,27 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const [nearestPolice, setNearestPolice] = useState(null);
   const [nearestPoliceDistance, setNearestPoliceDistance] = useState(null);
   const { t } = useTranslation();
+
+  // ─── SOS Idle Challenge (5 min idle → captcha, 30s timeout → logout) ───
+  const isSOSRole = role === 'desk_ex';
+  const {
+    showChallenge,
+    challengeExpired,
+    countdown,
+    resetIdleTimer,
+    onChallengeSuccess,
+  } = useSOSIdleChallenge({
+    idleTimeout: 30000,    // 30 seconds
+    challengeTimeout: 30000, // 30 seconds
+    enabled: isSOSRole,
+  });
+
+  const handleChallengeExpired = useCallback(() => {
+    dispatch(logout());
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = '/';
+  }, [dispatch]);
 
   const [callMeta, setCallMeta] = useState({});
 
@@ -275,6 +299,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
         broadcastType = type === "police_ex" ? "Police" : "Ambulance";
       }
       setBroadcastDisabled(true);
+      resetIdleTimer();
       alert(`${broadcastType} broadcast successful!`);
     } catch (error) {
       console.error('Broadcast Error:', error);
@@ -284,6 +309,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   const handleCloseCall = async () => {
     try {
       await HomePageService.closeCase({ assignment_id: call.id });
+      resetIdleTimer();
       alert('Call closed successfully!');
       setCall((prev) => ({
         ...prev,
@@ -348,6 +374,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     audio.pause();
     audio.currentTime = 0;
     clearTimeout(buzzerTimeout);
+    resetIdleTimer();
     if (show === "here") {
       handleShow(acceptedCall)
       setShowDetails(true)
@@ -536,6 +563,15 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* SOS Idle Captcha Challenge Modal */}
+      <SOSCaptchaChallenge
+        open={showChallenge}
+        countdown={countdown}
+        onSuccess={onChallengeSuccess}
+        onExpired={handleChallengeExpired}
+        challengeExpired={challengeExpired}
+      />
     </Grid>
   );
 };
