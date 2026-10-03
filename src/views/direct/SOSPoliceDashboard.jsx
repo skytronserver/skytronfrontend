@@ -53,7 +53,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     resetIdleTimer,
     onChallengeSuccess,
   } = useSOSIdleChallenge({
-    idleTimeout: 30000,    // 30 seconds
+    idleTimeout: 300000,    // 5 minutes
     challengeTimeout: 30000, // 30 seconds
     enabled: isSOSRole,
   });
