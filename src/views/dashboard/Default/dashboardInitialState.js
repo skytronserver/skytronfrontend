@@ -99,6 +99,8 @@ export const dashboardInitialState = {
   userDashboardInfo: {
     deviceActivated: 0,
     vehicles: 0,
+    igOnVehicles: 0,
+    igOffVehicles: 0,
     onlineDevice: 0,
     offlineDevice: 0,
     movingVehicles: 0,

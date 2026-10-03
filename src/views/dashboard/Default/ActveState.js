@@ -514,6 +514,8 @@ const ActiveState = () => {
           ...prev,
           deviceActivated: data.Total_Device_Activated,
           vehicles: data.Total_Vehicles,
+          igOnVehicles: data.Total_IgON_Vehicles,
+          igOffVehicles: data.Total_IgOFF_Vehicles,
           movingVehicles: data.Total_Moving_Vehicles,
           stoppedVehicles: data.Total_Stopped_Vehicles,
           idleVehicles: data.Total_Idle_Vehicles,
@@ -3336,8 +3338,8 @@ const ActiveState = () => {
                 label={t('dashboard.labels.ownerVehicleStatus')}
                 cardValue={{
                   total: ownerDashboardInfo.vehicles,
-                  ignitionOn: ownerDashboardInfo.movingVehicles + ownerDashboardInfo.idleVehicles,
-                  ignitionOff: ownerDashboardInfo.stoppedVehicles
+                  ignitionOn: ownerDashboardInfo.igOnVehicles,
+                  ignitionOff: ownerDashboardInfo.igOffVehicles
                 }}
                 iconImage={Vehicle}
                 heading={t('dashboard.headings.ownerVehicleStatus')}
