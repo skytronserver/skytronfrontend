@@ -963,6 +963,14 @@ const user = {
           roles: ['superadmin']
         },
         {
+          id: 'executive-performance-report',
+          title: 'Executive Performance Report',
+          type: 'item',
+          url: '/reports/executive-performance-report',
+          breadcrumbs: false,
+          roles: ['superadmin', 'sosadmin', 'systemadmin']
+        },
+        {
           id: 'violation-report',
           title: 'Violation Report',
           type: 'item',

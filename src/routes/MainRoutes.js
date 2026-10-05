@@ -50,6 +50,7 @@ const DeviceHealthReport = Loadable(lazy(() => import("../views/reports/DeviceHe
 const UserStatisticsReport = Loadable(lazy(() => import("../views/reports/UserStatisticsReport")));
 const IncidentReport = Loadable(lazy(() => import("../views/reports/IncidentReport")));
 const ViolationReport = Loadable(lazy(() => import("../views/reports/ViolationReport")));
+const ExecutivePerformanceReport = Loadable(lazy(() => import("../views/reports/ExecutivePerformanceReport")));
 
 const PublicTransportDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/PublicTransportDashboard")));
 const PublicSafetyDashboard = Loadable(lazy(() => import("../views/dashboard/super admin dashboard/PublicSafetyDashboard")));
@@ -431,6 +432,11 @@ const MainRoutes = {
       path: '/reports/poi-report',
       element: <POIReport />,
       roles: ['superadmin', 'stateadmin', 'owner', 'dto']
+    },
+    {
+      path: '/reports/executive-performance-report',
+      element: <ExecutivePerformanceReport />,
+      roles: ['superadmin', 'sosadmin', 'systemadmin']
     },
     {
       path: '/map',

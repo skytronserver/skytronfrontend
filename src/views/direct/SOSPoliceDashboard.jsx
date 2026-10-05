@@ -17,6 +17,7 @@ import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 import useSOSIdleChallenge from "../../hooks/useSOSIdleChallenge";
 import SOSCaptchaChallenge from "../../ui-component/SOSCaptchaChallenge";
 import { logout } from "../../actions/loginActions";
+import SOSManagement from "../../services/SOSManagement";
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
@@ -53,12 +54,31 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     resetIdleTimer,
     onChallengeSuccess,
   } = useSOSIdleChallenge({
-    idleTimeout: 300000,    // 5 minutes
+    idleTimeout: 30000,    // 30 seconds
     challengeTimeout: 30000, // 30 seconds
     enabled: isSOSRole,
   });
 
-  const handleChallengeExpired = useCallback(() => {
+  const handleChallengeExpired = useCallback(async () => {
+    // Record unattended time (5 minutes ago to now)
+    const now = new Date();
+    const startTime = new Date(now.getTime() - 300000); // 5 minutes ago
+
+    const formatIST = (d) => {
+      const pad = (n) => n.toString().padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
+
+    try {
+      await SOSManagement.recordUnattendedTime({
+        start_time: formatIST(startTime),
+        end_time: formatIST(now),
+        reason: "Idle timeout"
+      });
+    } catch (err) {
+      console.error("Failed to record unattended time", err);
+    }
+
     dispatch(logout());
     sessionStorage.clear();
     localStorage.clear();

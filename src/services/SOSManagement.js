@@ -23,6 +23,16 @@ const editEmTeam = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/EM/edit_EMteam/", data);
 }
+
+const recordUnattendedTime = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/SOS/unattended/record/", data);
+};
+
+const getExecutivePerformanceReport = (params) => {
+  const http = getAxiosInstance();
+  return http.get("/api/SOS/executive_performance_report/", { params });
+};
 const SOSManagement = {
   createEmTeam,
   activateEmTeam,
@@ -30,6 +40,8 @@ const SOSManagement = {
   viewEmTeam,
   listEmTeam,
   editEmTeam,
+  recordUnattendedTime,
+  getExecutivePerformanceReport,
 };
 
 export default SOSManagement;
