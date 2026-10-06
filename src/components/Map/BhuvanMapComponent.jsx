@@ -2496,8 +2496,6 @@ ${trailerHtml}
                                 width: 100%;
                                 transition: background-color 0.2s;
                             "
-                            onmouseover="this.style.backgroundColor='#1565c0'"
-                            onmouseout="this.style.backgroundColor='#1976d2'"
                         >
                             Select Vehicle
                         </button>
@@ -2525,6 +2523,9 @@ ${trailerHtml}
                             setTimeout(() => {
                                 const selectBtn = document.getElementById('select-vehicle-btn');
                                 if (selectBtn) {
+                                    // Hover via listeners: inline on* handlers are blocked by the CSP
+                                    selectBtn.onmouseover = () => { selectBtn.style.backgroundColor = "#1565c0"; };
+                                    selectBtn.onmouseout = () => { selectBtn.style.backgroundColor = "#1976d2"; };
                                     selectBtn.onclick = () => {
                                         onMarkerClick(resolvedEntry);
                                         dynamicOverlay.getElement().style.display = "none";

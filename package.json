@@ -48,6 +48,7 @@
     "redux": "^4.2.1",
     "redux-thunk": "^2.4.0",
     "slick-carousel": "^1.8.1",
+    "tss-react": "^3.7.1",
     "webfontloader": "^1.6.28",
     "yup": "^0.32.11"
   },

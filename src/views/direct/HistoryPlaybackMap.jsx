@@ -134,7 +134,7 @@ const [snackbar, setSnackbar] = useState({
         font-size:20px;
         font-weight:bold;
       "
-      onclick="this.parentElement.parentElement.style.display='none'">
+      data-poi-close>
         ×
       </div>
 
@@ -210,6 +210,9 @@ const [snackbar, setSnackbar] = useState({
 
     poiPopupRef.current.innerHTML = toCspHtml(html);
     applyInlineStyles(poiPopupRef.current);
+    // Inline onclick="" is blocked by the CSP; attach the close handler here
+    const closeBtn = poiPopupRef.current.querySelector("[data-poi-close]");
+    if (closeBtn) closeBtn.onclick = () => closePoiPopup();
     poiPopupRef.current.style.display = "block";
 
     poiPopupOverlayRef.current.setPosition(
