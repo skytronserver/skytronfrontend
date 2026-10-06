@@ -3,6 +3,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
+import { TssCacheProvider } from "tss-react";
 import { useLocation } from "react-router-dom";
 import "./themes/styles.css"
 // routing
@@ -19,6 +20,9 @@ import { cspNonce } from "./utils/cspNonce";
 // MUI styles are injected at runtime; tag them with the CSP nonce so the
 // policy needs no 'unsafe-inline'. prepend = the old <StyledEngineProvider injectFirst>.
 const emotionCache = createCache({ key: "css", prepend: true, nonce: cspNonce });
+// tss-react (used by mui-datatables) ignores the emotion CacheProvider and
+// otherwise creates its own nonce-less "tss" cache, which the CSP blocks.
+const tssCache = createCache({ key: "tss", nonce: cspNonce });
 
 // ==============================|| APP ||============================== //
 
@@ -29,6 +33,7 @@ const App = () => {
 
   return (
     <CacheProvider value={emotionCache}>
+     <TssCacheProvider value={tssCache}>
       <ThemeProvider theme={themes(customization)}>
         <CssBaseline />
         <NavigationScroll>
@@ -36,6 +41,7 @@ const App = () => {
           {!hideLanguageSwitcher && <StickyLanguageSwitcher />}
         </NavigationScroll>
       </ThemeProvider>
+     </TssCacheProvider>
     </CacheProvider>
   );
 };

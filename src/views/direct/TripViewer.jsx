@@ -25,7 +25,7 @@ import Overlay from 'ol/Overlay';
 import "ol/ol.css";
 import axios from 'axios';
 
-import { applyInlineStyles, toCspHtml } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml, cspNonce } from "../../utils/cspNonce";
 const resolveBhuvanWmsUrl = () => {
   const envUrl = process.env.REACT_APP_BHUVAN_URL || "https://bhuvan-vec1.nrsc.gov.in";
   const normalizedUrl = envUrl.replace(/\/$/, "");
@@ -1048,7 +1048,7 @@ const TripViewer = () => {
                   </Box>
 
                   {/* CSS Animations */}
-                  <style>
+                  <style nonce={cspNonce}>
                     {`
                       @keyframes pulse {
                         0%, 100% { transform: scale(1); }

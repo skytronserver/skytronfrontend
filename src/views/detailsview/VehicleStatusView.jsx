@@ -21,6 +21,7 @@ import iconAlert        from "../../assets/images/yatra-kavach/icon_alert.png";
 import iconRefresh      from "../../assets/images/yatra-kavach/icon_refresh.png";
 import iconBus          from "../../assets/images/yatra-kavach/icon_bus.png";
 import iconSpeedLimit   from "../../assets/images/yatra-kavach/icon_speed_limit.png";
+import { cspNonce }     from "../../utils/cspNonce";
 
 // ── dummy data ──────────────────────────────────────────────────────────────
 const DUMMY = {
@@ -215,7 +216,7 @@ const VehicleStatusView = () => {
 
       {/* ═══════════ CONTENT ═══════════ */}
       <div className="hide-scroll" style={{ flex:1, padding:"8px 20px" }}>
-        <style>{`
+        <style nonce={cspNonce}>{`
           .hide-scroll::-webkit-scrollbar { display: none; }
           .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; overflow-y: auto; }
           .search-form { width: 400px; max-width: 100%; }
@@ -431,7 +432,7 @@ const VehicleStatusView = () => {
       </div>
 
       {/* spinner keyframe */}
-      <style>{`
+      <style nonce={cspNonce}>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
       `}</style>

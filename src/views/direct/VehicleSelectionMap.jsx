@@ -9,7 +9,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
 
-import { applyInlineStyles, toCspHtml } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml, cspNonce } from "../../utils/cspNonce";
 const VehicleSelectionMap = ({
     gpsData,
     width = "100%",
@@ -307,7 +307,7 @@ const VehicleSelectionMap = ({
                 <p id="overlay-content"> </p>
             </div>
 
-            <style>{`
+            <style nonce={cspNonce}>{`
         .dynamic-overlay {
           position: absolute;
           background-color: white;

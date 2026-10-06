@@ -62,7 +62,7 @@ import { getUseOldGeocodingApi, setUseOldGeocodingApi } from "../../services/Hom
 import axios from "axios";
 import { renderSecureIncidentMedia } from "../../utils/incidentImageLoader";
 
-import { applyInlineStyles, toCspHtml, createStyleElement } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml, createStyleElement, cspNonce } from "../../utils/cspNonce";
 const vehicleIconContext = require.context('../../assets/images', true, /\.png$/);
 
 const formatDateDDMMYY = (raw) => {
@@ -5777,7 +5777,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 <div id="overlay-content"></div>
             </div>
 
-            <style>{`
+            <style nonce={cspNonce}>{`
 .ol-attribution {
 display: none !important;
 }
