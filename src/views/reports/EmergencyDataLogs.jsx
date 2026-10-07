@@ -20,6 +20,30 @@ const gpsDataColumns = [
         },
     },
     {
+        name: "source_ip",
+        label: "Source IP",
+        options: {
+            filter: true,
+            sort: true,
+        },
+    },
+    {
+        name: "imei",
+        label: "IMEI",
+        options: {
+            filter: true,
+            sort: true,
+        },
+    },
+    {
+        name: "network_name",
+        label: "Network Name",
+        options: {
+            filter: true,
+            sort: true,
+        },
+    },
+    {
         name: "rawData",
             label: t('gpsData.rawData'),
         options: {
@@ -33,6 +57,8 @@ const gpsDataColumns = [
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
+    const [ipQuery, setIpQuery] = useState("")
+    const [imeiQuery, setImeiQuery] = useState("")
     const parseGpsData = (response) => {
         try {
             console.log('Raw data received:', response);
@@ -48,6 +74,9 @@ const gpsDataColumns = [
             return parsedData.map(item => ({
                 id: item.pk,
                 timestamp: item.fields.timestamp,
+                source_ip: item.fields.source_ip,
+                imei: item.fields.imei,
+                network_name: item.fields.network_name,
                 rawData: item.fields.raw_data,
                 gpsDataArray: item.fields.raw_data.split(',')
             }));
@@ -58,11 +87,13 @@ const gpsDataColumns = [
         }
     }
 
-    const getGpsData = async (search = "") => {
+    const getGpsData = async (search = "", ip = "", imei = "") => {
         try {
             setLoading(true);
             const response = await HomePageService.getEmergencyDataLogs({
-                search: search
+                search: search,
+                ip: ip,
+                imei: imei
             });
             console.log('API Response:', response);
             const parsedData = parseGpsData(response);
@@ -76,7 +107,7 @@ const gpsDataColumns = [
     }
     const handleSearch = (event) => {
         event.preventDefault();
-        getGpsData(searchQuery);
+        getGpsData(searchQuery, ipQuery, imeiQuery);
     };
     useEffect(() => {
         getGpsData();
@@ -97,12 +128,30 @@ const gpsDataColumns = [
             <Grid item xs={12}>
                 <form onSubmit={handleSearch}>
                     <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <TextField
                                 fullWidth
                                 label={t('gpsData.searchByImei')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                variant="outlined"
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <TextField
+                                fullWidth
+                                label="IP"
+                                value={ipQuery}
+                                onChange={(e) => setIpQuery(e.target.value)}
+                                variant="outlined"
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <TextField
+                                fullWidth
+                                label="IMEI"
+                                value={imeiQuery}
+                                onChange={(e) => setImeiQuery(e.target.value)}
                                 variant="outlined"
                             />
                         </Grid>

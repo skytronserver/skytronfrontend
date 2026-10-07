@@ -296,6 +296,21 @@ const getEmergencyDataLogs = (search = '') => {
     });
 };
 
+const getDeviceIpUnique = (params = {}) => {
+    const http = getAxiosInstance();
+    return http.get("/api/device-ip/unique/", { params });
+};
+
+const getDeviceIpImeis = (params = {}) => {
+    const http = getAxiosInstance();
+    return http.get("/api/device-ip/imeis/", { params });
+};
+
+const getDeviceIpByImei = (params = {}) => {
+    const http = getAxiosInstance();
+    return http.get("/api/device-ip/by-imei/", { params });
+};
+
 const getApiDataLog = (params = {}, config = {}) => {
     const http = getAxiosInstance();
 
@@ -488,8 +503,10 @@ const HomePageService = {
     getSchoolBusLocations,
     getPisRoutes,
     getSchoolBusRoutes,
-    getAlertHeatmap
-
+    getAlertHeatmap,
+    getDeviceIpUnique,
+    getDeviceIpImeis,
+    getDeviceIpByImei
 };
 
 export default HomePageService;

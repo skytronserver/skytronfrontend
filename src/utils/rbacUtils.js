@@ -123,6 +123,7 @@ export const MENU_MODULE_MAP = {
   'combined-stock':              'report_device',
   'all-device':                  'report_stock',
   'gps-data-log':                'report_gps_log',
+  'device-ips':                  'report_device_ips',
   'activation-log-report':       'report_activation_log',
   'emergency-data-logs':         'report_emergency_data',
   'health-packet-log':           'report_health_packet',
@@ -299,6 +300,7 @@ export const ROUTE_MODULE_MAP = {
 
   // Reports (specific paths before generic /reports prefix)
   '/reports/gps-data-log':                                         'report_gps_log',
+  '/reports/device-ips':                                           'report_device_ips',
   '/reports/activation-log-report':                                'report_activation_log',
   '/reports/emergency-data-logs':                                  'report_emergency_data',
   '/reports/health-packet-log':                                    'report_health_packet',

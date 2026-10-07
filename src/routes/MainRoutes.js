@@ -41,6 +41,7 @@ const DeviceLoginHistory = Loadable(lazy(() => import("../views/reports/DeviceLo
 const DeviceDataHealth = Loadable(lazy(() => import("../views/reports/DeviceDataHealth")));
 const EmergencyDataLogs = Loadable(lazy(() => import("views/reports/EmergencyDataLogs")));
 const ApiDataLog = Loadable(lazy(() => import("../views/reports/ApiDataLog")));
+const DeviceIpDashboard = Loadable(lazy(() => import("../views/reports/DeviceIpDashboard")));
 const CameraFeedsView = Loadable(lazy(() => import("../pages/CameraFeedsView")));
 const POIViewer = Loadable(lazy(() => import("../views/direct/POIViewer")));
 const TripViewer = Loadable(lazy(() => import("views/direct/TripViewer")));
@@ -327,6 +328,11 @@ const MainRoutes = {
       path: '/reports/gps-data-log',
       element: <GpsDataLog />,
       roles: ['superadmin', 'stateadmin']
+    },
+    {
+      path: '/reports/device-ips',
+      element: <DeviceIpDashboard />,
+      roles: ['superadmin']
     },
     {
       path: "/reports/device-login-history",

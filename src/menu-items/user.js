@@ -853,7 +853,7 @@ const user = {
         // },
         {
           id: 'gps-data-log',
-          title: 'GPS Data Log',
+          title: 'Data Log',
           type: 'item',
           url: '/reports/gps-data-log',
           icon: icons.IconDeviceAnalytics,
@@ -888,10 +888,10 @@ const user = {
           roles: ['superadmin']
         },
         {
-          id: 'emergency-data-logs',
-          title: 'Emergency Data Logs',
+          id: 'device-ips',
+          title: 'Device IPs',
           type: 'item',
-          url: '/reports/emergency-data-logs',
+          url: '/reports/device-ips',
           icon: icons.IconDeviceAnalytics,
           breadcrumbs: false,
           roles: ['superadmin']
