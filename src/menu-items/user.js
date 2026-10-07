@@ -861,6 +861,15 @@ const user = {
           roles: ['superadmin']
         },
         {
+          id: 'device-ip-history',
+          title: 'Device IP History',
+          type: 'item',
+          url: '/reports/device-ip-history',
+          icon: icons.IconDeviceAnalytics,
+          breadcrumbs: false,
+          roles: ['superadmin']
+        },
+        {
           id: 'device-login-history',
           title: 'Device Login History',
           type: 'item',
