@@ -23,7 +23,6 @@ const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
 const SOSDashboard = ({ role, calls, deskCalls }) => {
   const [call, setCall] = useState({})
-  const [status, setStatus] = useState(true);
   const [broadcastDisabled, setBroadcastDisabled] = useState(false);
   const navigate = useNavigate();
   //Call Details
@@ -449,13 +448,6 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
 
   return (
     <Grid container spacing={2}>
-      <img
-        src={`${process.env.REACT_APP_STATUS_CHECK_URL || 'http://localhost:5000'}/api/image`}
-        alt="hidden"
-        style={{ display: "none" }}
-        onLoad={() => setStatus(true)}
-        onError={() => setStatus(false)}
-      />
       <Grid item xs={12}>
         <MiniBoard data={data} />
       </Grid>

@@ -22,7 +22,7 @@ import Overlay from "ol/Overlay";
 import "ol/ol.css";
 import HomePageService from "../../services/HomePage";
 
-import { applyInlineStyles, toCspHtml } from "../../utils/cspNonce";
+import { applyInlineStyles, toCspHtml, cspNonce } from "../../utils/cspNonce";
 /**
  * Reusable Bhuvan Map Component with OpenLayers
  * Supports Normal (Bhuvan) and Satellite (OSM) base layerss
@@ -3063,7 +3063,7 @@ ${trailerHtml}
                 <div id="overlay-content"></div>
             </div>
 
-            <style>{`
+            <style nonce={cspNonce}>{`
         .dynamic-overlay {
           position: absolute;
           display: none;
