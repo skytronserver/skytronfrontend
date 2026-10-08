@@ -107,7 +107,7 @@ const ServerHealthDashboard = Loadable(lazy(() => import('../views/servermonitor
 const DeviceInspectDashboard = Loadable(lazy(() => import('../views/servermonitor/DeviceInspector')));
 const AlertStatsReports = Loadable(lazy(() => import('../views/servermonitor/AlertStatsPage')));
 const DeviceDataHealthPage = Loadable(lazy(() => import('../views/servermonitor/DeviceDataHealthPage')));
-
+const BleSosAppLog = Loadable(lazy(() => import('../views/reports/BleSosAppLog')));
 
 const applyPrivateRoute = (route) => ({
   ...route,
@@ -648,6 +648,11 @@ const MainRoutes = {
     {
       path: '/reports/habitual-offender-report',
       element: <HabitualOffenderReport />,
+      roles: ['superadmin']
+    },
+    {
+      path: '/reports/ble-sos-app-logs',
+      element: <BleSosAppLog />,
       roles: ['superadmin']
     },
 

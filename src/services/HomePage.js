@@ -459,6 +459,13 @@ const getAlertHeatmap = (params = {}, config = {}) => {
         ...config,
     });
 };
+const getBleSosAppLogs = (params = {}, config = {}) => {
+    const http = getAxiosInstance();
+    return http.get('/api/ble-sos/app-log/list/', {
+        params,
+        ...config,
+    });
+};
 
 const HomePageService = {
     getLiveTracking,
@@ -506,7 +513,8 @@ const HomePageService = {
     getAlertHeatmap,
     getDeviceIpUnique,
     getDeviceIpImeis,
-    getDeviceIpByImei
+    getDeviceIpByImei,
+    getBleSosAppLogs
 };
 
 export default HomePageService;

@@ -1003,6 +1003,14 @@ const user = {
           breadcrumbs: false,
           roles: ['superadmin'],
         },
+        {
+          id: 'ble-sos-app-logs',
+          title: 'BLE SOS App Logs',
+          type: 'item',
+          url: '/reports/ble-sos-app-logs',
+          breadcrumbs: false,
+          roles: ['superadmin'],
+        },
         // {
         //   id: "all-holiday-list",
         //   title: "School Holidays",
